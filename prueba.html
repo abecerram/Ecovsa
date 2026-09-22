@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prueba del puente · ECOVSA</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef2f6;color:#1b2430;padding:24px 16px 80px}
+  .caja{max-width:640px;margin:0 auto 14px;background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 10px rgba(20,48,107,.08)}
+  h1{font-size:19px;margin:0 0 4px} h2{font-size:15px;margin:0 0 8px}
+  p{margin:0 0 10px;color:#556;font-size:13.5px;line-height:1.5}
+  input{width:100%;padding:10px 12px;border:1.5px solid #cfd8e3;border-radius:9px;font:inherit;margin-bottom:8px}
+  button{padding:10px 14px;border:0;border-radius:9px;background:#1d4f91;color:#fff;font:600 13.5px system-ui;cursor:pointer;margin:0 6px 6px 0}
+  button.sec{background:#e6ecf3;color:#1d4f91}
+  pre{background:#0f1a2a;color:#cfe3ff;border-radius:9px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:320px;overflow:auto;margin:8px 0 0}
+</style>
+<script src="puente.js"></script>
+</head>
+<body>
+  <div class="caja">
+    <h1>Prueba del puente</h1>
+    <p>Esta página vive en GitHub y habla con Apps Script por el <b>doPost</b>. Abajo a la derecha está el reloj de última actualización; tócalo para ver los tiempos.</p>
+  </div>
+
+  <div class="caja" id="cajaUrl">
+    <h2>Dirección /exec</h2>
+    <p>Solo para esta prueba: pega aquí la dirección /exec de tu implementación. Se guarda en este navegador.</p>
+    <input id="url" placeholder="Dirección /exec de Apps Script">
+    <button onclick="guardarUrl()">Guardar dirección</button>
+  </div>
+
+  <div class="caja">
+    <h2>1 · Conexión</h2>
+    <p>Llama a <code>api_urlApp</code>. Si responde, el doPost está funcionando.</p>
+    <button onclick="probarConexion()">Probar conexión</button>
+    <button class="sec" onclick="repetir(5)">Repetir 5 veces (medir)</button>
+  </div>
+
+  <div class="caja">
+    <h2>2 · PIN</h2>
+    <p>Llama a <code>api_login</code> con el PIN. Debe aceptar uno bueno y rechazar uno malo.</p>
+    <input id="pin" type="password" inputmode="numeric" placeholder="PIN">
+    <button onclick="probarPin()">Probar PIN</button>
+  </div>
+
+  <div class="caja">
+    <h2>Resultado</h2>
+    <pre id="log">Listo para probar.</pre>
+  </div>
+
+<script>
+  function log(t){ var l=document.getElementById('log'); l.textContent = new Date().toLocaleTimeString()+'  '+t+'\n'+l.textContent; }
+  (function(){
+    var u=''; try{ u=localStorage.getItem('pnt:url')||''; }catch(e){}
+    document.getElementById('url').value=u;
+    if(PUENTE.config.url.indexOf('PEGA_AQUI')!==0 && !u) document.getElementById('cajaUrl').style.display='none';
+    log(PUENTE.activo ? 'Puente activo ('+PUENTE.config.version+').' : 'Estás dentro de Apps Script: el puente no se usa.');
+  })();
+
+  function guardarUrl(){
+    var u=document.getElementById('url').value.trim();
+    if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ log('Esa dirección no parece un /exec de Apps Script.'); return; }
+    try{ localStorage.setItem('pnt:url',u); }catch(e){}
+    log('Dirección guardada. Recargando…'); setTimeout(function(){ location.reload(); },600);
+  }
+
+  function probarConexion(){
+    var t0=Date.now(); log('Llamando api_urlApp…');
+    google.script.run
+      .withSuccessHandler(function(r){ log('✓ Conexión OK en '+(Date.now()-t0)+' ms. Respondió: '+(r?String(r).slice(0,60)+'…':'(vacío)')); })
+      .withFailureHandler(function(e){ log('✗ Falló: '+e.message); })
+      .api_urlApp();
+  }
+
+  function repetir(n){
+    var i=0, tiempos=[];
+    (function una(){
+      if(i>=n){ log('Tiempos: '+tiempos.join(' · ')+' ms  → promedio '+Math.round(tiempos.reduce(function(a,b){return a+b;},0)/n)+' ms'); return; }
+      var t0=Date.now(); i++;
+      PUENTE.llamar('api_urlApp').then(function(){ tiempos.push(Date.now()-t0); una(); },
+                                       function(e){ log('✗ Falló en la vuelta '+i+': '+e.message); });
+    })();
+    log('Midiendo '+n+' llamadas seguidas…');
+  }
+
+  function probarPin(){
+    var p=document.getElementById('pin').value.trim(); if(!p){ log('Escribe un PIN.'); return; }
+    var t0=Date.now(); log('Validando PIN…');
+    google.script.run
+      .withSuccessHandler(function(r){
+        var ms=(Date.now()-t0)+' ms';
+        if(r&&r.ok){ var u=r.usuario||{}; log('✓ PIN aceptado en '+ms+'. Rol: '+(u.rol||u.perfil||'(sin rol)')); }
+        else log('✓ El servidor respondió en '+ms+' y rechazó el PIN: '+((r&&r.error)||''));
+      })
+      .withFailureHandler(function(e){ log('✗ Falló: '+e.message); })
+      .api_login(p);
+  }
+</script>
+</body>
+</html>
