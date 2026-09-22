@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap");
+/* ECOVSA · estilos compartidos (generado desde Estilos.html + TEMA de Codigo.gs).
+   No editar a mano: si cambia la paleta, se regenera. Acento: certificados */
+
+/* Las variables. paletaCss_ devuelve texto CSS pelado, sin etiquetas: por eso
+   tiene que salir DENTRO de este bloque de estilo. Si sale fuera, el navegador
+   lo toma como texto de la página y lo imprime arriba de todo. Ya pasó. */
+:root{--tinta:#15220F;--gris:#5D6B58;--fondo:#F1F6EF;--borde:#D2E2D0;--verde:#2F6B0A;--verde-bandera:#00792F;--lima:#86B62B;--verde-claro:#CFE5B4;--verde-suave:#EEF5E4;--ambar:#F5B301;--ambar-osc:#9A6E00;--rojo:#C0392B;--rojo-suave:#FBEAE8;--morado:#6C3A96;--morado-claro:#B08BD4;--radio:16px;--sombra:0 2px 12px rgba(30,81,39,.10);--azul-osc:#1E5127;--azul:#2F7D32;--azul-claro:#B9DBBB;--azul-suave:#EAF4EA}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,-apple-system,sans-serif;
+  background:var(--fondo);color:var(--tinta);line-height:1.5;
+  -webkit-text-size-adjust:100%}
+
+/* La franja. Aparece en cada documento que sale al cliente: es lo que hace
+   que una propuesta y un certificado se vean de la misma empresa. */
+.franja{height:4px;border-radius:2px;background:linear-gradient(90deg,
+  var(--azul-osc) 0%, var(--azul) 34%, var(--verde-bandera) 67%, var(--lima) 100%)}
+
+/* Los números siempre en 800: se leen de lejos, que es como se miran. */
+b,strong{font-weight:800}
+
+::selection{background:var(--azul-suave);color:var(--tinta)}
+:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+
+/* ═══ LA HOJA IMPRESA ════════════════════════════════════════════════
+   Un reporte que gerencia manda por correo tiene que salir como un
+   documento, no como una captura de pantalla con menús.
+
+   Vive AQUÍ y no copiado en cada reporte por una razón práctica: el día
+   que cambie el logo, la razón social o el margen, cambia en un sitio y
+   las cuatro páginas salen iguales. Cuatro copias siempre terminan
+   siendo cuatro versiones distintas.
+
+   CÓMO SE USA EN UNA PÁGINA
+   1. Un botón con class="no-imprimir" que llame a window.print().
+   2. Arriba del contenido, el membrete:
+        div.hoja-membrete  >  img.hoja-logo  +  div  ( .hoja-razon,
+                              .hoja-titulo, .hoja-periodo )
+      En pantalla está escondido; al imprimir aparece.
+   3. Todo lo que no deba salir en papel —barras, filtros, pestañas,
+      botones— lleva class="no-imprimir".
+
+   El membrete se repite en cada página impresa porque va en position
+   fixed dentro del contexto de impresión. */
+.hoja-membrete{display:none}
+
+@media print{
+  /* Fondo blanco de verdad: los degradados de pantalla se comen el tóner
+     y en una impresora láser salen como una mancha gris. */
+  body{background:#fff!important;color:#000;padding:0;margin:0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  .no-imprimir,
+  header, nav, footer,
+  .barra, .filtros, .rapidos, .zonas-nav{display:none!important}
+  /* Aquí estuvo .pie y se llevaba de la hoja impresa cosas que sí van en
+     papel: las cuatro firmas de la solicitud de pago, el código de
+     formulario de las actas, el pie con la dirección del contrato y la
+     propuesta. La palabra es demasiado común para esconderla a ciegas —
+     lo que no deba imprimirse lleva class="no-imprimir". */
+
+  .hoja-membrete{display:flex!important;align-items:center;gap:14px;
+    border-bottom:2.5px solid #14306B;padding-bottom:10px;margin-bottom:16px}
+  .hoja-logo{height:52px;width:auto}
+  .hoja-razon{font-size:9.5pt;font-weight:700;color:#14306B;letter-spacing:.4px;
+    text-transform:uppercase}
+  .hoja-titulo{font-size:15pt;font-weight:900;color:#14306B;line-height:1.15;margin-top:1px}
+  .hoja-periodo{font-size:9pt;color:#444;margin-top:3px}
+
+  /* Tarjetas y paneles: en papel el sombreado y el borde redondeado solo
+     estorban. Se quedan las líneas, que son las que separan. */
+  .tarjeta,.panel,.kpi,.preg,.zona,.periodo{box-shadow:none!important;
+    border:1px solid #BBB!important;border-radius:0!important;
+    break-inside:avoid;page-break-inside:avoid}
+
+  /* Una tabla larga puede cortarse entre páginas, pero NUNCA a la mitad
+     de una fila, y el encabezado se repite arriba de cada trozo — si no,
+     la segunda página son números sin nombre de columna. */
+  table{page-break-inside:auto;width:100%;border-collapse:collapse;font-size:9pt}
+  thead{display:table-header-group}
+  tfoot{display:table-footer-group}
+  tr{page-break-inside:avoid;page-break-after:auto}
+  th,td{border-bottom:1px solid #CCC;padding:5px 7px}
+
+  /* Un título no se queda solo al pie de una página. */
+  h1,h2,h3{page-break-after:avoid}
+
+  /* Lo que en pantalla se abre y se cierra, en papel va TODO abierto:
+     nadie puede hacer clic en una hoja. */
+  .preg .cuerpo,.plegable,[hidden].imprimir-abierto{display:block!important}
+
+  a{color:#000;text-decoration:none}
+  /* La dirección de un enlace no sirve en papel y ensucia la línea. */
+  a[href]:after{content:none!important}
+
+  /* Las gráficas se achican para que quepan sin partirse. */
+  canvas,svg{max-width:100%!important;height:auto!important;
+    break-inside:avoid;page-break-inside:avoid}
+}
+
+@page{margin:14mm}

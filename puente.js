@@ -30,8 +30,8 @@
 
   var CONFIG = {
     /* Dirección /exec de la implementación de Apps Script. */
-    url: 'PEGA_AQUI_TU_URL_EXEC',
-    version: 'puente 1.1',
+    url: 'https://script.google.com/macros/s/AKfycbxWP6MYJKBl-VOOAdo_9wdDZHk_ZdW_4Hq1SaZ2wGKVzDHDIlmyVjsr_0BFMjpRz2VQ/exec',
+    version: 'puente 1.2',
     cacheHoras: 24,          // una copia local más vieja que esto no se usa
     timeoutMs: 25000,        // tiempo máximo de espera por cada intento
     maxIntentos: 3,          // intentos por llamada (con la misma etiqueta)

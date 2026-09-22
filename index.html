@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="estilos-operaciones.css">
+<script src="puente.js"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{font-family:'Archivo',system-ui,sans-serif;
+  background:linear-gradient(160deg,var(--azul-osc) 0%,var(--azul) 58%,#0A6B4E 145%);
+  background-attachment:fixed;color:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:26px 20px 40px;min-height:100vh}
+
+.logo{height:96px;width:150px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:16px;padding:11px 16px;box-shadow:0 5px 20px rgba(0,0,0,.3);margin-bottom:18px}
+
+/* ── entrada por PIN ── */
+#acceso{text-align:center;max-width:340px;width:100%}
+#acceso h1{font-size:21px;font-weight:800;letter-spacing:.3px}
+#acceso .sub{color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;margin:14px 0 20px}
+#pin{width:180px;text-align:center;font-size:31px;font-weight:800;letter-spacing:10px;
+  padding:14px;border:none;border-radius:14px;background:#fff;color:var(--azul-osc);font-family:inherit}
+#pin-err{color:#FFC9C4;font-size:13px;font-weight:600;min-height:20px;margin-top:11px;line-height:1.5}
+#acceso button{width:200px;margin-top:6px;padding:14px;border:none;border-radius:12px;
+  background:var(--ambar);color:#4A3300;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer}
+#acceso button:active{transform:translateY(1px)}
+
+/* ── destinos ── */
+#menu{display:none;width:100%;max-width:1000px}
+.saludo{text-align:center;margin-bottom:22px}
+.saludo h1{font-size:23px;font-weight:800;letter-spacing:.3px}
+.saludo .rol{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10.5px;
+  font-weight:800;letter-spacing:1.1px;text-transform:uppercase;padding:5px 15px;
+  border-radius:15px;margin-top:9px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EL MODELO: cuatro alrededor, uno en el centro.
+
+   No es adorno. Los cuatro de los lados son donde se HACE el trabajo;
+   el del centro es donde se MIRA y se decide. Ponerlo en medio dice sin
+   escribirlo que gerencia no es un módulo más al lado de cartera: es el
+   que ve a los cuatro.
+
+   La columna del centro ocupa las dos filas, así que esa tarjeta es
+   visiblemente más grande sin necesitar otro color ni un borde raro.
+
+   El orden de las tarjetas lo pone la lista MODULOS del servidor y la
+   rejilla las acomoda sola: la primera arriba a la izquierda, la segunda
+   arriba a la derecha (se salta el centro), y las otras dos abajo.
+   ═══════════════════════════════════════════════════════════════════ */
+.modelo{display:grid;grid-template-columns:1fr 1.15fr 1fr;grid-template-rows:auto auto;
+  gap:14px;align-items:stretch}
+.modelo .centro{grid-column:2;grid-row:1 / 3}
+
+/* Sin centro —un operador, planta, cobros— el modelo no tiene sentido y
+   se deshace solo: cuatro tarjetas parejas y ya. Dejar el hueco del medio
+   sería enseñar una puerta que no existe. */
+.modelo.sin-centro{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  grid-template-rows:none}
+
+@media (max-width:880px){
+  .modelo{grid-template-columns:1fr 1fr;grid-template-rows:none}
+  .modelo .centro{grid-column:1 / 3;grid-row:auto}
+}
+@media (max-width:560px){
+  .modelo{grid-template-columns:1fr}
+  .modelo .centro{grid-column:1}
+}
+
+.tarjeta{position:relative;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.20);border-radius:18px;padding:17px 18px;
+  cursor:pointer;text-align:left;font-family:inherit;color:#fff;
+  display:flex;flex-direction:column;gap:3px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:transform .12s,background .12s}
+.tarjeta:hover{background:rgba(255,255,255,.17);transform:translateY(-2px)}
+.tarjeta:active{transform:translateY(1px)}
+.tarjeta .ic{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+.tarjeta .ic svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.tarjeta .t{font-size:16.5px;font-weight:800;line-height:1.25}
+.tarjeta .d{font-size:12.5px;color:rgba(255,255,255,.72);line-height:1.55;margin-top:5px}
+
+/* lo que no te toca: en gris, pero se ve. Que exista y haya que pedirlo
+   se entiende mejor así que si desapareciera. */
+.tarjeta.no{background:rgba(0,0,0,.20);border-color:rgba(255,255,255,.10);
+  cursor:default;opacity:.62}
+.tarjeta.no:hover{background:rgba(0,0,0,.20);transform:none}
+.tarjeta.no:active{transform:none}
+.tarjeta.no .ic{background:rgba(255,255,255,.07)}
+.tarjeta.no .ic svg{stroke:rgba(255,255,255,.5)}
+.tarjeta.no .t{color:rgba(255,255,255,.62)}
+.tarjeta.no .d{color:rgba(255,255,255,.42)}
+.candado{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
+  letter-spacing:.6px;text-transform:uppercase;background:rgba(255,255,255,.12);
+  color:rgba(255,255,255,.72);border-radius:6px;padding:4px 9px;margin-top:9px;
+  align-self:flex-start}
+.candado.obra{background:rgba(245,179,1,.20);color:#FFD98A}
+
+/* La pastilla dice cuánto está esperando en ese módulo. Solo se pinta en
+   rojo cuando hay algo: un cero en rojo entrena a la gente a ignorar el
+   rojo, que es justo lo que no queremos. */
+.pend{position:absolute;top:15px;right:16px;font-size:11px;font-weight:800;
+  border-radius:9px;padding:2px 8px;background:rgba(255,255,255,.18)}
+.pend.hay{background:#FFD9D4;color:#8E2A1E}
+
+/* ── la del centro ── */
+.tarjeta.centro{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.34);
+  padding:22px 22px 20px;justify-content:flex-start}
+/* El icono del centro NO va en ámbar. La posición y el tamaño ya dicen
+   que esa tarjeta manda; pintarla además de otro color sería decirlo
+   tres veces y el lobby se volvería un semáforo. Solo es más grande. */
+.tarjeta.centro .ic{width:52px;height:52px}
+.tarjeta.centro .ic svg{width:28px;height:28px}
+.tarjeta.centro .t{font-size:20px}
+.tarjeta.centro .d{font-size:13px}
+.resumen{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.22);
+  display:flex;flex-direction:column;gap:9px}
+.rz{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.rz i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.rz .n{flex:1;font-weight:700}
+.rz .v{color:rgba(255,255,255,.78);font-variant-numeric:tabular-nums;text-align:right}
+.rz .p{background:rgba(255,255,255,.18);border-radius:9px;padding:1px 8px;
+  font-size:11px;font-weight:800;flex:0 0 auto}
+.rz .p.hay{background:#FFD9D4;color:#8E2A1E}
+.resumen .esperando{font-size:12px;color:rgba(255,255,255,.6)}
+
+/* ── lo de paso ── */
+/* Certificados, Solicitud de pago y Finanzas no son parte del modelo: se
+   usan desde cualquier módulo. De tarjeta dirían que pesan lo mismo que
+   Logística, y no. De botón se entiende que son un trámite. */
+.aparte{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.aparte button{border:1.5px solid rgba(255,255,255,.26);background:rgba(255,255,255,.07);
+  color:#fff;border-radius:14px;padding:11px 17px;font-family:inherit;font-size:13px;
+  font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px}
+.aparte button:hover{background:rgba(255,255,255,.14)}
+.aparte button.no{opacity:.45;cursor:default}
+.aparte button.no:hover{background:rgba(255,255,255,.07)}
+.aparte svg{width:18px;height:18px;stroke:rgba(255,255,255,.85);fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+.pie{text-align:center;margin-top:26px;color:rgba(255,255,255,.55);font-size:12px;line-height:1.7}
+.pie button{background:none;border:none;color:rgba(255,255,255,.8);font-family:inherit;
+  font-size:12.5px;font-weight:700;text-decoration:underline;cursor:pointer;padding:6px}
+
+#cargando{text-align:center}
+.spin{width:38px;height:38px;border:4px solid rgba(255,255,255,.28);border-top-color:#fff;
+  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 14px}
+@keyframes g{to{transform:rotate(360deg)}}
+#cargando .txt{color:rgba(255,255,255,.8);font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="logo"></div>
+
+<div id="cargando"><div class="spin"></div><div class="txt">Un momento…</div></div>
+
+<div id="acceso" style="display:none">
+  <h1>Rutas ECOVSA</h1>
+  <div class="sub">Ecología · Vida · Salud<br>Escribe tu PIN para entrar.</div>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+  <div id="pin-err"></div>
+  <button onclick="entrar()">Entrar</button>
+</div>
+
+<div id="menu">
+  <div class="saludo">
+    <h1 id="saludo-nom">—</h1>
+    <div class="rol" id="saludo-rol">—</div>
+  </div>
+  <div class="modelo" id="modelo"></div>
+  <div class="aparte" id="aparte"></div>
+  <div id="aviso-lobby" style="display:none;max-width:560px;margin:18px auto 0;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:12px;
+    padding:13px 17px;font-size:13.5px;line-height:1.6;text-align:center"></div>
+  <div class="pie">
+    Si necesitas entrar con otro usuario, <button onclick="salir()">cierra la sesión</button>.
+  </div>
+</div>
+
+<script>
+var URL_APP="", PIN_ACTUAL="", ICONOS={
+ /* La brújula no mide: orienta. Dice hacia dónde, que es lo que hace
+    quien dirige. La aguja son dos triángulos grandes, no una punta fina,
+    para que aguante achicarse. */
+ brujula:'<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>',
+ ruta:'<path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+ maletin:'<rect x="2.5" y="7.5" width="19" height="13" rx="2.2"/><path d="M8.5 7.5V5.4A2 2 0 0 1 10.5 3.4h3a2 2 0 0 1 2 2v2.1"/><path d="M2.5 12.5h19"/>',
+ /* Un autoclave, no un zafacón: el negocio no es botar, es esterilizar. */
+ planta:'<rect x="2.5" y="6" width="19" height="12" rx="2.4"/><circle cx="8" cy="12" r="2.6"/><path d="M14 9.5c0 1.2 1.4 1.3 1.4 2.5S14 14.3 14 15.5M17.6 9.5c0 1.2 1.4 1.3 1.4 2.5s-1.4 1.3-1.4 2.5"/>',
+ moneda:'<circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a3 3 0 0 0-2.8-1.7c-1.6 0-2.7.9-2.7 2.1 0 2.9 5.6 1.6 5.6 4.5 0 1.3-1.2 2.2-2.9 2.2a3.1 3.1 0 0 1-2.9-1.8"/><path d="M12 6v12"/>',
+ sello:'<circle cx="12" cy="9" r="5.5"/><path d="M9 13.8 7.5 21l4.5-2.4 4.5 2.4-1.5-7.2"/><path d="M10 9l1.5 1.5L14 7.5"/>',
+ billete:'<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+ recibo:'<path d="M6 2.8h12a1 1 0 0 1 1 1v17.4l-2.6-1.6-2.6 1.6-2.6-1.6-2.6 1.6-2.6-1.6V3.8a1 1 0 0 1 1-1Z"/><path d="M9 8h6M9 12h6"/>',
+ /* Una llave de tuercas: lo que se cuida aquí son equipos y vehículos, no
+    papeles. Se lee a cualquier tamaño y no se confunde con las otras. */
+ llave:'<path d="M15.5 3.5a5 5 0 0 0-4.3 7.5L3.5 18.7a1.6 1.6 0 0 0 0 2.3l.5.5a1.6 1.6 0 0 0 2.3 0L13 13.8a5 5 0 1 0 2.5-10.3Z"/><circle cx="16.4" cy="8.1" r="2.1"/>'
+};
+
+/* El punto de color de cada zona en el resumen del centro. Es el mismo
+   color con el que cada módulo se identifica en el resto del sistema. */
+var PUNTO={campo:"var(--azul-claro)",alta:"var(--lima)",planta:"var(--morado-claro)",cobros:"var(--ambar)"};
+var ZONA_DE={logistica:"campo",mercadeo:"alta",planta:"planta",cobros:"cobros"};
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function ver(id){ ["cargando","acceso","menu"].forEach(function(x){
+  $(x).style.display = (x===id) ? "block" : "none"; }); }
+
+var ROTULO={admin:"Administración",operador:"Operador",supervisor:"Supervisión de operaciones",
+            gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta"};
+
+function arrancar(){
+  // vigilante: si algo se cuelga, que no gire para siempre
+  setTimeout(function(){
+    if($("cargando").style.display!=="none" && !window.__LISTO__){
+      $("cargando").innerHTML='<div class="txt">No se pudo conectar.<br><br>'+
+        '<button onclick="location.reload()" style="background:var(--ambar);color:#4A3300;'+
+        'border:none;padding:11px 20px;border-radius:11px;font-family:inherit;font-weight:800;'+
+        'cursor:pointer">Reintentar</button></div>';
+    }
+  },14000);
+
+  var pin="";
+  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(pin) validar(pin, true); else { window.__LISTO__=true; ver("acceso"); foco(); }
+}
+function foco(){ setTimeout(function(){ var p=$("pin"); if(p)p.focus(); },140); }
+
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…";
+  validar(p,false);
+}
+
+function validar(pin, silencioso){
+  google.script.run
+    .withSuccessHandler(function(r){
+      window.__LISTO__=true;
+      if(!r||!r.ok){
+        try{ localStorage.removeItem("ecovsa_pin"); }catch(e){}
+        ver("acceso"); $("pin-err").textContent=(r&&r.error)||"PIN no válido"; foco(); return;
+      }
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(pin)); }catch(e){}
+      PIN_ACTUAL=pin;
+      URL_APP=r.url||"";
+      // un solo destino: no hay nada que elegir
+      if(r.abiertos===1){
+        var uno=null;
+        r.modulos.forEach(function(m){ if(m.permitido && m.estado!=="construccion") uno=m; });
+        if(uno){ navegar(URL_APP+"?p="+uno.id); return; }
+      }
+      pintar(r);
+    })
+    .withFailureHandler(function(){
+      window.__LISTO__=true;
+      ver("acceso");
+      $("pin-err").textContent="Sin conexión. Intenta con señal.";
+      foco();
+    })
+    .api_lobby(pin);
+}
+
+function tarjeta(m, esCentro){
+  var obra  = m.estado==="construccion";
+  var libre = m.permitido && !obra;
+  var sello = obra
+    ? '<div class="candado obra">◷ En construcción</div>'
+    : (m.permitido ? '' : '<div class="candado">🔒 Sin acceso</div>');
+
+  /* La pastilla solo cuando de verdad hay algo esperando y el módulo se
+     puede abrir. Enseñarle a alguien un 7 en una puerta cerrada es
+     enseñarle un problema que no puede atender. */
+  var pastilla = (libre && m.pendientes>0)
+    ? '<span class="pend hay">'+m.pendientes+'</span>' : '';
+
+  return '<button class="tarjeta'+(esCentro?" centro":"")+(libre?"":" no")+'"'+
+    (libre?' onclick="abrir(\''+m.id+'\')"'
+          :' onclick="sinAcceso(\''+esc(m.titulo)+'\','+(obra?1:0)+')"')+'>'+
+    pastilla +
+    '<div class="ic"><svg viewBox="0 0 24 24">'+(ICONOS[m.icono]||ICONOS.brujula)+'</svg></div>'+
+    '<div class="t">'+esc(m.titulo)+'</div>'+
+    '<div class="d">'+esc(m.detalle)+'</div>'+ sello +
+    (esCentro ? '<div class="resumen" id="resumen"><div class="esperando">Cargando cómo va cada módulo…</div></div>' : '')+
+    '</button>';
+}
+
+function pintar(r){
+  $("saludo-nom").textContent="Hola, "+r.usuario.nombre;
+  $("saludo-rol").textContent=ROTULO[r.usuario.rol]||r.usuario.rol;
+
+  var lados  = r.modulos.filter(function(m){ return m.zona==="lado"; });
+  var aparte = r.modulos.filter(function(m){ return m.zona==="aparte"; });
+  /* El centro solo existe para quien dirige. A un operador no le sirve
+     verlo ni en gris: sería enseñarle una puerta que nunca va a abrir. */
+  var centro = r.modulos.filter(function(m){ return m.zona==="centro" && m.permitido; })[0];
+
+  var html = (centro ? tarjeta(centro, true) : "") +
+             lados.map(function(m){ return tarjeta(m, false); }).join("");
+  var caja = $("modelo");
+  caja.className = "modelo" + (centro ? "" : " sin-centro");
+  caja.innerHTML = html;
+
+  $("aparte").innerHTML = aparte.map(function(m){
+    var obra=m.estado==="construccion", libre=m.permitido && !obra;
+    return '<button class="'+(libre?"":"no")+'"'+
+      (libre?' onclick="abrir(\''+m.id+'\')"'
+            :' onclick="sinAcceso(\''+esc(m.titulo)+'\','+(obra?1:0)+')"')+'>'+
+      '<svg viewBox="0 0 24 24">'+(ICONOS[m.icono]||ICONOS.recibo)+'</svg>'+
+      esc(m.titulo)+'</button>';
+  }).join("");
+
+  ver("menu");
+  if(centro) cargarResumen(r.modulos);
+}
+
+/* El resumen del centro llega DESPUÉS y aparte. El lobby ya está en
+   pantalla cuando esto sale a buscar las cuatro cifras: si tardan, nadie
+   espera; si fallan, la tarjeta se queda sin resumen y todo lo demás
+   sigue funcionando. El lobby es la única puerta del sistema y no se
+   puede caer por una cuenta. */
+function cargarResumen(modulos){
+  var pend={};
+  modulos.forEach(function(m){ pend[m.id]=m.pendientes||0; });
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      var caja=$("resumen"); if(!caja) return;
+      if(!r||!r.ok||!r.lineas||!r.lineas.length){ caja.style.display="none"; return; }
+      caja.innerHTML = r.lineas.map(function(l){
+        var id=ZONA_DE[l.zona]||"", n=pend[id]||0;
+        return '<div class="rz">'+
+          '<i style="background:'+(PUNTO[id]||"rgba(255,255,255,.5)")+'"></i>'+
+          '<span class="n">'+esc(l.nombre)+'</span>'+
+          '<span class="v">'+esc(l.texto)+'</span>'+
+          (n>0 ? '<span class="p hay">'+n+'</span>' : '')+
+        '</div>';
+      }).join("");
+    })
+    .withFailureHandler(function(){
+      var caja=$("resumen"); if(caja) caja.style.display="none";
+    })
+    .api_lobby_resumen(PIN_ACTUAL);
+}
+
+function sinAcceso(nombre, obra){
+  var a=$("aviso-lobby");
+  a.textContent = obra
+    ? nombre+" todavía está en construcción."
+    : "Tu usuario no tiene acceso a "+nombre+". El administrador puede otorgarlo.";
+  a.style.display="block";
+  clearTimeout(window._av);
+  window._av=setTimeout(function(){ a.style.display="none"; },4200);
+}
+
+function abrir(p){ navegar(URL_APP+"?p="+p); }
+function navegar(u){ if(window.__ir) window.__ir(u); else irA(u); }
+function salir(){
+  try{ localStorage.removeItem("ecovsa_pin"); }catch(e){}
+  location.reload();
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter" && $("acceso").style.display!=="none") entrar();
+});
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+
+</script>
+</body>
+</html>
