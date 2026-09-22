@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<title>Cobros · ECOVSA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base target="_top">
 <meta charset="UTF-8">
-<?!= incluirTema('operaciones') ?>
+<link rel="stylesheet" href="estilos-operaciones.css">
+<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script src="puente.js"></script>
 <style>
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -527,7 +531,342 @@ th.ord.act .f{opacity:1}
 
 <div id="toast"></div>
 
-<?!= incluir('Bandeja') ?>
+<!-- ═══════════════════════════════════════════════════════════════════
+     LA BANDEJA DEL ASISTENTE · una sola, para todas las pantallas
+     ───────────────────────────────────────────────────────────────────
+     Cobros, rutas y solicitudes necesitan exactamente la misma esquina.
+     Copiarla tres veces habría sido lo rápido, y en tres meses serían
+     tres bandejas distintas: alguien arregla un botón en una y las otras
+     dos se quedan con el error. Así que vive aquí y cada pantalla la
+     incluye con un scriptlet que llama a incluir('Bandeja') y una línea:
+
+         bandejaIniciar('logistica');     // después de tener el PIN
+
+     (El ejemplo va escrito así, sin los signos del scriptlet, porque Apps
+     Script evalúa los scriptlets AUNQUE estén dentro de un comentario
+     HTML: escribirlo completo aquí haría que este archivo se incluyera a
+     sí mismo, sin fin. Lo atrapó la verificación de plantillas, que existe
+     justamente porque ya pasó una vez.)
+
+     No necesita HTML en la página: se arma su propio panel y su propia
+     pastilla al iniciar. Tampoco depende de las funciones de la página
+     —tiene sus propios ayudantes con prefijo bnd— salvo de `PIN`, que sí
+     lee de la ventana porque es lo único que de verdad es de la pantalla.
+
+     Si la pantalla define bandejaAbrir(enlace), la bandeja se lo entrega
+     para que navegue por dentro. Si no, abre el enlace en otra pestaña.
+
+     LO QUE PASA AL CERRAR UNA TARJETA — y es lo importante:
+       Ya lo atendí  → resuelto.   No vuelve.
+       Mañana        → pospuesto.  Vuelve mañana si el problema sigue.
+       No aplica     → descartado. No vuelve nunca.
+     El botón grande es «Mañana» a propósito: quitar de la vista algo que
+     todavía hay que hacer no puede costar que el sistema deje de avisarlo.
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+.bnd-pastilla{position:fixed;right:18px;bottom:18px;z-index:4000;
+  display:flex;align-items:center;gap:9px;border:none;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:700;color:#fff;
+  background:#8A97AD;border-radius:999px;padding:12px 14px;
+  box-shadow:0 6px 22px rgba(15,25,45,.28);transition:.2s}
+.bnd-pastilla i{width:11px;height:11px;border-radius:50%;background:#fff;opacity:.85;flex:0 0 auto}
+.bnd-pastilla b{font-weight:800}
+.bnd-pastilla.hay{background:linear-gradient(140deg,#2FBF71,#1E9E58);padding:12px 20px}
+.bnd-pastilla.hay i{opacity:1}
+.bnd-pastilla.abierto{opacity:.55}
+.bnd-pastilla:hover{transform:translateY(-2px)}
+.bnd-pastilla.late{animation:bndLate 1.1s ease-out 2}
+@keyframes bndLate{
+  0%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 0 rgba(47,191,113,.55)}
+  70%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 15px rgba(47,191,113,0)}
+  100%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 0 rgba(47,191,113,0)}
+}
+@media (prefers-reduced-motion:reduce){ .bnd-pastilla.late{animation:none} }
+
+/* EL PANEL NO SCROLLEA: SCROLLEA SU LISTA.
+   El encabezado estaba pegado con position:sticky dentro de un panel que
+   se desplazaba entero. Sticky funciona en el escritorio y se despega en
+   el teléfono, donde la barra de direcciones cambia el alto de la
+   ventana. Resultado: al bajar por los pendientes se perdía el
+   encabezado, y con él la ✕ — había que subir hasta arriba para poder
+   cerrar. Con flex el encabezado NO está dentro de lo que se desplaza,
+   así que no puede irse a ninguna parte. */
+#bnd-panel{position:fixed;right:18px;bottom:74px;z-index:4001;
+  width:min(376px,calc(100vw - 36px));max-height:min(68vh,490px);
+  display:none;flex-direction:column;overflow:hidden;
+  background:#fff;border:1px solid var(--borde,#E1E5EA);border-radius:14px;
+  box-shadow:0 16px 44px rgba(15,25,45,.24)}
+#bnd-panel.ver{display:flex}
+#bnd-lista{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.bnd-cab{flex:0 0 auto;background:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--borde,#E1E5EA);
+  border-radius:14px 14px 0 0;
+  font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gris,#6B7686)}
+/* La ✕ con tamaño de dedo: 16 píxeles de tipografía no se aciertan en un
+   teléfono con el camión andando. */
+.bnd-cab button{border:none;background:none;font-size:20px;color:var(--gris,#6B7686);
+  cursor:pointer;line-height:1;padding:4px 10px;margin:-4px -6px -4px 0;border-radius:8px}
+.bnd-cab button:hover{background:#F1F3F6;color:var(--tinta,#14202E)}
+
+/* En un teléfono el panel ocupa casi toda la pantalla: 376 px de ancho y
+   68vh de alto dejan las tarjetas en una columna ilegible. */
+@media (max-width:520px){
+  #bnd-panel{left:10px;right:10px;bottom:70px;width:auto;max-height:72vh}
+  .bnd-pastilla{right:12px;bottom:12px}
+}
+.bnd-it{position:relative;padding:13px 16px;border-bottom:1px solid var(--borde,#E1E5EA);
+  border-left:4px solid var(--azul,#0B5394);background:var(--azul-suave,#E9F1FA)}
+.bnd-t{font-size:14px;font-weight:800;color:var(--tinta,#14202E);line-height:1.3}
+.bnd-t span{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 7px;border-radius:999px;vertical-align:middle;margin-left:6px}
+.bnd-t span.pri-alta{background:var(--rojo-suave,#FBEAE8);color:#7a1d14}
+.bnd-t span.pri-media{background:#FFF3D1;color:var(--ambar-osc,#9A6E00)}
+.bnd-t span.pri-baja{background:var(--borde,#E1E5EA);color:var(--gris,#6B7686)}
+.bnd-d{font-size:12.5px;color:var(--gris,#6B7686);line-height:1.5;margin-top:3px}
+.bnd-f{font-size:11px;color:var(--gris,#6B7686);margin-top:7px}
+.bnd-acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.bnd-acc button{border:1px solid var(--borde,#E1E5EA);background:#fff;border-radius:8px;
+  font-family:inherit;font-size:11.5px;font-weight:700;color:var(--gris,#6B7686);
+  cursor:pointer;padding:6px 10px}
+.bnd-acc button:hover{background:#F1F3F6;color:var(--tinta,#14202E)}
+.bnd-acc button.abrir{border-color:var(--ambar,#F5B301);color:var(--ambar-osc,#9A6E00);
+  background:#FFFBF0}
+.bnd-acc button.hecho{border-color:#2FBF71;color:#1E7A45;background:#EAF7F0}
+.bnd-acc button.nunca{margin-left:auto;border-color:transparent;opacity:.7}
+.bnd-acc button.nunca:hover{border-color:var(--rojo-suave,#FBEAE8);color:var(--rojo,#C0392B);opacity:1}
+.bnd-vacio{padding:22px 18px;font-size:13px;color:var(--gris,#6B7686);line-height:1.6;text-align:center}
+.bnd-aviso{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:4002;
+  background:var(--tinta,#14202E);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(15,25,45,.3);
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.bnd-aviso.ver{opacity:1}
+@media print{ .bnd-pastilla,#bnd-panel,.bnd-aviso{display:none!important} }
+</style>
+
+<script>
+/* ── Estado ─────────────────────────────────────────────────────────── */
+var BND_MODULO = "", BND = [], BND_ABIERTO = false, BND_MARCA = null, BND_VIVA = false;
+var BND_ESPERA = 45000, BND_MIN = 45000, BND_MAX = 480000, BND_RELOJ = null;
+
+/* Ayudantes propios: la bandeja no puede depender de que cada pantalla
+   tenga un $ o un esc con el mismo nombre y el mismo comportamiento. */
+function bndEl(i){ return document.getElementById(i); }
+function bndEsc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function bndAviso(m){
+  var a = bndEl("bnd-aviso"); if(!a) return;
+  a.textContent = m; a.classList.add("ver");
+  clearTimeout(a._h); a._h = setTimeout(function(){ a.classList.remove("ver"); }, 2600);
+}
+function bndPin(){ return (typeof PIN !== "undefined" && PIN) ? PIN : ""; }
+
+/* ── Arranque ───────────────────────────────────────────────────────── */
+function bandejaIniciar(modulo){
+  BND_MODULO = String(modulo || "");
+  if(!bndEl("bnd-panel")) bndMontar();
+  BND_VIVA = true;
+  bndRevisar(false);
+}
+
+function bndMontar(){
+  var p = document.createElement("div");
+  p.id = "bnd-panel";
+  p.innerHTML = '<div class="bnd-cab">Pendientes' +
+    '<button onclick="bandejaCerrar()" title="Cerrar">✕</button></div>' +
+    '<div id="bnd-lista"></div>';
+  document.body.appendChild(p);
+
+  var b = document.createElement("button");
+  b.id = "bnd-pastilla"; b.className = "bnd-pastilla";
+  b.title = "Lo que encontró el asistente";
+  b.innerHTML = "<i></i>";
+  b.onclick = bandejaVer;
+  document.body.appendChild(b);
+
+  var a = document.createElement("div");
+  a.id = "bnd-aviso"; a.className = "bnd-aviso";
+  document.body.appendChild(a);
+
+  /* Dos salidas más, porque una sola ✕ en una esquina no basta: en un
+     teléfono se falla el toque, y con la lista larga el reflejo es tocar
+     fuera. Escape para el escritorio, tocar fuera para el teléfono. */
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && BND_ABIERTO) bandejaCerrar();
+  });
+  document.addEventListener("click", function(e){
+    if(!BND_ABIERTO) return;
+    var panel = bndEl("bnd-panel"), past = bndEl("bnd-pastilla");
+    if(panel && !panel.contains(e.target) && past && !past.contains(e.target))
+      bandejaCerrar();
+  }, true);
+}
+
+function bandejaVer(){
+  BND_ABIERTO = !BND_ABIERTO;
+  bndEl("bnd-panel").classList.toggle("ver", BND_ABIERTO);
+  bndPintar();
+  if(BND_ABIERTO) bndTraer(true);
+}
+function bandejaCerrar(){
+  BND_ABIERTO = false;
+  bndEl("bnd-panel").classList.remove("ver");
+  bndPintar();
+}
+function bndPulsar(){
+  var p = bndEl("bnd-pastilla"); if(!p) return;
+  p.classList.remove("late"); void p.offsetWidth; p.classList.add("late");
+}
+
+/* ── El sondeo barato ───────────────────────────────────────────────────
+   Preguntar «¿hay pendientes?» cada minuto obliga al servidor a leer la
+   hoja entera cada minuto. En vez de eso se pregunta por una sola celda
+   —la hora del último cambio del módulo— y solo si cambió se pide la
+   lista. Cuando no pasa nada, la espera se va duplicando hasta el tope:
+   una pantalla abierta toda la tarde sin novedades casi no cuesta. */
+function bndRevisar(manual){
+  if(!bndPin() || !BND_MODULO) return;
+  if(!manual && BND_MARCA !== null){
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(r && r.ok && r.marca === BND_MARCA){
+          BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX);
+          bndProgramar(); return;
+        }
+        bndTraer(false);
+      })
+      .withFailureHandler(function(){
+        BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX); bndProgramar();
+      })
+      .api_marcador(bndPin(), BND_MODULO);
+    return;
+  }
+  bndTraer(manual);
+}
+
+function bndTraer(manual){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ bndProgramar(); return; }
+      var antes = {};
+      BND.forEach(function(x){ antes[x.pendienteId] = 1; });
+      var nuevas = (r.pendientes || []).filter(function(x){ return !antes[x.pendienteId]; });
+
+      BND = r.pendientes || [];
+      BND_MARCA = r.marca;
+      /* algo cambió: se vuelve a la espera corta, porque cuando pasa una
+         cosa suele venir otra detrás */
+      BND_ESPERA = nuevas.length ? BND_MIN : Math.min(BND_ESPERA * 1.5, BND_MAX);
+
+      if(nuevas.length && !manual){
+        bndAviso(nuevas.length === 1 ? "📌 " + nuevas[0].titulo
+                                     : "📌 " + nuevas.length + " pendientes nuevos");
+        bndPulsar();
+      }
+      if(manual) bndAviso(BND.length ? BND.length + " pendiente(s)" : "Nada pendiente");
+      bndPintar();
+      bndProgramar();
+    })
+    .withFailureHandler(function(){
+      if(manual) bndAviso("Sin conexión");
+      BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX);
+      bndProgramar();
+    })
+    .api_pendientes(bndPin(), BND_MODULO, false);
+}
+
+/* Solo corre mientras la pestaña está a la vista. */
+function bndProgramar(){
+  if(!BND_VIVA) return;
+  clearTimeout(BND_RELOJ);
+  BND_RELOJ = setTimeout(function(){
+    if(document.hidden){ bndProgramar(); return; }
+    bndRevisar(false);
+  }, BND_ESPERA);
+}
+
+/* ── Lo que se ve ───────────────────────────────────────────────────── */
+function bndPintar(){
+  var p = bndEl("bnd-pastilla"), l = bndEl("bnd-lista");
+  if(!p || !l) return;
+  var n = BND.length;
+
+  p.className = "bnd-pastilla" + (n ? " hay" : "") + (BND_ABIERTO ? " abierto" : "");
+  p.innerHTML = n ? '<i></i><b>' + n + '</b> pendiente' + (n === 1 ? '' : 's') : '<i></i>';
+  p.title = n ? n + " pendiente(s)" : "Nada pendiente";
+
+  l.innerHTML = n
+    ? BND.map(function(x){
+        var pri = bndEsc(x.prioridad || "media");
+        var id = bndEsc(x.pendienteId);
+        return '<div class="bnd-it">' +
+          '<div class="bnd-t">' + bndEsc(x.titulo) +
+            ' <span class="pri-' + pri + '">' + pri + '</span></div>' +
+          '<div class="bnd-d">' + bndEsc(x.descripcion) + '</div>' +
+          '<div class="bnd-f">' + bndEsc(x.asistente || '') + ' · ' + bndEsc(x.fecha || '') +
+            (x.estado === 'pospuesto' ? ' · pospuesto, volvió hoy' : '') + '</div>' +
+          '<div class="bnd-acc">' +
+            (x.enlace
+              ? '<button class="abrir" onclick="bandejaAbrirItem(&#39;' + id + '&#39;)">Abrir</button>'
+              : '') +
+            '<button class="hecho" onclick="bandejaResolver(&#39;' + id + '&#39;)">Ya lo atendí</button>' +
+            '<button onclick="bandejaPosponer(&#39;' + id + '&#39;,1)" ' +
+              'title="Vuelve mañana si el problema sigue">Mañana</button>' +
+            '<button onclick="bandejaPosponer(&#39;' + id + '&#39;,7)" ' +
+              'title="Vuelve en una semana si el problema sigue">En 7 días</button>' +
+            '<button class="nunca" onclick="bandejaNoAplica(&#39;' + id + '&#39;)" ' +
+              'title="No es un problema. No se vuelve a avisar.">No aplica</button>' +
+          '</div></div>';
+      }).join("")
+    : '<div class="bnd-vacio">Nada pendiente por ahora.<br>' +
+      'Cuando el asistente encuentre algo en este módulo, aparece aquí.</div>';
+}
+
+/* ── Cerrar una tarjeta ─────────────────────────────────────────────────
+   Cerrar deja constancia en la hoja: quién, cuándo y con qué resultado.
+   Un pendiente que solo desaparece de la pantalla es una decisión que
+   nadie puede revisar después —y peor, vuelve al recargar. */
+function bndCerrar(id, estado, nota, dias){
+  var antes = BND.slice();
+  BND = BND.filter(function(x){ return x.pendienteId !== id; });
+  bndPintar();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){
+        BND = antes; bndPintar();
+        bndAviso((r && r.error) || "No se pudo cerrar");
+        return;
+      }
+      BND_MARCA = null;              // que la próxima consulta traiga la lista fresca
+      if(estado === 'pospuesto') bndAviso(dias === 1 ? "Vuelve mañana" : "Vuelve en " + dias + " días");
+    })
+    .withFailureHandler(function(){ BND = antes; bndPintar(); bndAviso("Sin conexión"); })
+    .api_cerrarPendiente(bndPin(), id, estado, nota || "", dias || 0);
+}
+function bandejaResolver(id){ bndCerrar(id, "resuelto", "Atendido desde la bandeja", 0); }
+function bandejaPosponer(id, dias){ bndCerrar(id, "pospuesto", "Pospuesto desde la bandeja", dias); }
+function bandejaNoAplica(id){ bndCerrar(id, "descartado", "Marcado «no aplica» desde la bandeja", 0); }
+
+/* ── Abrir lo que el asistente señaló ───────────────────────────────────
+   El enlace es un pedazo de consulta —"?p=cobros&fac=00231"—, nunca una
+   dirección completa: si se guardara entera, el día que la app se vuelva
+   a publicar todos los pendientes viejos apuntarían a la anterior.
+
+   Si la pantalla sabe llevar a ese sitio por dentro, se lo deja a ella:
+   recargar para llegar al mismo lugar tira lo que alguien tenga a medio
+   escribir. Solo si no sabe, se abre en otra pestaña. */
+function bandejaAbrirItem(id){
+  var x = BND.filter(function(y){ return y.pendienteId === id; })[0];
+  if(!x || !x.enlace) return;
+  bandejaCerrar();
+  /* window.bandejaAbrir y no bandejaAbrir a secas: la función es OPCIONAL
+     —la define la pantalla que sabe navegar por dentro— y nombrarla como
+     miembro de window deja claro que puede no existir, en vez de parecer
+     una función que alguien olvidó escribir. */
+  if(typeof window.bandejaAbrir === "function" && window.bandejaAbrir(x.enlace) !== false) return;
+  if(window.URL_APP) window.open(window.URL_APP + x.enlace, "_blank");
+  else bndAviso("Un momento, cargando…");
+}
+</script>
 
 <script>
 var PIN="", DATOS=null, TAB="cartera", FACT=null;
