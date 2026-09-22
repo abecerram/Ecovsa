@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   PUENTE ECOVSA · GitHub Pages ⇄ Apps Script          puente 1.0
+   PUENTE ECOVSA · GitHub Pages ⇄ Apps Script          puente 1.1
    ───────────────────────────────────────────────────────────────
    Imita google.script.run. Las pantallas siguen llamando
        google.script.run.withSuccessHandler(fn).api_algo(args)
@@ -9,8 +9,12 @@
    · COPIA LOCAL: las lecturas muestran al instante lo último que
      se vio y se refrescan solas por detrás. Si lo nuevo es igual,
      la pantalla no se vuelve a pintar.
-   · COLA: si un guardado no sale por falta de conexión, queda en
-     cola y se reenvía solo cuando vuelve la señal.
+   · REINTENTO SEGURO: si Google pierde la respuesta (404, 5xx, corte),
+     se reintenta solo. Si a los 8 s no contestó, sale un segundo envío.
+     Todos los intentos llevan la MISMA etiqueta: el servidor (doPost)
+     la reconoce y nunca guarda dos veces lo mismo.
+   · COLA: si un guardado no sale después de los reintentos, queda en
+     cola (con su etiqueta) y se reenvía solo cuando vuelve la señal.
    · MEDICIÓN: cada llamada queda registrada (tiempo total y tiempo
      que tardó el servidor). Tocando el reloj se ve el reporte.
    · RELOJ traslúcido de última actualización, abajo a la derecha:
@@ -27,9 +31,12 @@
   var CONFIG = {
     /* Dirección /exec de la implementación de Apps Script. */
     url: 'PEGA_AQUI_TU_URL_EXEC',
-    version: 'puente 1.0',
+    version: 'puente 1.1',
     cacheHoras: 24,          // una copia local más vieja que esto no se usa
-    timeoutMs: 30000,        // tiempo máximo de espera por llamada
+    timeoutMs: 25000,        // tiempo máximo de espera por cada intento
+    maxIntentos: 3,          // intentos por llamada (con la misma etiqueta)
+    esperaReintento: [600, 1500],  // pausa antes del 2.º y del 3.er intento (ms)
+    dobleEnvioMs: 8000,      // si no contestó a los 8 s, se manda un segundo envío
     maxMediciones: 300,      // cuántas mediciones se guardan para el reporte
     /* Funciones que ESCRIBEN: no se guardan en copia local y, si no
        salen por falta de conexión, van a la cola. */
@@ -92,25 +99,27 @@
   }
 
   /* ─────────────── medición ─────────────── */
-  function medir(fn, total, servidor, ok) {
+  function medir(fn, total, servidor, ok, intentos) {
     var m = lsJSON('pnt:med', []);
-    m.push({ f: fn, t: Math.round(total), s: servidor == null ? null : Math.round(servidor), ok: !!ok, at: Date.now() });
+    m.push({ f: fn, t: Math.round(total), s: servidor == null ? null : Math.round(servidor), ok: !!ok, i: intentos || 1, at: Date.now() });
     if (m.length > CONFIG.maxMediciones) m = m.slice(m.length - CONFIG.maxMediciones);
     lsSet('pnt:med', JSON.stringify(m));
     if (window.console) console.log('[puente] ' + fn + ' · ' + Math.round(total) + ' ms' +
-      (servidor != null ? ' (servidor ' + Math.round(servidor) + ' ms)' : '') + (ok ? '' : ' · ERROR'));
+      (servidor != null ? ' (servidor ' + Math.round(servidor) + ' ms)' : '') +
+      ((intentos || 1) > 1 ? ' · ' + intentos + ' intentos' : '') + (ok ? '' : ' · ERROR'));
   }
   function resumenMediciones() {
     var m = lsJSON('pnt:med', []), g = {};
     m.forEach(function (x) {
-      var r = g[x.f] || (g[x.f] = { f: x.f, n: 0, tot: 0, srv: 0, nsrv: 0, max: 0, err: 0 });
+      var r = g[x.f] || (g[x.f] = { f: x.f, n: 0, tot: 0, srv: 0, nsrv: 0, max: 0, err: 0, rei: 0 });
       r.n++; r.tot += x.t; if (x.t > r.max) r.max = x.t;
       if (x.s != null) { r.srv += x.s; r.nsrv++; }
       if (!x.ok) r.err++;
+      if ((x.i || 1) > 1) r.rei++;
     });
     return Object.keys(g).map(function (k) {
       var r = g[k];
-      return { f: r.f, n: r.n, prom: Math.round(r.tot / r.n), srv: r.nsrv ? Math.round(r.srv / r.nsrv) : null, max: r.max, err: r.err };
+      return { f: r.f, n: r.n, prom: Math.round(r.tot / r.n), srv: r.nsrv ? Math.round(r.srv / r.nsrv) : null, max: r.max, err: r.err, rei: r.rei };
     }).sort(function (a, b) { return b.prom - a.prom; });
   }
 
@@ -133,37 +142,84 @@
     });
   }
 
-  function llamarServidor(fn, args) {
-    if (!CONFIG.url || CONFIG.url.indexOf('PEGA_AQUI') === 0)
-      return Promise.reject(new Error('El puente no tiene la dirección /exec configurada.'));
+  function nuevoId() {
+    return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+
+  /* Un solo intento. Marca como "reintentable" todo lo que NO es un error de
+     la función misma: sin conexión, 404/5xx de Google, respuesta vacía o rota,
+     tiempo agotado. Un error de la función (ok:false) no se reintenta. */
+  function intento(fn, args, id, esc) {
     var ctrl = window.AbortController ? new AbortController() : null;
     var reloj_ = ctrl ? setTimeout(function () { ctrl.abort(); }, CONFIG.timeoutMs) : null;
-    var t0 = Date.now();
     return fetch(CONFIG.url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ fn: fn, args: prepararArgs(args) }),
+      body: JSON.stringify({ fn: fn, args: args, id: id, esc: !!esc }),
       redirect: 'follow',
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (res) {
       if (reloj_) clearTimeout(reloj_);
-      if (!res.ok) { var e = errorRed('El servidor respondió ' + res.status); throw e; }
+      if (!res.ok) { var e = errorRed('Google respondió ' + res.status); e.reintentable = true; e.red = res.status >= 500 || res.status === 0; throw e; }
       return res.text();
     }, function (err) {
       if (reloj_) clearTimeout(reloj_);
       var e = (err && err.name === 'AbortError')
         ? new Error('El servidor tardó más de ' + Math.round(CONFIG.timeoutMs / 1000) + ' s y no confirmó.')
         : errorRed('Sin conexión con el servidor.');
-      if (err && err.name === 'AbortError') e.tiempo = true;
-      medir(fn, Date.now() - t0, null, false);
+      e.reintentable = true;
       throw e;
     }).then(function (txt) {
       var d;
       try { d = JSON.parse(txt); }
-      catch (e) { medir(fn, Date.now() - t0, null, false); throw new Error('La respuesta del servidor no es válida. ¿Está publicada la versión con doPost?'); }
-      medir(fn, Date.now() - t0, d.ms, d.ok);
-      if (!d.ok) throw new Error(d.error || 'Error del servidor');
-      return d.r;
+      catch (e) { var e2 = new Error('La respuesta del servidor llegó incompleta.'); e2.reintentable = true; throw e2; }
+      if (!d.ok) { var e3 = new Error(d.error || 'Error del servidor'); e3.ms = d.ms; throw e3; }
+      return d;
+    });
+  }
+
+  /* Llamada completa: reintentos + doble envío. Todos los intentos llevan la
+     MISMA etiqueta (id); el servidor la usa para no guardar dos veces. */
+  function llamarServidor(fn, args, opc) {
+    opc = opc || {};
+    if (!CONFIG.url || CONFIG.url.indexOf('PEGA_AQUI') === 0)
+      return Promise.reject(new Error('El puente no tiene la dirección /exec configurada.'));
+    var id = opc.id || nuevoId();
+    var esc = !!opc.esc;
+    var a = prepararArgs(args);
+    var t0 = Date.now();
+    return new Promise(function (resolve, reject) {
+      var terminado = false, lanzados = 0, activos = 0, programado = false, dobleTimer = null;
+      function cerrar(bien, valor) {
+        if (terminado) return;
+        terminado = true;
+        if (dobleTimer) clearTimeout(dobleTimer);
+        medir(fn, Date.now() - t0, valor && valor.ms, bien, lanzados);
+        if (bien) resolve(valor.r); else reject(valor);
+      }
+      function lanzar() {
+        if (terminado) return;
+        programado = false;
+        lanzados++; activos++;
+        if (lanzados > 1) reloj.reintento();
+        intento(fn, a, id, esc).then(function (d) {
+          activos--; cerrar(true, d);
+        }, function (err) {
+          activos--;
+          if (terminado) return;
+          if (err.reintentable && lanzados < CONFIG.maxIntentos) {
+            if (!programado) { programado = true; setTimeout(lanzar, CONFIG.esperaReintento[Math.min(lanzados - 1, CONFIG.esperaReintento.length - 1)]); }
+          } else if (activos === 0 && !programado) {
+            cerrar(false, err);
+          }
+        });
+      }
+      lanzar();
+      if (CONFIG.dobleEnvioMs > 0) {
+        dobleTimer = setTimeout(function () {
+          if (!terminado && lanzados < CONFIG.maxIntentos && !programado) lanzar();
+        }, CONFIG.dobleEnvioMs);
+      }
     });
   }
 
@@ -193,7 +249,8 @@
       reloj.inicio(esEsc ? 'guardando' : 'cargando');
     }
 
-    llamarServidor(fn, args).then(function (r) {
+    var id = nuevoId();
+    llamarServidor(fn, args, { id: id, esc: esEsc }).then(function (r) {
       var j = aTexto(r);
       if (usaCopia) guardarCopia(clave, j);
       reloj.fin(true);
@@ -201,21 +258,21 @@
       else if (entregado !== j && !CONFIG.unaVez.test(fn)) entregar(ok, r, uo, fn);
     }, function (err) {
       reloj.fin(false, err.message, copia ? copia.t : null);
-      if (esEsc && err.red) {
-        encolar(fn, args);
+      if (esEsc && err.reintentable) {
+        encolar(fn, args, id);
         entregarError(fail, new Error('Sin conexión: el guardado quedó en cola y se enviará solo al volver la señal. No lo vuelvas a enviar.'), uo, fn);
         return;
       }
-      if (copia && err.red) return;   // ya se ve la copia; el reloj en rojo avisa
+      if (copia && err.reintentable) return;   // ya se ve la copia; el reloj en rojo avisa
       entregarError(fail, err, uo, fn);
     });
   }
 
   /* ─────────────── cola de guardados ─────────────── */
   var procesando = false;
-  function encolar(fn, args) {
+  function encolar(fn, args, id) {
     var c = lsJSON('pnt:cola', []);
-    c.push({ fn: fn, args: prepararArgs(args), at: Date.now() });
+    c.push({ fn: fn, args: prepararArgs(args), id: id || nuevoId(), at: Date.now() });
     lsSet('pnt:cola', JSON.stringify(c));
     reloj.pintar();
   }
@@ -225,12 +282,12 @@
     if (!c.length) return;
     procesando = true;
     var item = c[0];
-    llamarServidor(item.fn, item.args).then(function () {
+    llamarServidor(item.fn, item.args, { id: item.id, esc: true }).then(function () {
       var c2 = lsJSON('pnt:cola', []); c2.shift(); lsSet('pnt:cola', JSON.stringify(c2));
       procesando = false; reloj.pintar(); procesarCola();
     }, function (err) {
       procesando = false;
-      if (err.red) { reloj.pintar(); return; }         // sigue sin señal: se intenta luego
+      if (err.reintentable) { reloj.pintar(); return; }   // sigue sin respuesta: se intenta luego
       var c2 = lsJSON('pnt:cola', []); var malo = c2.shift(); lsSet('pnt:cola', JSON.stringify(c2));
       var f = lsJSON('pnt:fallidos', []); malo.error = err.message; f.push(malo);
       lsSet('pnt:fallidos', JSON.stringify(f.slice(-50)));
@@ -266,12 +323,13 @@
     }
     function pintar() {
       if (!el) { crear(); if (!el) return; }
-      var col = { vivo: '#3ddc84', copia: '#ffb020', error: '#ff5a5a', cargando: '#b8c2cc', guardando: '#6cb6ff' }[estado] || '#b8c2cc';
+      var col = { vivo: '#3ddc84', copia: '#ffb020', error: '#ff5a5a', cargando: '#b8c2cc', guardando: '#6cb6ff', reintento: '#ffb020' }[estado] || '#b8c2cc';
       var txt;
       if (estado === 'vivo') txt = 'Actualizado ' + hora(horaDatos);
       else if (estado === 'copia') txt = 'Copia de ' + hora(horaDatos) + ' · actualizando…';
       else if (estado === 'error') txt = (horaDatos ? 'Datos de ' + hora(horaDatos) : 'Sin datos') + ' · no se pudo actualizar';
       else if (estado === 'guardando') txt = 'Guardando…';
+      else if (estado === 'reintento') txt = (horaDatos ? 'Datos de ' + hora(horaDatos) + ' · ' : '') + 'reintentando…';
       else txt = 'Cargando…';
       var cola = lsJSON('pnt:cola', []).length;
       if (cola) txt += ' · ' + cola + ' en cola';
@@ -296,6 +354,7 @@
         }
         pintar();
       },
+      reintento: function () { if (estado !== 'copia') { estado = 'reintento'; pintar(); } },
       pintar: pintar,
       crear: crear,
       estado: function () { return { estado: estado, hora: horaDatos, error: ultimoError, pendientes: pendientes }; }
@@ -307,8 +366,8 @@
     var r = resumenMediciones();
     var lin = ['REPORTE PUENTE ECOVSA · ' + CONFIG.version + ' · ' + new Date().toLocaleString(),
                'Pantalla: ' + location.pathname, '',
-               'función | veces | promedio ms | servidor ms | máx ms | errores'];
-    r.forEach(function (x) { lin.push(x.f + ' | ' + x.n + ' | ' + x.prom + ' | ' + (x.srv == null ? '—' : x.srv) + ' | ' + x.max + ' | ' + x.err); });
+               'función | veces | promedio ms | servidor ms | máx ms | errores | con reintento'];
+    r.forEach(function (x) { lin.push(x.f + ' | ' + x.n + ' | ' + x.prom + ' | ' + (x.srv == null ? '—' : x.srv) + ' | ' + x.max + ' | ' + x.err + ' | ' + x.rei); });
     var f = lsJSON('pnt:fallidos', []);
     if (f.length) { lin.push('', 'Guardados de la cola que el servidor rechazó:'); f.forEach(function (x) { lin.push(x.fn + ' · ' + new Date(x.at).toLocaleString() + ' · ' + x.error); }); }
     return lin.join('\n');
@@ -324,7 +383,7 @@
       var lento = x.prom > 3000 ? 'color:#c0392b;font-weight:700' : (x.prom > 1500 ? 'color:#b9770e;font-weight:700' : '');
       return '<tr><td style="padding:3px 6px">' + x.f + '</td><td style="text-align:right;padding:3px 6px">' + x.n +
         '</td><td style="text-align:right;padding:3px 6px;' + lento + '">' + x.prom + '</td><td style="text-align:right;padding:3px 6px">' +
-        (x.srv == null ? '—' : x.srv) + '</td><td style="text-align:right;padding:3px 6px">' + x.max + '</td><td style="text-align:right;padding:3px 6px">' + (x.err || '') + '</td></tr>';
+        (x.srv == null ? '—' : x.srv) + '</td><td style="text-align:right;padding:3px 6px">' + x.max + '</td><td style="text-align:right;padding:3px 6px">' + (x.err || '') + '</td><td style="text-align:right;padding:3px 6px">' + (x.rei || '') + '</td></tr>';
     }).join('');
     p.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Estado de los datos</b>' +
@@ -335,8 +394,8 @@
       '<div style="margin-top:10px"><b>Tiempos por función</b> <span style="color:#667">(ms; lo más lento arriba)</span></div>' +
       '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px"><tr style="background:#eef2f6">' +
       '<th style="text-align:left;padding:3px 6px">función</th><th style="padding:3px 6px">veces</th><th style="padding:3px 6px">prom.</th>' +
-      '<th style="padding:3px 6px">servidor</th><th style="padding:3px 6px">máx.</th><th style="padding:3px 6px">err.</th></tr>' +
-      (filas || '<tr><td colspan="6" style="padding:6px;color:#667">Todavía no hay mediciones.</td></tr>') + '</table>' +
+      '<th style="padding:3px 6px">servidor</th><th style="padding:3px 6px">máx.</th><th style="padding:3px 6px">err.</th><th style="padding:3px 6px">reint.</th></tr>' +
+      (filas || '<tr><td colspan="7" style="padding:6px;color:#667">Todavía no hay mediciones.</td></tr>') + '</table>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">' +
       '<button data-a="copiar" style="padding:7px 10px;border-radius:8px;border:1px solid #cfd8e3;background:#f5f8fb;cursor:pointer">Copiar reporte</button>' +
       '<button data-a="cola" style="padding:7px 10px;border-radius:8px;border:1px solid #cfd8e3;background:#f5f8fb;cursor:pointer">Reintentar cola</button>' +
