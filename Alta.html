@@ -1,0 +1,3221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<!-- Sin título, la pestaña del navegador mostraba la dirección del script y
+     el contador de novedades salía como "(2)" a secas. -->
+<title>Alta · ECOVSA</title>
+<?!= incluirTema('operaciones') ?>
+<style>
+:root{--verde-osc:#1F4A06;--blanco:#FFF}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:50px}
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;padding:15px 18px;border-bottom:4px solid var(--ambar)}
+.wrap{max-width:900px;margin:0 auto}
+.marca{display:flex;align-items:center;gap:11px}
+.placa{width:34px;height:34px;flex-shrink:0;background:var(--ambar);transform:rotate(45deg);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.placa span{transform:rotate(-45deg);font-weight:900;font-size:15px;color:var(--verde-osc)}
+header h1{font-size:18px;font-weight:800;line-height:1.15}
+header .sub{font-size:10.5px;font-weight:500;opacity:.75;letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+header .salir{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;font-family:inherit;font-size:11px;font-weight:700;padding:7px 13px;border-radius:16px;cursor:pointer}
+main{padding:18px}
+.tabs{display:flex;gap:7px;margin-bottom:16px;overflow-x:auto}
+.tabs button{flex-shrink:0;border:1.5px solid var(--borde);background:var(--blanco);border-radius:22px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gris);cursor:pointer}
+.tabs button.on{background:var(--verde);border-color:var(--verde);color:#fff}
+.vista{display:none}.vista.on{display:block}
+.tarjeta{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--radio);padding:16px 18px;margin-bottom:14px;box-shadow:var(--sombra)}
+.tarjeta h3{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--verde);margin-bottom:4px;padding-bottom:9px;border-bottom:2px solid var(--verde-suave)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+label .req{color:var(--rojo)}
+input,select,textarea{width:100%;padding:11px;font-size:15px;font-family:inherit;border:1.5px solid var(--borde);border-radius:10px;background:#FBFDFC;color:var(--tinta)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--verde);border-color:var(--verde)}
+textarea{resize:vertical;min-height:60px}
+.fila{display:flex;gap:10px;flex-wrap:wrap}
+.fila>*{flex:1;min-width:170px}
+.ayuda{font-size:11.5px;color:var(--gris);line-height:1.5;margin-top:5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:13px 18px;border:none;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;width:100%;margin-top:16px;cursor:pointer}
+.btn:active{transform:scale(.99)}
+.btn.sec{background:var(--verde-suave);color:var(--verde)}
+.btn.ambar{background:var(--ambar);color:var(--verde-osc)}
+.btn.rojo{background:var(--rojo-suave);color:var(--rojo)}
+
+/* ══ Distintivos del cliente ══ */
+.dist-barra{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+.dist-fila{display:flex;gap:11px;align-items:center;background:var(--blanco);
+  border:1px solid var(--borde);border-radius:12px;padding:11px 13px;margin-bottom:8px}
+.dist-fila.listo{background:var(--verde-suave);border-color:var(--verde-claro)}
+.dist-fila input[type=checkbox]{width:20px;height:20px;flex:0 0 20px;accent-color:var(--azul)}
+.dist-fila .d{flex:1;min-width:0}
+.dist-fila .n{font-size:14.5px;font-weight:800;line-height:1.25}
+.dist-fila .s{font-size:11.5px;color:var(--gris);margin-top:2px;line-height:1.45}
+.dist-fila .a{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.dist-fila .btn{width:auto;margin:0;padding:7px 11px;font-size:12px}
+.et-ok{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;
+  text-transform:uppercase;background:var(--verde);color:#fff;border-radius:5px;padding:2px 7px}
+
+/* La hoja que se imprime. Fuera de impresión vive escondida. */
+#dist-imprimir{display:none}
+.tarj{width:8.5in;height:11in;background:#fff;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;page-break-after:always;font-family:'Archivo',system-ui,sans-serif}
+.tarj:last-child{page-break-after:auto}
+.tarj .fr{flex:0 0 30px;display:flex}
+.tarj .fr i{display:block;height:100%}
+.tarj .fr i:nth-child(1){width:50%;background:#0C5395}
+.tarj .fr i:nth-child(2){width:28%;background:#00782E}
+.tarj .fr i:nth-child(3){width:22%;background:#86B62C}
+.tarj .cu{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:32px 62px 0;text-align:center}
+.tarj .at{font-size:14px;font-weight:600;letter-spacing:5.4px;color:#5B6880;text-transform:uppercase}
+.tarj .lg{width:200px;height:189px;margin:16px 0 2px;background:center/contain no-repeat}
+.tarj h2{font-size:31px;font-weight:800;line-height:1.28;color:#143666;margin-top:8px;
+  text-transform:none;letter-spacing:-.2px}
+.tarj h2 em{font-style:normal;color:#2F8655}
+.tarj .le{font-size:15.5px;line-height:1.6;color:#5B6880;margin-top:13px;max-width:500px}
+.tarj .cj{margin-top:20px;width:100%;border:2px solid #C3D6E8;border-radius:20px;
+  padding:24px 34px 20px}
+.tarj .qr{width:206px;height:206px;margin:0 auto 17px}
+.tarj .qr svg{width:100%;height:100%;display:block}
+.tarj .ct{font-size:18.5px;font-weight:800;letter-spacing:.9px;color:#0C5395;text-transform:uppercase}
+.tarj .sb{font-size:15px;line-height:1.55;color:#5B6880;margin-top:9px}
+.tarj .sd{margin-top:19px;padding-top:16px;border-top:1.6px dashed #CBD5E1;
+  font-size:15.5px;font-weight:700;letter-spacing:2.4px;color:#143666;text-transform:uppercase}
+.tarj .cv{font-size:12px;font-weight:600;letter-spacing:3.4px;color:#98A2B3;margin-top:7px}
+.tarj .pe{background:#0A3C6D;color:#fff;padding:24px 34px 20px;text-align:center;margin-top:auto}
+.tarj .pe .a{font-size:19px;font-weight:600}
+.tarj .pe .a b{font-weight:800}
+.tarj .pe .b{font-size:18px;font-weight:600;margin-top:8px}
+.tarj .pe .c{font-size:11.5px;font-weight:600;letter-spacing:3px;
+  color:rgba(255,255,255,.6);margin-top:14px;text-transform:uppercase}
+/* Lo que el inspector del MINSA busca sin escanear nada */
+.tarj .pe .dir{font-size:14px;font-weight:600;margin-top:10px;line-height:1.5;
+  color:rgba(255,255,255,.92)}
+.tarj .pe .res{font-size:14.5px;font-weight:800;margin-top:10px;
+  padding-top:10px;border-top:1px solid rgba(255,255,255,.28)}
+.tarj .pe .cod{font-size:10.5px;font-weight:600;letter-spacing:2px;
+  color:rgba(255,255,255,.55);margin-top:12px}
+.tarj .ini{margin-top:12px;padding:9px 14px;border-radius:10px;
+  background:#EEF5E4;border:1px solid #C8DCA6;display:inline-block}
+.tarj .ini span{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.6px;
+  text-transform:uppercase;color:#5A7A22}
+.tarj .ini b{display:block;font-size:15px;font-weight:800;color:#2F4D0B;margin-top:2px}
+
+@media print{
+  body>*:not(#dist-imprimir){display:none!important}
+  body{background:#fff;padding:0}
+  #dist-imprimir{display:block!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  @page{ size:8.5in 11in; margin:0 }
+}
+.btn.mini{width:auto;padding:9px 14px;font-size:12.5px;margin-top:0}
+.btn:disabled{opacity:.45}
+.sol{background:var(--blanco);border:1px solid var(--borde);border-left:4px solid var(--ambar);border-radius:var(--radio);padding:14px 16px;margin-bottom:12px;box-shadow:var(--sombra)}
+.sol.aprobada{border-left-color:var(--verde)}
+.sol.devuelta{border-left-color:var(--rojo)}
+.sol .enc{display:flex;align-items:flex-start;gap:9px}
+.sol .nom{font-weight:800;font-size:15px;flex:1;line-height:1.25}
+.sol .det{font-size:12.5px;color:var(--gris);line-height:1.6;margin-top:7px}
+.sol .det b{color:var(--tinta);font-weight:700}
+.pill{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:6px;padding:3px 8px;white-space:nowrap}
+.p-pendiente{background:#FFF3D1;color:var(--ambar-osc)}
+.p-aprobada{background:var(--verde-suave);color:var(--verde)}
+.p-devuelta{background:var(--rojo-suave);color:var(--rojo)}
+.aviso{background:#FFF8E1;border:1px solid var(--ambar);border-radius:11px;padding:11px 14px;font-size:12.5px;line-height:1.55;color:var(--ambar-osc);margin-bottom:14px}
+.aviso.rojo{background:var(--rojo-suave);border-color:var(--rojo);color:var(--rojo)}
+.aviso.verde{background:var(--verde-suave);border-color:var(--verde);color:var(--verde)}
+.vacio{text-align:center;color:var(--gris);font-size:13.5px;padding:30px 14px;line-height:1.6}
+#cargando{position:fixed;inset:0;background:var(--fondo);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spin{width:38px;height:38px;border:4px solid var(--verde-suave);border-top-color:var(--verde);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+#login{position:fixed;inset:0;background:linear-gradient(135deg,var(--azul-osc),var(--azul));z-index:3000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:26px;gap:6px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;border-radius:26px;opacity:0;pointer-events:none;transition:all .25s;z-index:4000;max-width:88%;text-align:center;border-left:4px solid var(--ambar)}
+#toast.ver{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Cartera de clientes ── */
+.kpis-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-bottom:14px}
+
+/* La cabecera de la cartera. Una cifra manda y el resto acompaña: es la
+   diferencia entre una pantalla que contesta y seis tarjetas iguales que
+   no dicen qué mirar primero. */
+.banda-c{background:linear-gradient(135deg,var(--azul-osc),var(--azul));border-radius:var(--radio);
+  padding:18px 20px;box-shadow:0 2px 12px rgba(20,48,107,.22);
+  display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:10px}
+.banda-c .ancla{display:flex;align-items:flex-end;gap:11px}
+.banda-c .num{font-size:52px;font-weight:900;color:#fff;line-height:.95;letter-spacing:-1.5px;
+  font-variant-numeric:tabular-nums}
+.banda-c .pie{padding-bottom:5px}
+.banda-c .et{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--azul-claro)}
+.banda-c .et.amb{color:var(--ambar)}
+.banda-c .et.lim{color:var(--verde-claro)}
+.banda-c .sub{font-size:12.5px;color:#fff;line-height:1.4}
+.banda-c .sep{width:1px;height:42px;background:rgba(255,255,255,.25)}
+/* los cuatro se reparten el ancho: apiñados a la izquierda dejaban media
+   banda vacía y se veía como un hueco, no como un diseño */
+.banda-c .cifras{display:flex;gap:16px;flex-wrap:wrap;flex-grow:1;justify-content:space-between}
+.banda-c .cifras>div{flex:1 1 0;min-width:84px}
+.banda-c .cifras .v{font-size:25px;font-weight:900;color:#fff;line-height:1.15;
+  font-variant-numeric:tabular-nums}
+@media (max-width:560px){.banda-c{gap:14px}.banda-c .sep{display:none}
+  .banda-c .num{font-size:44px}.banda-c .cifras .v{font-size:21px}}
+
+.chips-c{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.chips-c .chip{background:var(--blanco);border:1px solid var(--borde);border-radius:11px;
+  padding:9px 13px;font-size:12px;line-height:1.5;box-shadow:0 2px 8px rgba(20,48,107,.07)}
+.kpi-c{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:11px 13px;
+  border-top:3px solid var(--azul);box-shadow:0 2px 10px rgba(20,48,107,.08)}
+.kpi-c.mal{border-top-color:var(--rojo)}.kpi-c.ok{border-top-color:var(--verde)}
+.kpi-c.aviso{border-top-color:var(--ambar)}
+.kpi-c .e{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gris)}
+.kpi-c .v{font-size:23px;font-weight:900;color:var(--azul-osc);line-height:1.2}
+.fila-c{background:#fff;border:1px solid var(--borde);border-left:4px solid var(--verde);
+  border-radius:12px;padding:11px 13px;margin-bottom:8px;cursor:pointer;
+  box-shadow:0 2px 8px rgba(20,48,107,.07)}
+.fila-c:hover{border-color:var(--azul)}
+.fila-c.incompleta{border-left-color:var(--ambar)}
+.fila-c.vencido{border-left-color:var(--rojo)}
+.fila-c .n{font-weight:800;font-size:14px;line-height:1.25}
+.fila-c .r{font-size:11.5px;color:var(--gris);margin-top:2px;line-height:1.5}
+.fila-c .t{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.tag{font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  border-radius:5px;padding:3px 7px;white-space:nowrap}
+.tag.falta{background:#FFF3D1;color:var(--ambar-osc)}
+.tag.venc{background:var(--rojo-suave);color:var(--rojo)}
+.tag.prox{background:#FFF3D1;color:var(--ambar-osc)}
+.tag.ok{background:var(--verde-suave);color:var(--verde)}
+.tag.agr{background:var(--azul-suave);color:var(--azul)}
+.grupo-f{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:15px;
+  margin-bottom:12px;box-shadow:0 2px 10px rgba(20,48,107,.08)}
+.grupo-f h4{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--azul-osc);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--borde)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
+.bloq{background:#F1F3F6;color:var(--gris)}
+
+/* ── tipo de servicio: dos opciones, una encendida ── */
+.ops-tipo{display:flex;gap:8px;flex-wrap:wrap}
+.ops-tipo button{flex:1;min-width:150px;background:#fff;border:1.5px solid var(--borde);
+  border-radius:11px;padding:12px 10px;font-family:inherit;font-size:13.5px;font-weight:700;
+  color:var(--gris);cursor:pointer;transition:.15s}
+.ops-tipo button:hover{border-color:var(--azul)}
+.ops-tipo button.act{background:var(--azul-suave);border-color:var(--azul);color:var(--azul-osc)}
+.ops-tipo button:disabled{opacity:.55;cursor:default}
+.ayuda-tipo{font-size:12.5px;color:var(--gris);line-height:1.55;margin-top:9px}
+
+/* ── centro de novedades: esquina inferior derecha ────────────────
+   Verde porque casi siempre es buena noticia — el cliente respondió. El
+   ámbar se reserva para lo devuelto, que no lo es. No se esconde cuando
+   está vacío: si desapareciera, nadie sabría dónde mirar. */
+.nov-pastilla{position:fixed;right:18px;bottom:18px;z-index:4000;
+  display:flex;align-items:center;gap:9px;border:none;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:700;color:#fff;
+  background:#8A97AD;border-radius:999px;padding:12px 14px;
+  box-shadow:0 6px 22px rgba(15,25,45,.28);transition:.2s}
+.nov-pastilla i{width:11px;height:11px;border-radius:50%;background:#fff;
+  opacity:.85;flex:0 0 auto}
+.nov-pastilla b{font-weight:800}
+.nov-pastilla.hay{background:linear-gradient(140deg,#2FBF71,#1E9E58);padding:12px 20px}
+.nov-pastilla.hay i{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.85)}
+.nov-pastilla.abierto{opacity:.55}
+.nov-pastilla:hover{transform:translateY(-2px)}
+.nov-pastilla.late{animation:novLate 1.1s ease-out 2}
+@keyframes novLate{
+  0%{transform:scale(1);box-shadow:0 6px 22px rgba(30,158,88,.35)}
+  35%{transform:scale(1.07);box-shadow:0 6px 34px rgba(30,158,88,.75)}
+  100%{transform:scale(1);box-shadow:0 6px 22px rgba(30,158,88,.35)}
+}
+@media (prefers-reduced-motion:reduce){ .nov-pastilla.late{animation:none} }
+
+/* EL PANEL NO SCROLLEA: SCROLLEA SU LISTA.
+   El encabezado estaba pegado con position:sticky dentro de un panel que
+   se desplazaba entero. Sticky aguanta en el escritorio y se despega en el
+   teléfono, donde la barra de direcciones cambia el alto de la ventana:
+   al bajar por los avisos se perdía el encabezado y con él la ✕, y había
+   que subir hasta arriba para poder cerrar. Con flex el encabezado NO
+   está dentro de lo que se desplaza, así que no puede irse a ningún lado. */
+#nov-panel{position:fixed;right:18px;bottom:74px;z-index:4001;width:min(370px,calc(100vw - 36px));
+  max-height:min(60vh,460px);display:none;flex-direction:column;overflow:hidden;
+  background:#fff;border:1px solid var(--borde);
+  border-radius:16px;box-shadow:0 16px 44px rgba(15,25,45,.26)}
+#nov-panel.ver{display:flex}
+#nov-lista{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.nov-cab{flex:0 0 auto;background:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:14px 16px 10px;font-size:11px;font-weight:800;
+  letter-spacing:.7px;text-transform:uppercase;color:var(--azul-osc);
+  border-radius:16px 16px 0 0;border-bottom:1px solid var(--borde)}
+/* La ✕ con tamaño de dedo: 16 píxeles de tipografía no se aciertan bien
+   en un teléfono. */
+.nov-cab button{border:none;background:none;font-size:20px;color:var(--gris);cursor:pointer;
+  font-family:inherit;line-height:1;padding:4px 10px;margin:-4px -6px -4px 0;border-radius:8px}
+.nov-cab button:hover{background:#F1F3F6;color:var(--tinta)}
+@media (max-width:520px){
+  #nov-panel{left:10px;right:10px;bottom:70px;width:auto;max-height:72vh}
+  .nov-pastilla{right:12px;bottom:12px}
+}
+.nov-it{position:relative;padding:13px 34px 13px 16px;border-bottom:1px solid var(--borde);
+  border-left:4px solid var(--verde)}
+.nov-cerrar{position:absolute;top:9px;right:9px;width:24px;height:24px;border:none;
+  background:none;color:var(--gris);font-size:13px;line-height:1;cursor:pointer;
+  border-radius:7px;font-family:inherit;opacity:.6;transition:.15s}
+.nov-cerrar:hover{background:var(--rojo-suave);color:var(--rojo);opacity:1}
+.nov-pie{padding:11px 16px;text-align:center}
+.nov-pie button{border:none;background:none;font-family:inherit;font-size:12.5px;
+  font-weight:700;color:var(--gris);cursor:pointer;padding:7px 14px;border-radius:8px}
+.nov-pie button:hover{background:#F1F3F6;color:var(--tinta)}
+.nov-it.dev{border-left-color:var(--ambar,#E0A800);background:#FFFBF0}
+/* Lo que deja un asistente: azul, porque no es un hecho que acaba de pasar
+   sino algo que lleva rato esperando a que alguien lo mire. */
+.nov-it.pen{border-left-color:var(--azul);background:var(--azul-suave)}
+.nov-t span.pri-alta,.nov-t span.pri-media,.nov-t span.pri-baja{
+  display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.5px;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:1px}
+.nov-t span.pri-alta{background:var(--rojo-suave);color:#7a1d14}
+.nov-t span.pri-media{background:#FFF3D1;color:var(--ambar-osc)}
+.nov-t span.pri-baja{background:var(--borde);color:var(--gris)}
+.nov-t{font-size:14px;font-weight:800;color:var(--tinta);line-height:1.3}
+.nov-t span{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  color:#7A5600;background:#FFF3D1;border-radius:6px;padding:2px 7px;vertical-align:2px}
+.nov-d{font-size:12.5px;color:var(--gris);line-height:1.5;margin-top:3px}
+.nov-p{display:flex;gap:8px;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;margin-top:9px;font-size:11.5px;color:var(--gris)}
+.nov-vacio{padding:22px 18px;font-size:13px;color:var(--gris);line-height:1.6;text-align:center}
+@media print{ .nov-pastilla,#nov-panel{display:none!important} }
+
+/* ── lo que el sistema calcula, no lo que alguien escribe ── */
+.calculado{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px;
+  margin-top:12px;padding-top:12px;border-top:1px dashed var(--borde)}
+.calculado>div{background:#F7F9FC;border:1px solid var(--borde);border-radius:11px;padding:10px 12px}
+.calculado span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--gris)}
+.calculado b{display:block;font-size:18px;font-weight:800;color:var(--azul-osc);margin-top:3px}
+.calculado em{display:block;font-size:11.5px;font-style:normal;color:var(--gris);
+  line-height:1.45;margin-top:4px}
+
+/* ── notas de la propuesta, una línea a la vez ── */
+.nota-f{display:flex;gap:7px;align-items:flex-start;margin-bottom:7px}
+.nota-f input{flex:1;margin:0}
+.nota-x{flex:0 0 auto;width:38px;height:44px;border:1px solid var(--borde);border-radius:9px;
+  background:#fff;color:var(--gris);font-size:16px;line-height:1;cursor:pointer;
+  font-family:inherit;transition:.15s}
+.nota-x:hover:not(:disabled){background:var(--rojo-suave);border-color:var(--rojo);color:var(--rojo)}
+.nota-x:disabled{opacity:.4;cursor:default}
+.notas-vacio{font-size:12.5px;color:var(--gris);font-style:italic;padding:9px 0}
+.aviso-notas{font-size:12.5px;line-height:1.55;background:#FFF3D1;color:#7A5600;
+  border-left:4px solid var(--ambar,#E0A800);border-radius:9px;padding:10px 12px;margin-bottom:10px}
+
+/* ── diálogo propio ── */
+#dlg{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:18px}
+#dlg.ver{display:flex}
+.dlg-fondo{position:absolute;inset:0;background:rgba(15,25,45,.62)}
+.dlg-caja{position:relative;background:#fff;width:100%;max-width:440px;border-radius:18px;
+  padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.32);animation:aparece .18s ease-out}
+@keyframes aparece{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.dlg-ic{width:48px;height:48px;border-radius:50%;background:#FFF3D1;color:#9A6E00;font-size:25px;
+  font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.dlg-ic.rojo{background:#FBEAE8;color:#C0392B}
+.dlg-tit{font-size:17px;font-weight:800;text-align:center;line-height:1.35;color:var(--tinta)}
+.dlg-txt{font-size:13.5px;color:var(--gris);text-align:center;line-height:1.6;margin:9px 0 14px}
+.dlg-caja input{margin-bottom:4px}
+.dlg-caja .btn{margin-top:9px}
+
+.dato-cli{background:#fff;border:1px solid var(--borde);border-radius:9px;padding:10px 12px;
+  font-size:14px;line-height:1.5;color:var(--tinta);min-height:41px}
+.dato-cli b{font-weight:800;color:var(--verde)}
+
+
+.fila-btn{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.btn.mini2{flex:1;min-width:120px;width:auto;margin-top:0;padding:11px 12px;font-size:13px}
+.btn-borrar{background:none;border:none;color:var(--rojo);font-family:inherit;font-size:12.5px;
+  font-weight:700;cursor:pointer;padding:8px 14px;border-radius:8px;opacity:.8}
+.btn-borrar:hover{background:var(--rojo-suave);opacity:1}
+
+
+.grupo-f.baja{border-left:4px solid var(--rojo);background:var(--rojo-suave)}
+.pista{font-size:11.5px;color:var(--gris);line-height:1.65;margin-top:10px;padding-top:9px;
+  border-top:1px solid var(--borde)}
+.pista i{color:var(--tinta);font-style:normal;font-weight:700}
+
+</style>
+</head>
+<body>
+
+<div id="cargando"><div class="spin"></div><div style="font-size:13px;color:var(--gris);font-weight:600">Cargando…</div></div>
+
+<div id="login">
+  <img src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400" alt="ECOVSA"
+       style="height:74px;width:auto;background:#fff;border-radius:14px;padding:11px 16px;box-shadow:0 4px 16px rgba(0,0,0,.28);margin-bottom:18px">
+  <div style="color:#fff;font-size:20px;font-weight:800">Alta de Clientes</div>
+  <div style="display:inline-block;background:var(--ambar);color:var(--verde-osc);font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin-top:9px">Acceso de mercadeo</div>
+  <div style="color:rgba(255,255,255,.7);font-size:12.5px;margin:16px 0 18px;text-align:center;line-height:1.55">Registro de clientes nuevos.<br>Mercadeo y operaciones.</div>
+  <input id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••"
+    style="width:175px;text-align:center;font-size:30px;font-weight:800;letter-spacing:9px;padding:13px;border:none;border-radius:13px;background:#fff;color:var(--verde-osc)">
+  <div id="pin-error" style="color:#FFC9C4;font-size:12.5px;font-weight:600;height:18px;margin-top:9px"></div>
+  <button onclick="entrarConPin()" style="width:195px;padding:13px;border:none;border-radius:11px;background:var(--ambar);color:var(--verde-osc);font-family:inherit;font-size:15px;font-weight:800;margin-top:5px;cursor:pointer">Entrar</button>
+</div>
+
+<header>
+  <div class="wrap marca">
+    <img src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400" alt="ECOVSA"
+         style="height:40px;width:auto;background:#fff;border-radius:9px;padding:5px 8px;box-shadow:0 2px 6px rgba(0,0,0,.2)">
+    <div>
+      <h1>Alta de Clientes</h1>
+      <div class="sub" id="cab-usuario">—</div>
+    </div>
+    <button class="salir" onclick="volverInicio()" style="margin-left:auto">← Inicio</button>
+      <button class="salir" onclick="salir()" style="margin-left:8px">Salir</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tabs" id="tabs"></div>
+
+  <!-- ══ PROSPECTOS ══ -->
+  <section id="v-prospectos" class="vista on">
+    <div id="pro-resumen"></div>
+    <div id="pro-acciones" style="display:flex;gap:8px;align-items:center;
+      flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn sec" id="nov-refresco" style="width:auto;margin:0"
+        onclick="revisarNovedades(true)">↻ Actualizar</button>
+      <span style="font-size:12px;color:var(--gris)">Las novedades llegan solas a la
+        esquina; esto es por si no quieres esperar.</span>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:11px">
+      <input id="p-buscar" placeholder="🔍 Buscar empresa, RUC o propuesta…" oninput="pintarProspectos()"
+             style="flex:1;min-width:220px">
+      <select id="p-filtro" onchange="pintarProspectos()" style="width:auto;min-width:190px">
+        <option value="activos">En proceso</option>
+        <option value="">Todos</option>
+        <option value="atrasados">Seguimiento atrasado</option>
+        <option value="Firmado">Firmados</option>
+        <option value="Rechazado">Rechazados</option>
+      </select>
+      <button class="btn mini" id="btn-nuevo-pro" onclick="nuevoProspecto()">+ Nuevo prospecto</button>
+    </div>
+    <div id="pro-lista"><div class="vacio">Cargando…</div></div>
+  </section>
+
+  <!-- ══ FICHA DE PROSPECTO ══ -->
+  <section id="v-prospecto" class="vista">
+    <button class="btn sec" onclick="verTab('prospectos')" style="width:auto;margin-bottom:12px">← Volver</button>
+    <div id="pro-ficha"></div>
+  </section>
+
+  <!-- ══ CARTERA ══ -->
+  <section id="v-cartera" class="vista">
+    <div id="cartera-resumen"></div>
+    <div class="aviso" id="cartera-aviso" style="display:none"></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:11px">
+      <input id="c-buscar" placeholder="🔍 Buscar por nombre, razón social o RUC…"
+             oninput="pintarCartera()" style="flex:1;min-width:220px">
+      <select id="c-filtro" onchange="pintarCartera()" style="width:auto;min-width:180px">
+        <option value="">Todos los clientes</option>
+        <option value="falta">Con datos incompletos</option>
+        <option value="sininicio">Sin fecha de inicio</option>
+        <option value="sinruc">Sin RUC</option>
+        <option value="vencido">Contrato vencido</option>
+        <option value="porvencer">Contrato por vencer</option>
+      </select>
+    </div>
+    <div id="cartera-lista"><div class="vacio">Cargando cartera…</div></div>
+  </section>
+
+  <!-- ══ DISTINTIVOS ══ -->
+  <section id="v-distintivos" class="vista">
+    <div class="aviso">
+      El distintivo se entrega al cliente cuando firma. Su QR abre una pantalla
+      de solo lectura donde ve su servicio: frecuencia, última visita, mes de la
+      próxima y el total retirado de su establecimiento. Cada uno lleva su propio
+      código, así que no sirve el de otro cliente.
+    </div>
+    <div id="dist-resumen"></div>
+    <div class="dist-barra">
+      <input id="d-buscar" placeholder="🔍 Buscar cliente…" oninput="pintarDistintivos()"
+             style="flex:1;min-width:200px">
+      <select id="d-filtro" onchange="pintarDistintivos()" style="width:auto;min-width:190px">
+        <option value="falta">Falta entregar</option>
+        <option value="listo">Ya entregados</option>
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="dist-barra">
+      <button class="btn sec" style="width:auto;margin:0" onclick="marcarTodosDist(true)">Marcar todos</button>
+      <button class="btn sec" style="width:auto;margin:0" onclick="marcarTodosDist(false)">Ninguno</button>
+      <button class="btn ambar" style="width:auto;margin:0;margin-left:auto"
+              id="d-btn-imp" onclick="imprimirDistintivos()">🖨️ Imprimir seleccionados</button>
+    </div>
+    <div id="dist-aviso" class="aviso" style="display:none"></div>
+    <div id="dist-lista"><div class="vacio">Cargando clientes…</div></div>
+  </section>
+
+  <!-- ══ FICHA ══ -->
+  <section id="v-ficha" class="vista">
+    <button class="btn sec" onclick="verTab('cartera')" style="width:auto;margin-bottom:12px">← Volver a la cartera</button>
+    <div id="ficha-cuerpo"></div>
+  </section>
+
+  <!-- ══ FORMULARIO ══ -->
+  <section id="v-nuevo" class="vista">
+    <div class="aviso">
+      Los campos con <span class="req">*</span> son obligatorios. Al enviar, el cliente queda
+      pendiente de revisión por operaciones antes de entrar a la agenda de rutas.
+    </div>
+
+    <div class="tarjeta">
+      <h3>Identificación</h3>
+      <label>Empresa <span class="req">*</span></label>
+      <input id="f-empresa" placeholder="Nombre comercial del cliente">
+      <div class="ayuda" id="alerta-dup"></div>
+      <label>Razón social</label>
+      <input id="f-razon" placeholder="Si es distinta al nombre comercial">
+    </div>
+
+    <div class="tarjeta">
+      <h3>Contacto</h3>
+      <div class="fila">
+        <div><label>Nombre del contacto <span class="req">*</span></label><input id="f-contacto"></div>
+        <div><label>Cargo</label><input id="f-cargo" placeholder="Administrador, dueño…"></div>
+      </div>
+      <div class="fila">
+        <div><label>Teléfono</label><input id="f-telefono" inputmode="tel"></div>
+        <div><label>Celular <span class="req">*</span></label><input id="f-celular" inputmode="tel" placeholder="6000-0000"></div>
+      </div>
+      <label>Correo</label>
+      <input id="f-correo" inputmode="email">
+    </div>
+
+    <div class="tarjeta">
+      <h3>Ubicación</h3>
+      <label>Dirección <span class="req">*</span></label>
+      <textarea id="f-direccion" placeholder="Calle, edificio, local, punto de referencia"></textarea>
+      <label>Zona</label>
+      <select id="f-zona"></select>
+      <label>Plus Code de Google Maps</label>
+      <input id="f-pluscode" placeholder="Ej.: 2F6R+C5">
+      <div class="ayuda">
+        Opcional pero muy útil. En Google Maps, busca el cliente, mantén presionado sobre el punto
+        y copia el código corto que aparece (algo como <b>2F6R+C5</b>). Si no lo pones, operaciones
+        ubicará el cliente antes de rutearlo.
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Servicio contratado</h3>
+      <div class="fila">
+        <div><label>Frecuencia <span class="req">*</span></label><select id="f-frecuencia"></select></div>
+        <div><label>Kg máx. por visita</label><input id="f-kg" inputmode="decimal" placeholder="10"></div>
+      </div>
+      <label>Inicio de recolección</label>
+      <input id="f-inicio" type="date">
+      <div class="ayuda">Desde cuándo puede operaciones incluirlo en una ruta.</div>
+      <label>Notas para operaciones</label>
+      <textarea id="f-notas" placeholder="Horario de atención, restricciones de acceso, a quién buscar…"></textarea>
+    </div>
+
+    <button class="btn" onclick="enviarSolicitud()">Enviar a operaciones</button>
+    <button class="btn sec" onclick="limpiar()">Limpiar formulario</button>
+  </section>
+
+  <!-- ══ MIS SOLICITUDES ══ -->
+  <section id="v-mias" class="vista">
+    <div id="lista-mias"></div>
+  </section>
+
+  <!-- ══ NOTIFICACIONES (supervisión y gerencia) ══ -->
+  <section id="v-notificaciones" class="vista">
+    <h2 style="margin-bottom:4px">Notificaciones</h2>
+    <div style="font-size:12.5px;color:var(--gris);margin-bottom:14px;line-height:1.6">
+      A quién se le escribe cuando pasa cada cosa. El correo se abre ya redactado
+      y lo mandas tú desde tu cuenta.<br>
+      Varios correos van separados por coma.
+    </div>
+    <div id="notif-lista"><div class="vacio">Cargando…</div></div>
+  </section>
+
+</main>
+
+<!-- Centro de novedades: fijo en la esquina, visible desde cualquier pestaña -->
+<div id="nov-panel">
+  <div class="nov-cab">Novedades <button onclick="cerrarNovedades()">✕</button></div>
+  <div id="nov-lista"></div>
+</div>
+<button id="nov-pastilla" class="nov-pastilla" onclick="verNovedades()" title="Novedades"><i></i></button>
+
+<div id="dlg">
+  <div class="dlg-fondo" onclick="dlgNo()"></div>
+  <div class="dlg-caja">
+    <div class="dlg-ic" id="dlg-ic">!</div>
+    <div class="dlg-tit" id="dlg-tit"></div>
+    <div class="dlg-txt" id="dlg-txt"></div>
+    <input id="dlg-input" style="display:none" autocomplete="off">
+    <button class="btn" id="dlg-si" onclick="dlgSi()">Continuar</button>
+    <button class="btn sec" onclick="dlgNo()">Cancelar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const K_PIN="ecovsa_pin";
+let PIN="", USUARIO={nombre:"",rol:""}, DATOS={};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* Dos decimales, con separador de miles. Los montos de una propuesta se leen
+   en voz alta por teléfono; "3240" y "3,240.00" no se leen igual. */
+function n2(v){
+  var x=Number(String(v==null?0:v).replace(/,/g,""));
+  if(!isFinite(x)) x=0;
+  return x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("ver");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("ver"),2800);}
+/* Fecha legible para la pantalla. Vive aquí arriba, con los demás ayudantes,
+   y no enterrada dentro de un bloque: se perdió una vez al reemplazar el
+   bloque que la contenía, y cualquier cliente con fecha de baja dejó de
+   abrirse — la ficha reventaba antes de pintarse. */
+function fechaLegible_(v){
+  var s = String(v || "").trim();
+  if(!s) return "";
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var d = new Date(s);
+  if(isNaN(d.getTime())) return s;
+  var M = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var h = ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2);
+  return d.getDate() + " " + M[d.getMonth()] + " " + d.getFullYear() + " · " + h;
+}
+function hoyISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+
+/* ── acceso ── */
+window.addEventListener("load",()=>{
+  try{const v=localStorage.getItem(K_PIN); if(v) PIN=JSON.parse(v);}catch(e){}
+  if(!PIN){pedirPin();return;}
+  cargar();
+});
+function pedirPin(msg){
+  $("cargando").style.display="none";
+  $("login").style.display="flex";
+  $("pin-error").textContent=msg||"";
+  setTimeout(()=>$("pin-input").focus(),120);
+}
+function entrarConPin(){
+  const v=($("pin-input").value||"").trim();
+  if(!v){$("pin-error").textContent="Escribe tu PIN";return;}
+  $("pin-error").textContent="Verificando…";
+  google.script.run
+    .withSuccessHandler(r=>{
+      if(r&&r.ok){
+        PIN=v; try{localStorage.setItem(K_PIN,JSON.stringify(v));}catch(e){}
+        $("login").style.display="none"; $("cargando").style.display="flex"; cargar();
+      } else $("pin-error").textContent=(r&&r.error)||"PIN incorrecto";
+    })
+    .withFailureHandler(()=>{$("pin-error").textContent="Sin conexión";})
+    .api_login(v);
+}
+function salir(){
+  PIN=""; try{localStorage.removeItem(K_PIN);}catch(e){}
+  location.reload();
+}
+
+/* ── carga ── */
+function cargar(){
+  $("cargando").style.display="flex";
+  google.script.run
+    .withSuccessHandler(d=>{
+      $("cargando").style.display="none";
+      if(d&&d.requiereLogin){PIN="";try{localStorage.removeItem(K_PIN);}catch(e){}pedirPin(d.error);return;}
+      if(!d||!d.ok){document.querySelector("main").innerHTML='<div class="aviso rojo">'+esc((d&&d.error)||"No se pudo cargar")+'</div>';return;}
+      DATOS=d; USUARIO=d.usuario;
+      SOLO_LECTURA = (USUARIO.rol==="gerente");
+      $("cab-usuario").textContent=USUARIO.nombre+" · "+(ROTULO[USUARIO.rol]||USUARIO.rol);
+      llenarListas(); pintarTabs(); renderMias();
+      var act=document.querySelector("#tabs button.on");
+      if(act) verTab(act.dataset.v);
+    })
+    .withFailureHandler(()=>{
+      $("cargando").style.display="none";
+      toast("Sin conexión — intenta de nuevo");
+    })
+    .api_altaBootstrap(PIN);
+  google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+}
+function llenarListas(){
+  $("f-zona").innerHTML=DATOS.zonas.map(z=>`<option>${esc(z)}</option>`).join("");
+  $("f-frecuencia").innerHTML='<option value="">Elegir…</option>'+
+    DATOS.frecuencias.map(f=>`<option>${esc(f)}</option>`).join("");
+  $("f-inicio").value=hoyISO();
+  $("f-empresa").addEventListener("input",revisarDuplicado);
+}
+function pintarTabs(){
+  const esSup=(USUARIO.rol==="supervisor"||USUARIO.rol==="admin");
+  const tabs = SOLO_LECTURA
+    ? [["prospectos","Prospectos"],["cartera","Cartera"]]
+    : [["prospectos","Prospectos"],["cartera","Cartera"],["nuevo","Cliente nuevo"],
+       ["mias","Clientes que envié"]];
+  /* el distintivo lo maneja quien atiende al cliente: mercadeo y arriba */
+  if(!SOLO_LECTURA) tabs.push(["distintivos","Distintivos"]);
+  /* a quién le llega cada aviso: lo decide supervisión, no mercadeo */
+  if(esSup) tabs.push(["notificaciones","Notificaciones"]);
+  $("tabs").innerHTML=tabs.map((t,i)=>
+    `<button class="${i===0?"on":""}" data-v="${t[0]}" onclick="verTab('${t[0]}')">${t[1]}</button>`).join("");
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DISTINTIVOS DEL CLIENTE
+   ───────────────────────────────────────────────────────────────────
+   Se entrega al firmar el contrato y se pega en el local. Su QR abre
+   la pantalla pública del cliente, con el código que le corresponde.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   Generador de QR, modo byte, corrección M. Sin librerías: el distintivo
+   y el certificado tienen que imprimirse aunque no haya internet, y un
+   QR que depende de un servicio de terceros muere el día que ese
+   servicio cambia. Devuelve la matriz de módulos; quien llame decide
+   si la dibuja en SVG, en canvas o en tabla.
+   ═══════════════════════════════════════════════════════════════════ */
+var QR = (function(){
+
+  /* ── aritmética del campo de Galois GF(256), para Reed-Solomon ── */
+  var EXP = new Array(512), LOG = new Array(256);
+  (function(){
+    var x = 1;
+    for (var i = 0; i < 255; i++) {
+      EXP[i] = x; LOG[x] = i;
+      x <<= 1;
+      if (x & 0x100) x ^= 0x11D;          // polinomio generador del campo
+    }
+    for (i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  })();
+  function mul(a, b){ return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]]; }
+
+  /* polinomio generador de grado n */
+  function generador(n){
+    var g = [1];
+    for (var i = 0; i < n; i++) {
+      var ng = new Array(g.length + 1).fill(0);
+      for (var j = 0; j < g.length; j++) {
+        ng[j]     ^= g[j];                    // el término en x
+        ng[j + 1] ^= mul(g[j], EXP[i]);       // el término α^i
+      }
+      g = ng;
+    }
+    return g;
+  }
+
+  function ecc(datos, n){
+    var g = generador(n);
+    var r = datos.concat(new Array(n).fill(0));
+    for (var i = 0; i < datos.length; i++) {
+      var c = r[i];
+      if (!c) continue;
+      for (var j = 0; j < g.length; j++) r[i + j] ^= mul(g[j], c);
+    }
+    return r.slice(datos.length);
+  }
+
+  /* ── tablas por versión, solo corrección M (la que usamos) ──
+     [ total de bytes de datos, bytes de ECC por bloque,
+       bloques del grupo 1, bloques del grupo 2 ] */
+  var VER = {
+     1:[16,10,1,0],   2:[28,16,1,0],   3:[44,26,1,0],   4:[64,18,2,0],
+     5:[86,24,2,0],   6:[108,16,4,0],  7:[124,18,4,0],  8:[154,22,2,2],
+     9:[182,22,3,2], 10:[216,26,4,1], 11:[254,30,1,4], 12:[290,22,6,2],
+    13:[334,22,8,1], 14:[365,24,4,5], 15:[415,24,5,5], 16:[453,28,7,3],
+    17:[507,28,10,1],18:[563,26,9,4], 19:[627,26,3,11],20:[669,26,3,13]
+  };
+
+  /* posiciones de los patrones de alineación, por versión */
+  var ALIN = {
+     1:[], 2:[6,18], 3:[6,22], 4:[6,26], 5:[6,30], 6:[6,34],
+     7:[6,22,38], 8:[6,24,42], 9:[6,26,46], 10:[6,28,50],
+    11:[6,30,54], 12:[6,32,58], 13:[6,34,62], 14:[6,26,46,66],
+    15:[6,26,48,70], 16:[6,26,50,74], 17:[6,30,54,78], 18:[6,30,56,82],
+    19:[6,30,58,86], 20:[6,34,62,90]
+  };
+
+  /* bits de formato ya calculados, corrección M, máscaras 0..7 */
+  var FORMATO = [0x5412,0x5125,0x5E7C,0x5B4B,0x45F9,0x40CE,0x4F97,0x4AA0];
+
+  /* información de versión, para versión 7 en adelante */
+  function bitsVersion(v){
+    if (v < 7) return null;
+    var r = v << 12, d = v << 12;
+    for (var i = 0; i < 6; i++) if (d & (1 << (17 - i))) d ^= 0x1F25 << (5 - i);
+    return (r | (d & 0xFFF));
+  }
+
+  function bytesUTF8(txt){
+    var out = [], s = unescape(encodeURIComponent(String(txt)));
+    for (var i = 0; i < s.length; i++) out.push(s.charCodeAt(i) & 0xFF);
+    return out;
+  }
+
+  /* ── armado de la secuencia de bits ── */
+  function armarDatos(bytes, ver){
+    var cap = VER[ver][0];
+    var bits = [];
+    var push = function(val, n){ for (var i = n - 1; i >= 0; i--) bits.push((val >> i) & 1); };
+
+    push(4, 4);                                   // modo byte
+    push(bytes.length, ver < 10 ? 8 : 16);        // largo
+    for (var i = 0; i < bytes.length; i++) push(bytes[i], 8);
+
+    var max = cap * 8;
+    for (i = 0; i < 4 && bits.length < max; i++) bits.push(0);   // terminador
+    while (bits.length % 8) bits.push(0);
+
+    var out = [];
+    for (i = 0; i < bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+      out.push(b);
+    }
+    var relleno = [0xEC, 0x11], k = 0;
+    while (out.length < cap) out.push(relleno[k++ % 2]);
+    return out;
+  }
+
+  /* ── bloques e intercalado ── */
+  function intercalar(datos, ver){
+    var cap = VER[ver][0], nEcc = VER[ver][1], g1 = VER[ver][2], g2 = VER[ver][3];
+    var total = g1 + g2;
+    var corto = Math.floor(cap / total);          // bytes del grupo 1
+    var bloques = [], p = 0;
+    for (var i = 0; i < total; i++) {
+      var largo = corto + (i < g1 ? 0 : 1);
+      bloques.push(datos.slice(p, p + largo));
+      p += largo;
+    }
+    var eccs = bloques.map(function(b){ return ecc(b, nEcc); });
+
+    var out = [], maxD = Math.max.apply(null, bloques.map(function(b){ return b.length; }));
+    for (i = 0; i < maxD; i++)
+      for (var j = 0; j < bloques.length; j++)
+        if (i < bloques[j].length) out.push(bloques[j][i]);
+    for (i = 0; i < nEcc; i++)
+      for (j = 0; j < eccs.length; j++) out.push(eccs[j][i]);
+    return out;
+  }
+
+  /* ── matriz: patrones fijos y zonas reservadas ── */
+  function nuevaMatriz(ver){
+    var n = ver * 4 + 17;
+    var m = [], res = [];
+    for (var i = 0; i < n; i++) { m.push(new Array(n).fill(0)); res.push(new Array(n).fill(0)); }
+
+    function ojo(fy, fx){
+      for (var y = -1; y <= 7; y++) for (var x = -1; x <= 7; x++) {
+        var Y = fy + y, X = fx + x;
+        if (Y < 0 || Y >= n || X < 0 || X >= n) continue;
+        var dentro = (0 <= y && y <= 6 && (x === 0 || x === 6)) ||
+                     (0 <= x && x <= 6 && (y === 0 || y === 6)) ||
+                     (2 <= x && x <= 4 && 2 <= y && y <= 4);
+        m[Y][X] = dentro ? 1 : 0; res[Y][X] = 1;
+      }
+    }
+    ojo(0, 0); ojo(0, n - 7); ojo(n - 7, 0);
+
+    /* temporizadores */
+    for (i = 8; i < n - 8; i++) {
+      m[6][i] = m[i][6] = (i % 2 === 0) ? 1 : 0;
+      res[6][i] = res[i][6] = 1;
+    }
+
+    /* patrones de alineación */
+    var a = ALIN[ver];
+    for (i = 0; i < a.length; i++) for (var j = 0; j < a.length; j++) {
+      var cy = a[i], cx = a[j];
+      /* Los tres que caerían encima de un ojo no van. Ojo con preguntarle
+         a `res`: los centrados sobre la línea de temporización ya figuran
+         reservados y se saltarían sin deber. */
+      if ((cy <= 8 && cx <= 8) || (cy <= 8 && cx >= n - 9) ||
+          (cy >= n - 9 && cx <= 8)) continue;
+      for (var y = -2; y <= 2; y++) for (var x = -2; x <= 2; x++) {
+        m[cy + y][cx + x] = (Math.max(Math.abs(x), Math.abs(y)) !== 1) ? 1 : 0;
+        res[cy + y][cx + x] = 1;
+      }
+    }
+
+    /* módulo siempre oscuro y zonas de formato */
+    m[n - 8][8] = 1; res[n - 8][8] = 1;
+    for (i = 0; i <= 8; i++) { if (!res[8][i]) res[8][i] = 1; if (!res[i][8]) res[i][8] = 1; }
+    for (i = n - 8; i < n; i++) { res[8][i] = 1; res[i][8] = 1; }
+
+    /* información de versión */
+    if (ver >= 7) for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) {
+      res[i][n - 11 + j] = 1; res[n - 11 + j][i] = 1;
+    }
+    return { m:m, res:res, n:n };
+  }
+
+  function colocar(M, datos){
+    var m = M.m, res = M.res, n = M.n;
+    var bits = [];
+    for (var i = 0; i < datos.length; i++)
+      for (var j = 7; j >= 0; j--) bits.push((datos[i] >> j) & 1);
+
+    var p = 0, arriba = true;
+    for (var col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col--;                        // la columna del temporizador se salta
+      for (var f = 0; f < n; f++) {
+        var y = arriba ? (n - 1 - f) : f;
+        for (var k = 0; k < 2; k++) {
+          var x = col - k;
+          if (res[y][x]) continue;
+          m[y][x] = p < bits.length ? bits[p] : 0;
+          p++;
+        }
+      }
+      arriba = !arriba;
+    }
+  }
+
+  function mascara(k, y, x){
+    switch (k) {
+      case 0: return (y + x) % 2 === 0;
+      case 1: return y % 2 === 0;
+      case 2: return x % 3 === 0;
+      case 3: return (y + x) % 3 === 0;
+      case 4: return (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0;
+      case 5: return ((y * x) % 2) + ((y * x) % 3) === 0;
+      case 6: return (((y * x) % 2) + ((y * x) % 3)) % 2 === 0;
+      case 7: return (((y + x) % 2) + ((y * x) % 3)) % 2 === 0;
+    }
+    return false;
+  }
+
+  function ponerFormato(M, k){
+    var m = M.m, n = M.n, f = FORMATO[k];
+    for (var i = 0; i < 15; i++) {
+      var b = (f >> i) & 1;
+      if (i < 6)       m[i][8] = b;
+      else if (i < 8)  m[i + 1][8] = b;
+      else if (i === 8) m[8][7] = b;
+      else              m[8][14 - i] = b;
+
+      if (i < 8)       m[8][n - 1 - i] = b;
+      else             m[n - 15 + i][8] = b;
+    }
+    m[n - 8][8] = 1;
+  }
+
+  function ponerVersion(M, ver){
+    if (ver < 7) return;
+    var m = M.m, n = M.n, v = bitsVersion(ver);
+    for (var i = 0; i < 18; i++) {
+      var b = (v >> i) & 1;
+      m[Math.floor(i / 3)][n - 11 + (i % 3)] = b;
+      m[n - 11 + (i % 3)][Math.floor(i / 3)] = b;
+    }
+  }
+
+  /* ── penalización, para elegir la máscara que mejor se lee ── */
+  function penalizar(m, n){
+    var p = 0, i, j, k;
+    /* 1: rachas de 5 o más del mismo color */
+    for (i = 0; i < n; i++) for (var eje = 0; eje < 2; eje++) {
+      var run = 1, prev = eje ? m[0][i] : m[i][0];
+      for (j = 1; j < n; j++) {
+        var v = eje ? m[j][i] : m[i][j];
+        if (v === prev) { run++; }
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; prev = v; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+    }
+    /* 2: bloques de 2x2 */
+    for (i = 0; i < n - 1; i++) for (j = 0; j < n - 1; j++) {
+      var a = m[i][j];
+      if (a === m[i][j+1] && a === m[i+1][j] && a === m[i+1][j+1]) p += 3;
+    }
+    /* 3: el patrón que se confunde con un ojo */
+    var pat1 = [1,0,1,1,1,0,1,0,0,0,0], pat2 = [0,0,0,0,1,0,1,1,1,0,1];
+    for (i = 0; i < n; i++) for (j = 0; j <= n - 11; j++) {
+      var okF = true, okC = true, okF2 = true, okC2 = true;
+      for (k = 0; k < 11; k++) {
+        if (m[i][j+k] !== pat1[k]) okF = false;
+        if (m[i][j+k] !== pat2[k]) okF2 = false;
+        if (m[j+k][i] !== pat1[k]) okC = false;
+        if (m[j+k][i] !== pat2[k]) okC2 = false;
+      }
+      if (okF) p += 40; if (okF2) p += 40; if (okC) p += 40; if (okC2) p += 40;
+    }
+    /* 4: proporción de oscuros lejos del 50% */
+    var osc = 0;
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) osc += m[i][j];
+    var pct = osc * 100 / (n * n);
+    p += Math.floor(Math.abs(pct - 50) / 5) * 10;
+    return p;
+  }
+
+  /* ── entrada pública: texto → matriz de 0 y 1 ── */
+  function generar(texto, mascaraFija){
+    var bytes = bytesUTF8(texto);
+    /* se cuenta en bits, no en bytes: 4 del modo más 8 o 16 del largo.
+       Redondear a bytes desperdicia una versión entera en el límite. */
+    var ver = 0;
+    for (var v = 1; v <= 20; v++) {
+      var cabecera = 4 + (v < 10 ? 8 : 16);
+      if (cabecera + bytes.length * 8 <= VER[v][0] * 8) { ver = v; break; }
+    }
+    if (!ver) throw new Error('El texto es demasiado largo para el código.');
+
+    var datos = intercalar(armarDatos(bytes, ver), ver);
+
+    var mejor = null, mejorP = Infinity;
+    var desde = (mascaraFija == null) ? 0 : mascaraFija;
+    var hasta = (mascaraFija == null) ? 7 : mascaraFija;
+    for (var k = desde; k <= hasta; k++) {
+      var M = nuevaMatriz(ver);
+      colocar(M, datos);
+      for (var y = 0; y < M.n; y++) for (var x = 0; x < M.n; x++)
+        if (!M.res[y][x] && mascara(k, y, x)) M.m[y][x] ^= 1;
+      ponerFormato(M, k);
+      ponerVersion(M, ver);
+      var p = penalizar(M.m, M.n);
+      if (p < mejorP) { mejorP = p; mejor = M.m; }
+    }
+    return mejor;
+  }
+
+  /* Dibujado en SVG: rectángulos, no imagen. Nítido a cualquier tamaño,
+     que es lo que hace falta si mañana se imprime en vinil grande. */
+  function svg(texto, color){
+    var m = generar(texto), n = m.length, partes = [];
+    for (var y = 0; y < n; y++) {
+      var x = 0;
+      while (x < n) {
+        if (m[y][x]) {
+          var x0 = x;
+          while (x < n && m[y][x]) x++;
+          partes.push('<rect x="'+x0+'" y="'+y+'" width="'+(x-x0)+'" height="1"/>');
+        } else x++;
+      }
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+n+' '+n+'" '+
+           'shape-rendering="crispEdges"><g fill="'+(color||'#0A2A4A')+'">'+
+           partes.join('')+'</g></svg>';
+  }
+
+  return { generar: generar, svg: svg };
+})();
+
+
+var DIST = null, DIST_SEL = {}, LOGO_OK = null;
+var LOGO_URL = "https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+
+function cargarDistintivos(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.requiereLogin){ location.reload(); return; }
+      if(!r || !r.ok){
+        $("dist-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar.")+'</div>';
+        return;
+      }
+      DIST = r; DIST_SEL = {};
+      if(r.empresa) DIST_EMP = r.empresa;
+      pintarDistintivos();
+    })
+    .withFailureHandler(function(){
+      $("dist-lista").innerHTML='<div class="vacio">Sin conexión con el servidor.</div>';
+    })
+    .api_distintivos(PIN);
+}
+
+function distFiltrados(){
+  if(!DIST) return [];
+  var q=($("d-buscar").value||"").trim().toUpperCase();
+  var f=$("d-filtro").value;
+  return DIST.clientes.filter(function(c){
+    if(f==="falta" && (c.entregado || !c.activo)) return false;
+    if(f==="listo" && !c.entregado) return false;
+    if(q && (c.nombre+" "+c.razonSocial+" "+c.id).toUpperCase().indexOf(q)<0) return false;
+    return true;
+  });
+}
+
+function pintarDistintivos(){
+  if(!DIST) return;
+  var faltan = DIST.clientes.filter(function(c){ return c.activo && !c.entregado; }).length;
+  var listos = DIST.clientes.filter(function(c){ return !!c.entregado; }).length;
+  $("dist-resumen").innerHTML =
+    '<div class="aviso" style="background:var(--azul-suave);border-color:var(--azul-claro)">'+
+    '<b>'+listos+'</b> distintivo(s) entregado(s) · <b>'+faltan+'</b> por entregar.</div>';
+
+  var lista = distFiltrados();
+  if(!lista.length){
+    $("dist-lista").innerHTML='<div class="vacio">No hay clientes con ese filtro.</div>';
+    return;
+  }
+  $("dist-lista").innerHTML = lista.map(function(c){
+    var marcado = DIST_SEL[c.id] ? " checked" : "";
+    return '<div class="dist-fila'+(c.entregado?" listo":"")+'">'+
+      '<input type="checkbox" data-id="'+esc(c.id)+'"'+marcado+
+        ' onchange="DIST_SEL[this.dataset.id]=this.checked">'+
+      '<div class="d"><div class="n">'+esc(c.nombre)+
+        (c.entregado?' <span class="et-ok">entregado</span>':'')+'</div>'+
+        '<div class="s">N° '+esc(c.id)+' · código '+esc(c.codigo)+
+        (c.frecuencia?' · '+esc(c.frecuencia):'')+
+        (c.entregado?'<br>Entregado el '+esc(c.entregado)+
+          (c.entregadoPor?' por '+esc(c.entregadoPor):''):'')+
+        '</div></div>'+
+      '<div class="a">'+
+        '<button class="btn sec" onclick="verDistintivo(\''+esc(c.id)+'\')">Ver</button>'+
+        (c.entregado
+          ? '<button class="btn rojo" onclick="marcarDist(\''+esc(c.id)+'\',false)">Quitar marca</button>'
+          : '<button class="btn ambar" onclick="marcarDist(\''+esc(c.id)+'\',true)">Marcar entregado</button>')+
+      '</div></div>';
+  }).join("");
+}
+
+function marcarTodosDist(si){
+  distFiltrados().forEach(function(c){ DIST_SEL[c.id]=si; });
+  pintarDistintivos();
+}
+
+function marcarDist(id, entregado){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ avisoDist(esc((r&&r.error)||"No se pudo guardar."), true); return; }
+      var c = DIST.clientes.filter(function(x){ return x.id===id; })[0];
+      if(c){ c.entregado = r.entregado || ""; c.entregadoPor = r.entregadoPor || ""; }
+      pintarDistintivos();
+    })
+    .withFailureHandler(function(){ avisoDist("Sin conexión con el servidor.", true); })
+    .api_marcarDistintivo(PIN, id, entregado);
+}
+
+function avisoDist(html, malo){
+  var a=$("dist-aviso");
+  a.innerHTML=html;
+  a.style.display="block";
+  a.style.background = malo ? "var(--rojo-suave)" : "var(--verde-suave)";
+  a.style.borderColor = malo ? "var(--rojo)" : "var(--verde)";
+  clearTimeout(window._avd);
+  window._avd=setTimeout(function(){ a.style.display="none"; }, 6000);
+}
+
+/* El enlace que va dentro del QR: la app real más el cliente y su código. */
+function enlaceCliente(c){
+  var base = (DIST && DIST.url) || "";
+  /* ni "c" ni otros nombres de una letra: Google los reserva en las
+     direcciones de script.google.com y la petición nunca llega al script */
+  return base + "?p=micliente&cli=" + encodeURIComponent(c.id) +
+         "&cod=" + encodeURIComponent(c.codigo);
+}
+
+function tarjetaHTML(c){
+  /* Solo el nombre: con nombres largos la región partía el renglón en dos,
+     y el nombre del local ya identifica la sede por sí solo. */
+  var sede = esc(c.nombre);
+  var E = empDist();
+  var cod = esc(c.codigo);
+  return '<div class="tarj">'+
+    '<div class="fr"><i></i><i></i><i></i></div>'+
+    '<div class="cu">'+
+      '<div class="at">Establecimiento atendido por</div>'+
+      '<div class="lg" style="background-image:url(\''+LOGO_URL+'\')"></div>'+
+      '<h2>Recolección, transporte y<br><em>disposición final</em> de<br>desechos peligrosos</h2>'+
+      '<div class="le">Este local cuenta con servicio contratado y trazabilidad '+
+        'documentada de cada retiro.</div>'+
+      '<div class="cj">'+
+        '<div class="qr">'+QR.svg(enlaceCliente(c))+'</div>'+
+        '<div class="ct">Escanee para ver su servicio</div>'+
+        '<div class="sb">Consulte su frecuencia, su última visita y el total<br>'+
+          'retirado de su establecimiento, en cualquier momento.</div>'+
+        '<div class="sd">'+sede+'</div>'+
+        '<div class="cv">Cliente N° '+esc(c.id)+' &nbsp;·&nbsp; '+cod.slice(0,4)+' · '+cod.slice(4)+'</div>'+
+        /* La fecha que MINSA verifica al llegar. Impresa, no solo detrás del QR:
+           el inspector mira la pared antes de sacar el teléfono. */
+        (c.inicioServicio
+          ? '<div class="ini"><span>Servicio contratado desde</span><b>'+
+            esc(c.inicioServicio)+'</b></div>'
+          : '')+
+      '</div>'+
+    '</div>'+
+    '<div class="pe">'+
+      '<div class="a">Tel. <b>'+esc(E.telefono)+'</b> &nbsp;·&nbsp; WhatsApp <b>'+
+        esc(E.whatsapp)+'</b></div>'+
+      '<div class="b">'+esc(E.correo)+' &nbsp;·&nbsp; '+esc(E.instagram)+'</div>'+
+      (E.direccion
+        ? '<div class="dir">'+esc(E.razonSocial)+' · RUC '+esc(E.ruc)+' DV '+esc(E.dv)+'<br>'+
+          esc(E.direccion.toUpperCase().indexOf(String(E.ciudad).toUpperCase())>=0
+            ? E.direccion : E.direccion+' · '+E.ciudad)+'</div>'
+        : '')+
+      '<div class="res">'+esc(E.resolucionCorta)+'</div>'+
+      '<div class="c">'+esc(E.decreto)+'</div>'+
+      (E.formulario ? '<div class="cod">'+esc(E.formulario)+'</div>' : '')+
+    '</div></div>';
+}
+
+/* Los datos de la empresa del distintivo vienen del servidor. La dirección
+   del respaldo va vacía a propósito: si el servidor no responde, es mejor una
+   tarjeta sin dirección — que se nota — que una con la dirección vieja pegada
+   en la pared de un cliente. */
+var DIST_EMP=null;
+function empDist(){
+  return DIST_EMP || {razonSocial:"ECOTERMO DE PANAMA S.A.",ruc:"1074020-1-552789",
+    dv:"50",direccion:"",ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
+    correo:"correo@ejemplo.com",instagram:"@ecovsapanama",
+    resolucionCorta:"Resolución Sanitaria N° 1519",
+    decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+}
+
+function verDistintivo(id){
+  var c = DIST.clientes.filter(function(x){ return x.id===id; })[0];
+  if(!c) return;
+  DIST_SEL = {}; DIST_SEL[id] = true;
+  pintarDistintivos();
+  imprimirDistintivos();
+}
+
+/* El logo viene de Drive. Si no cargó, salen las hojas sin logo y nadie se
+   entera hasta que están impresas: mejor avisar antes. */
+function revisarLogo(cb){
+  if(LOGO_OK !== null){ cb(LOGO_OK); return; }
+  var im = new Image();
+  im.onload  = function(){ LOGO_OK = true;  cb(true); };
+  im.onerror = function(){ LOGO_OK = false; cb(false); };
+  im.src = LOGO_URL;
+  setTimeout(function(){ if(LOGO_OK===null){ LOGO_OK=false; cb(false); } }, 6000);
+}
+
+function imprimirDistintivos(){
+  if(!DIST) return;
+  var sel = DIST.clientes.filter(function(c){ return DIST_SEL[c.id]; });
+  if(!sel.length){ avisoDist("Marca al menos un cliente para imprimir.", true); return; }
+  if(!DIST.url){ avisoDist("Todavía no tengo la dirección de la app. Recarga la página.", true); return; }
+
+  var b=$("d-btn-imp"); b.disabled=true; b.textContent="Preparando…";
+  revisarLogo(function(ok){
+    b.disabled=false; b.textContent="🖨️ Imprimir seleccionados";
+    if(!ok){
+      avisoDist("<b>El logo no cargó.</b> Se imprimirían "+sel.length+
+        " hoja(s) sin logo. Revisa tu conexión o los permisos del archivo en Drive, "+
+        "y vuelve a intentar.", true);
+      return;
+    }
+    $("dist-imprimir").innerHTML = sel.map(tarjetaHTML).join("");
+    setTimeout(function(){ window.print(); }, 400);
+  });
+}
+
+function verTab(v){
+  document.querySelectorAll(".vista").forEach(x=>x.classList.remove("on"));
+  $("v-"+v).classList.add("on");
+  if(v==="cartera" && !CARTERA) cargarCartera();
+  if(v==="distintivos" && !DIST) cargarDistintivos();
+  if(v==="prospectos" && !PROS) cargarProspectos();
+  if(v==="notificaciones") cargarNotificaciones();
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  window.scrollTo(0,0);
+}
+
+/* ── formulario ── */
+function revisarDuplicado(){
+  const v=($("f-empresa").value||"").trim().toUpperCase();
+  const caja=$("alerta-dup");
+  if(v.length<4){caja.innerHTML="";return;}
+  const parecidos=(DATOS.clientesExistentes||[]).filter(c=>c.toUpperCase().indexOf(v)>=0||v.indexOf(c.toUpperCase())>=0);
+  caja.innerHTML= parecidos.length
+    ? '<span style="color:var(--ambar-osc);font-weight:700">⚠ Ya existe algo parecido: '+esc(parecidos.slice(0,3).join(" · "))+'</span>'
+    : "";
+}
+/* ── El seguro contra el doble clic ──────────────────────────────────
+   Diez clics en «Enviar a cartera» mandaban diez solicitudes del mismo
+   cliente a la bandeja del supervisor. El servidor ya no las acepta, pero
+   apagar el botón es lo que evita que salgan: sin esto, las diez viajan,
+   nueve vuelven con un error, y la persona ve nueve avisos rojos por
+   haber hecho algo razonable.
+
+   Se apaga POR ACCIÓN, no globalmente: enviar una solicitud no tiene por
+   qué bloquear el resto de la pantalla. */
+var ENVIANDO = {};
+function conSeguro(clave, botones, fn){
+  if(ENVIANDO[clave]) return false;
+  ENVIANDO[clave] = true;
+  var els = (botones||[]).map(function(sel){
+    return typeof sel === "string" ? document.querySelector(sel) : sel;
+  }).filter(Boolean);
+  els.forEach(function(b){ b.disabled = true; b.style.opacity = ".55"; });
+  var soltar = function(){
+    delete ENVIANDO[clave];
+    els.forEach(function(b){ b.disabled = false; b.style.opacity = ""; });
+  };
+  try { fn(soltar); } catch(e){ soltar(); throw e; }
+  return true;
+}
+
+function enviarSolicitud(){
+  const d={
+    empresa:$("f-empresa").value.trim(), razonSocial:$("f-razon").value.trim(),
+    contacto:$("f-contacto").value.trim(), cargo:$("f-cargo").value.trim(),
+    telefono:$("f-telefono").value.trim(), celular:$("f-celular").value.trim(),
+    correo:$("f-correo").value.trim(), direccion:$("f-direccion").value.trim(),
+    zona:$("f-zona").value, plusCode:$("f-pluscode").value.trim(),
+    frecuencia:$("f-frecuencia").value, kgMax:$("f-kg").value.trim(),
+    inicioRecoleccion:$("f-inicio").value, notas:$("f-notas").value.trim()
+  };
+  const faltan=[];
+  if(!d.empresa)faltan.push("Empresa");
+  if(!d.contacto)faltan.push("Contacto");
+  if(!d.celular)faltan.push("Celular");
+  if(!d.direccion)faltan.push("Dirección");
+  if(!d.frecuencia)faltan.push("Frecuencia");
+  if(faltan.length){toast("Falta: "+faltan.join(", "));return;}
+
+  const yaVa = conSeguro("solicitud:"+d.empresa.toUpperCase(),
+    ['button[onclick="enviarSolicitud()"]'], function(soltar){
+    toast("Enviando…");
+    google.script.run
+      .withSuccessHandler(r=>{
+        soltar();
+        if(r&&r.ok){
+          toast(r.duplicado?"Enviado ⚠ ya existe un cliente con ese nombre":"Cliente enviado a operaciones ✓");
+          limpiar(); cargar();
+        } else toast((r&&r.error)||"No se pudo enviar");
+      })
+      .withFailureHandler(()=>{ soltar(); toast("Sin conexión — no se envió"); })
+      .api_guardarSolicitud(PIN,d);
+  });
+  if(!yaVa) toast("Ya se está enviando…");
+}
+function limpiar(){
+  ["f-empresa","f-razon","f-contacto","f-cargo","f-telefono","f-celular","f-correo",
+   "f-direccion","f-pluscode","f-kg","f-notas"].forEach(i=>$(i).value="");
+  $("f-frecuencia").value=""; $("f-inicio").value=hoyISO(); $("alerta-dup").innerHTML="";
+}
+
+/* ── LA INSPECCIÓN TÉCNICA EN LA FICHA ────────────────────────────────
+   Mercadeo la pide, logística la hace, y lo que vuelve es una
+   recomendación: frecuencia, kilos y tipo de servicio, con la razón
+   detrás. No se le escribe nada a la ficha por la espalda — el precio lo
+   pone mercadeo, así que la recomendación se muestra y hay un botón para
+   aplicarla. */
+var INSPEC = null;
+
+function cargarInspeccion(cod){
+  INSPEC = null;
+  var caja = $("pp-inspeccion");
+  if(caja) caja.innerHTML = "";
+  if(!cod) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      INSPEC = (r && r.ok && r.hay) ? r : null;
+      pintarInspeccionFicha();
+    })
+    .withFailureHandler(function(){})
+    .api_inspeccionDeProspecto(PIN, cod);
+}
+
+function pintarInspeccionFicha(){
+  var caja = $("pp-inspeccion");
+  if(!caja) return;
+  if(!INSPEC){ caja.innerHTML = ""; return; }
+  var i = INSPEC;
+
+  if(i.estado === "PEDIDA" || i.estado === "EN PROCESO"){
+    caja.innerHTML = '<div class="aviso" style="border-left:4px solid var(--morado)">'+
+      '<b>Inspección '+(i.estado==="EN PROCESO"?"en curso":"pedida")+'</b>'+
+      (i.pedidaEn?' desde el '+esc(i.pedidaEn):"")+
+      (i.pedidaPor?' · la pidió '+esc(i.pedidaPor):"")+
+      '<br><i>«'+esc(i.motivo)+'»</i></div>';
+    return;
+  }
+
+  /* Ya volvió. Lo que importa no es solo la frecuencia: es POR QUÉ, que es
+     lo que se le puede explicar al cliente si pregunta o negocia. */
+  var razon = i.relojQueManda
+    ? 'Manda el reloj de <b>'+esc(i.relojQueManda)+'</b>'+
+      (i.relojQueManda==="almacenamiento" && i.diasQueCaben
+        ? ' — solo le caben '+esc(i.diasQueCaben)+' días.' : '.')
+    : '';
+  caja.innerHTML = '<div class="aviso" style="border-left:4px solid var(--verde)">'+
+    '<b>Inspección hecha</b>'+(i.fechaVisita?' el '+esc(i.fechaVisita):"")+
+    (i.cerradaPor?' por '+esc(i.cerradaPor):"")+'<br>'+
+    '<div style="margin-top:7px;font-size:13px">'+
+      (i.frecuenciaRec?'<b>'+esc(i.frecuenciaRec)+'</b>':'')+
+      (i.kgPlanRec?' · '+esc(i.kgPlanRec)+' kg por visita':'')+
+      (i.tipoServicioRec?' · '+esc(i.tipoServicioRec):'')+
+    '</div>'+
+    (razon?'<div style="margin-top:4px;font-size:12px">'+razon+'</div>':'')+
+    (i.minutosVisita?'<div style="margin-top:4px;font-size:12px">La visita toma unos '+
+      esc(i.minutosVisita)+' minutos.</div>':'')+
+    (i.observaciones?'<div style="margin-top:7px;font-size:12px"><i>'+
+      esc(i.observaciones)+'</i></div>':'')+
+    '<div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap">'+
+      (CERRADO?'':'<button class="btn sec mini2" onclick="usarRecomendacion()">'+
+        '↧ Usar esta recomendación</button>')+
+      '<button class="btn sec mini2" onclick="verInspeccion()">📄 Ver el reporte</button>'+
+    '</div></div>';
+}
+
+/* Aplica la recomendación a la ficha, sin guardar: quien decide sigue
+   siendo mercadeo, y todavía puede cambiarla antes de guardar. */
+function usarRecomendacion(){
+  if(!INSPEC) return;
+  if(!EDITANDO) editarFicha();
+  var f = $("pp-frecuencia"), k = $("pp-kg");
+  if(f && INSPEC.frecuenciaRec) f.value = INSPEC.frecuenciaRec;
+  if(k && INSPEC.kgPlanRec) k.value = INSPEC.kgPlanRec;
+  if(typeof aplicarReglas === "function") aplicarReglas();
+  toast("Recomendación aplicada — revisa y guarda");
+}
+
+function verInspeccion(){
+  if(!INSPEC) return;
+  window.open(URL_APP + "?p=vinspeccion&id=" +
+    encodeURIComponent(INSPEC.inspeccionId), "_blank");
+}
+
+function pedirInspeccion(){
+  if(!PROSPECTO || !PROSPECTO.codigoPropuesta){
+    toast("Guarda el prospecto primero"); return;
+  }
+  preguntar({ titulo:"Pedir inspección técnica", icono:"🔎", boton:"Pedirla",
+    texto:"Logística va al sitio, mide lo que genera y revisa el acceso. "+
+          "Escribe para qué es: quien va necesita saber qué no cuadró.",
+    escribirLibre:"Para qué es la inspección",
+    alAceptar:function(){
+      var m = ($("dlg-input").value||"").trim();
+      google.script.run
+        .withSuccessHandler(function(r){
+          if(r && r.ok){ toast("Pedida ✓ — le aparece a logística"); cargar(); }
+          else toast((r && r.error) || "No se pudo pedir");
+        })
+        .withFailureHandler(function(){ toast("Sin conexión"); })
+        .api_pedirInspeccion(PIN, PROSPECTO.codigoPropuesta, m);
+    }});
+}
+
+/* ── clientes que envié ───────────────────────────────────────────────
+   Aquí no se aprueba nada: eso es de logística. Lo que esta lista tiene
+   que contestar es «¿en qué quedó lo que mandé?», y por eso cada renglón
+   dice el estado en palabras, con quién lo revisó y cuándo — o cuántos
+   días lleva esperando, que es lo que hace que uno vaya a preguntar. */
+function renderMias(){
+  const l=DATOS.mias||[];
+  $("lista-mias").innerHTML= l.length? l.map(s=>{
+    const est=String(s.estado||"").toUpperCase();
+    const cls=est==="APROBADA"?"aprobada":est==="DEVUELTA"?"devuelta":"";
+    let linea;
+    if(est==="APROBADA")
+      linea='<b style="color:var(--verde)">● Ya está en la cartera</b>'+
+            (s.procesadaEn?' desde el '+esc(s.procesadaEn):"")+
+            (s.procesadaPor?' · lo revisó '+esc(s.procesadaPor):"");
+    else if(est==="DEVUELTA")
+      linea='<b style="color:var(--rojo)">● Te lo devolvieron</b>'+
+            (s.procesadaEn?' el '+esc(s.procesadaEn):"")+
+            (s.procesadaPor?' · '+esc(s.procesadaPor):"")+
+            (s.motivo?'<br>«'+esc(s.motivo)+'»<br>Corrige la ficha y vuelve a enviarlo.':"");
+    else
+      linea='<b style="color:var(--ambar-osc)">● Con logística, esperando revisión</b>'+
+            (s.diasEsperando?' · '+s.diasEsperando+(s.diasEsperando===1?" día":" días"):"");
+    return `<div class="sol ${cls}">
+      <div class="enc"><div class="nom">${esc(s.empresa)}</div></div>
+      <div class="det">Enviado el ${esc(s.fechaSolicitud)} · ${esc(s.frecuencia||"—")} · ${esc(s.zona||"")}
+        <br>${linea}</div>
+    </div>`;}).join("")+
+    '<div class="ayuda" style="text-align:center;margin-top:4px">'+
+    'Aquí solo se mira. Quien revisa y ubica al cliente es logística.</div>'
+    : '<div class="vacio">Todavía no has enviado clientes.<br>Usa la pestaña <b>Cliente nuevo</b>.</div>';
+}
+
+/* ═══════════ Cartera de clientes ═══════════ */
+var CARTERA=null, FICHA=null;
+
+function cargarCartera(){
+  $("cartera-lista").innerHTML='<div class="vacio">Consultando la cartera…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("cartera-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
+      CARTERA=r; pintarResumenC(); pintarCartera();
+    })
+    .withFailureHandler(function(){ $("cartera-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_cartera(PIN);
+}
+
+/* ═══ LA CABECERA DE LA CARTERA ════════════════════════════════════
+
+   Antes había seis tarjetas del mismo tamaño: fichas completas, sin RUC,
+   sin fecha, sin correo, contrato vencido, por vencer. Cinco de las seis
+   eran TAREAS de Mercadeo y dos decían cero siempre, porque se calculan
+   sobre una fecha de vencimiento que ninguna ficha tiene.
+
+   Y ninguna contestaba la pregunta con la que ella entra a esta pantalla:
+   cuántos clientes tenemos.
+
+   Ahora manda una cifra —clientes, y debajo en cuántos puntos— y el resto
+   la acompaña. Lo que falta completar sigue estando, pero abajo y en otro
+   tono: es trabajo pendiente, no una medida del negocio.               */
+function pintarResumenC(){
+  var s=CARTERA.resumen, c=CARTERA.cabecera||{};
+  var n=function(v){ return Number(v||0); };
+
+  /* Un reparto en una línea: los cuatro primeros y el resto sumado. Con
+     el más grande en negrita, que es lo único que se mira de reojo. */
+  function linea(lista, tope){
+    lista=lista||[];
+    var v=lista.slice(0,tope||4).map(function(x,i){
+      return (i===0?'<b style="color:var(--azul-osc)">':'<span>')+
+        esc(x.etiqueta)+' '+x.cuantos+(i===0?'</b>':'</span>'); }).join(' · ');
+    var resto=lista.slice(tope||4).reduce(function(a,x){ return a+x.cuantos; },0);
+    return v+(resto?' · <span style="color:var(--gris)">otros '+resto+'</span>':'');
+  }
+
+  var faltan=[];
+  if(s.sinRuc)    faltan.push(s.sinRuc+' sin RUC');
+  if(s.sinInicio) faltan.push(s.sinInicio+' sin fecha de inicio');
+  if(s.sinCorreo) faltan.push(s.sinCorreo+' sin correo');
+  if(s.sinMotivo) faltan.push(s.sinMotivo+' baja sin fecha');
+  var total=faltan.length ? s.sinRuc+s.sinInicio+s.sinCorreo+s.sinMotivo : 0;
+
+  $("cartera-resumen").innerHTML=
+    '<div class="banda-c">'+
+      '<div class="ancla">'+
+        '<div class="num">'+n(c.clientes)+'</div>'+
+        '<div class="pie"><div class="et">Clientes</div>'+
+          '<div class="sub">en <b>'+n(c.puntos)+'</b> puntos</div></div>'+
+      '</div>'+
+      '<div class="sep"></div>'+
+      '<div class="cifras">'+
+        '<div><div class="et">Activos</div><div class="v">'+n(c.activos)+'</div></div>'+
+        '<div><div class="et amb">Suspendidos</div><div class="v">'+n(c.suspendidos)+'</div></div>'+
+        '<div><div class="et">De baja</div><div class="v">'+n(c.bajas)+'</div></div>'+
+        '<div><div class="et lim">Nuevos '+esc(c.anio||'')+'</div><div class="v">'+n(c.nuevosAnio)+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    /* Un cliente agrupado explica por qué el número no es el de filas.
+       Sin esta línea, «60 clientes en 74 puntos» parece un error. */
+    (c.agrupados
+      ? '<div class="chips-c"><div class="chip">'+
+          '<b style="color:var(--azul-osc)">'+c.agrupados+'</b> cliente(s) facturan agrupado · '+
+          c.puntosAgrupados+' puntos bajo un mismo RUC</div>'+
+        '<div class="chip">'+linea(c.region)+'</div>'+
+        '<div class="chip">'+linea(c.frecuencia)+'</div></div>'
+      : '<div class="chips-c"><div class="chip">'+linea(c.region)+'</div>'+
+        '<div class="chip">'+linea(c.frecuencia)+'</div></div>');
+
+  var a=$("cartera-aviso");
+  if(!total){ a.style.display="none"; return; }
+  a.style.display="block";
+  a.innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<b>'+total+' ficha(s) por completar</b> — '+esc(faltan.join(', '))+'.'+
+      (CARTERA.puedeTarifas && s.sinInicio
+        ? '<button class="btn mini" style="margin-left:auto;width:auto" onclick="deducirInicios()">Deducir inicios del histórico</button>'
+        : '')+
+    '</div>'+
+    (s.sinRuc
+      ? '<div style="font-size:11.5px;margin-top:7px;line-height:1.5">Mientras haya fichas sin RUC el conteo de clientes es aproximado: '+
+        'una ficha sin RUC no se puede agrupar con sus hermanas.</div>'
+      : '');
+}
+
+function pintarCartera(){
+  if(!CARTERA)return;
+  var q=($("c-buscar").value||"").toLowerCase().trim();
+  var f=$("c-filtro").value;
+  var lista=CARTERA.clientes.filter(function(c){
+    if(q && (c.nombre+" "+c["razon social"]+" "+c.ruc).toLowerCase().indexOf(q)<0) return false;
+    if(f==="falta" && !c.faltantes.length) return false;
+    if(f==="sininicio" && c["inicio recoleccion"]) return false;
+    if(f==="sinruc" && c.ruc) return false;
+    if(f==="vencido" && c.contratoEstado!=="VENCIDO") return false;
+    if(f==="porvencer" && c.contratoEstado!=="POR VENCER") return false;
+    return true;
+  });
+  if(!lista.length){ $("cartera-lista").innerHTML='<div class="vacio">Ningún cliente coincide.</div>'; return; }
+  $("cartera-lista").innerHTML='<div style="font-size:12px;color:var(--gris);margin-bottom:9px">'+
+    lista.length+' de '+CARTERA.clientes.length+' clientes</div>'+
+    lista.map(function(c){
+      var cls = c.contratoEstado==="VENCIDO" ? "vencido" : (c.faltantes.length ? "incompleta" : "");
+      var tags="";
+      if(c.contratoEstado==="VENCIDO") tags+='<span class="tag venc">Vencido hace '+Math.abs(c.diasVence)+' d</span>';
+      else if(c.contratoEstado==="POR VENCER") tags+='<span class="tag prox">Vence en '+c.diasVence+' d</span>';
+      if(c.facturacion==="AGRUPADA") tags+='<span class="tag agr">Factura agrupada</span>';
+      if(c.faltantes.length) tags+='<span class="tag falta">Falta: '+esc(c.faltantes.join(", "))+'</span>';
+      if(!c.faltantes.length && c.contratoEstado==="VIGENTE") tags+='<span class="tag ok">Completa</span>';
+      return '<div class="fila-c '+cls+'" onclick="abrirFicha('+c.id+')">'+
+        '<div class="n">'+esc(c.nombre)+'</div>'+
+        '<div class="r">'+esc(c["razon social"]||"— sin razón social —")+
+          (c.ruc?" · RUC "+esc(c.ruc):"")+
+          (c.frecuencia?" · "+esc(c.frecuencia):"")+'</div>'+
+        (tags?'<div class="t">'+tags+'</div>':'')+
+      '</div>';
+    }).join("");
+}
+
+function deducirInicios(){
+  preguntar({titulo:"Deducir fechas de inicio",
+    texto:"En cada cliente sin fecha se pondrá la de su recolección más antigua registrada. "+
+          "No se toca ninguna fecha que ya exista.",
+    boton:"Sí, deducir",
+    alAceptar:function(){ deducirConfirmado(); }});
+}
+
+function deducirConfirmado(){
+  toast("Revisando el histórico…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo"); return; }
+      toast("Se completaron "+r.cambios+" fecha(s) ✓");
+      CARTERA=null; cargarCartera();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_deducirInicios(PIN);
+}
+
+/* Un desplegable JAMÁS puede perder un valor que no reconoce.
+   Antes, si el dato guardado no estaba entre las opciones, el navegador
+   elegía la opción vacía: el campo salía en blanco y, al guardar, mandaba
+   vacío y BORRABA el dato en la hoja. Pasó con las frecuencias y podía pasar
+   con cualquiera de los otros doce desplegables de esta ficha.
+   Ahora, si el valor no está en la lista, se agrega como opción marcada. */
+function campo(et,id,val,tipo,bloq,ops){
+  var dis = bloq ? ' disabled class="bloq"' : '';
+  if(ops){
+    var v = String(val==null?"":val).trim();
+    var lista = ops.slice();
+    var fuera = v && lista.map(function(o){return String(o);}).indexOf(v) < 0;
+    return '<div><label>'+et+
+      (fuera?' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--ambar-osc,#9A6E00)">· fuera de lista</span>':'')+
+      '</label><select id="'+id+'"'+dis+'>'+
+      '<option value=""></option>'+
+      (fuera?'<option selected>'+esc(v)+'</option>':'')+
+      lista.map(function(o){return '<option'+(v===String(o)?' selected':'')+'>'+esc(o)+'</option>';}).join("")+
+      '</select></div>';
+  }
+  return '<div><label>'+et+'</label><input id="'+id+'" type="'+(tipo||"text")+
+    '" value="'+esc(val||"")+'"'+dis+'></div>';
+}
+
+function abrirFicha(id){
+  var c=null;
+  for(var i=0;i<CARTERA.clientes.length;i++) if(CARTERA.clientes[i].id===id) c=CARTERA.clientes[i];
+  if(!c)return;
+  FICHA=c;
+  var noT = false;   // mercadeo edita todo; los cambios quedan registrados
+  $("ficha-cuerpo").innerHTML=
+    '<h2 style="margin-bottom:4px">'+esc(c.nombre)+'</h2>'+
+    '<div style="font-size:12px;color:var(--gris);margin-bottom:14px">Ficha comercial · '+
+      (c.faltantes.length ? 'falta '+esc(c.faltantes.join(", ")) : 'completa')+'</div>'+
+
+    '<div class="grupo-f"><h4>Identificación</h4><div class="rejilla">'+
+      campo("Nombre comercial","fi-nombre",c.nombre)+
+      campo("Razón social","fi-razon",c["razon social"])+
+      campo("RUC","fi-ruc",c.ruc)+
+      campo("DV","fi-dv",c.dv)+
+    '</div></div>'+
+
+    '<div class="grupo-f"><h4>Plan y tarifas</h4><div class="rejilla">'+
+      campo("Modalidad de cobro","fi-modalidad",c.modalidad||"plan",null,false,
+        (CARTERA.modalidades||[]).map(function(m){return m[0];}))+
+      campo("Frecuencia","fi-frecuencia",c.frecuencia,null,noT,CARTERA.frecuencias)+
+      campo("Día(s) de la semana","fi-dias",c["dias semana"])+
+      campo("Costo del plan (B/.)","fi-costo",c["plan costo"],"text",noT)+
+      campo("Kg incluidos en el plan","fi-kg",c["plan kg"],"text",noT)+
+      campo("Tarifa kg adicional","fi-kgadic",c["tarifa kg adic"],"text",noT)+
+      campo("Tarifa visita adicional","fi-visadic",c["tarifa visita adic"],"text",noT)+
+      campo("Facturación","fi-facturacion",c.facturacion,null,noT,["POR PUNTO","AGRUPADA"])+
+      campo("¿Retiene ITBMS?","fi-retiene",c["retiene itbms"],null,false,["NO","SI"])+
+      campo("Cartera","fi-cartera",c["tipo cartera"],null,false,
+            (CARTERA.carteras||["recurrente","contrato"]))+
+    '</div>'+
+    '<div class="pista"><b>Día de la semana:</b> si el cliente se atiende siempre el mismo día, '+
+    'escribe el número — 1 lunes, 2 martes … 7 domingo. Para dos veces por semana, separa con '+
+    'coma: <i>2,5</i> es martes y viernes. Con eso el planificador arma la ruta de un toque.<br>'+
+    'La <b>modalidad</b> define cómo se le cobra: <i>ciclo</i> es el plan fijo '+
+    'con excedente, <i>kilo</i> multiplica lo recolectado por la tarifa, <i>visita</i> cobra por '+
+    'cada salida, y <i>especial</i> es un servicio único sin contrato.<br>'+
+    'Los <b>agentes retenedores</b> retienen el 50% del ITBMS y lo enteran al fisco: la factura '+
+    'sale por el total, pero al banco entra menos. Marcarlo evita perseguir un saldo que ya '+
+    'está cancelado.<br>'+
+    'La <b>cartera</b> decide quién lo cobra y con qué vara se mide: <i>recurrente</i> es el '+
+    'servicio mensual, se cobra por correo y llamada, y 60 días vencido es alarma. '+
+    '<i>Contrato</i> son los actos públicos ganados por periodo, que se cobran con expediente '+
+    'y firmas, donde 60 días es el trámite normal. Medirlos con la misma vara hace que la '+
+    'cartera se vea incobrable cuando no lo es.</div>'+
+    '</div>'+
+
+    '<div class="grupo-f"><h4>Contacto y envío de recibos</h4><div class="rejilla">'+
+      campo("Contacto","fi-contacto",c.contacto)+
+      campo("Teléfono","fi-telefono",c.telefono)+
+      campo("Correo","fi-correo",c.correo,"email")+
+      campo("Canal de envío","fi-canal",c.canal,null,false,CARTERA.canales)+
+    '</div></div>'+
+
+    /* La situación ya no es un campo que se teclea junto a los demás y se
+       guarda con todo lo otro: se lee aquí y se cambia con los botones de
+       abajo, que piden el motivo y dejan su huella. Un cliente sale de las
+       rutas por una decisión, no por un descuido al editar la ficha. */
+    '<div class="grupo-f'+(c.deBaja?' baja':'')+'"><h4>Situación comercial</h4><div class="rejilla">'+
+      '<div><label>Situación</label><div class="dato-cli"><b>'+
+        esc(etiquetaSituacion(c.situacion))+'</b></div></div>'+
+      '<div><label>Desde cuándo</label><div class="dato-cli">'+
+        esc(c["fecha baja"] ? fechaLegible_(c["fecha baja"]) : "—")+'</div></div>'+
+      '<div><label>Motivo</label><div class="dato-cli">'+
+        esc(c["motivo baja"]||"—")+'</div></div>'+
+    '</div>'+
+    '<div class="pista">Esto lo decides tú y <b>tiene efecto en la calle</b>: al sacarlo de '+
+    'servicio deja de aparecer en las rutas y el planificador no lo sugiere.<br>'+
+    '<i>mora</i> es temporal — sigue debiendo y cobros lo persigue, vuelve si paga. '+
+    '<i>cierre</i> y <i>retiro</i> son definitivos. <i>pausa</i> es a solicitud del cliente.<br>'+
+    'El estado operativo <b>' + esc(c.estado || '—') + '</b> lo calcula el sistema solo cada '+
+    'noche según la frecuencia; no se edita aquí.<br>'+
+    '<b>Nada se borra.</b> Sacar de servicio es un cambio de situación: recolecciones, '+
+    'actas, certificados y facturas siguen ahí y se pueden consultar.</div>'+
+    botonesSituacion(c)+
+    '</div>'+
+
+    '<div class="grupo-f"><h4>Contrato</h4><div class="rejilla">'+
+      campo("N° de contrato","fi-contrato",c.contrato)+
+      campo("Primera recolección","fi-inicio",c["inicio recoleccion"],"date")+
+      campo("Vencimiento","fi-vencimiento",c.vencimiento,"date")+
+    '</div></div>'+
+
+    '<div class="grupo-f"><h4>Notas comerciales</h4>'+
+      '<textarea id="fi-notas" rows="3">'+esc(c["notas comerciales"]||"")+'</textarea>'+
+    '</div>'+
+
+    (SOLO_LECTURA
+      ? '<div class="aviso">Estás viendo la ficha en modo consulta. La edición corresponde a mercadeo.</div>'
+      : '<button class="btn" onclick="guardarFicha()">Guardar ficha</button>');
+  if(SOLO_LECTURA){
+    var cs=document.querySelectorAll("#ficha-cuerpo input, #ficha-cuerpo select, #ficha-cuerpo textarea");
+    for(var k=0;k<cs.length;k++){ cs[k].disabled=true; cs[k].classList.add("bloq"); }
+  }
+  verTab("ficha");
+}
+
+/* ── sacar de servicio y reactivar, con su motivo ────────────────────
+   Va aparte del "Guardar ficha" a propósito. Cambiar la situación de un
+   cliente no es editar un campo: deja de aparecer en las rutas mañana.
+   Pide su motivo y deja su huella con nombre y fecha. */
+var FUERA_SIT=["mora","cierre","retiro","pausa"];
+
+function etiquetaSituacion(s){
+  var v=String(s||"activo").trim().toLowerCase(); if(!v) v="activo";
+  var L=(CARTERA&&CARTERA.situaciones)||[];
+  for(var i=0;i<L.length;i++) if(L[i][0]===v) return L[i][1];
+  return v;
+}
+
+function botonesSituacion(c){
+  if(SOLO_LECTURA) return '';
+  var sit=String(c.situacion||"activo").trim().toLowerCase();
+  if(!sit) sit="activo";
+  var fuera=FUERA_SIT.indexOf(sit)>=0;
+  var quien = c.estadoPor
+    ? '<div class="ayuda-tipo">Último cambio: '+esc(c.estadoPor)+
+      (c.fechaEstado?' · '+esc(fechaLegible_(c.fechaEstado)):'')+
+      (c.motivoEstado?' · '+esc(c.motivoEstado):'')+'</div>'
+    : '';
+  if(fuera){
+    return '<div class="fila-btn">'+
+      '<button class="btn mini2" style="background:linear-gradient(160deg,#2FBF71,#1E9E58)" '+
+      'onclick="cambiarSituacion(\'activo\')">↻ Reactivar el servicio</button></div>'+quien;
+  }
+  return '<div class="fila-btn">'+
+    '<button class="btn ambar mini2" onclick="cambiarSituacion(\'mora\')">⏸ Suspender por mora</button>'+
+    '<button class="btn sec mini2" onclick="cambiarSituacion(\'pausa\')">⏸ Pausa a solicitud</button>'+
+    '<button class="btn sec mini2" onclick="cambiarSituacion(\'cierre\')">⛔ Dar de baja</button>'+
+  '</div>'+quien;
+}
+
+var SIT_TEXTO={
+  'mora':   ['Suspender por mora','Deja de aparecer en las rutas mientras no pague. Vuelve cuando pague — y la reactivación la autoriza supervisión o gerencia.','¿Por qué? (n° de factura, monto pendiente, con quién se habló)'],
+  'pausa':  ['Pausa a solicitud del cliente','Deja de aparecer en las rutas mientras dure. El contrato sigue vivo.','¿Por qué? (quién lo pidió y hasta cuándo)'],
+  'cierre': ['Dar de baja','Baja definitiva. Sale de las rutas. Su historial se conserva completo.','¿Por qué? (cerró, se retiró, se fue con otro proveedor)'],
+  'activo': ['Reactivar el servicio','Vuelve a las rutas desde la próxima programación.','Nota (opcional)']
+};
+
+function cambiarSituacion(sit){
+  if(!FICHA) return;
+  var t=SIT_TEXTO[sit]||['Cambiar la situación','','Motivo'];
+  var esActivo = (sit==="activo");
+  preguntar({
+    titulo: t[0],
+    icono: (sit==="cierre"?"⛔":(esActivo?"↻":"⏸")),
+    peligro: (sit==="cierre"),
+    texto: '<b>'+esc(FICHA.nombre)+'</b><br>'+t[1],
+    escribirLibre: t[2],
+    boton: t[0],
+    alAceptar: function(){
+      var m=$("dlg-input"), motivo=m?String(m.value).trim():"";
+      if(!esActivo && !motivo){
+        toast("Hace falta el motivo");
+        setTimeout(function(){ cambiarSituacion(sit); }, 400);
+        return;
+      }
+      toast("Guardando…");
+      google.script.run
+        .withSuccessHandler(function(r){
+          if(!r||!r.ok){ toast((r&&r.error)||"No se pudo"); return; }
+          toast(esActivo ? "Cliente reactivado ✓" : "Fuera de servicio · queda registrado ✓");
+          CARTERA=null; cargarCartera(); verTab("cartera");
+        })
+        .withFailureHandler(function(){ toast("Sin conexión — no se guardó"); })
+        .api_cambiarEstadoCliente(PIN, FICHA.id, sit, motivo);
+    }
+  });
+}
+
+function guardarFicha(){
+  if(!FICHA)return;
+  /* Se envía cada campo desde su casilla, sin condiciones: antes las tarifas
+     y la frecuencia solo viajaban si el rol lo permitía, y si no, el cambio
+     se perdía en silencio. */
+  var v = function(id){ var e=$(id); return e ? e.value : undefined; };
+  var d = {};
+  [['nombre','fi-nombre'],['razon social','fi-razon'],['ruc','fi-ruc'],['dv','fi-dv'],
+   ['correo','fi-correo'],['canal','fi-canal'],['contacto','fi-contacto'],
+   ['telefono','fi-telefono'],['contrato','fi-contrato'],
+   ['inicio recoleccion','fi-inicio'],['vencimiento','fi-vencimiento'],
+   ['notas comerciales','fi-notas'],
+   ['frecuencia','fi-frecuencia'],['plan costo','fi-costo'],['plan kg','fi-kg'],
+   ['tarifa kg adic','fi-kgadic'],['tarifa visita adic','fi-visadic'],
+   ['facturacion','fi-facturacion'],['modalidad','fi-modalidad'],
+   ['retiene itbms','fi-retiene'],['tipo cartera','fi-cartera'],
+   ['dias semana','fi-dias']
+   /* situacion, motivo baja y fecha baja NO viajan aquí: los escribe
+      api_cambiarEstadoCliente desde los botones, que exigen motivo y firman
+      quién y cuándo. Si viajaran también en este guardado, cualquier edición
+      de la ficha podría reactivar en silencio a un cliente suspendido. */
+  ].forEach(function(p){ var z=v(p[1]); if(z!==undefined) d[p[0]]=z; });
+
+  toast("Guardando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      toast(r.cambios
+        ? "Ficha guardada · " + r.cambios + " cambio(s) registrado(s) ✓"
+        : (r.escritos ? "Ficha guardada ✓" : "No había nada que cambiar"));
+      CARTERA=null; cargarCartera(); verTab("cartera");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se guardó"); })
+    .api_guardarFicha(PIN, FICHA.id, d);
+}
+
+
+/* ═══════════ Pipeline de prospectos ═══════════ */
+var PROS=null, PROSPECTO=null, URL_APP="", SOLO_LECTURA=false;
+
+var COLOR_EST={'Registrado':'#5B6880','Formulario enviado':'#7B5BB8',
+  'Formulario recibido':'#1E9E58','Propuesta enviada':'#0B5394','En negociación':'#9A6E00',
+  'Contrato en proceso':'#6C3A96','Firmado':'#2F6B0A','Pasado a cartera':'#5B6880',
+  'Rechazado':'#C0392B','Stand-by':'#5B6880'};
+
+function cargarProspectos(){
+  $("pro-lista").innerHTML='<div class="vacio">Consultando el pipeline…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("pro-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
+      PROS=r; pintarResumenP(); pintarProspectos(); revisarNovedades(false);
+      var bn=$("btn-nuevo-pro"); if(bn) bn.style.display=SOLO_LECTURA?"none":"inline-flex";
+    })
+    .withFailureHandler(function(){ $("pro-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_prospectos(PIN);
+}
+
+function pintarResumenP(){
+  var s=PROS.resumen;
+  $("pro-resumen").innerHTML='<div class="kpis-c">'+
+    '<div class="kpi-c"><div class="e">En proceso</div><div class="v">'+s.activos+'</div></div>'+
+    '<div class="kpi-c ok"><div class="e">Firmados</div><div class="v">'+s.firmados+'</div></div>'+
+    '<div class="kpi-c'+(s.atrasados?' aviso':'')+'"><div class="e">Seguimiento atrasado</div><div class="v">'+s.atrasados+'</div></div>'+
+    '<div class="kpi-c"><div class="e">Conversión</div><div class="v">'+s.conversion+'%</div></div>'+
+    '<div class="kpi-c"><div class="e">Valor cotizado</div><div class="v" style="font-size:18px">B/. '+s.valorCotizado.toFixed(2)+'</div></div>'+
+    '<div class="kpi-c ok"><div class="e">Valor contratado</div><div class="v" style="font-size:18px">B/. '+s.valorContratado.toFixed(2)+'</div></div>'+
+  '</div>';
+}
+
+function pintarProspectos(){
+  if(!PROS)return;
+  var q=($("p-buscar").value||"").toLowerCase().trim(), f=$("p-filtro").value;
+  var lista=PROS.prospectos.filter(function(p){
+    if(q && (p.empresa+" "+p["razon social"]+" "+p.ruc+" "+p.codigoPropuesta).toLowerCase().indexOf(q)<0) return false;
+    if(f==="activos") return ['Rechazado','Pasado a cartera'].indexOf(p.estado)<0;
+    if(f==="atrasados") return p.atrasado;
+    if(f) return p.estado===f;
+    return true;
+  });
+  if(!lista.length){ $("pro-lista").innerHTML='<div class="vacio">Ningún prospecto coincide.<br>Toca <b>+ Nuevo prospecto</b> para registrar uno.</div>'; return; }
+  $("pro-lista").innerHTML='<div style="font-size:12px;color:var(--gris);margin-bottom:9px">'+
+    lista.length+' de '+PROS.prospectos.length+'</div>'+
+    lista.map(function(p){
+      var col=COLOR_EST[p.estado]||'#5B6880';
+      var tags='<span class="tag" style="background:'+col+';color:#fff">'+esc(p.estado||"—")+'</span>';
+      if(p.atrasado) tags+='<span class="tag falta">Seguimiento vencido</span>';
+      if(p.estado==='Firmado') tags+='<span class="tag ok">Listo para cartera</span>';
+      if(String(p['formulario estado']||'').toUpperCase()==='RECIBIDO')
+        tags+='<span class="tag ok">✓ Datos del cliente recibidos</span>';
+      else if(String(p['formulario estado']||'').toUpperCase()==='ENVIADO')
+        tags+='<span class="tag falta">Esperando datos del cliente</span>';
+      tags+='<span class="tag '+(p.docsListos===100?'ok':'falta')+'">Documentos '+p.docsListos+'/'+p.docsTotal+'</span>';
+      return '<div class="fila-c" style="border-left-color:'+col+'" onclick="abrirProspecto(\''+esc(p.codigoPropuesta)+'\')">'+
+        '<div class="n">'+esc(p.empresa||"(sin nombre)")+'</div>'+
+        '<div class="r">'+esc(p.codigoPropuesta||"")+
+          (p["razon social"]?" · "+esc(p["razon social"]):"")+
+          (p.ruc?" · RUC "+esc(p.ruc):"")+
+          (p.frecuencia?" · "+esc(p.frecuencia):"")+
+          (p["valor cotizado"]?" · B/. "+esc(p["valor cotizado"]):"")+'</div>'+
+        '<div class="t">'+tags+'</div>'+
+      '</div>';
+    }).join("");
+}
+
+function nuevoProspecto(){ abrirProspecto(null); }
+
+/* pDado se usa cuando la ficha se redibuja con lo que ya hay en pantalla
+   (cambiar el tipo de servicio), en vez de con lo que está guardado. */
+function abrirProspecto(cod, pDado){
+  var p = pDado || null;
+  if(!p && cod) for(var i=0;i<PROS.prospectos.length;i++)
+    if(PROS.prospectos[i].codigoPropuesta===cod) p=PROS.prospectos[i];
+  if(!p){ p={}; PROS.documentos.forEach(function(d){p[d[0]]="";}); p.estado="Propuesta enviada"; }
+  PROSPECTO=p;
+  var nuevo=!cod;
+
+  /* El tipo de servicio manda sobre toda la ficha. Se lee de lo guardado; si
+     el prospecto es viejo y no lo tiene, se deduce de la frecuencia. Un
+     prospecto nuevo arranca en recurrente, que es lo habitual. */
+  UNICA = esVisitaUnica(p);
+
+  /* Un trabajo de una sola visita no lleva contrato firmado: pedir ese
+     documento dejaba la ficha en "6 de 7" para siempre. */
+  var listaDocs = UNICA
+    ? PROS.documentos.filter(function(d){ return d[0]!=="doc contrato firmado"; })
+    : PROS.documentos;
+  var docs=listaDocs.map(function(d){
+    var si=String(p[d[0]]||"").toUpperCase()==="SI";
+    return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;text-transform:none;'+
+      'letter-spacing:0;font-weight:600;color:var(--tinta);margin:0">'+
+      '<input type="checkbox" id="pd-'+d[0]+'"'+(si?' checked':'')+
+      ' style="width:auto;margin:0"> '+d[1]+'</label>';
+  }).join("");
+
+  $("pro-ficha").innerHTML=
+    '<h2 style="margin-bottom:4px">'+(nuevo?"Nuevo prospecto":esc(p.empresa))+'</h2>'+
+    (!nuevo ? '<button class="btn sec" style="margin-bottom:12px; width:auto;" onclick="copiarEnlaceFormulario(\''+esc(p.codigoPropuesta)+'\')">📋 Copiar enlace de datos para el cliente</button>' : '')+
+    '<div style="font-size:12px;color:var(--gris);margin-bottom:14px">'+
+      (nuevo?"El código de propuesta se asigna solo al guardar."
+            :esc(p.codigoPropuesta)+" · "+esc(p.estado)+
+             (p.diasQuieto!==""?" · "+p.diasQuieto+" días desde el primer contacto":""))+'</div>'+
+
+    '<div class="grupo-f"><h4>Identificación</h4><div class="rejilla">'+
+      campo("Empresa / nombre comercial","pp-empresa",p.empresa)+
+      campo("Razón social","pp-razon",p["razon social"])+
+      campo("RUC","pp-ruc",p.ruc)+
+      campo("DV","pp-dv",p.dv)+
+      campo("Sector","pp-sector",p.sector,null,false,PROS.sectores)+
+      campo("Asesor","pp-asesor",p.asesor||USUARIO.nombre)+
+    '</div></div>'+
+
+    (String(p['formulario estado']||'').toUpperCase()==='RECIBIDO'
+      ? '<div class="grupo-f" style="border-left:4px solid var(--verde);background:var(--verde-suave)">'+
+        '<h4 style="color:var(--verde)">El cliente envió sus datos'+
+        (p['formulario recibido']?' · '+esc(fechaLegible_(p['formulario recibido'])):'')+'</h4>'+
+        '<div class="rejilla">'+
+          '<div><label>Actividad</label><div class="dato-cli">'+esc(p.actividad||'—')+'</div></div>'+
+          '<div><label>Tipo de residuo</label><div class="dato-cli">'+esc(p['tipo residuo']||'—')+'</div></div>'+
+          '<div><label>Kg que estima generar</label><div class="dato-cli"><b>'+
+            esc(p['kg estimado']||'—')+'</b>'+
+            (p['base del kg']?' <span style="font-size:11.5px;color:var(--gris);font-weight:500">'+
+              esc(p['base del kg'])+'</span>':'')+'</div></div>'+
+          '<div><label>Frecuencia que pide</label><div class="dato-cli"><b>'+esc(p['frecuencia estimada']||'—')+'</b></div></div>'+
+          '<div><label>Provincia</label><div class="dato-cli">'+esc(p.provincia||'—')+'</div></div>'+
+          '<div><label>Zona</label><div class="dato-cli">'+esc(p.zona||'—')+'</div></div>'+
+        '</div>'+
+        (p['notas cliente'] ? '<label style="margin-top:10px">Lo que nos dijo</label>'+
+          '<div class="dato-cli">'+esc(p['notas cliente'])+'</div>' : '')+
+        '</div>'
+      : '')+
+
+    /* El tipo de servicio decide qué se pregunta. Un trabajo de una sola
+       visita no tiene frecuencia, ni plazo, ni contrato: pedir esos datos es
+       lo que llenaba las fichas de campos vacíos que nadie sabía llenar. */
+    '<div class="grupo-f"><h4>Tipo de servicio</h4>'+
+      '<div class="ops-tipo">'+
+        '<button type="button" id="tipo-rec" class="'+(UNICA?'':'act')+'" '+
+          'onclick="cambiarTipoServicio(false)">Servicio recurrente</button>'+
+        '<button type="button" id="tipo-uni" class="'+(UNICA?'act':'')+'" '+
+          'onclick="cambiarTipoServicio(true)">Visita única</button>'+
+      '</div>'+
+      '<div class="ayuda-tipo">'+(UNICA
+        ? 'Un trabajo puntual. No lleva contrato, ni plazo, ni frecuencia.'
+        : 'Servicio continuo bajo contrato, con su frecuencia y su plazo.')+'</div>'+
+    '</div>'+
+
+    '<div class="grupo-f"><h4>'+(UNICA?'El trabajo':'Propuesta y tarifas')+'</h4><div class="rejilla">'+
+      (UNICA ? '' : campo("Frecuencia","pp-frecuencia",p.frecuencia,null,false,PROS.frecuencias))+
+      campo(UNICA?"Costo del servicio (B/.)":"Costo por visita (B/.)","pp-costo",p["costo visita"])+
+      (UNICA ? '' : campo("Kg incluidos en el plan","pp-kg",p["kg plan"]))+
+      campo(UNICA?"Tarifa por kg excedente":"Tarifa kg adicional","pp-kgadic",p["tarifa kg adic"])+
+      (UNICA ? '' : campo("Tarifa visita adicional","pp-visadic",p["tarifa visita adic"]))+
+      campo("Validez propuesta (días)","pp-validez",p["validez propuesta"]||"30")+
+      (UNICA ? '' : campo("Plazo contrato (meses)","pp-plazo",p["plazo contrato"]))+
+    '</div>'+
+    (UNICA
+      ? '<div class="rejilla" style="margin-top:11px">'+
+          campo("Cantidad estimada","pp-cantidad",p.cantidadEstimada)+
+          campo("Fecha tentativa","pp-ftentativa",p.fechaTentativa,"date")+
+        '</div>'+
+        '<label style="margin-top:11px">Qué se va a recoger</label>'+
+        '<textarea id="pp-descripcion" rows="2" placeholder="Describe el material y el trabajo. '+
+        'Sin esto, la cotización no se entiende sola dentro de seis meses.">'+
+        esc(p.descripcionTrabajo||"")+'</textarea>'
+      : '')+
+    '<div class="calculado">'+
+      '<div><span>Valor cotizado</span><b>B/. '+n2(p["costo visita"]||0)+'</b>'+
+        '<em>Sale del costo. Ya no se escribe a mano.</em></div>'+
+      '<div><span>Valor contratado</span><b>'+
+        (p["valor contratado"] ? 'B/. '+n2(p["valor contratado"]) : '—')+'</b>'+
+        '<em>Se llena solo cuando el prospecto pasa a Firmado.</em></div>'+
+    '</div></div>'+
+
+    /* Las notas de la propuesta. Antes vivían escritas en el código y
+       afirmaban un contrato a 12 meses aunque no lo hubiera; después fueron
+       un cuadro vacío, y un cuadro vacío se llena copiando y pegando de otra
+       propuesta — con los números de la otra. Ahora vienen puestas, con los
+       números de este prospecto, y se editan línea por línea. */
+    '<div class="grupo-f"><h4>Notas de la propuesta</h4>'+
+      '<div id="pp-notas-aviso"></div>'+
+      '<div id="pp-notas-lista"></div>'+
+      '<div class="fila-btn" id="pp-notas-botones"></div>'+
+      '<div class="ayuda-tipo" id="pp-notas-pie"></div>'+
+    '</div>'+
+
+    /* Contabilidad exige estos tres para poder facturar, y el prospecto no los
+       preguntaba: llegaban al correo como "por definir" y alguien tenía que
+       perseguirlos por WhatsApp. */
+    '<div class="grupo-f"><h4>Para facturación</h4><div class="rejilla">'+
+      campo("¿Retiene ITBMS?","pp-retiene",p["retiene itbms"],null,false,["NO","SI"])+
+      campo("Facturación","pp-facturacion",p.facturacion,null,false,["POR PUNTO","AGRUPADA"])+
+      campo("Enviar facturas por","pp-canalenvio",p["canal envio"],null,false,
+        ["correo","whatsapp","ambos","impresa"])+
+    '</div>'+
+    '<div class="pista">Los <b>agentes retenedores</b> retienen el 50% del ITBMS y lo '+
+    'enteran al fisco: la factura sale por el total pero al banco entra menos. '+
+    'Marcarlo aquí evita perseguir un saldo que ya está cancelado.</div>'+
+    '</div>'+
+
+    '<div class="grupo-f"><h4>Contacto</h4><div class="rejilla">'+
+      campo("Contacto","pp-contacto",p.contacto)+
+      campo("Cargo","pp-cargo",p.cargo)+
+      campo("Teléfono","pp-telefono",p.telefono)+
+      campo("Celular","pp-celular",p.celular)+
+      campo("Correo","pp-correo",p.correo,"email")+
+    '</div></div>'+
+
+    '<div class="grupo-f"><h4>Estado y seguimiento</h4><div class="rejilla">'+
+      campo("Estado","pp-estado",p.estado,null,false,PROS.estados)+
+      campo("Fecha de contacto","pp-fcontacto",p["fecha contacto"],"date")+
+      campo("Fecha de propuesta","pp-fpropuesta",p["fecha propuesta"],"date")+
+      campo("Próximo seguimiento","pp-fseguimiento",p["proximo seguimiento"],"date")+
+    '</div>'+
+    '<label style="margin-top:11px">Notas</label>'+
+    '<textarea id="pp-notas" rows="3">'+esc(p.notas||"")+'</textarea></div>'+
+
+    '<div class="grupo-f"><h4>Documentación ('+
+      listaDocs.filter(function(d){return String(p[d[0]]||"").toUpperCase()==="SI";}).length+
+      ' de '+listaDocs.length+')</h4>'+
+      '<div class="rejilla">'+docs+'</div></div>'+
+
+    (UNICA ? '' :
+    '<div class="grupo-f"><h4>Contrato</h4><div class="rejilla">'+
+      campo("N° de contrato","pp-ncontrato",p["n contrato"])+
+      campo("Fecha del contrato","pp-fcontrato",p["fecha contrato"],"date")+
+      campo("Inicio de recolección","pp-inicio",p["inicio recoleccion"],"date")+
+      '<div><label>Vencimiento <span style="text-transform:none;letter-spacing:0;font-weight:500">· se calcula</span></label>'+
+        '<input id="pp-vencimiento" type="date" value="'+esc(p.vencimiento||"")+'" disabled class="bloq"></div>'+
+      campo("Horario de recolección","pp-horario",p["horario recoleccion"])+
+      campo("Representante legal","pp-replegal",p["representante legal"])+
+      campo("Cédula del representante","pp-cedula",p["cedula representante"])+
+      campo("Folio de registro público","pp-folio",p["folio registro"])+
+      campo("Género del representante","pp-genero",p["genero representante"],null,false,["varón","mujer"])+
+      campo("Nacionalidad del representante","pp-nacionalidad",p["nacionalidad representante"])+
+    '</div>'+
+    '<label style="margin-top:11px">Dirección, sucursales y horarios (va en el contrato)</label>'+
+    '<textarea id="pp-direccion" rows="2">'+esc(p.direccion||"")+'</textarea>'+
+    '</div>')+
+
+    '<div id="pp-inspeccion"></div>'+
+    '<div id="pp-botonera"></div>'+
+    '';
+  EDITANDO = nuevo;
+  /* Dos cosas distintas: el negocio ya llegó a contrato (y entonces lo que toca
+     es generarlo), y la ficha ya no se edita (que solo pasa al firmar). */
+  ENCONTRATO = !nuevo && (PROS.cerrados||[]).indexOf(p.estado)>=0;
+  CERRADO    = !nuevo && (PROS.bloqueados||[]).indexOf(p.estado)>=0;
+  pintarBotonera(nuevo);
+  cargarInspeccion(nuevo ? "" : p.codigoPropuesta);
+  bloquearFicha(!nuevo);
+  notasDelProspecto(p);
+  pintarNotas();
+  ["pp-fcontrato","pp-plazo","pp-frecuencia"].forEach(function(i){
+    var e=$(i); if(e) e.addEventListener("change", aplicarReglas);
+  });
+  /* las tarifas alimentan las notas: al salir del campo, se revisan */
+  ["pp-kgadic","pp-visadic","pp-kg","pp-plazo","pp-frecuencia"].forEach(function(i){
+    var e=$(i); if(e) e.addEventListener("change", notasTrasCambioDeTarifa);
+  });
+  aplicarReglas();
+  verTab("prospecto");
+}
+
+/* ── la ficha se mira; para cambiarla hay que entrar a editar ── */
+var EDITANDO=false, CERRADO=false, ENCONTRATO=false;
+
+/* ── tipo de servicio ──────────────────────────────────────────────
+   La misma regla que aplica el servidor, escrita aquí para que la ficha
+   se dibuje sin ir a preguntar. Un prospecto de antes del 4 sep 2026 no
+   tiene el campo: se deduce de la frecuencia, que era donde se escribía
+   "ESPECIAL" para decir justamente esto. */
+var UNICA=false;
+function esVisitaUnica(p){
+  var t=String((p&&p.tipoServicio)||"").trim().toUpperCase();
+  if(t) return t.indexOf("UNICA")>=0 || t.indexOf("ÚNICA")>=0 || t.indexOf("ESPECIAL")>=0;
+  return String((p&&p.frecuencia)||"").toUpperCase().indexOf("ESPECIAL")>=0;
+}
+
+/* Cambiar el tipo redibuja la ficha entera, porque cambia qué se pregunta.
+   Lo escrito hasta ese momento se conserva: se lee de la pantalla antes de
+   volver a dibujar. Nadie debería perder media ficha por hacer clic. */
+function cambiarTipoServicio(unica){
+  if(!EDITANDO){ toast("Entra a editar para cambiar el tipo de servicio"); return; }
+  if(unica===UNICA) return;
+
+  /* Copia, no el original. PROSPECTO es el mismo objeto que está en la lista
+     que trajo el servidor: escribirle encima dejaba la lista mintiendo — se
+     cambiaba el tipo, se pulsaba Cancelar, y la ficha volvía a abrirse con el
+     tipo cambiado aunque en la hoja siguiera el anterior. */
+  var p={}, k0;
+  for(k0 in (PROSPECTO||{})) p[k0]=PROSPECTO[k0];
+  var v=function(i){var e=$(i);return e?e.value:undefined;};
+  var pares={
+    'empresa':'pp-empresa','razon social':'pp-razon','ruc':'pp-ruc','dv':'pp-dv',
+    'sector':'pp-sector','asesor':'pp-asesor','frecuencia':'pp-frecuencia',
+    'costo visita':'pp-costo','kg plan':'pp-kg','tarifa kg adic':'pp-kgadic',
+    'tarifa visita adic':'pp-visadic','validez propuesta':'pp-validez',
+    'plazo contrato':'pp-plazo','contacto':'pp-contacto','cargo':'pp-cargo',
+    'telefono':'pp-telefono','celular':'pp-celular','correo':'pp-correo',
+    'retiene itbms':'pp-retiene','facturacion':'pp-facturacion','canal envio':'pp-canalenvio',
+    'estado':'pp-estado','fecha contacto':'pp-fcontacto','fecha propuesta':'pp-fpropuesta',
+    'proximo seguimiento':'pp-fseguimiento','notas':'pp-notas',
+    'n contrato':'pp-ncontrato','fecha contrato':'pp-fcontrato',
+    'inicio recoleccion':'pp-inicio','horario recoleccion':'pp-horario',
+    'representante legal':'pp-replegal','cedula representante':'pp-cedula',
+    'folio registro':'pp-folio','genero representante':'pp-genero',
+    'nacionalidad representante':'pp-nacionalidad','direccion':'pp-direccion',
+    'descripcionTrabajo':'pp-descripcion','cantidadEstimada':'pp-cantidad',
+    'fechaTentativa':'pp-ftentativa'
+  };
+  for(var k in pares){ var val=v(pares[k]); if(val!==undefined) p[k]=val; }
+  (PROS.documentos||[]).forEach(function(x){
+    var c=$("pd-"+x[0]); if(c) p[x[0]] = c.checked ? "SI" : "NO";
+  });
+  p.tipoServicio = unica ? "VISITA UNICA" : "RECURRENTE";
+
+  /* Las notas editadas a mano se conservan — es trabajo de alguien — pero
+     dejan de corresponder al tipo nuevo, y una propuesta que se contradice a
+     sí misma la lee el cliente. Se avisa. Las que nadie tocó se cambian
+     solas por las del tipo nuevo, que es lo que se espera. */
+  var eranEditadas = NOTAS_EDIT;
+  p.notasPropuesta = eranEditadas ? NOTAS.join("\n") : "";
+  /* p.notasBase se deja como está: mientras el servidor manda las del tipo
+     nuevo se siguen viendo las anteriores. Un parpadeo en blanco se lee como
+     que se perdieron. */
+
+  PROSPECTO = p;
+  var cod = p.codigoPropuesta || "";
+  abrirProspecto(cod, p);
+  EDITANDO = true; bloquearFicha(false); pintarBotonera(!cod);
+  var vn=$("pp-vencimiento"); if(vn){ vn.disabled=true; vn.classList.add("bloq"); }
+  aplicarReglas();
+
+  if(eranEditadas){
+    pintarNotas("Estas notas se escribieron para un servicio "+
+      (unica ? "recurrente" : "de una sola visita")+
+      ". Revísalas, o usa <b>Volver a las estándar</b> para traer las que "+
+      "corresponden.");
+  } else {
+    traerNotas(true, "silencioso");
+  }
+}
+
+/* ── notas de la propuesta ─────────────────────────────────────────
+   NOTAS es la lista que se está viendo. NOTAS_EDIT dice si Mercadeo la
+   tocó: mientras no la toque, los números siguen vivos — cambia la tarifa
+   del kilo y la línea se actualiza sola. En cuanto edita, borra o agrega
+   una línea, las notas pasan a ser suyas y se congelan, que es lo correcto,
+   pero deja de haber quien las actualice: por eso el aviso ámbar. */
+var NOTAS=[], NOTAS_EDIT=false;
+
+function notasDelProspecto(p){
+  var guardadas=String((p&&p.notasPropuesta)||"").trim();
+  if(guardadas){
+    NOTAS = guardadas.split("\n").map(function(x){return x.trim();}).filter(Boolean);
+    NOTAS_EDIT = true;
+  } else {
+    NOTAS = ((p&&p.notasBase)||[]).slice();
+    NOTAS_EDIT = false;
+  }
+}
+
+function pintarNotas(aviso){
+  var L=$("pp-notas-lista"); if(!L) return;
+  var bloq = !EDITANDO;
+
+  L.innerHTML = NOTAS.length
+    ? NOTAS.map(function(t,i){
+        return '<div class="nota-f">'+
+          '<input type="text" value="'+esc(t)+'" '+(bloq?'disabled class="bloq" ':'')+
+            'oninput="notaCambia('+i+',this.value)">'+
+          '<button type="button" class="nota-x" title="Quitar esta nota" '+
+            (bloq?'disabled ':'')+'onclick="notaBorrar('+i+')">✕</button>'+
+        '</div>';
+      }).join("")
+    : '<div class="notas-vacio">Sin notas. La propuesta saldrá sin el bloque '+
+      '“Nota importante”.</div>';
+
+  var B=$("pp-notas-botones");
+  if(B) B.innerHTML = bloq ? '' :
+    '<button type="button" class="btn sec mini2" onclick="notaAgregar()">+ Agregar una línea</button>'+
+    (NOTAS_EDIT
+      ? '<button type="button" class="btn sec mini2" onclick="notasRestaurar()">↺ Volver a las estándar</button>'
+      : '');
+
+  var P=$("pp-notas-pie");
+  if(P) P.textContent = NOTAS_EDIT
+    ? "Editadas para este cliente. Los números ya no se actualizan solos."
+    : "Estándar para este tipo de servicio. Los números salen de las tarifas de arriba.";
+
+  var A=$("pp-notas-aviso");
+  if(A) A.innerHTML = aviso ? '<div class="aviso-notas">'+aviso+'</div>' : '';
+}
+
+function notaCambia(i,v){
+  if(NOTAS[i]===v) return;
+  NOTAS[i]=v;
+  if(!NOTAS_EDIT){ NOTAS_EDIT=true; pintarNotasSinPerderFoco(); }
+}
+/* repinta los botones y el pie, pero no la lista: repintar los campos
+   mientras alguien escribe le quita el cursor de la mano */
+function pintarNotasSinPerderFoco(){
+  var B=$("pp-notas-botones"), P=$("pp-notas-pie");
+  if(B && EDITANDO) B.innerHTML=
+    '<button type="button" class="btn sec mini2" onclick="notaAgregar()">+ Agregar una línea</button>'+
+    '<button type="button" class="btn sec mini2" onclick="notasRestaurar()">↺ Volver a las estándar</button>';
+  if(P) P.textContent="Editadas para este cliente. Los números ya no se actualizan solos.";
+}
+function notaBorrar(i){ NOTAS.splice(i,1); NOTAS_EDIT=true; pintarNotas(); }
+function notaAgregar(){
+  NOTAS.push(""); NOTAS_EDIT=true; pintarNotas();
+  var c=$("pp-notas-lista").querySelectorAll("input");
+  if(c.length) c[c.length-1].focus();
+}
+
+function notasRestaurar(){
+  preguntar({titulo:"Volver a las notas estándar", icono:"↺",
+    texto:"Se descartan los cambios de este cliente y vuelven las notas del tipo "+
+      "de servicio, con las tarifas de arriba.",
+    boton:"Sí, restaurar",
+    alAceptar:function(){ traerNotas(true, "restaurar"); }});
+}
+
+/* Trae del servidor las notas del tipo de servicio, con los números de la
+   pantalla. modo: "restaurar" las adopta; "silencioso" solo refresca cuando
+   nadie las ha editado. */
+function traerNotas(base, modo){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ if(modo==="restaurar") toast((r&&r.error)||"No se pudieron traer"); return; }
+      NOTAS=(r.notas||[]).slice();
+      NOTAS_EDIT=false;
+      pintarNotas();
+      if(modo==="restaurar") toast("Notas estándar restauradas ✓");
+    })
+    .withFailureHandler(function(){ if(modo==="restaurar") toast("Sin conexión"); })
+    .api_notasPropuesta(PIN, PROSPECTO.codigoPropuesta||"", !!base, ctxNotas());
+}
+
+/* Lo que hay ahora en pantalla, para que el servidor arme las notas con los
+   números de este momento y no con los que quedaron guardados. */
+function ctxNotas(){
+  var v=function(i){var e=$(i);return e?e.value:"";};
+  return {
+    tipoServicio: UNICA ? "VISITA UNICA" : "RECURRENTE",
+    'frecuencia':        v("pp-frecuencia"),
+    'kg plan':           v("pp-kg"),
+    'tarifa kg adic':    v("pp-kgadic"),
+    'tarifa visita adic':v("pp-visadic"),
+    'plazo contrato':    v("pp-plazo")
+  };
+}
+
+/* Las tarifas cambiaron. Si las notas son las estándar, se regeneran solas;
+   si están editadas a mano, no se le borra el trabajo a nadie: se avisa. */
+function notasTrasCambioDeTarifa(){
+  if(!EDITANDO) return;
+  if(NOTAS_EDIT){
+    pintarNotas("Cambiaste las tarifas y las notas están editadas a mano: "+
+      "los números de abajo no se actualizaron. Revísalas, o usa "+
+      "<b>Volver a las estándar</b>.");
+    return;
+  }
+  traerNotas(true, "silencioso");
+}
+
+function camposFicha(){
+  return document.querySelectorAll("#pro-ficha input, #pro-ficha select, #pro-ficha textarea");
+}
+function bloquearFicha(b){
+  var arr=camposFicha();
+  for(var i=0;i<arr.length;i++){
+    arr[i].disabled = b;
+    arr[i].classList.toggle("bloq", b);
+  }
+  /* los botones del tipo de servicio no son campos, pero se bloquean igual:
+     un botón que se puede pulsar y no hace nada confunde más que uno apagado */
+  var t=document.querySelectorAll("#pro-ficha .ops-tipo button");
+  for(var j=0;j<t.length;j++) t[j].disabled=b;
+  if($("pp-notas-lista")) pintarNotas();
+}
+function pintarBotonera(nuevo){
+  var esSup = (USUARIO.rol==="supervisor"||USUARIO.rol==="admin");
+  var b=$("pp-botonera"); if(!b)return;
+  if(EDITANDO){
+    b.innerHTML='<button class="btn" onclick="guardarProspecto()">Guardar cambios</button>'+
+      (nuevo?'':'<button class="btn sec" onclick="cancelarEdicion()">Cancelar</button>');
+    return;
+  }
+  var esSupervisor = (USUARIO.rol==="supervisor"||USUARIO.rol==="admin");
+  if(SOLO_LECTURA){
+    b.innerHTML='<button class="btn sec" onclick="verPropuesta()">📄 Ver propuesta</button>'+
+      '<button class="btn sec" onclick="verContrato()">📜 Ver contrato</button>'+
+      '<div class="aviso" style="margin-top:12px">Estás viendo la ficha en modo consulta. '+
+      'La edición corresponde a mercadeo.</div>';
+    return;
+  }
+  /* Jerarquía: arriba la acción que toca ahora, debajo las demás en fila,
+     y borrar discreto al final. Cinco botones iguales no dicen qué sigue. */
+  var est = String(PROSPECTO.estado || '').trim();
+  var recibido = String(PROSPECTO['formulario estado'] || '').toUpperCase() === 'RECIBIDO';
+
+  var principal;
+  if(ENCONTRATO)
+    principal = '<button class="btn ambar" onclick="verContrato()">📜 Generar contrato</button>';
+  else if(recibido || est === 'Formulario recibido')
+    principal = '<button class="btn" onclick="verPropuesta()">📄 Generar la propuesta</button>';
+  else if(est === 'Formulario enviado')
+    principal = '<button class="btn" style="background:linear-gradient(160deg,#2FBF71,#1E9E58)" '+
+      'onclick="enviarFormulario()">📤 Reenviar el formulario</button>';
+  else
+    principal = '<button class="btn" style="background:linear-gradient(160deg,#2FBF71,#1E9E58)" '+
+      'onclick="enviarFormulario()">📤 Enviar formulario al cliente</button>';
+
+  var otros = [];
+  if(!CERRADO) otros.push('<button class="btn sec mini2" onclick="editarFicha()">✏️ Editar</button>');
+  else if(esSupervisor) otros.push('<button class="btn sec mini2" onclick="editarFicha()">🔓 Reabrir</button>');
+  /* El formulario del cliente deja de ofrecerse desde que hay contrato: el
+     enlace que le llegaría le contesta que su solicitud ya fue procesada, y un
+     botón que manda a una puerta cerrada es peor que no tener el botón. */
+  if(principal.indexOf('enviarFormulario') < 0 && !ENCONTRATO)
+    otros.push('<button class="btn sec mini2" onclick="enviarFormulario()">📤 Formulario</button>');
+  if(principal.indexOf('verPropuesta') < 0)
+    otros.push('<button class="btn sec mini2" onclick="verPropuesta()">📄 Propuesta</button>');
+  /* Solo mientras se está cotizando: pedir una inspección de un contrato ya
+     firmado no tiene para qué, y un botón que no sirve estorba. */
+  if(!ENCONTRATO && !INSPEC)
+    otros.push('<button class="btn sec mini2" onclick="pedirInspeccion()">🔎 Pedir inspección</button>');
+  if(principal.indexOf('verContrato') < 0)
+    otros.push('<button class="btn sec mini2" onclick="verContrato()">📜 Contrato</button>');
+  if(est === 'Firmado')
+    otros.push('<button class="btn ambar mini2" onclick="pasarACartera()">→ Pasar a cartera</button>');
+  /* Se puede volver a abrir el correo de contabilidad: se cierra sin querer,
+     o hace falta reenviarlo cuando se completó un dato que faltaba. */
+  if(est === 'Pasado a cartera' || est === 'Firmado')
+    otros.push('<button class="btn sec mini2" onclick="correoCartera(PROSPECTO.codigoPropuesta)">'+
+      '✉ Avisar a contabilidad</button>');
+
+  b.innerHTML =
+    (CERRADO
+      ? '<div class="aviso" style="margin-bottom:11px;border-left:4px solid var(--verde)">'+
+        '<b>El cliente ya firmó</b> · está en '+esc(est)+
+        (esSupervisor ? ', pero puedes reabrirla.'
+                      : '. Ya no se modifica; si hay un error, pídele a supervisión que la reabra.')+
+        '</div>'
+      : '')+
+    principal +
+    (otros.length ? '<div class="fila-btn">'+otros.join("")+'</div>' : '')+
+    '<div style="text-align:center;margin-top:14px">'+
+      '<button class="btn-borrar" onclick="borrarProspecto()">Borrar este prospecto</button>'+
+    '</div>';
+}
+
+function editarFicha(){
+  EDITANDO=true; bloquearFicha(false); pintarBotonera(false);
+  var vn=$("pp-vencimiento"); if(vn){ vn.disabled=true; vn.classList.add("bloq"); }
+  aplicarReglas();
+  var p=$("pp-empresa"); if(p)p.focus();
+}
+
+function aplicarReglas(){
+  var fe=$("pp-fcontrato"), pl=$("pp-plazo"), ve=$("pp-vencimiento"), fr=$("pp-frecuencia");
+  if(!ve)return;
+  var especial = fr && String(fr.value).toUpperCase().indexOf("ESPECIAL")>=0;
+  if(pl){
+    pl.disabled = especial || !EDITANDO;
+    pl.classList.toggle("bloq", pl.disabled);
+    if(especial) pl.value="";
+  }
+  var base=fe?fe.value:"", meses=Number(pl?pl.value:0);
+  if(base && meses>0){
+    var d=new Date(base+"T12:00:00");
+    if(!isNaN(d.getTime())){ d.setMonth(d.getMonth()+meses); ve.value=d.toISOString().slice(0,10); }
+  } else ve.value="";
+}
+function cancelarEdicion(){
+  preguntar({titulo:"Descartar cambios",
+    texto:"Los cambios que no hayas guardado se pierden.",
+    boton:"Sí, descartar",
+    alAceptar:function(){ EDITANDO=false; abrirProspecto(PROSPECTO.codigoPropuesta); }});
+}
+
+function borrarProspecto(){
+  if(!PROSPECTO || !PROSPECTO.codigoPropuesta){ toast("Guarda el prospecto primero"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo revisar"); return; }
+      if(!r.puede){
+        preguntar({titulo:"No puedes borrar este prospecto", icono:"🔒",
+          texto:"Está en <b>"+esc(r.estado)+"</b>. Desde que hay propuesta, solo el "+
+                "administrador puede borrarlo.", boton:"Entendido", alAceptar:function(){}});
+        return;
+      }
+      preguntar({titulo:"Borrar "+esc(r.empresa), peligro:true, icono:"×",
+        texto:"Esto <b>no se puede deshacer</b>."+
+          (r.pierde.length
+            ? "<br><br>Se van a perder:<ul style='text-align:left;margin:8px 0 0 18px'>"+
+              r.pierde.map(function(z){return "<li>"+esc(z)+"</li>";}).join("")+"</ul>"
+            : "")+
+          "<br>Escribe el nombre de la empresa para confirmar.",
+        escribir: r.empresa, boton:"Borrar definitivamente",
+        alAceptar: borrarConfirmado});
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_revisarBorrado(PIN, PROSPECTO.codigoPropuesta);
+}
+
+function borrarConfirmado(){
+  toast("Borrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo borrar"); return; }
+      toast("Prospecto borrado"); PROS=null; cargarProspectos(); verTab("prospectos");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_borrarProspecto(PIN, PROSPECTO.codigoPropuesta);
+}
+
+function verContrato(){
+  if(!PROSPECTO||!PROSPECTO.codigoPropuesta){ toast("Guarda el prospecto primero"); return; }
+  toast("Revisando la ficha…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo revisar"); return; }
+      if(!r.listo){ mostrarFaltantes(r.faltan); return; }
+      window.open(URL_APP+"?p=contrato&cod="+encodeURIComponent(PROSPECTO.codigoPropuesta),"_blank");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_revisarContrato(PIN, PROSPECTO.codigoPropuesta);
+}
+
+function mostrarFaltantes(f){
+  var h='<div class="aviso rojo" style="margin-top:12px;text-align:left">'+
+    '<b>El contrato no se puede generar todavía.</b><br>'+
+    'Un contrato con campos vacíos no tiene validez legal. Falta:';
+  for(var g in f){
+    h+='<div style="margin-top:8px"><b>'+esc(g)+'</b><ul style="margin:3px 0 0 18px">'+
+      f[g].map(function(t){return '<li>'+esc(t)+'</li>';}).join("")+'</ul></div>';
+  }
+  h+='</div>';
+  $("pp-botonera").insertAdjacentHTML("beforeend", h);
+  toast("Faltan datos para el contrato");
+}
+
+function guardarProspecto(){
+  var v=function(i){var e=$(i);return e?e.value:"";};
+  var d={'empresa':v("pp-empresa"),'razon social':v("pp-razon"),'ruc':v("pp-ruc"),'dv':v("pp-dv"),
+   'sector':v("pp-sector"),'asesor':v("pp-asesor"),'frecuencia':v("pp-frecuencia"),
+   'costo visita':v("pp-costo"),'kg plan':v("pp-kg"),'tarifa kg adic':v("pp-kgadic"),
+   'tarifa visita adic':v("pp-visadic"),
+   /* valor cotizado y valor contratado ya no se escriben: el primero lo
+      calcula el servidor a partir del costo, el segundo lo pone el sistema
+      cuando el prospecto pasa a Firmado. Mandarlos vacíos los borraba. */
+   'validez propuesta':v("pp-validez"),
+   'plazo contrato':v("pp-plazo"),'contacto':v("pp-contacto"),'cargo':v("pp-cargo"),
+   'telefono':v("pp-telefono"),'celular':v("pp-celular"),'correo':v("pp-correo"),
+   'retiene itbms':v("pp-retiene"),'facturacion':v("pp-facturacion"),
+   'canal envio':v("pp-canalenvio"),
+   'estado':v("pp-estado"),'fecha contacto':v("pp-fcontacto"),'fecha propuesta':v("pp-fpropuesta"),
+   'proximo seguimiento':v("pp-fseguimiento"),'notas':v("pp-notas"),
+   'n contrato':v("pp-ncontrato"),'fecha contrato':v("pp-fcontrato"),
+   'inicio recoleccion':v("pp-inicio"),
+   'horario recoleccion':v("pp-horario"),'representante legal':v("pp-replegal"),
+   'cedula representante':v("pp-cedula"),'folio registro':v("pp-folio"),
+   'genero representante':v("pp-genero"),'nacionalidad representante':v("pp-nacionalidad"),
+   'direccion':v("pp-direccion"),
+   /* tipo de servicio y lo que solo aplica a una visita única */
+   'tipoServicio': UNICA ? 'VISITA UNICA' : 'RECURRENTE',
+   'descripcionTrabajo':v("pp-descripcion"),
+   'cantidadEstimada':v("pp-cantidad"),
+   'fechaTentativa':v("pp-ftentativa"),
+   /* Vacío significa "usa las estándar y mantenlas al día". Solo se guarda
+      texto cuando Mercadeo de verdad las cambió: así una propuesta que
+      nadie tocó no se queda con la tarifa del año pasado. */
+   'notasPropuesta': NOTAS_EDIT
+      ? NOTAS.map(function(x){return String(x).trim();}).filter(Boolean).join("\n")
+      : ""};
+  PROS.documentos.forEach(function(x){
+    var c=$("pd-"+x[0]); d[x[0]] = (c&&c.checked) ? "SI" : "NO";
+  });
+  if(!d.empresa.trim()){ toast("Falta el nombre de la empresa"); return; }
+  toast("Guardando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      if(r.duplicado){
+        preguntar({titulo:"Ese cliente ya existe", icono:"!",
+          texto:esc(r.error)+"<br><br>¿Quieres abrir el prospecto que ya existe?",
+          boton:"Sí, abrirlo",
+          alAceptar:function(){ PROS=null; cargarProspectosLuego(r.codigoExistente); }});
+        return;
+      }
+      var cod = r.codigoPropuesta;
+      toast(r.creado? "Prospecto creado · "+cod : "Guardado ✓");
+      EDITANDO=false;
+      // la ficha se queda abierta: el paso siguiente es enviar el formulario
+      PROS=null; cargarProspectosLuego(cod);
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se guardó"); })
+    .api_guardarProspecto(PIN, PROSPECTO.codigoPropuesta||"", d);
+}
+
+function pasarACartera(){
+  if(!PROSPECTO||!PROSPECTO.codigoPropuesta)return;
+  preguntar({titulo:"Pasar a cartera",
+    texto:"Se envía a operaciones como solicitud de alta para que la aprueben con su ubicación.",
+    boton:"Sí, enviar",
+    alAceptar:function(){ pasarConfirmado(); }});
+}
+
+function pasarConfirmado(){
+  var cod = PROSPECTO.codigoPropuesta;
+  var yaVa = conSeguro("cartera:"+cod,
+    ['button[onclick="pasarACartera()"]'], function(soltar){
+    toast("Enviando a operaciones…");
+    google.script.run
+      .withSuccessHandler(function(r){
+        soltar();
+        if(!r||!r.ok){
+          /* «ya enviada» no es un error de la persona: es el sistema
+             diciéndole que ya está hecho. Se dice sin alarma y se refresca
+             la lista para que lo vea con sus propios ojos. */
+          toast((r&&r.error)||"No se pudo");
+          if(r&&r.yaEnviada){ PROS=null; cargarProspectos(); verTab("prospectos"); }
+          return;
+        }
+        toast(r.faltan && r.faltan.length
+          ? "Enviado, pero faltan documentos: "+r.faltan.join(", ")
+          : "Enviado a operaciones ✓");
+        /* El paso siguiente es avisarle a contabilidad. Se hace ahora, con el
+           prospecto fresco, no “cuando me acuerde”. */
+        PROS=null; cargarProspectos(); verTab("prospectos");
+        setTimeout(function(){ correoCartera(cod); }, 400);
+      })
+      .withFailureHandler(function(){ soltar(); toast("Sin conexión"); })
+      .api_pasarACartera(PIN, cod);
+  });
+  if(!yaVa) toast("Ya se está enviando…");
+}
+
+
+/* ═══ Avisarle a contabilidad ═══
+   El sistema redacta y abre el correo; lo manda la persona. Así sale con su
+   remitente y su firma, le queda en Enviados, y puede agregar una línea antes
+   de darle enviar. El sistema nunca escribe a nombre de nadie sin que lo vea. */
+var CORREO_LISTO = null;
+
+function correoCartera(cod){
+  if(!cod) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r&&r.error)||"No pude armar el correo"); return; }
+      CORREO_LISTO = r;
+      /* Los dos avisos son cosas distintas — a quién le escribo, y qué le falta
+         al cliente — así que se muestran los dos si los dos aplican. Antes el
+         primero se comía al segundo. */
+      var aviso = "";
+      if(r.sinDestinatarios)
+        aviso += '<div class="aviso rojo" style="text-align:left;margin-bottom:10px">'+
+          '<b>No hay correos configurados para contabilidad.</b><br>'+
+          'Se abre igual, pero vas a tener que escribir tú a quién. '+
+          'Se configuran en Alta › Notificaciones.</div>';
+      if(r.faltan && r.faltan.length)
+        aviso += '<div class="aviso" style="text-align:left;margin-bottom:10px">'+
+          'Al cliente le falta <b>'+esc(r.faltan.join(", "))+'</b>. '+
+          'El correo lo dice, para que contabilidad no lo descubra facturando.</div>';
+
+      preguntar({
+        titulo:"Avisarle a contabilidad", icono:"✉",
+        texto: aviso +
+          '<div style="text-align:left;font-size:12.5px;color:var(--gris);margin-bottom:8px">'+
+            (r.sinDestinatarios ? "Sin destinatarios" : "Para: <b>"+esc(r.para.join(", "))+"</b>")+
+          '</div>'+
+          '<textarea id="cc-texto" rows="9" style="font-family:ui-monospace,Menlo,Consolas,monospace;'+
+            'font-size:11.5px;line-height:1.5">'+esc(r.cuerpo)+'</textarea>'+
+          '<div class="fila-btn">'+
+            '<button class="btn mini2" onclick="abrirCorreoCartera()">✉ Abrir en mi correo</button>'+
+            '<button class="btn sec mini2" onclick="copiarCorreoCartera()">📋 Copiar</button>'+
+          '</div>'+
+          '<div style="font-size:11.5px;color:var(--gris);margin-top:8px;line-height:1.5">'+
+            'Se abre tu programa de correo con todo puesto. Lo revisas y lo mandas tú.'+
+          '</div>',
+        boton:"Cerrar", alAceptar:function(){}
+      });
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_correoCartera(PIN, cod);
+}
+
+function textoCorreoActual(){
+  var t=$("cc-texto");
+  return t ? t.value : (CORREO_LISTO ? CORREO_LISTO.cuerpo : "");
+}
+
+function abrirCorreoCartera(){
+  if(!CORREO_LISTO) return;
+  var cuerpo = textoCorreoActual();
+  var url = correoOutlook_((CORREO_LISTO.para||[]).join(","),
+                           CORREO_LISTO.asunto, cuerpo);
+  /* El cuerpo viaja dentro de la dirección y los enlaces muy largos se
+     cortan. Si pasa, mejor avisarlo aquí que descubrirlo con medio
+     mensaje enviado. */
+  if(url.length > 1900)
+    toast("El mensaje es largo: si te llega cortado, usa Copiar");
+  window.open(url, "_blank");
+}
+
+function copiarCorreoCartera(){
+  var t=$("cc-texto"); if(!t) return;
+  t.select(); t.setSelectionRange(0, 999999);
+  var ok=false;
+  try{ ok=document.execCommand("copy"); }catch(e){}
+  if(!ok && navigator.clipboard){
+    navigator.clipboard.writeText(t.value).then(function(){ toast("Copiado ✓"); },
+      function(){ toast("Selecciónalo y cópialo con Ctrl+C"); });
+    return;
+  }
+  toast(ok ? "Copiado ✓" : "Selecciónalo y cópialo con Ctrl+C");
+}
+
+function verPropuesta(){
+  if(!PROSPECTO||!PROSPECTO.codigoPropuesta){ toast("Guarda el prospecto primero"); return; }
+  if(!URL_APP){ toast("Un momento, cargando…"); return; }
+  window.open(URL_APP+"?p=propuesta&cod="+encodeURIComponent(PROSPECTO.codigoPropuesta),"_blank");
+}
+
+function copiarEnlaceFormulario(cod) {
+  if (!cod) {
+    toast("Guarda el prospecto primero");
+    return;
+  }
+  if (!URL_APP) {
+    toast("Cargando URL, intenta de nuevo en un segundo");
+    return;
+  }
+  const enlace = URL_APP + "?p=formulario&token=" + encodeURIComponent(cod);
+  navigator.clipboard.writeText(enlace).then(() => {
+    toast("¡Enlace copiado! Pégalo en el WhatsApp del cliente 📋");
+  }).catch(() => {
+    prompt("Copia este enlace para enviarlo:", enlace);
+  });
+}
+
+
+/* ═══ diálogo propio ═══ */
+var dlgCb=null, dlgEsperado=null;
+function preguntar(op){
+  $("dlg-tit").textContent=op.titulo||"";
+  $("dlg-txt").innerHTML=op.texto||"";
+  $("dlg-si").textContent=op.boton||"Continuar";
+  $("dlg-ic").textContent=op.icono||"!";
+  $("dlg-ic").className="dlg-ic"+(op.peligro?" rojo":"");
+  var i=$("dlg-input");
+  if(op.escribir){ i.style.display="block"; i.value=""; i.placeholder=op.escribir; dlgEsperado=op.escribir; }
+  else if(op.escribirLibre){ i.style.display="block"; i.value=""; i.placeholder=op.escribirLibre; dlgEsperado=null; }
+  else { i.style.display="none"; dlgEsperado=null; }
+  dlgCb=op.alAceptar||null;
+  $("dlg").classList.add("ver");
+  if(op.escribir||op.escribirLibre) setTimeout(function(){i.focus();},150);
+}
+function dlgSi(){
+  if(dlgEsperado!==null){
+    var v=($("dlg-input").value||"").trim().toUpperCase();
+    if(v!==String(dlgEsperado).trim().toUpperCase()){ toast("El nombre no coincide"); return; }
+  }
+  var f=dlgCb; dlgCb=null; dlgEsperado=null;
+  if(f)f();
+  $("dlg").classList.remove("ver");
+}
+function dlgNo(){ $("dlg").classList.remove("ver"); dlgCb=null; dlgEsperado=null; }
+
+
+function volverInicio(){
+  if(URL_LOBBY){ irA(URL_LOBBY); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){})
+    .api_urlApp();
+}
+
+var URL_LOBBY = "";
+(function(){
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){ URL_LOBBY = u || ""; }).api_urlApp();
+})();
+
+
+var ROTULO={admin:"Administración",supervisor:"Supervisión de operaciones",
+  gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta",operador:"Operador"};
+
+
+/* ═══ Recargar el pipeline y abrir una ficha ═══
+   Se perdió al reemplazar el bloque del vigía y con ella se cayeron el
+   guardado de prospectos y el envío del formulario: la sintaxis quedaba
+   válida, así que nada avisó hasta que Supervisor pulsó Guardar. */
+function cargarProspectosLuego(cod){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok) return;
+      PROS = r; pintarResumenP(); pintarProspectos(); revisarNovedades(false);
+      if(cod) abrirProspecto(cod); else verTab("prospectos");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_prospectos(PIN);
+}
+
+/* ═══ Enviar el formulario al cliente ═══
+   No se copia un enlace: se prepara el mensaje por el canal que tenga el cliente. */
+function textoFormulario(p, enlace){
+  return "Estimado cliente, le saludamos de ECOVSA.\n\n" +
+    "Para preparar su propuesta de servicio necesitamos algunos datos de su " +
+    "establecimiento. Puede completarlos en este formulario:\n" + enlace + "\n\n" +
+    "Le tomará dos minutos y con eso le enviamos su cotización a la brevedad.\n\n" +
+    "ECOVSA · Tel. 310-2268 · correo@ejemplo.com";
+}
+
+/* ═══ A DÓNDE SE PUEDE MANDAR ═══════════════════════════════════════
+
+   ¿Este número sirve para WhatsApp?
+
+   En Panamá el celular tiene OCHO dígitos y empieza en 6; el fijo tiene
+   SIETE. Un fijo no tiene WhatsApp.
+
+   Lo de antes le ponía el 507 a cualquier número de ocho dígitos y, si
+   no medía ocho, lo mandaba tal cual. Con eso, a un prospecto que solo
+   tiene fijo —UNICARNES, 256-76-16— le salía el botón verde igual y
+   abría wa.me/2567616: un chat que no existe. Quien lo apretaba creía
+   que había mandado el formulario.
+
+   Ahora: o es un celular panameño, o ya viene con el 507 y sus ocho
+   dígitos detrás, o no hay botón. */
+function waNumero_(v){
+  var n = String(v||"").replace(/[^0-9]/g, "");
+  if(/^6\d{7}$/.test(n))    return "507" + n;    // como lo escribe mercadeo
+  if(/^5076\d{7}$/.test(n)) return n;            // ya trae el país
+  return "";
+}
+
+/* Se prueba el celular y, si no sirve, el teléfono: a veces el celular se
+   escribe en la casilla equivocada. Gana el primero que sea válido. */
+function telProspecto_(p){
+  return waNumero_(p.celular) || waNumero_(p.telefono) || "";
+}
+
+/* 50767123456 no se lee, se cuenta con el dedo. En el botón va como lo
+   escribe cualquiera; en el enlace va el largo. */
+function telBonito_(n){
+  var s = String(n||"").replace(/^507/, "");
+  return s.length === 8 ? s.slice(0,4) + "-" + s.slice(4) : s;
+}
+
+/* Outlook.com por enlace directo, NO mailto.
+
+   mailto abre el programa de correo que cada máquina tenga puesto por
+   defecto: en una computadora abría Outlook y en la de al lado otra
+   cosa, o nada. Esto abre siempre el mismo, sin depender de la máquina.
+
+   El cuerpo viaja dentro de la dirección, así que un mensaje muy largo
+   puede llegar cortado. Quien llame a esto debe avisarlo. */
+function correoOutlook_(para, asunto, cuerpo){
+  return "https://outlook.live.com/mail/0/deeplink/compose" +
+         "?to="      + encodeURIComponent(String(para||"")) +
+         "&subject=" + encodeURIComponent(String(asunto||"")) +
+         "&body="    + encodeURIComponent(String(cuerpo||""));
+}
+
+function enviarFormulario(){
+  if(!PROSPECTO || !PROSPECTO.codigoPropuesta){ toast("Guarda el prospecto primero"); return; }
+  if(!URL_APP){ toast("Un momento, cargando…"); return; }
+  var p = PROSPECTO;
+  var tel = telProspecto_(p), correo = String(p.correo || "").trim();
+  /* Antes, sin celular ni correo, esto se cortaba aquí con un aviso que
+     se desvanece en dos segundos. Ahora sigue: el diálogo de abajo dice
+     cuál de los dos falta y dónde se agrega, y se queda en pantalla
+     hasta que la persona lo cierre. */
+  var enlace = URL_APP + "?p=formulario&token=" + encodeURIComponent(p.codigoPropuesta);
+  var txt = textoFormulario(p, enlace);
+
+  var botones =
+    (tel ? '<button class="btn" style="background:#25D366" onclick="mandarFormPor(&#39;whatsapp&#39;)">📱 WhatsApp · '+esc(telBonito_(tel))+'</button>' : '')+
+    (correo ? '<button class="btn sec" onclick="mandarFormPor(&#39;correo&#39;)">✉️ Outlook · '+esc(correo)+'</button>' : '');
+
+  /* Un camino que no está disponible tiene que decir POR QUÉ y con qué
+     dato se arregla. Antes el botón simplemente no aparecía, y desde
+     fuera eso no se distingue de que la pantalla esté rota: quien mira
+     no sabe si falta un dato o si falló el sistema. */
+  var falta = [];
+  if(!tel){
+    var crudo = String(p.celular || p.telefono || "").trim();
+    falta.push(crudo
+      ? 'Por WhatsApp no se puede: <b>'+esc(crudo)+'</b> no es un celular. '+
+        'En Panamá el celular tiene ocho dígitos y empieza en 6; ese parece un fijo.'
+      : 'Por WhatsApp no se puede: no tiene celular en la ficha.');
+  }
+  if(!correo) falta.push('Por correo no se puede: no tiene correo en la ficha.');
+
+  FORM_ENVIO = { enlace:enlace, texto:txt, tel:tel, correo:correo };
+  preguntar({titulo:"Enviar el formulario a "+ (p.empresa||"el cliente"), icono:"📤",
+    texto:"El cliente llena sus datos y llegan directo a su ficha.<br><br>"+
+          "<b>¿Por dónde se lo mandamos?</b><br><br>"+botones+
+          (falta.length
+            ? '<div class="aviso" style="margin-top:12px;text-align:left">'+
+              falta.join('<br>')+'<br><br>Agrégalo en <b>Editar</b> y vuelve a intentar.</div>'
+            : ''),
+    boton:"Cancelar", alAceptar:function(){}});
+  var si=$("dlg-si"); if(si) si.style.display="none";
+}
+
+var FORM_ENVIO = null;
+
+function mandarFormPor(canal){
+  if(!FORM_ENVIO) return;
+  dlgNo();
+  var si=$("dlg-si"); if(si) si.style.display="";
+  if(canal === "whatsapp")
+    window.open("https://wa.me/" + FORM_ENVIO.tel + "?text=" +
+      encodeURIComponent(FORM_ENVIO.texto), "_blank");
+  else
+    window.open(correoOutlook_(FORM_ENVIO.correo,
+      "Datos para su propuesta · ECOVSA", FORM_ENVIO.texto), "_blank");
+
+  google.script.run
+    .withSuccessHandler(function(){ toast("Formulario enviado ✓"); PROS=null;
+      cargarProspectosLuego(PROSPECTO.codigoPropuesta); })
+    .withFailureHandler(function(){ toast("Se abrió el mensaje, pero no se registró el envío"); })
+    .api_marcarFormularioEnviado(PIN, PROSPECTO.codigoPropuesta, canal);
+}
+
+
+/* ═══════════ DESTINATARIOS DE LAS NOTIFICACIONES ═══════════
+   Los correos viven en una hoja, no aquí. Contabilidad no usa el sistema y
+   su gente cambia; quién recibe qué no puede ser una línea de código que
+   haya que ir a buscar cada vez. */
+var NOTIF=null;
+
+function cargarNotificaciones(){
+  $("notif-lista").innerHTML='<div class="vacio">Cargando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("notif-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
+      NOTIF=r; pintarNotificaciones();
+    })
+    .withFailureHandler(function(){ $("notif-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_notificaciones(PIN);
+}
+
+function pintarNotificaciones(){
+  $("notif-lista").innerHTML = NOTIF.eventos.map(function(e,i){
+    return '<div class="grupo-f"><h4>'+esc(e.titulo)+'</h4>'+
+      '<div class="ayuda-tipo" style="margin:0 0 10px">'+esc(e.explica)+'</div>'+
+      '<label>Correos, separados por coma</label>'+
+      '<input id="nt-'+i+'" type="text" value="'+esc(e.destinatarios)+'" '+
+        'placeholder="correo@ejemplo.com, correo@ejemplo.com">'+
+      '<label style="display:flex;align-items:center;gap:9px;margin-top:11px;'+
+        'text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:600;color:var(--tinta)">'+
+        '<input type="checkbox" id="na-'+i+'"'+(e.activo?' checked':'')+
+        ' style="width:auto;margin:0"> Usar estos correos</label>'+
+      '<div class="fila-btn">'+
+        '<button class="btn sec mini2" onclick="guardarNotificacion('+i+')">Guardar</button>'+
+      '</div></div>';
+  }).join("") +
+  '<div class="aviso" style="margin-top:4px;text-align:left">'+
+  '<b>El sistema no manda correos.</b> Cuando ocurre la acción, te abre tu programa '+
+  'de correo con el mensaje escrito y estas direcciones puestas; lo revisas y lo '+
+  'mandas tú. Así sale con tu firma y te queda en Enviados.</div>';
+}
+
+function guardarNotificacion(i){
+  var e=NOTIF.eventos[i];
+  var d=$("nt-"+i).value, a=$("na-"+i).checked;
+  toast("Guardando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      e.destinatarios=(r.destinatarios||[]).join(", ");
+      e.activo=!!r.activo;
+      pintarNotificaciones();
+      toast("Guardado ✓");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se guardó"); })
+    .api_guardarNotificacion(PIN, e.evento, d, a);
+}
+
+/* ═══════════ CENTRO DE NOVEDADES ═══════════
+   Antes esto era un aviso verde discreto arriba del pipeline, que solo
+   aparecía si mercadeo estaba mirando esa pestaña. Un cliente mandaba sus
+   datos un viernes a las seis y nadie se enteraba hasta el lunes.
+
+   Ahora es una pastilla fija en la esquina, visible desde cualquier pestaña,
+   que no se apaga hasta que se entra a la ficha. Y trae dos cosas: lo que
+   manda el cliente, y las solicitudes que logística devuelve — cuyo motivo
+   antes se escribía en una hoja que mercadeo no abre nunca.
+
+   El ritmo se adapta: cada revisión es una ejecución de Apps Script y el tope
+   diario lo comparte todo el sistema. 45 segundos mientras hay movimiento,
+   hasta 5 minutos en calma, y al instante cuando se vuelve a la pestaña. */
+/* NOV_VISTAS: las que ya atendió en esta sesión. NOV_CONOCIDAS: las que ya
+   vio pasar, para no volver a anunciarlas con un toast en cada consulta. */
+var VIGIA_FORM=null, NOV=[], NOV_VISTAS={}, NOV_CONOCIDAS={}, NOV_ABIERTO=false;
+var NOV_MIN=45000, NOV_MAX=300000, NOV_ESPERA=NOV_MIN;
+var TITULO_BASE=document.title || "Alta · ECOVSA";
+
+/* El marcador del módulo. Mientras no cambie, no hay nada que pedir: la
+   consulta cuesta una lectura de caché en vez de recorrer varias hojas.
+   Es la diferencia entre preguntar «¿pasó algo?» y «dame todo otra vez». */
+var NOV_MARCA=null;
+
+function revisarNovedades(manual){
+  if(!PIN) return;
+  /* Camino barato: si ya tenemos datos y el marcador no cambió, no se pide
+     nada. Solo aplica al sondeo automático — si la persona pulsa Actualizar,
+     quiere ver el estado real aunque nada haya cambiado. */
+  if(!manual && NOV_MARCA !== null){
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(r && r.ok && r.marca === NOV_MARCA){
+          NOV_ESPERA = Math.min(NOV_ESPERA * 2, NOV_MAX);
+          programarVigia();
+          return;
+        }
+        traerNovedades(false);
+      })
+      .withFailureHandler(function(){
+        NOV_ESPERA = Math.min(NOV_ESPERA * 2, NOV_MAX);
+        programarVigia();
+      })
+      .api_marcador(PIN, "mercadeo");
+    return;
+  }
+  traerNovedades(manual);
+}
+
+function traerNovedades(manual){
+  if(manual){ var b=$("nov-refresco"); if(b){ b.disabled=true; b.textContent="Buscando…"; } }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(manual){ var b=$("nov-refresco"); if(b){ b.disabled=false; b.textContent="↻ Actualizar"; } }
+      if(!r || !r.ok){ programarVigia(); return; }
+      if(r.marca !== undefined) NOV_MARCA = r.marca;
+
+      var antes = NOV.length;
+      /* El filtro va sobre la LISTA, no solo sobre el aviso. Antes solo
+         filtraba las que merecían toast y después se asignaba la lista
+         completa: la novedad que acababas de abrir volvía en la siguiente
+         consulta, y en la siguiente, y en la siguiente. */
+      var todas = (r.novedades||[]).filter(function(x){ return !NOV_VISTAS[x.clave]; });
+      var nuevas = todas.filter(function(x){ return !NOV_CONOCIDAS[x.clave]; });
+      todas.forEach(function(x){ NOV_CONOCIDAS[x.clave]=1; });
+      NOV = todas;
+
+      /* Con movimiento se acelera; en calma se va soltando. Así reacciona
+         rápido cuando importa y no gasta cuando no pasa nada. */
+      if(nuevas.length || NOV.length !== antes) NOV_ESPERA = NOV_MIN;
+      else NOV_ESPERA = Math.min(NOV_ESPERA * 2, NOV_MAX);
+
+      if(nuevas.length){
+        toast(nuevas.length === 1
+          ? (nuevas[0].tipo === "devuelta"
+              ? "↩ " + nuevas[0].titulo + " · solicitud devuelta"
+              : "📥 " + nuevas[0].titulo + " envió sus datos")
+          : "📥 " + nuevas.length + " novedades");
+        pulsar();
+        /* si está mirando el pipeline, se repinta con lo nuevo */
+        var enPipeline = $("v-prospectos") && $("v-prospectos").classList.contains("on");
+        if(enPipeline){
+          google.script.run.withSuccessHandler(function(z){
+            if(z && z.ok){ PROS=z; pintarResumenP(); pintarProspectos(); }
+          }).api_prospectos(PIN);
+        } else PROS = null;
+      }
+      if(manual) toast(NOV.length ? NOV.length+" novedad(es)" : "Nada nuevo por ahora");
+      pintarNovedades();
+      programarVigia();
+    })
+    .withFailureHandler(function(){
+      if(manual){ var b=$("nov-refresco"); if(b){ b.disabled=false; b.textContent="↻ Actualizar"; } toast("Sin conexión"); }
+      NOV_ESPERA = Math.min(NOV_ESPERA * 2, NOV_MAX);
+      programarVigia();
+    })
+    .api_novedades(PIN);
+}
+
+function pulsar(){
+  var p=$("nov-pastilla"); if(!p) return;
+  p.classList.remove("late"); void p.offsetWidth; p.classList.add("late");
+}
+
+function pintarNovedades(){
+  var p=$("nov-pastilla"), l=$("nov-lista"), n=NOV.length;
+  if(!p||!l) return;
+
+  p.className = "nov-pastilla" + (n ? " hay" : "") + (NOV_ABIERTO ? " abierto" : "");
+  p.innerHTML = n
+    ? '<i></i><b>'+n+'</b> novedad'+(n===1?'':'es')
+    : '<i></i>';
+  p.title = n ? n+" novedad(es) sin revisar" : "Sin novedades";
+
+  document.title = n ? "("+n+") "+TITULO_BASE : TITULO_BASE;
+
+  l.innerHTML = n
+    ? NOV.map(function(x){
+        var dev = x.tipo === "devuelta";
+        var pen = x.tipo === "pendiente";
+        /* Lo que deja un asistente se distingue de lo que pasó ahora mismo:
+           uno es «esto ocurrió», el otro es «esto lleva rato esperando». */
+        var eti = dev ? ' <span>devuelta</span>'
+                : pen ? ' <span class="pri-'+esc(x.prioridad||'media')+'">'+
+                        esc(x.prioridad||'media')+'</span>'
+                : '';
+        return '<div class="nov-it'+(dev?' dev':'')+(pen?' pen':'')+'">'+
+          '<button class="nov-cerrar" title="Descartar este aviso" '+
+            'onclick="descartarNovedad(\''+esc(x.clave)+'\')">✕</button>'+
+          '<div class="nov-t">'+esc(x.titulo)+eti+'</div>'+
+          '<div class="nov-d">'+esc(x.detalle)+'</div>'+
+          '<div class="nov-p">'+
+            (x.quien?esc(x.quien)+' · ':'')+esc(x.cuando||'')+
+            (x.estadoPend==="pospuesto"?' · pospuesto, volvió hoy':'')+
+            (x.codigoPropuesta
+              ? '<button class="btn mini ambar" onclick="irANovedad(\''+esc(x.clave)+'\',\''+
+                esc(x.codigoPropuesta)+'\')">Abrir ficha</button>'
+              : x.enlace
+              ? '<button class="btn mini ambar" onclick="abrirLigado(\''+esc(x.clave)+'\',\''+
+                esc(x.enlace)+'\')">Abrir ficha</button>'
+              : '<span style="opacity:.7">Sin ficha ligada</span>')+
+          '</div>'+
+          /* Un pendiente del asistente necesita tres salidas distintas. La ✕
+             de arriba es la de siempre y ahora POSPONE: vuelve mañana. Estas
+             dos son las definitivas, y por eso están escritas con todas sus
+             letras en vez de escondidas detrás de un símbolo. */
+          (pen && x.pendienteId
+            ? '<div class="nov-p" style="justify-content:flex-start;gap:6px">'+
+              '<button class="btn mini" onclick="cerrarPendienteAsi(\''+esc(x.clave)+'\',\'hecho\')" '+
+                'title="Ya lo atendí. No vuelve.">Ya lo atendí</button>'+
+              '<button class="btn mini" onclick="cerrarPendienteAsi(\''+esc(x.clave)+'\',\'noaplica\')" '+
+                'title="No es un problema. No se vuelve a avisar.">No aplica</button>'+
+              '</div>'
+            : '')+
+          '</div>';
+      }).join("")
+    : '<div class="nov-vacio">Nada pendiente. Cuando un cliente envíe sus datos '+
+      'o logística devuelva una solicitud, aparece aquí.</div>';
+
+  if(n>1) l.innerHTML += '<div class="nov-pie">'+
+    '<button onclick="descartarTodas()">Quitar las '+n+' por hoy</button></div>';
+}
+
+/* Descartar deja constancia en la hoja, no solo en el navegador: si viviera
+   en el navegador volvería al recargar, y le seguiría apareciendo a la otra
+   persona. Si el cliente vuelve a enviar sus datos, o logística vuelve a
+   devolver la solicitud, el aviso reaparece — es un hecho nuevo. */
+function descartarNovedad(clave){
+  var x = NOV.filter(function(y){ return y.clave===clave; })[0];
+  NOV_VISTAS[clave]=1;
+  NOV = NOV.filter(function(y){ return y.clave !== clave; });
+  pintarNovedades();
+  if(NOV.length===0) cerrarNovedades();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ /* no se pudo guardar: que vuelva, es mejor que perderlo */
+        delete NOV_VISTAS[clave];
+        if(x){ NOV.push(x); pintarNovedades(); }
+        toast((r&&r.error)||"No se pudo descartar");
+      }
+    })
+    .withFailureHandler(function(){
+      delete NOV_VISTAS[clave];
+      if(x){ NOV.push(x); pintarNovedades(); }
+      toast("Sin conexión — el aviso sigue ahí");
+    })
+    .api_marcarNovedadVista(PIN, clave);
+}
+
+function descartarTodas(){
+  var n=NOV.length;
+  preguntar({titulo:"Quitar "+n+" aviso(s) por hoy", icono:"✕",
+    texto:"Lo que dejó el asistente vuelve mañana si el problema sigue. "+
+          "Y si el cliente vuelve a enviar sus datos o logística vuelve a "+
+          "devolver una solicitud, ese aviso también regresa.",
+    boton:"Sí, quitarlos",
+    alAceptar:function(){
+      NOV.slice().forEach(function(x){ descartarNovedad(x.clave); });
+      toast(n+" aviso(s) fuera por hoy");
+    }});
+}
+
+function verNovedades(){
+  NOV_ABIERTO = !NOV_ABIERTO;
+  var pa=$("nov-panel"); if(pa) pa.classList.toggle("ver", NOV_ABIERTO);
+  pintarNovedades();
+}
+function cerrarNovedades(){ NOV_ABIERTO=false; var p=$("nov-panel"); if(p)p.classList.remove("ver"); pintarNovedades(); }
+
+/* Dos salidas más, porque una sola ✕ en una esquina no basta: en un
+   teléfono se falla el toque, y con la lista larga el reflejo es tocar
+   fuera. Escape para el escritorio, tocar fuera para el teléfono. */
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && NOV_ABIERTO) cerrarNovedades();
+});
+document.addEventListener("click", function(e){
+  if(!NOV_ABIERTO) return;
+  var panel = $("nov-panel"), past = $("nov-pastilla");
+  if(panel && !panel.contains(e.target) && past && !past.contains(e.target))
+    cerrarNovedades();
+}, true);
+
+/* Se apaga al entrar a la ficha, no antes: si se apagara al abrir el panel,
+   bastaría con mirarlo de reojo para perder el aviso. */
+function irANovedad(clave, cod){
+  NOV_VISTAS[clave]=1;
+  NOV = NOV.filter(function(x){ return x.clave !== clave; });
+  /* Una devolución sigue siendo DEVUELTA en la hoja hasta que alguien la
+     resuelva, así que marcarla solo en memoria no basta: al recargar la
+     página volvía igual. Se marca en el servidor y se acabó para todos.
+     El formulario recibido no lo necesita: se apaga solo cuando el estado
+     del prospecto avanza. */
+  if(clave.indexOf("dev:")===0){
+    google.script.run
+      .withSuccessHandler(function(){})
+      .withFailureHandler(function(){ delete NOV_VISTAS[clave]; })
+      .api_marcarNovedadVista(PIN, clave);
+  }
+  cerrarNovedades();
+  if(!PROS){ cargarProspectosLuego(cod); } else { abrirProspecto(cod); }
+  pintarNovedades();
+}
+
+/* ── Las dos salidas definitivas de un pendiente ─────────────────────
+   La ✕ de la tarjeta pospone: vuelve mañana si el problema sigue. Estas
+   dos cierran de verdad, y se mandan con una clave distinta para que el
+   servidor sepa cuál de las dos fue. Se reusa el mismo camino que ya
+   existía —api_marcarNovedadVista— en vez de abrir uno nuevo: dos formas
+   de cerrar lo mismo terminan comportándose distinto. */
+function cerrarPendienteAsi(clave, como){
+  var x = NOV.filter(function(y){ return y.clave===clave; })[0];
+  if(!x || !x.pendienteId) return;
+  NOV_VISTAS[clave]=1;
+  NOV = NOV.filter(function(y){ return y.clave !== clave; });
+  pintarNovedades();
+  if(NOV.length===0) cerrarNovedades();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){
+        delete NOV_VISTAS[clave];
+        if(x){ NOV.push(x); pintarNovedades(); }
+        toast((r&&r.error)||"No se pudo cerrar");
+      }
+    })
+    .withFailureHandler(function(){
+      delete NOV_VISTAS[clave];
+      if(x){ NOV.push(x); pintarNovedades(); }
+      toast("Sin conexión — el aviso sigue ahí");
+    })
+    .api_marcarNovedadVista(PIN, como + ":" + x.pendienteId);
+}
+
+/* ── Abrir lo que el asistente señaló ────────────────────────────────
+   El pendiente trae un enlace del tipo "?p=alta&cli=37" o "?p=alta&cod=PRO-…".
+   Como ya estamos DENTRO de Alta, no se navega: se abre la ficha aquí
+   mismo. Recargar la página para llegar al mismo sitio sería tirar el
+   trabajo de quien está a medio formulario.
+
+   Si algún día un pendiente apunta a otra pantalla, ahí sí se navega. */
+function abrirLigado(clave, enlace){
+  NOV_VISTAS[clave]=1;
+  NOV = NOV.filter(function(x){ return x.clave !== clave; });
+  cerrarNovedades();
+  pintarNovedades();
+
+  var cod = /[?&]cod=([^&]+)/.exec(enlace);
+  if(cod){
+    verTab("prospectos");
+    var c = decodeURIComponent(cod[1]);
+    if(!PROS){ cargarProspectosLuego(c); } else { abrirProspecto(c); }
+    return;
+  }
+  var cli = /[?&]cli=(\d+)/.exec(enlace);
+  if(cli){
+    var id = Number(cli[1]);
+    verTab("cartera");
+    /* la cartera puede no estar cargada todavía: se espera a que llegue
+       en vez de abrir una ficha vacía */
+    if(CARTERA){ abrirFicha(id); return; }
+    var intentos = 0;
+    var esperar = setInterval(function(){
+      if(CARTERA){ clearInterval(esperar); abrirFicha(id); }
+      else if(++intentos > 40){ clearInterval(esperar); toast("No se pudo abrir la ficha"); }
+    }, 250);
+    return;
+  }
+  if(URL_APP) window.open(URL_APP + enlace, "_blank");
+}
+
+/* El vigía solo corre mientras la página está a la vista. */
+function programarVigia(){
+  clearTimeout(VIGIA_FORM);
+  VIGIA_FORM = setTimeout(function(){
+    if(document.hidden){ programarVigia(); return; }   // pestaña en segundo plano
+    revisarNovedades(false);
+  }, NOV_ESPERA);
+}
+
+document.addEventListener("visibilitychange", function(){
+  /* al volver revisa de una y vuelve al ritmo rápido: quien regresa a la
+     pestaña es porque va a trabajar */
+  if(!document.hidden && PIN){ NOV_ESPERA=NOV_MIN; revisarNovedades(false); }
+});
+
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+
+</script>
+<div id="dist-imprimir"></div>
+</body>
+</html>

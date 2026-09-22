@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('finanzas') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 12% 0%,rgba(168,123,10,.10),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:60px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(122,86,0,.30)}
+.marca{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.82;letter-spacing:.6px;text-transform:uppercase}
+header .salir{background:rgba(255,255,255,.18);border:none;color:#fff;
+  font-family:inherit;font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.wrap{max-width:1180px;margin:0 auto;padding:14px 18px}
+h2{font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:16px 0 9px}
+h2:first-child{margin-top:2px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
+  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:10px;font-size:15px;font-family:inherit;
+  border:1.5px solid var(--borde);border-radius:10px;background:#FFFDF7;color:var(--tinta)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+textarea{min-height:64px;resize:vertical;font-size:14px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;
+  border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;
+  background:var(--ambar);color:#3D2B00;box-shadow:0 3px 10px rgba(245,179,1,.34)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55;cursor:default;transform:none}
+.btn.sec{background:#fff;color:var(--azul-osc);box-shadow:inset 0 0 0 1.5px var(--azul-claro);
+  font-size:12.5px;padding:8px 13px;font-weight:700}
+.btn.ok{background:var(--verde);color:#fff;box-shadow:none}
+.btn.mal{background:var(--rojo);color:#fff;box-shadow:none}
+.btn.chico{font-size:12px;padding:7px 11px}
+
+/* ── pestañas ── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
+.tabs button{flex:1;min-width:118px;padding:11px 10px;border:1.5px solid var(--borde);
+  background:#fff;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;
+  color:var(--gris);cursor:pointer}
+.tabs button.act{background:var(--azul-osc);border-color:var(--azul-osc);color:#fff}
+.hoja{display:none}
+.hoja.act{display:block}
+
+/* ── indicadores ── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:13px 14px;
+  box-shadow:var(--sombra)}
+.kpi .r{font-size:10px;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.6px}
+.kpi .v{font-size:23px;font-weight:900;margin-top:5px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .p{font-size:11.5px;color:var(--gris);margin-top:4px;line-height:1.45}
+.kpi.grande .v{font-size:29px}
+.pos{color:var(--verde)} .neg{color:var(--rojo)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:800;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--borde)}
+td{padding:9px 6px;border-bottom:1px solid var(--borde);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.num{font-weight:700}
+tfoot td{border-top:2px solid var(--borde);border-bottom:none;font-weight:900;padding-top:11px}
+
+.et{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  border-radius:6px;padding:3px 7px}
+.et.sol{background:#FFF3D1;color:var(--ambar-osc)}
+.et.apr{background:#E4EDFB;color:#14306B}
+.et.pag{background:var(--verde-suave);color:var(--verde)}
+.et.rec{background:var(--rojo-suave);color:#7a1d14}
+.et.anu{background:#EDEAE1;color:var(--gris)}
+.et.urg{background:var(--rojo);color:#fff}
+
+.msg{display:none;border-radius:12px;padding:12px 15px;font-size:13.5px;line-height:1.55;margin-bottom:13px}
+.msg.mal{background:var(--rojo-suave);border-left:4px solid var(--rojo);color:#7a1d14}
+.msg.avi{background:#FFF3D1;border-left:4px solid var(--ambar);color:var(--ambar-osc)}
+.msg.ok{background:var(--verde-suave);border-left:4px solid var(--verde);color:var(--verde)}
+.vacio{text-align:center;color:var(--gris);font-size:13px;padding:24px 12px;line-height:1.55}
+.fila{display:flex;gap:11px;flex-wrap:wrap}
+.fila>div{flex:1;min-width:132px}
+.nota{font-size:11.5px;color:var(--gris);line-height:1.55;margin-top:8px}
+
+/* ── las dos marcas de gasto ──
+   Dos cosas distintas y con consecuencias distintas, así que se ven
+   distintas: lo extraordinario es real y ya bajó la utilidad (ámbar,
+   está resuelto); lo que está por confirmar todavía no cuenta en nada
+   y alguien tiene que ir a averiguarlo (rojo, es una tarea abierta). */
+.marcas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:11px;margin-top:11px}
+.marca{border-radius:var(--radio);padding:14px 16px;border:1px solid}
+.marca.extra{background:#FFF8E4;border-color:#EBD69B}
+.marca.conf{background:var(--rojo-suave);border-color:#F0C4BE}
+.marca .mt{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.marca.extra .mt{color:var(--ambar-osc)} .marca.conf .mt{color:#7a1d14}
+.marca .mv{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;margin:3px 0 5px}
+.marca.extra .mv{color:var(--ambar-osc)} .marca.conf .mv{color:#7a1d14}
+.marca .mp{font-size:11.5px;color:var(--gris);line-height:1.55}
+
+.mtag{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.5px;padding:3px 8px;border-radius:9px;margin:0 4px 3px 0;white-space:nowrap}
+.mtag.extra{background:#FFF3D1;color:var(--ambar-osc)}
+.mtag.conf{background:var(--rojo-suave);color:#7a1d14;cursor:help}
+td .pie{font-size:10px;color:var(--gris);font-weight:600;margin-top:2px}
+
+.opcion{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.5;
+  color:var(--gris);padding:10px 0;border-top:1px solid var(--borde);cursor:pointer}
+.opcion input{margin-top:2px;flex:0 0 auto;width:16px;height:16px;cursor:pointer}
+.opcion b{color:var(--tinta)}
+
+/* ── barras mes a mes, dibujadas a mano: sin librerías externas ── */
+.grafico{overflow-x:auto;padding-bottom:4px}
+.barras{display:flex;align-items:flex-end;gap:11px;height:170px;min-width:100%;padding:0 2px}
+.mesb{flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;height:100%}
+.par{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+.bi,.bg{width:42%;border-radius:4px 4px 0 0;min-height:2px}
+.bi{background:linear-gradient(180deg,#3F8F1F,var(--verde))}
+.bg{background:linear-gradient(180deg,#D9635A,var(--rojo))}
+.mesb .rot{font-size:10px;font-weight:800;color:var(--gris);margin-top:6px;white-space:nowrap}
+.mesb .ut{font-size:10.5px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.leyenda{display:flex;gap:15px;font-size:11.5px;font-weight:700;color:var(--gris);margin-top:11px}
+.leyenda i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ── ventana de detalle ── */
+.velo{display:none;position:fixed;inset:0;background:rgba(36,29,11,.55);z-index:60;
+  padding:18px;overflow-y:auto}
+.velo.abierto{display:block}
+.caja{background:#fff;max-width:760px;margin:20px auto;border-radius:18px;overflow:hidden;
+  box-shadow:0 14px 50px rgba(0,0,0,.34)}
+.caja .cab{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:14px 18px;display:flex;align-items:center;gap:10px}
+.caja .cab h3{font-size:15px;font-weight:800;flex:1}
+.caja .cab button{background:rgba(255,255,255,.2);border:none;color:#fff;font-family:inherit;
+  font-size:13px;font-weight:800;padding:7px 13px;border-radius:14px;cursor:pointer}
+.caja .cuerpo{padding:17px}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
+.dl div span{display:block;font-size:10px;font-weight:800;color:var(--gris);
+  text-transform:uppercase;letter-spacing:.4px}
+.dl div b{font-size:13.5px;font-weight:700;line-height:1.4}
+
+/* ── acceso por PIN ── */
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(122,86,0,.16)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#3D2B00;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+.pin-caja .btn{width:180px;margin-top:12px}
+
+@media(max-width:640px){
+  .oc{display:none}
+  .wrap{padding:12px 13px}
+  .kpi .v{font-size:20px} .kpi.grande .v{font-size:25px}
+}
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Finanzas</h1>
+  <div class="tag">Solo gerencia</div>
+  <p>Escribe tu PIN para entrar.</p>
+  <input id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="pantalla-app" style="display:none">
+  <header>
+    <div class="marca">
+      <div class="logo"></div>
+      <div>
+        <h1>Finanzas</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <button class="salir" style="margin-left:auto" onclick="volverInicio()">← Inicio</button>
+      <button class="salir" style="margin-left:8px" onclick="nuevaSolicitud()">+ Solicitud</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="msg" class="msg"></div>
+
+    <!-- ── periodo ── -->
+    <div class="tarjeta">
+      <div class="fila">
+        <div><label>Desde</label><input id="f-desde" type="date"></div>
+        <div><label>Hasta</label><input id="f-hasta" type="date"></div>
+        <div style="flex:2;min-width:230px">
+          <label>Periodo rápido</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn sec" onclick="rango('mes')">Este mes</button>
+            <button class="btn sec" onclick="rango('anterior')">Mes pasado</button>
+            <button class="btn sec" onclick="rango('anio')">Este año</button>
+            <button class="btn sec" onclick="rango('todo')">Todo</button>
+          </div>
+        </div>
+        <div style="flex:0 0 130px;display:flex;align-items:flex-end">
+          <button class="btn" style="width:100%" onclick="recargar()">Actualizar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button id="tb-resumen"   class="act" onclick="tab('resumen')">Utilidad</button>
+      <button id="tb-solicitudes"        onclick="tab('solicitudes')">Solicitudes</button>
+      <button id="tb-desglose"           onclick="tab('desglose')">Desglose</button>
+      <button id="tb-movimientos"        onclick="tab('movimientos')">Movimientos</button>
+      <button id="tb-catalogos"          onclick="tab('catalogos')">Catálogos</button>
+    </div>
+
+    <!-- ═══ UTILIDAD ═══ -->
+    <div id="h-resumen" class="hoja act">
+      <h2>Resultado del periodo</h2>
+      <div class="kpis" id="kpis-res"><div class="vacio">Cargando…</div></div>
+      <div id="marcas" class="marcas" style="display:none"></div>
+
+      <h2>Mes a mes</h2>
+      <div class="tarjeta">
+        <div class="grafico"><div class="barras" id="barras"></div></div>
+        <div class="leyenda">
+          <span><i style="background:var(--verde)"></i>Ingreso</span>
+          <span><i style="background:var(--rojo)"></i>Gasto</span>
+          <span style="margin-left:auto">Debajo de cada mes, la utilidad.</span>
+        </div>
+      </div>
+
+      <h2>Banco e impuesto</h2>
+      <div class="kpis" id="kpis-caja"></div>
+      <div class="nota">
+        La utilidad se mide sobre lo <b>facturado</b>: un servicio prestado este mes es
+        utilidad de este mes aunque el cliente pague después. El <b>ITBMS</b> no entra
+        ni como ingreso ni como gasto — se cobra y se paga por cuenta del fisco.
+      </div>
+
+      <h2>Cuánto cuesta operar</h2>
+      <div class="kpis" id="kpis-oper"></div>
+      <div class="nota" id="nota-oper"></div>
+    </div>
+
+    <!-- ═══ SOLICITUDES ═══ -->
+    <div id="h-solicitudes" class="hoja">
+      <h2>Solicitudes de pago</h2>
+      <div class="tarjeta">
+        <div class="fila">
+          <div style="flex:2;min-width:200px"><label>Buscar</label>
+            <input id="s-q" placeholder="Proveedor, concepto o SP-2026-0001"></div>
+          <div><label>Estado</label>
+            <select id="s-estado">
+              <option value="">Todas</option>
+              <option value="SOLICITADA">Por aprobar</option>
+              <option value="APROBADA">Aprobadas, sin pagar</option>
+              <option value="PAGADA">Pagadas</option>
+              <option value="RECHAZADA">Rechazadas</option>
+              <option value="ANULADA">Anuladas</option>
+            </select></div>
+          <div style="flex:0 0 130px;display:flex;align-items:flex-end">
+            <button class="btn" style="width:100%" onclick="cargarSolicitudes()">Buscar</button></div>
+        </div>
+      </div>
+      <div class="kpis" id="kpis-sol" style="margin-bottom:13px"></div>
+      <div class="tarjeta" id="tabla-sol"><div class="vacio">Cargando…</div></div>
+    </div>
+
+    <!-- ═══ DESGLOSE ═══ -->
+    <div id="h-desglose" class="hoja">
+      <h2>Gasto por cuenta contable</h2>
+      <div class="tarjeta" id="t-cuenta"><div class="vacio">Cargando…</div></div>
+      <h2>Gasto por proyecto</h2>
+      <div class="tarjeta" id="t-proyecto"></div>
+      <h2>A quién se le paga más</h2>
+      <div class="tarjeta" id="t-proveedor"></div>
+      <h2>Quién factura más</h2>
+      <div class="tarjeta" id="t-cliente"></div>
+      <h2>Gastos fijos del periodo</h2>
+      <div class="tarjeta" id="t-fijos"></div>
+    </div>
+
+    <!-- ═══ MOVIMIENTOS ═══
+         Cada gasto del periodo, venga de una solicitud o de la carga
+         histórica. Es donde se marca lo extraordinario y lo que está por
+         confirmar. -->
+    <div id="h-movimientos" class="hoja">
+      <h2>Gastos del periodo, uno por uno</h2>
+      <div class="tarjeta">
+        <div class="fila">
+          <div style="flex:2;min-width:210px"><label>Buscar</label>
+            <input id="m-q" placeholder="Proveedor, concepto, proyecto o categoría"></div>
+          <div><label>Mostrar</label>
+            <select id="m-solo">
+              <option value="">Todo</option>
+              <option value="confirmar">Solo por resolver</option>
+              <option value="extra">Solo extraordinarios</option>
+              <option value="solicitud">Solo solicitudes</option>
+              <option value="historico">Solo históricos</option>
+            </select></div>
+          <div style="flex:0 0 130px;display:flex;align-items:flex-end">
+            <button class="btn" style="width:100%" onclick="cargarMovimientos()">Buscar</button>
+          </div>
+        </div>
+      </div>
+      <div class="tarjeta" id="t-movs"><div class="vacio">Usa el buscador o pulsa Buscar.</div></div>
+    </div>
+
+    <!-- ═══ CATÁLOGOS ═══ -->
+    <div id="h-catalogos" class="hoja">
+      <h2>Proveedores</h2>
+      <div class="tarjeta">
+        <div class="fila">
+          <div style="flex:2;min-width:190px"><label>Proveedor</label><input id="p-nombre"></div>
+          <div><label>RUC</label><input id="p-ruc"></div>
+          <div style="flex:0 0 78px"><label>DV</label><input id="p-dv"></div>
+        </div>
+        <div class="fila" style="margin-top:10px">
+          <div><label>Banco</label><input id="p-banco"></div>
+          <div><label>Nº de cuenta</label><input id="p-cuenta"></div>
+          <div><label>Tipo</label>
+            <select id="p-tipo"><option value="">—</option><option>CORRIENTE</option><option>AHORRO</option></select></div>
+          <div><label>Contacto</label><input id="p-contacto"></div>
+          <div><label>Teléfono</label><input id="p-tel"></div>
+          <!-- La cuenta con la que casi siempre se registra lo que se le compra
+               a este proveedor. Al elegirlo en una solicitud, se pega sola en
+               los renglones vacíos. Hasta ahora esta columna existía en el
+               libro pero no había dónde llenarla sin abrir la hoja. -->
+          <div><label>Cuenta contable habitual</label>
+            <input id="p-cuentacont" list="dl-ctas" placeholder="Opcional"></div>
+        </div>
+        <datalist id="dl-ctas"></datalist>
+        <button class="btn" style="margin-top:12px" onclick="guardarProveedor()">Guardar proveedor</button>
+        <div class="nota">Si el nombre ya existe, se actualizan sus datos en vez de duplicarlo.</div>
+      </div>
+      <div class="tarjeta" id="t-prov"><div class="vacio">Cargando…</div></div>
+
+      <h2>Cuentas contables</h2>
+      <div class="tarjeta">
+        <div class="fila">
+          <div style="flex:0 0 130px"><label>Código</label><input id="c-codigo"></div>
+          <div style="flex:2;min-width:190px"><label>Descripción</label><input id="c-desc"></div>
+          <div><label>Grupo</label><input id="c-grupo" placeholder="Operativo, Administrativo…"></div>
+        </div>
+        <button class="btn" style="margin-top:12px" onclick="guardarCuenta()">Guardar cuenta</button>
+      </div>
+      <div class="tarjeta" id="t-ctas"></div>
+
+      <h2>Gastos fijos mensuales</h2>
+      <div class="tarjeta">
+        <div class="fila">
+          <div style="flex:2;min-width:180px"><label>Concepto</label>
+            <input id="g-concepto" placeholder="Alquiler de planta, planilla…"></div>
+          <div><label>Monto mensual</label><input id="g-monto" type="number" step="0.01"></div>
+          <div><label>Cuenta</label><input id="g-cuenta" list="dl-cuentas"></div>
+          <div><label>Proyecto</label><select id="g-proyecto"></select></div>
+        </div>
+        <button class="btn" style="margin-top:12px" onclick="guardarGastoFijo()">Guardar gasto fijo</button>
+        <div class="nota">
+          Se suman automáticamente a cada mes del periodo. Sirven para lo que no pasa por
+          una solicitud de pago: alquiler, planilla, servicios. Lo que sí pasa por solicitud
+          <b>no</b> se pone aquí, o se contaría dos veces.
+        </div>
+      </div>
+      <div class="tarjeta" id="t-gfijos"></div>
+      <datalist id="dl-cuentas"></datalist>
+    </div>
+  </div>
+</div>
+
+<!-- ── detalle de una solicitud ── -->
+<div class="velo" id="velo">
+  <div class="caja">
+    <div class="cab">
+      <h3 id="v-titulo">Solicitud</h3>
+      <button onclick="cerrarVer()">Cerrar</button>
+    </div>
+    <div class="cuerpo" id="v-cuerpo"></div>
+  </div>
+</div>
+
+<!-- ── marcar un gasto ── -->
+<div class="velo" id="velo-marca">
+  <div class="caja" style="max-width:520px">
+    <div class="cab">
+      <h3>Marcar este gasto</h3>
+      <button onclick="cerrarMarca()">Cerrar</button>
+    </div>
+    <div class="cuerpo">
+      <div style="font-size:14px;font-weight:800" id="mk-quien">—</div>
+      <div style="font-size:12.5px;color:var(--gris);line-height:1.5;margin:4px 0 15px" id="mk-concepto"></div>
+
+      <label class="opcion">
+        <input type="checkbox" id="mk-extra">
+        <span><b>Extraordinario</b> — es nuestro y es real, pero no es operativo.
+        Sí baja la utilidad; no entra al costo por proyecto, por kilo ni al presupuesto.</span>
+      </label>
+      <label class="opcion">
+        <input type="checkbox" id="mk-conf" onchange="$('mk-nota').style.display=this.checked?'':'none'">
+        <span><b>Por confirmar</b> — puede que no sea nuestro. No entra en ningún
+        total mientras esté así, y queda en la lista por resolver.</span>
+      </label>
+      <textarea id="mk-nota" rows="2" style="display:none;width:100%;margin-top:9px"
+        placeholder="Qué hay que averiguar. Ej: parece de otra empresa del grupo, confirmar con contabilidad."></textarea>
+
+      <div class="pin-err" id="mk-err" style="height:auto;min-height:18px;text-align:left"></div>
+      <button class="btn" style="margin-top:6px" onclick="guardarMarca()">Guardar la marca</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var PIN="", USUARIO=null, URL_APP="", RES=null, CAT=null, SOL=null, VIENDO="";
+/* Arriba de esta cifra una solicitud necesita el visto bueno de gerencia de
+   gestión. El número lo manda el servidor —que es donde se traba de
+   verdad—; esto es solo el respaldo mientras contesta, para no tener la
+   regla escrita en dos lugares que puedan discrepar. */
+var UMBRAL=1500;
+/* Si puede aprobar, también puede dar el visto bueno: el servidor exige lo
+   mismo para las dos cosas. Sin esto, a quien ve Finanzas sin ser gerencia
+   —mercadeo— le aparecía un botón que el servidor le iba a rechazar. */
+var PUEDE_APROBAR=false;
+var MOVS=null, MARCANDO=null;
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return (Number(v)||0).toFixed(2);}
+function d2(v){ /* dinero con separador de miles, en balboas como el resto */
+  var x=(Number(v)||0), s=Math.abs(x).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return (x<0?"-B/. ":"B/. ")+s;
+}
+function msg(tipo,html){var m=$("msg");m.className="msg "+tipo;m.innerHTML=html;m.style.display="block";
+  try{window.scrollTo(0,0);}catch(e){}}
+function sinMsg(){$("msg").style.display="none";}
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+
+var MES_CORTO=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function rotuloMes(m){
+  var p=String(m||"").split("-");
+  if(p.length<2) return m;
+  return (MES_CORTO[Number(p[1])-1]||p[1])+" "+p[0].slice(2);
+}
+
+/* ═══ arranque ═══ */
+function arrancar(){
+  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(window.google&&google.script&&google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+  if(PIN) validar(PIN); else pedirPin("");
+}
+function pedirPin(m){
+  $("pantalla-app").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=m||"";
+  setTimeout(function(){$("pin-input").focus();},120);
+}
+function entrar(){
+  var p=($("pin-input").value||"").trim();
+  if(!p){$("pin-err").textContent="Escribe tu PIN";return;}
+  $("pin-err").textContent="Verificando…";
+  validar(p);
+}
+function validar(p){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      if(["admin","gerente","mercadeo"].indexOf(r.usuario.rol)<0){
+        PIN=""; pedirPin("Finanzas es para administración, gerencia y mercadeo."); return;
+      }
+      PIN=p; USUARIO=r.usuario;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      $("cab-usuario").textContent=USUARIO.nombre+" · Dirección financiera";
+      $("pantalla-pin").style.display="none";
+      $("pantalla-app").style.display="block";
+      rango("anio");
+      cargarCatalogos();
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión."); })
+    .api_login(p);
+}
+
+/* ═══ periodo ═══ */
+function rango(cual){
+  var h=new Date(), a=h.getFullYear(), m=h.getMonth();
+  if(cual==="mes"){      $("f-desde").value=iso(new Date(a,m,1));      $("f-hasta").value=iso(h); }
+  else if(cual==="anterior"){ $("f-desde").value=iso(new Date(a,m-1,1)); $("f-hasta").value=iso(new Date(a,m,0)); }
+  else if(cual==="anio"){ $("f-desde").value=iso(new Date(a,0,1));      $("f-hasta").value=iso(h); }
+  else {                  $("f-desde").value="2024-01-01";              $("f-hasta").value=iso(h); }
+  recargar();
+}
+function recargar(){ cargarResultados(); cargarSolicitudes(); }
+
+/* ═══ pestañas ═══ */
+function tab(cual){
+  ["resumen","solicitudes","desglose","movimientos","catalogos"].forEach(function(x){
+    $("h-"+x).className="hoja"+(x===cual?" act":"");
+    $("tb-"+x).className=(x===cual?"act":"");
+  });
+  if(cual==="movimientos" && !MOVS) cargarMovimientos();
+}
+
+/* ═══ estado de resultados ═══ */
+function cargarResultados(){
+  sinMsg();
+  $("kpis-res").innerHTML='<div class="vacio">Cargando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(!r||!r.ok){ $("kpis-res").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo calcular.")+'</div>'; return; }
+      RES=r; pintarResultados(r);
+    })
+    .withFailureHandler(function(){ $("kpis-res").innerHTML='<div class="vacio">Sin conexión con el servidor.</div>'; })
+    .api_estadoResultados(PIN,$("f-desde").value,$("f-hasta").value);
+}
+
+function kpi(rotulo,valor,pie,clase,grande){
+  return '<div class="kpi'+(grande?' grande':'')+'"><div class="r">'+esc(rotulo)+'</div>'+
+    '<div class="v'+(clase?" "+clase:"")+'">'+esc(valor)+'</div>'+
+    (pie?'<div class="p">'+pie+'</div>':'')+'</div>';
+}
+
+function pintarResultados(r){
+  var s=r.resumen;
+  $("kpis-res").innerHTML=
+    kpi("Facturado (sin ITBMS)",d2(s.facturado),s.facturas+" factura(s)","",true)+
+    kpi("Gasto total",d2(s.gastoTotal),
+        "Variable "+d2(s.gastosVariables)+" · Fijo "+d2(s.gastosFijos),"",true)+
+    kpi("Utilidad",d2(s.utilidad),
+        s.margen+"% de margen",(s.utilidad>=0?"pos":"neg"),true)+
+    kpi("Margen",s.margen+"%",
+        r.meses+" mes(es) · "+fuenteTexto(s),(s.utilidad>=0?"pos":"neg"));
+
+  pintarMarcas(r);
+
+  $("kpis-caja").innerHTML=
+    kpi("Cobros realizados",d2(s.cobradoPeriodo),"Plata que entró de verdad")+
+    kpi("Por cobrar de lo facturado",d2(s.porCobrarDelPeriodo),"Facturas del periodo aún sin pagar")+
+    kpi("ITBMS neto",d2(s.itbmsNeto),
+        "En ingresos "+d2(s.itbmsCobrado)+" · En compras "+d2(s.itbmsPagado))+
+    kpi("Solicitudes por aprobar",d2(s.pendienteAprobar),"Esperan tu visto bueno")+
+    kpi("Aprobadas sin pagar",d2(s.aprobadoSinPagar),"Comprometido, todavía no salió");
+
+  var o=r.operacion;
+  $("kpis-oper").innerHTML=
+    kpi("Costo por kg recolectado",d2(o.costoPorKg),
+        o.kgRecolectados.toLocaleString()+" kg en "+o.visitas+" visitas")+
+    kpi("Ingreso por kg",d2(o.ingresoPorKg),"Lo que se le cobra al cliente por kilo")+
+    kpi("Ganancia por kg",d2(o.utilidadPorKg),"Lo que queda de cada kilo",
+        (o.utilidadPorKg>=0?"pos":"neg"))+
+    kpi("Costo por kg tratado",d2(o.costoPorKgTratado),
+        o.kgTratados.toLocaleString()+" kg a la autoclave")+
+    kpi("Costo por visita",d2(o.costoPorVisita),"Ingreso por visita "+d2(o.ingresoPorVisita));
+
+  /* Si hay extraordinarios, estas cifras NO son el gasto total y hay que
+     decirlo aquí mismo — un número que no cuadra y no se explica es un
+     número en el que nadie vuelve a confiar. */
+  $("nota-oper").innerHTML = s.extraordinario
+    ? 'Estas cifras se calculan sobre el <b>gasto operativo</b> ('+d2(s.gastoOperativo)+
+      '), que es el gasto total menos '+d2(s.extraordinario)+' de gastos extraordinarios. '+
+      'Una multa salió de la caja y por eso baja la utilidad, pero no es lo que cuesta '+
+      'recoger un kilo: meterla aquí deformaría el precio con el que después se cotiza.'
+    : 'Se calculan sobre el gasto total. No hay gastos marcados como extraordinarios en el periodo.';
+
+  pintarBarras(r.serie);
+  pintarDesglose(r);
+}
+
+/* De dónde salió el gasto del periodo. Mientras convivan la carga histórica y
+   las solicitudes, no decirlo es dejar que alguien sume mal dentro de un año. */
+function fuenteTexto(s){
+  var p=[];
+  if(s.solicitudesPagadas) p.push(s.solicitudesPagadas+" pago(s)");
+  if(s.movimientosHistoricos) p.push(s.movimientosHistoricos+" histórico(s)");
+  return p.length?p.join(" · "):"sin gastos";
+}
+
+/* ═══ Las dos marcas ═══
+   Extraordinario: es nuestro y bajó la utilidad, pero no cuenta como costo de
+   operar. Por confirmar: puede que no sea nuestro, así que no cuenta en nada
+   hasta que se resuelva. */
+function pintarMarcas(r){
+  var s=r.resumen, c=$("marcas");
+  if(!s.extraordinario && !s.porConfirmar){ c.innerHTML=""; c.style.display="none"; return; }
+  c.style.display="";
+  var h="";
+  if(s.extraordinario)
+    h+='<div class="marca extra"><div class="mt">Gastos extraordinarios</div>'+
+       '<div class="mv">'+d2(s.extraordinario)+'</div>'+
+       '<div class="mp">'+(r.extraordinarios||[]).length+' movimiento(s) · '+
+       '<b>sí</b> bajan la utilidad, <b>no</b> entran al costo por proyecto ni por kilo</div></div>';
+  if(s.porConfirmar)
+    h+='<div class="marca conf"><div class="mt">Por resolver</div>'+
+       '<div class="mv">'+d2(s.porConfirmar)+'</div>'+
+       '<div class="mp">'+(r.porResolver||[]).length+' movimiento(s) · '+
+       '<b>no</b> entran en ningún total mientras no se sepa de quién son</div></div>';
+  c.innerHTML=h;
+}
+
+function pintarBarras(serie){
+  var c=$("barras");
+  if(!serie||!serie.length){ c.innerHTML='<div class="vacio">Sin movimiento en el periodo.</div>'; return; }
+  var tope=1;
+  serie.forEach(function(m){ tope=Math.max(tope,m.ingreso,m.gasto); });
+  c.innerHTML=serie.map(function(m){
+    var hi=Math.max(2,Math.round(m.ingreso/tope*100));
+    var hg=Math.max(2,Math.round(m.gasto/tope*100));
+    return '<div class="mesb" title="'+esc(rotuloMes(m.mes))+': ingreso '+d2(m.ingreso)+
+      ', gasto '+d2(m.gasto)+'">'+
+      '<div class="par"><div class="bi" style="height:'+hi+'%"></div>'+
+      '<div class="bg" style="height:'+hg+'%"></div></div>'+
+      '<div class="rot">'+esc(rotuloMes(m.mes))+'</div>'+
+      '<div class="ut '+(m.utilidad>=0?"pos":"neg")+'">'+d2(m.utilidad)+'</div></div>';
+  }).join("");
+}
+
+function tablaMontos(lista,rotulo,conDesc){
+  if(!lista||!lista.length) return '<div class="vacio">Sin datos en el periodo.</div>';
+  var tot=0; lista.forEach(function(x){ tot+=x.monto; });
+  return '<table><thead><tr><th>'+esc(rotulo)+'</th>'+
+    (conDesc?'<th class="oc">Descripción</th>':'')+
+    '<th class="num">Monto</th><th class="num">%</th></tr></thead><tbody>'+
+    lista.map(function(x){
+      return '<tr><td><b>'+esc(x.clave)+'</b></td>'+
+        (conDesc?'<td class="oc">'+esc(x.descripcion)+'</td>':'')+
+        '<td class="num">'+d2(x.monto)+'</td>'+
+        '<td class="num">'+(tot?Math.round(x.monto/tot*1000)/10:0)+'%</td></tr>';
+    }).join("")+'</tbody><tfoot><tr><td>Total</td>'+(conDesc?'<td class="oc"></td>':'')+
+    '<td class="num">'+d2(tot)+'</td><td class="num">100%</td></tr></tfoot></table>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOVIMIENTOS · revisar y marcar
+   ═══════════════════════════════════════════════════════════════════ */
+function cargarMovimientos(){
+  sinMsg();
+  $("t-movs").innerHTML='<div class="vacio">Buscando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(!r||!r.ok){ $("t-movs").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo leer.")+'</div>'; return; }
+      MOVS=r; pintarMovimientos(r);
+    })
+    .withFailureHandler(function(e){ $("t-movs").innerHTML='<div class="vacio">'+esc(e&&e.message||e)+'</div>'; })
+    .api_movimientos(PIN, $("f-desde").value, $("f-hasta").value,
+                     { q:$("m-q").value, solo:$("m-solo").value });
+}
+
+function pintarMovimientos(r){
+  var l=r.movimientos||[];
+  if(!l.length){ $("t-movs").innerHTML='<div class="vacio">Sin gastos que cumplan ese filtro en el periodo.</div>'; return; }
+  var cabe = l.length < r.total
+    ? '<div class="nota">Se muestran '+l.length+' de '+r.total+' movimientos. Afina la búsqueda para ver el resto.</div>'
+    : '';
+  $("t-movs").innerHTML=
+    '<div class="nota">'+r.total+' movimiento(s) · '+d2(r.monto)+' en el periodo. '+
+    'El monto va sin ITBMS: el impuesto es crédito fiscal, no costo.</div>'+
+    '<table><thead><tr><th>Fecha</th><th>A quién</th><th class="oc">Concepto</th>'+
+    '<th class="oc">Proyecto</th><th class="num">Monto</th><th>Marcas</th></tr></thead><tbody>'+
+    l.map(function(m){
+      return '<tr><td>'+esc(m.fecha)+'<div class="pie">'+
+        (m.fuente==="historico"?'histórico':'solicitud')+' · '+esc(m.id)+'</div></td>'+
+        '<td><b>'+esc(m.proveedor||"—")+'</b></td>'+
+        '<td class="oc">'+esc((m.concepto||"").slice(0,80))+'</td>'+
+        '<td class="oc">'+esc(m.proyecto||"—")+(m.categoria?'<div class="pie">'+esc(m.categoria)+'</div>':'')+'</td>'+
+        '<td class="num">'+d2(m.monto)+'</td>'+
+        '<td>'+etiquetasMarca(m)+
+        (r.puedeMarcar?' <button class="btn sec chico" onclick="abrirMarca(\''+
+           esc(m.fuente)+'\',\''+esc(m.id)+'\')">Marcar</button>':'')+'</td></tr>';
+    }).join("")+'</tbody></table>'+cabe;
+}
+
+function etiquetasMarca(m){
+  var h="";
+  if(m.extraordinario) h+='<span class="mtag extra">extraordinario</span>';
+  if(m.porConfirmar) h+='<span class="mtag conf" title="'+esc(m.notaConfirmar||"")+'">por confirmar</span>';
+  return h;
+}
+
+function abrirMarca(fuente,id){
+  var m=null;
+  (MOVS&&MOVS.movimientos||[]).forEach(function(x){ if(x.fuente===fuente&&x.id===id) m=x; });
+  if(!m) return;
+  MARCANDO=m;
+  $("mk-quien").textContent=(m.proveedor||"—")+" · "+d2(m.monto)+" · "+m.fecha;
+  $("mk-concepto").textContent=m.concepto||"";
+  $("mk-extra").checked=!!m.extraordinario;
+  $("mk-conf").checked=!!m.porConfirmar;
+  $("mk-nota").value=m.notaConfirmar||"";
+  $("mk-nota").style.display = m.porConfirmar ? "" : "none";
+  $("mk-err").textContent="";
+  $("velo-marca").className="velo abierto";
+}
+function cerrarMarca(){ $("velo-marca").className="velo"; MARCANDO=null; }
+
+function guardarMarca(){
+  if(!MARCANDO) return;
+  var conf=$("mk-conf").checked, nota=($("mk-nota").value||"").trim();
+  if(conf&&!nota){ $("mk-err").textContent="Escribe qué hay que averiguar: sin eso, dentro de un mes nadie se acuerda."; return; }
+  $("mk-err").textContent="Guardando…";
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("mk-err").textContent=(r&&r.error)||"No se pudo guardar."; return; }
+      cerrarMarca();
+      msg("ok","Marca guardada. Los totales se recalcularon.");
+      cargarMovimientos();
+      cargarResultados();
+    })
+    .withFailureHandler(function(e){ $("mk-err").textContent=String(e&&e.message||e); })
+    .api_marcarGasto(PIN, MARCANDO.fuente, MARCANDO.id,
+                     { extraordinario:$("mk-extra").checked, porConfirmar:conf, notaConfirmar:nota });
+}
+
+function pintarDesglose(r){
+  $("t-cuenta").innerHTML   = tablaMontos(r.porCuenta,"Cuenta",true);
+  $("t-proyecto").innerHTML = tablaMontos(r.porProyecto,"Proyecto",false);
+  $("t-proveedor").innerHTML= tablaMontos(r.porProveedor,"Proveedor",false);
+  $("t-cliente").innerHTML  = tablaMontos(r.porCliente,"Cliente",false);
+
+  var f=r.gastosFijos||[];
+  $("t-fijos").innerHTML = !f.length
+    ? '<div class="vacio">No hay gastos fijos registrados. Se cargan en Catálogos.</div>'
+    : '<table><thead><tr><th>Concepto</th><th class="oc">Cuenta</th>'+
+      '<th class="num">Mensual</th><th class="num">'+r.meses+' mes(es)</th></tr></thead><tbody>'+
+      f.map(function(g){
+        return '<tr><td><b>'+esc(g.concepto)+'</b>'+
+          (g.proveedor?'<br><span style="font-size:11px;color:var(--gris)">'+esc(g.proveedor)+'</span>':'')+
+          '</td><td class="oc">'+esc(g.cuentaCodigo)+'</td>'+
+          '<td class="num">'+d2(g.mensual)+'</td><td class="num">'+d2(g.periodo)+'</td></tr>';
+      }).join("")+'</tbody></table>';
+}
+
+/* ═══ solicitudes ═══ */
+function cargarSolicitudes(){
+  $("tabla-sol").innerHTML='<div class="vacio">Cargando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(!r||!r.ok){ $("tabla-sol").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar.")+'</div>'; return; }
+      SOL=r; pintarSolicitudes(r);
+    })
+    .withFailureHandler(function(){ $("tabla-sol").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_solicitudes(PIN,{desde:$("f-desde").value,hasta:$("f-hasta").value,
+                          estado:$("s-estado").value,q:$("s-q").value});
+}
+
+var ET={SOLICITADA:["sol","Por aprobar"],APROBADA:["apr","Aprobada"],
+        PAGADA:["pag","Pagada"],RECHAZADA:["rec","Rechazada"],ANULADA:["anu","Anulada"]};
+function etiqueta(e){
+  var x=ET[e]||["anu",e||"—"];
+  return '<span class="et '+x[0]+'">'+esc(x[1])+'</span>';
+}
+
+function pintarSolicitudes(r){
+  var t=r.totales||{};
+  if(r.umbralVistoBueno) UMBRAL=Number(r.umbralVistoBueno)||UMBRAL;
+  PUEDE_APROBAR = !!r.puedeAprobar;
+  $("kpis-sol").innerHTML=
+    kpi("Por aprobar",d2(t.montoPorAprobar||0),(t.solicitadas||0)+" solicitud(es)")+
+    kpi("Aprobadas sin pagar",d2(t.montoPorPagar||0),(t.aprobadas||0)+" solicitud(es)")+
+    kpi("Pagadas",d2(t.montoPagado||0),(t.pagadas||0)+" solicitud(es)")+
+    kpi("Urgentes",(t.urgentes||0),"Marcadas URGE")+
+    /* Sin esto, saber cuáles esperan el visto bueno obligaba a abrir una
+       por una. Es la fila que hoy detiene los pagos grandes. */
+    (t.esperandoVistoBueno
+      ? kpi("Esperan visto bueno",t.esperandoVistoBueno,
+            "Pasan de "+d2(UMBRAL)+" y no las puede aprobar nadie todavía")
+      : "");
+
+  var l=r.solicitudes||[];
+  if(!l.length){ $("tabla-sol").innerHTML='<div class="vacio">No hay solicitudes con esos filtros.</div>'; return; }
+  $("tabla-sol").innerHTML='<table><thead><tr><th>Solicitud</th><th>Proveedor</th>'+
+    '<th class="oc">Concepto</th><th class="num">Total</th><th>Estado</th><th></th></tr></thead><tbody>'+
+    l.map(function(s){
+      return '<tr><td><b>'+esc(s.solicitudId)+'</b><br>'+
+        '<span style="font-size:11px;color:var(--gris)">'+esc(s.fecha)+
+        (s.urgencia==="URGE"?' <span class="et urg">urge</span>':'')+
+        (s.estado==="SOLICITADA"&&s.requiereVistoBueno&&!s.vistoBuenoPor
+          ? ' <span class="et sol">falta Vo.Bo.</span>':'')+'</span></td>'+
+        '<td>'+esc(s.proveedor)+
+        (s.proyecto?'<br><span style="font-size:11px;color:var(--gris)">'+esc(s.proyecto)+'</span>':'')+'</td>'+
+        '<td class="oc">'+esc((s.concepto||"").slice(0,60))+'</td>'+
+        '<td class="num">'+d2(s.total)+'</td>'+
+        '<td>'+etiqueta(s.estado)+'</td>'+
+        '<td style="text-align:right"><button class="btn sec" onclick="ver(\''+esc(s.solicitudId)+'\')">Ver</button></td></tr>';
+    }).join("")+'</tbody></table>';
+}
+
+/* ═══ detalle y aprobación ═══ */
+function ver(id){
+  VIENDO=id;
+  $("v-titulo").textContent="Solicitud "+id;
+  $("v-cuerpo").innerHTML='<div class="vacio">Cargando…</div>';
+  $("velo").className="velo abierto";
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("v-cuerpo").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo abrir.")+'</div>'; return; }
+      pintarDetalle(r);
+    })
+    .withFailureHandler(function(){ $("v-cuerpo").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_verSolicitud(PIN,id);
+}
+function cerrarVer(){ $("velo").className="velo"; VIENDO=""; }
+
+function dato(r,v){ return '<div><span>'+esc(r)+'</span><b>'+(v||"—")+'</b></div>'; }
+
+function pintarDetalle(r){
+  var s=r.solicitud, l=r.lineas||[];
+  var acciones="";
+  /* ── El paso de gerencia de gestión ──
+     Arriba del umbral, un gasto grande lo miran dos personas antes de que
+     salga la plata. El botón de aprobar no se esconde: se deja ver con el
+     motivo, para que quien entra a aprobar entienda qué falta en vez de
+     buscar por qué no le funciona. El servidor lo traba igual, así que
+     esto es cortesía, no el control. */
+  var faltaVoBo = (s.estado==="SOLICITADA") && (Number(s.total)||0) > UMBRAL && !s.vistoBuenoPor;
+
+  if(s.estado==="SOLICITADA"){
+    if(faltaVoBo)
+      acciones='<div class="msg avi" style="display:block;margin-bottom:12px">'+
+        'Es por <b>'+d2(s.total)+'</b> y pasa de '+d2(UMBRAL)+': necesita el visto bueno de '+
+        'gerencia de gestión antes de aprobarse. Quien lo dé no puede ser quien apruebe.</div>'+
+        (PUEDE_APROBAR
+          ? '<button class="btn" onclick="darVistoBueno()">Dar el visto bueno</button> '
+          : '')+
+        '<button class="btn mal" onclick="mover(\'RECHAZADA\')">Rechazar</button>';
+    else
+      acciones='<button class="btn ok" onclick="mover(\'APROBADA\')">Aprobar</button> '+
+               '<button class="btn mal" onclick="mover(\'RECHAZADA\')">Rechazar</button>';
+  }
+  else if(s.estado==="APROBADA")
+    acciones='<div class="fila" style="margin-bottom:11px">'+
+      '<div><label>Fecha de pago</label><input id="x-fecha" type="date" value="'+esc(r.hoy)+'"></div>'+
+      '<div><label>Referencia / ACH</label><input id="x-ref"></div>'+
+      '<div><label>Nº de cheque</label><input id="x-cheque"></div></div>'+
+      '<button class="btn ok" onclick="mover(\'PAGADA\')">Marcar como pagada</button>';
+
+  /* El impreso solo existe para lo aprobado: una solicitud sin aprobar que
+     llegue firmada a contabilidad vacía el control de aprobación. */
+  if(s.estado==="APROBADA"||s.estado==="PAGADA")
+    acciones='<button class="btn" onclick="imprimir(\''+esc(s.solicitudId)+'\')">'+
+             'Imprimir para contabilidad</button>'+
+             (acciones?'<div style="height:13px"></div>'+acciones:'');
+
+  $("v-cuerpo").innerHTML=
+    '<div style="margin-bottom:12px">'+etiqueta(s.estado)+
+      (s.urgencia==="URGE"?' <span class="et urg">urge</span>':'')+'</div>'+
+    '<div class="dl">'+
+      dato("Fecha",esc(s.fecha))+
+      dato("Proveedor","<b>"+esc(s.proveedor)+"</b>")+
+      dato("RUC",esc(s.ruc)+(s.dv?" DV "+esc(s.dv):""))+
+      dato("Proyecto",esc(s.proyecto))+
+      dato("Forma de pago",esc(s.tipoPago)+" · "+esc(s.condicion))+
+      dato("Banco",esc(s.banco)+(s.numeroCuenta?"<br>"+esc(s.numeroCuenta)+" "+esc(s.tipoCuenta):""))+
+      dato("Solicitada por",esc(s.solicitadoPor)+"<br><span style='font-size:11px;color:var(--gris)'>"+esc(s.fechaSolicitud)+"</span>")+
+      ((Number(s.total)||0) > UMBRAL || s.vistoBuenoPor
+        ? dato("Visto bueno · Gestión", s.vistoBuenoPor
+            ? esc(s.vistoBuenoPor)+"<br><span style='font-size:11px;color:var(--gris)'>"+esc(s.fechaVistoBueno)+"</span>"
+            : "<span style='color:var(--ambar-osc)'>pendiente</span>")
+        : "")+
+      dato("Aprobada por",s.aprobadoPor?esc(s.aprobadoPor)+"<br><span style='font-size:11px;color:var(--gris)'>"+esc(s.fechaAprobacion)+"</span>":"—")+
+      (s.estado==="PAGADA"?dato("Pagada",esc(s.fechaPago)+"<br><span style='font-size:11px;color:var(--gris)'>"+
+        esc(s.referenciaPago||s.numeroCheque||"")+
+        (s.pagadoPor?" · lo marcó "+esc(s.pagadoPor):"")+"</span>"):"")+
+      (s.motivoRechazo?dato("Motivo",esc(s.motivoRechazo)):"")+
+    '</div>'+
+    (s.concepto?'<div style="margin-bottom:12px"><span style="font-size:10px;font-weight:800;color:var(--gris);text-transform:uppercase">Concepto</span><br>'+esc(s.concepto)+'</div>':'')+
+    '<table><thead><tr><th class="num">Cant.</th><th>Concepto</th><th class="oc">Cuenta</th>'+
+    '<th class="num">V. unit.</th><th class="num">Total</th></tr></thead><tbody>'+
+    l.map(function(x){
+      return '<tr><td class="num">'+n2(x.cantidad)+' '+esc(x.unidad)+'</td>'+
+        '<td>'+esc(x.concepto)+(x.exento?' <span class="et anu">exento</span>':'')+'</td>'+
+        '<td class="oc">'+esc(x.cuentaCodigo)+'</td>'+
+        '<td class="num">'+d2(x.valorUnitario)+'</td>'+
+        '<td class="num">'+d2(x.valorTotal)+'</td></tr>';
+    }).join("")+'</tbody></table>'+
+    '<div style="margin-top:13px;display:flex;justify-content:flex-end">'+
+      '<table style="width:auto;min-width:270px">'+
+      '<tr><td>Subtotal gravado</td><td class="num">'+d2(s.subtotal)+'</td></tr>'+
+      '<tr><td>Exentos</td><td class="num">'+d2(s.exentos)+'</td></tr>'+
+      '<tr><td>ITBMS</td><td class="num">'+d2(s.itbms)+'</td></tr>'+
+      (s.retencionContrato?'<tr><td>Retención de contrato</td><td class="num">-'+d2(s.retencionContrato)+'</td></tr>':'')+
+      (s.retencionItbms?'<tr><td>Retención ITBMS 50%</td><td class="num">-'+d2(s.retencionItbms)+'</td></tr>':'')+
+      (s.anticipo?'<tr><td>Anticipo</td><td class="num">-'+d2(s.anticipo)+'</td></tr>':'')+
+      '<tr><td><b>Total a pagar</b></td><td class="num" style="font-size:16px">'+d2(s.total)+'</td></tr>'+
+      '</table></div>'+
+    (s.observaciones?'<div class="nota"><b>Observaciones:</b> '+esc(s.observaciones)+'</div>':'')+
+    '<div id="v-msg" class="msg"></div>'+
+    (acciones?'<div style="margin-top:15px;border-top:1px solid var(--borde);padding-top:15px">'+acciones+'</div>':'');
+}
+
+function mover(estado){
+  var d={};
+  if(estado==="RECHAZADA"){
+    var m=prompt("¿Por qué se rechaza? Queda registrado en la solicitud.");
+    if(m===null) return;
+    d.motivo=m;
+  }
+  if(estado==="PAGADA"){
+    d.fechaPago=($("x-fecha")||{}).value||"";
+    d.referencia=($("x-ref")||{}).value||"";
+    d.numeroCheque=($("x-cheque")||{}).value||"";
+    if(!d.fechaPago){ vmsg("mal","Pon la fecha real en que salió el dinero: de ahí sale el mes del gasto."); return; }
+  }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ vmsg("mal",esc((r&&r.error)||"No se pudo cambiar el estado.")); return; }
+      cerrarVer();
+      msg("ok","Solicitud <b>"+esc(r.solicitudId)+"</b> ahora está "+esc(r.estado)+".");
+      recargar();
+    })
+    .withFailureHandler(function(){ vmsg("mal","Sin conexión con el servidor."); })
+    .api_estadoSolicitud(PIN,VIENDO,estado,d);
+}
+
+/* El visto bueno no cambia el estado: la solicitud sigue esperando que
+   finanzas la apruebe. Solo deja constancia de que gestión ya la miró. */
+function darVistoBueno(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ vmsg("mal",esc((r&&r.error)||"No se pudo dar el visto bueno.")); return; }
+      cerrarVer();
+      msg("ok","Visto bueno de <b>"+esc(r.solicitudId)+"</b> registrado. "+
+              "Ya puede aprobarla otra persona de gerencia.");
+      recargar();
+    })
+    .withFailureHandler(function(){ vmsg("mal","Sin conexión con el servidor."); })
+    .api_marcarVistoBueno(PIN,VIENDO);
+}
+function vmsg(t,h){var m=$("v-msg"); if(!m) return; m.className="msg "+t; m.innerHTML=h; m.style.display="block";}
+
+/* ═══ catálogos ═══ */
+function cargarCatalogos(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("t-prov").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar.")+'</div>'; return; }
+      CAT=r; pintarCatalogos(r);
+    })
+    .withFailureHandler(function(){ $("t-prov").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_catalogosFinanzas(PIN);
+}
+
+function pintarCatalogos(r){
+  var p=r.proveedores||[];
+  /* las cuentas del catálogo, para sugerirlas al escribir la del proveedor */
+  var dc=$("dl-ctas");
+  if(dc){ dc.innerHTML=""; (r.cuentas||[]).forEach(function(c){
+    var o=document.createElement("option"); o.value=c.codigo;
+    o.label=(c.descripcion||""); dc.appendChild(o); }); }
+  $("t-prov").innerHTML = !p.length
+    ? '<div class="vacio">Todavía no hay proveedores. Agrega el primero arriba.</div>'
+    : '<table><thead><tr><th>Proveedor</th><th class="oc">RUC</th><th class="oc">Banco / cuenta</th><th></th></tr></thead><tbody>'+
+      p.map(function(x,i){
+        return '<tr'+(x.activo?'':' style="opacity:.55"')+'><td><b>'+esc(x.proveedor)+'</b>'+
+          (x.contacto?'<br><span style="font-size:11px;color:var(--gris)">'+esc(x.contacto)+' '+esc(x.telefono)+'</span>':'')+'</td>'+
+          '<td class="oc">'+esc(x.ruc)+(x.dv?" DV "+esc(x.dv):"")+'</td>'+
+          '<td class="oc">'+esc(x.banco)+(x.numeroCuenta?'<br>'+esc(x.numeroCuenta)+' '+esc(x.tipoCuenta):'')+
+            (x.cuentaCodigo?'<div class="pie">cuenta '+esc(x.cuentaCodigo)+'</div>':'')+'</td>'+
+          '<td style="text-align:right"><button class="btn sec chico" onclick="editarProv('+i+')">Editar</button></td></tr>';
+      }).join("")+'</tbody></table>';
+
+  var c=r.cuentas||[];
+  $("t-ctas").innerHTML = !c.length
+    ? '<div class="vacio">No hay cuentas contables cargadas.</div>'
+    : '<table><thead><tr><th>Código</th><th>Descripción</th><th class="oc">Grupo</th><th></th></tr></thead><tbody>'+
+      c.map(function(x,i){
+        return '<tr'+(x.activo?'':' style="opacity:.55"')+'><td><b>'+esc(x.codigo)+'</b></td>'+
+          '<td>'+esc(x.descripcion)+'</td><td class="oc">'+esc(x.grupo)+'</td>'+
+          '<td style="text-align:right"><button class="btn sec chico" onclick="editarCta('+i+')">Editar</button></td></tr>';
+      }).join("")+'</tbody></table>';
+
+  var dl=$("dl-cuentas"); dl.innerHTML="";
+  c.forEach(function(x){ var o=document.createElement("option");
+    o.value=x.codigo; o.label=x.descripcion; dl.appendChild(o); });
+
+  var sp=$("g-proyecto");
+  if(sp && !sp.options.length){
+    sp.innerHTML='<option value="">— sin proyecto —</option>'+
+      ["DESECHOS PELIGROSOS","DAVITA","DESECHOS SOLIDOS","MERCADOS MUNICIPALES","CSS"]
+        .map(function(x){return '<option>'+x+'</option>';}).join("");
+  }
+
+  var g=r.gastosFijos||[];
+  var tot=0; g.forEach(function(x){ if(x.activo) tot+=x.monto; });
+  $("t-gfijos").innerHTML = !g.length
+    ? '<div class="vacio">No hay gastos fijos. Alquiler, planilla y servicios van aquí.</div>'
+    : '<table><thead><tr><th>Concepto</th><th class="oc">Cuenta</th><th class="oc">Proyecto</th>'+
+      '<th class="num">Mensual</th><th></th></tr></thead><tbody>'+
+      g.map(function(x,i){
+        return '<tr'+(x.activo?'':' style="opacity:.55"')+'><td><b>'+esc(x.concepto)+'</b>'+
+          (x.activo?'':' <span class="et anu">inactivo</span>')+'</td>'+
+          '<td class="oc">'+esc(x.cuentaCodigo)+'</td><td class="oc">'+esc(x.proyecto)+'</td>'+
+          '<td class="num">'+d2(x.monto)+'</td>'+
+          '<td style="text-align:right"><button class="btn sec chico" onclick="editarGF('+i+')">Editar</button></td></tr>';
+      }).join("")+'</tbody><tfoot><tr><td>Fijo mensual</td><td class="oc"></td><td class="oc"></td>'+
+      '<td class="num">'+d2(tot)+'</td><td></td></tr></tfoot></table>';
+}
+
+function editarProv(i){
+  var x=CAT.proveedores[i]; if(!x) return;
+  $("p-nombre").value=x.proveedor; $("p-ruc").value=x.ruc; $("p-dv").value=x.dv;
+  $("p-banco").value=x.banco; $("p-cuenta").value=x.numeroCuenta; $("p-tipo").value=x.tipoCuenta;
+  $("p-contacto").value=x.contacto; $("p-tel").value=x.telefono;
+  $("p-cuentacont").value=x.cuentaCodigo||"";
+  try{ $("p-nombre").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+}
+function editarCta(i){
+  var x=CAT.cuentas[i]; if(!x) return;
+  $("c-codigo").value=x.codigo; $("c-desc").value=x.descripcion; $("c-grupo").value=x.grupo;
+  try{ $("c-codigo").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+}
+var GF_EDIT="";
+function editarGF(i){
+  var x=CAT.gastosFijos[i]; if(!x) return;
+  GF_EDIT=x.gastoFijoId;
+  $("g-concepto").value=x.concepto; $("g-monto").value=x.monto;
+  $("g-cuenta").value=x.cuentaCodigo; $("g-proyecto").value=x.proyecto;
+  try{ $("g-concepto").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+}
+
+function guardarProveedor(){
+  var d={proveedor:$("p-nombre").value.trim(),ruc:$("p-ruc").value.trim(),dv:$("p-dv").value.trim(),
+         banco:$("p-banco").value.trim(),numeroCuenta:$("p-cuenta").value.trim(),
+         tipoCuenta:$("p-tipo").value,contacto:$("p-contacto").value.trim(),
+         telefono:$("p-tel").value.trim(),
+         cuentaCodigo:$("p-cuentacont").value.trim()};
+  if(!d.proveedor){ msg("mal","Escribe el nombre del proveedor."); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo guardar.")); return; }
+      msg("ok","Proveedor <b>"+esc(d.proveedor)+"</b> "+(r.actualizado?"actualizado":"agregado")+".");
+      ["p-nombre","p-ruc","p-dv","p-banco","p-cuenta","p-contacto","p-tel",
+       "p-cuentacont"].forEach(function(i){$(i).value="";});
+      cargarCatalogos();
+    })
+    .withFailureHandler(function(){ msg("mal","Sin conexión."); })
+    .api_guardarProveedor(PIN,d);
+}
+
+function guardarCuenta(){
+  var d={codigo:$("c-codigo").value.trim(),descripcion:$("c-desc").value.trim(),
+         grupo:$("c-grupo").value.trim()};
+  if(!d.codigo||!d.descripcion){ msg("mal","La cuenta necesita código y descripción."); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo guardar.")); return; }
+      msg("ok","Cuenta <b>"+esc(d.codigo)+"</b> "+(r.actualizado?"actualizada":"agregada")+".");
+      ["c-codigo","c-desc","c-grupo"].forEach(function(i){$(i).value="";});
+      cargarCatalogos();
+    })
+    .withFailureHandler(function(){ msg("mal","Sin conexión."); })
+    .api_guardarCuenta(PIN,d);
+}
+
+function guardarGastoFijo(){
+  var d={gastoFijoId:GF_EDIT,concepto:$("g-concepto").value.trim(),
+         monto:Number($("g-monto").value)||0,cuentaCodigo:$("g-cuenta").value.trim(),
+         proyecto:$("g-proyecto").value};
+  if(!d.concepto){ msg("mal","Escribe el concepto del gasto fijo."); return; }
+  if(!(d.monto>0)){ msg("mal","El monto mensual debe ser mayor que cero."); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo guardar.")); return; }
+      msg("ok","Gasto fijo <b>"+esc(d.concepto)+"</b> "+(r.actualizado?"actualizado":"agregado")+".");
+      GF_EDIT="";
+      ["g-concepto","g-monto","g-cuenta"].forEach(function(i){$(i).value="";});
+      cargarCatalogos(); cargarResultados();
+    })
+    .withFailureHandler(function(){ msg("mal","Sin conexión."); })
+    .api_guardarGastoFijo(PIN,d);
+}
+
+/* Abre el documento imprimible en otra pestaña: así la pantalla de
+   Finanzas no pierde los filtros ni la lista donde estabas. */
+function imprimir(id){
+  var ir=function(base){ window.open(base+"?p=vsolicitud&de=finanzas&id="+encodeURIComponent(id),"_blank"); };
+  if(URL_APP){ ir(URL_APP); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u){ URL_APP=u; ir(u); } else vmsg("avi","Todavía se está cargando el enlace. Intenta de nuevo."); })
+    .withFailureHandler(function(){ vmsg("mal","Sin conexión con el servidor."); })
+    .api_urlApp();
+}
+
+/* ═══ navegación ═══ */
+function nuevaSolicitud(){
+  if(URL_APP){ irA(URL_APP+"?p=solicitud"); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u+"?p=solicitud"); }).api_urlApp();
+}
+function volverInicio(){
+  if(URL_APP){ irA(URL_APP); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){}).api_urlApp();
+}
+/* Dentro del iframe de Apps Script, location.href solo cambia el marco
+   interno y la pantalla queda en blanco: hay que navegar la de arriba. */
+function irA(url){
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

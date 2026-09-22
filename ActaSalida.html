@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 14px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  box-shadow:0 2px 12px rgba(11,60,110,.3)}
+.barra .ti{color:#fff;font-size:13px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:10px 15px;border-radius:10px;cursor:pointer;background:var(--ambar);color:#4A3300}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:760px;margin:26px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:14px;padding:28px;text-align:center;font-size:14px;color:var(--gris);line-height:1.65}
+
+/* ═══ EL DOCUMENTO ═══════════════════════════════════════════════════
+   El problema era uno y era de FORMA: los datos del despacho y los pesos
+   salían como fichas sueltas y redondeadas, con los kilos en número de
+   tablero. Parecían botones. Eso se corrigió.
+
+   Lo que NO se toca, y conviene que quede escrito porque ya se intentó una
+   vez: el color de este documento NO es decoración.
+
+   · La FRANJA multicolor debajo del membrete es un elemento de seguridad.
+     Un degradado de cuatro colores es difícil de reproducir de memoria o
+     con una fotocopia, y por eso está. No es un adorno que se pueda quitar
+     para «ver más serio».
+   · Las CUADRÍCULAS de color —celdas tintadas, encabezado de tabla en azul
+     sólido, totales en verde— cumplen la misma función: hacen costoso
+     duplicar el formulario.
+   · El membrete, sus tipografías y sus tamaños son formato establecido con
+     controles. Se respetan tal cual.
+
+   Entonces: la información se acomoda como FORMULARIO —rejilla continua con
+   filete, celdas pegadas, sin bordes redondeados, el peso en tamaño de dato
+   y no de titular— y el color se queda donde estaba. Documento serio y
+   protegido, que son dos cosas compatibles.
+
+   Lo que se ve en pantalla es exactamente lo que sale impreso. */
+
+.hoja{max-width:820px;margin:18px auto 0;background:#fff;color:#111;padding:34px 40px;
+  border:1px solid var(--borde);border-radius:8px;font-size:12px;line-height:1.6;
+  box-shadow:0 3px 16px rgba(11,60,110,.10)}
+
+.enc{display:flex;gap:16px;align-items:flex-start;padding-bottom:14px}
+.enc img{height:70px;width:auto}
+.enc .emp{font-size:18px;font-weight:900;color:var(--verde);letter-spacing:.5px;line-height:1.1}
+.enc .lem{font-size:10px;color:var(--azul);letter-spacing:1.3px;text-transform:uppercase;margin-top:2px}
+.enc .con{font-size:9.5px;color:#666;margin-top:5px;line-height:1.5}
+.enc .der{margin-left:auto;text-align:right}
+.enc .der .et{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:#777}
+.enc .der .num{font-size:17px;font-weight:900;color:var(--azul-osc);letter-spacing:.6px}
+.enc .der .fe{font-size:10.5px;color:#666;margin-top:4px}
+/* La franja viene del tema y es la misma de todos los documentos que salen
+   al cliente. Es seguridad, no estilo: aquí solo se le da su separación. */
+.franja{margin-bottom:18px}
+
+h1{font-size:14px;font-weight:900;text-align:center;text-transform:uppercase;
+  letter-spacing:.4px;margin-bottom:16px;line-height:1.35}
+.legal{background:#FFF8E1;border-left:3px solid var(--ambar);border-radius:5px;
+  padding:8px 12px;font-size:10px;color:#7A5600;letter-spacing:.3px;margin-bottom:16px}
+
+.sec{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  color:var(--azul);margin:18px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--lima)}
+
+/* AQUÍ estaba el problema. Las mismas celdas, el mismo fondo tintado — pero
+   pegadas entre sí y con filete, que es lo que hace un formulario. Antes iban
+   separadas por 9 px y redondeadas a 6, y eso es exactamente la silueta de
+   un botón. */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0;
+  border:1px solid var(--borde);border-right:0;border-bottom:0}
+.campo{background:#F7F9FC;border-right:1px solid var(--borde);
+  border-bottom:1px solid var(--borde);padding:7px 11px}
+.campo .lbl{font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;color:#777}
+.campo .val{font-size:12.5px;font-weight:700;margin-top:1px}
+
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+th{background:var(--azul-osc);color:#fff;padding:8px 9px;text-align:left;
+  font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+td{border:1px solid #d6d6d6;padding:7px 9px}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{background:#EEF5E4;font-weight:800;font-size:12.5px;color:var(--verde)}
+
+/* Los pesos siguen siendo del despacho y conservan su verde, pero dentro de
+   la misma rejilla y en tamaño de dato. Iban en cajas flotantes con el número
+   a 20 px: eso es una tarjeta de tablero, no una casilla de formulario. */
+.destacado{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0 0 14px;
+  border:1px solid var(--borde);border-top:0;border-right:0}
+.destacado .d{background:#EEF5E4;border-right:1px solid var(--borde);
+  border-bottom:1px solid var(--borde);padding:7px 11px}
+.destacado .d .l{font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;color:#5a7a2e}
+.destacado .d .v{font-size:13.5px;font-weight:800;color:var(--verde);line-height:1.25;margin-top:1px}
+
+.conformidad{margin-top:34px}
+.cf-txt{font-size:10.5px;line-height:1.7;text-align:justify;color:#333;
+  background:#F7F9FC;border-radius:6px;padding:11px 14px}
+.firma{text-align:center;font-size:10.5px;line-height:1.65;
+  max-width:300px;margin:34px auto 0}
+.cf-fe{color:#777;font-size:9.5px}
+.firma .img{height:52px;display:flex;align-items:flex-end;justify-content:center}
+.firma .img img{max-height:52px;max-width:170px}
+.firma .lin{border-top:1px solid #111;padding-top:6px;margin-top:4px}
+.firma b{display:block;font-weight:800;font-size:11.5px}
+.pie{margin-top:22px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;
+  color:#777;text-align:center;line-height:1.6}
+/* La advertencia de que faltan los ciclos: es lo único que debe romper la
+   armonía del documento, y por eso va en rojo y con su propio recuadro. */
+.alerta{border:1.5px solid #C0392B;color:#C0392B;padding:10px 12px;border-radius:6px;
+  font-weight:700;text-align:justify}
+
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  body{background:#fff;padding:0;margin:0;font-size:10px}
+  .barra, .aviso{display:none !important}
+  .hoja{max-width:none;width:100%;margin:0;border:none;border-radius:0;box-shadow:none;padding:0}
+
+  /* El encabezado se repite arriba de cada página: la segunda hoja de un
+     manifiesto no puede llegar sin decir de qué manifiesto es. */
+  .enc{padding-bottom:10px}
+  .enc img{height:56px}
+  .enc .emp{font-size:16px}
+  .enc .der .num{font-size:15px}
+  .franja{margin-bottom:11px}
+  h1{font-size:12.5px;margin-bottom:9px}
+  .legal{font-size:8.5px;padding:5px 9px;margin-bottom:10px}
+  .sec{font-size:9px;margin:11px 0 5px}
+  .campo{padding:5px 9px}
+  .campo .val{font-size:10.5px}
+  .destacado{margin-bottom:8px}
+  .destacado .d{padding:5px 9px}
+  .destacado .d .v{font-size:11px}
+  .destacado .d .l{font-size:7.5px}
+
+  /* La tabla puede partirse entre páginas — lo que no puede partirse es una
+     fila. Poner el avoid en la tabla entera obligaba a meter los 14 ciclos
+     en una sola hoja, y de ahí venía el desborde. */
+  table{font-size:8px;margin:5px 0}
+  thead{display:table-header-group}
+  th{padding:4px 3px;font-size:7px;letter-spacing:0}
+  td{padding:3px}
+  tr{page-break-inside:avoid}
+  tr.tot td{font-size:9px}
+
+  p{font-size:9.5px;line-height:1.45;margin-bottom:2px}
+  .conformidad{page-break-inside:avoid;margin-top:16px}
+  .cf-txt{font-size:9px;padding:8px 10px;line-height:1.55}
+  .firma{margin-top:20px}
+  .firma .img{height:44px}
+  .pie{font-size:7.5px;margin-top:12px;padding-top:6px}
+}
+@page{size:letter portrait;margin:13mm}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando el manifiesto…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">MANIFIESTO DE SALIDA A DISPOSICIÓN FINAL</div>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n1(v){return Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:1,maximumFractionDigits:1});}
+function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
+
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function larga(iso){
+  if(!iso) return "";
+  var d=new Date(iso+"T12:00:00");
+  if(isNaN(d.getTime())) return iso;
+  return d.getDate()+" de "+MESES[d.getMonth()]+" de "+d.getFullYear();
+}
+
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      seguir((((loc||{}).parameter)||{}).id || "");
+    });
+  } else {
+    var m=(location.search||"").match(/[?&]id=([^&]+)/);
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+
+function seguir(id){
+  if(!id){ aviso("Falta el número de manifiesto en el enlace."); return; }
+  var pin="";
+  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la página de planta y vuelve a abrir el manifiesto."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar el manifiesto.")); return; }
+      pintar(r);
+      $("aviso").style.display="none"; $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión."); })
+    .api_actaSalida(pin, id);
+}
+
+/* Los datos de la empresa los manda el servidor desde la constante EMPRESA de
+   Codigo.gs. El respaldo de aquí abajo es solo por si un día no llegan.
+
+   La regla del respaldo: guarda lo que no cambia nunca —nombre, RUC, DV,
+   teléfono— y deja VACÍO lo que sí cambia: resolución sanitaria y código de
+   formulario. Así, si el servidor falla, el documento sale incompleto y se
+   nota, en vez de salir con una resolución vencida que nadie revisa. El DV 60
+   salió mal en ocho documentos justamente porque cada uno tenía su copia. */
+var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
+  ruc:"1074020-1-552789",dv:"50",lema:"Ecología · Vida · Salud",
+  resolucionCorta:"",telefono:"310-2268",formulario:""};
+
+function pintar(r){
+  var s=r.salida, t=r.totales, R=r.receta;
+  var e=r.empresa||EMP_RESP;
+  var merma = t.kgEntrada ? Math.round((t.kgEntrada - t.kgSalida)/t.kgEntrada*1000)/10 : 0;
+
+  var html =
+  '<div class="enc">'+
+    '<img src="'+LOGO+'" alt="ECOVSA">'+
+    '<div><div class="emp">'+esc(e.comercial||"ECOVSA")+'</div>'+
+      '<div class="lem">'+esc(e.lema||"")+'</div>'+
+      '<div class="con">'+esc(e.razonSocial||"")+
+        (e.ruc?' · RUC '+esc(e.ruc)+(e.dv?' DV '+esc(e.dv):''):'')+'<br>'+
+        (e.resolucionCorta?esc(e.resolucionCorta):'')+
+        (e.telefono?' · Tel. '+esc(e.telefono):'')+'<br>'+
+        esc(e.formulario||"")+'</div></div>'+
+    '<div class="der"><div class="et">Manifiesto N°</div>'+
+      '<div class="num">'+esc(s.salidaId)+'</div>'+
+      '<div class="fe">'+esc(larga(s.fecha))+(s.horaSalida?' · '+esc(s.horaSalida):'')+'</div></div>'+
+  '</div>'+
+  '<div class="franja"></div>'+
+
+  '<h1>Manifiesto de salida de desechos tratados<br>hacia disposición final</h1>'+
+
+  '<div class="legal">DESECHOS HOSPITALARIOS TRATADOS POR AUTOCLAVE · '+
+  'DECRETO EJECUTIVO 111 DE 1999 · RESOLUCIÓN 1010 DE 2022</div>'+
+
+  '<div class="sec">1 · Datos del despacho</div>'+
+  '<div class="grid">'+
+    '<div class="campo"><div class="lbl">Destino</div><div class="val">'+esc(s.destino||"—")+'</div></div>'+
+    '<div class="campo"><div class="lbl">Vehículo</div><div class="val">'+esc(s.vehiculo||"—")+'</div></div>'+
+    '<div class="campo"><div class="lbl">Conductor</div><div class="val">'+esc(s.conductor||"—")+'</div></div>'+
+    '<div class="campo"><div class="lbl">Responsable de planta</div><div class="val">'+esc(s.responsable||"—")+'</div></div>'+
+  '</div>'+
+
+  /* Los tres pesos van SIEMPRE, aunque falten. Antes, si el recibo del
+     receptor no estaba, la casilla desaparecía y el papel salía completo a
+     la vista: nadie notaba el hueco. En un formulario, una casilla vacía es
+     un dato —dice que eso todavía no se anotó— y una casilla que no está
+     no dice nada. */
+  '<div class="destacado">'+
+    '<div class="d"><div class="l">Peso en báscula de planta</div>'+
+      '<div class="v">'+n1(s.kgPlanta)+' kg</div></div>'+
+    '<div class="d"><div class="l">Peso en báscula del receptor</div>'+
+      '<div class="v">'+(s.kgEmas ? n1(s.kgEmas)+' kg' : '—')+'</div></div>'+
+    '<div class="d"><div class="l">Recibo del receptor</div>'+
+      '<div class="v">'+(s.reciboEmas ? esc(s.reciboEmas) : '—')+'</div></div>'+
+  '</div>'+
+
+  '<div class="sec">2 · Ciclos de tratamiento que componen este despacho</div>'+
+
+  /* ── EL HUECO QUE NO SE VEÍA ──
+     Cuando la salida no trae ciclos, esta tabla salía con el encabezado y
+     nada debajo. Un papel con una tabla vacía se lee como un papel
+     completo: nadie nota que falta justo la parte que prueba que el
+     material fue esterilizado.
+
+     Ahora lo dice con todas sus letras, en rojo y en el propio
+     manifiesto. Un hueco no se nota; una frase sí. */
+  (!r.ciclos.length
+    ? '<p class="alerta">' +
+      'Este despacho no tiene ciclos de tratamiento registrados en el sistema. ' +
+      'El manifiesto NO acredita por sí solo que el material haya sido sometido ' +
+      'a esterilización: esa constancia debe adjuntarse aparte.</p>'
+    : '') +
+
+  /* ── LOS DOS LADOS DEL ENLACE NO CUADRAN ──
+     El ciclo y el despacho se amarran en dos columnas, y quien corrige en el
+     libro llena una sola. Antes el papel salía con la tabla vacía sin decir
+     nada. Ahora lo dice: el documento no puede callar que su propia fuente
+     está incompleta. */
+  (r.descuadre
+    ? '<p class="alerta">Los registros de este despacho no coinciden entre sí. ' +
+      (r.descuadre.soloSellado.length
+        ? 'Estos ciclos dicen pertenecer a este despacho pero no están en su lista: ' +
+          r.descuadre.soloSellado.map(esc).join(', ') + '. '
+        : '') +
+      (r.descuadre.soloLista.length
+        ? 'Y estos están en la lista del despacho pero no aparecen sellados: ' +
+          r.descuadre.soloLista.map(esc).join(', ') + '. '
+        : '') +
+      'La tabla incluye todos. Corrige el libro antes de dar este manifiesto por bueno.</p>'
+    : '') +
+
+  /* La cantidad de bolsas dice «aprox.» porque lo es: el peso se mide en la
+     báscula y las bolsas se cuentan al vuelo mientras se alimenta la
+     trituradora, muchas veces de dos o de tres en tres. Presentar un
+     estimado con cara de conteo en un documento oficial es el mismo error
+     que presentar un cálculo con cara de medición, solo que más chico. */
+  '<table><thead><tr><th>Ciclo</th><th>Fecha</th><th>Bolsas (aprox.)</th><th>Kg tratados</th>'+
+    '<th>Kg resultantes</th><th>Temp.</th><th>Minutos</th><th>Indicador químico</th>'+
+    '</tr></thead><tbody>'+
+    (!r.ciclos.length
+      ? '<tr><td colspan="8" style="text-align:center;color:#C0392B;font-weight:700">' +
+        'Sin ciclos registrados</td></tr>'
+      : '') +
+    r.ciclos.map(function(c){
+      return '<tr><td><b>'+esc(c.cicloId)+'</b></td><td>'+esc(c.fecha)+'</td>'+
+        '<td class="n">'+(c.sinPeso ? '—' : (c.bolsas || '—'))+'</td>'+
+        '<td class="n">'+(c.sinPeso ? 'no registrado' : n1(c.kgEntrada))+'</td>'+
+        '<td class="n">'+(c.sinPeso || c.estimado ? '—' : n1(c.kgSalida))+'</td>'+
+        '<td class="n">'+c.temperatura+' °C</td>'+
+        '<td class="n">'+c.minutos+'</td>'+
+        '<td>'+(c.quimico ? esc(c.resultadoQuimico||"conforme") : "—")+'</td></tr>';
+    }).join("")+
+    /* El total dice sobre cuántos ciclos está hecho. Si alguno entró sin peso
+       anotado, la suma no los cubre y eso queda escrito en la misma fila —
+       un total que parece cubrir todo y no lo hace es peor que ninguno. */
+    '<tr class="tot"><td colspan="2">TOTAL · '+t.ciclos+' ciclo(s)'+
+      (t.sinPeso ? ' <span style="font-weight:600">('+t.sinPeso+' sin peso anotado, '+
+        'fuera de la suma)</span>' : '')+'</td>'+
+      '<td class="n">'+(t.bolsas || '—')+'</td><td class="n">'+n1(t.kgEntrada)+'</td>'+
+      '<td class="n">'+(r.ciclos.some(function(c){return c.estimado||c.sinPeso;}) ? '—' : n1(t.kgSalida))+'</td>'+
+      '<td colspan="3">pesado en planta al salir de cuarentena</td></tr>'+
+  '</tbody></table>'+
+
+  '<div class="sec">3 · Sobre los pesos</div>'+
+  /* Este párrafo declaraba que el material tratado NO se pesa en planta. Dejó
+     de ser cierto: el material tratado reposa en la zona de cuarentena y se
+     pesa al salir de planta, en la báscula propia. El peso del relleno sigue
+     siendo el de referencia contra el que se contrasta, pero ya no es el
+     único que existe. Un documento que acompaña una carga no puede afirmar
+     algo que no se cumple. */
+  '<p style="text-align:justify">El peso de entrada corresponde a los kilogramos recibidos en '+
+  'planta y sometidos a tratamiento. El material tratado se tritura y deshidrata durante el '+
+  'proceso, reposa en la zona de cuarentena y se pesa en la báscula de planta al momento de su '+
+  'despacho'+
+  (t.kgSalida ? ', lo que para este despacho dio <b>'+n1(t.kgSalida)+' kg</b>' : '')+
+  '. El peso de recepción en el relleno sanitario, tomado en la báscula del receptor al ingreso '+
+  'del vehículo, es el que prevalece para efectos de la disposición final'+
+  (s.kgEmas ? ' y para este despacho fue de <b>'+n1(s.kgEmas)+' kg</b>'+
+    (s.reciboEmas ? ' según recibo '+esc(s.reciboEmas) : '') : '')+'.</p>'+
+
+  '<div class="sec">4 · Declaración</div>'+
+  /* Si no hay ciclos, esta declaración estaría afirmando en un documento
+     firmado algo que el sistema no puede respaldar. Se dice lo que hay. */
+  (!r.ciclos.length
+    ? '<p class="alerta">Los ciclos de ' +
+      'tratamiento correspondientes a este despacho no constan en el sistema. ' +
+      'La declaración de esterilización queda sujeta a los registros físicos que ' +
+      'conserve la planta.</p>'
+    : '') +
+  '<p style="text-align:justify"' + (!r.ciclos.length ? ' hidden' : '') + '>Los desechos amparados por este manifiesto fueron sometidos a proceso '+
+  'de esterilización por autoclave a <b>'+R.temperatura+' °C durante '+R.minutos+' minutos</b>, '+
+  'y triturados hasta quedar irreconocibles, conforme a la normativa sanitaria vigente. '+
+  'El material resultante es inocuo y apto para disposición final en relleno sanitario. '+
+  /* Esta frase decía «indicador biológico cada tres ciclos». Eran dos cosas
+     mal a la vez, en el documento que revisa la autoridad: la cinta 3M es un
+     indicador QUÍMICO y va en cada ciclo, y la verificación BIOLÓGICA —el
+     vial— es mensual. Lo que se declara aquí tiene que ser lo que la planta
+     hace de verdad, porque es contra esto que se compara el expediente. */
+  'Cada ciclo lleva indicador químico de proceso, y la eficacia de la esterilización '+
+  'se verifica mensualmente con indicador biológico'+
+  (t.pruebas ? '. Este despacho cuenta con <b>'+t.pruebas+' ciclo(s) con indicador '+
+    'químico conforme</b>' : '')+
+  '. Este documento forma parte del expediente de trazabilidad y se conserva por tres años.</p>'+
+
+  (s.obs ? '<div class="sec">Observaciones</div><p>'+esc(s.obs)+'</p>' : '')+
+
+  '<div class="conformidad">'+
+    '<div class="cf-txt">El suscrito, en su condición de responsable de la planta de tratamiento '+
+    'de ECOVSA, <b>certifica</b> que los desechos amparados por este manifiesto fueron sometidos '+
+    'al proceso de esterilización descrito, y que los registros de ciclo y las pruebas de '+
+    'verificación que lo respaldan reposan en el expediente de trazabilidad de la planta.</div>'+
+    '<div class="firma">'+
+      '<div class="img">'+(s.firma ? '<img src="'+s.firma+'">' : '')+'</div>'+
+      '<div class="lin"><b>'+esc(s.responsable||"")+'</b>'+
+      'Responsable de planta · ECOVSA<br>'+
+      '<span class="cf-fe">'+esc(larga(s.fecha))+'</span></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="pie">ECOVSA-FR-SAL-01 · Rev. 01 · '+esc(s.salidaId)+
+  ' · Documento generado por el sistema Rutas ECOVSA el '+esc(r.hoy)+'</div>';
+
+  $("hoja").innerHTML=html;
+  document.title="Manifiesto "+s.salidaId;
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

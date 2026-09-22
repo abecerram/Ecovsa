@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  min-height:100vh;padding-bottom:34px;line-height:1.5}
+
+/* ── cabecera ── */
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:22px 20px 26px;border-bottom:4px solid var(--lima)}
+.cab{max-width:620px;margin:0 auto;text-align:center}
+.logo{height:74px;width:118px;margin:0 auto 14px;background:#fff center/contain no-repeat;
+  background-image:url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400);
+  border-radius:11px;padding:6px 9px;box-shadow:0 3px 10px rgba(0,0,0,.24)}
+.cab .r{font-size:10px;font-weight:700;letter-spacing:2.6px;text-transform:uppercase;
+  color:rgba(255,255,255,.72)}
+.cab h1{font-size:22px;font-weight:800;line-height:1.25;margin-top:7px}
+.cab .cod{display:inline-block;margin-top:10px;background:rgba(255,255,255,.16);
+  border-radius:14px;padding:5px 14px;font-size:11.5px;font-weight:700;letter-spacing:.8px}
+
+.wrap{max-width:620px;margin:0 auto;padding:16px 16px 0}
+
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:16px;
+  padding:16px 17px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,48,107,.08)}
+h2{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  color:var(--gris);margin-bottom:11px}
+
+/* ── estado del servicio ── */
+.estado{display:flex;align-items:center;gap:12px;background:var(--verde-suave);
+  border:1px solid #CFE3B8;border-radius:16px;padding:15px 17px;margin-bottom:12px}
+.estado .punto{width:13px;height:13px;border-radius:50%;background:var(--verde);
+  flex:0 0 13px;box-shadow:0 0 0 4px rgba(47,107,10,.16)}
+.estado .t{font-size:15.5px;font-weight:800;color:var(--verde);line-height:1.3}
+.estado .s{font-size:12.5px;color:#4A6B33;margin-top:2px}
+.estado.ambar{background:#FFF6DF;border-color:#EFD79B}
+.estado.ambar .punto{background:var(--ambar);box-shadow:0 0 0 4px rgba(245,179,1,.18)}
+.estado.ambar .t{color:#8A6300}
+.estado.ambar .s{color:#8A6300}
+.estado.gris{background:#F1F3F6;border-color:var(--borde)}
+.estado.gris .punto{background:var(--gris);box-shadow:0 0 0 4px rgba(91,104,128,.14)}
+.estado.gris .t{color:var(--gris)}
+.estado.gris .s{color:var(--gris)}
+
+/* ── filas de dato ── */
+.dato{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid #EDF1F6}
+.dato:last-child{border-bottom:none;padding-bottom:0}
+.dato:first-child{padding-top:0}
+.dato .k{flex:0 0 116px;font-size:11px;font-weight:800;color:var(--gris);
+  text-transform:uppercase;letter-spacing:.4px;padding-top:2px}
+.dato .v{flex:1;font-size:15px;font-weight:700;line-height:1.4}
+.dato .v small{display:block;font-size:12.5px;font-weight:600;color:var(--gris);
+  margin-top:2px;letter-spacing:0}
+
+/* ── acumulado: la cifra que defiende el contrato ── */
+.total{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  border-radius:16px;padding:20px 18px;text-align:center;margin-bottom:12px}
+.total .r{font-size:10.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;
+  color:rgba(255,255,255,.74)}
+.total .n{font-size:44px;font-weight:900;line-height:1.05;margin:6px 0 1px;
+  font-variant-numeric:tabular-nums}
+.total .u{font-size:14px;font-weight:700;color:rgba(255,255,255,.86)}
+.total .p{font-size:12.5px;color:rgba(255,255,255,.72);margin-top:9px;line-height:1.5}
+
+.rejilla{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.mini{background:#fff;border:1px solid var(--borde);border-radius:13px;
+  padding:13px 9px;text-align:center}
+.mini .n{font-size:20px;font-weight:900;color:var(--azul-osc);line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.mini .r{font-size:10px;font-weight:700;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.4px;margin-top:4px;line-height:1.3}
+
+.nota{font-size:12px;color:var(--gris);line-height:1.6;text-align:center;
+  padding:4px 8px;margin-top:2px}
+
+/* ── pie ── */
+.pie{max-width:620px;margin:20px auto 0;padding:18px 20px;text-align:center;
+  border-top:1px solid var(--borde)}
+.pie .m{font-size:13.5px;font-weight:700;color:var(--azul-osc);line-height:1.7}
+.pie .m a{color:var(--azul);text-decoration:none;font-weight:800}
+.pie .l{font-size:11px;color:var(--gris);margin-top:11px;line-height:1.6}
+
+/* ── carga y error ── */
+.centro{max-width:520px;margin:56px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:16px;padding:34px 26px;text-align:center;box-shadow:0 3px 16px rgba(20,48,107,.1)}
+.centro .ic{font-size:34px;margin-bottom:12px}
+.centro h3{font-size:17px;font-weight:800;color:var(--azul-osc);margin-bottom:8px}
+.centro p{font-size:13.5px;color:var(--gris);line-height:1.65}
+.spin{width:34px;height:34px;border:4px solid var(--borde);border-top-color:var(--azul);
+  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 14px}
+@keyframes g{to{transform:rotate(360deg)}}
+
+@media(max-width:420px){
+  .dato{flex-direction:column;gap:2px}
+  .dato .k{flex:none}
+  .total .n{font-size:38px}
+  .rejilla{gap:7px}
+  .mini{padding:11px 5px}
+  .mini .n{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<div id="cargando" class="centro">
+  <div class="spin"></div>
+  <p>Cargando la información de su servicio…</p>
+</div>
+
+<div id="error" class="centro" style="display:none">
+  <div class="ic">🔒</div>
+  <h3 id="err-t">No pudimos abrir esta página</h3>
+  <p id="err-p"></p>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="cab">
+      <div class="logo"></div>
+      <div class="r">Servicio prestado por ECOVSA</div>
+      <h1 id="c-nombre">—</h1>
+      <div class="cod" id="c-codigo">—</div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="estado" id="c-estado">
+      <div class="punto"></div>
+      <div><div class="t" id="c-estado-t">Servicio activo</div>
+           <div class="s" id="c-estado-s">—</div></div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Su servicio</h2>
+      <div id="c-servicio"></div>
+    </div>
+
+    <div class="total">
+      <div class="r">Total retirado de su establecimiento</div>
+      <div class="n" id="c-kg">0</div>
+      <div class="u">kilogramos</div>
+      <div class="p" id="c-kg-pie">—</div>
+    </div>
+
+    <div class="rejilla">
+      <div class="mini"><div class="n" id="c-visitas">0</div><div class="r">Visitas</div></div>
+      <div class="mini"><div class="n" id="c-punzo">0</div><div class="r">Kg punzo&shy;cortantes</div></div>
+      <div class="mini"><div class="n" id="c-anatomo">0</div><div class="r">Kg anatomo&shy;patológico</div></div>
+    </div>
+
+    <div class="nota">
+      Cada retiro queda documentado con su recibo y su acta de disposición final.
+      Los comprobantes llegan a su correo después de cada visita.
+    </div>
+
+    <div class="pie">
+      <div class="m">¿Alguna consulta sobre su servicio?<br>
+        Tel. <a href="tel:3102268">310-2268</a> &nbsp;·&nbsp;
+        WhatsApp <a href="https://wa.me/50762641647">6264-1647</a><br>
+        <a href="mailto:correo@ejemplo.com">correo@ejemplo.com</a></div>
+      <div class="l" id="c-legal"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function mil(v){return (Number(v)||0).toLocaleString("es-PA");}
+function n1(v){var x=Number(v)||0; return x%1 ? x.toFixed(1) : String(x);}
+
+function falla(titulo, texto){
+  $("cargando").style.display="none";
+  $("app").style.display="none";
+  $("err-t").textContent=titulo;
+  $("err-p").innerHTML=texto;
+  $("error").style.display="block";
+}
+
+/* La página vive dentro del iframe de Apps Script: su propia location no
+   trae los parámetros del enlace. Se piden con google.script.url. */
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      seguir(p.cli||"", p.cod||"");
+    });
+  } else {
+    var q=location.search||"";
+    var a=q.match(/[?&]cli=([^&]+)/), b=q.match(/[?&]cod=([^&]+)/);
+    seguir(a?decodeURIComponent(a[1]):"", b?decodeURIComponent(b[1]):"");
+  }
+}
+
+function seguir(c, v){
+  if(!c || !v){
+    falla("Enlace incompleto",
+      "Escanee de nuevo el código de su distintivo ECOVSA. Si el problema sigue, "+
+      "escríbanos al WhatsApp <b>6264-1647</b> y le enviamos el enlace correcto.");
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){
+        falla("No pudimos abrir esta página",
+          esc((r&&r.error)||"Intente de nuevo en unos minutos.")+
+          "<br><br>Si necesita ayuda, escríbanos al WhatsApp <b>6264-1647</b>.");
+        return;
+      }
+      pintar(r);
+    })
+    .withFailureHandler(function(){
+      falla("Sin conexión",
+        "No pudimos conectar en este momento. Intente de nuevo en unos minutos.");
+    })
+    .api_miCliente(c, v);
+}
+
+function fila(rotulo, valor, detalle){
+  if(!valor) return "";
+  return '<div class="dato"><div class="k">'+esc(rotulo)+'</div>'+
+    '<div class="v">'+esc(valor)+
+    (detalle?'<small>'+esc(detalle)+'</small>':'')+'</div></div>';
+}
+
+/* Los datos de la empresa vienen del servidor. Esta pantalla la abre un
+   inspector del MINSA desde el QR del distintivo, así que lleva razón social,
+   RUC, dirección, resolución y el código del formulario. */
+var DATOS_EMP=null;
+var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
+  ruc:"1074020-1-552789",dv:"50",direccion:"",ciudad:"Panamá",
+  telefono:"310-2268",whatsapp:"6264-1647",correo:"correo@ejemplo.com",
+  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
+  resolucionCorta:"Resolución Sanitaria N° 1519",
+  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+function emp(){ return DATOS_EMP || EMP_RESP; }
+
+function pintar(r){
+  if(r && r.empresa) DATOS_EMP=r.empresa;
+  $("c-nombre").textContent = r.establecimiento;
+  $("c-codigo").textContent = "Cliente N° "+r.codigoCliente;
+
+  /* Estado del servicio, en semáforo. Nunca dice cuánto debe ni la palabra
+     deuda: esta pantalla se abre desde un adhesivo en la pared de su
+     recepción y la puede escanear cualquiera que pase. Quien deba entiende
+     "comuníquese con nosotros"; quien no, ve un servicio activo. */
+  var caja=$("c-estado");
+  if(r.suspendido){
+    caja.className="estado gris";
+    $("c-estado-t").textContent="Servicio en pausa";
+    $("c-estado-s").textContent="Comuníquese con nosotros para reactivarlo.";
+  } else if(!r.contratoVigente){
+    caja.className="estado gris";
+    $("c-estado-t").textContent="Contrato por renovar";
+    $("c-estado-s").textContent="Escríbanos para renovar su servicio.";
+  } else if(r.semaforo==="rojo" || r.semaforo==="ambar"){
+    caja.className="estado ambar";
+    $("c-estado-t").textContent="Servicio activo";
+    $("c-estado-s").textContent="Tiene un tema administrativo pendiente · comuníquese con nosotros.";
+  } else {
+    caja.className="estado";
+    $("c-estado-t").textContent="Servicio activo";
+    $("c-estado-s").textContent = "Recolección, transporte y disposición final "+
+      "de desechos peligrosos.";
+  }
+
+  /* datos del servicio */
+  var html="";
+  /* Primero, y siempre. Es el dato que MINSA verifica al llegar, y antes vivía
+     como subtítulo del bloque de estado — donde desaparecía en cuanto el
+     cliente tenía una factura pendiente. Un cliente en mora sigue necesitando
+     esta fecha delante del inspector. */
+  html += fila("Servicio contratado desde", r.servicioDesde,
+               r.servicioDesde ? "" : "Pendiente de registrar · consúltenos");
+  html += fila("Frecuencia", r.frecuencia, r.frecuenciaDetalle);
+  html += fila("Última visita", r.ultimaVisita,
+               r.ultimaVisitaKg ? n1(r.ultimaVisitaKg)+" kg retirados" : "");
+  /* al cliente se le dice el mes, nunca el día: una fecha exacta es una
+     promesa, y si el camión no llega ese día el reclamo lo generamos solos */
+  html += fila("Próxima visita", r.proximaMes ? "Durante "+r.proximaMes : "",
+               "La fecha exacta se coordina con su establecimiento");
+  html += fila("Dirección", r.direccion, r.region);
+  html += fila("Contrato", r.contratoHasta ? "Vigente hasta el "+r.contratoHasta : "", "");
+  $("c-servicio").innerHTML = html || '<div class="nota">Su servicio se está configurando.</div>';
+
+  /* acumulado */
+  var a=r.acumulado||{};
+  $("c-kg").textContent   = mil(Math.round(a.kg||0));
+  $("c-visitas").textContent = mil(a.visitas||0);
+  $("c-punzo").textContent   = n1(a.punzo||0);
+  $("c-anatomo").textContent = n1(a.anatomo||0);
+  $("c-kg-pie").textContent = (a.visitas
+      ? "En "+a.visitas+" visita"+(a.visitas===1?"":"s")+
+        (r.primeraVisita?" desde el "+r.primeraVisita:"")
+      : "Su primera recolección está por realizarse.");
+
+  /* El pie legal se arma con lo que manda el servidor. Es lo que un inspector
+     lee para saber a qué empresa autorizada corresponde este establecimiento. */
+  var e=emp();
+  $("c-legal").innerHTML =
+    esc(e.razonSocial)+" · Nombre comercial "+esc(e.comercial||"ECOVSA")+"<br>"+
+    "RUC "+esc(e.ruc)+" DV "+esc(e.dv)+"<br>"+
+    (e.direccion ? esc(String(e.direccion).toUpperCase()
+        .indexOf(String(e.ciudad||"").toUpperCase())>=0
+        ? e.direccion : e.direccion+" · "+e.ciudad)+"<br>" : "")+
+    esc(e.resolucion)+"<br>"+
+    esc(e.decreto)+
+    (e.formulario ? "<br>"+esc(e.formulario) : "")+
+    '<br><span style="opacity:.8">Información al '+esc(r.hoy)+'</span>';
+
+  $("cargando").style.display="none";
+  $("error").style.display="none";
+  $("app").style.display="block";
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

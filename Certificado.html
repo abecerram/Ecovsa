@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('certificados') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 12% 0%,rgba(47,125,50,.10),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:50px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(30,81,39,.28)}
+.marca{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.78;letter-spacing:.6px;text-transform:uppercase}
+header .salir{margin-left:auto;background:rgba(255,255,255,.16);border:none;color:#fff;
+  font-family:inherit;font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.wrap{max-width:1180px;margin:0 auto;padding:16px 18px}
+h2{font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:4px 0 10px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
+  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input{width:100%;padding:10px;font-size:15px;font-family:inherit;border:1.5px solid var(--borde);
+  border-radius:10px;background:#FBFDFC;color:var(--tinta)}
+input:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 18px;
+  border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
+  box-shadow:0 3px 10px rgba(47,125,50,.28)}
+.btn:active{transform:translateY(1px)}
+
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(30,81,39,.14)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+.pin-caja .btn{width:180px;margin-top:12px}
+.msg{display:none;border-radius:12px;padding:12px 15px;font-size:13.5px;line-height:1.55;margin-bottom:13px}
+.msg.mal{background:#FBEAE8;border-left:4px solid var(--rojo);color:#7a1d14}
+.msg.avi{background:#FFF3D1;border-left:4px solid var(--ambar);color:var(--ambar-osc)}
+.msg.ok{background:var(--verde-suave);border-left:4px solid var(--verde);color:var(--verde)}
+.msg .btn{margin-top:10px;font-size:13px;padding:9px 14px;background:var(--ambar);color:#4A3300;box-shadow:none}
+.btn.sec{background:#fff;color:var(--azul);box-shadow:inset 0 0 0 1.5px var(--azul-claro);font-size:12.5px;padding:7px 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--borde)}
+td{padding:9px 6px;border-bottom:1px solid var(--borde);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.tag-f{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:6px;padding:3px 7px;background:#FFF3D1;color:var(--ambar-osc)}
+.vacio{text-align:center;color:var(--gris);font-size:13px;padding:22px 12px;line-height:1.55}
+@media(max-width:600px){.oc{display:none}}
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Certificado Ambiental</h1>
+  <div class="tag">Acceso restringido</div>
+  <p>Escribe tu PIN para acceder al módulo.</p>
+  <input id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="pantalla-app" style="display:none">
+  <header>
+    <div class="marca">
+      <div class="logo"></div>
+      <div>
+        <h1>Certificados</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <button class="salir" onclick="volverInicio()" style="margin-left:auto">← Inicio</button>
+      <button class="salir" onclick="salir()" style="margin-left:8px">Salir</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <h2>Emitir certificado</h2>
+    <div class="tarjeta">
+      <div style="margin-bottom:15px;">
+        <label>Cliente (nombre o RUC)</label>
+        <input type="text" id="c-cliente" list="lista-clientes" placeholder="Escribe o selecciona un cliente…" autocomplete="off">
+        <datalist id="lista-clientes"></datalist>
+      </div>
+
+      <div style="display:flex;gap:15px;flex-wrap:wrap;margin-bottom:15px;">
+        <div style="flex:1;min-width:140px"><label>Desde</label>
+          <input id="c-desde" type="date"></div>
+        <div style="flex:1;min-width:140px"><label>Hasta</label>
+          <input id="c-hasta" type="date"></div>
+      </div>
+
+      <div id="msg" class="msg"></div>
+
+      <button class="btn" id="btn-emitir" style="width:100%;" onclick="emitir(false)">Emitir certificado</button>
+      <p style="font-size:12px;color:var(--gris);line-height:1.55;margin-top:10px">
+        El certificado recibe un folio correlativo y queda registrado en la hoja <b>Certificados</b>.
+        Se entrega al percibir el pago: si el cliente tiene saldo pendiente, el sistema lo detiene.</p>
+    </div>
+
+    <h2>Certificados emitidos</h2>
+    <div class="tarjeta" id="lista-cert"><div class="vacio">Cargando…</div></div>
+  </div>
+</div>
+
+<script>
+var PIN="", USUARIO=null, URL_APP="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return Number(v||0).toFixed(2);}
+
+/* aviso propio: el alert del navegador muestra la dirección de Google */
+function msg(tipo, html){
+  var m=$("msg"); m.className="msg "+tipo; m.innerHTML=html; m.style.display="block";
+}
+function sinMsg(){ $("msg").style.display="none"; }
+
+function arrancar(){
+  try{ PIN = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+  if(PIN) validar(PIN); else pedirPin("");
+}
+
+function pedirPin(m){
+  $("pantalla-app").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=m||"";
+  setTimeout(function(){$("pin-input").focus();},120);
+}
+
+function entrar(){
+  var p=($("pin-input").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…";
+  validar(p);
+}
+
+function validar(p){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      if(["supervisor","gerente","admin","mercadeo"].indexOf(r.usuario.rol)<0){
+        PIN=""; pedirPin("Tu usuario no tiene acceso a certificados."); return;
+      }
+      PIN=p; USUARIO=r.usuario;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      $("cab-usuario").textContent = USUARIO.nombre+" · Certificación";
+      $("pantalla-pin").style.display="none";
+      $("pantalla-app").style.display="block";
+      cargarClientes(); cargarEmitidos();
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión."); })
+    .api_login(p);
+}
+
+function salir(){
+  try{ localStorage.removeItem("ecovsa_pin"); }catch(e){}
+  volverInicio();
+}
+
+function cargarClientes(){
+  google.script.run
+    .withSuccessHandler(function(clientes){
+      var dl=$("lista-clientes"); dl.innerHTML="";
+      (Array.isArray(clientes)?clientes:[]).forEach(function(c){
+        var o=document.createElement("option"); o.value=c; dl.appendChild(o);
+      });
+    })
+    .api_obtenerListaClientes(PIN);
+
+  var hoy=new Date();
+  $("c-desde").value = iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+  $("c-hasta").value = iso(hoy);
+}
+function iso(d){ return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+
+function emitir(forzar){
+  sinMsg();
+  var cliente=$("c-cliente").value.trim(), desde=$("c-desde").value, hasta=$("c-hasta").value;
+  if(!cliente){ msg("mal","Escribe o selecciona el nombre o RUC del cliente."); return; }
+  if(!desde||!hasta){ msg("mal","Selecciona el rango de fechas."); return; }
+  if(desde>hasta){ msg("mal","La fecha inicial es posterior a la final."); return; }
+
+  var b=$("btn-emitir"); b.disabled=true; b.textContent="Emitiendo…";
+  google.script.run
+    .withSuccessHandler(function(r){
+      b.disabled=false; b.textContent="Emitir certificado";
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(r&&r.sinPazYSalvo){
+        msg("avi","<b>No se emitió.</b> "+esc(r.error)+
+          (r.puedeForzar
+            ? '<br><button class="btn" onclick="emitir(true)">Emitir de todos modos (queda registrado como forzado)</button>'
+            : '<br>Cuando el pago esté registrado en Cobros, vuelve a intentarlo.'));
+        return;
+      }
+      if(!r||!r.ok){ msg("mal", esc((r&&r.error)||"No se pudo emitir el certificado.")); return; }
+      msg("ok","Certificado <b>"+esc(r.folio)+"</b> emitido para "+esc(r.empresa.nombre)+
+        (r.forzado?' <span class="tag-f">forzado</span>':'')+".");
+      cargarEmitidos();
+      abrirCert(r.folio);
+    })
+    .withFailureHandler(function(){
+      b.disabled=false; b.textContent="Emitir certificado";
+      msg("mal","Sin conexión con el servidor. Intenta de nuevo.");
+    })
+    .api_emitirCertificado(PIN, cliente, desde, hasta, !!forzar);
+}
+
+function abrirCert(folio){
+  if(!URL_APP){ msg("avi","Todavía se está cargando el enlace. Toca <b>Ver</b> en la lista."); return; }
+  window.open(URL_APP+"?p=vercert&folio="+encodeURIComponent(folio), "_blank");
+}
+
+function cargarEmitidos(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      var caja=$("lista-cert");
+      var l=(r&&r.certificados)||[];
+      if(!l.length){ caja.innerHTML='<div class="vacio">Todavía no se ha emitido ningún certificado.</div>'; return; }
+      caja.innerHTML='<table><thead><tr><th>Folio</th><th>Cliente</th><th class="oc">Periodo</th>'+
+        '<th style="text-align:right">Kg</th><th class="oc">Emitido</th><th></th></tr></thead><tbody>'+
+        l.map(function(c){
+          return '<tr><td><b>'+esc(c.folio)+'</b>'+(c.forzado?' <span class="tag-f">forzado</span>':'')+'</td>'+
+            '<td>'+esc(c.cliente)+'</td>'+
+            '<td class="oc">'+esc(c.desde)+' → '+esc(c.hasta)+'</td>'+
+            '<td class="num">'+n2(c.totalKg)+'</td>'+
+            '<td class="oc">'+esc(c.fecha)+'<br><span style="font-size:11px;color:var(--gris)">'+esc(c.emitidoPor)+'</span></td>'+
+            '<td style="text-align:right"><button class="btn sec" onclick="abrirCert(\''+esc(c.folio)+'\')">Ver</button></td></tr>';
+        }).join("")+'</tbody></table>';
+    })
+    .withFailureHandler(function(){ $("lista-cert").innerHTML='<div class="vacio">No se pudo cargar la lista.</div>'; })
+    .api_certificadosEmitidos(PIN, 30);
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+function volverInicio(){
+  if(URL_APP){ irA(URL_APP); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){})
+    .api_urlApp();
+}
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+</script>
+</body>
+</html>

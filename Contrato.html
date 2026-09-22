@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 14px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  box-shadow:0 2px 12px rgba(11,60,110,.3)}
+.barra .ti{color:#fff;font-size:13px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:10px 15px;border-radius:10px;cursor:pointer;background:var(--ambar);color:#4A3300}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:760px;margin:26px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:14px;padding:28px;font-size:14px;color:var(--gris);line-height:1.65;
+  box-shadow:0 3px 16px rgba(11,60,110,.10)}
+.aviso h2{font-size:18px;color:var(--rojo);margin-bottom:6px}
+.aviso .sub{font-size:13px;color:var(--gris);margin-bottom:18px}
+.faltan{background:#FFF3D1;border-left:4px solid var(--ambar);border-radius:10px;
+  padding:14px 16px;margin-top:14px;text-align:left}
+.faltan h4{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+  color:#8a6d00;margin:10px 0 5px}
+.faltan h4:first-child{margin-top:0}
+.faltan li{margin-left:18px;font-size:13px;color:#5c4a00;line-height:1.7}
+
+/* ── el documento ── */
+.hoja{max-width:820px;margin:18px auto 0;background:#fff;color:#111;padding:38px 44px;
+  border:1px solid var(--borde);border-radius:8px;font-size:11.5px;line-height:1.68;
+  box-shadow:0 3px 16px rgba(11,60,110,.10);text-align:justify}
+.enc{display:flex;gap:14px;align-items:center;border-bottom:2px solid var(--azul-osc);
+  padding-bottom:12px;margin-bottom:20px}
+.enc img{height:56px;width:auto}
+.enc .emp{font-size:16px;font-weight:900;color:var(--verde);letter-spacing:.4px;line-height:1.1}
+.enc .lem{font-size:9.5px;color:var(--azul);letter-spacing:1.3px;text-transform:uppercase}
+.enc .der{margin-left:auto;text-align:right;font-size:9.5px;color:#666;line-height:1.6}
+
+h1{font-size:15px;font-weight:900;text-align:center;line-height:1.35;
+  text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.numc{text-align:center;font-size:14px;font-weight:800;color:var(--azul-osc);
+  letter-spacing:1px;margin-bottom:20px}
+p{margin-bottom:10px}
+.cl{font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+h3{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+  margin:18px 0 8px;color:var(--azul-osc)}
+ol,ul{margin:0 0 10px 22px}
+li{margin-bottom:6px}
+.dato{background:#EEF5E4;padding:1px 5px;border-radius:3px;font-weight:700}
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:52px}
+.firma{text-align:center;font-size:11px;line-height:1.7}
+.firma .lin{border-top:1px solid #111;padding-top:7px}
+.firma b{display:block;font-weight:800}
+.pie{margin-top:26px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;
+  color:#777;text-align:center;line-height:1.6}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{max-width:none;margin:0;border:none;border-radius:0;padding:0;box-shadow:none;font-size:10.5pt}
+  .firmas{page-break-inside:avoid} h3{page-break-after:avoid}
+}
+@page{margin:18mm}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando el contrato…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">CONTRATO DE SERVICIO</div>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var COD="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return Number(v||0).toFixed(2);}
+
+/* Los datos de la empresa vienen del servidor (constante EMPRESA en
+   Codigo.gs), no escritos aquí. Cambiar la dirección es cambiar una línea
+   allá, no acordarse de cuatro pantallas. El respaldo es por si una versión
+   vieja del servidor todavía no los manda. */
+var DATOS_EMP=null;
+var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
+  ruc:"1074020-1-552789",dv:"50",lema:"Ecología · Vida · Salud",
+  /* A propósito vacía: si algún día el servidor no manda los datos, es mejor
+     que el documento salga sin dirección — y se note — a que salga con una
+     dirección vieja en un contrato o un certificado. */
+  direccion:"",
+  ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
+  correo:"correo@ejemplo.com",instagram:"@ecovsapanama",
+  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
+  resolucionCorta:"Resolución Sanitaria N° 1519",
+  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+function emp(){ return DATOS_EMP || EMP_RESP; }
+/* La dirección ya nombra la ciudad; anteponerla daba "Panamá, Distrito Panamá". */
+function conCiudad(dir,ciudad){
+  var d=String(dir||"").trim(), c=String(ciudad||"").trim();
+  if(!d) return c;
+  if(!c || d.toUpperCase().indexOf(c.toUpperCase())>=0) return d;
+  return c+", "+d;
+}
+function pieEmpresa(){
+  var e=emp();
+  return conCiudad(e.direccion, e.ciudad)+
+         " · Tel. "+e.telefono+" · "+e.correo;
+}
+
+function D(v){return '<span class="dato">'+esc(v||"")+'</span>';}
+
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function larga(iso){
+  if(!iso) return "";
+  var d=new Date(iso+"T12:00:00");
+  if(isNaN(d.getTime())) return iso;
+  return d.getDate()+" de "+MESES[d.getMonth()]+" de "+d.getFullYear();
+}
+
+/* el contrato exige el valor en letras */
+var UNI=["","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez",
+ "once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve",
+ "veinte","veintiuno","veintidós","veintitrés","veinticuatro","veinticinco","veintiséis",
+ "veintisiete","veintiocho","veintinueve"];
+var DEC=["","","","treinta","cuarenta","cincuenta","sesenta","setenta","ochenta","noventa"];
+var CEN=["","ciento","doscientos","trescientos","cuatrocientos","quinientos","seiscientos",
+ "setecientos","ochocientos","novecientos"];
+function menor100(n){
+  if(n<30) return UNI[n];
+  var d=Math.floor(n/10), u=n%10;
+  return DEC[d]+(u?" y "+UNI[u]:"");
+}
+function menor1000(n){
+  if(n===100) return "cien";
+  var c=Math.floor(n/100), r=n%100;
+  return (c?CEN[c]:"")+(c&&r?" ":"")+(r?menor100(r):"");
+}
+function enLetras(v){
+  var n=Math.floor(Number(v)||0);
+  var cent=Math.round(((Number(v)||0)-n)*100);
+  var txt;
+  if(n===0) txt="cero";
+  else if(n<1000) txt=menor1000(n);
+  else {
+    var mil=Math.floor(n/1000), r=n%1000;
+    txt=(mil===1?"mil":menor1000(mil)+" mil")+(r?" "+menor1000(r):"");
+  }
+  txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+  return txt+" balboas con "+("0"+cent).slice(-2)+"/100";
+}
+
+function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
+
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{}; seguir(p.cod||"");
+    });
+  } else {
+    var m=(location.search||"").match(/[?&]cod=([^&]+)/);
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+
+function seguir(cod){
+  COD=cod;
+  if(!COD){ aviso("Falta el código de propuesta en el enlace."); return; }
+  var pin="";
+  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la página de mercadeo."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.incompleto){ pintarFaltantes(r); return; }
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar.")); return; }
+      if(r.empresa) DATOS_EMP=r.empresa;
+      pintar(r.prospecto);
+      $("aviso").style.display="none"; $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión."); })
+    .api_contrato(pin, COD);
+}
+
+function pintarFaltantes(r){
+  var bloques="";
+  for(var g in r.faltan){
+    bloques+="<h4>"+esc(g)+"</h4><ul>"+
+      r.faltan[g].map(function(f){return "<li>"+esc(f)+"</li>";}).join("")+"</ul>";
+  }
+  aviso('<h2>El contrato no se puede generar todavía</h2>'+
+    '<div class="sub">Faltan datos obligatorios en la ficha de <b>'+esc(r.empresa||"")+
+    '</b>. Un contrato con campos vacíos no tiene validez legal, así que el sistema no lo emite.</div>'+
+    '<div class="faltan">'+bloques+'</div>'+
+    '<p style="margin-top:16px;font-size:13px">Completa esos campos en la ficha del prospecto '+
+    'y vuelve a intentarlo.</p>');
+}
+
+function pintar(p){
+  var costo=Number(p["costo visita"])||0;
+  var itbms=Number(p.itbms); if(!isFinite(itbms)||itbms<=0) itbms=0.07;
+  var total=Math.round(costo*(1+itbms)*100)/100;
+  var plazo=p["plazo contrato"]||12;
+  var firma=p["fecha contrato"]||"";
+
+  var html=
+  '<div class="enc"><img src="'+LOGO+'" alt="ECOVSA">'+
+    '<div><div class="emp">ECOVSA</div><div class="lem">Ecología · Vida · Salud</div></div>'+
+    '<div class="der">'+esc(emp().razonSocial)+'<br>RUC '+esc(emp().ruc)+
+      ' DV '+esc(emp().dv)+'<br>'+esc(emp().resolucionCorta)+'</div></div>'+
+
+  '<h1>Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1>'+
+  '<div class="numc">N.° '+esc(p["n contrato"])+'</div>'+
+
+  '<p>Entre los suscritos a saber, '+D(p["representante legal"])+', '+
+  D(p["genero representante"])+', mayor de edad, nacionalidad '+
+  D(p["nacionalidad representante"])+', identificado con Cédula de Identidad No. '+
+  D(p["cedula representante"])+' en su calidad de representante legal '+ 'de '+D(p.empresa)+
+  ', sociedad panameña, inscrita en el folio N.° '+D(p["folio registro"])+
+  ' de la Sección Mercantil del Registro Público de Panamá, con RUC '+D(p.ruc)+
+  ' DV '+D(p.dv)+', quien de ahora en adelante se denominará <b>EL CONTRATANTE</b>, '+
+  'por una parte y por la otra, el señor <b>FRANCISCO JAVIER MESA BURGOS</b>, varón, mayor de edad '+
+  'y de nacionalidad Colombiana con documento de Identidad No. BH199584, en su calidad de '+
+  'Representante Legal de la sociedad <b>ECOTERMO DE PANAMA S.A.</b>, que consta inscrita en '+
+  'Registro Público al folio Mercantil N.° 552789, con RUC '+esc(emp().ruc)+' DV '+esc(emp().dv)+', quien en '+
+  'adelante se denominará <b>EL CONTRATISTA</b>, y cuando actúen en conjunto se denominarán '+
+  '<b>LAS PARTES</b>, han convenido en celebrar el presente contrato de prestación de servicios, '+
+  'que se rige bajo las siguientes consideraciones y cláusulas:</p>'+
+
+  '<h3>Consideraciones</h3><ol>'+
+  '<li>EL CONTRATANTE requiere la prestación del servicio de recolección y manejo de desechos '+
+  'hospitalarios, servicio que cumple EL CONTRATISTA, a carácter propio.</li>'+
+  '<li>EL CONTRATISTA se dedica en forma habitual y profesional a prestar servicios no '+
+  'subordinados a favor de terceros y es el único responsable por la afiliación y pago de las '+
+  'prestaciones sociales y demás derechos y obligaciones correspondientes.</li>'+
+  '<li>Los servicios descritos en este documento se prestan por parte del CONTRATISTA en forma '+
+  'independiente, autónoma y bajo su propia cuenta y riesgo. El CONTRATANTE reconoce y acepta que '+
+  'el presente Contrato no implica ningún tipo de exclusividad y por ende EL CONTRATISTA se reserva '+
+  'el derecho de celebrar contratos con terceros, incluso para los mismos servicios aquí contratados.</li>'+
+  '<li>Declara EL CONTRATISTA que los servicios a prestar están debidamente regulados y autorizados '+
+  'mediante la '+esc(emp().resolucion)+'.</li>'+
+  '</ol>'+
+
+  '<h3>Cláusulas</h3>'+
+
+  '<p><span class="cl">Primera: Objeto del contrato.</span> EL CONTRATISTA se compromete a la '+
+  'prestación del servicio de recolección, separación, transporte, tratamiento, trituración y '+
+  'disposición final de los desechos hospitalarios peligrosos (basura hospitalaria), producidos '+
+  'exclusivamente por EL CONTRATANTE en las sucursales, puntos de acopio y frecuencias acordadas, '+
+  'de conformidad con la propuesta comercial No. '+D(p.codigoPropuesta)+' fechada el '+
+  D(larga(p["fecha propuesta"]))+', la cual forma parte integral del presente contrato, así como '+
+  'las estipulaciones contractuales.</p>'+
+
+  '<p><span class="cl">Segunda: Frecuencia y horario de recolección.</span> EL CONTRATISTA se '+
+  'compromete a prestar el servicio objeto de este contrato de acuerdo con las siguientes '+
+  'sucursales, puntos de acopio, frecuencias y horarios: '+D(p.direccion)+
+    ' · Horario: '+D("8:00 a.m. a 5:00 p.m.")+
+  ' · Frecuencia: '+D(p.frecuencia)+'.</p>'+
+  '<p>La frecuencia y el horario de recolección podrán ser modificados, previo acuerdo entre LAS '+
+  'PARTES y considerando siempre tanto las necesidades operativas de EL CONTRATISTA como las de '+
+  'EL CONTRATANTE, a fin de garantizar la prestación eficiente y adecuada del servicio.</p>'+
+
+  '<p><span class="cl">Tercera: Obligaciones de EL CONTRATISTA.</span> Además de las obligaciones '+
+  'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
+  'especiales las siguientes:</p><ol>'+
+  '<li>Prestar los servicios contratados de manera profesional, oportuna y eficiente, cumpliendo '+
+  'con los estándares establecidos por el Ministerio de Salud (MINSA), conforme a los plazos, '+
+  'términos, estándares técnicos y de calidad aplicables de acuerdo con el objeto del Contrato.</li>'+
+  '<li>Garantizar que la prestación de los Servicios se brinde utilizando los equipos, suministros '+
+  'y materiales adecuados, dando cumplimiento a los procedimientos, términos y condiciones '+
+  'previstos para el mismo.</li>'+
+  '<li>Garantizar la validez y vigencia de los permisos, licencias, títulos y certificaciones, '+
+  'como también que se cuenta con los conocimientos técnicos y experiencia necesarios para la '+
+  'prestación del Servicio.</li>'+
+  '<li>Garantizar la trazabilidad de los residuos peligrosos, desde su recolección hasta su '+
+  'disposición final, mediante registros firmados, bitácoras y certificaciones.</li>'+
+  '<li>Utilizar personal capacitado en el manejo de residuos infecciosos y peligrosos, dotado con '+
+  'el equipo de protección personal (EPP) requerido.</li>'+
+  '<li>Informar de manera inmediata cualquier situación que pueda retrasar, interrumpir o afectar '+
+  'la calidad de los Servicios y contar con un plan de contingencia que garantice la prestación de '+
+  'estos ante eventualidades que se presenten.</li>'+
+  '<li>Presentar dentro de los 5 primeros días del mes, al correo del CONTRATANTE, la factura '+
+  'correspondiente a los servicios prestados en el mes inmediatamente anterior.</li>'+
+  '<li>Informar de manera inmediata a EL CONTRATANTE cualquier modificación en los datos de '+
+  'contacto o facturación.</li>'+
+  '<li>Expedir certificación referente al manejo dado a los residuos o desechos.</li>'+
+  '<li>Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
+  'las normas legales.</li></ol>'+
+
+  '<p><span class="cl">Cuarta: Obligaciones del contratante.</span> Además de las obligaciones '+
+  'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
+  'especiales las siguientes:</p><ol>'+
+  '<li>Cumplir con las actividades establecidas en las propuestas comerciales (Anexo 1).</li>'+
+  '<li>Pagar oportunamente las facturas presentadas por EL CONTRATISTA en los términos y plazos '+
+  'convenidos en el presente contrato.</li>'+
+  '<li>Entregar únicamente los residuos que han sido previamente declarados y aprobados, así como '+
+  'atender las instrucciones y requerimientos impartidos por EL CONTRATISTA y las autoridades para '+
+  'la prestación del servicio.</li>'+
+  '<li>Garantizar que el empacado, embalado y etiquetado de sus residuos o desechos se realice '+
+  'conforme a los requisitos legales y los establecidos por EL CONTRATISTA, respetando de igual '+
+  'forma las normativas ambientales, de salud y seguridad establecidas.</li>'+
+  '<li>Cumplir con la normativa establecida sobre la materia.</li>'+
+  '<li>Atender de forma oportuna y eficiente todas las consultas y solicitudes que se puedan '+
+  'presentar en ocasión al Servicio.</li>'+
+  '<li>Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
+  'las normas legales.</li></ol>'+
+
+  '<p><span class="cl">Quinta: Manejo y disposición de los desechos hospitalarios peligrosos.</span> '+
+  'Respecto de las principales obligaciones asumidas por cada una de LAS PARTES, se comprometen a:</p><ol>'+
+  '<li>EL CONTRATANTE, a garantizar que el empacado, embalado y etiquetado de sus residuos o '+
+  'desechos se realice conforme a los requisitos legales vigentes y los requerimientos de servicio '+
+  'establecidos por EL CONTRATISTA.</li>'+
+  '<li>EL CONTRATISTA se compromete a retirar los desechos hospitalarios peligrosos en las '+
+  'instalaciones del CONTRATANTE para su transporte, tratamiento, trituración y disposición en '+
+  'autoclave (equipo de última tecnología encargado de vaporizar, esterilizar y pulverizar el '+
+  'material entregado), respetando las normativas ambientales, de salud y seguridad establecidas '+
+  'para tal fin.</li>'+
+  '<li>LAS PARTES se comprometen a cumplir con las normas ambientales, sanitarias, de seguridad y '+
+  'salud ocupacional, así como con los acuerdos municipales vigentes y aplicables para la '+
+  'prestación del servicio objeto del presente contrato.</li></ol>'+
+  '<p>En consecuencia, serán los únicos responsables ante las autoridades competentes del '+
+  'cumplimiento o incumplimiento de sus obligaciones.</p>'+
+
+  '<p><span class="cl">Sexta: Valor.</span> El valor del presente contrato corresponde a la suma '+
+  'total de '+D(enLetras(total))+' (B/. '+D(n2(total))+') incluido el I.T.B.M.S., del servicio de '+
+  'recolección de desechos hospitalarios peligrosos según propuesta presentada y aprobada.</p><ul>'+
+  '<li>El kilogramo adicional a partir de '+D(Number(p["kg plan"])>0?Number(p["kg plan"])+1:"")+' kg tendrá un costo de (B/. '+
+  D(n2(p["tarifa kg adic"]))+') más I.T.B.M.S.</li>'+
+  (p["tarifa visita adic"] ? '<li>Las visitas adicionales a la frecuencia contratada tendrán un '+
+    'costo de (B/. '+D(n2(p["tarifa visita adic"]))+') más I.T.B.M.S.</li>' : '')+
+  '<li>En caso de algún cambio en la programación, debe ser informado con un máximo de 48 horas '+
+  'de anticipación.</li></ul>'+
+
+  '<p><span class="cl">Parágrafo primero: Revisión de la facturación.</span> La tarifa fija '+
+  ' del servicio  aquí acordado se incrementarán en igual proporción si se presenta un '+
+  'aumento en el costo que se cancela según la norma sanitaria de Panamá por la disposición final, '+
+  'salario mínimo, permisos, combustible u otros conceptos asociados con la prestación del servicio. '+
+  'De igual manera, cada vez que se proceda a prorrogar el siguiente contrato, LAS PARTES se '+
+  'comprometen a revisar las tarifas señaladas en esta cláusula, para lo cual EL CONTRATISTA '+
+  'presentará a EL CONTRATANTE, con treinta (30) días calendarios de anticipación a la terminación '+
+  'del contrato, el porcentaje del mismo, el cual guardará relación con la inflación certificada por '+
+  'la Contraloría General de la Nación para el año inmediatamente anterior, o por un aumento de las '+
+  'tarifas decretado por el Gobierno Nacional.</p>'+
+
+  '<p><span class="cl">Parágrafo segundo: Pago del servicio.</span> EL CONTRATANTE se obliga a pagar '+
+  'a EL CONTRATISTA mediante transferencia ACH a BANCO BANISI, nombre de cuenta ECOTERMO DE PANAMA, '+
+  'S.A., No. de cuenta 100-070-31541, tipo de cuenta CORRIENTE, así como enviar comprobante de pago '+
+  'al correo electrónico correo@ejemplo.com, la totalidad de la suma facturada , dentro de '+
+  'los primeros 5 días calendarios inmediatamente siguientes a su presentación al correo electrónico '+
+  D(p.correo)+'. La factura expedida por EL CONTRATISTA prestará mérito ejecutivo ante la '+
+  'jurisdicción ordinaria, de acuerdo a las Leyes de la República de Panamá. De no recibir el pago '+
+  'dentro del periodo correspondiente, se procederá con la suspensión del servicio y/o un recargo '+
+  'del 10% de su facturación.</p>'+
+
+  '<p><span class="cl">Séptima: Vigencia del contrato.</span> LAS PARTES acuerdan que este contrato '+
+  'tiene y tendrá una vigencia de '+D(plazo)+' meses calendarios, prorrogables por el mismo tiempo. '+
+  'En caso de que EL CONTRATANTE decida no continuar con el servicio, deberá notificarlo con treinta '+
+  '(30) días de anticipación a la fecha de vencimiento del contrato; en caso de no notificar, se '+
+  'entenderá prorrogado por el mismo término inicial. En el caso de que EL CONTRATANTE decida '+
+  'culminar la relación comercial antes del plazo pactado, EL CONTRATISTA impondrá una penalización '+
+  'de un mes de facturación por los gastos incurridos.</p>'+
+
+  '<p><span class="cl">Octava: Responsabilidad por daños o pérdidas del equipo.</span> Convienen LAS '+
+  'PARTES que cualquier daño o pérdida, una vez entregado e instalado el equipo y sus complementos, '+
+  'a consecuencia de la inadecuada operación y/o la poca vigilancia hacia ellos o el personal, serán '+
+  'responsabilidad de EL CONTRATANTE, por lo que se verá obligado a cubrir los gastos de '+
+  'reparaciones y/o sustitución de los mismos.</p>'+
+
+  '<p><span class="cl">Novena: Total entendimiento.</span> El hecho de que una de LAS PARTES permita '+
+  'una o varias veces que la otra incumpla sus obligaciones, o las cumpla imperfectamente, o en '+
+  'forma distinta de la pactada, o no insista en el cumplimiento de tales obligaciones, o no ejerza '+
+  'oportunamente los derechos contractuales o legales que le correspondan, no reputará ni equivaldrá '+
+  'a ningún tipo de modificación del presente contrato, ni obstará en ningún caso para que dicha '+
+  'parte en el futuro reclame el fiel cumplimiento de las obligaciones que corren a cargo de la '+
+  'otra, o ejerza los derechos contractuales, legales y/o convencionales de los cuales sea titular. '+
+  'Las leyendas que aparecen como títulos o encabezados de los términos del presente contrato se han '+
+  'insertado para conveniencia y fácil referencia del lector, de forma tal que las mismas no tienen '+
+  'relevancia para efectos de la interpretación del contenido de los referidos términos.</p>'+
+
+  '<p><span class="cl">Décima: Causales de terminación del contrato.</span> El presente Contrato '+
+  'terminará por cualquiera de las siguientes causas:</p><ol>'+
+  '<li>Por la terminación de la duración del Contrato.</li>'+
+  '<li>Por mutuo acuerdo entre LAS PARTES.</li>'+
+  '<li>Por las demás contenidas en la ley.</li>'+
+  '<li>Por incapacidad financiera, la cual se presume si se declara cualquiera de LAS PARTES en '+
+  'quiebra o se le abre concurso de acreedores, o es intervenida por autoridad competente.</li>'+
+  '<li>Por fuerza mayor o caso fortuito como está descrito en la ley, siempre y cuando esto '+
+  'imposibilite la ejecución del Contrato, habiendo pasado 30 días calendario a partir de la fecha '+
+  'de los hechos que den lugar a la fuerza mayor o el caso fortuito.</li></ol>'+
+
+  '<p><span class="cl">Décima primera: Legislación aplicable y resolución de conflictos.</span> Este '+
+  'Contrato y las relaciones entre LAS PARTES derivadas de la materia que constituye su objeto están '+
+  'sujetos y regulados por las leyes vigentes en la República de Panamá. En caso de surgir '+
+  'controversia, discrepancia o reclamación entre LAS PARTES relacionada con la interpretación, '+
+  'ejecución o cumplimiento del presente documento, LAS PARTES se comprometen a resolver dichas '+
+  'controversias de la siguiente manera:</p><ol>'+
+  '<li><b>Negociación amistosa:</b> en primer lugar, LAS PARTES se comprometen a intentar resolver '+
+  'sus controversias mediante una negociación amistosa, en un plazo no mayor a 30 días hábiles '+
+  'siguientes a la fecha en que se comunique entre ellas el conflicto. LAS PARTES acuerdan reunirse '+
+  'de buena fe para dar una solución al motivo de controversia.</li>'+
+  '<li><b>Conciliación:</b> si transcurrido el plazo anterior LAS PARTES no logran un acuerdo, se '+
+  'someterán a un proceso de conciliación, el cual será llevado a cabo por un mediador designado de '+
+  'común acuerdo o, en su defecto, por el Centro de Conciliación y Arbitraje de Panamá. El proceso '+
+  'de conciliación deberá iniciarse dentro de los 15 días hábiles siguientes a la notificación de '+
+  'fracaso de las negociaciones amistosas y deberá concluir en un plazo máximo de 30 días hábiles '+
+  'siguientes a su inicio.</li></ol>'+
+  '<p>De no llegar LAS PARTES a un acuerdo, podrán interponer sus acciones ante los Tribunales de '+
+  'Justicia competentes.</p>'+
+
+  '<p><span class="cl">Décima segunda: Confidencialidad.</span> LAS PARTES se comprometen a guardar '+
+  'completa reserva y estricta confidencialidad sobre toda la información intercambiada dentro de la '+
+  'etapa precontractual, contractual y postcontractual, incluyendo pero sin limitarse al presente '+
+  'Contrato, la Propuesta, los documentos Anexos y cualquier otra información compartida o revelada '+
+  'por medio escrito, electrónico, verbal o por cualquier otro medio conocido por el hombre (la '+
+  '"Información"). LAS PARTES mantendrán vigentes sus obligaciones respecto a la confidencialidad de '+
+  'esta cláusula durante la vigencia del contrato y hasta por tres (3) años después de la fecha de '+
+  'liquidación de este.</p>'+
+
+  '<p><span class="cl">Décima tercera: Caso fortuito o fuerza mayor.</span> Cualquier incumplimiento '+
+  'o demora en el cumplimiento de las obligaciones pactadas en el Contrato no generará '+
+  'responsabilidades para LAS PARTES si dicho incumplimiento o demora resulta de caso fortuito o '+
+  'fuerza mayor. Se entenderán como tales todas las eventualidades establecidas en el Código Civil '+
+  'fuera del control razonable de LAS PARTES, que no puedan ser previstas o que, si son previsibles, '+
+  'sean inevitables, que ocurran durante la vigencia de este Contrato y que impidan el cumplimiento '+
+  'de las obligaciones. Las anteriores incluyen, pero no se limitan a, desastres naturales como '+
+  'terremoto, tsunami, tormentas, deslizamientos de tierra o derrumbes, erupciones volcánicas o '+
+  'inundaciones; conflictos armados; huelgas, disturbios o asonadas; epidemias o pandemias que '+
+  'afecten gravemente a la población; y/o fallas a las infraestructuras físicas o tecnológicas que '+
+  'sean irresistibles o irreparables en un periodo mayor a los 30 días.</p>'+
+
+  '<p><span class="cl">Décima cuarta: Domicilio contractual y notificaciones.</span> Para todos los '+
+  'efectos derivados del presente Contrato, se establece como domicilio contractual la Ciudad de '+
+  'Panamá, Panamá. Para que cualquier aviso o notificación entre LAS PARTES tenga validez, se '+
+  'enviará a las siguientes direcciones, a menos que cualquiera de LAS PARTES suministre por escrito '+
+  'una nueva dirección con una antelación no inferior a 10 días hábiles o comunes a la fecha del '+
+  'cambio de dirección. Toda notificación se tendrá como realizada y será efectiva una vez que quien '+
+  'envía el correo electrónico haya recibido confirmación de recibo por parte del destinatario. '+
+  'Salvo que se disponga expresamente lo contrario, las notificaciones se enviarán a:</p><ul>'+
+  '<li>EL CONTRATANTE, al correo electrónico '+D(p.correo)+' · Teléfono '+D(p.telefono)+'</li>'+
+  '<li>EL CONTRATISTA, al correo electrónico correo@ejemplo.com / correo@ejemplo.com</li></ul>'+
+
+  '<p><span class="cl">Décima quinta: Modificaciones.</span> El presente contrato no podrá ser '+
+  'enmendado o modificado en forma alguna, a menos que dichas enmiendas o modificaciones se den con '+
+  'el consentimiento previo y expreso de LAS PARTES, manifestado por escrito. Cualquier modificación '+
+  'que se quiera hacer frente a las condiciones del Contrato deberá ser acordada y legalizada por '+
+  'LAS PARTES, cumpliendo las mismas formalidades establecidas para el Contrato.</p>'+
+
+  '<p style="margin-top:18px">Para constancia de LAS PARTES, se firma el presente contrato en la '+
+  'Ciudad de Panamá el '+(firma?D(larga(firma)):'_______________________')+'.</p>'+
+
+  '<div class="firmas">'+
+    '<div class="firma"><div class="lin"><b>FRANCISCO J. MESA B.</b>BH199584<br>'+
+      'ECOTERMO DE PANAMA S.A.</div></div>'+
+    '<div class="firma"><div class="lin"><b>'+esc(p["representante legal"])+'</b>'+
+      esc(p["cedula representante"])+'<br>'+esc(p.empresa)+'</div></div>'+
+  '</div>'+
+
+  '<div class="pie">'+esc(pieEmpresa())+
+    (emp().formulario?'<br>'+esc(emp().formulario):'')+'<br>'+
+  'Documento generado por el sistema Rutas ECOVSA a partir de la propuesta '+
+  esc(p.codigoPropuesta)+'.</div>';
+
+  $("hoja").innerHTML=html;
+  document.title="Contrato "+p["n contrato"]+" · "+(p.empresa||"");
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

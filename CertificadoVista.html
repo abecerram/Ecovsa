@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:12px 20px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  box-shadow:0 2px 12px rgba(20,48,107,.3)}
+.barra .ti{color:#fff;font-size:13.5px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:10px 18px;border-radius:10px;cursor:pointer;background:var(--ambar);color:#4A3300;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:900px;margin:30px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:12px;padding:30px;text-align:center;font-size:14px;color:var(--gris)}
+
+/* Contenedor principal con espacio izquierdo ampliado */
+.hoja{position:relative;max-width:1150px;margin:25px auto 0;background:#fff;color:var(--tinta);padding:45px 55px 40px 85px;
+  border:1px solid var(--borde);border-radius:12px;font-size:12px;line-height:1.6;
+  box-shadow:0 6px 24px rgba(20,48,107,.12);overflow:hidden}
+
+.franja-seguridad-sup{position:absolute;top:0;left:0;right:0;height:12px;background:linear-gradient(90deg, var(--azul-osc) 30%, var(--verde) 70%);}
+.franja-seguridad-lat{position:absolute;top:0;left:0;bottom:0;width:16px;background:linear-gradient(180deg, var(--azul-osc), var(--verde));}
+
+.marca-agua{position:absolute;top:55%;left:50%;transform:translate(-50%,-50%);width:480px;height:480px;
+  background:url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w600) center/contain no-repeat;
+  opacity:0.035;pointer-events:none;z-index:0;}
+
+.contenido-carta{position:relative;z-index:1;}
+
+.encabezado-central{text-align:center;border-bottom:2px solid var(--azul-osc);padding-bottom:15px;margin-bottom:18px}
+.encabezado-central img{height:105px;width:auto;margin-bottom:8px}
+.info-legal-linea{font-size:10px;color:var(--gris);line-height:1.5;margin-top:4px}
+.info-legal-linea b{color:var(--azul-osc)}
+
+.titulo-cert{text-align:center;font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin:10px 0 12px;color:var(--azul-osc)}
+.a-quien{font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:8px;color:var(--tinta)}
+
+.parrafo-texto{text-align:justify;margin-bottom:10px;color:#222}
+
+.flex-cuerpo{display:flex;gap:25px;align-items:stretch;margin:12px 0}
+.bloque-datos{flex:1.3;background:#f8fafc;border:1px solid var(--borde);border-left:4px solid var(--azul);border-radius:0 8px 8px 0;padding:12px 16px;font-size:11.5px;line-height:1.75;color:var(--tinta)}
+.bloque-datos b{color:var(--azul-osc)}
+
+.tabla-contenedor{flex:1;}
+table.tabla-datos{width:100%;border-collapse:collapse;font-size:11px;background:#fff}
+th{background:#EEF2F7;border:1px solid var(--borde);padding:6px 8px;text-align:left;
+  font-size:9px;font-weight:800;text-transform:uppercase;color:var(--azul-osc);letter-spacing:.4px}
+td{border:1px solid var(--borde);padding:5.5px 8px;vertical-align:middle;color:var(--tinta)}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{background:#EEF2F7;font-weight:800;color:var(--azul-osc);border-top:1.5px solid var(--azul-osc)}
+
+/* Línea inferior limpia y separada */
+.folio-seguridad{margin-top:20px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;font-size:9.5px;color:var(--gris);border-top:1px dashed var(--borde);padding-top:10px;margin-bottom:20px}
+
+.firmas-container{display:flex;justify-content:flex-end;margin-top:60px}
+.firma-linea{width:260px;border-top:1.5px solid var(--tinta);padding-top:4px;font-size:11px;line-height:1.4;color:var(--tinta);text-align:left}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{
+    max-width:none;
+    margin:0;
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+    /* Aumentamos drásticamente el padding izquierdo para separar el contenido de la barra de seguridad */
+    padding: 12mm 25mm 10mm 30mm !important;
+  }
+  /* Forzar la impresión exacta de los colores de fondo y barras laterales */
+  * {-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important;}
+}
+@page{
+  size: landscape;
+  /* Margen cero para que las barras de seguridad queden selladas al borde absoluto de la hoja */
+  margin: 0mm;
+}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando datos del certificado…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">CERTIFICADO DE PRESTACIÓN DE SERVICIOS · <span id="ti-folio"></span></div>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return Number(v||0).toFixed(2);}
+function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
+
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function larga(iso){
+  if(!iso) return "";
+  var d=new Date(iso+"T12:00:00");
+  if(isNaN(d.getTime())) return iso;
+  return d.getDate()+" de "+MESES[d.getMonth()]+" de "+d.getFullYear();
+}
+
+/* La página corre dentro de un iframe: su location NO trae los parámetros
+   del enlace. Se piden con google.script.url. */
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      seguir(p.folio||"", p.cliente||"");
+    });
+  } else {
+    var q=location.search||"";
+    var m1=q.match(/[?&]folio=([^&]+)/), m2=q.match(/[?&]cliente=([^&]+)/);
+    seguir(m1?decodeURIComponent(m1[1]):"", m2?decodeURIComponent(m2[1]):"");
+  }
+}
+
+function seguir(folio, clienteViejo){
+  if(!folio){
+    /* el enlace viejo traía cliente+fechas y generaba un folio distinto cada
+       vez que se abría. Ahora el certificado se emite una sola vez y se
+       reabre por su folio. */
+    aviso(clienteViejo
+      ? "Este enlace es de la versión anterior y no lleva folio.<br><br>Emite el certificado desde la pantalla <b>Certificados</b> para que quede registrado con su número."
+      : "Falta el número de folio en el enlace.<br><br>Ábrelo desde la pantalla <b>Certificados</b>.");
+    return;
+  }
+  var pin="";
+  try{ pin = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la aplicación con tu PIN y vuelve a abrir el certificado."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el certificado.")); return; }
+      if(r.empresa) DATOS_EMP=r.empresa;
+      pintar(r);
+      $("aviso").style.display="none";
+      $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión con el servidor."); })
+    .api_verCertificado(pin, folio);
+}
+
+/* Los datos de la empresa vienen del servidor (constante EMPRESA en
+   Codigo.gs), no escritos aquí. Cambiar la dirección es cambiar una línea
+   allá, no acordarse de cuatro pantallas. El respaldo es por si una versión
+   vieja del servidor todavía no los manda. */
+var DATOS_EMP=null;
+var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
+  ruc:"1074020-1-552789",dv:"50",lema:"Ecología · Vida · Salud",
+  /* A propósito vacía: si algún día el servidor no manda los datos, es mejor
+     que el documento salga sin dirección — y se note — a que salga con una
+     dirección vieja en un contrato o un certificado. */
+  direccion:"",
+  ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
+  correo:"correo@ejemplo.com",instagram:"@ecovsapanama",
+  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
+  resolucionCorta:"Resolución Sanitaria N° 1519",
+  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+function emp(){ return DATOS_EMP || EMP_RESP; }
+/* La dirección ya nombra la ciudad; anteponerla daba "Panamá, Distrito Panamá". */
+function conCiudad(dir,ciudad){
+  var d=String(dir||"").trim(), c=String(ciudad||"").trim();
+  if(!d) return c;
+  if(!c || d.toUpperCase().indexOf(c.toUpperCase())>=0) return d;
+  return c+", "+d;
+}
+function pieEmpresa(){
+  var e=emp();
+  return conCiudad(e.direccion, e.ciudad)+
+         " · Tel. "+e.telefono+" · "+e.correo;
+}
+
+function pintar(r){
+  var emp = r.empresa || {};
+  var per = r.periodo || {};
+  var tot = r.totales || {};
+  var actas = r.actasAsociadas || [];
+  var puntos = (emp.puntos||[]).filter(function(p){ return p && p!==emp.nombre; });
+
+  $("ti-folio").textContent = r.folio;
+
+  var html =
+    "<div class='franja-seguridad-sup'></div>"+
+    "<div class='franja-seguridad-lat'></div>"+
+    "<div class='marca-agua'></div>"+
+
+    "<div class='contenido-carta'>"+
+      "<div class='encabezado-central'>"+
+        "<img src='"+LOGO+"' alt='ECOVSA'>"+
+        "<div class='info-legal-linea'>"+
+          "<b>"+esc(emp().razonSocial)+"</b> &nbsp;&bull;&nbsp; <b>RUC</b> "+esc(emp().ruc)+
+            " DV "+esc(emp().dv)+" &nbsp;&bull;&nbsp; "+
+          esc(emp().direccion)+" &nbsp;&bull;&nbsp; "+
+          "Tel. "+esc(emp().telefono)+" &nbsp;&bull;&nbsp; "+esc(emp().correo)+
+            (emp().formulario?"<br>"+esc(emp().formulario):"")+"<br>"+
+          "<b>"+esc(emp().resolucionCorta)+"</b> &nbsp;&bull;&nbsp; "+
+          "Decreto Ejecutivo 111 de 1999 &nbsp;&bull;&nbsp; Resolución 1010 de 2022"+
+        "</div>"+
+      "</div>"+
+
+      "<div class='titulo-cert'>Certificado de prestación de servicios,<br>tratamiento y disposición final</div>"+
+      "<div style='text-align:center;font-size:12px;font-weight:800;color:var(--azul-osc);letter-spacing:1px;margin:-6px 0 12px'>N.° "+esc(r.folio)+"</div>"+
+
+      "<div class='a-quien'>A quien pueda interesar</div>"+
+
+      "<div class='parrafo-texto'>"+
+        "<b>ECOTERMO DE PANAMA S.A.</b>, que opera bajo el nombre comercial <b>ECOVSA</b>, empresa autorizada por el "+
+        "Ministerio de Salud de la República de Panamá para la recolección, transporte, tratamiento y disposición final "+
+        "de desechos hospitalarios peligrosos, <b>certifica</b> que presta sus servicios al siguiente establecimiento "+
+        "y que los desechos recibidos en el periodo indicado fueron tratados por esterilización en autoclave y "+
+        "dispuestos en relleno sanitario autorizado:"+
+      "</div>"+
+
+      "<div class='flex-cuerpo'>"+
+        "<div class='bloque-datos'>"+
+          "<b>CLIENTE:</b> "+esc(emp.razonSocial)+"<br>"+
+          (emp.nombre && emp.nombre!==emp.razonSocial ? "<b>NOMBRE COMERCIAL:</b> "+esc(emp.nombre)+"<br>" : "")+
+          "<b>RUC:</b> "+esc(emp.rucCompleto)+"<br>"+
+          "<b>UBICACIÓN:</b> "+esc(emp.direccion || "No especificada")+"<br>"+
+          (puntos.length ? "<b>PUNTOS ATENDIDOS:</b> "+esc(emp.puntos.join(", "))+"<br>" : "")+
+          "<b>TIPO DE SERVICIO:</b> Recolección, transporte, tratamiento y disposición final (DHP)<br>"+
+          "<b>PERIODO CERTIFICADO:</b> del "+esc(larga(per.desde))+" al "+esc(larga(per.hasta))+"<br>"+
+          "<b>VISITAS REALIZADAS:</b> "+esc(tot.visitas)+
+        "</div>"+
+
+        "<div class='tabla-contenedor'>"+
+          "<div style='font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--azul-osc);margin-bottom:4px'>Volúmenes gestionados</div>"+
+          "<table class='tabla-datos'>"+
+            "<thead><tr><th>Corriente</th><th class='n'>Neto (kg)</th><th class='n'>Bultos</th></tr></thead>"+
+            "<tbody>"+
+              "<tr><td>Desechos bioinfecciosos</td><td class='n'>"+n2(tot.kgBio)+"</td><td class='n'>"+(tot.bultosBio||0)+"</td></tr>"+
+              "<tr><td>Desechos anatomopatológicos</td><td class='n'>"+n2(tot.kgAnatomo)+"</td><td class='n'>"+(tot.bultosAnatomo||0)+"</td></tr>"+
+              "<tr><td>Desechos punzocortantes</td><td class='n'>"+n2(tot.kgPunzo)+"</td><td class='n'>"+(tot.bultosPunzo||0)+"</td></tr>"+
+              "<tr class='tot'><td>TOTAL</td><td class='n'>"+n2(tot.totalKg)+" kg</td><td class='n'>"+(tot.totalBultos||0)+"</td></tr>"+
+            "</tbody>"+
+          "</table>"+
+        "</div>"+
+      "</div>"+
+
+      "<div class='parrafo-texto'>"+
+        "Este documento se expide conforme al Decreto Ejecutivo 111 de 1999 y la Resolución 1010 de 2022, "+
+        "en el marco de la "+esc(emp().resolucion)+". "+
+        (actas.length ? "Las recolecciones certificadas constan en las actas de entrega a planta <b>"+esc(actas.join(", "))+"</b>. " : "")+
+        "El tratamiento se realizó por esterilización en autoclave a 137 °C, con verificación mediante indicador biológico, "+
+        "y el material resultante fue dispuesto en el Relleno Sanitario El Diamante, La Chorrera."+
+      "</div>"+
+
+      "<div class='folio-seguridad'>"+
+        "<div style='text-align:left'><b>Folio:</b> "+esc(r.folio)+"</div>"+
+        "<div style='text-align:center'><b>Emitido:</b> "+esc(larga(r.fechaEmision))+"</div>"+
+        "<div style='text-align:right'><b>Emitido por:</b> "+esc(r.emitidoPor||"")+"</div>"+
+      "</div>"+
+
+      "<div class='firmas-container'>"+
+        "<div class='firma-linea'>"+
+          "<b>ECOTERMO DE PANAMA S.A.</b><br>"+
+          "ECOVSA · Ecología · Vida · Salud<br>"+
+          "<span style='font-size:9.5px;color:var(--gris)'>Documento generado por el sistema Rutas ECOVSA. "+
+          "Verificable con el folio en la hoja de certificados emitidos.</span>"+
+        "</div>"+
+      "</div>"+
+    "</div>";
+
+  $("hoja").innerHTML = html;
+  document.title = "Certificado "+r.folio+" · "+(emp.nombre||"");
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

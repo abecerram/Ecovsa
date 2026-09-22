@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<base target="_top">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Recibo de Visita y Recolección · ECOVSA</title>
+
+<?!= incluirTema('operaciones') ?>
+<style>
+:root{--eco-azul-osc:#0F3B66;--eco-azul-med:#0072BC;--eco-verde-osc:#1E8238;--eco-verde-claro:#49A32B;--eco-ambar:#F5B301;--eco-rojo:#E1251B}
+
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#111;padding-bottom:40px}
+
+.barra-accion{
+
+  position:sticky;top:0;z-index:100;
+
+  display:flex;align-items:center;justify-content:space-between;
+
+  padding:12px 20px;background:var(--eco-azul-osc);box-shadow:0 2px 10px rgba(0,0,0,0.25);
+
+}
+
+.barra-accion .tit{color:#fff;font-size:13px;font-weight:800;letter-spacing:0.5px}
+
+.btn-imprimir{
+
+  background:var(--eco-ambar);color:#451A03;border:none;
+
+  padding:8px 16px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;
+
+}
+
+.hoja-recibo{
+
+  max-width:560px;margin:14px auto 0;background:#fff;
+
+  border-radius:10px;padding:32px 36px;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid var(--borde);
+
+}
+
+.enc{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--eco-azul-osc);padding-bottom:12px}
+
+.enc-izq{display:flex;align-items:center;gap:12px}
+
+.logo-img{
+
+  height:58px;width:90px;
+
+  background:#fff url("https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400") center/contain no-repeat;
+
+  border-radius:6px;
+
+}
+
+.enc-datos b{font-size:14px;color:var(--eco-azul-osc);display:block}
+
+.enc-datos span{font-size:9.5px;color:#555;line-height:1.4;display:block}
+
+.rec-folio-box{text-align:right}
+
+.rec-folio-box .subt{font-size:9.5px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+
+.rec-folio-box .folio-tit{font-size:16px;font-weight:900;color:var(--eco-azul-osc);margin:2px 0}
+
+.rec-folio-tag{
+
+  background:var(--eco-azul-osc);color:#fff;font-size:14px;font-weight:900;
+
+  padding:4px 12px;border-radius:6px;display:inline-block;letter-spacing:0.5px;
+
+}
+
+.barra-norma{
+
+  margin-top:10px;font-size:8.5px;font-weight:700;color:#555;
+
+  border-left:3.5px solid var(--eco-ambar);padding-left:8px;letter-spacing:0.3px;
+
+}
+
+.sec-tit{
+
+  background:#F1F5F9;color:var(--eco-azul-osc);font-weight:900;font-size:10.5px;
+
+  padding:5px 10px;border-radius:5px;text-transform:uppercase;margin:16px 0 8px;letter-spacing:0.5px;
+
+}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.campo-box{background:#FAFCFB;border:1px solid #E2E8F0;border-radius:6px;padding:7px 10px}
+
+.campo-box .lbl{font-size:9px;color:#64748B;font-weight:800;text-transform:uppercase}
+
+.campo-box .val{font-size:12px;font-weight:800;color:#0F172A;margin-top:2px}
+
+.tabla-residuos{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
+
+.tabla-residuos th{background:var(--eco-azul-osc);color:#fff;padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.4px}
+
+.tabla-residuos td{padding:7px 10px;border-bottom:1px solid #E2E8F0}
+
+.tabla-residuos tr.tot{font-weight:900;background:#F8FAFC;border-top:2px solid var(--eco-azul-osc);font-size:12px}
+
+.bloque-firmas{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;border-top:1px solid #E2E8F0;padding-top:12px}
+
+.firma-caja{text-align:center}
+
+.firma-img-box{height:60px;display:flex;align-items:center;justify-content:center}
+
+.firma-img-box img{max-height:55px;max-width:160px}
+
+.firma-linea{border-top:1.5px solid #111;font-size:10px;margin-top:6px;padding-top:4px;line-height:1.4}
+
+.pie-legal{
+
+  margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;
+
+  font-size:8.5px;color:#64748B;line-height:1.5;text-align:justify;
+
+}
+
+@media print{
+
+  /* Los navegadores no imprimen fondos de color a menos que se les pida.
+     Sin esto, las cajas y el encabezado de la tabla salen en blanco. */
+  *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  body{background:#fff;padding:0;margin:0}
+
+  .barra-accion{display:none !important}
+
+  /* Se conserva el relleno para que la hoja impresa se vea como en pantalla */
+  .hoja-recibo{max-width:none;width:100%;margin:0;border:none;border-radius:0;
+    box-shadow:none;padding:0}
+
+  /* nada se debe partir a la mitad entre dos páginas */
+  .campo-box, .tabla-residuos, .firma-box, .bloque-firmas{ page-break-inside:avoid }
+  tr{ page-break-inside:avoid }
+  .sec-head{ page-break-after:avoid }
+
+}
+
+/* Márgenes de la hoja: sin esto el navegador imprime su propio encabezado,
+   el pie y la URL de Google alrededor del documento. */
+@page{ size:letter portrait; margin:12mm }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="barra-accion" id="barra-accion">
+
+  <div class="tit">COMPROBANTE OFICIAL DE RECOLECCIÓN</div>
+
+  <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+
+  <button class="btn-imprimir" id="btn-wa" onclick="enviarWhatsApp()" style="background:#25D366;color:#fff">📱 WhatsApp</button>
+
+  <button class="btn-imprimir" id="btn-mail" onclick="enviarCorreo()" style="background:#0B5394;color:#fff">✉️ Correo</button>
+
+  <button class="btn-imprimir" onclick="copiarEnlace()">🔗 Copiar enlace</button>
+
+</div>
+
+<div class="hoja-recibo" id="cuerpo-recibo">
+
+  <div style="text-align:center;padding:40px;color:#64748B">Cargando comprobante oficial...</div>
+
+</div>
+
+<script>
+
+function $(id){ return document.getElementById(id); }
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+function num(v){ var n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:0; }
+
+window.addEventListener("DOMContentLoaded", function(){
+
+  // La página corre dentro de un iframe de Apps Script: su location NO trae
+  // los parámetros del enlace. Hay que pedírselos al contenedor.
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p = (loc && loc.parameter) || {};
+      SOLO_VER = String(p.solover||"") === "1";
+      arrancarRecibo(p.id || "");
+    });
+  } else {
+    var up = new URLSearchParams(window.location.search);
+    SOLO_VER = up.get("solover") === "1";
+    arrancarRecibo(up.get("id") || "");
+  }
+});
+
+/* El enlace que se le manda al cliente lleva solover=1. Con eso la barra de
+   acciones —imprimir, WhatsApp, correo, copiar enlace— no se dibuja: son
+   herramientas de quien emite el recibo, no de quien lo recibe. Es el mismo
+   mecanismo que ya usaba el acta de disposición final. */
+var SOLO_VER = false;
+
+/* Los datos de la empresa vienen del servidor, de la constante EMPRESA. Este
+   respaldo es solo por si no llegan: guarda lo que no cambia nunca —nombre,
+   RUC, DV, teléfono, correo— y deja vacío el código de formulario, que sí
+   cambia con cada versión. Mejor que el recibo salga sin código y se note, a
+   que salga con una versión que ya no es. */
+var EMP_RESP={comercial:"ECOVSA",ruc:"1074020-1-552789",dv:"50",
+  telefono:"310-2268",correo:"correo@ejemplo.com",formulario:""};
+var EMPRESA_R = EMP_RESP;
+
+function arrancarRecibo(reciboId){
+
+ 
+
+  if(!reciboId){
+
+    $("cuerpo-recibo").innerHTML = '<div style="text-align:center;padding:40px;color:#C0392B"><b>Error:</b> No se especificó el número de recibo en el enlace.</div>';
+
+    return;
+
+  }
+
+  google.script.run
+
+    .withSuccessHandler(renderizarRecibo)
+
+    .withFailureHandler(function(){
+
+      $("cuerpo-recibo").innerHTML = '<div style="text-align:center;padding:40px;color:#C0392B">Error al consultar el recibo desde el servidor.</div>';
+
+    })
+
+    .api_obtenerDetalleRecibo(reciboId);
+
+}
+
+var DATOS_RECIBO = null;
+
+function renderizarRecibo(r){
+
+  if(!r || !r.ok){
+
+    $("cuerpo-recibo").innerHTML = '<div style="text-align:center;padding:40px;color:#C0392B"><b>No encontrado:</b> ' + esc((r&&r.error)||"El recibo no existe.") + '</div>';
+
+    return;
+
+  }
+
+  var d = r.datos;
+
+  DATOS_RECIBO = d;
+
+  EMPRESA_R = r.empresa || EMP_RESP;
+
+  var barra=$("barra-accion");
+  if(barra && SOLO_VER) barra.style.display="none";
+
+  var bw=$("btn-wa"), bm=$("btn-mail");
+  if(bw) bw.style.display = (!SOLO_VER && telefonoWhatsApp(d)) ? "inline-flex" : "none";
+  if(bm) bm.style.display = (!SOLO_VER && d.correo) ? "inline-flex" : "none";
+
+  var totKg = (num(d.kgBio) + num(d.kgAnatomo) + num(d.kgPunzo)).toFixed(2);
+
+  var totBultos = num(d.cantBio) + num(d.cantAnatomo) + num(d.cantPunzo);
+
+  var filas = '';
+
+  if(num(d.kgBio)>0 || num(d.cantBio)>0){
+
+    filas += '<tr><td><b style="color:#C0392B">■</b> Bioinfeccioso</td><td>Bolsa roja</td><td style="text-align:right">'+d.cantBio+'</td><td style="text-align:right"><b>'+num(d.kgBio).toFixed(2)+'</b></td></tr>';
+
+  }
+
+  if(num(d.kgAnatomo)>0 || num(d.cantAnatomo)>0){
+
+    filas += '<tr><td><b style="color:#8E24AA">■</b> Anatomopatológico</td><td>Bolsa roja rotulada</td><td style="text-align:right">'+d.cantAnatomo+'</td><td style="text-align:right"><b>'+num(d.kgAnatomo).toFixed(2)+'</b></td></tr>';
+
+  }
+
+  if(num(d.kgPunzo)>0 || num(d.cantPunzo)>0){
+
+    filas += '<tr><td><b style="color:#F5B301">■</b> Punzocortante</td><td>Recipiente rígido</td><td style="text-align:right">'+d.cantPunzo+'</td><td style="text-align:right"><b>'+num(d.kgPunzo).toFixed(2)+'</b></td></tr>';
+
+  }
+
+  filas += '<tr class="tot"><td colspan="2">TOTAL RETIRADO</td><td style="text-align:right">'+totBultos+'</td><td style="text-align:right">'+totKg+'</td></tr>';
+
+  var firmaHtml = d.firma
+
+    ? '<img src="' + d.firma + '">'
+
+    : '<i style="color:#888;font-size:10px">Firma Digital Registrada en Sitio</i>';
+
+  var html =
+
+  '<div class="enc">' +
+
+    '<div class="enc-izq">' +
+
+      '<div class="logo-img"></div>' +
+
+      '<div class="enc-datos">' +
+
+        /* Decía «ECOVSA / ECOVSA», el nombre repetido. Supervisor decidió el 6 sep
+           que aquí va una sola vez: el recibo es el comprobante operativo de la
+           visita, no un documento legal, y el cliente conoce a ECOVSA por ese
+           nombre. La razón social sigue en el contrato y en la factura. */
+        '<b>' + esc(EMPRESA_R.comercial || "ECOVSA") + '</b>' +
+
+        '<span>Recolección, transporte y disposición final de desechos hospitalarios<br>' +
+
+        (EMPRESA_R.ruc ? 'RUC: ' + esc(EMPRESA_R.ruc) +
+          (EMPRESA_R.dv ? ' DV ' + esc(EMPRESA_R.dv) : '') + ' · ' : '') +
+        (EMPRESA_R.telefono ? 'Tel. ' + esc(EMPRESA_R.telefono) + ' · ' : '') +
+        esc(EMPRESA_R.correo || '') + '<br>' +
+        esc(EMPRESA_R.formulario || '') + '</span>' +
+
+      '</div>' +
+
+    '</div>' +
+
+    '<div class="rec-folio-box">' +
+
+      '<div class="subt">COMPROBANTE OFICIAL</div>' +
+
+      '<div class="folio-tit">Recibo de Visita</div>' +
+
+      '<div class="rec-folio-tag">' + esc(d.recibo) + '</div>' +
+
+    '</div>' +
+
+  '</div>' +
+
+  '<div class="barra-norma">' +
+
+    'DESECHOS HOSPITALARIOS PELIGROSOS · DECRETO EJECUTIVO 111 DE 1999 · RESOLUCIÓN 1010 DE 2022' +
+
+  '</div>' +
+
+  '<div class="sec-tit">1 · Generador</div>' +
+
+  '<div class="grid-2">' +
+
+    '<div class="campo-box"><div class="lbl">Establecimiento de Salud</div><div class="val">' + esc(d.cliente) + '</div></div>' +
+
+    '<div class="campo-box"><div class="lbl">Contacto que Atiende</div><div class="val">' + esc(d.contactoAtiende || "Enfermería / Personal Autorizado") + '</div></div>' +
+
+  '</div>' +
+
+  '<div class="sec-tit">2 · Datos del Retiro</div>' +
+
+  '<div class="grid-2">' +
+
+    '<div class="campo-box"><div class="lbl">Fecha de Retiro</div><div class="val">' + esc(d.fecha) + '</div></div>' +
+
+    '<div class="campo-box"><div class="lbl">Horario (Entrada / Salida)</div><div class="val">' + esc(d.horaInicio || "--:--") + ' a ' + esc(d.horaFinal || "--:--") + '</div></div>' +
+
+  '</div>' +
+
+  '<div class="grid-2" style="margin-top:6px">' +
+
+    '<div class="campo-box"><div class="lbl">Vehículo Asignado</div><div class="val">' + esc(d.vehiculo || "—") + '</div></div>' +
+
+    '<div class="campo-box"><div class="lbl">Operador Responsable</div><div class="val">' + esc(d.responsable) + '</div></div>' +
+
+  '</div>' +
+
+  '<div class="sec-tit">3 · Desechos Retirados</div>' +
+
+  '<table class="tabla-residuos">' +
+
+    '<thead><tr><th>Clasificación</th><th>Envase</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Peso (kg)</th></tr></thead>' +
+
+    '<tbody>' + filas + '</tbody>' +
+
+  '</table>' +
+
+  '<div class="campo-box" style="margin-top:8px">' +
+
+    '<div class="lbl">Observaciones del Retiro</div>' +
+
+    '<div class="val" style="font-weight:500;font-style:italic">' + esc(d.obs || "Cuarto de desechos en condiciones adecuadas. Retiro sin incidencias.") + '</div>' +
+
+  '</div>' +
+
+  '<div class="bloque-firmas">' +
+
+    '<div class="firma-caja">' +
+
+      '<div class="firma-img-box">' + firmaHtml + '</div>' +
+
+      '<div class="firma-linea"><b>' + esc(d.firmante || d.contacto || "________________") + '</b><br>Entrega · Generador</div>' +
+
+    '</div>' +
+
+    '<div class="firma-caja">' +
+
+      '<div class="firma-img-box"><b style="font-size:13px;color:var(--eco-azul-osc)">' + esc(d.responsable) + '</b></div>' +
+
+      '<div class="firma-linea"><b>Recibe --- ECOVSA</b><br>Transportista Especializado</div>' +
+
+    '</div>' +
+
+  '</div>' +
+
+  '<div class="pie-legal">' +
+
+    '<b>Declaración:</b> El generador declara que los desechos entregados corresponden a las clasificaciones y pesos anotados, segregados conforme al Decreto Ejecutivo 111 de 23 de junio de 1999. ECOVSA asume el transporte seguro hasta su tratamiento y disposición final en planta autorizada.' +
+
+  '</div>';
+
+  $("cuerpo-recibo").innerHTML = html;
+
+  document.title = d.recibo + " · " + d.cliente + " · ECOVSA";
+
+}
+
+
+/* ═══════ Envío al cliente ═══════
+   El enlace viaja, no el archivo: si algo se corrige, el cliente ve la
+   versión buena. Y queda constancia de cuándo y por dónde se envió. */
+var PIN_ENV = "", URL_APP_REC = "";
+try{ PIN_ENV = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){}
+
+/* Dentro del iframe, location.href es una URL interna de Google: no sirve
+   para compartir. La dirección real solo la conoce el servidor. */
+(function(){
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){ URL_APP_REC = u || ""; }).api_urlApp();
+})();
+
+/* El enlace que se le manda al cliente lleva solover=1: abre el recibo sin la
+   barra de imprimir, WhatsApp, correo y copiar enlace. Esas son herramientas
+   de quien emite el recibo. El de «copiar enlace» también lo lleva, porque
+   ese enlace se copia justamente para pasárselo a alguien. */
+function enlaceRecibo(){
+  if(!URL_APP_REC || !DATOS_RECIBO) return "";
+  return URL_APP_REC + "?p=recibo&solover=1&id=" + encodeURIComponent(DATOS_RECIBO.recibo);
+}
+
+function textoRecibo(d){
+  var url = enlaceRecibo();
+  return "Estimados " + (d.cliente||"") + ":\n\n" +
+    "Adjuntamos el comprobante de la recolección de desechos hospitalarios " +
+    "realizada el " + (d.fecha||"") + ".\n\n" +
+    "Recibo N° " + (d.recibo||"") + "\n" +
+    "Total retirado: " + (Number(d.totalKg)||0).toFixed(2) + " kg\n\n" +
+    (url ? "Puede consultarlo en cualquier momento aquí:\n" + url + "\n\n" : "") +
+    "Gracias por confiar en ECOVSA.\nTel. 310-2268 · correo@ejemplo.com";
+}
+
+/* La columna whatsapp de la hoja a veces guarda el enlace completo
+   (https://wa.me/507xxxx?text=...) y no solo el número. */
+function telefonoWhatsApp(d){
+  var w = String(d.whatsapp || "");
+  var m = w.match(/wa\.me\/(\d+)/);            // enlace completo
+  if(m) return m[1];
+  var n = w.replace(/[^0-9]/g, "");
+  if(!n) n = String(d.telefono || "").replace(/[^0-9]/g, "");
+  if(!n) return "";
+  if(n.length === 8) n = "507" + n;            // Panamá
+  if(n.length > 13) n = n.slice(0, 11);        // algo vino mal: no inventes
+  return n;
+}
+
+function enviarWhatsApp(){
+  if(!DATOS_RECIBO) return;
+  if(!URL_APP_REC){ alert("Un momento, todavía se está cargando el enlace. Intenta de nuevo."); return; }
+  var num = telefonoWhatsApp(DATOS_RECIBO);
+  if(!num){ alert("Este cliente no tiene WhatsApp ni teléfono registrado."); return; }
+  window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(textoRecibo(DATOS_RECIBO)), "_blank");
+  marcarEnviado("whatsapp");
+}
+
+function enviarCorreo(){
+  if(!DATOS_RECIBO) return;
+  if(!URL_APP_REC){ alert("Un momento, todavía se está cargando el enlace. Intenta de nuevo."); return; }
+  var d = DATOS_RECIBO;
+  if(!d.correo){ alert("Este cliente no tiene correo registrado."); return; }
+  var asunto = "Comprobante de recolección " + (d.recibo||"") + " · ECOVSA";
+  window.open("mailto:" + encodeURIComponent(d.correo) +
+    "?subject=" + encodeURIComponent(asunto) +
+    "&body=" + encodeURIComponent(textoRecibo(d)), "_blank");
+  marcarEnviado("correo");
+}
+
+/* Copiar el enlace, para pegarlo donde haga falta. */
+function copiarEnlace(){
+  var u = enlaceRecibo();
+  if(!u){ alert("Todavía se está cargando el enlace."); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(u).then(
+      function(){ alert("Enlace copiado."); },
+      function(){ prompt("Copia este enlace:", u); });
+  } else prompt("Copia este enlace:", u);
+}
+
+function marcarEnviado(canal){
+  if(!PIN_ENV || !DATOS_RECIBO) return;
+  google.script.run
+    .withSuccessHandler(function(){})
+    .withFailureHandler(function(){})
+    .api_marcarReciboEnviado(PIN_ENV, DATOS_RECIBO.recibo, canal);
+}
+
+</script>
+
+</body>
+
+</html>

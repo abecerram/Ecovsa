@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 14px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  box-shadow:0 2px 12px rgba(20,48,107,.3)}
+.barra .ti{color:#fff;font-size:13px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:10px 15px;border-radius:10px;cursor:pointer;background:var(--ambar);color:#4A3300}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:900px;margin:22px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:12px;padding:26px;text-align:center;font-size:14px;color:var(--gris);line-height:1.6}
+
+.hoja{max-width:900px;margin:18px auto 0;background:#fff;color:#111;padding:28px 32px;
+  border:1px solid var(--borde);border-radius:8px;font-size:12px;line-height:1.5;
+  box-shadow:0 3px 16px rgba(20,48,107,.10)}
+.enc{display:flex;gap:14px;align-items:center;border-bottom:3px solid var(--azul-osc);padding-bottom:12px}
+.enc img{height:60px;width:auto}
+.enc .ti{font-size:17px;font-weight:900;color:var(--azul-osc);letter-spacing:.3px;line-height:1.2}
+.enc .su{font-size:10.5px;color:#555;letter-spacing:.6px;text-transform:uppercase}
+.cod{margin-left:auto;text-align:right;font-size:9.5px;color:#555;line-height:1.65;white-space:nowrap}
+
+.tit{background:var(--azul-osc);color:#fff;padding:11px 15px;border-radius:6px;margin:15px 0;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.tit .et{font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;opacity:.85}
+.tit b{font-size:18px;display:block;letter-spacing:.3px}
+.tit .der{text-align:right;font-size:11px;line-height:1.5}
+
+.sec{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);border-bottom:1px solid #ccc;padding-bottom:3px;margin:18px 0 9px}
+
+.cuadros{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cuadro{border:1px solid #bbb;border-radius:6px;padding:9px 11px;border-top:3px solid var(--azul)}
+.cuadro .e{font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;color:#666}
+.cuadro .v{font-size:19px;font-weight:900;color:var(--azul-osc);line-height:1.2}
+.cuadro .s{font-size:10px;color:#666}
+
+table{width:100%;border-collapse:collapse;margin-top:5px;font-size:11px}
+th{background:#EEF2F7;border:1px solid #bbb;padding:6px 7px;text-align:left;
+  font-size:8.5px;text-transform:uppercase;letter-spacing:.4px}
+td{border:1px solid #ccc;padding:5px 7px;vertical-align:top}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc)}
+
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:34px}
+.firma{text-align:center}
+.firma .lin{border-top:1.5px solid #333;margin-top:60px;padding-top:6px;font-size:11px;line-height:1.5}
+.nota{background:#FFF8E1;border-left:4px solid var(--ambar);border-radius:6px;padding:9px 12px;margin-top:11px;font-size:10.5px;line-height:1.6;color:#6b5200}
+.pie{margin-top:24px;padding-top:10px;border-top:1px solid #ccc;font-size:9px;color:#666;line-height:1.7}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{max-width:none;margin:0;border:none;border-radius:0;padding:0;box-shadow:none;font-size:10pt}
+  table{page-break-inside:auto} tr{page-break-inside:avoid}
+  .firmas{page-break-inside:avoid}
+  .sec{page-break-after:avoid}
+}
+@page{margin:14mm}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando el reporte…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">REPORTE DE RECEPCIÓN EN PLANTA</div>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var DESDE="", HASTA="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return Number(v||0).toFixed(2);}
+function pc(a,b){return b? (a/b*100).toFixed(1)+" %" : "—";}
+function mesNom(m){
+  var p=String(m).split("-");
+  var nn=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto",
+          "Septiembre","Octubre","Noviembre","Diciembre"];
+  return (nn[Number(p[1])-1]||"")+" "+p[0];
+}
+function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
+
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      seguir(p.desde||"", p.hasta||"");
+    });
+  } else {
+    var q=location.search||"";
+    var m1=q.match(/[?&]desde=([^&]+)/), m2=q.match(/[?&]hasta=([^&]+)/);
+    seguir(m1?decodeURIComponent(m1[1]):"", m2?decodeURIComponent(m2[1]):"");
+  }
+}
+
+function seguir(d1,d2){
+  DESDE=d1; HASTA=d2;
+  if(!DESDE||!HASTA){ aviso("Falta el periodo en el enlace.<br><br>Abre el reporte desde la pantalla de planta."); return; }
+
+  var pin="";
+  try{ pin = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la pantalla de planta y vuelve a abrir el reporte."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo generar el reporte.")); return; }
+      if(r.vacio){
+        aviso("No hay recolecciones registradas entre el "+esc(r.desde)+" y el "+esc(r.hasta)+".");
+        return;
+      }
+      pintar(r);
+      $("aviso").style.display="none";
+      $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión. El reporte necesita señal."); })
+    .api_plantaReporte(pin, DESDE, HASTA);
+}
+
+function pintar(r){
+  var t=r.totales, gens=r.generadores||[], ops=r.operadores||[], meses=r.meses||[], actas=r.actas||[];
+  var hoy=r.hoy||"", quien=(r.usuario&&r.usuario.nombre)||"";
+
+  var filasGen = gens.map(function(g,i){
+    return "<tr><td class='n'>"+(i+1)+"</td><td>"+esc(g.generador)+"</td>"+
+      "<td class='n'>"+g.visitas+"</td><td class='n'>"+g.bultos+"</td>"+
+      "<td class='n'>"+n2(g.kg)+"</td><td class='n'>"+pc(g.kg,t.kgTotal)+"</td>"+
+      "<td style='font-size:9px'>"+esc(g.recibos.join(", ")||"—")+"</td></tr>";
+  }).join("");
+
+  var filasOp = ops.map(function(o){
+    return "<tr><td>"+esc(o.operador)+"</td><td class='n'>"+o.recolecciones+"</td>"+
+      "<td class='n'>"+o.bultos+"</td><td class='n'>"+n2(o.kg)+"</td>"+
+      "<td class='n'>"+pc(o.kg,t.kgTotal)+"</td></tr>";
+  }).join("");
+
+  var filasMes = meses.map(function(m){
+    return "<tr><td>"+esc(mesNom(m.mes))+"</td><td class='n'>"+m.recolecciones+"</td>"+
+      "<td class='n'>"+n2(m.kg)+"</td><td class='n'>"+pc(m.kg,t.kgTotal)+"</td></tr>";
+  }).join("");
+
+  var filasActas = actas.map(function(a){
+    return "<tr><td>"+(a.dispuesta?esc(a.actaId):"<i>Sin disponer todavía</i>")+"</td>"+
+      "<td>"+(a.dispuesta?esc(a.fechaEntrega):"—")+"</td>"+
+      "<td>"+esc(a.primera)+" al "+esc(a.ultima)+"</td>"+
+      "<td class='n'>"+a.recolecciones+"</td>"+
+      "<td class='n'>"+a.bultos+"</td>"+
+      "<td class='n'><b>"+n2(a.kg)+"</b></td></tr>";
+  }).join("");
+
+  var pend = t.sinActa
+    ? "<div class='nota'><b>"+t.sinActa+" recolección(es)</b> de este periodo, por "+n2(t.kgSinActa)+
+      " kg, todavía no han sido entregadas en planta. Están incluidas en los totales de "+
+      "producción, pero aún no ingresaron a tratamiento.</div>"
+    : "";
+
+  var html =
+  "<div class='enc'>"+
+    "<img src='"+LOGO+"' alt='ECOVSA'>"+
+    "<div><div class='ti'>ECOVSA</div>"+
+      "<div class='su'>Ecología · Vida · Salud</div></div>"+
+    "<div class='cod'>ECOVSA-FR-DF-02 · Rev. 01<br>Recepción en planta de tratamiento<br>República de Panamá</div>"+
+  "</div>"+
+
+  "<div class='tit'>"+
+    "<div><span class='et'>Reporte de desechos recolectados</span>"+
+      "<b>"+esc(r.desde)+" al "+esc(r.hasta)+"</b></div>"+
+    "<div class='der'>Emitido el "+esc(hoy)+(quien?"<br>por "+esc(quien):"")+"</div>"+
+  "</div>"+
+
+  "<div class='sec'>1 · Resumen del periodo</div>"+
+  "<div class='cuadros'>"+
+    "<div class='cuadro'><div class='e'>Total recolectado</div><div class='v'>"+n2(t.kgTotal)+"</div><div class='s'>kilogramos</div></div>"+
+    "<div class='cuadro'><div class='e'>Recolecciones</div><div class='v'>"+t.recolecciones+"</div><div class='s'>visitas registradas</div></div>"+
+    "<div class='cuadro'><div class='e'>Bultos</div><div class='v'>"+t.bultos+"</div><div class='s'>recipientes</div></div>"+
+    "<div class='cuadro'><div class='e'>Generadores</div><div class='v'>"+gens.length+"</div><div class='s'>establecimientos</div></div>"+
+  "</div>"+
+  pend+
+
+  "<div class='sec'>2 · Composición por corriente de desecho</div>"+
+  "<table><thead><tr><th>Corriente</th><th>Peso (kg)</th><th>Bultos</th><th>Participación</th></tr></thead><tbody>"+
+    "<tr><td>Bioinfeccioso</td><td class='n'>"+n2(t.kgBio)+"</td><td class='n'>"+t.cantBio+"</td><td class='n'>"+pc(t.kgBio,t.kgTotal)+"</td></tr>"+
+    "<tr><td>Anatomopatológico</td><td class='n'>"+n2(t.kgAnatomo)+"</td><td class='n'>"+t.cantAnatomo+"</td><td class='n'>"+pc(t.kgAnatomo,t.kgTotal)+"</td></tr>"+
+    "<tr><td>Punzocortante</td><td class='n'>"+n2(t.kgPunzo)+"</td><td class='n'>"+t.cantPunzo+"</td><td class='n'>"+pc(t.kgPunzo,t.kgTotal)+"</td></tr>"+
+    "<tr class='tot'><td>TOTAL</td><td class='n'>"+n2(t.kgTotal)+"</td><td class='n'>"+t.bultos+"</td><td class='n'>100.0 %</td></tr>"+
+  "</tbody></table>"+
+
+  "<div class='sec'>3 · Generadores de origen</div>"+
+  "<table><thead><tr><th>#</th><th>Generador</th><th>Visitas</th><th>Bultos</th><th>Peso (kg)</th>"+
+    "<th>Particip.</th><th>Recibos</th></tr></thead>"+
+    "<tbody>"+filasGen+
+    "<tr class='tot'><td colspan='2'>TOTAL</td><td class='n'>"+t.recolecciones+"</td>"+
+      "<td class='n'>"+t.bultos+"</td><td class='n'>"+n2(t.kgTotal)+"</td>"+
+      "<td class='n'>100.0 %</td><td></td></tr></tbody></table>"+
+
+  "<div class='sec'>4 · Recolección por operador</div>"+
+  "<table><thead><tr><th>Operador</th><th>Recolecciones</th><th>Bultos</th><th>Peso (kg)</th><th>Participación</th></tr></thead>"+
+    "<tbody>"+filasOp+"</tbody></table>"+
+
+  "<div class='sec'>5 · Trazabilidad de entrega a planta</div>"+
+  "<table><thead><tr><th>Acta de disposición</th><th>Entregada</th><th>Recolectado entre</th>"+
+    "<th>Recolecciones</th><th>Bultos</th><th>Peso (kg)</th></tr></thead>"+
+    "<tbody>"+filasActas+
+    "<tr class='tot'><td colspan='3'>TOTAL DEL PERIODO</td><td class='n'>"+t.recolecciones+"</td>"+
+      "<td class='n'>"+t.bultos+"</td><td class='n'>"+n2(t.kgTotal)+"</td></tr></tbody></table>"+
+
+  (meses.length>1
+    ? "<div class='sec'>6 · Evolución mensual</div>"+
+      "<table><thead><tr><th>Mes</th><th>Recolecciones</th><th>Peso (kg)</th><th>Participación</th></tr></thead>"+
+      "<tbody>"+filasMes+"</tbody></table>"
+    : "")+
+
+  "<div class='firmas'>"+
+    "<div class='firma'><div class='lin'><b>"+esc(quien)+"</b><br>Supervisor de planta · Recepción</div></div>"+
+    "<div class='firma'><div class='lin'>&nbsp;<br>Revisado por · ECOVSA</div></div>"+
+  "</div>"+
+
+  "<div class='pie'>"+
+    "Reporte generado por el sistema Rutas ECOVSA a partir del historial de recolecciones. "+
+    "El periodo indicado corresponde a la <b>fecha de recolección</b> en el establecimiento generador, "+
+    "no a la fecha de entrega en planta; la sección 5 relaciona cada lote con el acta de disposición "+
+    "que lo trasladó. Cada recolección lleva número de recibo, verificable contra el registro de campo."+
+  "</div>";
+
+  $("hoja").innerHTML=html;
+  document.title="Recolectado "+r.desde+" a "+r.hasta+" · ECOVSA";
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

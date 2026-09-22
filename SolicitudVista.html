@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('finanzas') ?>
+<style>
+:root{--oro-osc:#7A5600;--oro:#A87B0A;--marino:#002060;--gris-banda:#DDDDDD;
+  /* más oscuro que el del sistema: este documento se imprime y las
+     líneas claras se pierden en papel */
+  --borde:#B9AF97}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:12px 20px;background:linear-gradient(135deg,var(--oro-osc),var(--oro));
+  box-shadow:0 2px 12px rgba(122,86,0,.30)}
+.barra .ti{color:#fff;font-size:13.5px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:800;
+  padding:10px 18px;border-radius:10px;cursor:pointer;background:var(--ambar);color:#3D2B00;
+  box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.barra button.sec{background:rgba(255,255,255,.20);color:#fff;box-shadow:none;font-weight:700}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:760px;margin:30px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:12px;padding:30px;text-align:center;font-size:14px;color:var(--gris);line-height:1.6}
+
+.hoja{max-width:1010px;margin:22px auto 0;background:#fff;padding:26px 30px 24px;
+  border:1px solid var(--borde);font-size:11px;line-height:1.35;
+  box-shadow:0 6px 24px rgba(122,86,0,.13)}
+
+/* ── título y correlativo ── */
+.tit{display:flex;align-items:flex-start;gap:16px;margin-bottom:12px}
+.tit img{height:72px;width:auto;flex:0 0 auto}
+.tit .med{flex:1;text-align:center}
+.tit .med .h{font-size:22px;font-weight:900;letter-spacing:2.5px;color:var(--marino)}
+.tit .med .e{font-size:8.5px;color:var(--gris);letter-spacing:.3px;margin-top:2px}
+.tit .num{text-align:right;flex:0 0 138px}
+.tit .num .r{font-size:8px;font-weight:900;letter-spacing:.9px;color:var(--gris);
+  text-transform:uppercase}
+.tit .num .v{font-size:20px;font-weight:900;color:var(--marino);font-variant-numeric:tabular-nums;
+  letter-spacing:.5px}
+
+/* ── rejilla del encabezado ── */
+table.enc{width:100%;border-collapse:collapse;margin-bottom:9px}
+table.enc td{padding:5px 7px;border:1px solid var(--borde);vertical-align:middle}
+table.enc td.rot{background:#F2EEE3;font-size:8.5px;font-weight:900;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--tinta);width:1%;white-space:nowrap}
+table.enc td.dat{font-size:12.5px;font-weight:700}
+table.enc td.dat.gr{font-size:14px;font-weight:800}
+
+/* ── casillas: se imprimen marcadas o vacías, como en el papel ── */
+.cx{display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:10px;
+  font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.cx i{width:11px;height:11px;border:1.3px solid var(--tinta);display:inline-block;
+  position:relative;flex:0 0 11px}
+.cx.si i:after{content:"";position:absolute;left:2.5px;top:-1px;width:4px;height:8px;
+  border:solid var(--tinta);border-width:0 1.8px 1.8px 0;transform:rotate(42deg)}
+
+/* ── tabla de detalle ── */
+table.det{width:100%;border-collapse:collapse;margin-top:2px}
+table.det th{background:#F2EEE3;border:1px solid var(--borde);padding:5px 6px;
+  font-size:7.5px;font-weight:900;letter-spacing:.35px;text-transform:uppercase;
+  color:var(--tinta);text-align:center;line-height:1.25}
+table.det td{border:1px solid var(--borde);padding:4.5px 6px;vertical-align:top;font-size:10.5px}
+table.det td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+table.det td.c{text-align:center}
+table.det tr.vacia td{height:17px}
+
+/* ── cierre: observaciones + totales ── */
+.cierre{display:flex;gap:0;margin-top:-1px}
+.obs{flex:1;border:1px solid var(--borde);border-top:none;padding:7px 8px;min-height:104px}
+.obs .r{font-size:8px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gris);margin-bottom:3px}
+.obs .t{font-size:10.5px;line-height:1.45}
+table.tot{flex:0 0 288px;border-collapse:collapse}
+table.tot td{border:1px solid var(--borde);padding:4px 7px;font-size:10.5px}
+table.tot td.r{background:#F2EEE3;font-size:8.5px;font-weight:900;letter-spacing:.4px;
+  text-transform:uppercase;text-align:right}
+table.tot td.v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;width:104px}
+table.tot tr.total td{background:#E8E2D2;font-weight:900;color:var(--marino);font-size:12px}
+table.tot tr.pagar td{background:var(--marino);color:#fff;font-weight:900;font-size:13.5px;
+  border-color:var(--marino)}
+
+/* ── banda gris, como la de la hoja ── */
+.banda{background:var(--gris-banda);height:9px;border-left:1px solid var(--borde);
+  border-right:1px solid var(--borde)}
+
+/* ── datos bancarios + retenciones ── */
+.medio{display:flex;gap:0}
+table.ban{flex:1;border-collapse:collapse}
+table.ban td{border:1px solid var(--borde);padding:4.5px 7px;font-size:10.5px}
+table.ban td.r{background:#F2EEE3;font-size:8.5px;font-weight:900;letter-spacing:.4px;
+  text-transform:uppercase;text-align:right;width:1%;white-space:nowrap}
+table.ban td.v{font-weight:700;font-size:11.5px}
+table.ban tr.cab td{background:#E8E2D2;font-weight:900;font-size:9px;letter-spacing:.7px;
+  text-transform:uppercase;text-align:center}
+
+/* ── pie: estado de factura + cuatro firmas ── */
+.pie{display:flex;gap:0;margin-top:14px}
+.fact{flex:0 0 158px;border:1px solid var(--borde);padding:8px 9px}
+.fact .r{font-size:8px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gris);margin-bottom:6px}
+.fact .cx{display:flex;margin:0 0 5px}
+.firmas{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px 30px;padding-left:22px}
+.fbloq .rol{font-size:8.5px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--tinta);margin-bottom:19px}
+.fbloq .linea{border-top:1px solid var(--tinta);padding-top:3px;
+  display:flex;gap:6px;align-items:baseline}
+.fbloq .linea span{font-size:8px;font-weight:800;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.4px;flex:0 0 auto}
+.fbloq .linea b{font-size:11px;font-weight:800;line-height:1.25}
+.fbloq .fec{font-size:8.5px;color:var(--gris);margin-top:1px;padding-left:2px}
+
+.sello{position:absolute;font-size:10px}
+.marca{display:inline-block;font-size:9px;font-weight:900;letter-spacing:1.2px;
+  text-transform:uppercase;border:1.8px solid var(--verde);color:var(--verde);
+  border-radius:4px;padding:2.5px 9px}
+.marca.pag{border-color:var(--marino);color:var(--marino)}
+.marca.urg{border-color:var(--rojo);color:var(--rojo);margin-left:6px}
+
+.rastro{margin-top:11px;border-top:1px dashed var(--borde);padding-top:6px;
+  display:flex;justify-content:space-between;gap:12px;font-size:7.5px;color:var(--gris)}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{max-width:none;margin:0;border:none;box-shadow:none;padding:0;font-size:9.5px}
+  /* el papel se archiva: fondos claros y letra negra, sin gastar color */
+  .tit .med .h,.tit .num .v,table.tot tr.total td,.marca.pag{color:#000}
+  table.tot tr.pagar td{background:#000;border-color:#000}
+  .marca{border-color:#000;color:#000}
+  table.enc td.rot,table.det th,table.tot td.r,table.ban td.r{background:#EFEFEF}
+  table.tot tr.total td,table.ban tr.cab td{background:#DEDEDE}
+  .banda{background:#D8D8D8}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  /* Con las firmas de vuelta la hoja quedó justa y el renglón de rastro se
+     iba solo a una segunda página. Se aprieta lo que no cuesta legibilidad:
+     el documento tiene que caber en una hoja o el que firma pierde de vista
+     lo que está firmando. */
+  .pie{margin-top:8px}
+  .firmas{gap:9px 30px}
+  .fbloq .rol{margin-bottom:10px}
+  .fbloq .linea{padding-top:2px}
+  .fbloq .fec{margin-top:0}
+  .rastro{margin-top:6px;padding-top:4px}
+}
+@page{ size:portrait; margin:10mm 11mm; }
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando la solicitud…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">SOLICITUD DE PAGO · <span id="ti-folio"></span></div>
+    <button class="sec" onclick="volver()">← Volver</button>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var URL_APP="", VOLVER_A="finanzas";
+
+/* Los cargos que el formato de contabilidad trae preimpresos. El sistema no
+   los deduce de nada: son las personas que ocupan el puesto. Si cambia
+   alguna, se cambia aquí y todos los impresos siguientes salen con el
+   nombre nuevo.
+
+   El de finanzas antes salía con el nombre de quien le hubiera dado
+   «aprobar» en la aplicación, que no es lo mismo: el papel dice quién es el
+   Gerente Financiero, y quién apretó el botón queda en el sistema.
+
+   El Vo. Bo. NO va aquí a propósito. Ese espacio lo firma quien de verdad
+   revisó el gasto —gerencia de gestión, obligatoriamente arriba del umbral—
+   y no siempre es la misma persona, así que el nombre sale del registro. */
+var DIR_ADMON     = "JUAN SARMIENTO";
+var DIR_FINANZAS  = "SIMON OTALORA";
+
+/* Renglones en blanco que se dejan en el detalle, para que contabilidad pueda
+   anotar a mano sobre el papel, igual que en la hoja de Excel. */
+var RENGLONES_MINIMOS = 8;
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return (Number(v)||0).toFixed(2);}
+function d2(v){var x=Number(v)||0,s=Math.abs(x).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return (x<0?"-":"")+s;}
+function aviso(t){ $("app").style.display="none"; var a=$("aviso");
+  a.style.display="block"; a.innerHTML=t; }
+
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function larga(iso){
+  if(!iso) return "";
+  var d=new Date(iso+"T12:00:00");
+  if(isNaN(d.getTime())) return iso;
+  return d.getDate()+" de "+MESES[d.getMonth()]+" de "+d.getFullYear();
+}
+function corta(iso){
+  if(!iso) return "";
+  var p=String(iso).split("-");
+  return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : iso;
+}
+function caja(marcada, texto){
+  return '<span class="cx'+(marcada?" si":"")+'"><i></i>'+esc(texto)+'</span>';
+}
+
+/* Dentro del iframe de Apps Script la location de esta página no trae los
+   parámetros del enlace: hay que pedirlos con google.script.url. */
+function arrancar(){
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      if(p.de) VOLVER_A=String(p.de);
+      seguir(p.id||p.solicitud||"");
+    });
+  } else {
+    var q=location.search||"";
+    var m=q.match(/[?&]id=([^&]+)/), v=q.match(/[?&]de=([^&]+)/);
+    if(v) VOLVER_A=decodeURIComponent(v[1]);
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+
+function seguir(id){
+  if(!id){ aviso("Falta el número de solicitud en el enlace.<br><br>Ábrela desde tu lista de solicitudes."); return; }
+  var pin="";
+  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la aplicación con tu PIN y vuelve a abrir la solicitud."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir la solicitud.")); return; }
+      var e=String(r.solicitud.estado||"").toUpperCase();
+      /* una solicitud sin aprobar no se imprime: si llega firmada a
+         contabilidad, el control de aprobación deja de servir de algo */
+      if(["APROBADA","PAGADA"].indexOf(e)<0){
+        aviso("La solicitud <b>"+esc(r.solicitud.solicitudId)+"</b> está en estado <b>"+esc(e||"SOLICITADA")+
+              "</b>.<br><br>Solo se imprimen las aprobadas.");
+        return;
+      }
+      if(r.empresa) DATOS_EMP=r.empresa;
+      pintar(r);
+      $("aviso").style.display="none";
+      $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión con el servidor."); })
+    .api_verSolicitud(pin, id);
+}
+
+/* Los datos de la empresa vienen del servidor (constante EMPRESA en
+   Codigo.gs), no escritos aquí. Cambiar la dirección es cambiar una línea
+   allá, no acordarse de cuatro pantallas. El respaldo es por si una versión
+   vieja del servidor todavía no los manda. */
+var DATOS_EMP=null;
+var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
+  ruc:"1074020-1-552789",dv:"50",lema:"Ecología · Vida · Salud",
+  /* A propósito vacía: si algún día el servidor no manda los datos, es mejor
+     que el documento salga sin dirección — y se note — a que salga con una
+     dirección vieja en un contrato o un certificado. */
+  direccion:"",
+  ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
+  correo:"correo@ejemplo.com",instagram:"@ecovsapanama",
+  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
+  resolucionCorta:"Resolución Sanitaria N° 1519",
+  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+function emp(){ return DATOS_EMP || EMP_RESP; }
+/* La dirección ya nombra la ciudad; anteponerla daba "Panamá, Distrito Panamá". */
+function conCiudad(dir,ciudad){
+  var d=String(dir||"").trim(), c=String(ciudad||"").trim();
+  if(!d) return c;
+  if(!c || d.toUpperCase().indexOf(c.toUpperCase())>=0) return d;
+  return c+", "+d;
+}
+function pieEmpresa(){
+  var e=emp();
+  return conCiudad(e.direccion, e.ciudad)+
+         " · Tel. "+e.telefono+" · "+e.correo;
+}
+
+function pintar(r){
+  var s=r.solicitud, l=r.lineas||[];
+  var pagada = s.estado==="PAGADA";
+  $("ti-folio").textContent=s.solicitudId;
+
+  /* "Pendiente Fact." del formato: si no viene ni original ni copia,
+     la factura está pendiente. No es un dato aparte, se deduce. */
+  var pendiente = !s.facturaOriginal && !s.facturaCopia;
+
+  var filas = l.map(function(x,i){
+    return "<tr>"+
+      "<td class='n'>"+n2(x.cantidad)+"</td>"+
+      "<td class='c'>"+esc(x.unidad)+"</td>"+
+      "<td>"+esc(x.concepto)+"</td>"+
+      "<td>"+esc(x.job||s.proyecto)+"</td>"+
+      "<td>"+esc(x.cuentaDescripcion)+"</td>"+
+      "<td class='c'>"+esc(x.cuentaCodigo)+"</td>"+
+      "<td class='c'>"+(x.exento?"X":"")+"</td>"+
+      "<td class='n'>"+d2(x.valorUnitario)+"</td>"+
+      "<td class='n'>"+d2(x.valorTotal)+"</td></tr>";
+  }).join("");
+  for(var k=l.length; k<RENGLONES_MINIMOS; k++)
+    filas += "<tr class='vacia'><td></td><td></td><td></td><td></td><td></td>"+
+             "<td></td><td></td><td></td><td></td></tr>";
+
+  $("hoja").innerHTML=
+    "<div class='tit'>"+
+      "<img src='"+LOGO+"' alt='ECOVSA'>"+
+      "<div class='med'><div class='h'>SOLICITUD DE PAGO</div>"+
+        "<div class='e'>"+esc(emp().razonSocial)+" · RUC "+esc(emp().ruc)+
+          " DV "+esc(emp().dv)+" · "+
+        esc(conCiudad(emp().direccion, emp().ciudad))+
+        (emp().formulario?" · "+esc(emp().formulario):"")+"</div>"+
+        "<div style='margin-top:6px'><span class='marca"+(pagada?" pag":"")+"'>"+
+          (pagada?"Pagada":"Aprobada")+"</span>"+
+          (s.urgencia==="URGE"?"<span class='marca urg'>Urge</span>":"")+"</div></div>"+
+      "<div class='num'><div class='r'>Solicitud N°</div>"+
+        "<div class='v'>"+esc(s.solicitudId)+"</div></div>"+
+    "</div>"+
+
+    "<table class='enc'>"+
+      "<tr><td class='rot'>Compañía o consorcio</td>"+
+          "<td class='dat gr'>"+esc(s.compania||"ECOTERMO DE PANAMA S.A.")+"</td>"+
+          "<td class='rot'>Fecha</td>"+
+          "<td class='dat' style='width:150px'>"+esc(corta(s.fecha))+"</td></tr>"+
+      "<tr><td class='rot'>Proyecto</td>"+
+          "<td class='dat'>"+esc(s.proyecto||"—")+"</td>"+
+          "<td class='rot'>Tipo</td>"+
+          "<td>"+caja(s.tipoPago==="ACH","ACH")+caja(s.tipoPago==="CHEQUE","Cheque")+
+                 caja(s.tipoPago==="EFECTIVO","Efectivo")+"<br>"+
+                 caja(s.condicion==="CONTADO","Contado")+caja(s.condicion==="CREDITO","Crédito")+
+          "</td></tr>"+
+      "<tr><td class='rot'>Páguese a</td>"+
+          "<td class='dat gr'>"+esc(s.proveedor)+"</td>"+
+          "<td class='rot'>RUC / DV</td>"+
+          "<td class='dat'>"+esc(s.ruc||"—")+(s.dv?" &nbsp;<span style='font-size:9px;color:var(--gris)'>DV</span> "+esc(s.dv):"")+"</td></tr>"+
+    "</table>"+
+
+    "<table class='det'><thead><tr>"+
+      "<th style='width:46px'>Cant.</th><th style='width:56px'>Unidad</th>"+
+      "<th>Concepto</th><th style='width:104px'>Proyec / Job</th>"+
+      "<th style='width:124px'>Descripción de cuenta</th><th style='width:74px'>No. cuenta</th>"+
+      "<th style='width:38px'>Exento</th><th style='width:72px'>Valor unitario</th>"+
+      "<th style='width:80px'>Valor total</th>"+
+    "</tr></thead><tbody>"+filas+"</tbody></table>"+
+
+    "<div class='cierre'>"+
+      "<div class='obs'><div class='r'>Obser.</div><div class='t'>"+
+        (s.concepto?esc(s.concepto):"")+
+        (s.observaciones?(s.concepto?"<br>":"")+esc(s.observaciones):"")+
+      "</div></div>"+
+      "<table class='tot'>"+
+        "<tr><td class='r'>Subtotal</td><td class='v'>"+d2(s.subtotal)+"</td></tr>"+
+        "<tr><td class='r'>ITBMS 7%</td><td class='v'>"+d2(s.itbms)+"</td></tr>"+
+        "<tr><td class='r'>Gastos exentos</td><td class='v'>"+d2(s.exentos)+"</td></tr>"+
+        "<tr class='total'><td class='r'>Total</td><td class='v'>"+
+          d2((Number(s.subtotal)||0)+(Number(s.itbms)||0)+(Number(s.exentos)||0))+"</td></tr>"+
+        "<tr><td class='r'>Retención contrato</td><td class='v'>"+d2(s.retencionContrato)+"</td></tr>"+
+        "<tr><td class='r'>Retención ITBMS 50%</td><td class='v'>"+d2(s.retencionItbms)+"</td></tr>"+
+        "<tr><td class='r'>Anticipo</td><td class='v'>"+d2(s.anticipo)+"</td></tr>"+
+        "<tr class='pagar'><td class='r' style='background:var(--marino);color:#fff'>Total a pagar B/.</td>"+
+          "<td class='v'>"+d2(s.total)+"</td></tr>"+
+      "</table>"+
+    "</div>"+
+
+    "<div class='banda'></div>"+
+
+    "<div class='medio'>"+
+      "<table class='ban' style='flex:1.35'>"+
+        "<tr class='cab'><td colspan='2'>Datos bancarios</td></tr>"+
+        "<tr><td class='r'>Banco</td><td class='v'>"+esc(s.banco||"—")+"</td></tr>"+
+        "<tr><td class='r'>Titular</td><td class='v'>"+esc(s.proveedor)+"</td></tr>"+
+        "<tr><td class='r'>No. de cuenta</td><td class='v'>"+esc(s.numeroCuenta||"—")+"</td></tr>"+
+        "<tr><td class='r'>Tipo</td><td class='v'>"+esc(s.tipoCuenta||"—")+"</td></tr>"+
+      "</table>"+
+      "<table class='ban' style='flex:1'>"+
+        "<tr class='cab'><td colspan='2'>"+(pagada?"Desembolso":"Control de pago")+"</td></tr>"+
+        "<tr><td class='r'>Fecha de pago</td><td class='v'>"+esc(corta(s.fechaPago)||"—")+"</td></tr>"+
+        "<tr><td class='r'>Referencia / ACH</td><td class='v'>"+esc(s.referenciaPago||"—")+"</td></tr>"+
+        "<tr><td class='r'>N° de cheque</td><td class='v'>"+esc(s.numeroCheque||"—")+"</td></tr>"+
+        "<tr><td class='r'>Registró el pago</td><td class='v'>"+esc(s.pagadoPor||"—")+"</td></tr>"+
+      "</table>"+
+    "</div>"+
+
+    "<div class='pie'>"+
+      "<div class='fact'><div class='r'>Factura</div>"+
+        caja(s.facturaOriginal,"Original")+
+        caja(s.facturaCopia,"Copia")+
+        "<div class='r' style='margin-top:9px'>Pendiente fact.</div>"+
+        caja(pendiente,"Sí")+caja(!pendiente,"No")+
+      "</div>"+
+      "<div class='firmas'>"+
+        bloqueFirma("Solicitado por:", s.solicitadoPor, s.fechaSolicitud)+
+        bloqueFirma("Aprobado Dir. Financiera:", DIR_FINANZAS, s.fechaAprobacion)+
+        bloqueFirma("Vo. Bo.:", s.vistoBuenoPor, s.fechaVistoBueno)+
+        bloqueFirma("Aprobado Dir. Admon:", DIR_ADMON, "")+
+      "</div>"+
+    "</div>"+
+
+    "<div class='rastro'>"+
+      "<span>ECOVSA · Ecología · Vida · Salud</span>"+
+      "<span>Generado por el sistema Rutas ECOVSA el "+esc(larga(r.hoy))+"</span>"+
+      "<span>"+esc(s.solicitudId)+"</span>"+
+    "</div>";
+}
+
+/* Cada bloque deja la raya para el rasgo a mano; el nombre va impreso
+   cuando el sistema lo sabe, y en blanco cuando la firma es de alguien
+   que no opera la aplicación. */
+function bloqueFirma(rol, nombre, fecha){
+  return "<div class='fbloq'>"+
+    "<div class='rol'>"+esc(rol)+"</div>"+
+    "<div class='linea'><span>Firma</span></div>"+
+    "<div class='linea' style='border:none;padding-top:6px'>"+
+      "<span>Nombre:</span><b>"+esc(nombre||"")+"</b></div>"+
+    (fecha?"<div class='fec'>"+esc(corta(fecha))+"</div>":"")+
+  "</div>";
+}
+
+function volver(){
+  var p = (VOLVER_A==="solicitud") ? "?p=solicitud" : "?p=finanzas";
+  if(URL_APP){ irA(URL_APP+p); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u+p); })
+    .withFailureHandler(function(){}).api_urlApp();
+}
+function irA(url){
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

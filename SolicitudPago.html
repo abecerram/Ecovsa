@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('finanzas') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 12% 0%,rgba(168,123,10,.10),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:60px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(122,86,0,.30)}
+.marca{display:flex;align-items:center;gap:12px;max-width:1020px;margin:0 auto}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.82;letter-spacing:.6px;text-transform:uppercase}
+header .salir{background:rgba(255,255,255,.18);border:none;color:#fff;font-family:inherit;
+  font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.wrap{max-width:1020px;margin:0 auto;padding:14px 18px}
+h2{font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:16px 0 9px}
+h2:first-child{margin-top:2px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
+  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:10px;font-size:15px;font-family:inherit;
+  border:1.5px solid var(--borde);border-radius:10px;background:#FFFDF7;color:var(--tinta)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+textarea{min-height:62px;resize:vertical;font-size:14px}
+input[readonly]{background:#F3EEE0;color:var(--gris)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;
+  border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;
+  background:var(--ambar);color:#3D2B00;box-shadow:0 3px 10px rgba(245,179,1,.34)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55;cursor:default;transform:none}
+.btn.sec{background:#fff;color:var(--azul-osc);box-shadow:inset 0 0 0 1.5px var(--azul-claro);
+  font-size:12.5px;padding:8px 13px;font-weight:700}
+.btn.mal{background:var(--rojo);color:#fff;box-shadow:none;font-size:12px;padding:7px 10px}
+.btn.chico{font-size:12px;padding:7px 11px}
+
+.fila{display:flex;gap:11px;flex-wrap:wrap}
+.fila>div{flex:1;min-width:132px}
+.nota{font-size:11.5px;color:var(--gris);line-height:1.55;margin-top:8px}
+
+/* ── opciones tipo botón: se tocan bien en el teléfono ── */
+.ops{display:flex;gap:7px;flex-wrap:wrap}
+.ops button{padding:9px 14px;border:1.5px solid var(--borde);background:#fff;border-radius:10px;
+  font-family:inherit;font-size:13px;font-weight:800;color:var(--gris);cursor:pointer}
+.ops button.act{background:var(--azul-osc);border-color:var(--azul-osc);color:#fff}
+.ops button.act.rojo{background:var(--rojo);border-color:var(--rojo)}
+
+/* ── renglones del detalle ── */
+.lin{border:1px solid var(--borde);border-radius:12px;padding:12px;margin-bottom:10px;
+  background:#FFFDF7}
+.lin .top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.lin .top b{font-size:11px;font-weight:800;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.5px;flex:1}
+.lin .tot{text-align:right;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;
+  margin-top:9px;color:var(--azul-osc)}
+/* el total del renglón ahora comparte fila con el impuesto: se alinea abajo,
+   a la altura del desplegable, no arriba con su etiqueta */
+.lin .fila .tot{margin-top:0;align-self:flex-end;padding-bottom:10px}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+  color:var(--tinta);cursor:pointer;margin-top:9px}
+.chk input{width:19px;height:19px;flex:0 0 19px;accent-color:var(--azul)}
+
+/* ── resumen de totales ── */
+.totales{background:var(--azul-suave);border:1px solid var(--azul-claro);border-radius:14px;padding:14px}
+.totales table{width:100%;border-collapse:collapse;font-size:13.5px}
+.totales td{padding:6px 2px}
+.totales td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.totales tr.gran td{border-top:2px solid var(--azul-claro);padding-top:11px;
+  font-size:17px;font-weight:900;color:var(--azul-osc)}
+
+.msg{display:none;border-radius:12px;padding:12px 15px;font-size:13.5px;line-height:1.55;margin-bottom:13px}
+.msg.mal{background:var(--rojo-suave);border-left:4px solid var(--rojo);color:#7a1d14}
+.msg.avi{background:#FFF3D1;border-left:4px solid var(--ambar);color:var(--ambar-osc)}
+.msg.ok{background:var(--verde-suave);border-left:4px solid var(--verde);color:var(--verde)}
+.vacio{text-align:center;color:var(--gris);font-size:13px;padding:22px 12px;line-height:1.55}
+
+table.mis{width:100%;border-collapse:collapse;font-size:13px}
+table.mis th{text-align:left;font-size:10.5px;font-weight:800;color:var(--gris);
+  text-transform:uppercase;letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--borde)}
+table.mis td{padding:9px 6px;border-bottom:1px solid var(--borde)}
+table.mis tr:last-child td{border-bottom:none}
+table.mis td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.et{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  border-radius:6px;padding:3px 7px}
+.et.sol{background:#FFF3D1;color:var(--ambar-osc)}
+.et.apr{background:#E4EDFB;color:#14306B}
+.et.pag{background:var(--verde-suave);color:var(--verde)}
+.et.rec{background:var(--rojo-suave);color:#7a1d14}
+.et.anu{background:#EDEAE1;color:var(--gris)}
+
+/* ── ventana para registrar el pago ── */
+.velo{display:none;position:fixed;inset:0;background:rgba(36,29,11,.55);z-index:60;
+  padding:18px;overflow-y:auto}
+.velo.abierto{display:block}
+.caja{background:#fff;max-width:560px;margin:26px auto;border-radius:18px;overflow:hidden;
+  box-shadow:0 14px 50px rgba(0,0,0,.34)}
+.caja .cab{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:14px 18px;display:flex;align-items:center;gap:10px}
+.caja .cab h3{font-size:15px;font-weight:800;flex:1}
+.caja .cab button{background:rgba(255,255,255,.2);border:none;color:#fff;font-family:inherit;
+  font-size:13px;font-weight:800;padding:7px 13px;border-radius:14px;cursor:pointer}
+.caja .cuerpo{padding:17px}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:14px}
+.dl div span{display:block;font-size:10px;font-weight:800;color:var(--gris);
+  text-transform:uppercase;letter-spacing:.4px}
+.dl div b{font-size:14px;font-weight:800;line-height:1.4}
+
+/* ── firmas, como en la hoja de papel ── */
+.firmas{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px}
+.firmas div{flex:1;min-width:210px;text-align:center;border-top:1.5px solid var(--tinta);
+  padding-top:7px;font-size:11.5px;font-weight:700;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.5px}
+
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(122,86,0,.16)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#3D2B00;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+.pin-caja .btn{width:180px;margin-top:12px}
+
+/* ── pestañas (llegaron con la caja menuda) ── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 4px}
+.tabs button{flex:1;min-width:130px;padding:11px 10px;border:1.5px solid var(--borde);
+  background:#fff;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;
+  color:var(--gris);cursor:pointer}
+.tabs button.act{background:var(--azul-osc);border-color:var(--azul-osc);color:#fff}
+.hoja{display:none}
+.hoja.act{display:block}
+
+/* ── caja menuda ── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
+.kpi{background:var(--azul-suave);border:1px solid var(--azul-claro);border-radius:14px;
+  padding:12px 13px}
+.kpi .r{font-size:10px;font-weight:800;color:var(--gris);text-transform:uppercase;
+  letter-spacing:.6px}
+.kpi .v{font-size:23px;font-weight:900;margin-top:4px;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.kpi .p{font-size:11.5px;color:var(--gris);margin-top:3px;line-height:1.45}
+.kpi.poco{background:var(--rojo-suave);border-color:#F0C4BE}
+.kpi.poco .v{color:#7a1d14}
+
+/* Una barra que se llena. Con el fondo a la vista, «queda poco» se ve antes
+   de leer la cifra, que es como uno mira una caja de verdad. */
+.barra-uso{height:9px;border-radius:5px;background:var(--borde);overflow:hidden;margin-top:12px}
+.barra-uso i{display:block;height:100%;border-radius:5px;background:var(--verde);
+  transition:width .25s}
+.barra-uso i.medio{background:var(--ambar)}
+.barra-uso i.alto{background:var(--rojo)}
+
+/* Los botones de «lo de siempre». Grandes a propósito: se usan desde el
+   teléfono, de pie, con el recibo en la otra mano. */
+.atajos{display:flex;gap:8px;flex-wrap:wrap}
+.atajos button{border:1.5px solid var(--azul-claro);background:var(--azul-suave);
+  border-radius:13px;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:800;
+  color:var(--azul-osc);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.atajos button:active{transform:translateY(1px)}
+.atajos button.act{background:var(--azul-osc);border-color:var(--azul-osc);color:#fff}
+.atajos button .cta{font-weight:600;font-size:10.5px;opacity:.75}
+
+.sinc{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.5px;padding:3px 8px;border-radius:9px;background:#FFF3D1;
+  color:var(--ambar-osc);white-space:nowrap}
+.quitar{border:none;background:none;color:var(--rojo);font-size:16px;font-weight:900;
+  cursor:pointer;padding:2px 7px;line-height:1}
+td .cta{font-size:10.5px;color:var(--gris);margin-top:2px}
+
+@media(max-width:640px){ .oc{display:none} .wrap{padding:12px 13px} }
+@media print{
+  header,.no-imp{display:none!important}
+  body{background:#fff;padding:0}
+  .tarjeta{box-shadow:none;border:1px solid #999;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Solicitud de pago</h1>
+  <div class="tag">Acceso con PIN</div>
+  <p>Escribe tu PIN para entrar.</p>
+  <input id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="pantalla-app" style="display:none">
+  <header>
+    <div class="marca">
+      <div class="logo"></div>
+      <div>
+        <h1>Solicitud de pago</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <button class="salir" style="margin-left:auto" onclick="volverInicio()">← Inicio</button>
+      <button class="salir" style="margin-left:8px" id="btn-fin" onclick="irFinanzas()">Finanzas</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="msg" class="msg"></div>
+
+    <!-- Las pestañas se agregaron con la caja menuda. Lo que había antes es
+         ahora la pestaña «Pedir un pago», sin un solo cambio adentro. -->
+    <div class="tabs no-imp">
+      <button id="tb-pedir" class="act" onclick="tab('pedir')">Pedir un pago</button>
+      <button id="tb-caja"  onclick="tab('caja')">Caja menuda</button>
+    </div>
+
+    <div id="h-pedir" class="hoja act">
+    <h2>Datos de la solicitud</h2>
+    <div class="tarjeta">
+      <div class="fila">
+        <div><label>Número</label><input id="d-id" readonly></div>
+        <div><label>Fecha</label><input id="d-fecha" type="date"></div>
+        <div style="flex:2;min-width:180px"><label>Compañía</label>
+          <input id="d-compania" value="ECOTERMO DE PANAMA S.A." readonly></div>
+        <div><label>Proyecto</label><select id="d-proyecto"></select></div>
+      </div>
+    </div>
+
+    <h2>A quién se le paga</h2>
+    <div class="tarjeta">
+      <div class="fila">
+        <div style="flex:2;min-width:210px"><label>Proveedor</label>
+          <input id="d-proveedor" list="dl-prov" placeholder="Escribe o elige un proveedor…"
+                 autocomplete="off" oninput="autollenar()">
+          <datalist id="dl-prov"></datalist></div>
+        <div><label>RUC</label><input id="d-ruc"></div>
+        <div style="flex:0 0 82px"><label>DV</label><input id="d-dv"></div>
+      </div>
+      <div class="fila" style="margin-top:10px">
+        <div><label>Banco</label><input id="d-banco"></div>
+        <div><label>Nº de cuenta</label><input id="d-cuenta"></div>
+        <div><label>Tipo de cuenta</label>
+          <select id="d-tipocuenta"><option value="">—</option>
+            <option>CORRIENTE</option><option>AHORRO</option></select></div>
+      </div>
+      <div class="nota">
+        Al elegir un proveedor guardado, sus datos bancarios se llenan solos.
+        Si es nuevo, escríbelos aquí; gerencia lo agrega después al catálogo.
+      </div>
+    </div>
+
+    <h2>Forma y urgencia</h2>
+    <div class="tarjeta">
+      <div class="fila">
+        <div><label>Tipo de pago</label><div class="ops" id="ops-tipo"></div></div>
+        <div><label>Condición</label><div class="ops" id="ops-cond"></div></div>
+        <div><label>Urgencia</label><div class="ops" id="ops-urg"></div></div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="chk"><input type="checkbox" id="d-orig"> Se adjunta factura original</label><br>
+        <label class="chk"><input type="checkbox" id="d-copia"> Se adjunta copia de la factura</label>
+      </div>
+    </div>
+
+    <h2>Detalle de lo que se paga</h2>
+    <div class="tarjeta">
+      <div id="lineas"></div>
+      <button class="btn sec no-imp" onclick="agregarLinea()">+ Agregar renglón</button>
+      <div class="nota">
+        Cada renglón lleva su cuenta contable: de ahí sale el desglose de gastos
+        del estado de resultados. Al elegir un proveedor guardado, su cuenta se
+        pone sola. El ITBMS lo calcula el sistema con lo que digas en
+        <b>Impuesto</b>: no hay que sumarlo aparte.
+      </div>
+      <datalist id="dl-cuentas"></datalist>
+    </div>
+
+    <h2>Totales</h2>
+    <div class="tarjeta">
+      <!-- El ITBMS ya no se escribe: sale del 7% de los renglones que pagan
+           impuesto. Y se fue la casilla de «ECOVSA retiene el 50%»: ECOVSA
+           no es agente retenedor cuando compra, así que ese descuento no le
+           corresponde aplicárselo a ningún proveedor. En el papel esa fila
+           sigue existiendo porque el formato está registrado. -->
+      <div class="fila">
+        <div><label>Retención de contrato</label>
+          <input id="d-retc" type="number" step="0.01" value="0" oninput="calcular()"></div>
+        <div><label>Anticipo a descontar</label>
+          <input id="d-anti" type="number" step="0.01" value="0" oninput="calcular()"></div>
+      </div>
+
+      <div class="totales" id="totales" style="margin-top:12px"></div>
+
+      <div style="margin-top:13px">
+        <label>Concepto general</label>
+        <input id="d-concepto" placeholder="Se llena solo con el primer renglón si lo dejas vacío">
+      </div>
+      <div style="margin-top:10px">
+        <label>Observaciones</label>
+        <textarea id="d-obs" placeholder="Lo que la dirección financiera deba saber antes de aprobar."></textarea>
+      </div>
+
+      <div class="firmas">
+        <div>Solicitado por<br><span id="f-solicita" style="font-weight:800;color:var(--tinta)">—</span></div>
+        <div>Aprobado · Dirección Financiera</div>
+      </div>
+
+      <button class="btn no-imp" id="btn-guardar" style="width:100%;margin-top:18px"
+              onclick="guardar()">Enviar solicitud</button>
+      <div class="nota no-imp">
+        Al enviarla queda en estado <b>SOLICITADA</b>. Nadie la paga hasta que
+        gerencia la apruebe, y el gasto solo cuenta cuando se marca como pagada.
+      </div>
+    </div>
+
+    <h2 class="no-imp">Mis solicitudes</h2>
+    <div class="tarjeta no-imp" id="mis"><div class="vacio">Cargando…</div></div>
+    </div><!-- /h-pedir -->
+
+    <!-- ═══ CAJA MENUDA ═══
+         Va aquí y no en Administración: la custodia del fondo tiene que poder
+         anotar el gasto el día que ocurre, sin depender de que alguien le abra
+         otra pantalla. -->
+    <div id="h-caja" class="hoja no-imp">
+      <div id="caja-sin" style="display:none">
+        <div class="tarjeta">
+          <h2 style="margin-top:0">No hay un período abierto</h2>
+          <div class="nota" style="margin-bottom:14px">
+            La caja menuda trabaja por períodos de 30 días. Se abre uno, se anotan
+            los gastos, y al cerrarlo salen el arqueo firmado y la solicitud de
+            reposición. Solo puede haber un período abierto a la vez.
+          </div>
+          <div class="fila">
+            <div><label>Fondo asignado B/.</label><input id="ca-fondo" type="number" step="0.01"></div>
+            <div><label>Apertura</label><input id="ca-apertura" type="date"></div>
+            <div style="flex:2;min-width:180px"><label>Custodia del fondo</label>
+              <input id="ca-custodio"></div>
+          </div>
+          <button class="btn" style="margin-top:13px" onclick="abrirCaja()">Abrir el período</button>
+        </div>
+      </div>
+
+      <div id="caja-hay" style="display:none">
+        <div class="tarjeta">
+          <div style="display:flex;gap:11px;align-items:baseline;flex-wrap:wrap">
+            <h2 style="margin:0">Caja menuda · <span id="cj-periodo">—</span></h2>
+            <span class="pie" id="cj-custodia" style="color:var(--gris);font-size:12px"></span>
+          </div>
+          <div class="kpis" id="cj-kpis" style="margin-top:13px"></div>
+          <div class="barra-uso"><i id="cj-barra"></i></div>
+        </div>
+
+        <h2>Lo de siempre — un toque y queda el concepto y su cuenta</h2>
+        <div class="tarjeta">
+          <div class="atajos" id="cj-atajos"></div>
+          <div class="fila" style="margin-top:13px">
+            <div><label>Fecha</label><input id="cg-fecha" type="date"></div>
+            <div style="flex:2;min-width:200px"><label>En qué se gastó</label>
+              <input id="cg-concepto" placeholder="Taxi a reunión con Veolia"></div>
+            <div><label>Monto B/.</label><input id="cg-monto" type="number" step="0.01"></div>
+            <div><label>Comprobante</label><input id="cg-comp" placeholder="N° o vacío"></div>
+          </div>
+          <div class="fila" style="margin-top:11px">
+            <div style="flex:2;min-width:220px"><label>Cuenta contable</label>
+              <select id="cg-cuenta"></select></div>
+            <div style="flex:0 0 170px;display:flex;align-items:flex-end">
+              <button class="btn" style="width:100%" onclick="anotarGasto()">Anotar el gasto</button>
+            </div>
+          </div>
+          <div class="nota">
+            La cuenta contable la pone el sistema según el botón que uses. Si no hay
+            comprobante, se anota igual y queda marcado: el arqueo los cuenta aparte
+            para que se vean, no para esconderlos.
+          </div>
+        </div>
+
+        <h2>Lo anotado en este período</h2>
+        <div class="tarjeta" id="cj-lista"><div class="vacio">Sin gastos todavía.</div></div>
+
+        <div class="tarjeta" style="margin-top:13px">
+          <button class="btn" id="cj-cerrar" style="width:100%" onclick="cerrarCaja()">
+            🧾 Cerrar el período y pedir la reposición</button>
+          <div class="nota">
+            Genera el arqueo imprimible <b>F-ADM-02</b> y crea la solicitud de pago por
+            lo gastado, con este detalle adentro. Nace en estado SOLICITADA: quien
+            custodia el fondo no aprueba su propia reposición.
+          </div>
+        </div>
+      </div>
+
+      <div id="caja-cerrados" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── el proveedor que no estaba en la lista ── -->
+<div class="velo" id="velo-prov">
+  <div class="caja">
+    <div class="cab"><h3 id="g-titulo">—</h3>
+      <button onclick="cerrarProv()">Cerrar</button></div>
+    <div class="cuerpo" id="g-cuerpo"></div>
+  </div>
+</div>
+
+<!-- ── registrar el pago de una solicitud propia ── -->
+<div class="velo" id="velo">
+  <div class="caja">
+    <div class="cab"><h3 id="g-titulo">Registrar el pago</h3>
+      <button onclick="cerrarPago()">Cerrar</button></div>
+    <div class="cuerpo">
+      <div class="dl">
+        <div><span>Proveedor</span><b id="g-quien">—</b></div>
+        <div><span>Total a pagar</span><b id="g-monto">—</b></div>
+      </div>
+      <div class="fila">
+        <div><label>Fecha de pago</label><input id="gp-fecha" type="date"></div>
+        <div><label>Referencia / ACH</label><input id="gp-ref"></div>
+        <div><label>Nº de cheque</label><input id="gp-cheque"></div>
+      </div>
+      <div id="gp-msg" class="msg"></div>
+      <div class="nota">
+        Pon la fecha real en que salió el dinero, no la de hoy: es la que decide
+        en qué mes cuenta el gasto. Queda registrado que fuiste tú quien lo marcó.
+      </div>
+      <button class="btn" id="gp-btn" style="width:100%;margin-top:13px"
+              onclick="confirmarPago()">Registrar el pago</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var PIN="", USUARIO=null, URL_APP="", BOOT=null, LINEAS=[], SEQ=0, MIAS={};
+var TIPO="ACH", COND="CONTADO", URG="REGULAR";
+/* La tasa y el umbral los manda el servidor, que es donde viven de verdad.
+   Estos valores son solo el respaldo por si la pantalla arranca antes de
+   que conteste: si los escribiera aquí como definitivos, el día que cambien
+   habría que acordarse de dos lugares. */
+var TASA=0.07, UMBRAL=1500;
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+/* El dinero se dice en balboas en toda la operación —el contrato, el
+   recibo, el documento impreso— menos aquí, que decía dólares. Es el mismo
+   dinero, pero una pantalla de finanzas no puede tener dos idiomas. */
+function d2(v){var x=Number(v)||0,s=Math.abs(x).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return (x<0?"-B/. ":"B/. ")+s;}
+function r2(v){return Math.round((Number(v)||0)*100)/100;}
+function num(i){return Number(($(i)||{}).value)||0;}
+function msg(t,h){var m=$("msg");m.className="msg "+t;m.innerHTML=h;m.style.display="block";
+  try{window.scrollTo(0,0);}catch(e){}}
+function sinMsg(){$("msg").style.display="none";}
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+
+/* ═══ arranque ═══ */
+function arrancar(){
+  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(window.google&&google.script&&google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+  if(PIN) validar(PIN); else pedirPin("");
+}
+function pedirPin(m){
+  $("pantalla-app").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=m||"";
+  setTimeout(function(){$("pin-input").focus();},120);
+}
+function entrar(){
+  var p=($("pin-input").value||"").trim();
+  if(!p){$("pin-err").textContent="Escribe tu PIN";return;}
+  $("pin-err").textContent="Verificando…";
+  validar(p);
+}
+function validar(p){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      PIN=p;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      BOOT=r; USUARIO=r.usuario;
+      $("cab-usuario").textContent=USUARIO.nombre;
+      $("f-solicita").textContent=USUARIO.nombre;
+      $("btn-fin").style.display = r.verFinanzas ? "" : "none";
+      $("pantalla-pin").style.display="none";
+      $("pantalla-app").style.display="block";
+      montar(r);
+      cargarMias();
+      /* La bandeja avisa de solicitudes de pago que llevan días esperando
+         visto bueno. Solo tiene sentido para quien puede darlo: a quien
+         solo pide un pago, esa lista no le sirve de nada. */
+      if(r.verFinanzas) bandejaIniciar("solicitudes");
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión."); })
+    .api_finanzasBootstrap(p);
+}
+
+/* ═══ armar la pantalla con los catálogos ═══ */
+function montar(r){
+  if(r.itbmsTasa) TASA=Number(r.itbmsTasa)||TASA;
+  if(r.umbralVistoBueno) UMBRAL=Number(r.umbralVistoBueno)||UMBRAL;
+  $("d-id").value=r.siguienteId;
+  $("d-fecha").value=r.hoy;
+
+  $("d-proyecto").innerHTML='<option value="">— sin proyecto —</option>'+
+    (r.proyectos||[]).map(function(x){return '<option>'+esc(x)+'</option>';}).join("");
+
+  montarProveedores(r);
+  var dc=$("dl-cuentas"); dc.innerHTML="";
+  (r.cuentas||[]).forEach(function(c){
+    var o=document.createElement("option"); o.value=c.codigo; o.label=c.descripcion; dc.appendChild(o);
+  });
+
+  ops("ops-tipo", r.tiposPago||["ACH","CHEQUE","EFECTIVO"], "TIPO");
+  ops("ops-cond", r.condiciones||["CONTADO","CREDITO"], "COND");
+  ops("ops-urg",  r.urgencias||["REGULAR","URGE"], "URG");
+
+  if(!LINEAS.length) agregarLinea();
+  calcular();
+}
+
+function montarProveedores(r){
+  var dp=$("dl-prov"); dp.innerHTML="";
+  (r.proveedores||[]).forEach(function(p){
+    var o=document.createElement("option"); o.value=p.proveedor; dp.appendChild(o);
+  });
+}
+
+function ops(caja, lista, cual){
+  $(caja).innerHTML=lista.map(function(x){
+    return '<button type="button" onclick="elegir(\''+cual+'\',\''+esc(x)+'\',this)">'+esc(x)+'</button>';
+  }).join("");
+  var b=$(caja).firstChild;
+  if(b){ b.className="act"; if(cual==="TIPO")TIPO=lista[0]; if(cual==="COND")COND=lista[0]; if(cual==="URG")URG=lista[0]; }
+}
+function elegir(cual,valor,btn){
+  var p=btn.parentNode;
+  for(var i=0;i<p.children.length;i++) p.children[i].className="";
+  btn.className="act"+((cual==="URG"&&valor==="URGE")?" rojo":"");
+  if(cual==="TIPO")TIPO=valor; else if(cual==="COND")COND=valor; else URG=valor;
+}
+
+/* Al elegir un proveedor guardado, sus datos bancarios se copian solos:
+   es donde más se equivoca uno escribiendo a mano un número de cuenta.
+   Ahora también su cuenta contable, que es el otro campo donde un dígito
+   mal tecleado no lo cacha nadie: entra al desglose de gastos como una
+   cuenta que no existe y aparece meses después, cuando ya no se sabe de
+   qué solicitud vino. Solo se pega en los renglones que están vacíos: si
+   alguien ya escribió una cuenta a propósito, no se le pisa. */
+function autollenar(){
+  var v=$("d-proveedor").value.trim().toUpperCase();
+  var p=(BOOT.proveedores||[]).filter(function(x){return x.proveedor.toUpperCase()===v;})[0];
+  if(!p) return;
+  $("d-ruc").value=p.ruc; $("d-dv").value=p.dv;
+  $("d-banco").value=p.banco; $("d-cuenta").value=p.numeroCuenta;
+  $("d-tipocuenta").value=p.tipoCuenta||"";
+  if(p.cuentaCodigo) ponerCuenta(p.cuentaCodigo);
+}
+
+function ponerCuenta(cod){
+  LINEAS.forEach(function(id){
+    var e=$(id); if(!e) return;
+    var c=e.querySelector(".cc");
+    if(c && !c.value.trim()) c.value=cod;
+  });
+}
+
+/* ═══ renglones ═══ */
+function agregarLinea(){
+  var id="L"+(++SEQ);
+  LINEAS.push(id);
+  var d=document.createElement("div");
+  d.className="lin"; d.id=id;
+  d.innerHTML=
+    '<div class="top"><b>Renglón '+LINEAS.length+'</b>'+
+      '<button class="btn mal no-imp" type="button" onclick="quitarLinea(\''+id+'\')">Quitar</button></div>'+
+    '<div class="fila">'+
+      '<div style="flex:0 0 92px"><label>Cantidad</label>'+
+        '<input class="q" type="number" step="0.01" value="1" oninput="calcular()"></div>'+
+      '<div style="flex:0 0 108px"><label>Unidad</label>'+
+        '<input class="u" value="UNIDAD"></div>'+
+      '<div style="flex:3;min-width:190px"><label>Concepto</label><input class="c"></div>'+
+    '</div>'+
+    '<div class="fila" style="margin-top:9px">'+
+      '<div><label>Cuenta contable</label><input class="cc" list="dl-cuentas"></div>'+
+      '<div style="flex:0 0 118px"><label>Job / obra</label><input class="j"></div>'+
+      '<div style="flex:0 0 138px"><label>Valor unitario</label>'+
+        '<input class="v" type="number" step="0.01" value="0" oninput="calcular()"></div>'+
+    '</div>'+
+    /* Antes esto era una casilla que decía «Exento de ITBMS». «Exento» es
+       una palabra de abogado; quien llena la solicitud tiene la factura en
+       la mano y lo que sabe es si le cobraron impuesto o no. Es la misma
+       información dicha como se piensa — y ahora además decide el cálculo,
+       porque el impuesto salió de escribirse a mano. */
+    '<div class="fila" style="margin-top:9px">'+
+      '<div style="flex:0 0 210px"><label>Impuesto</label>'+
+        '<select class="e" onchange="calcular()">'+
+          '<option value="">Paga ITBMS ('+(TASA*100).toFixed(0)+'%)</option>'+
+          '<option value="SI">No paga ITBMS</option>'+
+        '</select></div>'+
+      '<div class="tot" id="t-'+id+'">B/. 0.00</div>'+
+    '</div>';
+  $("lineas").appendChild(d);
+  calcular();
+}
+function quitarLinea(id){
+  if(LINEAS.length<=1){ msg("avi","La solicitud necesita al menos un renglón."); return; }
+  LINEAS=LINEAS.filter(function(x){return x!==id;});
+  var e=$(id); if(e) e.parentNode.removeChild(e);
+  renumerar(); calcular();
+}
+function renumerar(){
+  LINEAS.forEach(function(id,i){
+    var e=$(id); if(e) e.querySelector(".top b").textContent="Renglón "+(i+1);
+  });
+}
+function leerLineas(){
+  return LINEAS.map(function(id){
+    var e=$(id); if(!e) return null;
+    var g=function(c){return e.querySelector("."+c);};
+    return { cantidad:Number(g("q").value)||0, unidad:g("u").value.trim()||"UNIDAD",
+             concepto:g("c").value.trim(), job:g("j").value.trim(),
+             cuentaCodigo:g("cc").value.trim(), exento:g("e").value==="SI",
+             valorUnitario:Number(g("v").value)||0, _id:id };
+  }).filter(Boolean);
+}
+
+/* ═══ totales: la pantalla propone, el servidor decide ═══
+   El impuesto se calcula sobre lo que paga impuesto, y punto. Antes era
+   una casilla libre al lado de las retenciones: se podía marcar cada
+   renglón como que no paga y aun así escribir B/. 500 de ITBMS, y la
+   solicitud entraba sin una queja. El servidor lo vuelve a calcular al
+   guardar con la misma regla, así que lo que se ve aquí es lo que se
+   guarda. */
+function calcular(){
+  var l=leerLineas(), sub=0, ex=0;
+  l.forEach(function(x){
+    var t=r2(x.cantidad*x.valorUnitario);
+    var c=$("t-"+x._id); if(c) c.textContent=d2(t);
+    if(x.exento) ex+=t; else sub+=t;
+  });
+  sub=r2(sub); ex=r2(ex);
+  var itbms=r2(sub*TASA), retc=r2(num("d-retc")), anti=r2(num("d-anti"));
+  var total=r2(sub+ex+itbms-retc-anti);
+
+  $("totales").innerHTML='<table>'+
+    '<tr><td>Subtotal que paga impuesto</td><td>'+d2(sub)+'</td></tr>'+
+    '<tr><td>Subtotal sin impuesto</td><td>'+d2(ex)+'</td></tr>'+
+    '<tr><td>ITBMS '+(TASA*100).toFixed(0)+'%<span class="cta"> · calculado</span></td>'+
+      '<td>'+d2(itbms)+'</td></tr>'+
+    (retc?'<tr><td>Retención de contrato</td><td>-'+d2(retc)+'</td></tr>':'')+
+    (anti?'<tr><td>Anticipo</td><td>-'+d2(anti)+'</td></tr>':'')+
+    '<tr class="gran"><td>Total a pagar</td><td>'+d2(total)+'</td></tr></table>'+
+    (total>UMBRAL
+      ? '<div class="nota" style="margin-top:9px">Pasa de '+d2(UMBRAL)+
+        ': antes de que finanzas la apruebe necesita el visto bueno de '+
+        'gerencia de gestión.</div>'
+      : '');
+}
+
+/* ═══ enviar ═══ */
+function guardar(){
+  sinMsg();
+  var l=leerLineas().filter(function(x){return x.cantidad&&x.valorUnitario;});
+  if(!$("d-proveedor").value.trim()){ msg("mal","Escribe a quién se le paga."); return; }
+  if(!l.length){ msg("mal","Pon al menos un renglón con cantidad y valor."); return; }
+  var sinConcepto=l.filter(function(x){return !x.concepto;}).length;
+  if(sinConcepto){ msg("mal","Hay "+sinConcepto+" renglón(es) sin concepto. Sin eso nadie sabe qué se está pagando."); return; }
+
+  var d={ fecha:$("d-fecha").value, proyecto:$("d-proyecto").value,
+          proveedor:$("d-proveedor").value.trim(), ruc:$("d-ruc").value.trim(),
+          dv:$("d-dv").value.trim(), banco:$("d-banco").value.trim(),
+          numeroCuenta:$("d-cuenta").value.trim(), tipoCuenta:$("d-tipocuenta").value,
+          tipoPago:TIPO, condicion:COND, urgencia:URG,
+          /* el ITBMS ya no viaja: lo calcula el servidor con la misma regla */
+          retencionContrato:num("d-retc"), anticipo:num("d-anti"),
+          facturaOriginal:$("d-orig").checked, facturaCopia:$("d-copia").checked,
+          concepto:$("d-concepto").value.trim(), observaciones:$("d-obs").value.trim(),
+          origen:"pantalla" };
+
+  /* el _id es del navegador, no del servidor: se va antes de guardar */
+  l=l.map(function(x){ return {cantidad:x.cantidad,unidad:x.unidad,concepto:x.concepto,
+    job:x.job,cuentaCodigo:x.cuentaCodigo,exento:x.exento,valorUnitario:x.valorUnitario}; });
+
+  enviar(d, l, false);
+}
+
+/* El envío está aparte porque puede repetirse: si el RUC ya estaba en el
+   catálogo con otro nombre, el servidor NO guarda y devuelve el aviso. Si
+   quien llena decide seguir igual, se vuelve a enviar lo mismo con la marca
+   de confirmado. La comprobación vive en el servidor a propósito: así no se
+   puede saltar por más veces que se le dé al botón. */
+function enviar(d, l, confirmado){
+  d.rucConfirmado = !!confirmado;
+  var b=$("btn-guardar"); b.disabled=true; b.textContent="Enviando…";
+  google.script.run
+    .withSuccessHandler(function(r){
+      b.disabled=false; b.textContent="Enviar solicitud";
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(r && r.avisoRuc){ avisoDelRuc(r.avisoRuc, d, l); return; }
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo guardar la solicitud.")); return; }
+      msg("ok","Solicitud <b>"+esc(r.solicitudId)+"</b> enviada por "+d2(r.total)+
+        ". Queda esperando la aprobación de la dirección financiera.");
+      var prov = r.proveedor || {};
+      limpiar();
+      cargarMias();
+      /* Y después, ya con la solicitud guardada, lo del proveedor. Esta
+         ventana no la puede echar a perder: si se cierra, lo único que pasa
+         es que la próxima vez habrá que escribirlo todo otra vez. */
+      if(prov.estado === "nuevo")    ventanaProveedorNuevo(prov.datos, r.solicitudId, null);
+      if(prov.estado === "parecido") ventanaProveedorNuevo(prov.datos, r.solicitudId, prov.existente);
+      if(prov.estado === "rucOtroNombre") ventanaCorregir(prov.datos, r.solicitudId, prov.existente);
+    })
+    .withFailureHandler(function(){
+      b.disabled=false; b.textContent="Enviar solicitud";
+      msg("mal","Sin conexión con el servidor. No se guardó nada: vuelve a intentar.");
+    })
+    .api_guardarSolicitudPago(PIN,d,l);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EL PROVEEDOR QUE NO ESTABA EN LA LISTA
+   ───────────────────────────────────────────────────────────────────
+   Antes, el que no estaba se escribía a mano y ahí quedaba: dentro de la
+   solicitud, y la nota decía «gerencia lo agrega después al catálogo». Ese
+   después casi nunca llegaba, y la próxima vez había que escribirlo todo de
+   nuevo, con el número de cuenta bancaria incluido.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* El RUC ya estaba, con otro nombre. Esto SÍ detiene el envío: lo más
+   probable es que sea el mismo proveedor escrito distinto, y dejarlo pasar
+   crea el duplicado que después ensucia la lista y rompe el autollenado. */
+function avisoDelRuc(a, d, l){
+  PEND = { d:d, l:l };
+  $("g-titulo").textContent = "Revisa el RUC antes de enviar";
+  $("g-cuerpo").innerHTML =
+    '<div class="msg avi" style="display:block">'+
+      'El RUC <b>'+esc(a.ruc)+'</b> ya está en el catálogo como '+
+      '<b>'+esc(a.existente.proveedor)+'</b>, y aquí escribiste '+
+      '<b>'+esc(a.escrito)+'</b>.<br><br>Puede que sea el mismo proveedor escrito de otra '+
+      'manera. Si lo es, conviene arreglarlo ahora: dos fichas del mismo proveedor se '+
+      'confunden después.</div>'+
+    '<div class="dl" style="margin-top:14px">'+
+      '<div><span>En el catálogo</span><b>'+esc(a.existente.proveedor)+'</b></div>'+
+      '<div><span>Banco</span><b>'+esc(a.existente.banco||"—")+'</b></div>'+
+      '<div><span>Cuenta</span><b>'+esc(a.existente.numeroCuenta||"—")+'</b></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarProv()">Revisar los datos</button>'+
+      '<button class="btn" style="flex:1" onclick="enviarIgual()">Enviar de todas formas</button>'+
+    '</div>';
+  $("velo-prov").className = "velo abierto";
+}
+var PEND = null;
+function enviarIgual(){
+  if(!PEND) return cerrarProv();
+  var x = PEND; PEND = null; cerrarProv();
+  enviar(x.d, x.l, true);
+}
+
+/* El proveedor es nuevo de verdad —o se parece a uno pero con otro RUC, que
+   son dos empresas distintas—. La solicitud YA se envió. */
+function ventanaProveedorNuevo(datos, solicitudId, parecido){
+  PROV = { datos:datos, solicitudId:solicitudId };
+  $("g-titulo").textContent = "Un proveedor nuevo";
+  $("g-cuerpo").innerHTML =
+    (parecido
+      ? '<div class="msg avi" style="display:block">Se parece a <b>'+esc(parecido.proveedor)+
+        '</b>, que ya está en el catálogo, pero con otro RUC. Si son dos empresas distintas, '+
+        'sigue adelante.</div>'
+      : '')+
+    '<div class="nota" style="margin-top:0"><b>'+esc(datos.proveedor)+'</b> no estaba en el '+
+      'catálogo. Si lo guardas, la próxima vez que lo elijas se llenan solos su RUC, su banco, '+
+      'su número de cuenta y su cuenta contable.</div>'+
+    '<div class="dl" style="margin-top:14px">'+
+      '<div><span>RUC</span><b>'+esc(datos.ruc||"—")+(datos.dv?' DV '+esc(datos.dv):'')+'</b></div>'+
+      '<div><span>Banco</span><b>'+esc(datos.banco||"—")+'</b></div>'+
+      '<div><span>Cuenta</span><b>'+esc(datos.numeroCuenta||"—")+
+        (datos.tipoCuenta?' · '+esc(datos.tipoCuenta):'')+'</b></div>'+
+      '<div><span>Cuenta contable</span><b>'+esc(datos.cuentaCodigo||"—")+'</b></div>'+
+    '</div>'+
+    '<div id="pv-msg" class="msg"></div>'+
+    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarProv()">Ahora no</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarProvNuevo()">Guardar en el catálogo</button>'+
+    '</div>';
+  $("velo-prov").className = "velo abierto";
+}
+var PROV = null;
+
+function guardarProvNuevo(){
+  if(!PROV) return cerrarProv();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ pvMsg((r&&r.error)||"No se pudo guardar."); return; }
+      cerrarProv();
+      msg("ok","<b>"+esc(r.proveedor)+"</b> quedó en el catálogo. La próxima vez se llena solo.");
+      recargarCatalogo();
+    })
+    .withFailureHandler(function(){ pvMsg("Sin conexión con el servidor."); })
+    .api_guardarProveedorDeSolicitud(PIN, PROV.datos, PROV.solicitudId);
+}
+
+/* Se envió igual con un RUC que ya estaba: se ofrece corregir el registro
+   que existe, en vez de crear un segundo. */
+function ventanaCorregir(datos, solicitudId, existente){
+  PROV = { datos:datos, solicitudId:solicitudId };
+  $("g-titulo").textContent = "¿Corregimos el proveedor?";
+  $("g-cuerpo").innerHTML =
+    '<div class="nota" style="margin-top:0">La solicitud ya se envió. Pero en el catálogo ese '+
+      'RUC sigue con el nombre viejo, así que la próxima vez va a pasar lo mismo.</div>'+
+    '<div class="dl" style="margin-top:14px">'+
+      '<div><span>Dice hoy</span><b>'+esc(existente.proveedor)+'</b></div>'+
+      '<div><span>Pasaría a decir</span><b>'+esc(datos.proveedor)+'</b></div>'+
+      '<div><span>Banco</span><b>'+esc(datos.banco||existente.banco||"—")+'</b></div>'+
+      '<div><span>Cuenta</span><b>'+esc(datos.numeroCuenta||existente.numeroCuenta||"—")+'</b></div>'+
+    '</div>'+
+    '<div class="nota">El nombre viejo queda escrito en las notas del proveedor, por si alguien '+
+      'lo busca así más adelante.</div>'+
+    '<div id="pv-msg" class="msg"></div>'+
+    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarProv()">Dejarlo como está</button>'+
+      '<button class="btn" style="flex:1" onclick="corregirProv()">Corregir el catálogo</button>'+
+    '</div>';
+  $("velo-prov").className = "velo abierto";
+}
+
+function corregirProv(){
+  if(!PROV) return cerrarProv();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ pvMsg((r&&r.error)||"No se pudo corregir."); return; }
+      cerrarProv();
+      msg("ok","Catálogo corregido: ahora dice <b>"+esc(r.proveedor)+"</b>.");
+      recargarCatalogo();
+    })
+    .withFailureHandler(function(){ pvMsg("Sin conexión con el servidor."); })
+    .api_corregirProveedorDeSolicitud(PIN, PROV.datos, PROV.solicitudId);
+}
+
+function cerrarProv(){ $("velo-prov").className="velo"; PROV=null; PEND=null; }
+function pvMsg(t){ var m=$("pv-msg"); if(!m) return;
+  m.className="msg mal"; m.style.display="block"; m.textContent=t; }
+
+/* el catálogo en memoria queda viejo apenas se guarda un proveedor */
+function recargarCatalogo(){
+  google.script.run.withSuccessHandler(function(r){
+    if(r&&r.ok){ BOOT=r; montarProveedores(r); }
+  }).api_finanzasBootstrap(PIN);
+}
+
+function limpiar(){
+  ["d-proveedor","d-ruc","d-dv","d-banco","d-cuenta","d-concepto","d-obs"].forEach(function(i){$(i).value="";});
+  ["d-retc","d-anti"].forEach(function(i){$(i).value="0";});
+  $("d-tipocuenta").value="";
+  $("d-orig").checked=false; $("d-copia").checked=false;
+  $("lineas").innerHTML=""; LINEAS=[]; agregarLinea();
+  /* vuelve a lo de siempre: ACH, contado y regular */
+  ops("ops-tipo",BOOT.tiposPago||["ACH","CHEQUE","EFECTIVO"],"TIPO");
+  ops("ops-cond",BOOT.condiciones||["CONTADO","CREDITO"],"COND");
+  ops("ops-urg", BOOT.urgencias||["REGULAR","URGE"],"URG");
+  google.script.run.withSuccessHandler(function(r){
+    if(r&&r.ok){ BOOT=r; $("d-id").value=r.siguienteId; }
+  }).api_finanzasBootstrap(PIN);
+}
+
+/* ═══ mis solicitudes ═══ */
+var ET={SOLICITADA:["sol","Por aprobar"],APROBADA:["apr","Aprobada"],
+        PAGADA:["pag","Pagada"],RECHAZADA:["rec","Rechazada"],ANULADA:["anu","Anulada"]};
+function cargarMias(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      var caja=$("mis");
+      if(!r||!r.ok){ caja.innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar.")+'</div>'; return; }
+      var l=(r.solicitudes||[]).slice(0,25);
+      if(!l.length){ caja.innerHTML='<div class="vacio">Todavía no has enviado ninguna solicitud.</div>'; return; }
+      MIAS={};
+      caja.innerHTML='<table class="mis"><thead><tr><th>Solicitud</th><th>Proveedor</th>'+
+        '<th class="oc">Concepto</th><th class="num">Total</th><th>Estado</th><th></th></tr></thead><tbody>'+
+        l.map(function(s){
+          var e=ET[s.estado]||["anu",s.estado];
+          MIAS[s.solicitudId]=s;
+          /* aprobada o pagada: se puede imprimir para contabilidad.
+             aprobada: además se le registra el pago, porque quien la pidió
+             es quien le da seguimiento al proveedor. */
+          var acc="";
+          if(s.estado==="APROBADA"||s.estado==="PAGADA")
+            acc+='<button class="btn sec" onclick="imprimir(\''+esc(s.solicitudId)+'\')">Imprimir</button>';
+          if(s.estado==="APROBADA")
+            acc+=' <button class="btn sec" onclick="abrirPago(\''+esc(s.solicitudId)+'\')">Marcar pagada</button>';
+          return '<tr><td><b>'+esc(s.solicitudId)+'</b><br>'+
+            '<span style="font-size:11px;color:var(--gris)">'+esc(s.fecha)+'</span></td>'+
+            '<td>'+esc(s.proveedor)+'</td>'+
+            '<td class="oc">'+esc((s.concepto||"").slice(0,50))+'</td>'+
+            '<td class="num">'+d2(s.total)+'</td>'+
+            '<td><span class="et '+e[0]+'">'+esc(e[1])+'</span>'+
+            (s.fechaPago?'<br><span style="font-size:11px;color:var(--gris)">'+esc(s.fechaPago)+
+              (s.referenciaPago?' · '+esc(s.referenciaPago):'')+'</span>':'')+
+            (s.motivoRechazo?'<br><span style="font-size:11px;color:var(--rojo)">'+esc(s.motivoRechazo)+'</span>':'')+
+            '</td>'+
+            '<td style="text-align:right;white-space:nowrap">'+acc+'</td></tr>';
+        }).join("")+'</tbody></table>';
+    })
+    .withFailureHandler(function(){ $("mis").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_solicitudes(PIN,{limite:25});
+}
+
+/* ═══ imprimir y registrar el pago ═══ */
+function imprimir(id){
+  var ir=function(base){ window.open(base+"?p=vsolicitud&de=solicitud&id="+encodeURIComponent(id),"_blank"); };
+  if(URL_APP){ ir(URL_APP); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u){ URL_APP=u; ir(u); }
+                                     else msg("avi","Todavía se está cargando el enlace. Intenta de nuevo."); })
+    .withFailureHandler(function(){ msg("mal","Sin conexión con el servidor."); })
+    .api_urlApp();
+}
+
+var PAGANDO="";
+function abrirPago(id){
+  PAGANDO=id;
+  var s=MIAS[id]||{};
+  $("g-titulo").textContent="Registrar el pago de "+id;
+  $("g-quien").textContent=s.proveedor||"";
+  $("g-monto").textContent=d2(s.total);
+  $("gp-fecha").value=(BOOT&&BOOT.hoy)||"";
+  $("gp-ref").value=""; $("gp-cheque").value="";
+  $("gp-msg").style.display="none";
+  $("velo").className="velo abierto";
+}
+function cerrarPago(){ $("velo").className="velo"; PAGANDO=""; }
+
+function confirmarPago(){
+  var f=$("gp-fecha").value;
+  if(!f){ pmsg("mal","Pon la fecha real en que salió el dinero: de ahí sale el mes del gasto."); return; }
+  var b=$("gp-btn"); b.disabled=true; b.textContent="Registrando…";
+  google.script.run
+    .withSuccessHandler(function(r){
+      b.disabled=false; b.textContent="Registrar el pago";
+      if(!r||!r.ok){ pmsg("mal",esc((r&&r.error)||"No se pudo registrar el pago.")); return; }
+      cerrarPago();
+      msg("ok","Solicitud <b>"+esc(r.solicitudId)+"</b> registrada como pagada.");
+      cargarMias();
+    })
+    .withFailureHandler(function(){
+      b.disabled=false; b.textContent="Registrar el pago";
+      pmsg("mal","Sin conexión con el servidor.");
+    })
+    .api_estadoSolicitud(PIN,PAGANDO,"PAGADA",
+      {fechaPago:f, referencia:$("gp-ref").value.trim(), numeroCheque:$("gp-cheque").value.trim()});
+}
+function pmsg(t,h){var m=$("gp-msg"); m.className="msg "+t; m.innerHTML=h; m.style.display="block";}
+
+/* ═══ navegación ═══ */
+function irFinanzas(){
+  if(URL_APP){ irA(URL_APP+"?p=finanzas"); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u+"?p=finanzas"); }).api_urlApp();
+}
+function volverInicio(){
+  if(URL_APP){ irA(URL_APP); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){}).api_urlApp();
+}
+function irA(url){
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CAJA MENUDA
+   ═══════════════════════════════════════════════════════════════════ */
+var CAJA=null, CAJA_BOOT=null, ATAJO=null;
+
+function tab(cual){
+  ["pedir","caja"].forEach(function(x){
+    $("h-"+x).className="hoja"+(x===cual?" act":"")+(x==="caja"?" no-imp":"");
+    $("tb-"+x).className=(x===cual?"act":"");
+  });
+  if(cual==="caja" && !CAJA_BOOT) cargarCaja();
+}
+
+function cargarCaja(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r&&r.requiereLogin){ PIN=""; pedirPin(r.error||"Tu PIN ya no es válido"); return; }
+      if(!r||!r.ok){
+        $("caja-sin").style.display="none"; $("caja-hay").style.display="none";
+        $("caja-cerrados").innerHTML='<div class="tarjeta"><div class="vacio">'+
+          esc((r&&r.error)||"No se pudo abrir la caja menuda.")+'</div></div>';
+        return;
+      }
+      CAJA_BOOT=r; CAJA=r.caja;
+      pintarAtajos(r.atajos||[]);
+      pintarCaja();
+      pintarCerrados(r.cerrados||[]);
+    })
+    .withFailureHandler(function(e){ msg("mal",esc(String(e&&e.message||e))); })
+    .api_cajaBootstrap(PIN);
+}
+
+function pintarAtajos(a){
+  $("cj-atajos").innerHTML = a.map(function(x,i){
+    return '<button onclick="usarAtajo('+i+')" id="at-'+i+'">'+
+      x.icono+' <span>'+esc(x.rotulo)+'</span>'+
+      '<span class="cta">'+esc(x.cuentaDescripcion||x.cuenta)+'</span></button>';
+  }).join("") + '<button onclick="usarAtajo(-1)" id="at--1">＋ <span>Otro</span></button>';
+
+  /* el desplegable completo, por si el gasto no es de los de siempre */
+  var c=(CAJA_BOOT&&CAJA_BOOT.atajos)||[];
+  var vistas={}; c.forEach(function(x){ vistas[x.cuenta]=x.cuentaDescripcion||x.cuenta; });
+  $("cg-cuenta").innerHTML='<option value="">Escoge la cuenta…</option>'+
+    Object.keys(vistas).map(function(k){
+      return '<option value="'+esc(k)+'">'+esc(k)+' · '+esc(vistas[k])+'</option>'; }).join("");
+}
+
+function usarAtajo(i){
+  var a=(CAJA_BOOT&&CAJA_BOOT.atajos)||[];
+  ATAJO = i>=0 ? a[i] : null;
+  ["-1"].concat(a.map(function(_,j){return String(j);})).forEach(function(j){
+    var b=$("at-"+j); if(b) b.className="";
+  });
+  var b=$("at-"+i); if(b) b.className="act";
+  if(ATAJO){
+    $("cg-concepto").value=ATAJO.concepto;
+    $("cg-cuenta").value=ATAJO.cuenta;
+  } else {
+    $("cg-concepto").value=""; $("cg-cuenta").value="";
+  }
+  $("cg-concepto").focus();
+}
+
+function pintarCaja(){
+  if(!CAJA){
+    $("caja-sin").style.display=""; $("caja-hay").style.display="none";
+    $("ca-fondo").value=(CAJA_BOOT&&CAJA_BOOT.fondoSugerido)||300;
+    $("ca-apertura").value=(CAJA_BOOT&&CAJA_BOOT.hoy)||"";
+    $("ca-custodio").value=(USUARIO&&USUARIO.nombre)||"";
+    return;
+  }
+  $("caja-sin").style.display="none"; $("caja-hay").style.display="";
+  $("cj-periodo").textContent=CAJA.periodo;
+  $("cj-custodia").textContent="Custodia: "+CAJA.custodio+
+    (CAJA.apertura?" · abierta el "+CAJA.apertura:"");
+
+  var poco = CAJA.disponible < CAJA.fondoAsignado*0.15;
+  $("cj-kpis").innerHTML=
+    kpiC("Fondo asignado", d2(CAJA.fondoAsignado), "")+
+    kpiC("Gastado", d2(CAJA.total), CAJA.cuantos+" comprobante(s)"+
+      (CAJA.sinComprobante?" · "+CAJA.sinComprobante+" sin comprobante":""))+
+    kpiC("Disponible", d2(CAJA.disponible), CAJA.usado+"% del fondo usado", poco?"poco":"");
+
+  var b=$("cj-barra");
+  b.style.width=Math.min(100,CAJA.usado)+"%";
+  b.className = CAJA.usado>=85 ? "alto" : CAJA.usado>=60 ? "medio" : "";
+
+  $("cg-fecha").value=(CAJA_BOOT&&CAJA_BOOT.hoy)||"";
+  $("cj-cerrar").disabled = !CAJA.cuantos;
+
+  var g=CAJA.gastos||[];
+  $("cj-lista").innerHTML = !g.length
+    ? '<div class="vacio">Sin gastos todavía. Usa un botón de los de siempre y anota el primero.</div>'
+    : '<table class="mis"><thead><tr><th>Fecha</th><th>Concepto</th>'+
+      '<th class="oc">Comprob.</th><th class="num">Monto</th><th></th></tr></thead><tbody>'+
+      g.map(function(x){
+        return '<tr><td style="white-space:nowrap">'+esc(x.fecha)+'</td>'+
+          '<td><b>'+esc(x.concepto)+'</b><div class="cta">'+esc(x.cuentaCodigo)+
+            (x.cuentaDescripcion?' · '+esc(x.cuentaDescripcion):'')+'</div></td>'+
+          '<td class="oc">'+(x.sinComprobante
+            ?'<span class="sinc">sin comprobante</span>':esc(x.comprobante))+'</td>'+
+          '<td class="num">'+d2(x.monto)+'</td>'+
+          '<td><button class="quitar" title="Anular este gasto" '+
+            'onclick="anularGasto(\''+esc(x.gastoId)+'\')">✕</button></td></tr>';
+      }).join("")+'</tbody></table>';
+}
+
+function kpiC(r,v,p,cl){
+  return '<div class="kpi '+(cl||"")+'"><div class="r">'+esc(r)+'</div>'+
+    '<div class="v">'+esc(v)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div>';
+}
+
+function pintarCerrados(l){
+  $("caja-cerrados").innerHTML = !l.length ? "" :
+    '<h2>Períodos cerrados</h2><div class="tarjeta"><table class="mis">'+
+    '<thead><tr><th>Período</th><th class="oc">Cierre</th><th class="oc">Solicitud</th>'+
+    '<th class="num">Total</th><th></th></tr></thead><tbody>'+
+    l.map(function(c){
+      return '<tr><td><b>'+esc(c.periodo)+'</b><div class="cta">'+esc(c.cajaId)+'</div></td>'+
+        '<td class="oc">'+esc(c.cierre||"—")+'</td>'+
+        '<td class="oc">'+esc(c.solicitudId||"—")+'</td>'+
+        '<td class="num">'+d2(c.total)+'</td>'+
+        '<td><button class="btn sec chico" onclick="verArqueo(\''+esc(c.cajaId)+'\')">'+
+          'Ver arqueo</button></td></tr>';
+    }).join("")+'</tbody></table></div>';
+}
+
+function verArqueo(id){
+  var ruta="?p=arqueo&caja="+encodeURIComponent(id);
+  if(URL_APP){ irA(URL_APP+ruta); return; }
+  google.script.run.withSuccessHandler(function(u){ if(u) irA(u+ruta); }).api_urlApp();
+}
+
+function abrirCaja(){
+  sinMsg();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo abrir el período.")); return; }
+      CAJA=r.caja; CAJA_BOOT=null;
+      msg("ok","Período abierto: "+esc(r.cajaId)+".");
+      cargarCaja();
+    })
+    .withFailureHandler(function(e){ msg("mal",esc(String(e&&e.message||e))); })
+    .api_cajaAbrir(PIN,{ fondoAsignado:num("ca-fondo"), apertura:$("ca-apertura").value,
+                         custodio:$("ca-custodio").value });
+}
+
+function anotarGasto(){
+  sinMsg();
+  var d={ fecha:$("cg-fecha").value, concepto:($("cg-concepto").value||"").trim(),
+          monto:num("cg-monto"), comprobante:($("cg-comp").value||"").trim(),
+          cuentaCodigo:$("cg-cuenta").value };
+  if(!d.concepto){ msg("mal","Escribe en qué se gastó."); return; }
+  if(!d.cuentaCodigo){ msg("mal","Falta la cuenta contable. Usa un botón de los de siempre, o escógela abajo."); return; }
+  if(!(d.monto>0)){ msg("mal","El monto tiene que ser mayor que cero."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo anotar el gasto.")); return; }
+      CAJA=r.caja;
+      $("cg-concepto").value=""; $("cg-monto").value=""; $("cg-comp").value="";
+      $("cg-cuenta").value=""; usarAtajo(-2);   // -2 no existe: apaga todos
+      pintarCaja();
+      msg("ok","Anotado"+(d.comprobante?"":" — quedó marcado como sin comprobante")+".");
+    })
+    .withFailureHandler(function(e){ msg("mal",esc(String(e&&e.message||e))); })
+    .api_cajaGasto(PIN,d);
+}
+
+function anularGasto(id){
+  var motivo=prompt("¿Por qué se anula? Queda escrito en el arqueo.");
+  if(motivo===null) return;
+  sinMsg();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo anular.")); return; }
+      CAJA=r.caja; pintarCaja();
+      msg("ok","Gasto anulado. No se borró: queda con quién lo anuló y por qué.");
+    })
+    .withFailureHandler(function(e){ msg("mal",esc(String(e&&e.message||e))); })
+    .api_cajaAnular(PIN,id,motivo);
+}
+
+function cerrarCaja(){
+  if(!CAJA) return;
+  if(!confirm("Cerrar "+CAJA.periodo+" por B/. "+CAJA.total.toFixed(2)+".\n\n"+
+              "Se genera el arqueo y se crea la solicitud de reposición. "+
+              "Después de cerrar no se pueden agregar ni anular gastos de este período.")) return;
+  sinMsg();
+  $("cj-cerrar").disabled=true;
+  google.script.run
+    .withSuccessHandler(function(r){
+      $("cj-cerrar").disabled=false;
+      if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo cerrar el período.")); return; }
+      CAJA=null; CAJA_BOOT=null;
+      msg("ok","Período cerrado. Se creó la solicitud <b>"+esc(r.solicitudId)+
+              "</b> por B/. "+r.total.toFixed(2)+". "+
+              '<button class="btn sec chico" style="margin-left:8px" onclick="verArqueo(\''+
+              esc(r.cajaId)+'\')">Ver el arqueo</button>');
+      cargarCaja();
+      cargarMias();
+    })
+    .withFailureHandler(function(e){ $("cj-cerrar").disabled=false;
+      msg("mal",esc(String(e&&e.message||e))); })
+    .api_cajaCerrar(PIN,{});
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+<?!= incluir('Bandeja') ?>
+</body>
+</html>

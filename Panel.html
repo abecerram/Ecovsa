@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+:root{--verde-osc:#1F4A06;--blanco:#FFF}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;padding:18px 22px;border-bottom:5px solid var(--ambar)}
+.wrap{max-width:1240px;margin:0 auto}
+.marca{display:flex;align-items:center;gap:13px}
+/* La salida va a la IZQUIERDA y antes del logo: quien se quiere ir la
+   busca ahí, no en el pie. Panel era la ÚNICA pantalla del sistema sin
+   manera de volver. */
+.volver{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);
+  border:1.5px solid rgba(255,255,255,.30);color:#fff;border-radius:20px;
+  padding:8px 14px 8px 11px;font-family:inherit;font-size:12.5px;font-weight:700;
+  cursor:pointer;white-space:nowrap;flex-shrink:0}
+.volver:hover{background:rgba(255,255,255,.24)}
+.volver svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:620px){ .marca{flex-wrap:wrap} }
+.logo-img{height:54px;width:auto;flex-shrink:0;object-fit:contain;background:#fff;border-radius:10px;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.placa{width:38px;height:38px;flex-shrink:0;background:var(--ambar);transform:rotate(45deg);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.placa span{transform:rotate(-45deg);font-weight:900;font-size:17px;color:var(--verde-osc)}
+header h1{font-size:21px;font-weight:800;letter-spacing:.3px;line-height:1.1}
+header .sub{font-size:11px;font-weight:500;opacity:.78;letter-spacing:.7px;text-transform:uppercase;margin-top:2px}
+main{padding:20px 22px}
+.filtros{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;background:var(--blanco);border:1px solid var(--borde);border-radius:var(--radio);padding:14px 16px;margin-bottom:18px;box-shadow:var(--sombra)}
+.campo label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.campo input{padding:9px 11px;font-family:inherit;font-size:14px;border:1.5px solid var(--borde);border-radius:9px;background:#FBFDFC;color:var(--tinta)}
+.btn{padding:10px 16px;border:none;border-radius:9px;font-family:inherit;font-size:13.5px;font-weight:700;background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;cursor:pointer}
+.btn.sec{background:var(--verde-suave);color:var(--verde)}
+.btn:active{transform:scale(.98)}
+.rapidos{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.rapidos button{border:1.5px solid var(--borde);background:var(--blanco);border-radius:18px;padding:7px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer}
+.rapidos button:hover{border-color:var(--verde);color:var(--verde)}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--radio);padding:16px 17px;box-shadow:var(--sombra);border-top:4px solid var(--verde)}
+.kpi.amb{border-top-color:var(--ambar)}
+.kpi.roj{border-top-color:var(--rojo)}
+.kpi.azu{border-top-color:var(--azul)}
+.kpi .et{font-size:10.5px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.6px}
+.kpi .val{font-size:29px;font-weight:900;line-height:1.1;margin-top:6px;letter-spacing:-.5px}
+.kpi .pie{font-size:11.5px;color:var(--gris);margin-top:4px;font-weight:500}
+/* paneles */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid.uno{grid-template-columns:1fr}
+.panel{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--radio);padding:17px 18px;box-shadow:var(--sombra)}
+.panel h3{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--verde);margin-bottom:14px}
+canvas{max-height:270px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--borde)}
+td{padding:9px 6px;border-bottom:1px solid var(--borde)}
+tr:last-child td{border-bottom:none}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.pill{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:6px;padding:3px 7px;white-space:nowrap}
+.e-porrecolectar{background:#FFF3D1;color:var(--ambar-osc)}
+.e-vencido{background:var(--rojo-suave);color:var(--rojo)}
+.e-atrasado{background:#FCE3D6;color:#B4501B}
+.e-aldia{background:var(--verde-suave);color:var(--verde)}
+.e-suspendido{background:#ECEFEE;color:var(--gris)}
+.e-poriniciar{background:var(--azul-suave);color:var(--azul)}
+.e-completado{background:#DFF2E7;color:var(--verde)}
+.e-tratamiento{background:#EFE4F7;color:#6C3A96}
+.barra-mini{height:6px;background:var(--verde-suave);border-radius:4px;overflow:hidden;margin-top:4px}
+.barra-mini i{display:block;height:100%;background:var(--verde);border-radius:4px}
+.vacio{text-align:center;color:var(--gris);font-size:13px;padding:28px 12px;line-height:1.55}
+#cargando{position:fixed;inset:0;background:var(--fondo);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px}
+.spin{width:40px;height:40px;border:4px solid var(--verde-suave);border-top-color:var(--verde);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+.error{background:var(--rojo-suave);border:1px solid var(--rojo);color:var(--rojo);border-radius:12px;padding:15px 17px;font-size:14px;line-height:1.55}
+@media(max-width:840px){.grid{grid-template-columns:1fr}main{padding:16px 14px}header{padding:15px 14px}}
+/* La hoja de impresión NO va aquí: vive en Estilos.html y la comparten
+   las cuatro pantallas de reporte. Tenerla repetida en cada una es lo
+   que hace que un día salgan distintas. */
+</style>
+</head>
+<body>
+
+<div id="login" style="position:fixed;inset:0;background:linear-gradient(135deg,var(--azul-osc),var(--azul));z-index:3000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:26px;gap:6px">
+  <img src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400" alt="ECOVSA"
+       style="height:74px;width:auto;background:#fff;border-radius:14px;padding:11px 16px;box-shadow:0 4px 16px rgba(0,0,0,.28);margin-bottom:18px">
+  <div style="color:#fff;font-size:21px;font-weight:800">Panel de Gestión</div>
+  <div style="display:inline-block;background:var(--ambar);color:var(--verde-osc);font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin-top:9px">Acceso de gerencia</div>
+  <div style="color:rgba(255,255,255,.7);font-size:13px;margin:16px 0 18px;text-align:center;line-height:1.55">Indicadores de operación.<br>Solo supervisores y gerencia.</div>
+  <input id="pin-input" inputmode="numeric" maxlength="6" placeholder="••••"
+    style="width:180px;text-align:center;font-size:31px;font-weight:800;letter-spacing:9px;padding:13px;border:none;border-radius:13px;background:#fff;color:var(--verde-osc)">
+  <div id="pin-error" style="color:#FFC9C4;font-size:13px;font-weight:600;height:19px;margin-top:9px"></div>
+  <button onclick="entrarConPin()" style="width:200px;padding:13px;border:none;border-radius:11px;background:var(--ambar);color:var(--verde-osc);font-family:inherit;font-size:15px;font-weight:800;margin-top:5px;cursor:pointer">Entrar</button>
+</div>
+
+<div id="cargando"><div class="spin"></div><div style="font-size:13px;color:var(--gris);font-weight:600">Cargando indicadores…</div></div>
+
+<header class="no-imprimir">
+  <div class="wrap marca">
+    <button class="volver" onclick="volverDireccion()">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Volver a Dirección
+    </button>
+    <img class="logo-img" src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400"
+         alt="ECOVSA">
+    <div>
+      <h1>Panel de Gestión · ECOVSA</h1>
+      <div class="sub">Recolección de desechos peligrosos · Sector privado</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Solo aparece en papel. El estilo vive en Estilos.html. -->
+  <div class="hoja-membrete">
+    <img class="hoja-logo" alt=""
+      src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400">
+    <div>
+      <div class="hoja-razon">ECOTERMO DE PANAMA S.A. · ECOVSA</div>
+      <div class="hoja-titulo">Reporte a profundidad · Logística</div>
+      <div class="hoja-periodo" id="m-per"></div>
+    </div>
+  </div>
+
+  <div class="filtros no-imprimir">
+    <div class="campo"><label>Desde</label><input type="date" id="f-desde"></div>
+    <div class="campo"><label>Hasta</label><input type="date" id="f-hasta"></div>
+    <button class="btn" onclick="cargar()">Aplicar</button>
+    <button class="btn sec" onclick="window.print()">🖨 Imprimir / PDF</button>
+    <div class="rapidos">
+      <button onclick="rango('sem')">Última semana</button>
+      <button onclick="rango('q')">Últimos 15 días</button>
+      <button onclick="rango('mes')">Este mes</button>
+      <button onclick="rango('trim')">Últimos 3 meses</button>
+      <button onclick="rango('ano')">Año en curso</button>
+    </div>
+  </div>
+
+  <div id="contenido"></div>
+  <div id="contenido-flota"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString('es-PA',{maximumFractionDigits:1});
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const claseEstado=e=>"e-"+String(e||"").toLowerCase().replace(/\s+/g,"").replace(/[ÁÍ]/g,m=>({"Á":"a","Í":"i"}[m]));
+const MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+let graficas=[];
+const K_PIN="ecovsa_pin";
+let PIN="";
+function pedirPin(msg){
+  $("cargando").style.display="none";
+  $("login").style.display="flex";
+  $("pin-error").textContent=msg||"";
+  setTimeout(()=>$("pin-input").focus(),120);
+}
+function entrarConPin(){
+  const v=($("pin-input").value||"").trim();
+  if(!v){$("pin-error").textContent="Escribe tu PIN";return;}
+  $("pin-error").textContent="Verificando…";
+  google.script.run
+    .withSuccessHandler(r=>{
+      if(r&&r.ok){
+        if(r.usuario.rol==="operador"){$("pin-error").textContent="Este panel es para supervisores y gerencia";return;}
+        PIN=v; try{localStorage.setItem(K_PIN,JSON.stringify(v));}catch(e){}
+        $("login").style.display="none"; cargar();
+      } else { $("pin-error").textContent=(r&&r.error)||"PIN incorrecto"; }
+    })
+    .withFailureHandler(()=>{$("pin-error").textContent="Sin conexión";})
+    .api_login(v);
+}
+
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function rango(t){
+  const h=new Date(); let d;
+  if(t==='sem'){ d=new Date(h); d.setDate(d.getDate()-6); }
+  else if(t==='q'){ d=new Date(h); d.setDate(d.getDate()-14); }
+  else if(t==='mes') d=new Date(h.getFullYear(),h.getMonth(),1);
+  else if(t==='trim') d=new Date(h.getFullYear(),h.getMonth()-2,1);
+  else d=new Date(h.getFullYear(),0,1);
+  $("f-desde").value=iso(d); $("f-hasta").value=iso(h); cargar();
+}
+
+window.addEventListener("load",()=>{
+  const h=new Date();
+  $("f-desde").value=iso(new Date(h.getFullYear(),0,1));
+  $("f-hasta").value=iso(h);
+  try{const v=localStorage.getItem(K_PIN); if(v) PIN=JSON.parse(v);}catch(e){}
+  if(!PIN){pedirPin();return;}
+  google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+  cargar();
+});
+
+/* ── volver a Dirección ──
+   Dentro del iframe de Apps Script, location.href solo mueve el marco
+   interno y la pantalla queda en blanco: hay que navegar la ventana de
+   arriba. La URL real solo la conoce el servidor. */
+var URL_APP="";
+function volverDireccion(){
+  if(URL_APP){ irA(URL_APP+"?p=inicio"); return; }
+  google.script.run.withSuccessHandler(function(u){
+    URL_APP=u||""; if(URL_APP) irA(URL_APP+"?p=inicio");
+  }).api_urlApp();
+}
+function irA(url){
+  if(!url) return;
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+function cargar(){
+  $("cargando").style.display="flex";
+  /* el periodo, para el membrete de la hoja impresa */
+  var mp=$("m-per");
+  if(mp) mp.textContent = "Periodo " + ($("f-desde").value||"—") + " al " +
+    ($("f-hasta").value||"—") + " · generado el " + new Date().toLocaleDateString("es-PA");
+  google.script.run
+    .withSuccessHandler(pintar)
+    .withFailureHandler(e=>{
+      $("cargando").style.display="none";
+      $("contenido").innerHTML='<div class="error"><b>No se pudo cargar.</b><br>'+esc(e.message||e)+'</div>';
+    })
+    .api_dashboard(PIN,$("f-desde").value,$("f-hasta").value);
+  cargarFlota();
+}
+
+function cargarFlota(){
+  const d=$("f-desde").value, h=$("f-hasta").value;
+  let ind=null, jor=null;
+  const listo=()=>{ if(ind!==null&&jor!==null) pintarFlota(ind,jor); };
+  google.script.run.withSuccessHandler(r=>{ind=r||{};listo();})
+    .withFailureHandler(()=>{ind={};listo();}).api_indicadoresFlota(PIN,d,h);
+  google.script.run.withSuccessHandler(r=>{jor=r||{};listo();})
+    .withFailureHandler(()=>{jor={};listo();}).api_jornadas(PIN,d,h);
+}
+
+function dur_(min){
+  if(!min) return "—";
+  return Math.floor(min/60)+"h "+String(min%60).padStart(2,"0")+"m";
+}
+
+function pintarFlota(ind,jor){
+  const caja=$("contenido-flota");
+  const lista=(jor&&jor.jornadas)||[];
+  const u=(jor&&jor.ultima)||null;
+
+  if(!lista.length){
+    caja.innerHTML=`<div class="panel" style="margin-top:16px">
+      <h3>Jornadas y flota</h3>
+      <p style="font-size:13px;color:var(--gris);line-height:1.6">
+        Todavía no hay jornadas registradas en este rango.<br>
+        Estos datos se generan cuando el operador abre y cierra su jornada desde la app.
+        El histórico importado no los incluye, porque el kilometraje no se capturaba antes.</p>
+    </div>`;
+    return;
+  }
+
+  const ops = (ind && ind.operadores) || [];
+  const ult = ops.length ? `
+    <div class="panel" style="margin-top:16px">
+      <h3>Resumen del período · por operador</h3>
+      <div class="kpis" style="margin-bottom:0">
+        ${ops.map(o=>`
+          <div class="kpi">
+            <div class="et">${esc(o.conductor)}</div>
+            <div class="val" style="font-size:19px">${fmt(o.km)} <span style="font-size:14px;color:var(--gris)">km</span></div>
+            <div class="sub">${o.jornadas} jornada(s) · ${dur_(o.minutos)} en ruta</div>
+            <div class="sub">${o.paradas} parada(s) · ${fmt(o.kg)} kg levantados</div>
+            <div class="sub" style="margin-top:5px;padding-top:5px;border-top:1px solid var(--borde)">
+              ${o.detalleVehiculos.map(v=>esc(v.vehiculo)+": "+fmt(v.km)+" km").join("<br>")}
+            </div>
+          </div>`).join("")}
+      </div>
+      <p style="font-size:12px;color:var(--gris);margin-top:12px">
+        ${ind.jornadas} jornada(s) cerradas entre ${esc($("f-desde").value||"—")} y ${esc($("f-hasta").value||"—")}.
+        ${u&&u.abierta?'<b style="color:var(--ambar)">Hay una jornada en curso ('+esc(u.conductor||"")+') que no entra en estos totales.</b>':''}
+      </p>
+    </div>` : "";
+
+  const filas = lista.slice(0,40).map(j=>`<tr>
+      <td>${esc(j.fecha)}</td><td>${esc(j.conductor)}</td><td>${esc(j.vehiculo)}</td>
+      <td style="text-align:right">${fmt(j.kmRecorridos)}</td>
+      <td style="text-align:right">${dur_(j.duracion)}</td>
+      <td style="text-align:right">${j.paradas}</td>
+      <td style="text-align:right">${fmt(j.totalKg)}</td></tr>`).join("");
+
+  const veh = (ind&&ind.vehiculos&&ind.vehiculos.length)
+    ? `<div class="panel" style="margin-top:16px">
+        <h3>Comparación por vehículo</h3>
+        <table><thead><tr><th>Vehículo</th><th style="text-align:right">Km</th>
+          <th style="text-align:right">Kg</th><th style="text-align:right">Paradas</th>
+          <th style="text-align:right">Km/galón</th><th style="text-align:right">Gasto B/.</th></tr></thead>
+        <tbody>${ind.vehiculos.map(v=>`<tr><td><b>${esc(v.vehiculo)}</b></td>
+          <td style="text-align:right">${fmt(v.km)}</td><td style="text-align:right">${fmt(v.kg)}</td>
+          <td style="text-align:right">${v.paradas}</td>
+          <td style="text-align:right">${v.rendimiento||"—"}</td>
+          <td style="text-align:right">${fmt(v.gasto)}</td></tr>`).join("")}</tbody></table>
+        <p style="font-size:12px;color:var(--gris);margin-top:9px;line-height:1.55">
+          El rendimiento km/galón necesita al menos dos cargas del mismo vehículo para calcularse.</p>
+      </div>` : "";
+
+  const kpiFlota = ind&&ind.kmTotal ? `
+    <div class="panel" style="margin-top:16px">
+      <h3>Indicadores de flota</h3>
+      <div class="kpis" style="margin-bottom:0">
+        <div class="kpi"><div class="et">Kilómetros</div><div class="val">${fmt(ind.kmTotal)}</div>
+          <div class="sub">${fmt(ind.kmPorParada)} km por parada</div></div>
+        <div class="kpi"><div class="et">Kilos por km</div><div class="val">${ind.kgPorKm}</div>
+          <div class="sub">densidad de la ruta</div></div>
+        <div class="kpi"><div class="et">Rendimiento</div><div class="val">${ind.kmPorGalon||"—"}</div>
+          <div class="sub">km por galón</div></div>
+        <div class="kpi"><div class="et">Combustible</div><div class="val">${fmt(ind.gasto)}</div>
+          <div class="sub">B/. ${ind.costoPorParada} por parada</div></div>
+      </div>
+    </div>` : "";
+
+  caja.innerHTML = ult + kpiFlota + veh + `
+    <div class="panel" style="margin-top:16px">
+      <h3>Historial de jornadas</h3>
+      <table><thead><tr><th>Fecha</th><th>Conductor</th><th>Vehículo</th>
+        <th style="text-align:right">Km</th><th style="text-align:right">Duración</th>
+        <th style="text-align:right">Paradas</th><th style="text-align:right">Kg</th></tr></thead>
+      <tbody>${filas}</tbody></table>
+      ${lista.length>40?'<p style="font-size:12px;color:var(--gris);margin-top:9px">Mostrando las 40 jornadas más recientes del rango.</p>':''}
+    </div>`;
+}
+
+function pintar(d){
+  $("cargando").style.display="none";
+  graficas.forEach(g=>{try{g.destroy()}catch(e){}}); graficas=[];
+  if(d&&d.requiereLogin){PIN="";try{localStorage.removeItem(K_PIN);}catch(e){} pedirPin(d.error||"Tu PIN ya no es válido"); return;}
+  if(!d||!d.ok){
+    $("contenido").innerHTML='<div class="error"><b>Acceso restringido.</b><br>'+
+      esc((d&&d.error)||'No se recibieron datos.')+'</div>';
+    return;
+  }
+  const t=d.totales;
+  const promVisita = t.visitas? (t.totalKg/t.visitas) : 0;
+  const cobertura = t.clientesTotal? Math.round(t.clientesActivos/t.clientesTotal*100) : 0;
+  const pendientes = d.atencion.length;
+
+  $("contenido").innerHTML=`
+    <div class="kpis">
+      <div class="kpi">
+        <div class="et">Total recolectado</div>
+        <div class="val">${fmt(t.totalKg)} <span style="font-size:15px;color:var(--gris)">kg</span></div>
+        <div class="pie">${fmt(t.kgBolsas)} kg bolsas · ${fmt(t.kgPunzo)} kg punzo</div>
+      </div>
+      <div class="kpi azu">
+        <div class="et">Visitas realizadas</div>
+        <div class="val">${fmt(t.visitas)}</div>
+        <div class="pie">${fmt(promVisita)} kg promedio por visita</div>
+      </div>
+      <div class="kpi amb">
+        <div class="et">Clientes atendidos</div>
+        <div class="val">${fmt(t.clientesActivos)}</div>
+        <div class="pie">de ${fmt(t.clientesTotal)} en cartera · ${cobertura}% de cobertura
+          <div class="barra-mini"><i style="width:${cobertura}%"></i></div></div>
+      </div>
+      <div class="kpi ${pendientes?'roj':''}">
+        <div class="et">Requieren atención</div>
+        <div class="val">${fmt(pendientes)}</div>
+        <div class="pie">vencidos, atrasados y por recolectar</div>
+      </div>
+      <div class="kpi">
+        <div class="et">Envases recolectados</div>
+        <div class="val">${fmt(t.bolsas)}</div>
+        <div class="pie">bolsas rojas · ${fmt(t.punzo)} punzocortantes</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel"><h3>Evolución mensual (kg)</h3><canvas id="g-evol"></canvas></div>
+      <div class="panel"><h3>Estado de la cartera</h3><canvas id="g-estados"></canvas></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Top 10 clientes por volumen</h3>
+        ${d.topClientes.length? `<table><thead><tr><th>Cliente</th><th style="text-align:right">Visitas</th><th style="text-align:right">Kg</th></tr></thead><tbody>
+          ${d.topClientes.map(c=>`<tr><td>${esc(c.cliente)}</td><td class="num">${c.visitas}</td><td class="num">${fmt(c.kg)}</td></tr>`).join("")}
+        </tbody></table>`:'<div class="vacio">Sin recolecciones en el período.</div>'}
+      </div>
+      <div class="panel">
+        <h3>Desempeño por operador</h3>
+        ${d.operadores.length? `<table><thead><tr><th>Operador</th><th style="text-align:right">Visitas</th><th style="text-align:right">Kg</th><th style="text-align:right">Min/visita</th></tr></thead><tbody>
+          ${d.operadores.map(o=>`<tr><td>${esc(o.operador)}</td><td class="num">${o.visitas}</td><td class="num">${fmt(o.kg)}</td><td class="num">${o.promedioMin||"—"}</td></tr>`).join("")}
+        </tbody></table>`:'<div class="vacio">Sin datos de operadores.</div>'}
+      </div>
+    </div>
+
+    <div class="grid uno">
+      <div class="panel">
+        <h3>Clientes que requieren atención</h3>
+        ${d.atencion.length? `<table><thead><tr><th>Cliente</th><th>Región</th><th>Frecuencia</th><th>Próxima visita</th><th style="text-align:right">Atraso</th><th>Estado</th></tr></thead><tbody>
+          ${d.atencion.map(c=>`<tr>
+            <td>${esc(c.nombre)}</td><td>${esc(c.region)}</td><td>${esc(c.frecuencia)}</td>
+            <td>${esc(c.proximaVisita||"—")}</td>
+            <td class="num" style="color:${c.diasAtraso>15?'var(--rojo)':'inherit'}">${c.diasAtraso?c.diasAtraso+" d":"—"}</td>
+            <td><span class="pill ${claseEstado(c.estado)}">${esc(c.estado)}</span></td></tr>`).join("")}
+        </tbody></table>`:'<div class="vacio">Toda la cartera está al día. 👏</div>'}
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:11.5px;color:var(--gris);margin-top:18px">
+      Período ${esc(d.rango.desde)} — ${esc(d.rango.hasta)} · Generado el ${new Date().toLocaleDateString('es-PA')}
+    </div>`;
+
+  // Evolución
+  const ev=d.evolucion;
+  graficas.push(new Chart($("g-evol"),{
+    type:"bar",
+    data:{ labels: ev.map(e=>{const[a,m]=e.mes.split("-");return MESES[+m-1]+" "+a.slice(2);}),
+      datasets:[{label:"Kg recolectados",data:ev.map(e=>Math.round(e.kg*10)/10,0),
+        backgroundColor:"#0E5F45",borderRadius:6,maxBarThickness:44}]},
+    options:{responsive:true,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,grid:{color:"#EDF2EF"},ticks:{font:{family:"Archivo",size:11}}},
+              x:{grid:{display:false},ticks:{font:{family:"Archivo",size:11}}}}}
+  }));
+
+  // Estados
+  const claves=Object.keys(d.estados);
+  const COL={"AL DÍA":"#0E5F45","POR RECOLECTAR":"#F5B301","VENCIDO":"#C0392B","ATRASADO":"#B4501B",
+    "SUSPENDIDO":"#98A5A0","POR INICIAR":"#1F6FB2","COMPLETADO":"#3E9B6E","TRATAMIENTO":"#6C3A96"};
+  graficas.push(new Chart($("g-estados"),{
+    type:"doughnut",
+    data:{labels:claves,datasets:[{data:claves.map(k=>d.estados[k]),
+      backgroundColor:claves.map(k=>COL[k]||"#5C6B63"),borderWidth:2,borderColor:"#fff"}]},
+    options:{responsive:true,cutout:"58%",
+      plugins:{legend:{position:"right",labels:{font:{family:"Archivo",size:11.5},boxWidth:12,padding:11}}}}
+  }));
+}
+</script>
+</body>
+</html>

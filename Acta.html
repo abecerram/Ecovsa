@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 14px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  box-shadow:0 2px 12px rgba(20,48,107,.3)}
+.barra .ti{color:#fff;font-size:13px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:10px 15px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.16);color:#fff}
+.barra button.pri{background:var(--ambar);color:#4A3300}
+.barra button:active{transform:translateY(1px)}
+
+.aviso{max-width:820px;margin:22px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:12px;padding:26px;text-align:center;font-size:14px;color:var(--gris);line-height:1.6}
+.pin-caja{max-width:340px;margin:40px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 3px 16px rgba(20,48,107,.12)}
+.pin-caja h1{font-size:17px;color:var(--azul-osc);margin-bottom:6px}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:160px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px;
+  padding:12px;border:1.5px solid var(--borde);border-radius:12px;font-family:inherit;color:var(--azul-osc)}
+.pin-caja button{width:170px;margin-top:14px;padding:13px;border:none;border-radius:11px;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
+  font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+.pin-err{color:#C0392B;font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+
+/* ── la hoja del acta ── */
+.hoja{max-width:820px;margin:18px auto 0;background:#fff;color:#111;padding:28px 32px;
+  border:1px solid var(--borde);border-radius:8px;font-size:12.5px;line-height:1.5;
+  box-shadow:0 3px 16px rgba(20,48,107,.10)}
+.enc{display:flex;gap:14px;align-items:center;border-bottom:3px solid var(--azul-osc);padding-bottom:12px}
+.enc img{height:60px;width:auto}
+.enc .ti{font-size:17px;font-weight:900;color:var(--azul-osc);letter-spacing:.3px;line-height:1.2}
+.enc .su{font-size:10.5px;color:#555;letter-spacing:.6px;text-transform:uppercase}
+.cod{margin-left:auto;text-align:right;font-size:9.5px;color:#555;line-height:1.65;white-space:nowrap}
+
+.num{background:var(--azul-osc);color:#fff;padding:10px 14px;border-radius:6px;margin:15px 0;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.num .et{font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;opacity:.85}
+.num b{font-size:20px;letter-spacing:.7px;display:block}
+.num .der{text-align:right;font-size:11px;line-height:1.5}
+
+.sec{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);border-bottom:1px solid #ccc;padding-bottom:3px;margin:18px 0 9px}
+.campos{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
+.campo{border-bottom:1px dotted #bbb;padding-bottom:3px}
+.campo span{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#666;display:block}
+.campo b{font-size:13px}
+
+table{width:100%;border-collapse:collapse;margin-top:5px;font-size:11.5px}
+th{background:#EEF2F7;border:1px solid #bbb;padding:6px 7px;text-align:left;
+  font-size:9px;text-transform:uppercase;letter-spacing:.4px}
+td{border:1px solid #ccc;padding:6px 7px;vertical-align:top}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc)}
+
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:30px}
+.firma{text-align:center}
+.firma .lin{border-top:1.5px solid #333;margin-top:4px;padding-top:6px;font-size:11px;line-height:1.5}
+.firma img{max-height:80px;max-width:100%}
+.firma .hueco{height:80px}
+.pie{margin-top:24px;padding-top:10px;border-top:1px solid #ccc;font-size:9px;color:#666;line-height:1.7}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{max-width:none;margin:0;border:none;border-radius:0;padding:0;box-shadow:none;font-size:10.5pt}
+  table{page-break-inside:auto} tr{page-break-inside:avoid}
+  .firmas{page-break-inside:avoid}
+}
+@page{margin:14mm}
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <h1>Acta de disposición final</h1>
+  <p>Escribe tu PIN para abrir el documento.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button onclick="entrar()">Abrir acta</button>
+</div>
+
+<div id="pantalla-aviso" class="aviso" style="display:none"></div>
+
+<div id="pantalla-acta" style="display:none">
+  <div class="barra">
+    <div class="ti">ACTA DE DISPOSICIÓN FINAL</div>
+    <button onclick="window.print()" class="pri">Imprimir / Guardar PDF</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var ACTA_ID="", PIN="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n2(v){return Number(v||0).toFixed(2);}
+
+function aviso(txt){
+  $("pantalla-pin").style.display="none";
+  $("pantalla-acta").style.display="none";
+  var a=$("pantalla-aviso"); a.style.display="block"; a.innerHTML=txt;
+}
+
+/* El operador consulta su acta; imprimirla queda para supervisión. */
+var SOLO_VER = false;
+
+function arrancar(){
+  // la página vive dentro de un iframe: su location NO trae los parámetros
+  // del enlace. Apps Script los entrega con google.script.url.
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      SOLO_VER = String(p.solover||"") === "1";
+      seguir(p.id||"");
+    });
+  } else {
+    var m=(location.search||"").match(/[?&]id=([^&]+)/);
+    SOLO_VER = /[?&]solover=1/.test(location.search||"");
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+
+function seguir(id){
+  ACTA_ID=id;
+  if(!ACTA_ID){ aviso("Falta el número de acta en el enlace.<br><br>El enlace correcto termina en <b>?p=acta&amp;id=DF-2026-0001</b>"); return; }
+  try{ PIN = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(PIN) cargar(PIN); else pedirPin("");
+}
+
+function pedirPin(msg){
+  $("pantalla-aviso").style.display="none";
+  $("pantalla-acta").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=msg||"";
+  setTimeout(function(){$("pin").focus();},120);
+}
+
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…";
+  cargar(p);
+}
+
+function cargar(pin){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){
+        if(PIN && pin===PIN){ PIN=""; pedirPin((r&&r.error)||"No se pudo abrir"); }
+        else pedirPin((r&&r.error)||"PIN no válido");
+        return;
+      }
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(pin)); }catch(e){}
+      pintar(r.acta);
+      $("pantalla-pin").style.display="none";
+      $("pantalla-aviso").style.display="none";
+      $("pantalla-acta").style.display="block";
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión. Intenta con señal."); })
+    .api_acta(pin, ACTA_ID);
+}
+
+function pintar(a){
+  var det=a.detalle||[];
+  var filas = det.length
+    ? det.map(function(d,i){
+        return "<tr><td class='n'>"+(i+1)+"</td>"+
+               "<td>"+esc(d.cliente)+"</td>"+
+               "<td class='n'>"+d.visitas+"</td>"+
+               "<td class='n'>"+n2(d.kgBio)+"</td>"+
+               "<td class='n'>"+n2(d.kgAnatomo)+"</td>"+
+               "<td class='n'>"+n2(d.kgPunzo)+"</td>"+
+               "<td class='n'><b>"+n2(d.kg)+"</b></td>"+
+               "<td style='font-size:10px'>"+esc((d.recibos||[]).join(", ")||"—")+"</td></tr>";
+      }).join("")
+    : "<tr><td colspan='8' style='text-align:center;color:#777'>Esta acta no guardó desglose por generador.</td></tr>";
+
+  var visitas = det.reduce(function(s,d){return s+d.visitas;},0);
+
+  var html =
+  "<div class='enc'>"+
+    "<img src='"+LOGO+"' alt='ECOVSA'>"+
+    "<div><div class='ti'>ECOVSA</div>"+
+      "<div class='su'>Ecología · Vida · Salud</div></div>"+
+    "<div class='cod'>ECOVSA-FR-DF-01 · Rev. 01<br>Gestión de desechos peligrosos<br>República de Panamá</div>"+
+  "</div>"+
+
+  "<div class='num'>"+
+    "<div><span class='et'>Acta de disposición final</span><b>"+esc(a.actaId)+"</b></div>"+
+    "<div class='der'>Emitida el "+esc(a.fecha)+"<br>a las "+esc(a.hora||"—")+"</div>"+
+  "</div>"+
+
+  "<div class='sec'>1 · Datos de la entrega</div>"+
+  "<div class='campos'>"+
+    "<div class='campo'><span>Operador responsable</span><b>"+esc(a.operador||"—")+"</b></div>"+
+    "<div class='campo'><span>Vehículo</span><b>"+esc(a.vehiculo||"—")+"</b></div>"+
+    "<div class='campo'><span>Lugar de disposición final</span><b>"+esc(a.destino||"—")+"</b></div>"+
+    "<div class='campo'><span>Recibido por</span><b>"+esc(a.recibe||"—")+"</b></div>"+
+    "<div class='campo'><span>Periodo cubierto</span><b>"+esc(a.desde)+" al "+esc(a.hasta)+"</b></div>"+
+    "<div class='campo'><span>Generadores / bultos</span><b>"+det.length+" generador(es) · "+a.bultos+" bulto(s)</b></div>"+
+  "</div>"+
+
+  "<div class='sec'>2 · Desglose por generador</div>"+
+  "<table><thead><tr><th>#</th><th>Generador</th><th>Visitas</th><th>Bioinf. kg</th>"+
+    "<th>Anatomo. kg</th><th>Punzo. kg</th><th>Total kg</th><th>Recibos</th></tr></thead>"+
+    "<tbody>"+filas+
+    "<tr class='tot'><td colspan='2'>TOTAL ENTREGADO</td>"+
+      "<td class='n'>"+visitas+"</td>"+
+      "<td class='n'>"+n2(a.kgBio)+"</td><td class='n'>"+n2(a.kgAnatomo)+"</td>"+
+      "<td class='n'>"+n2(a.kgPunzo)+"</td><td class='n'>"+n2(a.kgTotal)+"</td><td></td></tr>"+
+    "</tbody></table>"+
+
+  "<div class='sec'>3 · Resumen por corriente de desecho</div>"+
+  "<table><thead><tr><th>Corriente</th><th>Peso (kg)</th><th>Bultos</th></tr></thead><tbody>"+
+    "<tr><td>Bioinfeccioso</td><td class='n'>"+n2(a.kgBio)+"</td><td class='n'>"+a.cantBio+"</td></tr>"+
+    "<tr><td>Anatomopatológico</td><td class='n'>"+n2(a.kgAnatomo)+"</td><td class='n'>"+a.cantAnatomo+"</td></tr>"+
+    "<tr><td>Punzocortante</td><td class='n'>"+n2(a.kgPunzo)+"</td><td class='n'>"+a.cantPunzo+"</td></tr>"+
+    "<tr class='tot'><td>TOTAL</td><td class='n'>"+n2(a.kgTotal)+"</td><td class='n'>"+a.bultos+"</td></tr>"+
+  "</tbody></table>"+
+
+  (a.observaciones ? "<div class='sec'>4 · Observaciones</div><div>"+esc(a.observaciones)+"</div>" : "")+
+
+  "<div class='firmas'>"+
+    "<div class='firma'><div class='hueco'></div>"+
+      "<div class='lin'><b>"+esc(a.operador||"")+"</b><br>Entrega · Operador ECOVSA</div></div>"+
+    "<div class='firma'>"+
+      (a.firma ? "<img src='"+a.firma+"' alt='firma'>" : "<div class='hueco'></div>")+
+      "<div class='lin'><b>"+esc(a.recibe||"")+"</b><br>Recibe · "+esc(a.destino||"Planta de tratamiento")+"</div></div>"+
+  "</div>"+
+
+  "<div class='pie'>"+
+    "Documento generado por el sistema Rutas ECOVSA. Las recolecciones incluidas quedaron selladas "+
+    "con el número de acta "+esc(a.actaId)+" y no pueden reasignarse a otra entrega. "+
+    "Trazabilidad verificable contra los recibos listados en la sección 2."+
+    (a.recibos ? "<br><br><b>Recibos incluidos:</b> "+esc(a.recibos) : "")+
+  "</div>";
+
+  $("hoja").innerHTML=html;
+  document.title = "Acta "+a.actaId+" · ECOVSA";
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+function aplicarSoloVer(){
+  if(!SOLO_VER) return;
+  var b = document.querySelector("button.pri");
+  if(b){
+    b.style.display = "none";
+    var av = document.createElement("div");
+    av.style.cssText = "font-size:12px;color:#5B6880;padding:9px 14px;line-height:1.55";
+    av.innerHTML = "Consulta del acta. Para imprimirla o guardarla en PDF, pídesela a supervisión.";
+    b.parentNode.appendChild(av);
+  }
+}
+
+</script>
+</body>
+</html>

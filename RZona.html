@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+/* ═══════════════════════════════════════════════════════════════════
+   REPORTE A PROFUNDIDAD · MERCADEO Y TRATAMIENTO
+   ───────────────────────────────────────────────────────────────────
+   UNA sola página para las dos zonas, no dos archivos casi iguales.
+
+   Los dos reportes tienen exactamente la misma forma —ocho números, dos
+   gráficas y unas tablas— y lo único que cambia son los datos. Dos
+   archivos gemelos siempre terminan siendo dos versiones distintas: se
+   arregla un borde en uno y el otro se queda como estaba. Aquí el
+   servidor manda `kpis`, `graficas` y `tablas` ya armadas y la pantalla
+   solo las dibuja.
+
+   A cuál zona se entra lo dice `?z=` en la dirección, igual que hace
+   RPlanta con sus fechas.
+   ═══════════════════════════════════════════════════════════════════ */
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  line-height:1.5;padding-bottom:60px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:14px 20px 16px;border-bottom:5px solid var(--ambar)}
+.barra{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.volver{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);
+  border:1.5px solid rgba(255,255,255,.30);color:#fff;border-radius:20px;
+  padding:8px 15px 8px 12px;font-family:inherit;font-size:12.5px;font-weight:700;
+  cursor:pointer;white-space:nowrap;flex-shrink:0}
+.volver:hover{background:rgba(255,255,255,.24)}
+.volver svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.titulo h1{font-size:20px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+.titulo .sub{font-size:10.5px;font-weight:600;opacity:.82;letter-spacing:.7px;
+  text-transform:uppercase;margin-top:2px}
+.acciones{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.acciones button{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.30);
+  color:#fff;font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;
+  border-radius:20px;cursor:pointer}
+.acciones button:hover{background:rgba(255,255,255,.24)}
+
+.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 0}
+h3{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:0 0 11px}
+
+.periodo{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:11px 15px;margin-bottom:14px;box-shadow:var(--sombra);
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.periodo .dice{font-size:13.5px;font-weight:700}
+.periodo .dice b{color:var(--azul-osc)}
+.periodo .dice span{color:var(--gris);font-weight:500}
+.rapidos{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.rapidos button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
+  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer}
+.rapidos button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff}
+.rapidos input{padding:6px 9px;font-family:inherit;font-size:12.5px;
+  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
+
+/* Dice de dónde sale cada cifra. Sin esto, la mora de siempre y lo
+   facturado de esta semana se leen igual. */
+.de{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.6px;
+  text-transform:uppercase;border-radius:6px;padding:3px 8px;margin-left:9px;
+  vertical-align:2px;background:var(--azul-suave);color:var(--azul-osc)}
+.de.per{background:var(--verde-suave);color:var(--verde)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px 17px;box-shadow:var(--sombra);border-top:4px solid var(--azul)}
+.kpi.malo{border-top-color:var(--rojo)!important}
+.kpi .e{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--gris)}
+.kpi .v{font-size:26px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:5px;
+  font-variant-numeric:tabular-nums;word-break:break-word}
+.kpi.malo .v{color:var(--rojo)}
+.kpi .v small{font-size:14px;font-weight:800;color:var(--gris)}
+.kpi .s{font-size:12px;color:var(--gris);line-height:1.45;margin-top:5px}
+
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:17px 19px;box-shadow:var(--sombra);margin-bottom:16px}
+.tarjeta .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tarjeta .cab .lee{font-size:12px;color:var(--gris);margin-left:auto}
+.grafica{margin-top:14px}
+.grafica svg{width:100%;height:230px;display:block}
+.leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--gris)}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}
+.leyenda i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ── LA CARTERA ──
+   Un rótulo de bloque separa las dos preguntas del reporte: qué clientes
+   se tienen (la cartera) y qué se está negociando (el embudo). Sin el
+   corte, doce números seguidos se leen como una sola lista. */
+.bloque{display:flex;align-items:center;gap:10px;margin:4px 0 11px}
+.bloque .t{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);white-space:nowrap}
+.bloque .l{flex-grow:1;height:1px;background:var(--borde)}
+
+/* El filtro de la curva vive DENTRO de su tarjeta, no arriba: arriba se
+   elige el periodo del embudo y aquí la historia de la cartera. Son dos
+   ventanas distintas y juntarlas confundiría las dos. */
+.filtro{display:flex;gap:7px;flex-wrap:wrap;align-items:center;
+  margin-top:11px;padding-top:11px;border-top:1px solid var(--borde)}
+.filtro .e{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gris);margin-right:3px}
+.filtro button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
+  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer}
+.filtro button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff}
+.filtro .libre{display:flex;gap:6px;align-items:center;margin-left:auto}
+.filtro .libre span{font-size:11.5px;color:var(--gris)}
+.filtro input{padding:6px 9px;font-family:inherit;font-size:12.5px;
+  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
+@media (max-width:700px){.filtro .libre{margin-left:0;width:100%}}
+
+.curva svg{width:100%;height:250px;display:block}
+.reparto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:14px}
+@media (max-width:760px){.reparto{grid-template-columns:1fr;gap:16px}}
+.rep{display:flex;flex-direction:column;gap:9px}
+.rep .f{display:flex;align-items:center;gap:10px}
+.rep .n{width:112px;flex-shrink:0;font-size:12px;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* «sin región» se dice en gris, no se esconde: es un dato por completar.
+   La clase se llama .sin y no .vacio porque .vacio ya es el mensaje
+   centrado de «no hay nada que mostrar» y le metería 44px de aire. */
+.rep .n.sin{color:var(--gris)}
+.rep .b{flex-grow:1;height:16px;background:var(--fondo);border-radius:4px;overflow:hidden}
+.rep .b i{display:block;height:100%;border-radius:4px}
+.rep .c{width:26px;text-align:right;font-size:13px;font-weight:900;color:var(--azul-osc);
+  font-variant-numeric:tabular-nums}
+.rep .c.sin{color:var(--gris)}
+
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--gris);padding:8px 10px;border-bottom:2px solid var(--borde);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--borde);font-variant-numeric:tabular-nums}
+td.num,th.num{text-align:right}
+tbody tr:last-child td{border-bottom:none}
+td.alerta{color:var(--rojo);font-weight:800}
+tr.total td{font-weight:800;background:var(--azul-suave);border-top:2px solid var(--azul-claro)}
+.tabla-scroll{overflow-x:auto}
+.nota{background:var(--azul-suave);border-left:4px solid var(--azul);border-radius:0 9px 9px 0;
+  padding:11px 14px;font-size:12.5px;line-height:1.6;margin-top:14px}
+.vacio{text-align:center;color:var(--gris);font-size:14px;padding:44px 16px;line-height:1.6}
+.mas{background:none;border:1.5px solid var(--borde);border-radius:18px;padding:7px 15px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;margin-top:12px}
+
+/* ── LA ESPERA ──
+   Sin esto la pantalla sale EN BLANCO mientras el servidor calcula, y
+   ese blanco puede durar bastante. Siempre tiene que haber algo. */
+#cargando{text-align:center;padding:80px 20px}
+.spin{width:38px;height:38px;border:4px solid var(--borde);border-top-color:var(--azul);
+  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 16px}
+@keyframes g{to{transform:rotate(360deg)}}
+#cargando .txt{color:var(--gris);font-size:14px;font-weight:600;line-height:1.6}
+#cargando button{margin-top:16px;background:var(--ambar);color:#4A3300;border:none;
+  padding:11px 20px;border-radius:11px;font-family:inherit;font-weight:800;cursor:pointer}
+
+.pin-caja{max-width:360px;margin:70px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:20px;padding:32px 26px;text-align:center;box-shadow:0 4px 22px rgba(20,48,107,.15)}
+.pin-caja .logo{margin:0 auto 18px;height:74px;width:116px;
+  background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat}
+.pin-caja h1{font-size:19px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja p{font-size:13px;color:var(--gris);line-height:1.55;margin:9px 0 18px}
+.pin-caja input{width:170px;text-align:center;font-size:29px;font-weight:800;letter-spacing:8px;
+  padding:13px;border:1.5px solid var(--borde);border-radius:12px;font-family:inherit;color:var(--azul-osc)}
+.pin-err{color:var(--rojo);font-size:13px;font-weight:600;height:19px;margin-top:10px}
+.pin-caja button{width:185px;margin-top:12px;padding:13px;border:none;border-radius:12px;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
+  font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="cargando">
+  <div class="spin"></div>
+  <div class="txt">Reuniendo los datos…</div>
+</div>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1 id="pin-tit">Reporte a profundidad</h1>
+  <p>Escribe tu PIN para entrar.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button onclick="entrar()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+  <header class="no-imprimir">
+    <div class="barra">
+      <button class="volver" onclick="volverDireccion()">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Volver a Dirección
+      </button>
+      <div class="titulo">
+        <h1 id="h-tit">Reporte a profundidad</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <div class="acciones">
+        <button onclick="window.print()">Imprimir / PDF</button>
+        <button onclick="irModulo()" id="b-modulo">Ver el módulo</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hoja-membrete">
+      <img class="hoja-logo" alt=""
+        src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400">
+      <div>
+        <div class="hoja-razon">ECOTERMO DE PANAMA S.A. · ECOVSA</div>
+        <div class="hoja-titulo" id="m-tit">Reporte a profundidad</div>
+        <div class="hoja-periodo" id="m-per"></div>
+      </div>
+    </div>
+    <div id="cuerpo"></div>
+  </div>
+</div>
+
+<script>
+var PIN="", URL_APP="", ZONA="mercadeo", DESDE="", HASTA="", RAPIDO="mes", DATOS=null;
+/* La ventana de la curva de cartera. Va aparte del periodo del reporte
+   porque son dos preguntas: arriba, qué se cerró este mes; aquí, cómo ha
+   crecido la cartera, que solo se ve en años. */
+var CURVA="12";
+var ABIERTAS={};   /* qué tablas largas están desplegadas */
+
+/* Cada zona con su nombre, su color y a qué módulo lleva el botón de la
+   derecha, por si gerencia quiere bajar a la pantalla de trabajo. */
+var ZONAS = {
+  mercadeo: { nombre:'Mercadeo',    color:'var(--lima)',   modulo:'alta',
+              verModulo:'Ver el módulo de Mercadeo' },
+  planta:   { nombre:'Tratamiento', color:'var(--morado)', modulo:'planta',
+              verModulo:'Ver el módulo de Tratamiento' }
+};
+var TOPE = 25;   /* filas antes de ofrecer «ver todas» */
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+function verPantalla(cual){
+  ["cargando","pantalla-pin","app"].forEach(function(x){
+    var e=$(x); if(e) e.style.display = (x===cual) ? "block" : "none";
+  });
+}
+function vigilar(){
+  clearTimeout(window._vig);
+  window.__LISTO__=false;
+  window._vig=setTimeout(function(){
+    if(window.__LISTO__) return;
+    var c=$("cargando");
+    if(c && c.style.display!=="none")
+      c.innerHTML='<div class="txt">Esto está tardando más de lo normal.<br>'+
+        'Puede ser la conexión, o que el libro tenga muchas filas.</div>'+
+        '<button onclick="location.reload()">Reintentar</button>';
+  },25000);
+}
+
+function fPan(iso){
+  var p=String(iso||"").split("-");
+  return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : (iso||"—");
+}
+function iso(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+
+                        "-"+("0"+d.getDate()).slice(-2); }
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function enPalabras(d1,d2){
+  var a=new Date(d1+"T12:00:00"), b=new Date(d2+"T12:00:00");
+  if(isNaN(a)||isNaN(b)) return d1+" — "+d2;
+  if(a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear())
+    return "Del "+a.getDate()+" al "+b.getDate()+" de "+MESES[b.getMonth()];
+  return "Del "+a.getDate()+" de "+MESES[a.getMonth()]+" al "+
+         b.getDate()+" de "+MESES[b.getMonth()];
+}
+function rango(c){
+  var h=new Date(), d=new Date();
+  if(c==="semana")        d.setDate(h.getDate()-6);
+  else if(c==="quincena") d.setDate(h.getDate()-14);
+  else if(c==="mes")      d=new Date(h.getFullYear(),h.getMonth(),1);
+  else if(c==="trimestre")d.setMonth(h.getMonth()-2);
+  else if(c==="anio")     d=new Date(h.getFullYear(),0,1);
+  return {desde:iso(d), hasta:iso(h)};
+}
+
+/* ── arrancar ──
+   La zona viene en la dirección. Dentro del iframe de Apps Script la
+   barra del navegador no es la de esta página, así que hay que
+   preguntarle a google.script.url; fuera del iframe se lee de location. */
+function arrancar(){
+  vigilar();
+  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(window.google&&google.script&&google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+
+  var r=rango(RAPIDO); DESDE=r.desde; HASTA=r.hasta;
+
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      seguir(p.z||"");
+    });
+  } else {
+    var m=(location.search||"").match(/[?&]z=([^&]+)/);
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+function seguir(z){
+  ZONA = ZONAS[z] ? z : "mercadeo";
+  var Z=ZONAS[ZONA];
+  $("h-tit").textContent = Z.nombre + " a profundidad";
+  $("pin-tit").textContent = Z.nombre + " a profundidad";
+  $("m-tit").textContent = "Reporte a profundidad · " + Z.nombre;
+  $("b-modulo").textContent = Z.verModulo;
+  if(PIN) cargar(PIN); else pedirPin("");
+}
+function pedirPin(m){
+  window.__LISTO__=true;
+  verPantalla("pantalla-pin");
+  $("pin-err").textContent=m||"";
+  setTimeout(function(){var p=$("pin"); if(p)p.focus();},130);
+}
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…"; cargar(p);
+}
+function cargar(p){
+  if($("app").style.display==="block")
+    $("cuerpo").innerHTML='<div class="vacio">Reuniendo los datos…</div>';
+  else verPantalla("cargando");
+  vigilar();
+  ABIERTAS={};
+  window.__PIN_INTENTO__=p;
+  /* La función se llama SOBRE la cadena, no se saca a una variable:
+     sacarla le quita el objeto al que pertenece y google.script.run deja
+     de encontrar sus propios manejadores. Sale un «s is not a function»
+     y la pantalla se queda esperando algo que nunca va a llegar. */
+  var run = google.script.run.withSuccessHandler(recibir).withFailureHandler(falla);
+  if(ZONA==="planta") run.api_dir_repPlanta(p, DESDE, HASTA);
+  else                run.api_dir_repMercadeo(p, DESDE, HASTA, CURVA);
+}
+function recibir(r){
+  window.__LISTO__=true;
+  var p=window.__PIN_INTENTO__;
+  if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+  PIN=p;
+  try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+  DATOS=r;
+  if(r.usuario) $("cab-usuario").textContent="Reporte de dirección · "+r.usuario.nombre;
+  verPantalla("app");
+  pintar(r);
+}
+function falla(){ window.__LISTO__=true; pedirPin("Sin conexión. Intenta con señal."); }
+
+function verRango(c){ RAPIDO=c; var g=rango(c); DESDE=g.desde; HASTA=g.hasta; cargar(PIN); }
+function verFechas(){
+  var a=$("f-desde").value, b=$("f-hasta").value;
+  if(!a||!b) return;
+  if(a>b){ var t=a; a=b; b=t; }
+  RAPIDO=""; DESDE=a; HASTA=b; cargar(PIN);
+}
+function volverDireccion(){ irA(URL_APP ? URL_APP+"?p=inicio" : ""); }
+function irModulo(){ irA(URL_APP ? URL_APP+"?p="+ZONAS[ZONA].modulo : ""); }
+function verTodas(i){ ABIERTAS[i]=true; pintar(DATOS); }
+
+/* ── la escala del eje ──
+   Se redondea el PASO a un número bonito y de ahí sale el tope. Sin esto,
+   un máximo de 3,035 deja el tope en 3,490 y los renglones salen
+   3k, 3k, 2k, 1k: dos iguales seguidos se leen como un error. */
+function etiquetaEje(val, paso){
+  if(val < 0.0001) return "0";
+  if(paso >= 1000) return Math.round(val/1000)+"k";
+  if(paso >= 1)    return String(Math.round(val)).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return val.toFixed(1);
+}
+function miles(v){
+  var n=Number(v)||0;
+  var s=(Math.abs(n)<1000 && n%1!==0) ? n.toFixed(1) : Math.round(n).toString();
+  var p=s.split(".");
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return p.join(".");
+}
+
+function grafica(g, color){
+  if(!g||!g.barras||!g.barras.length)
+    return '<div class="vacio">Sin datos para graficar en el periodo.</div>';
+  var W=1000,H=230,ml=g.horizontal?190:54,mr=16,mt=18,mb=34,s="";
+  var max=0;
+  g.barras.forEach(function(b){
+    if(b.v>max) max=b.v;
+    if(g.dos && b.v2>max) max=b.v2;
+  });
+  if(max<=0) return '<div class="vacio">Sin datos para graficar en el periodo.</div>';
+  max=max*1.15;
+  var paso=max/4, mag=Math.pow(10,Math.floor(Math.log(paso)/Math.LN10));
+  var cand=[1,1.5,2,2.5,3,4,5,6,8,10], u=paso/mag;
+  for(var q=0;q<cand.length;q++) if(cand[q]>=u-1e-9){ u=cand[q]; break; }
+  paso=u*mag; max=paso*4;
+  if(g.unidad==="%" && max>100){ max=100; paso=25; }
+
+  if(g.horizontal){
+    var alto=(H-mt-mb)/g.barras.length;
+    g.barras.forEach(function(b,i){
+      var y=mt+i*alto, h=alto*0.62, w=(W-ml-mr)*(b.v/max);
+      s+='<rect x="'+ml+'" y="'+(y+(alto-h)/2)+'" width="'+Math.max(w,1)+'" height="'+h+
+         '" rx="4" fill="'+color+'"/>';
+      s+='<text x="'+(ml-10)+'" y="'+(y+alto/2+4)+'" text-anchor="end" font-size="13" fill="#5B6880">'+
+         esc(b.x)+'</text>';
+      s+='<text x="'+(ml+w+8)+'" y="'+(y+alto/2+4)+'" font-size="13" font-weight="700" fill="#141C2B">'+
+         (g.unidad==="B/."?"B/. ":"")+miles(b.v)+'</text>';
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+  }
+
+  for(var k=0;k<=4;k++){
+    var yy=mt+(H-mt-mb)*(k/4);
+    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="#E3EAF3" stroke-width="1"/>';
+    s+='<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+
+       etiquetaEje(max*(1-k/4), paso)+'</text>';
+  }
+  var ancho=(W-ml-mr)/g.barras.length;
+  g.barras.forEach(function(b,i){
+    /* Con dos series, cada mes lleva dos barras pegadas. Apiladas
+       mentirían: lo que salió no es una parte de lo que entró, son dos
+       pesajes distintos del mismo material. */
+    var n = g.dos ? 2 : 1;
+    for(var j=0;j<n;j++){
+      var val = j===0 ? b.v : b.v2;
+      var h=(H-mt-mb)*((Number(val)||0)/max); if(h<0) h=0;
+      var w=(ancho*0.6)/n;
+      var x=ml+i*ancho+ancho*0.2+j*w, y=H-mb-h;
+      var col = j===0 ? color : "var(--azul-claro)";
+      s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+
+         (b.parcial?'url(#ray)':col)+'"'+
+         (b.parcial?' stroke="'+col+'" stroke-width="1.5"':'')+'/>';
+      if(n===1 || j===0)
+        s+='<text x="'+(x+(ancho*0.6)/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="12" '+
+           'font-weight="700" fill="#141C2B">'+miles(b.v)+'</text>';
+    }
+    s+='<text x="'+(ml+i*ancho+ancho*0.5)+'" y="'+(H-12)+'" text-anchor="middle" '+
+       'font-size="12" fill="#5B6880">'+esc(b.x)+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'"><defs>'+
+    '<pattern id="ray" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'+
+    '<rect width="7" height="7" fill="#fff"/><line x1="0" y1="0" x2="0" y2="7" stroke="'+color+
+    '" stroke-width="4"/></pattern></defs>'+s+'</svg>';
+}
+
+function tabla(t, idx){
+  if(!t.filas.length)
+    return '<p style="color:var(--gris);font-size:13px;margin-top:12px">Nada que mostrar. '+
+           'Y en esta tabla eso es una buena noticia.</p>';
+  var todas = !!ABIERTAS[idx];
+  var muestra = todas ? t.filas : t.filas.slice(0, TOPE);
+  var h='<div class="tabla-scroll"><table><thead><tr>'+
+    t.cab.map(function(c,i){
+      return '<th'+(t.num.indexOf(i)>=0?' class="num"':'')+'>'+esc(c)+'</th>';}).join('')+
+    '</tr></thead><tbody>';
+  h+=muestra.map(function(f){
+    return '<tr>'+f.map(function(c,i){
+      var cl=[];
+      if(t.num.indexOf(i)>=0) cl.push('num');
+      /* La columna de alerta solo se pinta de rojo cuando de verdad lo
+         está: un «al día» en rojo entrena a la gente a ignorar el rojo. */
+      if(t.alerta===i && /VENCID|FUERA|SIN RECIBO|vencida|venció/.test(String(c))) cl.push('alerta');
+      return '<td'+(cl.length?' class="'+cl.join(' ')+'"':'')+'>'+esc(c)+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  if(t.total) h+='<tr class="total">'+t.total.map(function(c,i){
+    return '<td'+(t.num.indexOf(i)>=0?' class="num"':'')+'>'+esc(c)+'</td>';}).join('')+'</tr>';
+  h+='</tbody></table></div>';
+  if(!todas && t.filas.length>TOPE)
+    h+='<button class="mas no-imprimir" onclick="verTodas('+idx+')">Ver las '+
+       t.filas.length+' completas</button>';
+  return h;
+}
+
+/* ── LA CARTERA ──────────────────────────────────────────────────────
+   El embudo dice lo que viene entrando; la cartera, lo que ya se tiene.
+   Hasta ahora dirección solo veía lo primero. */
+function mesCorto(m){
+  var n=Number(String(m).slice(5,7))-1;
+  var t=MESES[n]||String(m);
+  return t.charAt(0).toUpperCase()+t.slice(1,3);
+}
+
+/* Una línea acumulada, no barras: lo que se mira aquí no es cuántos
+   entraron en marzo sino si la cartera sube, se aplana o baja. */
+function curvaSvg(c, color){
+  var p=(c&&c.puntos)||[];
+  if(!p.length) return '<div class="vacio">Todavía no hay historia que enseñar.</div>';
+  var W=1000,H=250,ml=40,mr=20,mt=22,mb=52;
+  var top=0; p.forEach(function(b){ if(b.puntos>top) top=b.puntos; });
+  var max=(top||1)*1.18;
+  var paso=max/4, mag=Math.pow(10,Math.floor(Math.log(paso)/Math.LN10));
+  var cand=[1,1.5,2,2.5,3,4,5,6,8,10], u=paso/mag;
+  for(var q=0;q<cand.length;q++) if(cand[q]>=u-1e-9){ u=cand[q]; break; }
+  paso=Math.max(1,Math.round(u*mag)); max=paso*4;
+
+  var ancho=W-ml-mr, alto=H-mt-mb, base=mt+alto;
+  var xs=function(i){ return p.length===1 ? ml+ancho/2 : ml+ancho*(i/(p.length-1)); };
+  var ys=function(v){ return mt+alto*(1-(Number(v)||0)/max); };
+  var s="";
+
+  for(var k=0;k<=4;k++){
+    var yy=mt+alto*(k/4);
+    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="'+
+       (k===4?"#D3DDEA":"#EEF2F7")+'" stroke-width="1"/>'+
+       '<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+
+       Math.round(max*(1-k/4))+'</text>';
+  }
+  /* El cambio de año, marcado: doce meses corridos cruzan diciembre y sin
+     la raya «Ene» parece venir después de «Dic» del mismo año. */
+  p.forEach(function(b,i){
+    if(!i || String(b.mes).slice(0,4)===String(p[i-1].mes).slice(0,4)) return;
+    var xx=(xs(i)+xs(i-1))/2;
+    s+='<line x1="'+xx+'" y1="'+mt+'" x2="'+xx+'" y2="'+base+
+       '" stroke="#D3DDEA" stroke-width="1" stroke-dasharray="3 3"/>'+
+       '<text x="'+xx+'" y="'+(H-8)+'" text-anchor="middle" font-size="9.5" fill="#8B96A8">'+
+       esc(String(p[i-1].mes).slice(0,4))+' | '+esc(String(b.mes).slice(0,4))+'</text>';
+  });
+
+  var pts=p.map(function(b,i){ return xs(i)+","+ys(b.puntos); });
+  s+='<path d="M'+pts.join(" L")+' L'+xs(p.length-1)+','+base+' L'+xs(0)+','+base+
+     ' Z" fill="'+color+'" fill-opacity=".13"/>'+
+     '<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+color+
+     '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+
+  var salto=Math.ceil(p.length/13);
+  p.forEach(function(b,i){
+    var x=xs(i), y=ys(b.puntos);
+    /* El mes en curso va hueco y con la raya cortada: todavía no terminó
+       y no se puede leer como una caída. */
+    s+='<circle cx="'+x+'" cy="'+y+'" r="'+(b.enCurso?4:3.5)+'" fill="#fff" stroke="'+color+
+       '" stroke-width="2"'+(b.enCurso?' stroke-dasharray="2 2"':'')+'/>';
+    if(i%salto===0 || i===p.length-1)
+      s+='<text x="'+x+'" y="'+(H-mb+22)+'" text-anchor="middle" font-size="10.5" fill="'+
+         (b.enCurso?"#8B96A8":"#5B6880")+'">'+esc(mesCorto(b.mes))+'</text>';
+    if(b.enCurso)
+      s+='<text x="'+x+'" y="'+(H-mb+35)+'" text-anchor="middle" font-size="8.5" fill="#8B96A8">'+
+         'en curso</text>';
+    /* La cifra del primero se corre a la derecha y la del último a la
+       izquierda: centradas se montan sobre el eje y sobre el borde. */
+    if(i===0 || i===p.length-1)
+      s+='<text x="'+(i?x-6:x+6)+'" y="'+(y-10)+'" text-anchor="'+(i?'end':'start')+
+         '" font-size="11" font-weight="800" fill="#141C2B">'+b.puntos+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+
+function repartoBarras(lista, color, titulo){
+  var l=lista||[];
+  if(!l.length) return '<div class="rep"></div>';
+  var top=0; l.forEach(function(r){ if(r.cuantos>top) top=r.cuantos; });
+  if(top<=0) top=1;
+  return '<div class="rep"><div class="e" style="font-size:10.5px;font-weight:800;'+
+    'text-transform:uppercase;letter-spacing:.6px;color:var(--gris)">'+esc(titulo)+'</div>'+
+    l.map(function(r){
+      var pct=Math.max(3, Math.round(r.cuantos/top*100));
+      return '<div class="f"><div class="n'+(r.vacio?' sin':'')+'" title="'+esc(r.etiqueta)+'">'+
+        esc(r.etiqueta)+'</div><div class="b"><i style="width:'+pct+'%;background:'+
+        (r.vacio?'var(--azul-claro)':color)+'"></i></div><div class="c'+(r.vacio?' sin':'')+'">'+
+        r.cuantos+'</div></div>';
+    }).join('')+'</div>';
+}
+
+function filtroCurva(c){
+  return '<div class="filtro no-imprimir"><div class="e">Ver</div>'+
+    [['6','6 meses'],['12','12 meses'],['anio','Este año'],['todo','Todo']].map(function(o){
+      return '<button class="'+(c.ventana===o[0]?'on':'')+'" onclick="verCurva(\''+o[0]+'\')">'+
+             o[1]+'</button>'; }).join('')+
+    '<div class="libre"><span>de</span>'+
+    '<input type="month" id="c-desde" value="'+esc(c.desde)+'" onchange="verCurvaMeses()">'+
+    '<span>a</span>'+
+    '<input type="month" id="c-hasta" value="'+esc(c.hasta)+'" onchange="verCurvaMeses()">'+
+    '</div></div>';
+}
+function verCurva(v){ CURVA=v; cargar(PIN); }
+function verCurvaMeses(){
+  var a=$("c-desde").value, b=$("c-hasta").value;
+  if(!a||!b) return;
+  if(a>b){ var t=a; a=b; b=t; }
+  CURVA=a+".."+b; cargar(PIN);
+}
+
+function bloque(t, de){
+  return '<div class="bloque"><div class="t">'+esc(t)+'</div><div class="l"></div>'+
+         (de?'<span class="de">'+esc(de)+'</span>':'')+'</div>';
+}
+function kpisHtml(lista, color, per){
+  return '<div class="kpis">'+(lista||[]).map(function(k,i){
+    return '<div class="kpi'+(k.malo?' malo':'')+'" style="border-top-color:'+color+'">'+
+      '<div class="e">'+esc(k.e)+
+        (per.indexOf(i)>=0?'<span class="de per">del periodo</span>':'')+'</div>'+
+      '<div class="v">'+(k.u==="B/."?'<small>B/. </small>':'')+esc(k.v)+
+        (k.u&&k.u!=="B/."?' <small>'+esc(k.u)+'</small>':'')+'</div>'+
+      '<div class="s">'+esc(k.s)+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function carteraHtml(c, color){
+  var h=bloque('La cartera','de siempre');
+  h+=kpisHtml(c.kpis, 'var(--azul)', []);
+  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.curva.titulo)+'</h3>'+
+     '<span class="lee">'+esc(c.curva.lee)+'</span></div>'+
+     filtroCurva(c)+
+     '<div class="curva">'+curvaSvg(c.curva,'var(--azul)')+'</div>'+
+     '<div class="nota">'+(c.curva.nota||'')+'</div></div>';
+  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.reparto.titulo)+'</h3>'+
+     '<span class="lee">'+esc(c.reparto.lee)+'</span></div>'+
+     '<div class="reparto">'+
+       repartoBarras(c.reparto.region,'var(--azul)','Región')+
+       repartoBarras(c.reparto.frecuencia,'var(--lima)','Frecuencia')+
+     '</div></div>';
+  return h;
+}
+
+function pintar(r){
+  var Z=ZONAS[ZONA], color=r.color||Z.color;
+
+  $("m-per").textContent = enPalabras(r.desde,r.hasta) +
+    " · generado el " + fPan(r.hoy);
+
+  var html='<div class="periodo"><div class="dice">'+(r.dice||'')+'</div>'+
+    '<div class="rapidos no-imprimir">'+
+      [['semana','Semana'],['quincena','Quincena'],['mes','Mes'],
+       ['trimestre','Trimestre'],['anio','Año']].map(function(o){
+        return '<button class="'+(RAPIDO===o[0]?'on':'')+'" onclick="verRango(\''+o[0]+'\')">'+
+               o[1]+'</button>'; }).join('')+
+      '<input type="date" id="f-desde" value="'+esc(r.desde)+'" onchange="verFechas()">'+
+      '<input type="date" id="f-hasta" value="'+esc(r.hasta)+'" onchange="verFechas()">'+
+    '</div></div>';
+
+  /* Primero quiénes son los clientes que ya se tienen, después qué se
+     está negociando. Sin el corte, doce números seguidos se leen como
+     una sola lista y la cartera se confunde con el embudo. */
+  if(r.cartera) html+=carteraHtml(r.cartera, color);
+
+  var per = r.delPeriodo || [];
+  if(r.cartera) html+=bloque('El embudo','');
+  html+=kpisHtml(r.kpis, color, per);
+
+  (r.graficas||[]).forEach(function(g){
+    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(g.titulo)+'</h3>'+
+      '<span class="lee">'+esc(g.lee)+'</span></div>'+
+      '<div class="grafica">'+grafica(g,color)+'</div>';
+    var leyenda=[];
+    if(g.dos && g.series){
+      leyenda.push('<span><i style="background:'+color+'"></i>'+esc(g.series[0])+'</span>');
+      leyenda.push('<span><i style="background:var(--azul-claro)"></i>'+esc(g.series[1])+'</span>');
+    }
+    if(g.barras && g.barras.some(function(b){return b.parcial;}))
+      leyenda.push('<span><i style="background:#fff;border:1.5px solid '+color+'"></i>'+
+        'mes en curso · va a la mitad, no es una caída</span>');
+    if(leyenda.length) html+='<div class="leyenda">'+leyenda.join('')+'</div>';
+    html+='</div>';
+  });
+
+  (r.tablas||[]).forEach(function(t,i){
+    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(t.titulo)+'</h3>'+
+      (t.de?'<span class="de">'+esc(t.de)+'</span>':'')+'</div>'+
+      tabla(t,i)+
+      (t.nota?'<div class="nota">'+esc(t.nota)+'</div>':'')+
+      '</div>';
+  });
+
+  html+='<div style="text-align:center;font-size:11.5px;color:var(--gris);margin:18px 0 0">'+
+    esc(Z.nombre)+' · '+esc(enPalabras(r.desde,r.hasta))+' · generado el '+fPan(r.hoy)+'</div>';
+
+  $("cuerpo").innerHTML=html;
+}
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  if(!url) return;
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter" && $("pantalla-pin").style.display!=="none") entrar();
+});
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

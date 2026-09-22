@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 12% 0%,rgba(11,83,148,.09),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:50px}
+
+header{position:sticky;top:0;z-index:6;display:flex;gap:12px;align-items:center;
+  padding:11px 15px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
+  color:#fff;box-shadow:0 2px 12px rgba(11,60,110,.3)}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.78;letter-spacing:.6px;text-transform:uppercase}
+header .salir{margin-left:auto;background:rgba(255,255,255,.16);border:none;color:#fff;
+  font-family:inherit;font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.env{max-width:1080px;margin:0 auto;padding:15px}
+
+label{display:block;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gris);margin-bottom:4px;margin-top:9px}
+input,select,textarea{width:100%;font-family:inherit;font-size:14px;padding:10px 12px;
+  border:1.5px solid var(--borde);border-radius:10px;background:#fff;color:var(--tinta)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--azul)}
+.btn{border:none;font-family:inherit;font-size:13.5px;font-weight:700;padding:11px 17px;
+  border-radius:11px;cursor:pointer;background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  color:#fff;box-shadow:0 2px 8px rgba(11,83,148,.26)}
+.btn.sec{background:#fff;color:var(--azul-osc);border:1.5px solid var(--borde);box-shadow:none}
+.btn.mal{background:var(--rojo);box-shadow:none}
+.btn.mini{font-size:12px;padding:7px 13px;border-radius:9px}
+.btn:active{transform:translateY(1px)}
+
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(20,48,107,.14)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+.pin-caja .btn{width:180px;margin-top:12px}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 16px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
+.tabs button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+.vista{display:none}.vista.on{display:block}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:11px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:13px 15px;
+  border-top:3px solid var(--azul)}
+.kpi.mal{border-top-color:var(--rojo)}.kpi.avi{border-top-color:var(--ambar)}
+.kpi.ok{border-top-color:var(--verde-bandera)}
+.kpi .e{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gris)}
+.kpi .v{font-size:24px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:2px}
+.kpi.mal .v{color:var(--rojo)}.kpi.ok .v{color:var(--verde)}
+.kpi .s{font-size:11px;color:var(--gris);line-height:1.5;margin-top:2px}
+
+.nota{background:#FFF8E1;border-left:4px solid var(--ambar);border-radius:10px;
+  padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--ambar-osc);margin-bottom:11px}
+.nota.mal{background:var(--rojo-suave);border-left-color:var(--rojo);color:var(--rojo)}
+.nota.ok{background:var(--verde-suave);border-left-color:var(--verde);color:var(--verde)}
+.vacio{background:#fff;border:1px dashed var(--borde);border-radius:14px;padding:26px;
+  text-align:center;color:var(--gris);font-size:13px;line-height:1.6}
+
+h2{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;
+  color:var(--gris);margin:19px 0 9px}
+
+.act{background:#fff;border:1px solid var(--borde);border-radius:14px;margin-bottom:9px;
+  overflow:hidden;border-left:5px solid var(--borde);box-shadow:var(--sombra)}
+.act.urge{border-left-color:var(--rojo)}
+.act.pronto{border-left-color:var(--ambar)}
+.act.bien{border-left-color:var(--verde-bandera)}
+.act .enc{display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:13px 16px;cursor:pointer}
+.act .ico{width:32px;height:32px;border-radius:9px;background:var(--azul-suave);display:flex;
+  align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+.act .n{font-weight:800;font-size:14.5px}
+.act .sub{font-size:11.5px;color:var(--gris)}
+.act .der{margin-left:auto;text-align:right}
+.act .der .g{font-size:14px;font-weight:900;color:var(--azul-osc)}
+.act .der .g.mal{color:var(--rojo)}.act .der .g.avi{color:var(--ambar-osc)}
+.act .der .p{font-size:10.5px;color:var(--gris)}
+.pill{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;
+  padding:3px 9px;border-radius:20px;text-transform:uppercase}
+.pill.ok{background:var(--verde-suave);color:var(--verde)}
+.pill.mal{background:var(--rojo-suave);color:var(--rojo)}
+.pill.avi{background:#FFF3D1;color:var(--ambar-osc)}
+.pill.gris{background:#EEF2F7;color:var(--gris);border:1px dashed var(--borde)}
+
+.det{border-top:1px dashed var(--borde);padding:13px 16px 15px;background:#FCFDFE}
+.plan{width:100%;border-collapse:collapse;font-size:12.5px}
+.plan th{text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--gris);font-weight:800;padding:5px 8px;border-bottom:1px solid var(--borde)}
+.plan td{padding:7px 8px;border-bottom:1px solid #EDF1F6}
+.plan td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.plan tr:last-child td{border-bottom:0}
+.bar{height:6px;background:#E6ECF4;border-radius:4px;overflow:hidden;margin-top:4px;min-width:80px}
+.bar i{display:block;height:100%;background:var(--verde-bandera)}
+.bar i.avi{background:var(--ambar)} .bar i.mal{background:var(--rojo)}
+.cta{font-size:11px;color:var(--gris);font-weight:600}
+.acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;box-shadow:var(--sombra);margin-bottom:12px}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:11px}
+
+.tabla{background:#fff;border:1px solid var(--borde);border-radius:14px;overflow:hidden;
+  box-shadow:var(--sombra)}
+.tabla .scroll{overflow-x:auto}
+.tabla table{width:100%;border-collapse:collapse;font-size:12.5px}
+.tabla th{background:#EEF2F7;text-align:left;font-size:9px;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--gris);font-weight:800;padding:9px 11px;white-space:nowrap}
+.tabla td{padding:9px 11px;border-top:1px solid #EDF1F6;vertical-align:middle}
+.tabla td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tabla tr.baja td{background:#FFFCF2}
+.tabla tr.mal td{background:var(--rojo-suave)}
+/* sobre la fila tintada, la pastilla del mismo color desaparece */
+.tabla tr.mal .pill.mal{background:#fff;border:1px solid var(--rojo)}
+
+.dest{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dest .t{font-size:8.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 7px;border-radius:5px}
+.dest .t.cliente{background:var(--azul-suave);color:var(--azul)}
+.dest .t.persona{background:#F3EDF9;color:var(--morado)}
+
+.velo{position:fixed;inset:0;background:rgba(20,28,43,.55);display:none;align-items:center;
+  justify-content:center;padding:16px;z-index:40}
+.velo.abierto{display:flex}
+.velo .caja{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:92vh;
+  overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.velo .cab{display:flex;align-items:center;gap:10px;padding:14px 17px;border-bottom:1px solid var(--borde)}
+.velo .cab h3{font-size:15px;font-weight:800;color:var(--azul-osc);margin-right:auto}
+.velo .cab button{border:none;background:#EEF2F7;font-family:inherit;font-size:12px;font-weight:700;
+  color:var(--gris);padding:7px 13px;border-radius:9px;cursor:pointer}
+.velo .cuerpo{padding:16px 17px 19px}
+.chk{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;font-weight:600;
+  padding:5px 0;cursor:pointer;line-height:1.45}
+.chk input{width:auto;margin:2px 0 0}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);
+  background:var(--azul-osc);color:#fff;font-size:13px;font-weight:600;padding:12px 20px;
+  border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:60;transition:transform .25s;
+  max-width:92vw;text-align:center}
+#toast.ver{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:620px){
+  .act .der{margin-left:0;text-align:left;width:100%}
+  .plan th:nth-child(2),.plan td:nth-child(2){display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Administración</h1>
+  <div class="tag">Acceso interno</div>
+  <p>Mantenimiento de vehículos y equipos, e inventario de insumos.<br>Escribe tu PIN para entrar.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="pantalla-app" style="display:none">
+  <header>
+    <div class="logo"></div>
+    <div><h1>Administración</h1>
+      <div class="sub" id="cab-usuario">—</div></div>
+    <button class="salir" onclick="volverInicio()">Inicio</button>
+  </header>
+
+  <div class="env">
+    <div class="tabs">
+      <button id="t-mto" class="on" onclick="verTab('mto')">Mantenimientos</button>
+      <button id="t-inv" onclick="verTab('inv')">Inventario</button>
+    </div>
+
+    <!-- ══════════ MANTENIMIENTOS ══════════ -->
+    <section id="v-mto" class="vista on">
+      <div id="mto-kpis"></div>
+      <div id="mto-avisos"></div>
+      <div id="mto-lista"><div class="vacio">Consultando…</div></div>
+      <div id="mto-nuevo"></div>
+    </section>
+
+    <!-- ══════════ INVENTARIO ══════════ -->
+    <section id="v-inv" class="vista">
+      <div id="inv-kpis"></div>
+      <div id="inv-avisos"></div>
+      <div id="inv-pend"></div>
+      <h2>Existencias</h2>
+      <div id="inv-lista"><div class="vacio">Consultando…</div></div>
+      <div id="inv-nuevo"></div>
+      <h2>Movimientos</h2>
+      <div id="inv-movs"></div>
+    </section>
+  </div>
+</div>
+
+<div class="velo" id="velo">
+  <div class="caja">
+    <div class="cab"><h3 id="mod-tit">—</h3><button onclick="cerrarModal()">Cerrar</button></div>
+    <div class="cuerpo" id="mod-cuerpo"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var PIN="", USUARIO=null, URL_APP="", ACT=null, INV=null, ABIERTO="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n1(v){return Number(v||0).toFixed(1);}
+function n0(v){return Number(v||0).toLocaleString("es-PA",{maximumFractionDigits:0});}
+function d2(v){return "B/. "+Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function num(v){ var n=parseFloat(String(v==null?"":v).replace(",",".")); return isNaN(n)?0:n; }
+
+var ROTULO={admin:"Administración",supervisor:"Supervisión de operaciones",
+  gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta",operador:"Operador"};
+
+function arrancar(){
+  try{ PIN = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  pedirUrl();
+  if(PIN) validar(PIN); else pedirPin("");
+}
+function pedirUrl(cb){
+  google.script.run
+    .withSuccessHandler(function(u){ URL_APP=u||""; if(cb) cb(URL_APP); })
+    .withFailureHandler(function(){ if(cb) cb(""); })
+    .api_urlApp();
+}
+function pedirPin(msg){
+  $("pantalla-app").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=msg||"";
+  setTimeout(function(){ var e=$("pin"); if(e) e.focus(); },120);
+}
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…";
+  validar(p);
+}
+function validar(p){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      PIN=p; USUARIO=r.usuario;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      $("cab-usuario").textContent = USUARIO.nombre+" · "+(ROTULO[USUARIO.rol]||USUARIO.rol);
+      $("pantalla-pin").style.display="none";
+      $("pantalla-app").style.display="block";
+      cargarActivos();
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión. Intenta con señal."); })
+    .api_administracion(p);
+}
+function volverInicio(){
+  if(URL_APP){ top.location.href = URL_APP; return; }
+  pedirUrl(function(u){ if(u) top.location.href = u; });
+}
+function toast(m){
+  var t=$("toast"); if(!t) return;
+  t.textContent=m; t.classList.add("ver");
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove("ver"); },3400);
+}
+function abrirModal(){ $("velo").className="velo abierto"; }
+function cerrarModal(){ $("velo").className="velo"; }
+
+function verTab(id){
+  ["mto","inv"].forEach(function(x){
+    $("v-"+x).className = (x===id) ? "vista on" : "vista";
+    $("t-"+x).className = (x===id) ? "on" : "";
+  });
+  if(id==="inv" && !INV) cargarInventario();
+  if(id==="mto" && !ACT) cargarActivos();
+}
+
+/* ══════════════ MANTENIMIENTOS ══════════════ */
+
+function cargarActivos(){
+  $("mto-lista").innerHTML='<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("mto-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
+      ACT=r; pintarActivos();
+    })
+    .withFailureHandler(function(){ $("mto-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_activos(PIN);
+}
+
+function pintarActivos(){
+  var t=ACT.totales;
+  $("mto-kpis").innerHTML='<div class="kpis">'+
+    '<div class="kpi'+(t.vencidas?' mal':' ok')+'"><div class="e">Vencido</div>'+
+      '<div class="v">'+t.vencidas+'</div><div class="s">tarea(s) pasadas de fecha o de km</div></div>'+
+    '<div class="kpi'+(t.porVencer?' avi':'')+'"><div class="e">Por vencer</div>'+
+      '<div class="v">'+t.porVencer+'</div><div class="s">dentro de 30 días o 500 km</div></div>'+
+    '<div class="kpi"><div class="e">Activos</div><div class="v">'+t.activos+'</div>'+
+      '<div class="s">'+t.vehiculos+' vehículo(s) y '+t.equipos+' equipo(s)</div></div>'+
+    '<div class="kpi"><div class="e">Combustible</div><div class="v">'+n0(t.gastoCombustible)+'</div>'+
+      '<div class="s">B/. · '+n0(t.litros)+' litros en '+t.cargas+' carga(s)</div></div>'+
+    '<div class="kpi"><div class="e">Mantenimiento</div><div class="v">'+n0(t.gastoMto)+'</div>'+
+      '<div class="s">B/. · '+t.servicios+' servicio(s)</div></div>'+
+  '</div>';
+
+  var av='';
+  ACT.alertas.filter(function(a){return a.estado==="VENCIDO";}).forEach(function(a){
+    av+='<div class="nota mal"><b>'+esc(a.activo)+' · '+esc(a.tarea)+'</b> — '+
+      (a.porQue==="km" ? 'pasado '+n0(Math.abs(a.faltanKm))+' km'
+                       : 'vencido hace '+Math.abs(a.faltanDias)+' día(s)')+'.</div>';
+  });
+  /* Un vehículo sin ninguna lectura de odómetro no es un error: es que
+     todavía no ha abierto jornada ni cargado combustible desde que existe
+     el sistema. Se dice, porque el plan por kilómetros no puede arrancar. */
+  if(t.sinOdometro)
+    av+='<div class="nota">'+t.sinOdometro+' vehículo(s) sin lectura de odómetro todavía. '+
+      'El plan por kilómetros arranca solo con la primera jornada o la primera carga de '+
+      'combustible que registre el conductor — no hay que teclear nada.</div>';
+  $("mto-avisos").innerHTML=av;
+
+  if(!ACT.activos.length){
+    $("mto-lista").innerHTML='<div class="vacio">Todavía no hay activos registrados.<br>'+
+      'Un activo es un vehículo o un equipo de planta con su plan de mantenimiento.</div>';
+  } else {
+    var veh=ACT.activos.filter(function(a){return a.clase==="vehiculo";});
+    var eqp=ACT.activos.filter(function(a){return a.clase!=="vehiculo";});
+    var h='';
+    if(veh.length) h+='<h2>Vehículos</h2>'+veh.map(ficha).join("");
+    if(eqp.length) h+='<h2>Equipos de planta</h2>'+eqp.map(ficha).join("");
+    $("mto-lista").innerHTML=h;
+  }
+
+  $("mto-nuevo").innerHTML = ACT.puedeActivos
+    ? '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" onclick="abrirActivo(\'\')">Agregar un activo</button></div>'
+    : '';
+}
+
+function ficha(a){
+  var abierta=(ABIERTO===a.activoId);
+  var clase='act '+(a.vencidas?'urge':(a.porVencer?'pronto':'bien'));
+  var prox=proxima(a);
+
+  var enc='<div class="enc" onclick="verActivo(&#39;'+esc(a.activoId)+'&#39;)">'+
+    '<div class="ico">'+(a.clase==="vehiculo"?"🛻":"⚙️")+'</div>'+
+    '<div><div class="n">'+esc(a.placa||a.nombre)+
+      (a.placa&&a.nombre?' · '+esc(a.nombre):'')+'</div>'+
+      '<div class="sub">'+esc(a.responsable||"sin responsable")+
+      (a.clase==="vehiculo" ? (a.kmHay ? ' · '+n0(a.km)+' km' : ' · sin odómetro') : '')+
+      '</div></div>'+
+    (a.vencidas?'<span class="pill mal">'+a.vencidas+' vencida(s)</span>':'')+
+    (a.porVencer?'<span class="pill avi">'+a.porVencer+' por vencer</span>':'')+
+    (a.clase==="vehiculo"&&!a.kmHay?'<span class="pill gris">sin odómetro</span>':'')+
+    /* «Sin plan cargado» y «con plan que todavía no se puede medir» son dos
+       cosas distintas, y decirlas igual manda a buscar el problema donde no
+       está: al Hino no le falta el plan, le falta la primera lectura. */
+    '<div class="der">'+(prox
+      ? '<div class="g'+(prox.mal?' mal':(prox.avi?' avi':''))+'">'+esc(prox.cuanto)+'</div>'+
+        '<div class="p">'+esc(prox.que)+'</div>'
+      : (a.tareas.length
+          ? '<div class="g">—</div><div class="p">'+a.tareas.length+' tarea(s) sin poder medir</div>'
+          : '<div class="g">—</div><div class="p">sin plan cargado</div>'))+'</div>'+
+    '<span class="cta">&#9662;</span></div>';
+
+  if(!abierta) return '<div class="'+clase+'">'+enc+'</div>';
+  return '<div class="'+clase+'">'+enc+detalle(a)+'</div>';
+}
+
+/* La próxima de todas las tareas del activo: la peor, que es la que
+   decide el color de la ficha cerrada. */
+function proxima(a){
+  var c=null;
+  a.tareas.forEach(function(t){
+    var p=null;
+    if(t.faltanKm!==null && t.faltanKm!==undefined)
+      p={ orden:t.faltanKm, mal:t.faltanKm<0, avi:t.faltanKm>=0&&t.faltanKm<=500,
+          cuanto:(t.faltanKm<0?"−":"")+n0(Math.abs(t.faltanKm))+" km", que:t.tarea };
+    if(t.faltanDias!==null && t.faltanDias!==undefined){
+      var q={ orden:t.faltanDias*60, mal:t.faltanDias<0, avi:t.faltanDias>=0&&t.faltanDias<=30,
+              cuanto:(t.faltanDias<0?"−":"")+Math.abs(t.faltanDias)+" días", que:t.tarea };
+      if(!p || q.orden<p.orden) p=q;
+    }
+    if(p && (!c || p.orden<c.orden)) c=p;
+  });
+  return c;
+}
+
+function detalle(a){
+  var filas = a.tareas.map(function(t){
+    var km = (t.faltanKm===null||t.faltanKm===undefined)
+      ? (t.sinOdometro ? '<span class="pill gris">falta el odómetro</span>' : '—')
+      : (t.faltanKm<0
+          ? '<b style="color:var(--rojo)">pasado '+n0(Math.abs(t.faltanKm))+' km</b>'
+          : n0(t.faltanKm)+' km') +
+        barra(t.cadaKm, t.faltanKm);
+    var dd = (t.faltanDias===null||t.faltanDias===undefined) ? '—'
+      : (t.faltanDias<0
+          ? '<b style="color:var(--rojo)">vencido hace '+Math.abs(t.faltanDias)+' d</b>'
+          : t.faltanDias+' días') +
+        barra(t.cadaDias, t.faltanDias);
+    return '<tr><td><b>'+esc(t.tarea)+'</b>'+
+      (t.numero?'<br><span class="cta">'+esc(t.numero)+'</span>':'')+'</td>'+
+      '<td class="n">'+(t.cadaKm?n0(t.cadaKm)+' km':'')+
+        (t.cadaKm&&t.cadaDias?' · ':'')+(t.cadaDias?t.cadaDias+' d':'')+
+        (!t.cadaKm&&!t.cadaDias?'<span class="cta">solo fecha</span>':'')+'</td>'+
+      '<td class="n">'+(t.ultimoKm?n0(t.ultimoKm)+' km':'')+
+        (t.ultimaFecha?(t.ultimoKm?'<br>':'')+esc(t.ultimaFecha):'')+
+        (!t.ultimoKm&&!t.ultimaFecha?'—':'')+'</td>'+
+      '<td class="n">'+km+'</td><td class="n">'+dd+'</td></tr>';
+  }).join("");
+
+  var serv = a.servicios.slice(0,4).map(function(s){
+    return '<tr><td>'+esc(s.fecha)+'</td><td>'+esc(s.tipo)+
+      (s.empresa?'<br><span class="cta">'+esc(s.empresa)+'</span>':'')+'</td>'+
+      '<td class="n">'+(s.km?n0(s.km)+' km':'—')+'</td>'+
+      '<td class="n">'+(s.costo?d2(s.costo):'—')+'</td></tr>';
+  }).join("");
+
+  return '<div class="det">'+
+    (a.tareas.length
+      ? '<table class="plan"><thead><tr><th>Tarea</th><th>Cada</th><th>Último</th>'+
+        '<th>Por km</th><th>Por fecha</th></tr></thead><tbody>'+filas+'</tbody></table>'
+      : '<div class="cta">Este activo no tiene tareas en el plan todavía.</div>')+
+    (serv ? '<h2 style="margin:15px 0 6px">Últimos servicios</h2>'+
+      '<table class="plan"><tbody>'+serv+'</tbody></table>' : '')+
+    '<div class="acc">'+
+      (ACT.puedeServicio
+        ? '<button class="btn mini" onclick="abrirServicio(&#39;'+esc(a.activoId)+'&#39;)">Anotar un servicio</button>'
+        : '')+
+      (ACT.puedeActivos
+        ? '<button class="btn mini sec" onclick="abrirTarea(&#39;'+esc(a.activoId)+'&#39;,&#39;&#39;)">Agregar tarea</button>'+
+          '<button class="btn mini sec" onclick="abrirActivo(&#39;'+esc(a.activoId)+'&#39;)">Editar</button>'
+        : '')+
+    '</div>'+
+    (a.clase==="vehiculo"&&a.kmHay
+      ? '<div class="cta" style="margin-top:9px">Los '+n0(a.km)+' km no los teclea nadie: es la '+
+        'lectura más alta entre las jornadas y las cargas de combustible'+
+        (a.kmFecha?', la última del '+esc(a.kmFecha):'')+'.</div>'
+      : '')+
+  '</div>';
+}
+
+function barra(cada, falta){
+  if(!cada || falta===null || falta===undefined) return '';
+  var usado = Math.max(0, Math.min(100, Math.round((1 - falta/cada)*100)));
+  var c = falta<0 ? 'mal' : (usado>=90 ? 'avi' : '');
+  return '<div class="bar"><i class="'+c+'" style="width:'+(falta<0?100:usado)+'%"></i></div>';
+}
+
+function verActivo(id){ ABIERTO = (ABIERTO===id) ? "" : id; pintarActivos(); }
+
+function activo_(id){
+  var l=(ACT&&ACT.activos)||[];
+  for(var i=0;i<l.length;i++) if(l[i].activoId===id) return l[i];
+  return null;
+}
+
+/* ── agregar o editar un activo ── */
+function abrirActivo(id){
+  var a = id ? activo_(id) : null;
+  $("mod-tit").textContent = a ? "Editar el activo" : "Agregar un activo";
+  $("mod-cuerpo").innerHTML =
+    '<input type="hidden" id="f-id" value="'+esc(id)+'">'+
+    '<div class="rejilla">'+
+      '<div><label>Clase</label><select id="f-clase">'+
+        '<option value="vehiculo"'+(a&&a.clase==="vehiculo"?' selected':'')+'>Vehículo</option>'+
+        '<option value="equipo"'+(a&&a.clase!=="vehiculo"?' selected':'')+'>Equipo de planta</option>'+
+        '</select></div>'+
+      '<div><label>Nombre</label><input id="f-nombre" value="'+esc(a?a.nombre:"")+'" placeholder="Hino Dutro / Autoclave"></div>'+
+      '<div><label>Placa <span class="cta">· solo vehículos</span></label><input id="f-placa" value="'+esc(a?a.placa:"")+'" placeholder="AX2051"></div>'+
+      '<div><label>Marca o modelo</label><input id="f-marca" value="'+esc(a?a.marca:"")+'"></div>'+
+      '<div><label>Año</label><input id="f-anio" inputmode="numeric" value="'+esc(a?a.anio:"")+'"></div>'+
+      '<div><label>Responsable</label><input id="f-resp" value="'+esc(a?a.responsable:"")+'"></div>'+
+    '</div>'+
+    '<label>Notas</label><input id="f-notas" value="'+esc(a?a.notas:"")+'">'+
+    '<div class="cta" style="margin-top:10px">En los vehículos, la placa es lo que amarra el '+
+      'activo con las jornadas y las cargas de combustible. Sin ella no hay odómetro.</div>'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarActivo()">Guardar</button></div>';
+  abrirModal();
+}
+
+function guardarActivo(){
+  var d={ activoId:$("f-id").value, clase:$("f-clase").value,
+          nombre:$("f-nombre").value.trim(), placa:$("f-placa").value.trim(),
+          marca:$("f-marca").value.trim(), anio:$("f-anio").value.trim(),
+          responsable:$("f-resp").value.trim(), notas:$("f-notas").value.trim() };
+  if(!d.nombre){ toast("Falta el nombre del activo"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      cerrarModal(); toast("Guardado ✓"); ACT=null; cargarActivos();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_guardarActivo(PIN, d);
+}
+
+/* ── una tarea del plan ── */
+function abrirTarea(activoId, planId){
+  $("mod-tit").textContent = "Tarea del plan";
+  $("mod-cuerpo").innerHTML =
+    '<input type="hidden" id="t-act" value="'+esc(activoId)+'">'+
+    '<input type="hidden" id="t-id" value="'+esc(planId)+'">'+
+    '<label>Tarea</label><input id="t-tarea" placeholder="Cambio de aceite / Seguro / Revisado">'+
+    '<div class="rejilla">'+
+      '<div><label>Cada cuántos km</label><input id="t-km" inputmode="numeric" placeholder="5000"></div>'+
+      '<div><label>Cada cuántos días</label><input id="t-dias" inputmode="numeric" placeholder="365"></div>'+
+      '<div><label>Último servicio · km</label><input id="t-ukm" inputmode="numeric"></div>'+
+      '<div><label>Último servicio · fecha</label><input id="t-ufec" type="date"></div>'+
+      '<div><label>Vence el <span class="cta">· si es un documento</span></label><input id="t-vence" type="date"></div>'+
+      '<div><label>Número o referencia</label><input id="t-num" placeholder="Póliza, permiso…"></div>'+
+    '</div>'+
+    '<div class="cta" style="margin-top:10px">Una tarea puede vencer por kilómetros, por fecha, '+
+      'o por las dos. Si lleva las dos, <b>salta la que llegue primero</b>.</div>'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarTarea()">Guardar</button></div>';
+  abrirModal();
+}
+
+function guardarTarea(){
+  var d={ activoId:$("t-act").value, planId:$("t-id").value,
+          tarea:$("t-tarea").value.trim(), cadaKm:num($("t-km").value),
+          cadaDias:num($("t-dias").value), ultimoKm:num($("t-ukm").value),
+          ultimaFecha:$("t-ufec").value, vence:$("t-vence").value,
+          numero:$("t-num").value.trim() };
+  if(!d.tarea){ toast("Falta el nombre de la tarea"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      cerrarModal(); toast("Tarea guardada ✓"); ACT=null; cargarActivos();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_guardarPlanTarea(PIN, d);
+}
+
+/* ── anotar un servicio, y adelantar el reloj de las tareas que cubre ── */
+function abrirServicio(activoId){
+  var a=activo_(activoId); if(!a) return;
+  $("mod-tit").textContent = "Servicio a "+(a.placa||a.nombre);
+  var tareas = a.tareas.map(function(t){
+    return '<label class="chk"><input type="checkbox" class="stask" value="'+esc(t.planId)+'"> '+
+      '<span><b>'+esc(t.tarea)+'</b>'+
+      (t.estado==="VENCIDO"?' <span class="pill mal">vencida</span>':'')+
+      (t.estado==="POR VENCER"?' <span class="pill avi">por vencer</span>':'')+
+      '</span></label>';
+  }).join("");
+  $("mod-cuerpo").innerHTML =
+    '<input type="hidden" id="s-act" value="'+esc(activoId)+'">'+
+    '<div class="rejilla">'+
+      '<div><label>Fecha</label><input id="s-fecha" type="date" value="'+esc(ACT.hoy)+'"></div>'+
+      '<div><label>Tipo</label><select id="s-tipo">'+
+        (ACT.tiposMto||["Preventivo","Correctivo"]).map(function(x){
+          return '<option>'+esc(x)+'</option>'; }).join("")+'</select></div>'+
+      '<div><label>Kilometraje del servicio</label><input id="s-km" inputmode="numeric" '+
+        'value="'+(a.kmHay?a.km:"")+'"></div>'+
+      '<div><label>Taller o proveedor</label><input id="s-emp"></div>'+
+      '<div><label>Costo</label><input id="s-costo" inputmode="decimal" placeholder="0.00"></div>'+
+      '<div><label>Resultado</label><input id="s-res" placeholder="Conforme"></div>'+
+    '</div>'+
+    (tareas ? '<label style="margin-top:12px">Qué tareas del plan cubre este servicio</label>'+
+      tareas +
+      '<div class="cta" style="margin-top:6px">Lo que marques aquí queda con el reloj puesto en '+
+      'cero desde hoy. Si no marcas nada, el servicio queda anotado pero el plan va a seguir '+
+      'avisando de lo mismo.</div>' : '')+
+    '<label style="margin-top:11px">Observaciones</label><input id="s-obs">'+
+    '<div class="cta" style="margin-top:9px">El costo aquí es informativo: la factura entra por '+
+      'solicitud de pago y sumarla también al estado de resultados la contaría dos veces.</div>'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarServicio()">Anotar</button></div>';
+  abrirModal();
+}
+
+function guardarServicio(){
+  var planIds=[].slice.call(document.querySelectorAll(".stask"))
+    .filter(function(e){return e.checked;}).map(function(e){return e.value;});
+  var d={ activoId:$("s-act").value, fecha:$("s-fecha").value, tipo:$("s-tipo").value,
+          km:num($("s-km").value), empresa:$("s-emp").value.trim(),
+          costo:num($("s-costo").value), resultado:$("s-res").value.trim(),
+          observaciones:$("s-obs").value.trim(), planIds:planIds };
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo anotar"); return; }
+      cerrarModal();
+      toast("Servicio anotado ✓"+(r.tareas?" · "+r.tareas+" tarea(s) al día":""));
+      ACT=null; cargarActivos();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_registrarServicio(PIN, d);
+}
+
+/* ══════════════ INVENTARIO ══════════════ */
+
+function cargarInventario(){
+  $("inv-lista").innerHTML='<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("inv-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
+      INV=r; pintarInventario();
+    })
+    .withFailureHandler(function(){ $("inv-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_inventario(PIN, "", "");
+}
+
+function pintarInventario(){
+  var t=INV.totales;
+  $("inv-kpis").innerHTML='<div class="kpis">'+
+    '<div class="kpi"><div class="e">Insumos</div><div class="v">'+t.insumos+'</div>'+
+      '<div class="s">en el catálogo</div></div>'+
+    '<div class="kpi'+(t.bajos?' mal':(t.enMinimo?' avi':' ok'))+'">'+
+      '<div class="e">Hay que reponer</div><div class="v">'+(t.bajos+t.enMinimo)+'</div>'+
+      '<div class="s">'+t.bajos+' por debajo · '+t.enMinimo+' en el mínimo</div></div>'+
+    '<div class="kpi"><div class="e">Entregas</div><div class="v">'+t.entregas+'</div>'+
+      '<div class="s">a clientes y a personas</div></div>'+
+    '<div class="kpi ok"><div class="e">Comprado</div><div class="v">'+n0(t.comprado)+'</div>'+
+      '<div class="s">B/. · '+t.entradas+' entrada(s)</div></div>'+
+  '</div>';
+
+  var bajos=INV.insumos.filter(function(i){return i.estado==="POR DEBAJO"||i.estado==="EN EL MÍNIMO";});
+  $("inv-avisos").innerHTML = bajos.length
+    ? '<div class="nota'+(t.bajos?' mal':'')+'"><b>'+bajos.length+' insumo(s) para reponer:</b> '+
+      bajos.map(function(i){ return esc(i.descripcion)+' ('+n1(i.stock)+' de mínimo '+i.minimo+')'; })
+        .join(' · ')+'</div>'
+    : '';
+
+  /* Las compras que ya pasaron por solicitud de pago y todavía no
+     entraron al inventario. Es el único camino de entrada. */
+  var p=INV.pendientes||[];
+  $("inv-pend").innerHTML = p.length
+    ? '<div class="nota ok"><b>'+p.length+' compra(s) de insumos esperando entrar al inventario.</b> '+
+      'Vienen de solicitudes de pago con cuenta de insumos — no se teclean dos veces.'+
+      '<div style="margin-top:9px">'+p.map(function(s){
+        return '<button class="btn mini" style="margin:3px 4px 0 0" onclick="abrirEntrada(&#39;'+
+          esc(s.solicitudId)+'&#39;)">'+esc(s.solicitudId)+' · '+esc(s.proveedor)+
+          ' · '+s.renglones.length+' renglón(es)</button>'; }).join("")+'</div></div>'
+    : '';
+
+  $("inv-lista").innerHTML = INV.insumos.length
+    ? '<div class="tabla"><div class="scroll"><table><thead><tr><th>Insumo</th><th>Categoría</th>'+
+      '<th class="n">Existencia</th><th class="n">Mínimo</th><th>Nivel</th><th>Estado</th>'+
+      '<th></th></tr></thead><tbody>'+
+      INV.insumos.map(function(i){
+        var pct = i.minimo ? Math.max(6, Math.min(100, Math.round(i.stock/(i.minimo*3)*100))) : 100;
+        var cl = i.estado==="POR DEBAJO" ? "mal" : (i.estado==="EN EL MÍNIMO" ? "avi" : "");
+        return '<tr class="'+(i.estado==="POR DEBAJO"?"mal":(i.estado==="EN EL MÍNIMO"?"baja":""))+'">'+
+          '<td>'+esc(i.descripcion)+'</td><td>'+esc(i.categoria)+'</td>'+
+          '<td class="n"><b>'+n1(i.stock)+'</b> '+esc(i.unidad)+'</td>'+
+          '<td class="n">'+(i.minimo||'—')+'</td>'+
+          '<td><div class="bar"><i class="'+cl+'" style="width:'+pct+'%"></i></div></td>'+
+          '<td><span class="pill '+(cl||"ok")+'">'+esc(i.estado)+'</span></td>'+
+          '<td class="n">'+(INV.puedeInventario
+            ? '<button class="btn mini sec" onclick="abrirEntrega(&#39;'+esc(i.insumoId)+'&#39;)">Entregar</button>'
+            : '')+'</td></tr>';
+      }).join("")+'</tbody></table></div></div>'
+    : '<div class="vacio">Todavía no hay insumos en el catálogo.</div>';
+
+  $("inv-nuevo").innerHTML = INV.puedeInventario
+    ? '<div class="acc" style="margin-top:12px">'+
+      '<button class="btn sec" onclick="abrirInsumo()">Agregar un insumo</button></div>'
+    : '';
+
+  var m=INV.movimientos.slice(0,25);
+  $("inv-movs").innerHTML = m.length
+    ? '<div class="tabla"><div class="scroll"><table><thead><tr><th>Fecha</th><th></th>'+
+      '<th>Insumo</th><th class="n">Cant.</th><th>Destino / origen</th><th>Quién</th>'+
+      '</tr></thead><tbody>'+
+      m.map(function(x){
+        return '<tr><td>'+esc(x.fecha)+'</td>'+
+          '<td><span class="pill '+(x.tipo==="ENTRADA"?"ok":"gris")+'">'+
+            (x.tipo==="ENTRADA"?"entra":"sale")+'</span></td>'+
+          '<td>'+esc(x.insumo)+'</td><td class="n">'+n1(x.cantidad)+'</td>'+
+          '<td>'+(x.tipo==="ENTRADA"
+            ? esc(x.proveedor||"—")+(x.solicitudId?' <span class="cta">'+esc(x.solicitudId)+'</span>':'')
+            : '<span class="dest"><span class="t '+esc(x.destinoTipo||"")+'">'+
+              esc(x.destinoTipo||"—")+'</span> '+esc(x.destino||"—")+'</span>')+'</td>'+
+          '<td>'+esc(x.tipo==="ENTRADA"?"":(x.entregadoPor||""))+'</td></tr>';
+      }).join("")+'</tbody></table></div></div>'
+    : '<div class="vacio">Sin movimientos todavía.</div>';
+}
+
+function insumo_(id){
+  var l=(INV&&INV.insumos)||[];
+  for(var i=0;i<l.length;i++) if(l[i].insumoId===id) return l[i];
+  return null;
+}
+
+function abrirInsumo(){
+  $("mod-tit").textContent="Agregar un insumo";
+  $("mod-cuerpo").innerHTML=
+    '<label>Descripción</label><input id="i-desc" placeholder="Guantes de hule 18 plg">'+
+    '<div class="rejilla">'+
+      '<div><label>Categoría</label><select id="i-cat">'+
+        (INV.categorias||["Otro"]).map(function(c){return '<option>'+esc(c)+'</option>';}).join("")+
+        '</select></div>'+
+      '<div><label>Unidad</label><input id="i-uni" placeholder="Caja / Par / Galón"></div>'+
+      '<div><label>Mínimo</label><input id="i-min" inputmode="numeric" placeholder="0"></div>'+
+      '<div><label>Existencia de apertura</label><input id="i-ini" inputmode="decimal" placeholder="0"></div>'+
+    '</div>'+
+    '<div class="cta" style="margin-top:10px">La existencia de apertura entra como un movimiento '+
+      'de entrada, no como un número suelto: así el saldo siempre es la suma de lo que se movió '+
+      'y se puede ver de dónde salió cada unidad.</div>'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarInsumo()">Guardar</button></div>';
+  abrirModal();
+}
+
+function guardarInsumo(){
+  var d={ descripcion:$("i-desc").value.trim(), categoria:$("i-cat").value,
+          unidad:$("i-uni").value.trim(), minimo:num($("i-min").value),
+          stockInicial:num($("i-ini").value) };
+  if(!d.descripcion){ toast("Falta la descripción"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo guardar"); return; }
+      cerrarModal(); toast("Insumo agregado ✓"); INV=null; cargarInventario();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_guardarInsumo(PIN, d);
+}
+
+/* ── la entrega ──
+   El destino es un cliente o una persona, y hay que decir cuál. En el Excel
+   era texto libre y por eso el costo no caía en ningún lado. */
+function abrirEntrega(insumoId){
+  var i=insumo_(insumoId); if(!i) return;
+  $("mod-tit").textContent="Entregar "+i.descripcion;
+  $("mod-cuerpo").innerHTML=
+    '<input type="hidden" id="e-ins" value="'+esc(insumoId)+'">'+
+    '<div class="nota">Hay <b>'+n1(i.stock)+' '+esc(i.unidad)+'</b> en existencia.</div>'+
+    '<div class="rejilla">'+
+      '<div><label>Fecha</label><input id="e-fecha" type="date" value="'+esc(INV.hoy)+'"></div>'+
+      '<div><label>Cantidad</label><input id="e-cant" inputmode="decimal" placeholder="0"></div>'+
+      '<div><label>Va para</label><select id="e-tipo" onchange="pistaDestino()">'+
+        '<option value="cliente">Un cliente</option>'+
+        '<option value="persona">Una persona</option></select></div>'+
+      '<div><label>Quién lo recibe</label><input id="e-dest" placeholder=""></div>'+
+      '<div><label>Quién entrega</label><input id="e-quien" value="'+esc((INV.usuario&&INV.usuario.nombre)||"")+'"></div>'+
+    '</div>'+
+    '<div class="cta" id="e-pista" style="margin-top:8px"></div>'+
+    '<label style="margin-top:10px">Observaciones</label><input id="e-obs">'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarEntrega(false)">Entregar</button></div>';
+  pistaDestino();
+  abrirModal();
+}
+
+function pistaDestino(){
+  var t=$("e-tipo").value, p=$("e-pista"), d=$("e-dest");
+  if(t==="cliente"){
+    d.placeholder="Nombre del cliente";
+    p.innerHTML="Los recipientes y las bolsas van incluidos en el plan que el cliente firma: "+
+      "no son ingreso, son <b>costo de servirlo a él</b>, y es lo que hoy nadie mide.";
+  } else {
+    d.placeholder="Nombre de la persona";
+    p.innerHTML="El EPP va a una persona. Además del costo de operación, queda la constancia "+
+      "de <b>a quién se le entregó qué y cuándo</b>, que es lo que piden en una auditoría de "+
+      "seguridad ocupacional.";
+  }
+}
+
+function guardarEntrega(confirmado){
+  var d={ insumoId:$("e-ins").value, fecha:$("e-fecha").value,
+          cantidad:num($("e-cant").value), destinoTipo:$("e-tipo").value,
+          destino:$("e-dest").value.trim(), entregadoPor:$("e-quien").value.trim(),
+          observaciones:$("e-obs").value.trim(), negativoConfirmado:!!confirmado };
+  if(!(d.cantidad>0)){ toast("Falta la cantidad"); return; }
+  if(!d.destino){ toast("Falta a quién se le entrega"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.sinStock){ avisoSinStock(r.sinStock, d); return; }
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
+      cerrarModal(); toast("Entrega registrada ✓"); INV=null; cargarInventario();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_registrarEntrega(PIN, d);
+}
+
+/* Entregar más de lo que hay deja el saldo en negativo, y un saldo negativo
+   casi siempre significa que falta anotar una entrada, no que el material
+   se sacó del aire. Se avisa y se deja seguir, porque la entrega ya ocurrió
+   en el mundo real y negarla no la deshace. */
+function avisoSinStock(s, d){
+  $("mod-tit").textContent="No hay tanto en existencia";
+  $("mod-cuerpo").innerHTML=
+    '<div class="nota mal">De <b>'+esc(s.insumo)+'</b> hay <b>'+n1(s.hay)+' '+esc(s.unidad)+
+      '</b> y se están entregando <b>'+n1(s.piden)+'</b>.</div>'+
+    '<div class="nota">Si la entrega de verdad ocurrió, regístrala igual: el saldo queda en '+
+      'negativo y eso es una señal de que falta cargar una compra, no un error que haya que '+
+      'esconder.</div>'+
+    '<div class="acc" style="margin-top:14px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Corregir la cantidad</button>'+
+      '<button class="btn mal" style="flex:1" onclick="forzarEntrega()">Se entregó igual</button></div>';
+  PEND_ENTREGA=d; abrirModal();
+}
+var PEND_ENTREGA=null;
+function forzarEntrega(){
+  if(!PEND_ENTREGA) return cerrarModal();
+  var d=PEND_ENTREGA; PEND_ENTREGA=null;
+  d.negativoConfirmado=true;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
+      cerrarModal(); toast("Entrega registrada ✓"); INV=null; cargarInventario();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_registrarEntrega(PIN, d);
+}
+
+/* ── la entrada, que nace de la solicitud de pago ── */
+function abrirEntrada(solicitudId){
+  var s=null, p=INV.pendientes||[];
+  for(var i=0;i<p.length;i++) if(p[i].solicitudId===solicitudId) s=p[i];
+  if(!s) return;
+  $("mod-tit").textContent="Entrada desde "+s.solicitudId;
+  $("mod-cuerpo").innerHTML=
+    '<input type="hidden" id="n-sol" value="'+esc(solicitudId)+'">'+
+    '<div class="nota">Solicitud <b>'+esc(s.solicitudId)+'</b> · '+esc(s.proveedor)+
+      ' · '+esc(s.fecha)+' · '+d2(s.total)+'<br>'+
+      'Los renglones vienen de la solicitud tal cual. Solo hay que decir a qué insumo del '+
+      'catálogo corresponde cada uno.</div>'+
+    s.renglones.map(function(r,ix){
+      return '<div class="tarjeta" style="margin-bottom:9px;padding:12px">'+
+        '<label class="chk"><input type="checkbox" class="nlin" checked data-ix="'+ix+'"> '+
+        '<span><b>'+esc(r.concepto)+'</b><br><span class="cta">'+n1(r.cantidad)+' '+
+        esc(r.unidad)+' · '+d2(r.costoUnitario)+' c/u</span></span></label>'+
+        '<label style="margin-top:8px">Insumo del catálogo</label>'+
+        '<select class="nins" data-ix="'+ix+'">'+
+          '<option value="">— crear «'+esc(r.concepto)+'» como insumo nuevo —</option>'+
+          (INV.insumos||[]).map(function(i){
+            return '<option value="'+esc(i.insumoId)+'">'+esc(i.descripcion)+'</option>'; }).join("")+
+        '</select></div>';
+    }).join("")+
+    '<div class="acc" style="margin-top:12px">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="guardarEntrada()">Cargar al inventario</button></div>';
+  ENTRADA_ACT=s;
+  abrirModal();
+}
+var ENTRADA_ACT=null;
+
+function guardarEntrada(){
+  if(!ENTRADA_ACT) return;
+  var s=ENTRADA_ACT, lineas=[];
+  [].slice.call(document.querySelectorAll(".nlin")).forEach(function(c){
+    if(!c.checked) return;
+    var ix=Number(c.dataset.ix);
+    var sel=document.querySelector('.nins[data-ix="'+ix+'"]');
+    var r=s.renglones[ix];
+    lineas.push({ insumoId: sel ? sel.value : "", concepto:r.concepto,
+                  unidad:r.unidad, cantidad:r.cantidad, costoUnitario:r.costoUnitario });
+  });
+  if(!lineas.length){ toast("No hay renglones marcados"); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo cargar"); return; }
+      cerrarModal();
+      toast(r.cargados+" renglón(es) al inventario ✓"+
+        (r.insumosNuevos?" · "+r.insumosNuevos+" insumo(s) nuevo(s)":""));
+      INV=null; cargarInventario();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_registrarEntradaDeSolicitud(PIN, $("n-sol").value, lineas);
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

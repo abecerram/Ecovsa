@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<?!= incluirTema('operaciones') ?>
+<style>
+/* El reporte de inspección es INTERNO — Supervisor lo dijo. Por eso puede
+   decir «declaró 8 y se midieron 18», que es justo lo que no podría decir
+   un documento que se le entrega al cliente. Si algún día hace falta una
+   hoja para el cliente, sale del mismo registro y es otra pantalla. */
+:root{--marino:#002060;--borde:#B9C4D4}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  padding-bottom:40px}
+
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:12px 20px;background:linear-gradient(135deg,#4E2670,#6C3A96);
+  box-shadow:0 2px 12px rgba(78,38,112,.30)}
+.barra .ti{color:#fff;font-size:13.5px;font-weight:800;letter-spacing:.4px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:800;
+  padding:10px 18px;border-radius:10px;cursor:pointer;background:#fff;color:#4E2670;
+  box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.barra button.sec{background:rgba(255,255,255,.20);color:#fff;box-shadow:none;font-weight:700}
+
+.aviso{max-width:760px;margin:30px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:12px;padding:30px;text-align:center;font-size:14px;color:var(--gris);line-height:1.6}
+
+.hoja{max-width:1010px;margin:22px auto 0;background:#fff;padding:26px 30px 24px;
+  border:1px solid var(--borde);font-size:11.5px;line-height:1.4;
+  box-shadow:0 6px 24px rgba(20,48,107,.13)}
+
+/* la franja de seguridad, igual que en el manifiesto */
+.franja{height:7px;background:linear-gradient(90deg,var(--verde) 0 22%,var(--lima) 22% 40%,
+  var(--azul) 40% 62%,var(--morado) 62% 80%,var(--ambar) 80% 100%);margin:10px 0 14px}
+
+.membrete{display:flex;align-items:flex-start;gap:16px}
+.membrete .m{flex:1}
+.membrete .n{font-size:17px;font-weight:900;color:var(--verde);letter-spacing:.5px}
+.membrete .r{font-size:10px;color:var(--gris);line-height:1.5;margin-top:2px}
+.membrete .num{text-align:right;flex:0 0 160px}
+.membrete .num .e{font-size:8.5px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--gris)}
+.membrete .num .v{font-size:17px;font-weight:900;color:var(--marino);line-height:1.2}
+
+h1{font-size:15px;font-weight:900;letter-spacing:2px;color:var(--marino);
+  text-align:center;margin:4px 0 2px}
+.sub{text-align:center;font-size:9px;color:var(--gris);letter-spacing:.5px;margin-bottom:12px}
+
+.sec{font-size:9.5px;font-weight:900;text-transform:uppercase;letter-spacing:1px;
+  color:#fff;background:var(--azul);padding:4px 9px;border-bottom:2px solid var(--lima);
+  margin:14px 0 0}
+.cuerpo{border:1px solid var(--borde);border-top:none;padding:10px 12px}
+
+.rej{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.rej.dos{grid-template-columns:repeat(2,1fr)}
+.campo{border:1px solid var(--borde);padding:5px 8px;margin:-1px 0 0 -1px;min-height:38px}
+.campo .e{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--gris)}
+.campo .v{font-size:12px;font-weight:700;margin-top:2px}
+.campo.destaca{background:var(--azul-suave)}
+.campo.alerta{background:#FFF3D1}
+.campo.alerta .v{color:#7A5600}
+
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--azul-osc);color:#fff;font-size:8.5px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.6px;padding:5px 7px;text-align:left}
+td{border:1px solid var(--borde);padding:5px 7px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+tr.tot td{background:var(--verde-suave);font-weight:900}
+
+.lista{margin:0;padding-left:16px}
+.lista li{margin:2px 0}
+.nada{color:var(--gris);font-style:italic}
+
+.rec{background:var(--verde-suave);border:1.5px solid #9FC47A;border-radius:8px;
+  padding:10px 12px;margin-top:10px}
+.rec .g{font-size:16px;font-weight:900;color:var(--verde)}
+.rec .p{font-size:11px;color:var(--tinta);margin-top:3px}
+
+.ojo{background:#FFF3D1;border:1.5px solid #E3C97A;border-radius:8px;padding:9px 11px;
+  margin-top:10px;font-size:11.5px}
+.ojo b{color:#7A5600}
+
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:26px}
+.firma{text-align:center}
+.firma .l{border-top:1.2px solid var(--tinta);margin-bottom:4px}
+.firma .n{font-size:11px;font-weight:800}
+.firma .c{font-size:9px;color:var(--gris)}
+
+.pie{margin-top:18px;padding-top:8px;border-top:1px solid var(--borde);
+  font-size:8.5px;color:var(--gris);display:flex;justify-content:space-between;gap:12px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .barra{display:none}
+  .hoja{box-shadow:none;border:none;margin:0;max-width:none;padding:12px 14px}
+  .sec{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .franja,th,.campo.destaca,.campo.alerta,.rec,.ojo,tr.tot td{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div id="aviso" class="aviso">Cargando la inspección…</div>
+
+<div id="app" style="display:none">
+  <div class="barra">
+    <div class="ti">INSPECCIÓN TÉCNICA · <span id="ti-num"></span></div>
+    <button onclick="window.print()">Imprimir</button>
+    <button class="sec" onclick="window.close()">Cerrar</button>
+  </div>
+  <div class="hoja" id="hoja"></div>
+</div>
+
+<script>
+var $=function(id){return document.getElementById(id);};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function aviso(h){ $("aviso").innerHTML=h; $("aviso").style.display="block";
+                   $("app").style.display="none"; }
+
+function arrancar(){
+  if(window.google && google.script && google.script.url){
+    google.script.url.getLocation(function(loc){
+      var p=(loc&&loc.parameter)||{};
+      seguir(p.id||"");
+    });
+  } else {
+    var m=(location.search||"").match(/[?&]id=([^&]+)/);
+    seguir(m?decodeURIComponent(m[1]):"");
+  }
+}
+
+function seguir(id){
+  if(!id){ aviso("Falta el número de inspección en el enlace."); return; }
+  var pin="";
+  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la aplicación con tu PIN y vuelve a abrir el reporte."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir la inspección.")); return; }
+      pintar(r);
+      $("aviso").style.display="none";
+      $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión con el servidor."); })
+    .api_inspeccion(pin, id);
+}
+
+function lista(txt){
+  var l=String(txt||"").split("|").filter(Boolean);
+  return l.length ? '<ul class="lista">'+l.map(function(x){
+    return '<li>'+esc(x)+'</li>'; }).join("")+'</ul>'
+    : '<span class="nada">Nada anotado.</span>';
+}
+function campo(e,v,cls){
+  return '<div class="campo'+(cls?" "+cls:"")+'"><div class="e">'+esc(e)+'</div>'+
+         '<div class="v">'+(v?esc(v):"—")+'</div></div>';
+}
+function parrafo(txt){
+  return String(txt||"").trim()
+    ? esc(txt).replace(/\n/g,"<br>")
+    : '<span class="nada">Nada anotado.</span>';
+}
+
+function pintar(r){
+  var i=r.inspeccion||{}, p=r.prospecto||{}, E=r.empresaDoc||{};
+  $("ti-num").textContent = i.inspeccionId||"";
+
+  /* La tabla de generación lleva el ORIGEN de cada número en su propia
+     columna. Es la diferencia entre un dato y una impresión, y quien lea
+     el reporte dentro de un año necesita saber cuál es cuál. */
+  var gen = i.generacionLista||[];
+  var filasGen = gen.length ? gen.map(function(g){
+    return '<tr><td>'+esc(g.corriente)+'</td>'+
+      '<td class="num">'+esc(g.cantidad||"—")+'</td>'+
+      '<td>'+esc(g.unidad||"")+'</td>'+
+      '<td>'+esc(g.periodo||"")+'</td>'+
+      '<td>'+(g.origen?esc(g.origen):'<span class="nada">sin decir</span>')+'</td></tr>';
+  }).join("") : '<tr><td colspan="5" class="nada">No se registró generación.</td></tr>';
+
+  /* Medido contra declarado: lo más valioso de la visita. */
+  var medido=0;
+  gen.forEach(function(g){ if(String(g.unidad)==="kg"){
+    var v=Number(String(g.cantidad||"").replace(",","."));
+    if(isFinite(v)) medido+=v; } });
+  var decl=Number(String(i.declaradoCotizacion||"").replace(/[^0-9.,]/g,"").replace(",","."));
+  var ojo = (decl>0 && medido>0 && medido>=decl*1.3)
+    ? '<div class="ojo"><b>El cliente declaró '+esc(i.declaradoCotizacion)+
+      ' y en sitio se midieron '+medido+' kg.</b> La cotización debe hacerse sobre lo medido.</div>'
+    : "";
+
+  var mandaTxt = i.relojQueManda
+    ? 'Manda el reloj de <b>'+esc(i.relojQueManda)+'</b>'+
+      (i.relojQueManda==="almacenamiento"
+        ? ' — no por los kilos, sino porque no tiene dónde guardarlos.'
+        : ' — por el volumen que genera.')
+    : "";
+
+  $("hoja").innerHTML =
+  '<div class="membrete">'+
+    '<div class="m"><div class="n">'+esc(E.comercial||"ECOVSA")+'</div>'+
+      '<div class="r">'+esc(E.razonSocial||"")+' · RUC '+esc(E.ruc||"")+
+        ' DV '+esc(E.dv||"")+'<br>'+esc(E.direccion||"")+' · Tel. '+esc(E.telefono||"")+'</div></div>'+
+    '<div class="num"><div class="e">Inspección N°</div>'+
+      '<div class="v">'+esc(i.inspeccionId||"")+'</div>'+
+      '<div class="e" style="margin-top:4px">Visita</div>'+
+      '<div class="v" style="font-size:12px">'+esc(i.fechaVisita||"—")+'</div></div>'+
+  '</div>'+
+  '<div class="franja"></div>'+
+  '<h1>INFORME DE INSPECCIÓN TÉCNICA</h1>'+
+  '<div class="sub">DOCUMENTO INTERNO · PREVIO A LA COTIZACIÓN · NO SE ENTREGA AL CLIENTE</div>'+
+
+  '<div class="sec">1 · Establecimiento</div><div class="cuerpo">'+
+    '<div class="rej">'+
+      campo("Cliente", p.empresa)+
+      campo("Razón social", p.razonSocial)+
+      campo("RUC", p.ruc)+
+      campo("Dirección", p.direccion)+
+      campo("Zona", p.zona)+
+      campo("Tipo", i.tipoEstablecimiento)+
+      campo("Atendió", i.atendio)+
+      campo("Cargo", i.atendioCargo)+
+      campo("Sedes", i.sedes)+
+      campo("Entrega el residuo", i.entrega)+
+      campo("Suplente", i.entregaSuplente)+
+      campo("Ventana de entrega",
+        (i.ventanaDesde||"")+(i.ventanaHasta?" a "+i.ventanaHasta:""), "destaca")+
+    '</div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Motivo de la inspección:</b> '+
+      parrafo(i.motivo)+'<br><span style="font-size:9.5px;color:var(--gris)">La pidió '+
+      esc(i.pedidaPor||"")+' el '+esc(i.pedidaEn||"")+'.</span></div>'+
+  '</div>'+
+
+  '<div class="sec">2 · Lo que genera</div><div class="cuerpo">'+
+    '<table><thead><tr><th>Corriente</th><th style="text-align:right">Cantidad</th>'+
+      '<th>Unidad</th><th>Periodo</th><th>De dónde sale el número</th></tr></thead>'+
+      '<tbody>'+filasGen+'</tbody></table>'+
+    ojo +
+    '<div class="rej dos" style="margin-top:8px">'+
+      campo("Declarado al cotizar", i.declaradoCotizacion)+
+      campo("Generación diaria usada en el cálculo", i.generacionDiaria)+
+    '</div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Picos:</b> '+parrafo(i.picos)+'</div>'+
+    '<div style="margin-top:4px;font-size:11px"><b>Proveedor anterior:</b> '+
+      parrafo(i.proveedorAnterior)+'</div>'+
+  '</div>'+
+
+  '<div class="sec">3 · Almacenamiento</div><div class="cuerpo">'+
+    '<div class="rej">'+
+      campo("Área destinada", i.tieneArea)+
+      campo("Dónde", i.areaDonde)+
+      campo("Capacidad", (i.cabenCantidad||"")+" "+(i.cabenUnidad||""))+
+      campo("Días que le caben", i.diasQueCaben, "destaca")+
+      campo("Recipientes", i.recipientes)+
+      campo("Son de", i.recipientesDe)+
+    '</div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Condiciones que cumple:</b></div>'+
+    lista(i.condiciones)+
+    (i.refrigeracion ? '<div style="margin-top:4px;font-size:11px"><b>Refrigeración:</b> '+
+      esc(i.refrigeracion)+'</div>' : '')+
+  '</div>'+
+
+  '<div class="sec">4 · Acceso y maniobra</div><div class="cuerpo">'+
+    '<div class="rej">'+
+      campo("Tipo de acceso", i.tipoAcceso)+
+      campo("Dónde estaciona", i.dondeEstaciona)+
+      campo("Distancia al acopio", i.distanciaAcopio)+
+    '</div>'+
+    '<div class="rej dos" style="margin-top:-1px">'+
+      campo("Tiempo puerta a puerta",
+        i.minutosVisita ? i.minutosVisita+" minutos" : "", "destaca")+
+      campo("Ventana de entrega",
+        (i.ventanaDesde||"")+(i.ventanaHasta?" a "+i.ventanaHasta:""))+
+    '</div>'+
+    '<div style="margin-top:8px;font-size:11px">'+parrafo(i.accesoNotas)+'</div>'+
+  '</div>'+
+
+  '<div class="sec">5 · Hallazgos e indicaciones</div><div class="cuerpo">'+
+    '<div class="rej dos">'+
+      campo("Segregación observada", i.segregacion,
+        i.segregacion && i.segregacion !== "Bien" ? "alerta" : "")+
+      campo("Requiere capacitación",
+        String(i.requiereCapacitacion||"").indexOf("SI")>=0 ? "Sí" : "No")+
+    '</div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Hallazgos:</b></div>'+
+    lista(i.hallazgos)+
+    '<div style="margin-top:8px;font-size:11px"><b>Lo que se le indicó al cliente:</b><br>'+
+      parrafo(i.indicaciones)+'</div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Lo que ECOVSA no le puede recibir:</b><br>'+
+      parrafo(i.noRecibimos)+'</div>'+
+  '</div>'+
+
+  '<div class="sec">6 · Recomendación de servicio</div><div class="cuerpo">'+
+    '<div class="rej">'+
+      campo("Días por generación", i.diasPorGeneracion)+
+      campo("Días por almacenamiento", i.diasQueCaben)+
+      campo("Manda el reloj de", i.relojQueManda, "alerta")+
+    '</div>'+
+    '<div class="rec"><div class="g">'+esc(i.frecuenciaRec||"Sin frecuencia recomendada")+'</div>'+
+      '<div class="p">'+mandaTxt+'</div>'+
+      '<div class="p" style="margin-top:5px">'+
+        (i.kgPlanRec?esc(i.kgPlanRec)+' por visita · ':'')+
+        (i.tipoServicioRec?esc(i.tipoServicioRec):'')+
+        (i.recipientesEntregar?' · entregar '+esc(i.recipientesEntregar):'')+
+      '</div></div>'+
+    '<div style="margin-top:8px;font-size:11px"><b>Observaciones para la cotización:</b><br>'+
+      parrafo(i.observaciones)+'</div>'+
+  '</div>'+
+
+  '<div class="firmas">'+
+    '<div class="firma"><div class="l"></div><div class="n">'+esc(i.cerradaPor||i.pedidaPor||"")+
+      '</div><div class="c">Inspector · ECOVSA</div></div>'+
+    '<div class="firma"><div class="l"></div><div class="n">'+esc(i.atendio||"")+
+      '</div><div class="c">'+esc(i.atendioCargo||"Quien atendió")+' · '+esc(p.empresa||"")+
+      '</div></div>'+
+  '</div>'+
+
+  '<div class="pie"><span>'+esc(E.formulario||"")+'</span>'+
+    '<span>Uso interno de ECOVSA · no se entrega al cliente</span>'+
+    '<span>Emitido el '+esc(r.hoy||"")+'</span></div>';
+}
+
+arrancar();
+</script>
+</body>
+</html>

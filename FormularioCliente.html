@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulario de Datos para Cotización - ECOVSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul-osc: #14306B; --azul: #0B5394; --azul-suave: #E9F1FA;
+    --verde: #2F6B0A; --verde-osc: #1F4A06; --verde-suave: #EDF5E2;
+    --tinta: #141C2B; --gris: #5B6880; --fondo: #EEF2F7; --blanco: #FFF; --borde: #D3DDEA;
+    --radio: 14px; --sombra: 0 4px 20px rgba(20,48,107,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Archivo', system-ui, sans-serif; background: var(--fondo); color: var(--tinta); padding: 20px 10px; }
+  .wrap { max-width: 650px; margin: 0 auto; }
+  .tarjeta-marca { background: linear-gradient(135deg, var(--azul-osc), var(--azul)); color: #fff; padding: 24px; border-radius: var(--radio); text-align: center; margin-bottom: 16px; box-shadow: var(--sombra); }
+  .tarjeta-marca img { height: 50px; width: auto; background: #fff; border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; }
+  .tarjeta-marca h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .tarjeta-marca p { font-size: 13px; opacity: .85; line-height: 1.4; }
+  
+  .caja { background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radio); padding: 20px; margin-bottom: 14px; box-shadow: var(--sombra); }
+  .caja h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--verde); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--verde-suave); }
+  
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--gris); margin: 12px 0 4px; text-transform: uppercase; letter-spacing: .4px; }
+  label .req { color: #C0392B; }
+  input, select, textarea { width: 100%; padding: 12px; font-size: 15px; font-family: inherit; border: 1.5px solid var(--borde); border-radius: 10px; background: #FBFDFC; color: var(--tinta); }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--verde); border-color: var(--verde); }
+  textarea { resize: vertical; min-height: 70px; }
+  .fila { display: flex; gap: 10px; flex-wrap: wrap; }
+  .fila > * { flex: 1; min-width: 200px; }
+  
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 20px; border: none; border-radius: 10px; font-family: inherit; font-size: 16px; font-weight: 700; background: linear-gradient(160deg, var(--verde), var(--verde-osc)); color: #fff; width: 100%; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(47,107,10,.25); }
+  .btn:active { transform: scale(.99); }
+  
+  #cargando { position: fixed; inset: 0; background: var(--fondo); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  .spin { width: 40px; height: 40px; border: 4px solid var(--verde-suave); border-top-color: var(--verde); border-radius: 50%; animation: g 1s linear infinite; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  
+  #exito { display: none; text-align: center; padding: 40px 20px; background: #fff; border-radius: var(--radio); box-shadow: var(--sombra); }
+  #exito h2 { color: var(--verde); font-size: 24px; margin-bottom: 10px; }
+  #exito p { color: var(--gris); font-size: 15px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="cargando"><div class="spin"></div><div style="font-size:13px;color:var(--gris);font-weight:600">Cargando información…</div></div>
+
+<div class="wrap" id="contenedor-principal">
+  <div class="tarjeta-marca">
+    <img src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400" alt="ECOVSA">
+    <h1>Formulario de Datos para Cotización</h1>
+    <p>Complete la siguiente información para preparar su propuesta de servicio a la medida.</p>
+  </div>
+
+  <div class="caja">
+    <h3>1. Datos del Cliente</h3>
+    <label>Empresa / Nombre Comercial <span class="req">*</span></label>
+    <input id="f-empresa" placeholder="Nombre comercial">
+    
+    <label>Razón Social</label>
+    <input id="f-razon" placeholder="Si es distinta al nombre comercial">
+    
+    <div class="fila">
+      <div><label>RUC <span class="req">*</span></label><input id="f-ruc" placeholder="Ej: 1234567-1-2023"></div>
+      <div><label>DV (Dígito Verificador)</label><input id="f-dv" placeholder="Ej: 39"></div>
+    </div>
+    
+    <label>Representante Legal</label>
+    <input id="f-replegal" placeholder="Nombre completo del representante">
+    
+    <label>Dirección del Servicio <span class="req">*</span></label>
+    <textarea id="f-direccion" placeholder="Calle, edificio, local, punto de referencia exacto"></textarea>
+    
+    <div class="fila">
+      <div><label>Provincia / Distrito</label><input id="f-provincia" placeholder="Panamá / San Miguelito, etc."></div>
+      <div><label>Zona</label><select id="f-zona"></select></div>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h3>2. Persona de Contacto</h3>
+    <div class="fila">
+      <div><label>Nombre del contacto <span class="req">*</span></label><input id="f-contacto"></div>
+      <div><label>Cargo</label><input id="f-cargo" placeholder="Administrador, asistente, gerente…"></div>
+    </div>
+    <div class="fila">
+      <div><label>Teléfono fijo u oficina</label><input id="f-telefono" inputmode="tel"></div>
+      <div><label>Celular de contacto <span class="req">*</span></label><input id="f-celular" inputmode="tel" placeholder="6000-0000"></div>
+    </div>
+    <label>Correo electrónico para envío de propuestas y recibos</label>
+    <input id="f-correo" inputmode="email" placeholder="correo@empresa.com">
+  </div>
+
+  <div class="caja">
+    <h3>3. Información del Servicio y Residuos</h3>
+    <label>Tipo de establecimiento / Actividad comercial <span class="req">*</span></label>
+    <input id="f-actividad" placeholder="Ej: Restaurante, Clínica, Oficinas, Supermercado…">
+    
+    <label>Tipo de residuo generado <span class="req">*</span></label>
+    <input id="f-residuo" placeholder="Ej: Orgánicos, Peligrosos, Comerciales no peligrosos…">
+    
+    <div class="fila">
+      <div><label>Cantidad aproximada (Kg)</label><input id="f-kg" inputmode="decimal" placeholder="Ej: 50"></div>
+      <div><label>Frecuencia de cálculo</label><select id="f-frecuencia-kg"><option value="Por recolección">Por recolección</option><option value="Por mes">Por mes</option></select></div>
+    </div>
+    
+    <label>Frecuencia requerida estimada</label>
+    <select id="f-frecuencia"></select>
+    
+    <label>Observaciones / requerimientos especiales</label>
+    <textarea id="f-notas" placeholder="Horarios de atención, restricciones de acceso, etc."></textarea>
+  </div>
+
+  <button class="btn" onclick="enviarDatosCliente()">Enviar Datos para Propuesta ✓</button>
+</div>
+
+<div class="wrap" id="exito">
+  <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
+  <h2>¡Datos enviados con éxito!</h2>
+  <p>Muchas gracias. Hemos recibido su información correctamente. En breve el equipo de mercadeo de <b>ECOVSA</b> se pondrá en contacto con usted para hacerle llegar su propuesta formal.</p>
+</div>
+
+<script>
+let TOKEN = "";
+
+/* La página corre dentro de un iframe de Apps Script: su location NO trae los
+   parámetros del enlace. Hay que pedírselos al contenedor.
+   Y se arranca con DOMContentLoaded, no con load: si una fuente externa se
+   cuelga, el evento load nunca dispara y la página se queda en blanco. */
+function arrancarFormulario() {
+  if (window.google && google.script && google.script.url) {
+    google.script.url.getLocation(function (loc) {
+      seguirFormulario((((loc || {}).parameter) || {}).token || "");
+    });
+  } else {
+    seguirFormulario(new URLSearchParams(window.location.search).get("token") || "");
+  }
+}
+
+if (document.readyState === "loading")
+  document.addEventListener("DOMContentLoaded", arrancarFormulario);
+else arrancarFormulario();
+
+function seguirFormulario(tok) {
+  TOKEN = tok;
+
+  if (!TOKEN) {
+    document.getElementById("cargando").style.display = "none";
+    avisoFormulario("Enlace incompleto",
+      "Este enlace no trae la referencia de tu solicitud. Pídele uno nuevo a tu asesor.");
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(r => {
+      document.getElementById("cargando").style.display = "none";
+      if (!r || !r.ok) {
+        avisoFormulario(r && r.cerrado ? "Ya recibimos tus datos" : "No se pudo abrir el formulario",
+          (r && r.error) || "Intenta más tarde o comunícate al 310-2268.",
+          r && r.cerrado);
+        return;
+      }
+      // Poblar listas de zonas y frecuencias
+      document.getElementById("f-zona").innerHTML = (r.zonas || []).map(z => `<option>${z}</option>`).join("");
+      document.getElementById("f-frecuencia").innerHTML = '<option value="">Elegir opción...</option>' + (r.frecuencias || []).map(f => `<option>${f}</option>`).join("");
+      
+      // Precargar datos básicos si ya existen
+      if (r.datos) {
+        document.getElementById("f-empresa").value = r.datos.empresa || "";
+        document.getElementById("f-contacto").value = r.datos.contacto || "";
+        document.getElementById("f-celular").value = r.datos.celular || "";
+        document.getElementById("f-telefono").value = r.datos.telefono || "";
+        document.getElementById("f-correo").value = r.datos.correo || "";
+        document.getElementById("f-cargo").value = r.datos.cargo || "";
+      }
+    })
+    .withFailureHandler(() => {
+      document.getElementById("cargando").style.display = "none";
+      avisoFormulario("Sin conexión",
+        "No pudimos cargar el formulario. Revisa tu señal e intenta de nuevo.");
+    })
+    .api_obtenerDatosFormularioCliente(TOKEN);
+}
+
+function enviarDatosCliente() {
+  const d = {
+    empresa: document.getElementById("f-empresa").value.trim(),
+    razonSocial: document.getElementById("f-razon").value.trim(),
+    ruc: document.getElementById("f-ruc").value.trim(),
+    dv: document.getElementById("f-dv").value.trim(),
+    representanteLegal: document.getElementById("f-replegal").value.trim(),
+    direccion: document.getElementById("f-direccion").value.trim(),
+    provincia: document.getElementById("f-provincia").value.trim(),
+    zona: document.getElementById("f-zona").value,
+    contacto: document.getElementById("f-contacto").value.trim(),
+    cargo: document.getElementById("f-cargo").value.trim(),
+    telefono: document.getElementById("f-telefono").value.trim(),
+    celular: document.getElementById("f-celular").value.trim(),
+    correo: document.getElementById("f-correo").value.trim(),
+    actividad: document.getElementById("f-actividad").value.trim(),
+    residuo: document.getElementById("f-residuo").value.trim(),
+    kg: document.getElementById("f-kg").value.trim(),
+    frecuenciaKg: document.getElementById("f-frecuencia-kg").value,
+    frecuencia: document.getElementById("f-frecuencia").value,
+    notas: document.getElementById("f-notas").value.trim()
+  };
+
+  const faltan = [];
+  if (!d.empresa) faltan.push("Empresa");
+  if (!d.ruc) faltan.push("RUC");
+  if (!d.direccion) faltan.push("Dirección");
+  if (!d.contacto) faltan.push("Contacto");
+  if (!d.celular) faltan.push("Celular");
+  if (!d.actividad) faltan.push("Actividad");
+  if (!d.residuo) faltan.push("Tipo de residuo");
+
+  if (faltan.length) {
+    alert("Por favor complete los campos obligatorios: " + faltan.join(", "));
+    return;
+  }
+
+  document.getElementById("cargando").style.display = "flex";
+  
+  google.script.run
+    .withSuccessHandler(r => {
+      document.getElementById("cargando").style.display = "none";
+      if (r && r.ok) {
+        document.getElementById("contenedor-principal").style.display = "none";
+        document.getElementById("exito").style.display = "block";
+      } else {
+        alert(r?.error || "No se pudo guardar la información.");
+      }
+    })
+    .withFailureHandler(() => {
+      document.getElementById("cargando").style.display = "none";
+      alert("Error de conexión al enviar los datos.");
+    })
+    .api_guardarDatosFormularioCliente(TOKEN, d);
+}
+
+/* Aviso a pantalla completa: el cliente no debe ver diálogos del navegador
+   con la dirección de Google. */
+function avisoFormulario(titulo, texto, bueno){
+  var c = document.getElementById("contenedor-principal") || document.body;
+  c.innerHTML =
+    '<div style="max-width:460px;margin:60px auto;background:#fff;border-radius:18px;' +
+    'padding:34px 28px;text-align:center;box-shadow:0 4px 22px rgba(20,48,107,.14);' +
+    'font-family:Archivo,system-ui,sans-serif">' +
+      '<div style="width:62px;height:62px;border-radius:50%;margin:0 auto 16px;' +
+      'display:flex;align-items:center;justify-content:center;font-size:31px;' +
+      'background:' + (bueno ? '#EDF7E4' : '#FFF3D1') + '">' + (bueno ? '✓' : '!') + '</div>' +
+      '<h2 style="font-size:19px;color:#14306B;margin-bottom:9px">' + titulo + '</h2>' +
+      '<p style="font-size:14px;color:#5B6880;line-height:1.65">' + texto + '</p>' +
+      '<p style="font-size:13px;color:#5B6880;margin-top:18px">ECOVSA · Tel. 310-2268<br>' +
+      'correo@ejemplo.com</p>' +
+    '</div>';
+}
+
+</script>
+</body>
+</html>
