@@ -1,18 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════
-   PUENTE ECOVSA · GitHub Pages ⇄ Apps Script          puente 1.1
+   PUENTE ECOVSA · GitHub Pages ⇄ Supabase / Apps Script  puente 2.0
    ───────────────────────────────────────────────────────────────
    Imita google.script.run. Las pantallas siguen llamando
        google.script.run.withSuccessHandler(fn).api_algo(args)
-   y por dentro la llamada viaja por fetch al /exec (doPost).
+   y por dentro la llamada viaja por fetch al servidor.
+
+   MUDANZA POR BLOQUES: las funciones que ya pasaron a Supabase
+   (lista "enSupabase") van a Supabase; todas las demás siguen yendo
+   a Apps Script mientras se terminan de pasar.
 
    Además:
    · COPIA LOCAL: las lecturas muestran al instante lo último que
      se vio y se refrescan solas por detrás. Si lo nuevo es igual,
      la pantalla no se vuelve a pintar.
-   · REINTENTO SEGURO: si Google pierde la respuesta (404, 5xx, corte),
-     se reintenta solo. Si a los 8 s no contestó, sale un segundo envío.
-     Todos los intentos llevan la MISMA etiqueta: el servidor (doPost)
-     la reconoce y nunca guarda dos veces lo mismo.
+   · REINTENTO SEGURO: si se pierde la respuesta (404, 5xx, corte),
+     se reintenta solo. Todos los intentos llevan la MISMA etiqueta:
+     el servidor la reconoce y nunca guarda dos veces lo mismo.
+   · TURNO: como mucho 4 llamadas a la vez; las demás esperan su turno
+     (así no se atoran unas con otras).
    · COLA: si un guardado no sale después de los reintentos, queda en
      cola (con su etiqueta) y se reenvía solo cuando vuelve la señal.
    · MEDICIÓN: cada llamada queda registrada (tiempo total y tiempo
@@ -31,12 +36,16 @@
   var CONFIG = {
     /* Dirección /exec de la implementación de Apps Script. */
     url: 'https://script.google.com/macros/s/AKfycbxWP6MYJKBl-VOOAdo_9wdDZHk_ZdW_4Hq1SaZ2wGKVzDHDIlmyVjsr_0BFMjpRz2VQ/exec',
-    version: 'puente 1.2',
+    /* Servidor nuevo en Supabase y las funciones que ya viven allí. */
+    supabase: 'https://wgufdfagvyelsypypkyr.supabase.co/functions/v1/api',
+    enSupabase: /^api_(ping|urlApp|login|lobby|lobby_resumen)$/,
+    version: 'puente 2.0',
     cacheHoras: 24,          // una copia local más vieja que esto no se usa
     timeoutMs: 25000,        // tiempo máximo de espera por cada intento
     maxIntentos: 3,          // intentos por llamada (con la misma etiqueta)
     esperaReintento: [600, 1500],  // pausa antes del 2.º y del 3.er intento (ms)
-    dobleEnvioMs: 8000,      // si no contestó a los 8 s, se manda un segundo envío
+    dobleEnvioMs: 0,         // apagado: el segundo envío hacía más fila, no más rapidez
+    maxSimultaneas: 4,       // llamadas al mismo tiempo; las demás esperan turno
     maxMediciones: 300,      // cuántas mediciones se guardan para el reporte
     /* Funciones que ESCRIBEN: no se guardan en copia local y, si no
        salen por falta de conexión, van a la cola. */
@@ -147,12 +156,33 @@
   }
 
   /* Un solo intento. Marca como "reintentable" todo lo que NO es un error de
-     la función misma: sin conexión, 404/5xx de Google, respuesta vacía o rota,
+     la función misma: sin conexión, 404/5xx del servidor, respuesta vacía o rota,
      tiempo agotado. Un error de la función (ok:false) no se reintenta. */
+  function destino(fn) {
+    return (CONFIG.supabase && CONFIG.enSupabase && CONFIG.enSupabase.test(fn)) ? CONFIG.supabase : CONFIG.url;
+  }
+
+  /* Turno: como mucho maxSimultaneas llamadas en vuelo. */
+  var enVuelo = 0, fila = [];
+  function conTurno(tarea) {
+    return new Promise(function (resolve, reject) {
+      function correr() {
+        enVuelo++;
+        var fin = function () { enVuelo--; if (fila.length) fila.shift()(); };
+        tarea().then(function (v) { fin(); resolve(v); }, function (e) { fin(); reject(e); });
+      }
+      if (enVuelo < (CONFIG.maxSimultaneas || 4)) correr(); else fila.push(correr);
+    });
+  }
+
   function intento(fn, args, id, esc) {
+    return conTurno(function () { return intentoDirecto(fn, args, id, esc); });
+  }
+
+  function intentoDirecto(fn, args, id, esc) {
     var ctrl = window.AbortController ? new AbortController() : null;
     var reloj_ = ctrl ? setTimeout(function () { ctrl.abort(); }, CONFIG.timeoutMs) : null;
-    return fetch(CONFIG.url, {
+    return fetch(destino(fn), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ fn: fn, args: args, id: id, esc: !!esc }),
@@ -160,7 +190,7 @@
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (res) {
       if (reloj_) clearTimeout(reloj_);
-      if (!res.ok) { var e = errorRed('Google respondió ' + res.status); e.reintentable = true; e.red = res.status >= 500 || res.status === 0; throw e; }
+      if (!res.ok) { var e = errorRed('El servidor respondió ' + res.status); e.reintentable = true; e.red = res.status >= 500 || res.status === 0; throw e; }
       return res.text();
     }, function (err) {
       if (reloj_) clearTimeout(reloj_);
@@ -182,8 +212,9 @@
      MISMA etiqueta (id); el servidor la usa para no guardar dos veces. */
   function llamarServidor(fn, args, opc) {
     opc = opc || {};
-    if (!CONFIG.url || CONFIG.url.indexOf('PEGA_AQUI') === 0)
-      return Promise.reject(new Error('El puente no tiene la dirección /exec configurada.'));
+    var dir = destino(fn);
+    if (!dir || dir.indexOf('PEGA_AQUI') === 0)
+      return Promise.reject(new Error('El puente no tiene la dirección del servidor configurada.'));
     var id = opc.id || nuevoId();
     var esc = !!opc.esc;
     var a = prepararArgs(args);
@@ -469,6 +500,7 @@
     config: CONFIG,
     activo: !enAppsScript,
     llamar: function (fn) { return llamarServidor(fn, Array.prototype.slice.call(arguments, 1)); },
+    destino: destino,
     reporte: reporteTexto,
     mediciones: resumenMediciones,
     limpiarCopias: function () { limpiarCopias(false); },
