@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   PUENTE ECOVSA · GitHub Pages ⇄ Supabase / Apps Script  puente 2.2
+   PUENTE ECOVSA · GitHub Pages ⇄ Supabase / Apps Script  puente 2.3
    ───────────────────────────────────────────────────────────────
    Imita google.script.run. Las pantallas siguen llamando
        google.script.run.withSuccessHandler(fn).api_algo(args)
@@ -40,8 +40,8 @@
        Bloques en Supabase: entrada y lobby · logística (con el comprobante de visita).
        Optimizar ruta (api_optimizarRuta) sigue en Apps Script a propósito. */
     supabase: 'https://wgufdfagvyelsypypkyr.supabase.co/functions/v1/api',
-    enSupabase: /^api_(abrirJornada|acta|actaSalida|actas|agenda|aprobarSolicitud|avanceHoy|bootstrap|borrarRuta|buscarRecibos|cerrarJornada|cerrarPendiente|clientesDelDia|clientesPorRevisar|enviarInspeccion|generarActa|getRutas|guardarCombustible|guardarInspeccion|guardarLote|guardarRuta|historialCliente|indicadoresFlota|inspeccion|inspecciones|lobby|lobby_resumen|login|marcador|marcarReciboEnviado|obtenerDetalleRecibo|pendientes|ping|plantaReporte|reabrirRecibo|rechazarSolicitud|rutasTodas|saldoDisposicion|ultimosRecibos|urlApp)$/,
-    version: 'puente 2.2',
+    enSupabase: /^api_(abrirJornada|acta|actaSalida|actas|agenda|altaBootstrap|aprobarSolicitud|avanceHoy|bootstrap|borrarProspecto|borrarRuta|buscarRecibos|cambiarEstadoCliente|cartera|cerrarJornada|cerrarPendiente|clientesDelDia|clientesPorRevisar|contrato|correoCartera|deducirInicios|distintivos|enviarInspeccion|generarActa|getRutas|guardarCombustible|guardarDatosFormularioCliente|guardarFicha|guardarInspeccion|guardarLote|guardarNotificacion|guardarProspecto|guardarRuta|guardarSolicitud|historialCliente|indicadoresFlota|inspeccion|inspeccionDeProspecto|inspecciones|lobby|lobby_resumen|login|marcador|marcarDistintivo|marcarFormularioEnviado|marcarNovedadVista|marcarReciboEnviado|miCliente|notasPropuesta|notificaciones|novedades|obtenerDatosFormularioCliente|obtenerDetalleRecibo|pasarACartera|pedirInspeccion|pendientes|ping|plantaReporte|propuesta|prospectos|reabrirRecibo|rechazarSolicitud|revisarBorrado|revisarContrato|rutasTodas|saldoDisposicion|ultimosRecibos|urlApp)$/,
+    version: 'puente 2.3',
     cacheHoras: 24,          // una copia local más vieja que esto no se usa
     timeoutMs: 25000,        // tiempo máximo de espera por cada intento
     maxIntentos: 3,          // intentos por llamada (con la misma etiqueta)
