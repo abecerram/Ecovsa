@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   PUENTE ECOVSA · GitHub Pages ⇄ Supabase / Apps Script  puente 2.0
+   PUENTE ECOVSA · GitHub Pages ⇄ Supabase / Apps Script  puente 2.1
    ───────────────────────────────────────────────────────────────
    Imita google.script.run. Las pantallas siguen llamando
        google.script.run.withSuccessHandler(fn).api_algo(args)
@@ -36,10 +36,12 @@
   var CONFIG = {
     /* Dirección /exec de la implementación de Apps Script. */
     url: 'https://script.google.com/macros/s/AKfycbxWP6MYJKBl-VOOAdo_9wdDZHk_ZdW_4Hq1SaZ2wGKVzDHDIlmyVjsr_0BFMjpRz2VQ/exec',
-    /* Servidor nuevo en Supabase y las funciones que ya viven allí. */
+    /* Servidor nuevo en Supabase y las funciones que ya viven allí.
+       Bloques en Supabase: entrada y lobby · logística.
+       Optimizar ruta (api_optimizarRuta) sigue en Apps Script a propósito. */
     supabase: 'https://wgufdfagvyelsypypkyr.supabase.co/functions/v1/api',
-    enSupabase: /^api_(ping|urlApp|login|lobby|lobby_resumen)$/,
-    version: 'puente 2.0',
+    enSupabase: /^api_(abrirJornada|acta|actaSalida|actas|agenda|aprobarSolicitud|avanceHoy|bootstrap|borrarRuta|buscarRecibos|cerrarJornada|cerrarPendiente|clientesDelDia|clientesPorRevisar|enviarInspeccion|generarActa|getRutas|guardarCombustible|guardarInspeccion|guardarLote|guardarRuta|historialCliente|indicadoresFlota|inspeccion|inspecciones|lobby|lobby_resumen|login|marcador|pendientes|ping|plantaReporte|reabrirRecibo|rechazarSolicitud|rutasTodas|saldoDisposicion|ultimosRecibos|urlApp)$/,
+    version: 'puente 2.1',
     cacheHoras: 24,          // una copia local más vieja que esto no se usa
     timeoutMs: 25000,        // tiempo máximo de espera por cada intento
     maxIntentos: 3,          // intentos por llamada (con la misma etiqueta)
