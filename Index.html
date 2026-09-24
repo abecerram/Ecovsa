@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto'};</script>
 <script src="puente.js"></script>
 <style>
 :root{--eco-azul-osc:#14306B;--eco-azul:#0B5394;--eco-verde:#2F6B0A;--eco-verde-claro:#4ADE80;--eco-ambar:#F5B301;--eco-rojo:#C0392B;--tarjeta:#FFFFFF}
@@ -343,7 +343,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--eco-azul);border
 .firma-cab{display:flex;align-items:flex-start;gap:10px}
 .firma-tit{font-size:13px;font-weight:800;color:var(--eco-azul-osc)}
 .firma-cli{font-size:12px;color:var(--gris);margin-top:2px}
-.canvas-firma-full{flex:1;width:100%;border:1.5px dashed var(--borde);
+.canvas-firma-full{flex:1;min-height:0;width:100%;border:1.5px dashed var(--borde);
   border-radius:12px;background:#fff;touch-action:none}
 .firma-pie{display:flex;gap:8px}
 
@@ -795,6 +795,113 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 .fila-flota span{flex:1;font-size:12px;color:var(--gris)}
 .fila-flota i{font-style:normal;font-weight:800;font-size:13px;color:var(--eco-verde)}
 
+
+/* ═══════════ PAQUETE CONDUCTOR (sept 2026) ═══════════ */
+/* Semáforo de la cabecera: un solo punto dice si todo está enviado */
+.barra-sync{flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.semaforo{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:0;color:#fff;border-radius:999px;padding:6px 11px 6px 9px;font:800 11px 'Archivo',system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.semaforo i{width:9px;height:9px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 3px rgba(74,222,128,.25);flex-shrink:0}
+.semaforo.pend i{background:#F5B301;box-shadow:0 0 0 3px rgba(245,179,1,.3)}
+.semaforo.off i{background:#F87171;box-shadow:0 0 0 3px rgba(248,113,113,.3)}
+
+/* Tablero azul del conductor: la ruta de un vistazo */
+.tb{display:none;grid-column:1 / -1;background:linear-gradient(140deg,var(--eco-azul-osc),var(--eco-azul));color:#fff;border-radius:20px;padding:16px;box-shadow:0 8px 22px rgba(20,48,107,.25);cursor:pointer}
+.tb-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tb-et{font-size:10.5px;font-weight:900;letter-spacing:.7px;opacity:.75;text-transform:uppercase}
+.tb-t1{font-size:20px;font-weight:900;margin-top:2px;line-height:1.15}
+.tb-t2{font-size:12px;opacity:.82;font-weight:600;margin-top:3px}
+.tb-tag{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;background:rgba(74,222,128,.18);color:#BFF5CF;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:900}
+.tb-tag i{width:7px;height:7px;border-radius:50%;background:#4ADE80}
+.tb-tag.espera{background:rgba(255,255,255,.14);color:#fff}.tb-tag.espera i{background:#fff}
+.tb-tag.fin{background:rgba(245,179,1,.22);color:#FFE08A}.tb-tag.fin i{background:#F5B301}
+.tb-linea{display:flex;align-items:center;margin:16px 2px 4px}
+.tb-pt{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:900;flex-shrink:0}
+.tb-linea.chica .tb-pt{width:15px;height:15px;font-size:0}
+.tb-pt.ok{background:#4ADE80;color:#0C3B1A}.tb-pt.ya{background:#fff;color:var(--eco-azul-osc);box-shadow:0 0 0 4px rgba(255,255,255,.3)}
+.tb-pt.pe{background:rgba(255,255,255,.2);color:#fff}.tb-pt.no{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1.5px dashed rgba(255,255,255,.4)}
+.tb-tr{flex:1;height:4px;min-width:3px;background:rgba(255,255,255,.2)}.tb-tr.ok{background:#4ADE80}
+.tb-lb{display:flex;justify-content:space-between;font-size:10px;font-weight:800;opacity:.75;margin-top:6px}
+.tb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tb-kpi{background:rgba(255,255,255,.1);border-radius:12px;padding:9px 6px;text-align:center}
+.tb-kpi b{display:block;font-size:19px;font-weight:900}.tb-kpi span{font-size:10px;font-weight:800;opacity:.75}
+.tb-sig{margin-top:12px;background:rgba(255,255,255,.1);border-radius:14px;padding:11px 12px}
+.tb-sig .l{font-size:10px;font-weight:900;letter-spacing:.6px;opacity:.7;text-transform:uppercase}
+.tb-sig .n{font-size:15px;font-weight:900;margin-top:2px}
+.tb-sig .d{font-size:12px;opacity:.8;margin-top:2px}
+.tb-alerta{margin-top:10px;display:flex;align-items:center;gap:8px;background:rgba(245,179,1,.16);color:#FFE08A;border-radius:12px;padding:8px 11px;font-size:12px;font-weight:800}
+.tb-go{display:block;width:100%;margin-top:14px;background:#fff;color:var(--eco-azul-osc);border:0;border-radius:14px;padding:13px;text-align:center;font:900 15px 'Archivo',system-ui,sans-serif;cursor:pointer}
+
+/* Parada abierta, versión compacta (opción C) */
+.pc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pc-chip{font-size:11.5px;font-weight:800;border-radius:999px;padding:5px 10px;background:#EEF2F7;color:var(--eco-azul-osc)}
+.pc-chip.pref{background:#E8EEF4}
+.pc-chip.estr{background:#FFF6DA;color:#7A5200;border:1px solid #F3D98A}
+.pc-chip.fuera{background:#FCECEA;color:#C0392B;border:1px solid #F0B7B0}
+.pc-nota{font-size:12px;color:var(--gris);margin-top:7px;line-height:1.4}
+.pc-acc{display:grid;grid-template-columns:1.2fr 1fr 1.15fr;gap:7px;margin-top:11px}
+.pc-a{display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;padding:10px 4px;font-size:12.5px;font-weight:800;text-decoration:none;white-space:nowrap}
+.pc-a svg{width:16px;height:16px;flex-shrink:0}
+.pc-a.nav{background:#E8EEF4;color:var(--eco-azul-osc)}.pc-a.tel{background:var(--eco-azul);color:#fff}.pc-a.wa{background:var(--eco-verde);color:#fff}
+.pc-relojes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pc-hora{position:relative;border:2px solid var(--borde);border-radius:13px;padding:9px;text-align:center;background:#FAFCFD;font-family:inherit;cursor:pointer}
+.pc-hora small{display:block;font-size:10.5px;font-weight:900;color:var(--gris);letter-spacing:.5px}
+.pc-hora b{display:block;font-size:22px;font-weight:900;color:var(--eco-azul-osc)}
+.pc-hora em{display:block;font-style:normal;font-size:10.5px;font-weight:700;color:var(--eco-azul)}
+.pc-hora.ok{border-color:#9FCB84;background:#E7F3DD}.pc-hora.ok b{color:var(--eco-verde)}
+.pc-hora .lap{position:absolute;right:9px;top:7px;font-size:12px;color:var(--eco-verde);opacity:.8}
+.pc-ayuda{font-size:11px;color:var(--gris);text-align:center;margin-top:6px}
+.pc-tit{font-size:11px;font-weight:900;color:var(--gris);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 7px}
+.pc-tabla{border:1px solid var(--borde);border-radius:13px;overflow:hidden;background:#fff}
+.pc-fil{display:grid;grid-template-columns:5px minmax(0,1fr) 88px 100px;align-items:center;gap:8px;padding:9px 9px 9px 0;border-bottom:1px solid var(--borde)}
+.pc-fil:last-child{border-bottom:0}
+.pc-fil>i{align-self:stretch;min-height:38px}
+.pc-n{font-size:12.5px;font-weight:900;line-height:1.2;min-width:0;overflow:hidden;text-overflow:ellipsis}.pc-n small{display:block;font-size:10.5px;color:var(--gris);font-weight:700}
+.pc-kg{display:flex;align-items:center;border:1.5px solid var(--borde);border-radius:10px;padding:0 8px;background:#fff}
+.pc-kg input{border:0;outline:0;width:100%;min-width:0;font:800 15px 'Archivo',system-ui,sans-serif;padding:9px 0;text-align:right;background:transparent;margin:0}
+.pc-kg span{font-size:12px;font-weight:800;color:var(--gris);margin-left:4px}
+.pc-cnt{display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--borde);border-radius:10px;padding:3px}
+.pc-cnt button{width:30px;height:30px;border:0;border-radius:8px;background:#EEF2F7;color:var(--eco-azul-osc);font:900 17px 'Archivo',system-ui,sans-serif;cursor:pointer}
+.pc-cnt b{font-size:15px;min-width:18px;text-align:center}
+.pc-otro{padding:11px 12px;font-size:12.5px;font-weight:800;color:#6D3FC4;background:#FBF9FF;cursor:pointer}
+.pc-edit{display:flex;align-items:center;border:1.5px solid var(--borde);border-radius:10px;padding:0 10px;background:#fff}
+.pc-edit input{border:0;outline:0;margin:0;padding:10px 0;flex:1;min-width:0;font:700 14px 'Archivo',system-ui,sans-serif;background:transparent}
+.pc-edit span{color:var(--eco-azul);font-size:14px}
+.pc-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pc-seg button{border:1.5px solid var(--borde);border-radius:11px;padding:8px 3px;background:#fff;font:800 12px 'Archivo',system-ui,sans-serif;color:var(--eco-azul-osc);cursor:pointer}
+.pc-seg button small{display:block;font-size:10px;font-weight:700;opacity:.85;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-seg button.on{background:var(--eco-verde);border-color:var(--eco-verde);color:#fff}
+.pc-seg button:disabled{opacity:.45;cursor:default}
+.pc-pie{position:sticky;bottom:-30px;margin:14px -14px -14px;padding:10px 14px 12px;background:#fff;border-top:1px solid var(--borde);border-radius:0 0 var(--radio) var(--radio);display:flex;align-items:center;gap:12px;box-shadow:0 -6px 14px rgba(20,48,107,.07);z-index:3}
+.pc-tot small{display:block;font-size:10px;font-weight:900;color:var(--gris);letter-spacing:.5px}
+.pc-tot b{font-size:21px;font-weight:900;color:var(--eco-azul-osc);white-space:nowrap}
+.pc-enviar{flex:1;margin:0}
+.ruta-cerrada .parada-card:not(.hecho){opacity:.45}
+
+/* Hoja de abajo: corregir una hora con reloj digital, y el horario del cliente */
+.hoja-velo{display:none;position:fixed;inset:0;z-index:8500;background:rgba(10,20,40,.45)}
+.hoja-velo.ver{display:block}
+.hoja-abajo{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:#fff;border-radius:22px 22px 0 0;padding:18px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.2);max-height:88vh;overflow:auto}
+.hoja-abajo h3{font-size:16px;font-weight:900;color:var(--eco-azul-osc);text-align:center}
+.hoja-abajo .sub{font-size:12px;color:var(--gris);text-align:center;margin-top:3px}
+.hh-dig{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0 12px}
+.hh-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.hh-col button{width:56px;height:38px;border:0;border-radius:10px;background:#EEF2F7;font-size:16px;color:var(--eco-azul-osc);font-weight:900;cursor:pointer;touch-action:manipulation;user-select:none}
+.hh-col b{font-size:44px;font-weight:900;color:var(--eco-azul-osc);background:#F4F7FB;border:2px solid var(--eco-azul);border-radius:14px;width:92px;text-align:center;padding:4px 0;font-variant-numeric:tabular-nums}
+.hh-dos{font-size:40px;font-weight:900;color:var(--eco-azul-osc)}
+.hh-link{display:block;text-align:center;font-size:13px;font-weight:800;color:var(--eco-azul);margin:0 0 12px;background:none;border:0;width:100%;cursor:pointer;font-family:inherit}
+.hh-pie{display:flex;gap:8px}.hh-pie .btn{margin:0}
+.hz-sug{background:#F4F7FB;border-radius:11px;padding:10px 12px;font-size:12.5px;color:var(--eco-azul-osc);margin-bottom:8px}
+.hz-sug b{font-weight:900}.hz-sug button{display:block;margin-top:5px;background:none;border:0;padding:0;color:var(--eco-azul);font:800 12.5px 'Archivo',system-ui,sans-serif;cursor:pointer}
+.hz-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 12px}
+.hz-seg button{border:1.5px solid var(--borde);border-radius:11px;padding:9px 3px;background:#fff;font:800 12.5px 'Archivo',system-ui,sans-serif;color:var(--eco-azul-osc);cursor:pointer}
+.hz-seg button small{display:block;font-size:10px;font-weight:700;opacity:.85;margin-top:2px}
+.hz-seg button.on{background:var(--eco-azul-osc);border-color:var(--eco-azul-osc);color:#fff}
+.hz-seg button.on.estr{background:#F5B301;border-color:#F5B301;color:#4A3300}
+.cli-horario{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:#E8EEF4;color:var(--eco-azul-osc)}
+.cli-horario.estr{background:#FFF6DA;color:#7A5200}
+.aviso-horario{margin-top:8px;background:#FFF6DA;border:1px solid #F3D98A;color:#6B4A00;border-radius:11px;padding:9px 11px;font-size:12.5px;line-height:1.45}
+
+.chip.mot-cierre.on{background:var(--eco-azul-osc);color:#fff;border-color:var(--eco-azul-osc)}
 </style>
 
 </head>
@@ -939,17 +1046,8 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 
 <div class="barra-sync">
 
-<div class="sync-status">
-
-<span id="txt-sync">Conectado</span>
-
-<span class="led" id="led"></span>
-
-</div>
-
+<button class="semaforo" id="semaforo" onclick="tocarSemaforo()"><i></i><span id="txt-sync">Conectado</span></button>
 <div style="display:flex;gap:4px">
-
-<button class="btn-header" onclick="sincronizar(true)">Sync</button>
 
 <button class="btn-header" id="btn-inicio" onclick="volverInicio()" style="display:none">☰ Inicio</button>
 
@@ -969,26 +1067,7 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 
 <div class="grid-mosaicos">
 
-<div class="mosaico-item destacado" id="hub-operador" onclick="mostrarTab('paradas')">
-
-<div class="mosaico-top">
-
-<div class="mosaico-icono">📦</div>
-
-<span class="mosaico-badge" id="hub-badge-ruta">En curso</span>
-
-</div>
-
-<div>
-
-<div class="mosaico-tit">Mi Ruta de Hoy</div>
-
-<div class="mosaico-sub" id="hub-sub-ruta">Toca para abrir recolecciones</div>
-
-</div>
-
-</div>
-
+<div class="tb" id="hub-operador"></div>
 <div class="panel-vivo" id="hub-admin" style="display:none">
 
 <div class="pv-top">
@@ -1061,6 +1140,10 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 
 </div>
 
+<div class="mosaico-item bloque-operador" style="display:none" onclick="mostrarTab('monitor')">
+<div class="mosaico-top"><div class="mosaico-icono">📈</div></div>
+<div><div class="mosaico-tit">Avance de mis rutas</div><div class="mosaico-sub">Lo que he trabajado</div></div>
+</div>
 <div class="mosaico-item" onclick="mostrarTab('agenda')">
 
 <div class="mosaico-top">
@@ -1579,7 +1662,7 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <div class="barra-navegacion-top">
 
-<h2>📊 Avance de las rutas</h2>
+<h2 id="tit-monitor">📊 Avance de las rutas</h2>
 
 <button class="btn-volver-hub" onclick="mostrarTab('hub')">☰ Menú</button>
 
@@ -2102,15 +2185,17 @@ if(!d||!d.ok) return errCargar();
 USUARIO=d.usuario; guardarLocal(K_USR,USUARIO); CLIENTES=d.clientes; guardarLocal(K_CLI,CLIENTES);
 
 var mia=(d.rutas||[])[0];
-
+if(!esSupervisor()) RUTAS_HOY = d.rutas || [];
+var bajada = ""; try{ bajada = JSON.parse(localStorage.getItem(K_BAJADA)||'""'); }catch(e){}
+if(mia && !esSupervisor() && bajada && bajada === mia.rutaId) mia = null;   // el conductor la bajó del tablero
 if(mia){
-
+/* lo que ya estaba escrito en el teléfono para esta misma ruta no se pierde */
+var previas={};
+if(RUTA && RUTA.rutaId===mia.rutaId) (RUTA.paradas||[]).forEach(function(p){ previas[p.clienteId]=p; });
 RUTA={fecha:mia.fecha,vehiculo:mia.vehiculo,conductor:mia.conductor,rutaId:mia.rutaId,
-
-paradas:mia.paradas.map(function(p){return {clienteId:p.clienteId,estadoParada:"pendiente",kgBolsas:"",cantBolsas:"",kgPunzo:"",cantPunzo:"",kgAnatomo:"",cantAnatomo:"",recibo:"",manifiesto:"",obs:"",contacto:"",cargo:"",gps:"",firma:""};})};
-
+paradas:mia.paradas.map(function(p){return previas[p.clienteId] || {clienteId:p.clienteId,estadoParada:"pendiente",kgBolsas:"",cantBolsas:"",kgPunzo:"",cantPunzo:"",kgAnatomo:"",cantAnatomo:"",recibo:"",manifiesto:"",obs:"",contacto:"",cargo:"",gps:"",firma:""};})};
+if(mia.estadoRuta) RUTA.cierre={motivo:mia.motivoCierre||"", hora:mia.cerradaEn||"", por:mia.cerradaPor||""};
 guardarLocal(K_PAR,RUTA);
-
 }
 
 if(d.hechas) fusionarHechas(d.hechas);
@@ -2151,22 +2236,16 @@ var ta=$("tit-agenda"), sa=$("sub-agenda");
 if(ta) ta.textContent = esAdm ? "Calendario de rutas" : "Mis Rutas";
 if(sa) sa.textContent = esAdm ? "Ver, crear y editar rutas" : "Elegir y activar tu ruta";
 var ho=$("hub-operador"), ha=$("hub-admin");
-if(ho) ho.style.display = esAdm ? "none" : "flex";
+if(ho) ho.style.display = esAdm ? "none" : "block";
 if(ha){ ha.style.display = esAdm ? "block" : "none"; if(esAdm) cargarAvanceVivo(); }
 /* Los avisos del menú se consultan al entrar, no al abrir cada pantalla: si
    hay que abrirla para enterarse, ya no es un aviso. */
 if(esAdm){ cargarPorRevisar(true); cargarInspecciones(true); }
 else cargarKgPlanta();
 
-if(!esAdm && RUTA.paradas && RUTA.paradas.length){
-
-var hechas = RUTA.paradas.filter(function(p){return p.estadoParada==="completada";}).length;
-
-$("hub-sub-ruta").textContent = hechas + " de " + RUTA.paradas.length + " paradas completadas";
-
-$("hub-badge-ruta").textContent = (hechas >= RUTA.paradas.length ? "Listo ✓" : hechas + "/" + RUTA.paradas.length);
-
-}
+if(!esAdm) pintarTablero();
+document.querySelectorAll(".bloque-operador").forEach(function(b){ b.style.display = sup ? "none" : "flex"; });
+var tm=$("tit-monitor"); if(tm) tm.textContent = sup ? "📊 Avance de las rutas" : "📈 Avance de mis rutas";
 
 if(CLIENTES && CLIENTES.length){
 
@@ -2177,13 +2256,14 @@ $("hub-cant-clientes").textContent = CLIENTES.length + " activos";
 }
 
 function pintarSync(){
-
-var led=$("led"), txt=$("txt-sync");
-
-led.className=enLinea?(COLA.length?"led pend":"led"):"led off";
-
-txt.textContent=enLinea?(COLA.length?COLA.length+" pend.":"En línea"):"Sin señal";
-
+var s=$("semaforo"), txt=$("txt-sync"); if(!s||!txt) return;
+var pend = COLA.length + ((typeof PUENTE_EST!=="undefined" && PUENTE_EST.cola) || 0);
+var mal = typeof PUENTE_EST!=="undefined" && (PUENTE_EST.estado==="error" || PUENTE_EST.estado==="reintento");
+if(!enLinea){ s.className="semaforo off"; txt.textContent="Sin señal"; }
+else if(pend){ s.className="semaforo pend"; txt.textContent=pend+" por enviar"; }
+else if(mal){ s.className="semaforo pend"; txt.textContent="Reintentando"; }
+else { s.className="semaforo"; txt.textContent="Conectado"; }
+if(typeof marcarEnviadosPendientes_==="function" && enLinea && !COLA.length) marcarEnviadosPendientes_();
 }
 
 function renderTodo(){
@@ -2236,7 +2316,10 @@ var cont=$("lista-paradas");
 
 if(!RUTA.paradas || !RUTA.paradas.length){
 
-cont.innerHTML='<div class="vacio">No tienes paradas asignadas para hoy.<br>Consulta al Administrador.</div>';
+cont.classList.remove("ruta-cerrada");
+cont.innerHTML='<div class="vacio">No tienes una ruta activa.<br>Elige y activa tu ruta desde <b>Mis Rutas</b>.</div>'+
+  '<button class="btn azul" style="margin-top:10px" onclick="mostrarTab(\'agenda\')">Ir a Mis Rutas</button>';
+if(!esSupervisor()) pintarTablero();
 
 return;
 
@@ -2301,133 +2384,464 @@ return '<div class="parada-card plegada" id="parada-'+i+'" onclick="abrirParada(
 '<span class="fl-parada">&#9662;</span></div>'+
 '</div>';
 }
-return '<div class="parada-card abierta" id="parada-'+i+'">'+
-'<div class="enc" style="cursor:pointer" onclick="abrirParada('+i+')">'+
-'<div class="num-parada'+(p.horaInicio?' yendo':'')+'">'+(i+1)+'</div>'+
-'<div class="info"><div class="n">'+esc(c.nombre)+'</div><div class="z">'+esc(c.direccion||'')+'</div></div>'+
-'<span class="pill '+claseEstado(c.estado)+'">'+esc(c.estado)+'</span>'+
-'<span class="fl-parada abierta">&#9662;</span></div>'+
+return paradaAbiertaC_(p, i, c);
 
-'<div style="display:flex;gap:6px;margin-top:10px">'+
-
-(c.lat!=null?'<a class="btn sec mini" style="text-decoration:none;flex:1" href="https://www.google.com/maps/dir/?api=1&destination='+c.lat+','+c.lng+'" target="_blank">🧭 Waze/Maps</a>':'')+
-
-(c.telefono?'<a class="btn azul mini" style="text-decoration:none" href="tel:'+esc(c.telefono)+'">📞 Llamar</a>':'')+
-
-(c.whatsapp?'<a class="btn verde mini" style="text-decoration:none" href="'+esc(c.whatsapp)+'" target="_blank">💬 WhatsApp</a>':'')+
-
-'</div>'+
-
-'<div class="reloj-grid">'+
-'<button class="btn-reloj '+(p.horaInicio?"marcado":"")+'" onclick="marcarHoraLlegadaGPS('+i+')">📍 LLEGADA<span class="hora-txt">'+(p.horaInicio||"--:--")+'</span></button>'+
-'<button class="btn-reloj '+(p.horaFinal?"marcado":"")+'" onclick="marcarHora('+i+',\'horaFinal\')">🏁 SALIDA<span class="hora-txt">'+(p.horaFinal||"--:--")+'</span></button>'+
-'</div>'+
-/* El botón sella la hora de ahora con un toque, que es lo que se usa casi
-   siempre. Estos dos campos son para cuando se marcó tarde o se marcó de
-   más: antes no había forma de corregirlo, solo volver a sellar con la
-   hora del momento, que no sirve para poner una hora que ya pasó. */
-'<div class="fila hora-fix">'+
-'<div><label>Corregir llegada</label>'+
-'<input type="time" value="'+esc(p.horaInicio||'')+'" onchange="fijarHora('+i+',\'horaInicio\',this.value)"></div>'+
-'<div><label>Corregir salida</label>'+
-'<input type="time" value="'+esc(p.horaFinal||'')+'" onchange="fijarHora('+i+',\'horaFinal\',this.value)"></div>'+
-'</div>'+
-
-'<div class="form-reg">'+
-
-'<div class="bloque-desecho b-bio">'+
-
-'<div class="titulo">☣ Bioinfeccioso (Bolsa Roja)</div>'+
-
-'<div class="fila">'+
-
-'<div><label>Kg</label><input id="inp-bio-'+i+'" inputmode="decimal" value="'+esc(p.kgBolsas)+'" oninput="setCampo('+i+',\'kgBolsas\',this.value)" placeholder="0.0"></div>'+
-
-'<div><label>Bolsas</label><input inputmode="numeric" value="'+esc(p.cantBolsas)+'" oninput="setCampo('+i+',\'cantBolsas\',this.value)" placeholder="0"></div>'+
-
-'</div>'+
-
-'<div class="botones-peso">'+
-
-'<button class="btn-p-rapido" onclick="sumarKg('+i+',\'kgBolsas\',1)">+1 kg</button>'+
-
-'<button class="btn-p-rapido" onclick="sumarKg('+i+',\'kgBolsas\',5)">+5 kg</button>'+
-
-'<button class="btn-p-rapido" onclick="sumarKg('+i+',\'kgBolsas\',10)">+10 kg</button>'+
-
-'</div>'+
-
-'</div>'+
-
-'<div class="bloque-desecho b-ana">'+
-
-'<div class="titulo">⚕ Anatomopatológico (Bolsa Roja Rotulada)</div>'+
-
-'<div class="fila">'+
-
-'<div><label>Kg</label><input id="inp-ana-'+i+'" inputmode="decimal" value="'+esc(p.kgAnatomo)+'" oninput="setCampo('+i+',\'kgAnatomo\',this.value)" placeholder="0.0"></div>'+
-
-'<div><label>Recipientes</label><input inputmode="numeric" value="'+esc(p.cantAnatomo)+'" oninput="setCampo('+i+',\'cantAnatomo\',this.value)" placeholder="0"></div>'+
-
-'</div>'+
-
-'</div>'+
-
-'<div class="bloque-desecho b-pun">'+
-
-'<div class="titulo">⚠ Punzocortantes (Recipiente Rígido)</div>'+
-
-'<div class="fila">'+
-
-'<div><label>Kg</label><input id="inp-pun-'+i+'" inputmode="decimal" value="'+esc(p.kgPunzo)+'" oninput="setCampo('+i+',\'kgPunzo\',this.value)" placeholder="0.0"></div>'+
-
-'<div><label>Recipientes</label><input inputmode="numeric" value="'+esc(p.cantPunzo)+'" oninput="setCampo('+i+',\'cantPunzo\',this.value)" placeholder="0"></div>'+
-
-'</div>'+
-
-'</div>'+
-
-'<div class="fila" style="margin-top:8px">'+
-
-'<div><label>N° Folio Recibo</label><input id="inp-rec-'+i+'" value="'+esc(p.recibo||generarFolioSugerido())+'" oninput="setCampo('+i+',\'recibo\',this.value)"></div>'+
-
-'<div><label>Contacto que Atiende</label><input value="'+esc(p.contacto||c.contacto||'')+'" oninput="setCampo('+i+',\'contacto\',this.value)" placeholder="Lic. / Enfermería"></div>'+
-
-'</div>'+
-
-'<label>Observaciones del Retiro</label>'+
-
-'<input value="'+esc(p.obs||'')+'" oninput="setCampo('+i+',\'obs\',this.value)" placeholder="Ej: Cuarto ordenado, recipientes sellados...">'+
-
-'<label>Firma de quien entrega</label>'+
-/* El lienzo YA NO vive aquí. Vivía en cada parada, capturaba el toque
-   con preventDefault, y en un teléfono el dedo que arrastra para bajar
-   es el mismo que dibuja: el arrastre pintaba en vez de scrollear.
-   Ahora aquí solo queda lo firmado, y firmar abre una pantalla entera
-   donde el generador firma cómodo. */
-'<div class="firma-caja" onclick="abrirFirma('+i+')">'+
-(p.firma
-  ? '<img src="'+p.firma+'" alt="firma" class="firma-mini">'
-  : '<span class="firma-vacia">Toca para firmar</span>')+
-'</div>'+
-'<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px">'+
-'<button class="btn sec mini" onclick="abrirFirma('+i+')">'+(p.firma?'Volver a firmar':'Firmar')+'</button>'+
-(p.firma?'<button class="btn sec mini" onclick="borrarFirma('+i+')">Quitar</button>':'')+
-'</div>'+
-
-'<div class="total-barra"><span>TOTAL PESO:</span><b>'+tot+' kg</b></div>'+
-
-'<button class="btn verde" onclick="guardarRecoleccionDirecta('+i+')">💾 Guardar Recolección</button>'+
-
-'</div>'+
-
-'</div>';
-
-}).join("");
+}).join("") + tarjetaSalirRuta_();
+cont.classList.toggle("ruta-cerrada", !!RUTA.cierre);
+if(!esSupervisor()) pintarTablero();
 
 /* Ya no se arranca un lienzo por parada: el único que existe es el de la
    pantalla de firmar, y ese se arranca cuando se abre. */
 
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAQUETE CONDUCTOR (sept 2026)
+   · tablero azul con la línea de recorrido
+   · parada abierta compacta (opción C), con reloj digital para corregir horas
+   · horario de recolección del cliente (lo fija logística)
+   · salir de la ruta: bajarla del tablero o terminarla antes
+   · semáforo en la cabecera
+   ═══════════════════════════════════════════════════════════════════ */
+var K_BAJADA = "ecovsa_ruta_bajada";
+var RUTAS_HOY = [];
+var SVG_NAV = '<svg viewBox="0 0 24 24"><path d="M3 11.2 20.5 3.5 12.8 21l-1.9-7.9z" fill="currentColor"/></svg>';
+var SVG_TEL = '<svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>';
+var SVG_MSG = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+/* ── utilidades de hora ── */
+function minDe_(hhmm){ var m = String(hhmm||"").match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1])*60 + (+m[2]) : null; }
+function hhmm_(min){ min = ((min % 1440) + 1440) % 1440; return ("0"+Math.floor(min/60)).slice(-2) + ":" + ("0"+(min%60)).slice(-2); }
+function hora12_(hhmm){
+  var m = minDe_(hhmm); if(m === null) return "";
+  var h = Math.floor(m/60), mi = m%60, ap = h < 12 ? "a. m." : "p. m.";
+  h = h % 12; if(h === 0) h = 12;
+  return h + ":" + ("0"+mi).slice(-2) + " " + ap;
+}
+function ahoraMin_(){ var d = new Date(); return d.getHours()*60 + d.getMinutes(); }
+function duracion_(min){ if(min < 0) min = 0; var h = Math.floor(min/60), m = min%60; return h ? (h + " h " + ("0"+m).slice(-2)) : (m + " min"); }
+
+/* ── HORARIO DEL CLIENTE ── */
+function horarioDe_(c){
+  if(!c) return null;
+  var t = String(c.horarioTipo||"").toLowerCase();
+  if((t !== "preferencia" && t !== "estricto") || !c.horarioDesde || !c.horarioHasta) return null;
+  return { tipo: t, desde: c.horarioDesde, hasta: c.horarioHasta, nota: c.horarioNota || "" };
+}
+/* El aviso que ve el conductor. Solo se calcula contra el reloj si la ruta es de hoy. */
+function chipHorario_(c){
+  var H = horarioDe_(c); if(!H) return "";
+  var rango = hora12_(H.desde).replace(/ (a|p)\. m\./, "") + "–" + hora12_(H.hasta);
+  if(H.tipo === "preferencia") return '<span class="pc-chip pref">🕘 Prefiere ' + rango + '</span>';
+  if((RUTA.fecha||hoyISO()) !== hoyISO()) return '<span class="pc-chip estr">🕘 Solo ' + rango + '</span>';
+  var ahora = ahoraMin_(), d = minDe_(H.desde), h = minDe_(H.hasta);
+  if(ahora > h) return '<span class="pc-chip fuera">⛔ Cerró a las ' + hora12_(H.hasta) + ' · llama antes de ir</span>';
+  if(ahora < d) return '<span class="pc-chip estr">🕘 Abre a las ' + hora12_(H.desde) + ' · solo ' + rango + '</span>';
+  return '<span class="pc-chip estr">🕘 Solo ' + rango + ' · quedan ' + duracion_(h - ahora) + '</span>';
+}
+
+/* ── TABLERO AZUL DEL CONDUCTOR ── */
+function pintarTablero(){
+  var tb = $("hub-operador"); if(!tb || esSupervisor()) return;
+  var P = RUTA.paradas || [];
+  if(!P.length){
+    var hay = (RUTAS_HOY||[]).filter(function(r){ return (r.paradas||[]).length; });
+    tb.innerHTML = '<div class="tb-et">Mi ruta de hoy</div>' +
+      '<div class="tb-t1">No tienes una ruta activa</div>' +
+      '<div class="tb-t2">' + (hay.length
+        ? 'Tienes ' + hay.length + ' ruta(s) asignada(s) para hoy: ' + hay[0].paradas.length + ' paradas · ' + esc(hay[0].vehiculo||"")
+        : 'Cuando logística te asigne una ruta, la activas desde «Mis Rutas».') + '</div>' +
+      '<button class="tb-go" onclick="event.stopPropagation();mostrarTab(\'agenda\')">Ver y activar mi ruta →</button>';
+    tb.onclick = function(){ mostrarTab("agenda"); };
+    return;
+  }
+  var hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length;
+  var kg = 0, primera = null, ultima = null;
+  P.forEach(function(p){
+    if(p.estadoParada === "completada") kg += num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo);
+    var mi = minDe_(p.horaInicio); if(mi !== null && (primera === null || mi < primera)) primera = mi;
+    var mf = minDe_(p.horaFinal);  if(mf !== null && (ultima === null || mf > ultima)) ultima = mf;
+  });
+  if(primera === null && JORNADA && JORNADA.horaInicio && JORNADA.fecha === RUTA.fecha) primera = minDe_(JORNADA.horaInicio);
+  var todas = hechas >= P.length, cerrada = !!RUTA.cierre;
+  var sig = siguientePendiente(0), cSig = sig >= 0 ? cli(P[sig].clienteId) : null;
+  var esHoy = (RUTA.fecha || hoyISO()) === hoyISO();
+  var enRuta = primera === null ? null : ((todas || cerrada || !esHoy) && ultima !== null ? ultima - primera : ahoraMin_() - primera);
+  var regiones = [];
+  P.forEach(function(p){ var c = cli(p.clienteId); if(c && c.region && regiones.indexOf(c.region) < 0) regiones.push(c.region); });
+  var tag = cerrada ? '<span class="tb-tag fin"><i></i>Terminada antes</span>'
+          : todas ? '<span class="tb-tag"><i></i>Completa ✓</span>'
+          : (hechas || primera !== null) ? '<span class="tb-tag"><i></i>En curso</span>'
+          : '<span class="tb-tag espera"><i></i>Por empezar</span>';
+  var chica = P.length > 9;
+  var linea = P.map(function(p, k){
+    var cl = p.estadoParada === "completada" ? "ok" : (cerrada ? "no" : (k === sig ? "ya" : "pe"));
+    var t = k ? '<div class="tb-tr' + (p.estadoParada === "completada" && P[k-1].estadoParada === "completada" ? " ok" : "") + '"></div>' : '';
+    return t + '<div class="tb-pt ' + cl + '">' + (cl === "ok" ? "✓" : (k+1)) + '</div>';
+  }).join("");
+  var estrictos = P.filter(function(p){ var H = horarioDe_(cli(p.clienteId)); return p.estadoParada !== "completada" && H && H.tipo === "estricto"; });
+  var alerta = (!cerrada && estrictos.length) ? (function(){
+      var c0 = cli(estrictos[0].clienteId), H0 = horarioDe_(c0);
+      return '<div class="tb-alerta">🕘 ' + (estrictos.length === 1
+        ? esc(c0.nombre) + ' solo recibe hasta las ' + hora12_(H0.hasta)
+        : estrictos.length + ' clientes de hoy tienen horario fijo · el primero, ' + esc(c0.nombre) + ' hasta las ' + hora12_(H0.hasta)) + '</div>';
+    })() : '';
+  var sigHtml = cerrada
+    ? '<div class="tb-sig"><div class="l">Ruta terminada antes' + (RUTA.cierre.hora ? ' · ' + esc(RUTA.cierre.hora) : '') + '</div><div class="n">' + esc(RUTA.cierre.motivo||"") + '</div>' +
+      '<div class="d">' + (P.length - hechas) + ' parada(s) quedaron pendientes para otro día</div></div>'
+    : (cSig ? '<div class="tb-sig"><div class="l">' + (hechas || primera !== null ? 'Ahora vas a' : 'Primera parada') + '</div>' +
+        '<div class="n">' + esc(cSig.nombre) + '</div>' +
+        '<div class="d">' + esc([P[sig].contacto || cSig.contacto, cSig.frecuencia].filter(Boolean).join(" · ")) + '</div></div>'
+      : '<div class="tb-sig"><div class="l">Listo</div><div class="n">Todas las paradas están hechas</div><div class="d">Recuerda entregar en planta</div></div>');
+  tb.innerHTML =
+    '<div class="tb-cab"><div><div class="tb-et">' + (esHoy ? 'Mi ruta de hoy' : 'Mi ruta del ' + nombreDia_(RUTA.fecha)) + '</div>' +
+      '<div class="tb-t1">' + P.length + ' paradas' + (RUTA.vehiculo ? ' · <span style="white-space:nowrap">' + esc(RUTA.vehiculo) + '</span>' : '') + '</div>' +
+      '<div class="tb-t2">' + (primera !== null ? 'Arrancó ' + hora12_(hhmm_(primera)) : (hechas ? hechas + ' hecha(s)' : 'Sin empezar')) +
+        (regiones.length ? ' · ' + esc(regiones.slice(0,2).join(" y ")) : '') + '</div></div>' + tag + '</div>' +
+    '<div class="tb-linea' + (chica ? ' chica' : '') + '">' + linea + '</div>' +
+    '<div class="tb-lb"><span>' + (primera !== null ? hora12_(hhmm_(primera)).replace(/ (a|p)\. m\./, "") : 'inicio') + '</span>' +
+      '<span>' + (todas ? 'fin' : cerrada ? 'cerrada' : 'faltan ' + (P.length - hechas)) + '</span></div>' +
+    '<div class="tb-kpis"><div class="tb-kpi"><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div>' +
+      '<div class="tb-kpi"><b>' + (Math.round(kg*10)/10) + '</b><span>kg</span></div>' +
+      '<div class="tb-kpi"><b>' + (enRuta === null ? '—' : duracion_(enRuta)) + '</b><span>en ruta</span></div></div>' +
+    sigHtml + alerta +
+    '<button class="tb-go" onclick="event.stopPropagation();continuarRuta()">' + (todas || cerrada ? 'Ver mi ruta →' : 'Continuar la ruta →') + '</button>';
+  tb.onclick = continuarRuta;
+}
+function continuarRuta(){
+  if(!RUTA.cierre){ var s = siguientePendiente(0); if(s >= 0) ABIERTA = s; }
+  mostrarTab("paradas");
+  if(ABIERTA >= 0) setTimeout(function(){ var e = $("parada-" + ABIERTA); if(e && e.scrollIntoView) e.scrollIntoView({block:"start"}); }, 80);
+}
+
+/* ── PARADA ABIERTA (opción C) ── */
+var DESECHOS_ = {
+  bio: { kg:"kgBolsas",  cant:"cantBolsas",  nom:"Bioinfeccioso",     sub:"bolsa roja",          color:"#C0392B", id:"inp-bio-" },
+  pun: { kg:"kgPunzo",   cant:"cantPunzo",   nom:"Punzocortante",     sub:"recipiente rígido",   color:"#C8641A", id:"inp-pun-" },
+  ana: { kg:"kgAnatomo", cant:"cantAnatomo", nom:"Anatomopatológico", sub:"bolsa roja rotulada", color:"#6D3FC4", id:"inp-ana-" }
+};
+function filaDesecho_(i, t){
+  var p = RUTA.paradas[i], D = DESECHOS_[t];
+  return '<div class="pc-fil"><i style="background:' + D.color + '"></i>' +
+    '<div class="pc-n">' + D.nom + '<small>' + D.sub + '</small></div>' +
+    '<div class="pc-kg"><input id="' + D.id + i + '" inputmode="decimal" placeholder="0.0" value="' + esc(p[D.kg]) + '" ' +
+      'oninput="setCampo(' + i + ',\'' + D.kg + '\',this.value.replace(\',\',\'.\'));totalParada_(' + i + ')"><span>kg</span></div>' +
+    '<div class="pc-cnt"><button onclick="pasoCant(' + i + ',\'' + D.cant + '\',-1)">−</button>' +
+      '<b id="cnt-' + i + '-' + D.cant + '">' + (num(p[D.cant]) || 0) + '</b>' +
+      '<button onclick="pasoCant(' + i + ',\'' + D.cant + '\',1)">＋</button></div></div>';
+}
+function pasoCant(i, campo, d){
+  var v = Math.max(0, (num(RUTA.paradas[i][campo]) || 0) + d);
+  setCampo(i, campo, String(v));
+  var b = $("cnt-" + i + "-" + campo); if(b) b.textContent = v;
+}
+function totalParada_(i){
+  var p = RUTA.paradas[i], t = num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo);
+  var e = $("pc-tot-" + i); if(e) e.textContent = t.toFixed(2) + " kg";
+}
+function mostrarAna(i){ RUTA.paradas[i].verAna = true; guardarLocal(K_PAR, RUTA); renderParadas(); }
+function telWhatsDe_(c){
+  var w = String((c && c.whatsapp) || ""), m = w.match(/wa\.me\/(\d+)/);
+  var n = m ? m[1] : w.replace(/\D/g, "");
+  if(!n) n = String((c && c.telefono) || "").replace(/\D/g, "");
+  if(!n) return "";
+  if(n.length === 8) n = "507" + n;
+  return n.length > 13 ? "" : n;
+}
+function digitalPorDefecto_(c){ return telWhatsDe_(c) ? "whatsapp" : ((c && c.correo) ? "correo" : "no"); }
+function elegirDigital(i, v){ RUTA.paradas[i].reciboDigital = v; guardarLocal(K_PAR, RUTA); renderParadas(); }
+function botonHora_(i, k, rotulo){
+  var v = RUTA.paradas[i][k];
+  if(v) return '<button class="pc-hora ok" onclick="abrirHojaHora(' + i + ',\'' + k + '\')"><span class="lap">✎</span><small>' + rotulo + '</small><b>' + esc(v) + '</b></button>';
+  var marcar = k === "horaInicio" ? "marcarHoraLlegadaGPS(" + i + ")" : "marcarHora(" + i + ",'horaFinal')";
+  return '<button class="pc-hora" onclick="' + marcar + '"><small>' + rotulo + '</small><b>--:--</b><em>Toca para marcar</em></button>';
+}
+function paradaAbiertaC_(p, i, c){
+  if(!p.recibo){ p.recibo = generarFolioSugerido(); guardarLocal(K_PAR, RUTA); }
+  var tot = (num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo)).toFixed(2);
+  var H = horarioDe_(c);
+  var verAna = p.verAna || num(p.kgAnatomo) > 0 || num(p.cantAnatomo) > 0;
+  var wa = telWhatsDe_(c), dig = p.reciboDigital || digitalPorDefecto_(c);
+  var waTxt = wa ? wa.replace(/^507/, "").replace(/^(\d{4})(\d{4})$/, "$1-$2") : "sin número";
+  var correoTxt = c.correo ? String(c.correo).split("@")[0].slice(0, 10) + "@…" : "sin correo";
+  return '<div class="parada-card abierta" id="parada-' + i + '">' +
+    '<div class="enc" style="cursor:pointer" onclick="abrirParada(' + i + ')">' +
+      '<div class="num-parada' + (p.horaInicio ? ' yendo' : '') + '">' + (i+1) + '</div>' +
+      '<div class="info"><div class="n">' + esc(c.nombre) + '</div></div>' +
+      '<span class="pill ' + claseEstado(c.estado) + '">' + esc(c.estado) + '</span>' +
+      '<span class="fl-parada abierta">&#9662;</span></div>' +
+    '<div class="pc-chips">' + chipHorario_(c) +
+      ((p.contacto || c.contacto) ? '<span class="pc-chip">👤 ' + esc(p.contacto || c.contacto) + '</span>' : '') +
+      (c.frecuencia ? '<span class="pc-chip">🔁 ' + esc(c.frecuencia) + '</span>' : '') + '</div>' +
+    (H && H.nota ? '<div class="pc-nota">' + esc(H.nota) + '</div>' : '') +
+    '<div class="pc-acc">' +
+      (c.lat != null ? '<a class="pc-a nav" href="https://www.google.com/maps/dir/?api=1&destination=' + c.lat + ',' + c.lng + '" target="_blank">' + SVG_NAV + 'Cómo llegar</a>' : '') +
+      (c.telefono ? '<a class="pc-a tel" href="tel:' + esc(c.telefono) + '">' + SVG_TEL + 'Llamar</a>' : '') +
+      (wa ? '<a class="pc-a wa" href="https://wa.me/' + wa + '" target="_blank">' + SVG_MSG + 'WhatsApp</a>' : '') +
+    '</div>' +
+    '<div class="pc-relojes">' + botonHora_(i, "horaInicio", "LLEGADA") + botonHora_(i, "horaFinal", "SALIDA") + '</div>' +
+    ((p.horaInicio || p.horaFinal) ? '<div class="pc-ayuda">Si una hora quedó mal, tócala otra vez para corregirla</div>' : '') +
+    '<div class="pc-tit">Lo que se retira</div>' +
+    '<div class="pc-tabla">' + filaDesecho_(i, "bio") + filaDesecho_(i, "pun") +
+      (verAna ? filaDesecho_(i, "ana") : '<div class="pc-otro" onclick="mostrarAna(' + i + ')">＋ Otro tipo de desecho (anatomopatológico)</div>') + '</div>' +
+    '<div class="pc-tit">Recibo</div>' +
+    '<div class="fila" style="grid-template-columns:1.25fr 1fr">' +
+      '<div><label style="margin-top:0">N.º de recibo</label><div class="pc-edit"><input id="inp-rec-' + i + '" value="' + esc(p.recibo) + '" oninput="setCampo(' + i + ',\'recibo\',this.value.trim())"><span>✎</span></div></div>' +
+      '<div><label style="margin-top:0">Quién entrega</label><input value="' + esc(p.contacto || c.contacto || '') + '" oninput="setCampo(' + i + ',\'contacto\',this.value)" placeholder="Lic. / Enfermería"></div></div>' +
+    '<label>Observaciones</label>' +
+    '<input value="' + esc(p.obs || '') + '" oninput="setCampo(' + i + ',\'obs\',this.value)" placeholder="Ej: recipientes sellados…">' +
+    '<label>Recibo digital para el cliente</label>' +
+    '<div class="pc-seg">' +
+      '<button class="' + (dig === "whatsapp" ? "on" : "") + '"' + (wa ? '' : ' disabled') + ' onclick="elegirDigital(' + i + ',\'whatsapp\')">WhatsApp<small>' + esc(waTxt) + '</small></button>' +
+      '<button class="' + (dig === "correo" ? "on" : "") + '"' + (c.correo ? '' : ' disabled') + ' onclick="elegirDigital(' + i + ',\'correo\')">Correo<small>' + esc(correoTxt) + '</small></button>' +
+      '<button class="' + (dig === "no" ? "on" : "") + '" onclick="elegirDigital(' + i + ',\'no\')">No lo quiere<small>solo impreso</small></button></div>' +
+    '<label>Firma de quien entrega</label>' +
+    '<div class="firma-caja" onclick="abrirFirma(' + i + ')">' +
+      (p.firma ? '<img src="' + p.firma + '" alt="firma" class="firma-mini">' : '<span class="firma-vacia">✍ Toca para firmar</span>') + '</div>' +
+    (p.firma ? '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px"><button class="btn sec mini" onclick="abrirFirma(' + i + ')">Volver a firmar</button><button class="btn sec mini" onclick="borrarFirma(' + i + ')">Quitar</button></div>' : '') +
+    '<div class="pc-pie"><div class="pc-tot"><small>TOTAL</small><b id="pc-tot-' + i + '">' + tot + ' kg</b></div>' +
+      '<button class="btn verde pc-enviar" onclick="guardarRecoleccionDirecta(' + i + ')">Enviar ➤</button></div>' +
+  '</div>';
+}
+
+/* Recibo digital: al enviar, se abre WhatsApp o el correo con el enlace del recibo.
+   Se abre en el mismo toque de «Enviar» para que el teléfono no lo bloquee. */
+function enlaceReciboCliente_(folio){
+  var base = URL_APP || location.href.replace(/[?#].*$/, "").replace(/[^\/]*$/, "");
+  return base + "?p=recibo&solover=1&id=" + encodeURIComponent(folio);
+}
+function mandarReciboDigital_(p, c, kg){
+  var canal = p.reciboDigital || digitalPorDefecto_(c);
+  if(canal === "no") return;
+  var txt = "Estimados " + (c.nombre || "") + ":\n\n" +
+    "Adjuntamos el comprobante de la recolección de desechos hospitalarios realizada el " + (RUTA.fecha || hoyISO()) + ".\n\n" +
+    "Recibo N° " + p.recibo + "\nTotal retirado: " + kg.toFixed(2) + " kg\n\n" +
+    "Puede consultarlo en cualquier momento aquí:\n" + enlaceReciboCliente_(p.recibo) + "\n\n" +
+    "Gracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+  if(canal === "whatsapp"){
+    var n = telWhatsDe_(c); if(!n) return;
+    window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(txt), "_blank");
+  } else if(canal === "correo" && c.correo){
+    window.open("mailto:" + encodeURIComponent(c.correo) + "?subject=" +
+      encodeURIComponent("Comprobante de recolección " + p.recibo + " · ECOVSA") + "&body=" + encodeURIComponent(txt), "_blank");
+  } else return;
+  p.envioPendiente = canal;
+}
+/* Cuando el guardado ya llegó al servidor, se marca el recibo como enviado. */
+function marcarEnviadosPendientes_(){
+  var cambio = false;
+  (RUTA.paradas || []).forEach(function(p){
+    if(!p.envioPendiente || !p.recibo) return;
+    if(COLA.some(function(x){ return x.registroId === p.registroId; })) return;
+    var canal = p.envioPendiente; p.envioPendiente = ""; cambio = true;
+    google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){})
+      .api_marcarReciboEnviado(PIN, p.recibo, canal);
+  });
+  if(cambio) guardarLocal(K_PAR, RUTA);
+}
+
+/* ── RELOJ DIGITAL PARA CORREGIR UNA HORA ── */
+var HH = null;
+function hojaHoraHTML_(){
+  var etiq = HH.k === "horaInicio" ? "llegada" : "salida";
+  return '<div class="hoja-abajo" onclick="event.stopPropagation()">' +
+    '<h3>Corregir hora de ' + etiq + '</h3><div class="sub">Marcada a las ' + esc(HH.orig || "--:--") + '</div>' +
+    '<div class="hh-dig">' +
+      '<div class="hh-col"><button data-d="60">▲</button><b id="hh-h">' + hhmm_(HH.m).slice(0,2) + '</b><button data-d="-60">▼</button></div>' +
+      '<div class="hh-dos">:</div>' +
+      '<div class="hh-col"><button data-d="1">▲</button><b id="hh-m">' + hhmm_(HH.m).slice(3) + '</b><button data-d="-1">▼</button></div></div>' +
+    '<button class="hh-link" onclick="HH.m=ahoraMin_();pintarHH_()">Usar la hora de ahora (' + hhmm_(ahoraMin_()) + ')</button>' +
+    '<div class="hh-pie"><button class="btn sec" style="flex:1" onclick="cerrarHojaHora()">Cancelar</button>' +
+      '<button class="btn azul" style="flex:1.4" id="hh-ok" onclick="aplicarHojaHora()">Corregir a ' + hhmm_(HH.m) + '</button></div>' +
+    '<button class="hh-link" style="margin:12px 0 0;color:var(--eco-rojo)" onclick="quitarHoraHH_()">Quitar esta hora (se marcó sin querer)</button>' +
+  '</div>';
+}
+function velo_(id){
+  var v = $(id);
+  if(!v){ v = document.createElement("div"); v.id = id; v.className = "hoja-velo"; document.body.appendChild(v); }
+  return v;
+}
+function abrirHojaHora(i, k){
+  var v0 = RUTA.paradas[i][k];
+  HH = { i: i, k: k, orig: v0, m: minDe_(v0) !== null ? minDe_(v0) : ahoraMin_() };
+  var v = velo_("hoja-hora"); v.innerHTML = hojaHoraHTML_(); v.classList.add("ver");
+  v.onclick = cerrarHojaHora;
+  /* mantener apretado sigue sumando: de 9:42 a 9:05 no son 37 toques */
+  v.querySelectorAll("button[data-d]").forEach(function(b){
+    var t = null, r = null, d = Number(b.dataset.d);
+    var paso = function(){ HH.m = ((HH.m + d) % 1440 + 1440) % 1440; pintarHH_(); };
+    var parar = function(){ clearTimeout(t); clearInterval(r); t = r = null; };
+    b.addEventListener("pointerdown", function(e){ e.preventDefault(); paso(); t = setTimeout(function(){ r = setInterval(paso, 90); }, 380); });
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){ b.addEventListener(ev, parar); });
+  });
+}
+function pintarHH_(){
+  var t = hhmm_(HH.m);
+  $("hh-h").textContent = t.slice(0,2); $("hh-m").textContent = t.slice(3);
+  $("hh-ok").textContent = "Corregir a " + t;
+}
+function cerrarHojaHora(){ var v = $("hoja-hora"); if(v) v.classList.remove("ver"); HH = null; }
+function aplicarHojaHora(){ if(!HH) return; var i = HH.i, k = HH.k, t = hhmm_(HH.m); cerrarHojaHora(); fijarHora(i, k, t); toast("Hora corregida a " + t); }
+function quitarHoraHH_(){ if(!HH) return; var i = HH.i, k = HH.k; cerrarHojaHora(); fijarHora(i, k, ""); toast("Hora quitada"); }
+
+/* ── SALIR DE ESTA RUTA ──
+   Si no ha hecho ninguna parada, la baja del tablero: no se registra nada y
+   la ruta sigue asignada. Si ya hizo alguna, la termina antes con su motivo. */
+var MOTIVOS_CIERRE = ["Camión averiado", "Lluvia o clima", "Accidente o emergencia", "Se acabó la jornada", "Otro"];
+var MOTIVO_ELEGIDO = "";
+function tarjetaSalirRuta_(){
+  var P = RUTA.paradas || []; if(!P.length || esSupervisor()) return "";
+  var hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length, faltan = P.length - hechas;
+  if(RUTA.cierre) return '<div class="tarjeta" style="border-left:4px solid var(--eco-ambar);margin-top:12px">' +
+    '<b>Ruta terminada antes' + (RUTA.cierre.hora ? ' a las ' + esc(RUTA.cierre.hora) : '') + '</b>' +
+    '<div style="font-size:12.5px;color:var(--gris);margin-top:4px;line-height:1.45">Motivo: ' + esc(RUTA.cierre.motivo || '') + '<br>' +
+    faltan + ' parada(s) no se hicieron y quedaron pendientes para otro día.</div>' +
+    '<button class="btn sec mini" style="margin-top:10px" onclick="bajarRutaDelTablero(true)">Quitar del tablero</button></div>';
+  if(!faltan) return '';
+  return '<div class="tarjeta" style="margin-top:14px;text-align:center">' +
+    '<button class="btn sec" onclick="salirDeRuta()">⏹ Salir de esta ruta</button>' +
+    '<div style="font-size:11.5px;color:var(--gris);margin-top:7px;line-height:1.45">' +
+    (hechas ? 'Si no puedes seguir. Las ' + faltan + ' parada(s) que faltan<br>vuelven a quedar pendientes para otro día.'
+            : 'Todavía no has hecho ninguna parada: la ruta se baja del tablero<br>y la puedes volver a activar desde «Mis Rutas».') + '</div></div>';
+}
+function salirDeRuta(){
+  var P = RUTA.paradas || [];
+  var hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length;
+  if(!hechas){
+    preguntar({ titulo: "Bajar la ruta del tablero", icono: "⏹", boton: "Sí, bajarla",
+      texto: "No se registra nada: la ruta sigue asignada y la puedes volver a activar desde <b>Mis Rutas</b>.",
+      alAceptar: function(){ bajarRutaDelTablero(false); } });
+    return;
+  }
+  MOTIVO_ELEGIDO = "";
+  preguntar({ titulo: "Terminar la ruta antes", icono: "⏹", boton: "Terminar la ruta",
+    texto: "Quedan <b>" + (P.length - hechas) + " parada(s)</b> sin hacer. No se borran: vuelven a quedar pendientes y logística las ve en el editor.<br><br><b>¿Por qué?</b>" +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px">' +
+      MOTIVOS_CIERRE.map(function(m){ return '<button class="chip mot-cierre" onclick="elegirMotivo_(this)">' + m + '</button>'; }).join("") + '</div>',
+    escribirLibre: "Detalle (opcional)",
+    alAceptar: terminarRutaConfirmada_ });
+}
+function elegirMotivo_(b){
+  MOTIVO_ELEGIDO = b.textContent;
+  document.querySelectorAll(".mot-cierre").forEach(function(x){ x.classList.remove("on"); });
+  b.classList.add("on");
+}
+function terminarRutaConfirmada_(){
+  if(!MOTIVO_ELEGIDO){ toast("Elige el motivo"); setTimeout(salirDeRuta, 250); return; }
+  var detalle = ($("dlg-input").value || "").trim(), motivo = MOTIVO_ELEGIDO;
+  var faltan = (RUTA.paradas || []).filter(function(p){ return p.estadoParada !== "completada"; }).length;
+  RUTA.cierre = { motivo: motivo + (detalle ? " · " + detalle : ""), hora: ahoraHM(), local: true };
+  guardarLocal(K_PAR, RUTA); ABIERTA = -1; renderParadas();
+  toast("Ruta terminada · " + faltan + " parada(s) vuelven a pendientes");
+  if(!RUTA.rutaId) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.ok){ RUTA.cierre = { motivo: r.motivo, hora: r.hora, por: r.cerradaPor }; guardarLocal(K_PAR, RUTA); pintarTablero(); }
+      else if(r && r.error) toast(r.error);
+    })
+    .withFailureHandler(function(){ toast("Sin señal: el cierre se enviará cuando vuelva"); })
+    .api_cerrarRuta(PIN, RUTA.rutaId, motivo, detalle);
+}
+function bajarRutaDelTablero(yaCerrada){
+  try{ localStorage.setItem(K_BAJADA, JSON.stringify(RUTA.rutaId || RUTA.fecha || "x")); }catch(e){}
+  RUTA = { rutaId: "", fecha: hoyISO(), vehiculo: RUTA.vehiculo || "", conductor: RUTA.conductor || "", paradas: [] };
+  ABIERTA = -1; guardarLocal(K_PAR, RUTA); renderTodo(); pintarTablero();
+  toast(yaCerrada ? "Ruta quitada del tablero" : "Ruta bajada · la puedes activar desde Mis Rutas");
+  mostrarTab("hub");
+}
+
+/* ── SEMÁFORO DE LA CABECERA ── */
+var PUENTE_EST = { estado: "vivo", cola: 0 };
+document.addEventListener("puente:estado", function(e){ PUENTE_EST = e.detail || PUENTE_EST; pintarSync(); });
+function tocarSemaforo(){
+  var pend = COLA.length + (PUENTE_EST.cola || 0);
+  if(!enLinea){ toast("Sin señal · lo guardado se envía solo al volver la conexión"); return; }
+  if(pend){ sincronizar(true); try{ if(window.PUENTE) PUENTE.procesarCola(); }catch(e){} return; }
+  if(esSupervisor() && window.PUENTE && PUENTE.panel){ PUENTE.panel(); return; }
+  toast("Todo enviado ✓");
+}
+
+/* ── HORARIO DEL CLIENTE: lo fija logística ── */
+var HZ = null;
+function abrirHorario(id){
+  var c = cli(id); if(!c) return;
+  var v = velo_("hoja-horario");
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()"><h3>Horario de recolección</h3><div class="sub">' + esc(c.nombre) + '</div><div class="vacio" style="margin-top:12px">Consultando…</div></div>';
+  v.classList.add("ver"); v.onclick = cerrarHorario;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo abrir"); cerrarHorario(); return; }
+      HZ = { id: id, tipo: r.horario.tipo || "", desde: r.horario.desde || "", hasta: r.horario.hasta || "",
+             nota: r.horario.nota || "", por: r.horario.por, en: r.horario.en, sug: r.sugerencias || [], nombre: r.cliente.nombre };
+      pintarHorario_();
+    })
+    .withFailureHandler(function(){ toast("Sin señal"); cerrarHorario(); })
+    .api_horarioCliente(PIN, id);
+}
+function pintarHorario_(){
+  var v = $("hoja-horario"); if(!v || !HZ) return;
+  var b = function(t, a, s, extra){ return '<button class="' + (HZ.tipo === t ? 'on ' : '') + (extra||'') + '" onclick="HZ.tipo=\'' + t + '\';pintarHorario_()">' + a + '<small>' + s + '</small></button>'; };
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()">' +
+    '<h3>Horario de recolección</h3><div class="sub">' + esc(HZ.nombre) + '</div><div style="height:12px"></div>' +
+    HZ.sug.map(function(s, k){ return '<div class="hz-sug"><b>' + esc(s.de) + ':</b> «' + esc(s.texto) + '»<button onclick="usarSugerencia_(' + k + ')">Usar esta sugerencia ▸</button></div>'; }).join("") +
+    '<label>¿Qué tan fijo es?</label><div class="hz-seg">' +
+      b("", "Sin horario", "cuando llegue") + b("preferencia", "Preferencia", "se puede mover") + b("estricto", "Estricto", "solo en ese rango", "estr") + '</div>' +
+    (HZ.tipo ? '<div class="fila"><div><label style="margin-top:0">Desde</label><input type="time" value="' + esc(HZ.desde) + '" onchange="HZ.desde=this.value"></div>' +
+               '<div><label style="margin-top:0">Hasta</label><input type="time" value="' + esc(HZ.hasta) + '" onchange="HZ.hasta=this.value"></div></div>' +
+               '<label>Nota para el conductor</label><input value="' + esc(HZ.nota) + '" oninput="HZ.nota=this.value" placeholder="Ej: después de las 11 cierran el cuarto de desechos">' : '') +
+    (HZ.por ? '<div style="font-size:11.5px;color:var(--gris);margin-top:10px">Lo fijó ' + esc(HZ.por) + (HZ.en ? ' el ' + esc(HZ.en) : '') + '</div>' : '') +
+    '<div class="hh-pie" style="margin-top:14px"><button class="btn sec" style="flex:1" onclick="cerrarHorario()">Cancelar</button>' +
+      '<button class="btn verde" style="flex:1.4" onclick="guardarHorario_()">Guardar horario</button></div></div>';
+}
+function usarSugerencia_(k){
+  var s = HZ.sug[k]; if(!s) return;
+  if(s.desde && s.hasta){ HZ.desde = s.desde; HZ.hasta = s.hasta; }
+  else {
+    var hs = String(s.texto).match(/(\d{1,2})(?::(\d{2}))?\s*(a\.? ?m|p\.? ?m)?/gi) || [];
+    var aHora = function(t){ var m = t.match(/(\d{1,2})(?::(\d{2}))?\s*(a\.? ?m|p\.? ?m)?/i); var h = +m[1], mi = +(m[2]||0);
+      if(m[3] && /p/i.test(m[3]) && h < 12) h += 12; return h <= 23 ? hhmm_(h*60 + mi) : ""; };
+    if(hs.length >= 2){ HZ.desde = aHora(hs[0]); HZ.hasta = aHora(hs[1]); }
+    else if(hs.length === 1 && /antes|hasta/i.test(s.texto)){ HZ.hasta = aHora(hs[0]); if(!HZ.desde) HZ.desde = "07:00"; }
+    if(!HZ.nota) HZ.nota = s.texto;
+  }
+  if(!HZ.tipo) HZ.tipo = "preferencia";
+  pintarHorario_();
+}
+function guardarHorario_(){
+  var d = { tipo: HZ.tipo, desde: HZ.desde, hasta: HZ.hasta, nota: HZ.nota };
+  toast("Guardando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+      var c = cli(HZ.id);
+      if(c){ c.horarioTipo = r.horario.tipo; c.horarioDesde = r.horario.desde; c.horarioHasta = r.horario.hasta; c.horarioNota = r.horario.nota; guardarLocal(K_CLI, CLIENTES); }
+      cerrarHorario(); renderClientes(); if(esSupervisor()) renderRuta();
+      toast("Horario guardado ✓");
+    })
+    .withFailureHandler(function(){ toast("Sin señal — no se guardó"); })
+    .api_guardarHorarioCliente(PIN, HZ.id, d);
+}
+function cerrarHorario(){ var v = $("hoja-horario"); if(v) v.classList.remove("ver"); }
+function etiquetaHorario_(c){
+  var H = horarioDe_(c); if(!H) return "";
+  return '<span class="cli-horario' + (H.tipo === "estricto" ? ' estr' : '') + '">🕘 ' + (H.tipo === "estricto" ? 'Solo ' : 'Prefiere ') +
+    hora12_(H.desde).replace(/ (a|p)\. m\./, "") + '–' + hora12_(H.hasta) + '</span>';
+}
+
+/* ── EN EL EDITOR: ¿algún cliente con horario estricto queda muy tarde? ──
+   Estimado sencillo: salida a las 7:30 y 35 minutos por parada. No es un
+   cálculo de tráfico; es para que no se escape el de las 11 en octavo lugar. */
+var SALIDA_RUTA_MIN = 7*60 + 30, MIN_POR_PARADA = 35;
+function avisosHorarioEditor_(){
+  var av = [];
+  (RUTA.paradas || []).forEach(function(p, k){
+    var c = cli(p.clienteId), H = horarioDe_(c); if(!H || H.tipo !== "estricto") return;
+    var llega = SALIDA_RUTA_MIN + k * MIN_POR_PARADA;
+    if(llega > minDe_(H.hasta)) av.push('<b>' + esc(c.nombre) + '</b> solo recibe hasta las ' + hora12_(H.hasta) + ' y va de ' + (k+1) + '.ª parada (llegaría cerca de las ' + hora12_(hhmm_(llega)) + ').');
+    else if(llega + MIN_POR_PARADA < minDe_(H.desde)) av.push('<b>' + esc(c.nombre) + '</b> abre a las ' + hora12_(H.desde) + ' y va de ' + (k+1) + '.ª parada: puede que llegue antes de que abran.');
+  });
+  return av.length ? '<div class="aviso-horario">🕘 ' + av.join('<br>🕘 ') + '<div style="font-size:11px;opacity:.8;margin-top:4px">Estimado con salida 7:30 a. m. y ' + MIN_POR_PARADA + ' min por parada.</div></div>' : '';
 }
 
 function generarFolioSugerido(){
@@ -2507,7 +2921,15 @@ function cerrarFirma(){
 function guardarFirma(){
   if(FIRMANDO < 0) return cerrarFirma();
   var cv = document.getElementById('canvas-firma-full');
-  try{ RUTA.paradas[FIRMANDO].firma = cv ? cv.toDataURL('image/png') : ''; }catch(e){}
+  if(cv && !cv._trazos){ toast("Falta la firma: pide que firmen en el recuadro"); return; }
+  /* se guarda a 600 px de ancho: nítida en el recibo y liviana para enviar */
+  try{
+    var esc2 = Math.min(1, 600 / cv.width), out = document.createElement('canvas');
+    out.width = Math.round(cv.width * esc2); out.height = Math.round(cv.height * esc2);
+    var o = out.getContext('2d'); o.fillStyle = '#fff'; o.fillRect(0, 0, out.width, out.height);
+    o.drawImage(cv, 0, 0, out.width, out.height);
+    RUTA.paradas[FIRMANDO].firma = out.toDataURL('image/png');
+  }catch(e){ try{ RUTA.paradas[FIRMANDO].firma = cv.toDataURL('image/png'); }catch(e2){} }
   guardarLocal(K_PAR,RUTA);
   cerrarFirma();
   renderParadas();
@@ -2556,6 +2978,8 @@ p.recibo = generarFolioSugerido();
 p.estadoParada = "completada";
 
 p.enviado = true;
+
+try{ mandarReciboDigital_(p, c, kgTotal); }catch(e){}
 
 /* Se cierra la que se acabó y se abre la siguiente que falta: un toque
    menos por parada, y la ruta se va encadenando sola. */
@@ -2623,7 +3047,7 @@ pintarSync();
 
 renderParadas();
 
-toast("✓ Recolección guardada con éxito");
+toast("✓ Recolección enviada");
 
 sincronizar(false);
 
@@ -2643,9 +3067,14 @@ try{ ctx = cv.getContext("2d"); }catch(e){}
 
 if(!ctx) return;   // sin lienzo no hay firma, pero la pantalla no se cae
 
-cv.width = cv.parentElement.offsetWidth || 300;
-
-cv.height = 120;
+var caja0 = cv.getBoundingClientRect();
+var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+var anchoCss = caja0.width || cv.parentElement.offsetWidth || 300;
+var altoCss = caja0.height > 20 ? caja0.height : 120;
+cv.width = Math.round(anchoCss * dpr);
+cv.height = Math.round(altoCss * dpr);
+ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+cv._trazos = 0;
 
 ctx.strokeStyle = "#0F3B66";
 
@@ -2665,13 +3094,13 @@ return { x: t.clientX - r.left, y: t.clientY - r.top };
 
 };
 
-cv.onmousedown = function(e){ e.preventDefault(); dibujando=true; var p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+cv.onmousedown = function(e){ e.preventDefault(); dibujando=true; cv._trazos++; var p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
 
 cv.onmousemove = function(e){ e.preventDefault(); if(!dibujando)return; var p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
 
 cv.onmouseup = function(e){ e.preventDefault(); dibujando=false; };
 
-cv.ontouchstart = function(e){ e.preventDefault(); dibujando=true; var p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+cv.ontouchstart = function(e){ e.preventDefault(); dibujando=true; cv._trazos++; var p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
 
 cv.ontouchmove = function(e){ e.preventDefault(); if(!dibujando)return; var p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
 
@@ -2691,7 +3120,7 @@ try{ ctx = cv.getContext("2d"); }catch(e){}
 
 if(!ctx) return;   // sin lienzo no hay firma, pero la pantalla no se cae
 
-ctx.clearRect(0,0,cv.width,cv.height);
+ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); ctx.restore(); cv._trazos = 0;
 
 }
 
@@ -2966,7 +3395,7 @@ return '<div class="cli-item '+cls+'" onclick="verHistorialCliente(\''+nomEsc+'\
 
 '<span class="pill '+claseEstado(c.estado)+'">'+esc(c.estado)+'</span></div>'+
 
-'<div class="det">📍 '+esc(c.direccion||"Sin dirección")+'<br><b>'+esc(c.region||"")+'</b> · '+esc(c.frecuencia||"---")+(c.kg?" · ~"+c.kg+" kg":"")+'</div>'+
+'<div class="det">📍 '+esc(c.direccion||"Sin dirección")+'<br><b>'+esc(c.region||"")+'</b> · '+esc(c.frecuencia||"---")+(c.kg?" · ~"+c.kg+" kg":"")+'<br>'+etiquetaHorario_(c)+'</div>'+
 
 '<div class="visitas">'+
 
@@ -2986,6 +3415,7 @@ return '<div class="cli-item '+cls+'" onclick="verHistorialCliente(\''+nomEsc+'\
 
 (c.lat!=null?'<a class="btn sec mini" style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&destination='+c.lat+','+c.lng+'" target="_blank">🧭 Maps</a>':'')+
 
+(sup ? '<button class="btn sec mini" onclick="abrirHorario('+c.id+')">🕘 Horario</button>' : '')+
 '<button class="btn ambar mini" onclick="verHistorialCliente(\''+nomEsc+'\')">📋 Historial</button>'+
 
 '</div></div>';
@@ -3083,7 +3513,7 @@ return '<div class="tarjeta" style="display:flex;align-items:center;gap:6px;padd
 
 '<b style="color:var(--eco-azul)">'+(i+1)+'.</b>'+
 
-'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.nombre)+'</div><div style="font-size:10.5px;color:var(--gris)">'+esc(c.region||"")+'</div></div>'+
+'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.nombre)+'</div><div style="font-size:10.5px;color:var(--gris)">'+esc(c.region||"")+'</div>'+etiquetaHorario_(c)+'</div>'+
 
 '<div style="display:flex;gap:2px">'+
 
@@ -3097,15 +3527,16 @@ return '<div class="tarjeta" style="display:flex;align-items:center;gap:6px;padd
 
 '</div>';
 
-}).join("") : '<div class="vacio" style="padding:10px">Sin paradas en el editor.</div>';
+}).join("") + avisosHorarioEditor_() : (RUTA.rutaId ? '<div class="vacio" style="padding:10px">Esta ruta guardada se quedó <b>sin paradas</b>.<br>Agrega clientes o elimínala con el botón de abajo.</div>' : '<div class="vacio" style="padding:10px">Sin paradas en el editor.</div>');
 
 var hay=RUTA.paradas.length>0;
 
 $("acciones-ruta").style.display=hay?"flex":"none";
 
-$("guardar-ruta").style.display=hay?"block":"none";
+$("guardar-ruta").style.display=(hay||RUTA.rutaId)?"block":"none";
 
-if($("btn-guardar-txt")) $("btn-guardar-txt").textContent = RUTA.rutaId ? "💾 Actualizar Ruta Guardada" : "💾 Guardar y Publicar Ruta";
+if($("btn-guardar-txt")){ $("btn-guardar-txt").textContent = RUTA.rutaId ? "💾 Actualizar Ruta Guardada" : "💾 Guardar y Publicar Ruta";
+  $("btn-guardar-txt").style.display = hay ? "" : "none"; }
 
 }
 
@@ -3569,6 +4000,7 @@ return '<div class="tarjeta mon-dia" style="margin-bottom:10px">'+
       '<span>'+(d.totalKg||0).toFixed(1)+' kg</span></div>'+
   '</div>'+
   '<div class="mon-bar"><i class="'+(dp===100?'full':'')+'" style="width:'+dp+'%"></i></div>'+
+  (d.estadoRuta ? '<div class="aviso-horario" style="margin:8px 0 4px">⏹ Terminada antes · '+esc(d.motivoCierre||'')+'</div>' : '')+
   '<div class="mon-lista">'+timeline+'</div>'+
 '</div>';
 
@@ -4179,6 +4611,7 @@ $("pantalla-"+tab).classList.add("activa");
 
 if(tab==="paradas") renderParadas();
 
+if(tab==="hub" && !esSupervisor()) pintarTablero();
 if(tab==="clientes"){
   renderClientes();
   /* El botón de arriba se acuerda de por dónde se entró. Si fue desde el
@@ -4204,7 +4637,7 @@ if(tab==="agenda") cargarDatosCalendario();     // el operador elige su ruta des
 
 if(tab==="recibos") verHistorialRecibos();
 
-if(tab==="monitor" && esSupervisor()) renderMonitor();
+if(tab==="monitor") renderMonitor();
 
 if(tab==="porrevisar" && esSupervisor()) cargarPorRevisar(false);
 
@@ -4278,6 +4711,8 @@ function cargarRutaParaTrabajar(fecha){
       (RUTA.paradas||[]).forEach(function(p){ previas[p.clienteId]=p; });
       RUTA={rutaId:r.rutaId, fecha:fecha, vehiculo:r.vehiculo||"", conductor:r.conductor||"",
             paradas:r.paradas.map(function(p){ return previas[p.clienteId]||nuevaParada(p.clienteId); })};
+      if(r.estadoRuta) RUTA.cierre={motivo:r.motivoCierre||"", hora:r.cerradaEn||"", por:r.cerradaPor||""};
+      try{ localStorage.removeItem(K_BAJADA); }catch(e){}
       guardarLocal(K_PAR,RUTA);
       if(typeof fusionarHechas==="function") fusionarHechas();
       renderTodo();
