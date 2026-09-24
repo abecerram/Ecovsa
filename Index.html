@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto'};</script>
+<script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto', enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
 <style>
 :root{--eco-azul-osc:#14306B;--eco-azul:#0B5394;--eco-verde:#2F6B0A;--eco-verde-claro:#4ADE80;--eco-ambar:#F5B301;--eco-rojo:#C0392B;--tarjeta:#FFFFFF}
@@ -901,7 +901,182 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 .cli-horario.estr{background:#FFF6DA;color:#7A5200}
 .aviso-horario{margin-top:8px;background:#FFF6DA;border:1px solid #F3D98A;color:#6B4A00;border-radius:11px;padding:9px 11px;font-size:12.5px;line-height:1.45}
 
+/* Menú del conductor: saludo, tablero y accesos compactos en dos columnas */
+.hub-saludo{display:none;font-size:13px;color:var(--gris);font-weight:700;margin:0 2px 10px}
+.hub-saludo b{color:var(--eco-azul-osc)}
+.hub-conductor .hub-saludo{display:block}
+.hub-conductor .grid-mosaicos{grid-template-columns:1fr 1fr !important;gap:9px !important;margin-top:0}
+.hub-conductor .tb{grid-column:1 / -1;order:0;margin-bottom:3px}
+.hub-conductor .mosaico-item{min-height:0 !important;padding:12px !important;border-radius:15px;border-width:1px;justify-content:flex-start;gap:6px;grid-column:auto !important}
+.hub-conductor .mosaico-icono{width:auto;height:auto;background:none !important;font-size:20px;justify-content:flex-start}
+.hub-conductor .mosaico-badge,.hub-conductor .cuenta-espera{display:none !important}
+.hub-conductor .mosaico-tit{font-size:13.5px;font-weight:900;color:var(--eco-azul-osc)}
+.hub-conductor .mosaico-sub{font-size:11px;margin-top:2px}
+.hub-conductor .mosaico-item[onclick*="'agenda'"]{order:1}
+.hub-conductor .mosaico-item[onclick*="'monitor'"]{order:2}
+.hub-conductor .mosaico-item[onclick*="'clientes'"]{order:3}
+.hub-conductor .mosaico-item[onclick*="'recibos'"]{order:4}
+.hub-conductor .mosaico-item[onclick*="'jornada'"]{order:5}
+.hub-conductor .mosaico-item[onclick*="'disposicion'"]{order:6}
+.hub-conductor .mosaico-item[onclick*="'mapa'"]{order:7}
+.hub-conductor .mosaico-top{min-height:0 !important;height:auto !important;margin:0 !important}
+.hub-conductor .mosaico-item{gap:0 !important}
+.hub-conductor .mosaico-tit{margin-top:6px !important}
+/* cabecera en una sola línea: logo, nombre, semáforo y salir */
+.es-conductor .barra-top{flex-wrap:nowrap;gap:8px}
+.es-conductor .barra-top .logo-header-box{min-width:0}
+.es-conductor .barra-top .logo-header-box > div{min-width:0;overflow:hidden}
+.es-conductor .barra-top .logo-img-header{width:58px;height:38px}
+.es-conductor .barra-top h1{white-space:nowrap}
+.es-conductor #cab-usuario{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.es-conductor .barra-sync{flex-wrap:nowrap}
+.semaforo{padding:5px 9px 5px 8px;font-size:10.5px}
+
 .chip.mot-cierre.on{background:var(--eco-azul-osc);color:#fff;border-color:var(--eco-azul-osc)}
+
+/* ═══ Paquete jornada y flota · Mis Rutas A ═══ */
+.es-conductor .solo-sup{display:none!important}
+/* calendario: estados */
+.cal-celda.st-completo{background:#EDF7E4;border-color:#BFDDA8}
+.cal-celda.st-completo .cal-num{color:var(--eco-verde)}
+.cal-celda.st-pendiente{background:#FFF6DA;border-color:#F3D98A}
+.cal-celda.st-pendiente .cal-num{color:#8A6300}
+.cal-celda.st-terminada{background:#FCECEA;border-color:#F0B7B0}
+.cal-celda.st-terminada .cal-num{color:var(--eco-rojo)}
+.cal-celda.st-tablero{background:var(--eco-azul);border-color:var(--eco-azul)}
+.cal-celda.st-tablero .cal-num,.cal-celda.st-tablero .cal-est{color:#fff}
+.cal-celda.st-nueva{background:#E8F0FA;border-color:#BCD2EE}
+.cal-celda.st-nueva::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#E0457B}
+.cal-celda.st-programada{background:#F5F8FB;border-color:#C9D3E0}
+.cal-est{font-size:9.5px;font-weight:900;line-height:1;margin-top:4px;color:var(--gris)}
+.st-completo .cal-est{color:var(--eco-verde)}.st-pendiente .cal-est{color:#8A6300}
+.st-terminada .cal-est{color:var(--eco-rojo)}.st-nueva .cal-est{color:var(--eco-azul)}
+.cal-leyenda .lg-completo{background:#EDF7E4;border:1.5px solid #BFDDA8}
+.cal-leyenda .lg-pendiente{background:#FFF6DA;border:1.5px solid #F3D98A}
+.cal-leyenda .lg-terminada{background:#FCECEA;border:1.5px solid #F0B7B0}
+.cal-leyenda .lg-tablero{background:var(--eco-azul)}
+.cal-leyenda .lg-nueva{background:#E8F0FA;border:1.5px solid #BCD2EE}
+.cal-leyenda .lg-programada{background:#F5F8FB;border:1.5px solid #C9D3E0}
+.mr-aviso{display:flex;align-items:center;gap:10px;background:#E8F0FA;border:1px solid #BCD2EE;border-radius:14px;padding:11px 12px;margin-bottom:10px;font-size:12.5px;color:var(--eco-azul-osc);line-height:1.35}
+.mr-aviso .ic{font-size:22px}.mr-aviso .tx{flex:1}
+.mr-aviso button{background:var(--eco-azul);color:#fff;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-weight:900;font-size:12.5px}
+.mr-det{background:#fff;border:2px solid var(--eco-azul);border-radius:16px;padding:13px;margin-top:10px;box-shadow:0 2px 10px rgba(20,48,107,.06)}
+.mr-det.gris{border-color:var(--borde)}
+.mr-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mr-t1{font-size:16px;font-weight:900;color:var(--eco-azul-osc)}
+.mr-t2{font-size:12px;color:var(--gris);font-weight:600;margin-top:2px}
+.mr-pill{white-space:nowrap;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:900;background:var(--eco-azul);color:#fff}
+.mr-pill.completo{background:#EDF7E4;color:var(--eco-verde)}.mr-pill.pendiente{background:#FFF6DA;color:#8A6300}
+.mr-pill.terminada{background:#FCECEA;color:var(--eco-rojo)}.mr-pill.nueva{background:#E8F0FA;color:var(--eco-azul)}
+.mr-pill.programada{background:#EEF2F7;color:var(--gris)}
+.mr-bar{height:7px;border-radius:7px;background:#E6EBF2;overflow:hidden;margin:10px 0 4px}.mr-bar i{display:block;height:100%;background:var(--eco-verde)}
+.mr-lb{font-size:11.5px;font-weight:800;color:var(--gris)}
+.mr-acc{display:flex;gap:8px;margin:11px 0 4px}
+.mr-acc .btn{margin:0}
+.mr-par{display:flex;gap:9px;align-items:center;padding:8px 0;border-top:1px solid #EEF2F7;font-size:12.5px}
+.mr-par b{color:var(--gris);min-width:18px}.mr-par .nm{flex:1;font-weight:800;color:var(--eco-azul-osc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mr-par .es{font-size:11.5px;font-weight:800;color:var(--gris);white-space:nowrap}.mr-par .es.ok{color:var(--eco-verde)}
+.mr-mas{display:block;width:100%;background:none;border:0;padding:9px 0 2px;font:inherit;font-weight:900;font-size:12.5px;color:var(--eco-azul)}
+.mr-nota{font-size:12px;color:var(--gris);line-height:1.45;margin-top:8px}
+/* jornada y flota */
+.jv-aviso{border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;line-height:1.4;margin-bottom:10px}
+.jv-aviso.az{background:#E8F0FA;color:#1B4A86}.jv-aviso.rj{background:#FCECEA;color:#8E2A20;border:1px solid #F0B7B0}
+.jv-aviso.am{background:#FFF6DA;color:#6B4E00;border:1px solid #F3D98A}
+.jv-card{background:#fff;border:1px solid var(--borde);border-radius:16px;padding:13px;margin-bottom:10px;box-shadow:0 2px 10px rgba(20,48,107,.05)}
+.jv-tit{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:900;color:var(--eco-azul-osc);margin-bottom:10px}
+.jv-tit .n{width:22px;height:22px;border-radius:7px;background:var(--eco-azul);color:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.jv-tit .n.ok{background:var(--eco-verde)}
+.jv-tit .r{margin-left:auto;font-size:11px;font-weight:800;color:var(--gris);white-space:nowrap}
+.jv-lab{display:block;font-size:10.5px;font-weight:900;color:var(--eco-azul-osc);letter-spacing:.4px;margin:0 0 5px;text-transform:uppercase}
+.jv-veh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:11px}
+.jv-veh button{border:1.5px solid var(--borde);background:#fff;border-radius:11px;padding:8px 2px;font:inherit;font-size:13px;font-weight:900;color:var(--eco-azul-osc);position:relative}
+.jv-veh button small{display:block;font-size:10px;font-weight:700;color:var(--gris)}
+.jv-veh button.on{background:var(--eco-azul-osc);border-color:var(--eco-azul-osc);color:#fff}.jv-veh button.on small{color:#cfd9ea}
+.jv-veh button .bq{position:absolute;top:-6px;right:-4px;font-size:12px}
+.jv-odo{display:flex;align-items:center;gap:8px}
+.jv-odo input{flex:1;min-width:0;font-size:21px;font-weight:900;letter-spacing:.5px;padding:10px 12px;border:1.5px solid var(--borde);border-radius:11px;margin:0}
+.jv-odo span{font-weight:900;color:var(--gris)}
+.jv-ay{font-size:11.5px;color:var(--gris);margin-top:5px;line-height:1.35}
+.jv-ay.mal{color:var(--eco-rojo);font-weight:800}.jv-ay.ojo{color:#8A6300;font-weight:800}.jv-ay.bien{color:var(--eco-verde);font-weight:700}
+.jv-tq{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.jv-tq button{border:1.5px solid var(--borde);background:#fff;border-radius:9px;padding:8px 0;font:inherit;font-size:12px;font-weight:800;color:var(--eco-azul-osc)}
+.jv-tq button.on{background:var(--eco-ambar);border-color:var(--eco-ambar);color:#4A3300}
+.jv-barra{height:8px;border-radius:8px;background:#E6EBF2;overflow:hidden;margin:-4px 0 6px}.jv-barra i{display:block;height:100%;background:var(--eco-verde)}
+.jv-gr{font-size:10.5px;font-weight:900;color:var(--gris);text-transform:uppercase;letter-spacing:.6px;margin:13px 0 5px}
+.jv-it{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0F3F7}
+.jv-it:last-child{border-bottom:0}
+.jv-it .nm{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--tinta)}
+.jv-it .nm small{display:block;font-size:11px;font-weight:600;color:var(--gris);margin-top:1px}
+.jv-it .nm small.f{color:var(--eco-rojo);font-weight:800}
+.jv-crit{display:inline-block;font-size:9px;font-weight:900;color:#fff;background:var(--eco-rojo);border-radius:5px;padding:1px 5px;margin-left:5px;vertical-align:2px}
+.jv-tg{display:flex;gap:5px;flex-shrink:0}
+.jv-tg button{width:40px;height:32px;border-radius:9px;border:0;font:inherit;font-size:14px;font-weight:900;background:#F1F4F8;color:#A3AEBD}
+.jv-tg button.b{background:var(--eco-verde);color:#fff}.jv-tg button.m{background:var(--eco-rojo);color:#fff}
+.jv-pend{background:#FFF6DA;border:1px solid #F3D98A;border-radius:12px;padding:10px;margin:4px 0 8px}
+.jv-pend b{display:block;font-size:13px;color:#6B4E00}
+.jv-pend div{font-size:12px;font-weight:700;color:#6B4E00;margin-top:2px;line-height:1.35}
+.jv-pend .fx{display:flex;gap:6px;margin-top:8px}
+.jv-pend .fx button{flex:1;border-radius:9px;padding:8px;font:inherit;font-size:12px;font-weight:900;background:#fff;border:1.5px solid #E5C866;color:#6B4E00}
+.jv-pend .fx button.on{background:#6B4E00;color:#fff;border-color:#6B4E00}
+.jv-pie{position:sticky;bottom:0;background:linear-gradient(rgba(238,242,247,0),var(--fondo) 30%);padding:14px 0 6px;margin-top:4px;z-index:5}
+.jv-btn{display:block;width:100%;border:0;border-radius:13px;padding:14px;font:inherit;font-weight:900;font-size:15px;background:var(--eco-verde);color:#fff}
+.jv-btn.gris{background:#C9D3E0}.jv-btn.azul{background:var(--eco-azul)}.jv-btn.sec{background:#E8EEF4;color:var(--eco-azul-osc)}
+.jv-btn + .jv-btn{margin-top:8px}
+.jv-hero{background:linear-gradient(140deg,var(--eco-azul-osc),var(--eco-azul));color:#fff;border-radius:18px;padding:15px;margin-bottom:10px}
+.jv-hero .et{font-size:10.5px;font-weight:900;letter-spacing:.7px;opacity:.75;text-transform:uppercase}
+.jv-hero .t1{font-size:20px;font-weight:900;margin-top:2px}
+.jv-hero .t2{font-size:12px;opacity:.85;margin-top:2px}
+.jv-kp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+.jv-kp div{background:rgba(255,255,255,.1);border-radius:12px;padding:8px 4px;text-align:center}
+.jv-kp b{display:block;font-size:17px;font-weight:900}.jv-kp span{font-size:10px;font-weight:800;opacity:.75}
+.jv-est{margin-top:10px;border-radius:12px;padding:8px 11px;font-size:12px;font-weight:800;background:rgba(74,222,128,.14);color:#C9F7D9}
+.jv-est.am{background:rgba(245,179,1,.16);color:#FFE08A}
+.jv-acc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.jv-acc button{text-align:left;background:#fff;border:1px solid var(--borde);border-radius:15px;padding:12px;font:inherit;font-size:13px;font-weight:900;color:var(--eco-azul-osc)}
+.jv-acc button small{display:block;font-size:11px;font-weight:600;color:var(--gris);margin-top:3px}
+.jv-acc button .ic{font-size:20px;display:block;margin-bottom:5px}
+.jv-fila{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F0F3F7;font-size:12.5px}
+.jv-fila:last-child{border:0}.jv-fila b{font-weight:900;color:var(--eco-azul-osc)}.jv-fila span{color:var(--gris);font-weight:700;text-align:right}
+.jv-res{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.jv-res div{background:#F5F8FB;border-radius:11px;padding:8px 2px;text-align:center}
+.jv-res b{display:block;font-size:16px;font-weight:900;color:var(--eco-azul-osc)}.jv-res span{font-size:9.5px;font-weight:800;color:var(--gris)}
+.jv-calc{display:flex;justify-content:space-between;background:#F5F8FB;border-radius:11px;padding:9px 11px;font-size:12.5px;font-weight:800;color:var(--eco-azul-osc);margin:8px 0 10px}
+.jv-calc span{color:var(--gris);font-weight:700}
+.jv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.jv-chips button{border:1.5px solid var(--borde);background:#fff;border-radius:999px;padding:7px 11px;font:inherit;font-size:12.5px;font-weight:800;color:var(--eco-azul-osc)}
+.jv-chips button.on{background:var(--eco-azul-osc);border-color:var(--eco-azul-osc);color:#fff}
+.jv-dos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.jv-dos button{text-align:left;border:2px solid var(--borde);background:#fff;border-radius:13px;padding:10px;font:inherit;font-size:13px;font-weight:900;color:var(--eco-azul-osc)}
+.jv-dos button small{display:block;font-size:11px;font-weight:600;color:var(--gris);margin-top:2px}
+.jv-dos button.si.on{border-color:#9FCB84;background:#E7F3DD;color:var(--eco-verde)}
+.jv-dos button.no.on{border-color:var(--eco-rojo);background:#FCECEA;color:var(--eco-rojo)}
+.jv-foto{display:block;width:100%;border:1.5px dashed #C9D3E0;background:#FAFCFD;border-radius:13px;padding:11px;text-align:center;font:inherit;font-size:12.5px;font-weight:800;color:var(--eco-azul);margin-bottom:12px}
+.hoja-abajo .jv-lab{margin-top:4px}
+.hoja-abajo input.jv-in{width:100%;padding:11px;border:1.5px solid var(--borde);border-radius:11px;font:inherit;font-size:15px;font-weight:700;margin:0 0 12px}
+.hoja-abajo select.jv-in{width:100%;padding:11px;border:1.5px solid var(--borde);border-radius:11px;font:inherit;font-size:14px;font-weight:700;margin:0 0 12px;background:#fff}
+.jv-hpie{display:flex;gap:8px;margin-top:4px}
+.jv-hpie .jv-btn{margin:0}
+/* tarjeta de fallas (logística) */
+.ff-card{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--eco-ambar);border-radius:14px;padding:11px 12px;margin-bottom:8px}
+.ff-card.rj{border-left-color:var(--eco-rojo)}.ff-card.vd{border-left-color:var(--eco-verde)}.ff-card.az{border-left-color:var(--eco-azul)}
+.ff-l1{display:flex;justify-content:space-between;gap:6px;font-size:11px;font-weight:900;color:var(--gris)}
+.ff-l2{font-size:14.5px;font-weight:900;color:var(--eco-azul-osc);margin:3px 0 2px}
+.ff-l3{font-size:11.5px;color:var(--gris);font-weight:600;line-height:1.35}
+.ff-bt{display:flex;gap:6px;margin-top:9px}
+.ff-bt button{flex:1;border:0;border-radius:9px;padding:8px 4px;font:inherit;font-size:11.5px;font-weight:900;background:#E8EEF4;color:var(--eco-azul-osc)}
+.ff-bt button.p{background:var(--eco-azul);color:#fff}
+.ff-tag{border-radius:6px;padding:1px 6px;font-size:10px;font-weight:900;white-space:nowrap;align-self:flex-start}
+.ff-tag.r{background:var(--eco-rojo);color:#fff}.ff-tag.a{background:var(--eco-ambar);color:#4A3300}
+.ff-tag.v{background:#E7F3DD;color:var(--eco-verde)}.ff-tag.g{background:#E8EEF4;color:var(--gris)}
+.ff-sec{font-size:11px;font-weight:900;color:var(--gris);letter-spacing:.6px;text-transform:uppercase;margin:12px 2px 6px}
+.hub-fallas{display:flex;align-items:center;gap:10px;background:#FCECEA;border:1px solid #F0B7B0;border-radius:14px;padding:10px 12px;margin:0 0 10px;font-size:12.5px;color:#8E2A20;font-weight:700;line-height:1.35;cursor:pointer}
+.hub-fallas.am{background:#FFF6DA;border-color:#F3D98A;color:#6B4E00}
+.hub-fallas .ic{font-size:20px}.hub-fallas .tx{flex:1}.hub-fallas .go{font-weight:900;white-space:nowrap}
+body:not(.es-conductor) .solo-cond{display:none!important}
+.cal-celda .cal-num{height:auto;min-height:0;border:0;background:none;padding:0;display:block;font-size:15px;font-weight:900}
+.cal-celda.seleccionado{box-shadow:0 0 0 2px var(--eco-azul) inset}
+.mr-acc .mr-go{flex:1 1 auto;width:auto;margin:0;white-space:nowrap}
+.mr-acc .mr-salir{flex:0 0 auto;width:auto;margin:0;padding:13px 16px;background:#E8EEF4;color:var(--eco-azul-osc)}
 </style>
 
 </head>
@@ -1064,6 +1239,8 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 <main>
 
 <section id="pantalla-hub" class="pantalla activa">
+<div class="hub-saludo" id="hub-saludo"></div>
+<div id="hub-fallas"></div>
 
 <div class="grid-mosaicos">
 
@@ -1567,12 +1744,13 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <div class="barra-navegacion-top">
 
-<h2>📅 Calendario Mensual</h2>
+<h2 id="tit-cal">📅 Calendario Mensual</h2>
 
 <button class="btn-volver-hub" onclick="mostrarTab('hub')">☰ Menú</button>
 
 </div>
 
+<div id="mr-nuevas"></div>
 <div class="cal-contenedor">
 
 <div class="cal-header">
@@ -1601,11 +1779,12 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <div class="cal-leyenda">
 
-<span><i style="background:var(--eco-verde)"></i> Ruta completada</span>
-
-<span><i style="background:var(--eco-ambar)"></i> Con paradas pendientes</span>
-
-<span><i style="background:#fff;border:1.5px solid var(--borde)"></i> Sin ruta</span>
+<span><i class="lg-completo"></i> Completa</span>
+<span><i class="lg-pendiente"></i> Con pendientes</span>
+<span><i class="lg-terminada"></i> Terminada antes</span>
+<span class="solo-cond"><i class="lg-tablero"></i> En tu tablero</span>
+<span class="solo-cond"><i class="lg-nueva"></i> Nueva</span>
+<span><i class="lg-programada"></i> Programada</span>
 
 </div>
 
@@ -1698,7 +1877,7 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <div class="barra-navegacion-top">
 
-<h2>⏱️ Control de Turno y Flota</h2>
+<h2>⛽ Jornada y flota</h2>
 
 <button class="btn-volver-hub" onclick="mostrarTab('hub')">☰ Menú</button>
 
@@ -1990,7 +2169,7 @@ DESECHOS HOSPITALARIOS PELIGROSOS · DECRETO EJECUTIVO 111 DE 1999 · RESOLUCIÓ
 
 <button class="btn azul mini" style="flex:1" onclick="enviarReciboPorEmail()">✉️ Correo</button>
 
-<button class="btn sec mini" style="flex:1" onclick="window.print()">🖨️ PDF / Imprimir</button>
+<button class="btn sec mini solo-sup" style="flex:1" onclick="window.print()">🖨️ PDF / Imprimir</button>
 
 <button class="btn rojo mini" style="flex:1" onclick="cerrarModalRecibo()">✕ Cerrar</button>
 
@@ -2211,6 +2390,7 @@ mostrarTab("hub");
    aprobación: mostrárselas a un operador en ruta sería darle trabajo que
    no puede hacer y ruido en la única pantalla que usa manejando. */
 if(esSupervisor()) bandejaIniciar("logistica");
+if(esSupervisor()) avisoFallasHub_(true);
 
 }
 
@@ -2220,7 +2400,7 @@ function pintarCabecera(){
 
 var sup = esSupervisor();
 
-$("cab-usuario").textContent = (USUARIO.nombre||"Usuario") + " · " + (sup ? "Supervisor / Administrador" : "Operador en Ruta");
+$("cab-usuario").textContent = sup ? (USUARIO.nombre||"Usuario") + " · Supervisor / Administrador" : (USUARIO.nombre||"Usuario");
 
 var bi=$("btn-inicio");
 if(bi) bi.style.display = esSupervisor() ? "inline-flex" : "none";
@@ -2243,6 +2423,7 @@ if(ha){ ha.style.display = esAdm ? "block" : "none"; if(esAdm) cargarAvanceVivo(
 if(esAdm){ cargarPorRevisar(true); cargarInspecciones(true); }
 else cargarKgPlanta();
 
+pintarHubConductor_();
 if(!esAdm) pintarTablero();
 document.querySelectorAll(".bloque-operador").forEach(function(b){ b.style.display = sup ? "none" : "flex"; });
 var tm=$("tit-monitor"); if(tm) tm.textContent = sup ? "📊 Avance de las rutas" : "📈 Avance de mis rutas";
@@ -2550,7 +2731,7 @@ function telWhatsDe_(c){
   return n.length > 13 ? "" : n;
 }
 function digitalPorDefecto_(c){ return telWhatsDe_(c) ? "whatsapp" : ((c && c.correo) ? "correo" : "no"); }
-function elegirDigital(i, v){ RUTA.paradas[i].reciboDigital = v; guardarLocal(K_PAR, RUTA); renderParadas(); }
+function elegirDigital(i, v){ var p = RUTA.paradas[i]; p.reciboDigital = (p.reciboDigital === v ? "" : v); guardarLocal(K_PAR, RUTA); renderParadas(); }
 function botonHora_(i, k, rotulo){
   var v = RUTA.paradas[i][k];
   if(v) return '<button class="pc-hora ok" onclick="abrirHojaHora(' + i + ',\'' + k + '\')"><span class="lap">✎</span><small>' + rotulo + '</small><b>' + esc(v) + '</b></button>';
@@ -2562,7 +2743,7 @@ function paradaAbiertaC_(p, i, c){
   var tot = (num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo)).toFixed(2);
   var H = horarioDe_(c);
   var verAna = p.verAna || num(p.kgAnatomo) > 0 || num(p.cantAnatomo) > 0;
-  var wa = telWhatsDe_(c), dig = p.reciboDigital || digitalPorDefecto_(c);
+  var wa = telWhatsDe_(c), dig = p.reciboDigital || "";
   var waTxt = wa ? wa.replace(/^507/, "").replace(/^(\d{4})(\d{4})$/, "$1-$2") : "sin número";
   var correoTxt = c.correo ? String(c.correo).split("@")[0].slice(0, 10) + "@…" : "sin correo";
   return '<div class="parada-card abierta" id="parada-' + i + '">' +
@@ -2591,11 +2772,11 @@ function paradaAbiertaC_(p, i, c){
       '<div><label style="margin-top:0">Quién entrega</label><input value="' + esc(p.contacto || c.contacto || '') + '" oninput="setCampo(' + i + ',\'contacto\',this.value)" placeholder="Lic. / Enfermería"></div></div>' +
     '<label>Observaciones</label>' +
     '<input value="' + esc(p.obs || '') + '" oninput="setCampo(' + i + ',\'obs\',this.value)" placeholder="Ej: recipientes sellados…">' +
-    '<label>Recibo digital para el cliente</label>' +
+    '<label>Recibo digital para el cliente <span style="font-weight:600;color:var(--gris);text-transform:none;letter-spacing:0">· opcional</span></label>' +
     '<div class="pc-seg">' +
       '<button class="' + (dig === "whatsapp" ? "on" : "") + '"' + (wa ? '' : ' disabled') + ' onclick="elegirDigital(' + i + ',\'whatsapp\')">WhatsApp<small>' + esc(waTxt) + '</small></button>' +
-      '<button class="' + (dig === "correo" ? "on" : "") + '"' + (c.correo ? '' : ' disabled') + ' onclick="elegirDigital(' + i + ',\'correo\')">Correo<small>' + esc(correoTxt) + '</small></button>' +
-      '<button class="' + (dig === "no" ? "on" : "") + '" onclick="elegirDigital(' + i + ',\'no\')">No lo quiere<small>solo impreso</small></button></div>' +
+      '<button class="' + (dig === "correo" ? "on" : "") + '"' + (c.correo ? '' : ' disabled') + ' onclick="elegirDigital(' + i + ',\'correo\')">Correo<small>' + esc(correoTxt) + '</small></button></div>' +
+    '<div style="font-size:11px;color:var(--gris);margin-top:4px">Si eliges uno, se abre al tocar «Enviar». Si no, no se manda nada.</div>' +
     '<label>Firma de quien entrega</label>' +
     '<div class="firma-caja" onclick="abrirFirma(' + i + ')">' +
       (p.firma ? '<img src="' + p.firma + '" alt="firma" class="firma-mini">' : '<span class="firma-vacia">✍ Toca para firmar</span>') + '</div>' +
@@ -2612,8 +2793,8 @@ function enlaceReciboCliente_(folio){
   return base + "?p=recibo&solover=1&id=" + encodeURIComponent(folio);
 }
 function mandarReciboDigital_(p, c, kg){
-  var canal = p.reciboDigital || digitalPorDefecto_(c);
-  if(canal === "no") return;
+  var canal = p.reciboDigital || "";
+  if(!canal || canal === "no") return;
   var txt = "Estimados " + (c.nombre || "") + ":\n\n" +
     "Adjuntamos el comprobante de la recolección de desechos hospitalarios realizada el " + (RUTA.fecha || hoyISO()) + ".\n\n" +
     "Recibo N° " + p.recibo + "\nTotal retirado: " + kg.toFixed(2) + " kg\n\n" +
@@ -2842,6 +3023,841 @@ function avisosHorarioEditor_(){
     else if(llega + MIN_POR_PARADA < minDe_(H.desde)) av.push('<b>' + esc(c.nombre) + '</b> abre a las ' + hora12_(H.desde) + ' y va de ' + (k+1) + '.ª parada: puede que llegue antes de que abran.');
   });
   return av.length ? '<div class="aviso-horario">🕘 ' + av.join('<br>🕘 ') + '<div style="font-size:11px;opacity:.8;margin-top:4px">Estimado con salida 7:30 a. m. y ' + MIN_POR_PARADA + ' min por parada.</div></div>' : '';
+}
+
+/* ── MENÚ DEL CONDUCTOR: saludo con la fecha y accesos compactos ── */
+function pintarHubConductor_(){
+  var hub = $("pantalla-hub"); if(!hub) return;
+  var sup = esSupervisor();
+  hub.classList.toggle("hub-conductor", !sup);
+  document.body.classList.toggle("es-conductor", !sup);
+  /* los textos originales se guardan para devolverlos si entra alguien de logística */
+  hub.querySelectorAll(".mosaico-item").forEach(function(m){
+    if(m.dataset.orig) return;
+    var q = function(c){ var e = m.querySelector(c); return e ? e.textContent : null; };
+    m.dataset.orig = JSON.stringify([q(".mosaico-icono"), q(".mosaico-tit"), q(".mosaico-sub")]);
+  });
+  if(sup){
+    hub.querySelectorAll(".mosaico-item").forEach(function(m){
+      try{ var o = JSON.parse(m.dataset.orig || "null"); if(!o) return;
+        [".mosaico-icono", ".mosaico-tit", ".mosaico-sub"].forEach(function(c, k){ var e = m.querySelector(c); if(e && o[k] !== null && !e.id) e.textContent = o[k]; });
+      }catch(e){}
+    });
+    return;
+  }
+  var d = new Date(), h = d.getHours();
+  var saludo = h < 12 ? "Buenos días" : (h < 19 ? "Buenas tardes" : "Buenas noches");
+  var nombre = String((USUARIO && USUARIO.nombre) || "").trim().split(/\s+/)[0] || "";
+  var fecha = d.toLocaleDateString("es-PA", { weekday: "long", day: "numeric", month: "long" });
+  var s = $("hub-saludo"); if(s) s.innerHTML = saludo + (nombre ? ", <b>" + esc(nombre) + "</b>" : "") + " · " + esc(fecha);
+  var poner = function(tab, icono, tit, sub){
+    var m = hub.querySelector('.mosaico-item[onclick*="\'' + tab + '\'"]'); if(!m) return;
+    var i = m.querySelector(".mosaico-icono"), t = m.querySelector(".mosaico-tit"), u = m.querySelector(".mosaico-sub");
+    if(i && icono) i.textContent = icono; if(t && tit) t.textContent = tit; if(u && sub !== null) u.textContent = sub;
+  };
+  poner("agenda", "🗓️", "Mis Rutas", "Elegir y activar");
+  poner("monitor", "📈", "Avance de mis rutas", "Lo que he trabajado");
+  poner("clientes", "👥", "Clientes", (CLIENTES && CLIENTES.length) ? CLIENTES.length + " activos" : "Catálogo");
+  poner("recibos", "🧾", "Mis Recibos", "Buscar y reenviar");
+  poner("jornada", "⛽", "Jornada y flota", "Km y combustible");
+  poner("disposicion", "🏭", "Entrega a planta", null);
+  poner("mapa", "🗺️", "Mapa de la ruta", "Mis paradas en el mapa");
+}
+
+
+/* ══════════════ MIS RUTAS (opción A) ══════════════
+   Cada día del calendario dice en qué está su ruta: completa, con
+   pendientes, terminada antes, en tu tablero, nueva o programada. Si la
+   ruta ya está en el tablero, se ofrece seguirla o salir de ella; nunca
+   «Trabajar» otra vez. */
+var K_VISTAS = "ecovsa_rutas_vistas";
+function rutasVistas_(){ return leerLocal(K_VISTAS, null); }
+function marcarRutaVista_(d){
+  if(!d || !d.rutaId) return;
+  var v = rutasVistas_() || {}; v[d.rutaId] = d.creadaEn || "x"; guardarLocal(K_VISTAS, v);
+}
+function enMiTablero_(d){
+  return !esSupervisor() && d && d.rutaId && RUTA && RUTA.rutaId === d.rutaId && (RUTA.paradas || []).length > 0;
+}
+function esNueva_(d){
+  if(esSupervisor() || !d || !d.rutaId || d.fecha < hoyISO() || d.completadas > 0 || enMiTablero_(d)) return false;
+  var v = rutasVistas_(); if(!v) return false;
+  return v[d.rutaId] !== (d.creadaEn || "x");
+}
+function estadoDiaCal_(d){
+  if(!d) return "";
+  if(String(d.estadoRuta || "").toUpperCase() === "TERMINADA ANTES") return "terminada";
+  if(d.total > 0 && d.completadas >= d.total) return "completo";
+  if(enMiTablero_(d)) return "tablero";
+  if(esNueva_(d)) return "nueva";
+  if(d.fecha < hoyISO() || d.completadas > 0) return "pendiente";
+  return "programada";
+}
+var ROT_EST_CAL = { completo: "Completa", pendiente: "Con pendientes", terminada: "Terminada antes",
+                    tablero: "En tu tablero", nueva: "Nueva", programada: "Programada" };
+/* La primera vez que se abre el calendario en este teléfono, todo lo que ya
+   estaba asignado cuenta como visto: «nueva» es lo que llega después. */
+function iniciarVistas_(){
+  if(rutasVistas_()) return;
+  var v = {}; Object.keys(CAL_DATOS_RUTAS).forEach(function(f){ var d = CAL_DATOS_RUTAS[f]; if(d.rutaId) v[d.rutaId] = d.creadaEn || "x"; });
+  guardarLocal(K_VISTAS, v);
+}
+function pintarAvisoNuevas_(){
+  var tc = $("tit-cal"); if(tc) tc.textContent = esSupervisor() ? "📅 Calendario mensual" : "🗓️ Mis Rutas";
+  var caja = $("mr-nuevas"); if(!caja) return;
+  if(esSupervisor()){ caja.innerHTML = ""; return; }
+  var nuevas = Object.keys(CAL_DATOS_RUTAS).map(function(f){ return CAL_DATOS_RUTAS[f]; }).filter(esNueva_)
+    .sort(function(a, b){ return a.fecha < b.fecha ? -1 : 1; });
+  if(!nuevas.length){ caja.innerHTML = ""; return; }
+  var d = nuevas[0], quien = String(d.creadaPor || "").trim().split(/\s+/)[0];
+  var cuando = "";
+  if(d.creadaEn){ var p = d.creadaEn.split(" "); cuando = (p[0] === hoyISO() ? "hoy " : nombreDia_(p[0]) + " ") + (p[1] ? hora12_(p[1]).replace(/ /g, "\u00a0") : ""); }
+  caja.innerHTML = '<div class="mr-aviso"><span class="ic">🔔</span><div class="tx"><b>Ruta nueva</b> para el ' + esc(nombreDia_(d.fecha)) +
+    (nuevas.length > 1 ? ' <b>(y ' + (nuevas.length - 1) + ' más)</b>' : '') + '<br>' + d.total + ' parada(s)' +
+    (quien ? ' · la cargó ' + esc(quien) : '') + (cuando ? ' ' + esc(cuando) : '') + '</div>' +
+    '<button onclick="verDiaCal_(\'' + d.fecha + '\')">Ver</button></div>';
+}
+function verDiaCal_(f){
+  CAL_DIA_SELEC = f;
+  var y = +f.slice(0,4), m = +f.slice(5,7) - 1;
+  if(CAL_FECHA.getFullYear() !== y || CAL_FECHA.getMonth() !== m){ CAL_FECHA = new Date(y, m, 1); cargarDatosCalendario(); return; }
+  dibujarCuerpoCalendario(); mostrarDetalleDiaCal(f);
+}
+function detalleDiaConductor_(fechaIso){
+  var cont = $("cal-detalle-dia"); if(!cont) return;
+  var d = CAL_DATOS_RUTAS[fechaIso];
+  var titulo = (fechaIso === hoyISO() ? "Hoy · " : "") + nombreDia_(fechaIso);
+  if(!d){
+    cont.innerHTML = '<div class="mr-det gris"><div class="mr-t1">' + esc(titulo) + '</div><div class="mr-t2">No tienes ruta ese día.</div></div>';
+    return;
+  }
+  var est = estadoDiaCal_(d);
+  marcarRutaVista_(d); pintarAvisoNuevas_();
+  var pct = d.total ? Math.round(d.completadas / d.total * 100) : 0;
+  var acc = "";
+  if(est === "tablero")
+    acc = '<div class="mr-acc"><button class="btn mr-go" style="background:var(--eco-azul)" onclick="continuarRuta()">Continuar la ruta →</button>' +
+          '<button class="btn mr-salir" onclick="salirDeRuta()">⏹ Salir</button></div>';
+  else if(est === "completo")
+    acc = '<div class="mr-nota">✓ Todas las paradas están hechas.</div>';
+  else if(est === "terminada")
+    acc = '<div class="mr-nota">Se terminó antes' + (d.motivoCierre ? ': ' + esc(d.motivoCierre) : '') + '. Las paradas que faltaron vuelven a logística para otro día.</div>';
+  else
+    acc = '<div class="mr-acc"><button class="btn mr-go" style="background:var(--eco-verde)" onclick="trabajarDiaCal_(\'' + d.fecha + '\')">▶ Trabajar esta ruta</button></div>';
+  var P = d.paradas || [], abrir = !!(cont.dataset.todas === fechaIso);
+  var filas = (abrir ? P : P.slice(0, 3)).map(function(p, i){
+    var c = cli(p.clienteId);
+    var es = p.hecha ? '<span class="es ok">✓ ' + num(p.totalKg).toFixed(1) + ' kg</span>'
+           : (c && horarioDe_(c) ? etiquetaHorario_(c) : '<span class="es">pendiente</span>');
+    return '<div class="mr-par"><b>' + (i + 1) + '.</b><span class="nm">' + esc(p.nombre) + '</span>' + es + '</div>';
+  }).join("");
+  cont.innerHTML = '<div class="mr-det' + (est === "tablero" ? '' : ' gris') + '">' +
+    '<div class="mr-cab"><div style="min-width:0"><div class="mr-t1">' + esc(titulo) + '</div>' +
+      '<div class="mr-t2">' + d.total + ' paradas' + (d.vehiculo ? ' · ' + esc(d.vehiculo) : '') + ' · ' + num(d.totalKg).toFixed(1) + ' kg</div></div>' +
+      '<span class="mr-pill ' + est + '">' + (est === "tablero" ? '● ' : '') + ROT_EST_CAL[est] + '</span></div>' +
+    '<div class="mr-bar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="mr-lb">' + d.completadas + ' de ' + d.total + ' hechas</div>' + acc + filas +
+    (P.length > 3 ? '<button class="mr-mas" onclick="$(\'cal-detalle-dia\').dataset.todas=' + (abrir ? '\'\'' : '\'' + fechaIso + '\'') + ';mostrarDetalleDiaCal(\'' + fechaIso + '\')">' +
+       (abrir ? 'Ver menos ▴' : 'Ver las ' + P.length + ' paradas ▾') + '</button>' : '') +
+  '</div>';
+}
+/* Solo una ruta en el tablero: si hay otra con paradas pendientes, se pregunta. */
+function trabajarDiaCal_(fecha){
+  var d = CAL_DATOS_RUTAS[fecha]; marcarRutaVista_(d);
+  var P = RUTA.paradas || [];
+  var pend = P.filter(function(p){ return p.estadoParada !== "completada"; }).length;
+  if(P.length && RUTA.rutaId && (!d || RUTA.rutaId !== d.rutaId) && pend && !RUTA.cierre){
+    preguntar({ titulo: "Cambiar la ruta del tablero", icono: "⇄", boton: "Sí, cambiarla",
+      texto: "En tu tablero está la ruta del <b>" + esc(nombreDia_(RUTA.fecha)) + "</b> con " + pend + " parada(s) sin hacer.<br><br>" +
+             "Si la cambias, esa ruta sigue asignada y la puedes volver a activar desde aquí.",
+      alAceptar: function(){ cargarRutaParaTrabajar(fecha); } });
+    return;
+  }
+  cargarRutaParaTrabajar(fecha);
+}
+
+/* ══════════════ LA RUTA AL DÍA ══════════════
+   Si logística agrega o quita un cliente, el conductor lo ve sin recargar:
+   al enviar una recolección (viene en la respuesta), al volver a la app y
+   al abrir el menú o Mis Rutas. Son lecturas chicas y con pausa entre una
+   y otra, así que no cargan el servidor. */
+var RUTA_REFRESCO_T = 0;
+function refrescarRuta_(pausaMs){
+  if(esSupervisor() || !PIN || !enLinea) return;
+  var ahora = Date.now(); if(ahora - RUTA_REFRESCO_T < (pausaMs || 30000)) return;
+  RUTA_REFRESCO_T = ahora;
+  var f = (RUTA && RUTA.rutaId && RUTA.fecha) ? RUTA.fecha : hoyISO();
+  google.script.run.withSuccessHandler(function(rs){ aplicarRutaServidor_(rs, f); })
+    .withFailureHandler(function(){}).api_getRutas(PIN, f);
+}
+function aplicarRutaServidor_(rs, fecha){
+  if(!Array.isArray(rs) || esSupervisor()) return;
+  if(!RUTA || !RUTA.rutaId){
+    if(fecha === hoyISO()){ RUTAS_HOY = rs; pintarTablero(); }
+    return;
+  }
+  if(fecha !== RUTA.fecha) return;
+  var r = rs.filter(function(x){ return x.rutaId === RUTA.rutaId; })[0] || rs[0];
+  if(!r || !r.paradas) return;
+  var antes = (RUTA.paradas || []).map(function(p){ return p.clienteId; }).join(",");
+  var ahora = r.paradas.map(function(p){ return p.clienteId; }).join(",");
+  var cierre = r.estadoRuta ? { motivo: r.motivoCierre || "", hora: r.cerradaEn || "", por: r.cerradaPor || "" } : null;
+  if(antes === ahora && r.rutaId === RUTA.rutaId && (!!cierre === !!RUTA.cierre)) return;
+  var previas = {}; (RUTA.paradas || []).forEach(function(p){ previas[p.clienteId] = p; });
+  var nuevas = r.paradas.filter(function(p){ return !previas[p.clienteId]; }).length;
+  var P = r.paradas.map(function(p){ return previas[p.clienteId] || nuevaParada(p.clienteId); });
+  /* lo que ya se recolectó nunca se pierde, aunque lo hayan sacado de la ruta */
+  (RUTA.paradas || []).forEach(function(p){
+    if(p.estadoParada === "completada" && !P.some(function(q){ return q.clienteId === p.clienteId; })) P.push(p);
+  });
+  var quitadas = (RUTA.paradas || []).length + nuevas - P.length;
+  RUTA.rutaId = r.rutaId; RUTA.vehiculo = r.vehiculo || RUTA.vehiculo; RUTA.paradas = P;
+  if(cierre && !RUTA.cierre) RUTA.cierre = cierre;
+  guardarLocal(K_PAR, RUTA);
+  var faltaCliente = P.some(function(p){ return !cli(p.clienteId); });
+  if(faltaCliente){ recargarTodo_(); return; }
+  /* si está escribiendo en una parada, no se le repinta debajo de los dedos */
+  var ae = document.activeElement;
+  if(!(ae && ae.tagName === "INPUT" && $("pantalla-paradas").classList.contains("activa"))) renderTodo();
+  if(nuevas) toast("Ruta actualizada · " + nuevas + " parada(s) nueva(s)");
+  else if(quitadas > 0) toast("Ruta actualizada · logística quitó " + quitadas + " parada(s)");
+}
+function recargarTodo_(){
+  google.script.run.withSuccessHandler(function(d){
+    if(!d || !d.ok) return;
+    CLIENTES = d.clientes || CLIENTES; guardarLocal(K_CLI, CLIENTES);
+    renderTodo(); toast("Ruta actualizada · llegó un cliente nuevo");
+  }).withFailureHandler(function(){}).api_bootstrap(PIN, hoyISO());
+}
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState === "visible"){ refrescarRuta_(60000); if(esSupervisor()) avisoFallasHub_(true); }
+});
+
+/* ══════════════ JORNADA Y FLOTA (opción C) ══════════════
+   Antes de salir: camión, odómetro, tanque y revisión. En ruta: tablero de
+   la jornada, combustible y fallas. Al llegar: odómetro final, revisión de
+   cierre y resumen del día. Las fotos están construidas pero apagadas
+   hasta decidir dónde se guardan (FOTOS_ACTIVAS). */
+var FOTOS_ACTIVAS = false;
+var K_JV = "ecovsa_jornada_vista", K_REVHOY = "ecovsa_revision_hoy", K_ULT_EST = "ecovsa_ultima_estacion";
+var TANQUES = [["Reserva","Reserva"],["1/4","¼"],["1/2","½"],["3/4","¾"],["Lleno","Lleno"]];
+var ESTACIONES = ["Delta Transístmica","Delta Vía España","Delta Juan Díaz","Delta Chivo Chivo","Delta Chilibre","Delta Tumba Muerto","Delta Villa Lucre","Delta Otra"];
+var FLOTA = null, FLOTA_VEH = "", JV = null, HF = null, HC = null, JV_POLL = null;
+
+function jvNuevo_(veh){ return { vista: "salida", veh: veh || "", km: "", tanque: "", resp: {}, fallas: {}, conf: {}, revLocal: "", revisionId: "" }; }
+function jv_(){ if(!JV) JV = leerLocal(K_JV, null) || jvNuevo_(""); if(!JV.resp) JV.resp = {}; if(!JV.fallas) JV.fallas = {}; if(!JV.conf) JV.conf = {}; return JV; }
+function jvGuardar_(){ guardarLocal(K_JV, JV); }
+function tanqueTxt_(t){ var x = TANQUES.filter(function(q){ return q[0] === t; })[0]; return x ? x[1] : (t || "—"); }
+function nMiles_(n){ return String(Math.round(num(n))).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+function B_(n){ return "B/. " + num(n).toFixed(2); }
+
+function cargarFlota_(veh, luego){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo consultar el camión"); return; }
+    FLOTA = r; FLOTA_VEH = r.vehiculo;
+    if(typeof FLOTA.fotos === "boolean" && !FLOTA_FOTOS_FIJAS) FOTOS_ACTIVAS = FLOTA.fotos;
+    if(luego) luego(r);
+  }).withFailureHandler(function(){ toast("Sin señal: no se pudo consultar el camión"); })
+    .api_flotaVehiculo(PIN, veh || "");
+}
+var FLOTA_FOTOS_FIJAS = false;
+
+function renderJornada(){
+  var caja = $("caja-jornada"); if(!caja) return;
+  document.querySelectorAll("#pantalla-jornada .tarjeta").forEach(function(t){
+    if(t.textContent.indexOf("Combustible") >= 0) t.style.display = "none";
+  });
+  var h2 = document.querySelector("#pantalla-jornada .barra-navegacion-top h2");
+  if(esSupervisor()){
+    if(h2) h2.textContent = "⛽ Flota";
+    caja.innerHTML = '<div id="fallas-flota"><div class="vacio">Consultando la flota…</div></div>';
+    cargarFallasFlota_();
+    cargarResumenFlota();
+    return;
+  }
+  if(h2) h2.textContent = "⛽ Jornada y flota";
+  var rf = $("resumen-flota"); if(rf) rf.innerHTML = "";
+  jv_();
+  var abierta = JORNADA && !JORNADA.cerrada;
+  if(abierta){
+    if(JV.vista !== "cierre") JV.vista = "tablero";
+    var v = JORNADA.vehiculo;
+    if(FLOTA && FLOTA_VEH === v) pintarJornadaAbierta_();
+    else { caja.innerHTML = '<div class="vacio">Consultando el camión…</div>'; }
+    cargarFlota_(v, pintarJornadaAbierta_);
+    return;
+  }
+  if(JV.vista === "cerrada" && JV.resumen){ pintarJornadaCerrada_(); return; }
+  if(JV.vista !== "bloqueo") JV.vista = "salida";
+  var veh = JV.veh || (RUTA && RUTA.vehiculo) || "";
+  caja.innerHTML = '<div class="vacio">Consultando el camión…</div>';
+  cargarFlota_(veh, function(r){
+    if(!JV.veh || JV.veh !== r.vehiculo){ var k = JV.km, t = JV.tanque; JV = jvNuevo_(r.vehiculo); JV.km = k; JV.tanque = t; }
+    jvGuardar_();
+    if(JV.vista === "bloqueo") pintarBloqueo_(); else pintarAntesDeSalir_();
+  });
+}
+function pintarJornadaAbierta_(){ if(JV.vista === "cierre") pintarCierre_(); else pintarTableroJornada_(); }
+
+/* ── ANTES DE SALIR ── */
+function puntosSalida_(){
+  if(!FLOTA) return [];
+  return FLOTA.lista.filter(function(p){ return p.momento === "diario" || (p.momento === "semanal" && FLOTA.semanalToca); });
+}
+function itemRevision_(p, fallasAb){
+  var r = JV.resp[p.puntoId] || "", f = JV.fallas[p.puntoId];
+  var ya = fallasAb.filter(function(x){ return x.puntoId === p.puntoId; })[0];
+  var sub = f ? '<small class="f">✗ ' + esc([f.que, f.donde].filter(Boolean).join(" · ")) + (f.puedeSalir === "no" ? " · no es seguro salir" : "") + '</small>'
+          : (ya ? '<small>Ya reportada: ' + esc(ya.que || ya.punto) + '</small>' : (p.ayuda ? '<small>' + esc(p.ayuda) + '</small>' : ''));
+  return '<div class="jv-it"><div class="nm">' + esc(p.punto) + (p.critico ? '<span class="jv-crit">CRÍTICO</span>' : '') + sub + '</div>' +
+    '<div class="jv-tg"><button class="' + (r === "b" ? "b" : "") + '" onclick="marcarPunto_(\'' + p.puntoId + '\',\'b\')">✓</button>' +
+    '<button class="' + (r === "m" ? "m" : "") + '" onclick="marcarPunto_(\'' + p.puntoId + '\',\'m\')">✗</button></div></div>';
+}
+function listaAgrupada_(puntos, fallasAb){
+  var g = "", h = "";
+  puntos.forEach(function(p){
+    if(p.grupo !== g){ g = p.grupo; h += '<div class="jv-gr">' + esc(g) + '</div>'; }
+    h += itemRevision_(p, fallasAb);
+  });
+  return h;
+}
+function faltanSalida_(){
+  var P = puntosSalida_(), sinResp = P.filter(function(p){ return !JV.resp[p.puntoId]; }).length;
+  var sinConf = (FLOTA.fallas || []).filter(function(f){ return JV.conf[f.fallaId] === undefined; }).length;
+  return { puntos: sinResp + sinConf, km: !(num(JV.km) > 0), tanque: !JV.tanque };
+}
+function textoOdo_(km){
+  var u = FLOTA && FLOTA.ultimo;
+  if(!u) return { c: "", t: "Primer registro de este camión." };
+  var base = "Último registro de este camión: " + nMiles_(u.km) + " km (" + nombreDia_(u.fecha) + (u.conductor ? ", " + u.conductor.split(" ")[0] : "") + ")";
+  if(!(num(km) > 0)) return { c: "", t: base };
+  var d = num(km) - u.km;
+  if(d < 0) return { c: "mal", t: "Es menor que el último registro (" + nMiles_(u.km) + " km). Revisa el número." };
+  if(d > 400) return { c: "ojo", t: "Son " + nMiles_(d) + " km más que el último registro (" + nMiles_(u.km) + "). ¿Está bien?" };
+  return { c: "bien", t: "✓ " + base + " · diferencia " + nMiles_(d) + " km" };
+}
+function pintarAntesDeSalir_(){
+  var caja = $("caja-jornada"); if(!caja || !FLOTA) return;
+  var P = puntosSalida_(), ab = FLOTA.fallas || [];
+  var hechos = P.filter(function(p){ return JV.resp[p.puntoId]; }).length + ab.filter(function(f){ return JV.conf[f.fallaId] !== undefined; }).length;
+  var total = P.length + ab.length;
+  var nombre = String((USUARIO && USUARIO.nombre) || "").trim().split(/\s+/)[0];
+  var h0 = new Date().getHours(), saludo = h0 < 12 ? "Buenos días" : (h0 < 19 ? "Buenas tardes" : "Buenas noches");
+  var o = textoOdo_(JV.km);
+  var veh = FLOTA.vehiculos.map(function(v){
+    return '<button class="' + (v.placa === FLOTA.vehiculo ? "on" : "") + '" onclick="cambiarCamionSalida_(\'' + esc(v.placa) + '\')">' + esc(v.placa) +
+      '<small>' + esc(v.marca || "camión") + '</small></button>';
+  }).join("");
+  var tq = TANQUES.map(function(t){ return '<button class="' + (JV.tanque === t[0] ? "on" : "") + '" onclick="JV.tanque=\'' + t[0] + '\';jvGuardar_();pintarAntesDeSalir_()">' + t[1] + '</button>'; }).join("");
+  var pend = ab.map(function(f){
+    var c = JV.conf[f.fallaId];
+    return '<div class="jv-pend"><b>⚠ Falla abierta de este camión' + (f.bloquea ? ' · no puede salir' : (f.estado === "en taller" ? ' · en taller' : '')) + '</b>' +
+      '<div>' + esc(f.punto) + (f.que ? ' · ' + esc(f.que) : '') + (f.donde ? ' · ' + esc(f.donde) : '') + '<br>Reportada ' + esc(nombreDia_(f.fecha)) + ' por ' + esc(f.conductor.split(" ")[0]) +
+        (f.autorizadaPor ? ' · salida autorizada por ' + esc(f.autorizadaPor.split(" ")[0]) : '') + '</div>' +
+      '<div class="fx"><button class="' + (c === true ? "on" : "") + '" onclick="JV.conf[\'' + f.fallaId + '\']=true;jvGuardar_();pintarAntesDeSalir_()">Sigue igual</button>' +
+      '<button class="' + (c === false ? "on" : "") + '" onclick="JV.conf[\'' + f.fallaId + '\']=false;jvGuardar_();pintarAntesDeSalir_()">Ya está bien</button></div></div>';
+  }).join("");
+  var falta = faltanSalida_();
+  var boton = falta.km ? "Escribe el odómetro para iniciar"
+            : falta.tanque ? "Marca el nivel del tanque"
+            : falta.puntos ? (falta.puntos === 1 ? "Falta 1 punto para iniciar" : "Faltan " + falta.puntos + " puntos para iniciar") : "";
+  var revHoy = FLOTA.revisionHoy && !JV.revisionId
+    ? '<div class="jv-aviso az">Este camión ya se revisó hoy a las ' + esc(FLOTA.revisionHoy.hora) + ' (' + esc(FLOTA.revisionHoy.conductor.split(" ")[0]) + ', ' +
+      FLOTA.revisionHoy.bien + ' de ' + FLOTA.revisionHoy.puntos + ' bien). <a href="#" onclick="usarRevisionHoy_();return false" style="font-weight:900">Usar esa revisión</a></div>' : '';
+  caja.innerHTML =
+    '<div class="jv-aviso az">' + saludo + (nombre ? ', ' + esc(nombre) : '') + '. Revisa el camión antes de iniciar: toma unos 3 minutos y queda guardado para mantenimiento.</div>' +
+    '<div class="jv-card"><div class="jv-tit"><span class="n' + (!falta.km && !falta.tanque ? " ok" : "") + '">' + (!falta.km && !falta.tanque ? "✓" : "1") + '</span>Camión y odómetro<span class="r">' + esc(nombreDia_(hoyISO())) + '</span></div>' +
+      '<div class="jv-veh">' + veh + '</div>' +
+      '<label class="jv-lab">Odómetro al salir</label>' +
+      '<div class="jv-odo"><input id="jv-km" inputmode="numeric" placeholder="Kilometraje" value="' + esc(JV.km) + '" oninput="JV.km=this.value.replace(/[^0-9]/g,\'\');jvGuardar_();odoAviso_()" onblur="pintarAntesDeSalir_()"><span>km</span></div>' +
+      '<div class="jv-ay ' + o.c + '" id="jv-km-ay">' + esc(o.t) + '</div>' +
+      '<label class="jv-lab" style="margin-top:11px">Tanque al salir</label><div class="jv-tq">' + tq + '</div>' +
+      (JV.tanque === "Reserva" || JV.tanque === "1/4" ? '<div class="jv-ay ojo">⛽ Tanque bajo: recuerda cargar y registrarlo en esta pantalla.</div>' : '') + '</div>' +
+    revHoy +
+    '<div class="jv-card"><div class="jv-tit"><span class="n' + (hechos >= total ? " ok" : "") + '">' + (hechos >= total ? "✓" : "2") + '</span>Revisión diaria' +
+      (FLOTA.semanalToca ? ' + semanal' : '') + '<span class="r">' + hechos + ' de ' + total + '</span></div>' +
+      '<div class="jv-barra"><i style="width:' + (total ? Math.round(hechos / total * 100) : 0) + '%"></i></div>' +
+      pend + listaAgrupada_(P, ab) +
+      (FLOTA.semanalToca ? '' : '<div class="jv-ay" style="margin-top:10px">La revisión semanal (8 puntos más) ya se hizo esta semana en este camión.</div>') + '</div>' +
+    '<div class="jv-pie">' + (boton ? '<button class="jv-btn gris" disabled>' + boton + '</button>'
+                                     : '<button class="jv-btn" onclick="iniciarJornadaConRevision_()">▶ Iniciar jornada</button>') + '</div>';
+}
+function odoAviso_(){ var o = textoOdo_(JV.km), a = $("jv-km-ay"); if(a){ a.className = "jv-ay " + o.c; a.textContent = o.t; } }
+function cambiarCamionSalida_(placa){
+  if(placa === (FLOTA && FLOTA.vehiculo)) return;
+  var t = JV.tanque; JV = jvNuevo_(placa); JV.tanque = "";
+  jvGuardar_(); $("caja-jornada").innerHTML = '<div class="vacio">Consultando ' + esc(placa) + '…</div>';
+  cargarFlota_(placa, function(){ pintarAntesDeSalir_(); });
+}
+function usarRevisionHoy_(){
+  JV.revisionId = FLOTA.revisionHoy.revisionId;
+  puntosSalida_().forEach(function(p){ if(!JV.resp[p.puntoId]) JV.resp[p.puntoId] = "b"; });
+  (FLOTA.fallas || []).forEach(function(f){ if(JV.conf[f.fallaId] === undefined) JV.conf[f.fallaId] = true; });
+  jvGuardar_(); pintarAntesDeSalir_(); toast("Se usa la revisión de las " + FLOTA.revisionHoy.hora);
+}
+function marcarPunto_(id, v){
+  var p = FLOTA.lista.filter(function(x){ return x.puntoId === id; })[0]; if(!p) return;
+  if(v === "b"){ JV.resp[id] = "b"; delete JV.fallas[id]; jvGuardar_(); repintarRevision_(); return; }
+  abrirHojaFalla_(p, JV.fallas[id] || null, "revision");
+}
+function repintarRevision_(){
+  var main = document.querySelector("main"), y = main ? main.scrollTop : 0;
+  if(JV.vista === "cierre") pintarCierre_(); else pintarAntesDeSalir_();
+  if(main) main.scrollTop = y;
+}
+
+/* ── HOJA DE FALLA ── */
+function opcionesFalla_(p){
+  var g = String((p && p.grupo) || "").toLowerCase(), n = String((p && p.punto) || "").toLowerCase();
+  if(g.indexOf("luces") >= 0 || n.indexOf("luces") >= 0 || n.indexOf("direccional") >= 0)
+    return { que: ["No enciende","Parpadea rápido","Mica rota","Otra"], donde: ["Del. izquierda","Del. derecha","Tras. izquierda","Tras. derecha"] };
+  if(g.indexOf("llanta") >= 0 || n.indexOf("llanta") >= 0 || n.indexOf("tuerca") >= 0)
+    return { que: ["Baja de aire","Pinchada","Muy gastada","Otra"], donde: ["Del. izquierda","Del. derecha","Tras. izq. afuera","Tras. izq. adentro","Tras. der. afuera","Tras. der. adentro"] };
+  if(n.indexOf("fuga") >= 0) return { que: ["Aceite","Agua","Combustible","No sé qué es"], donde: ["Adelante","En medio","Atrás"] };
+  if(n.indexOf("nivel") >= 0 || n.indexOf("refrigerante") >= 0 || n.indexOf("líquido") >= 0 || n.indexOf("agua") >= 0)
+    return { que: ["Nivel bajo","Vacío","Se ve sucio","Otra"], donde: [] };
+  if(n.indexOf("extintor") >= 0 || n.indexOf("kit") >= 0 || n.indexOf("epp") >= 0 || n.indexOf("botiquín") >= 0 || n.indexOf("documentos") >= 0 || n.indexOf("licencia") >= 0)
+    return { que: ["Falta","Vencido","Incompleto","Otra"], donde: [] };
+  return { que: ["No funciona","Dañado","Falla a ratos","Otra"], donde: [] };
+}
+function abrirHojaFalla_(p, previo, modo){
+  HF = { p: p, modo: modo, que: previo ? previo.que : "", donde: previo ? previo.donde : "", puedeSalir: previo ? previo.puedeSalir : "",
+         nota: previo ? previo.nota : "", foto: previo ? previo.foto : "" };
+  pintarHojaFalla_();
+}
+function pintarHojaFalla_(){
+  var v = velo_("hoja-falla"), p = HF.p, veh = HF.modo === "ruta" ? JORNADA.vehiculo : (FLOTA && FLOTA.vehiculo);
+  var op = opcionesFalla_(p);
+  var selPunto = "";
+  if(HF.modo === "ruta"){
+    var L = (FLOTA ? FLOTA.lista : []).filter(function(x){ return x.momento !== "cierre"; });
+    selPunto = '<label class="jv-lab">¿Qué parte del camión?</label><select class="jv-in" onchange="elegirPuntoRuta_(this.value)">' +
+      '<option value="">Elige…</option>' + L.map(function(x){ return '<option value="' + x.puntoId + '"' + (p && p.puntoId === x.puntoId ? ' selected' : '') + '>' + esc(x.punto) + '</option>'; }).join("") +
+      '<option value="otra"' + (p && p.puntoId === "otra" ? ' selected' : '') + '>Otra cosa</option></select>';
+  }
+  var chips = function(lista, k){ return '<div class="jv-chips">' + lista.map(function(x){ return '<button class="' + (HF[k] === x ? "on" : "") + '" onclick="HF.' + k + '=' + (HF[k] === x ? '\'\'' : '\'' + x + '\'') + ';pintarHojaFalla_()">' + esc(x) + '</button>'; }).join("") + '</div>'; };
+  var listo = (p || HF.modo !== "ruta") && HF.que && HF.puedeSalir;
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()">' +
+    '<h3>' + (HF.modo === "ruta" ? '🔧 Reportar falla' : '✗ ' + esc(p.punto)) + '</h3><div class="sub">' + esc(veh || "") + ' · cuéntanos qué pasa</div><div style="height:12px"></div>' +
+    selPunto +
+    (HF.modo !== "ruta" || p ? '<label class="jv-lab">¿Qué tiene?</label>' + chips(op.que, "que") +
+      (op.donde.length ? '<label class="jv-lab">¿Dónde?</label>' + chips(op.donde, "donde") : '') : '') +
+    '<label class="jv-lab">¿Puedes ' + (HF.modo === "ruta" ? 'seguir' : 'salir') + ' así?</label>' +
+    '<div class="jv-dos"><button class="si' + (HF.puedeSalir === "si" ? " on" : "") + '" onclick="HF.puedeSalir=\'si\';pintarHojaFalla_()">Sí, con cuidado<small>Se avisa a mantenimiento</small></button>' +
+      '<button class="no' + (HF.puedeSalir === "no" ? " on" : "") + '" onclick="HF.puedeSalir=\'no\';pintarHojaFalla_()">No, es peligroso<small>' + (HF.modo === "ruta" ? 'Se avisa a logística ya' : 'No sale hasta que logística decida') + '</small></button></div>' +
+    (FOTOS_ACTIVAS ? '<label class="jv-foto">' + (HF.foto ? '📷 Foto lista · tocar para cambiar' : '📷 Agregar foto (opcional)') +
+       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HF.foto=d;pintarHojaFalla_();})"></label>' : '') +
+    '<label class="jv-lab">Nota (opcional)</label><input class="jv-in" id="hf-nota" value="' + esc(HF.nota) + '" oninput="HF.nota=this.value" placeholder="Ej.: se notó desde ayer en la tarde">' +
+    '<div class="jv-hpie"><button class="jv-btn sec" style="flex:1" onclick="cerrarHojaFalla_()">Cancelar</button>' +
+      '<button class="jv-btn ' + (listo ? "azul" : "gris") + '" style="flex:1.4"' + (listo ? '' : ' disabled') + ' onclick="guardarHojaFalla_()">Guardar falla</button></div>' +
+    (!listo ? '<div class="jv-ay" style="text-align:center;margin-top:8px">Elige qué tiene y si ' + (HF.modo === "ruta" ? 'puedes seguir' : 'puedes salir') + '</div>' : '') +
+  '</div>';
+  v.classList.add("ver"); v.onclick = cerrarHojaFalla_;
+}
+function elegirPuntoRuta_(id){
+  if(id === "otra") HF.p = { puntoId: "otra", punto: "Otra falla", grupo: "", critico: false };
+  else HF.p = (FLOTA.lista.filter(function(x){ return x.puntoId === id; })[0]) || null;
+  HF.que = ""; HF.donde = ""; pintarHojaFalla_();
+}
+function cerrarHojaFalla_(){ var v = $("hoja-falla"); if(v) v.classList.remove("ver"); HF = null; }
+function guardarHojaFalla_(){
+  if(!HF) return;
+  var f = { puntoId: HF.p.puntoId === "otra" ? "" : HF.p.puntoId, punto: HF.p.punto, que: HF.que, donde: HF.donde,
+            puedeSalir: HF.puedeSalir, nota: (HF.nota || "").trim(), foto: FOTOS_ACTIVAS ? (HF.foto || "") : "" };
+  if(HF.modo === "ruta"){ var m = HF; cerrarHojaFalla_(); enviarFallaRuta_(f); return; }
+  JV.resp[HF.p.puntoId] = "m"; JV.fallas[HF.p.puntoId] = f; jvGuardar_();
+  cerrarHojaFalla_(); repintarRevision_();
+}
+/* La foto se reduce a 1000 px antes de guardarla: una foto del teléfono pesa
+   varios MB y aquí basta con ver la pieza. */
+function leerFoto_(inp, cb){
+  var f = inp.files && inp.files[0]; if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var im = new Image();
+    im.onload = function(){
+      var k = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL("image/jpeg", .7));
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+}
+
+/* ── INICIAR: guarda la revisión y abre la jornada, en un solo toque ── */
+function itemsDe_(puntos){ return puntos.map(function(p){ return { puntoId: p.puntoId, estado: JV.resp[p.puntoId] || "" }; }); }
+function iniciarJornadaConRevision_(){
+  var f = faltanSalida_(); if(f.km || f.tanque || f.puntos) return;
+  if(textoOdo_(JV.km).c === "mal"){ toast("El odómetro es menor que el último registro"); return; }
+  if(JV.revisionId){ abrirJornadaConRevision_(); return; }
+  if(!JV.revLocal){ JV.revLocal = "REV" + Date.now().toString(36).toUpperCase(); jvGuardar_(); }
+  var fallas = Object.keys(JV.fallas).map(function(k){ return JV.fallas[k]; });
+  var conf = Object.keys(JV.conf).map(function(k){ return { fallaId: k, sigue: JV.conf[k] }; });
+  toast("Guardando la revisión…");
+  var items = itemsDe_(puntosSalida_());
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar la revisión"); return; }
+    JV.revisionId = r.revisionId;
+    guardarLocal(K_REVHOY, { fecha: hoyISO(), hora: ahoraHM(), vehiculo: FLOTA.vehiculo, lista: puntosSalida_(), resp: JV.resp, fallas: JV.fallas });
+    if(r.bloqueo && r.bloqueo.length){ JV.vista = "bloqueo"; JV.bloqueo = r.bloqueo; JV.bloqueoEn = ahoraHM(); jvGuardar_(); pintarBloqueo_(); return; }
+    jvGuardar_(); abrirJornadaConRevision_();
+  }).withFailureHandler(function(){ toast("Sin señal: no se pudo guardar la revisión. Intenta de nuevo."); })
+    .api_guardarRevision(PIN, { revisionId: JV.revLocal, vehiculo: FLOTA.vehiculo, momento: "salida", km: num(JV.km),
+                                tanque: JV.tanque, items: items, fallas: fallas, confirmaciones: conf });
+}
+function abrirJornadaConRevision_(){
+  var veh = FLOTA.vehiculo, km = num(JV.km), hora = ahoraHM();
+  toast("Iniciando la jornada…");
+  google.script.run.withSuccessHandler(function(r){
+    if(r && r.bloqueado){ JV.vista = "bloqueo"; JV.bloqueo = r.bloqueo; JV.bloqueoEn = JV.bloqueoEn || ahoraHM(); jvGuardar_(); pintarBloqueo_(); return; }
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo iniciar"); return; }
+    RUTA.vehiculo = veh; guardarLocal(K_PAR, RUTA);
+    JORNADA = { jornadaId: r.jornadaId, kmInicio: km, horaInicio: hora, vehiculo: veh, fecha: RUTA.fecha || hoyISO(),
+                tanque: JV.tanque, revisionId: JV.revisionId, cerrada: false };
+    guardarLocal(K_JOR, JORNADA);
+    JV = jvNuevo_(veh); JV.vista = "tablero"; jvGuardar_();
+    if(r.aviso) toast(r.aviso); else toast("Jornada iniciada ✓ · buen viaje");
+    renderJornada();
+  }).withFailureHandler(function(){ toast("Sin señal: no se pudo iniciar la jornada"); })
+    .api_abrirJornada(PIN, { kmInicio: km, vehiculo: veh, fecha: RUTA.fecha || hoyISO(), horaInicio: hora,
+                             tanque: JV.tanque, revisionId: JV.revisionId });
+}
+
+/* ── SALIDA BLOQUEADA ── */
+function pintarBloqueo_(){
+  var caja = $("caja-jornada"); if(!caja) return;
+  var b = JV.bloqueo || [], f0 = b[0] || {}, veh = JV.veh || (FLOTA && FLOTA.vehiculo) || "";
+  var otros = (FLOTA ? FLOTA.vehiculos : []).filter(function(v){ return v.placa !== veh; });
+  var propias = b.filter(function(f){ return f.conductor.trim().toLowerCase() === String(USUARIO.nombre || "").trim().toLowerCase() && f.fecha === hoyISO(); });
+  caja.innerHTML =
+    '<div class="jv-aviso rj"><b style="font-size:14px;display:block;margin-bottom:3px">⛔ No puedes iniciar con ' + esc(veh) + '</b>' +
+      b.map(function(f){ return '<b>' + esc(f.punto) + '</b>' + (f.que ? ' · ' + esc(f.que) : ''); }).join('<br>') +
+      '<br>Se marcó que no es seguro salir. Logística ya recibió el aviso.</div>' +
+    '<div class="jv-card"><div class="jv-tit">¿Qué hacemos?</div><div class="jv-acc" style="grid-template-columns:1fr;margin:0">' +
+      (otros.length ? '<button onclick="otroCamion_()"><span class="ic">🚚</span>Usar otro camión<small>' + esc(otros.map(function(v){ return v.placa; }).join(" o ")) + ' · se hace la revisión de ese camión</small></button>' : '') +
+      '<button onclick="revisarAutorizacion_()"><span class="ic">✅</span>Esperar autorización<small>Toca para ver si logística ya autorizó. Si autoriza, la jornada se inicia con este camión y queda anotado quién autorizó.</small></button>' +
+      (propias.length ? '<button onclick="meEquivoque_()"><span class="ic">↩</span>Me equivoqué<small>Se anula lo que marqué y vuelvo a la revisión</small></button>' : '') +
+    '</div></div>' +
+    '<div class="jv-card"><div class="jv-tit">Estado del aviso</div>' +
+      '<div class="jv-fila"><b>Enviado a logística</b><span>' + esc(JV.bloqueoEn || f0.hora || "") + ' ✓</span></div>' +
+      '<div class="jv-fila"><b>Respuesta</b><span id="jv-resp" style="color:#8A6300">esperando…</span></div></div>';
+  clearInterval(JV_POLL);
+  JV_POLL = setInterval(function(){
+    if(document.visibilityState !== "visible" || !$("pantalla-jornada").classList.contains("activa") || JV.vista !== "bloqueo"){ return; }
+    revisarAutorizacion_(true);
+  }, 45000);
+}
+function revisarAutorizacion_(callado){
+  var veh = JV.veh || FLOTA.vehiculo;
+  if(!callado) toast("Consultando…");
+  cargarFlota_(veh, function(r){
+    if(r.bloqueo && r.bloqueo.length){
+      var t = $("jv-resp"); if(t) t.textContent = "esperando… (" + ahoraHM() + ")";
+      if(!callado) toast("Todavía no hay autorización");
+      return;
+    }
+    clearInterval(JV_POLL);
+    var aut = (r.fallas || []).filter(function(f){ return f.autorizadaPor; })[0];
+    toast(aut ? "Autorizado por " + aut.autorizadaPor.split(" ")[0] + " ✓" : "El camión ya no está bloqueado ✓");
+    JV.vista = "salida"; JV.bloqueo = null; jvGuardar_();
+    abrirJornadaConRevision_();
+  });
+}
+function otroCamion_(){
+  clearInterval(JV_POLL);
+  var otros = FLOTA.vehiculos.filter(function(v){ return v.placa !== (JV.veh || FLOTA.vehiculo); });
+  JV = jvNuevo_(otros[0].placa); jvGuardar_();
+  $("caja-jornada").innerHTML = '<div class="vacio">Consultando ' + esc(otros[0].placa) + '…</div>';
+  cargarFlota_(otros[0].placa, function(){ pintarAntesDeSalir_(); });
+}
+function meEquivoque_(){
+  var mias = (JV.bloqueo || []).filter(function(f){ return f.fecha === hoyISO(); });
+  var n = mias.length; if(!n) return;
+  clearInterval(JV_POLL);
+  mias.forEach(function(f){
+    google.script.run.withSuccessHandler(function(){
+      if(--n > 0) return;
+      mias.forEach(function(x){ if(x.puntoId){ delete JV.resp[x.puntoId]; delete JV.fallas[x.puntoId]; } });
+      JV.vista = "salida"; JV.revisionId = ""; JV.revLocal = ""; JV.bloqueo = null; jvGuardar_();
+      toast("Listo · corrige la revisión"); renderJornada();
+    }).withFailureHandler(function(){ toast("Sin señal"); }).api_decidirFalla(PIN, f.fallaId, "anular", "el conductor se equivocó al marcar");
+  });
+}
+
+/* ── JORNADA EN CURSO ── */
+function pintarTableroJornada_(){
+  var caja = $("caja-jornada"); if(!caja || !JORNADA) return;
+  var F = FLOTA && FLOTA_VEH === JORNADA.vehiculo ? FLOTA : null;
+  var P = (RUTA && RUTA.paradas) || [], hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length;
+  var hoyC = F ? F.cargas.filter(function(c){ return c.fecha === hoyISO(); }) : [];
+  var kmMax = hoyC.reduce(function(m, c){ return Math.max(m, num(c.km)); }, 0);
+  var kmHoy = kmMax > num(JORNADA.kmInicio) ? kmMax - num(JORNADA.kmInicio) : null;
+  var mi = minDe_(JORNADA.horaInicio), enRuta = (mi !== null && JORNADA.fecha === hoyISO()) ? duracion_(ahoraMin_() - mi) : "—";
+  var veh = F ? F.vehiculos.filter(function(v){ return v.placa === JORNADA.vehiculo; })[0] : null;
+  var ab = F ? F.fallas : [];
+  var est = !JORNADA.revisionId ? '<div class="jv-est am">Esta jornada se abrió sin revisión del camión.</div>'
+          : ab.length ? '<div class="jv-est am">✓ Revisión hecha · ' + ab.length + ' falla(s) abierta(s): ' + esc(ab.map(function(f){ return f.punto + (f.donde ? " (" + f.donde + ")" : ""); }).slice(0, 2).join("; ")) + '</div>'
+          : '<div class="jv-est">✓ Revisión hecha · sin fallas abiertas</div>';
+  var cargas = F && F.cargas.length ? F.cargas.slice(0, 3).map(function(c){
+      return '<div class="jv-fila"><b>' + esc(nombreDia_(c.fecha)) + ' · ' + esc(c.estacion.replace(/^Delta /, "")) + '</b><span>' + num(c.litros).toFixed(1) + ' L · ' + B_(c.monto) + '</span></div>';
+    }).join("") : '<div class="jv-ay">Todavía no hay cargas de este camión.</div>';
+  var plan = F && F.plan && F.plan.length ? '<div class="jv-card"><div class="jv-tit">🔧 Estado del camión</div>' + F.plan.map(function(t){
+      var txt = t.faltanKm !== null && (t.faltanDias === null || t.faltanKm / 50 <= t.faltanDias)
+        ? (t.faltanKm < 0 ? '<span style="color:var(--eco-rojo)">pasado por ' + nMiles_(-t.faltanKm) + ' km</span>' : 'faltan ' + nMiles_(t.faltanKm) + ' km')
+        : (t.faltanDias < 0 ? '<span style="color:var(--eco-rojo)">venció hace ' + (-t.faltanDias) + ' días</span>'
+           : (t.faltanDias <= 30 ? '<span style="color:#8A6300">vence ' + esc(nombreDia_(t.vence)) + ' ⚠</span>' : 'vence ' + esc(nombreDia_(t.vence))));
+      return '<div class="jv-fila"><b>' + esc(t.tarea) + '</b><span>' + txt + '</span></div>';
+    }).join("") + '</div>' : '';
+  caja.innerHTML =
+    '<div class="jv-hero"><div class="et">Jornada en curso · ' + esc(nombreDia_(JORNADA.fecha || hoyISO())) + '</div>' +
+      '<div class="t1">' + esc(JORNADA.vehiculo) + (veh && veh.marca ? ' · ' + esc(veh.marca) : '') + '</div>' +
+      '<div class="t2">Salió ' + esc(hora12_(JORNADA.horaInicio)) + ' · ' + nMiles_(JORNADA.kmInicio) + ' km' + (JORNADA.tanque ? ' · tanque ' + tanqueTxt_(JORNADA.tanque) : '') + '</div>' +
+      '<div class="jv-kp"><div><b>' + (kmHoy === null ? '—' : nMiles_(kmHoy)) + '</b><span>km hoy</span></div>' +
+        '<div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + enRuta + '</b><span>en ruta</span></div></div>' + est + '</div>' +
+    '<div class="jv-acc"><button onclick="abrirHojaCombustible_()"><span class="ic">⛽</span>Cargar combustible<small>Litros, monto y km</small></button>' +
+      '<button onclick="abrirHojaFalla_(null,null,\'ruta\')"><span class="ic">🔧</span>Reportar falla<small>Algo que salió en ruta</small></button>' +
+      '<button onclick="verMiRevision_()"><span class="ic">📋</span>Ver mi revisión<small>La de esta mañana</small></button>' +
+      '<button onclick="irACierre_()"><span class="ic">🏁</span>Cerrar jornada<small>Odómetro final</small></button></div>' +
+    '<div class="jv-card"><div class="jv-tit">⛽ Combustible de ' + esc(JORNADA.vehiculo) + '<span class="r">últimas cargas</span></div>' + cargas +
+      (F ? '<div class="jv-fila"><b>Rendimiento</b><span style="color:var(--eco-verde)">' + (F.rendimiento ? F.rendimiento + ' km/L' : '—') + '</span></div>' +
+           '<div class="jv-fila"><b>Últimos 7 días</b><span>' + num(F.litrosSemana).toFixed(1) + ' L · ' + B_(F.gastoSemana) + '</span></div>' : '') + '</div>' +
+    plan;
+}
+function verMiRevision_(){
+  var R = leerLocal(K_REVHOY, null), v = velo_("hoja-rev");
+  var cuerpo;
+  if(!R || R.fecha !== hoyISO() || R.vehiculo !== JORNADA.vehiculo)
+    cuerpo = '<div class="jv-ay" style="text-align:center;margin:14px 0">La revisión de hoy se hizo en otro teléfono o con otro camión.<br>Logística la tiene guardada.</div>';
+  else {
+    var g = "";
+    cuerpo = R.lista.map(function(p){
+      var s = R.resp[p.puntoId], f = R.fallas[p.puntoId], h = "";
+      if(p.grupo !== g){ g = p.grupo; h += '<div class="jv-gr">' + esc(g) + '</div>'; }
+      return h + '<div class="jv-fila"><b style="font-weight:700">' + esc(p.punto) + '</b><span style="color:' + (s === "m" ? 'var(--eco-rojo)' : 'var(--eco-verde)') + '">' +
+        (s === "m" ? '✗ ' + esc((f && f.que) || "falla") : '✓') + '</span></div>';
+    }).join("");
+  }
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()"><h3>📋 Mi revisión</h3><div class="sub">' +
+    esc(JORNADA.vehiculo) + (R && R.fecha === hoyISO() ? ' · ' + esc(R.hora) : '') + '</div>' + cuerpo +
+    '<button class="jv-btn sec" style="margin-top:14px" onclick="$(\'hoja-rev\').classList.remove(\'ver\')">Cerrar</button></div>';
+  v.classList.add("ver"); v.onclick = function(){ v.classList.remove("ver"); };
+}
+function enviarFallaRuta_(f){
+  toast("Enviando la falla…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo enviar"); return; }
+    toast(f.puedeSalir === "no" ? "Falla enviada · logística ya tiene el aviso" : "Falla enviada a mantenimiento ✓");
+    cargarFlota_(JORNADA.vehiculo, pintarTableroJornada_);
+  }).withFailureHandler(function(){ toast("Sin señal: no se envió la falla"); })
+    .api_guardarRevision(PIN, { revisionId: "REV" + Date.now().toString(36).toUpperCase(), vehiculo: JORNADA.vehiculo, momento: "ruta",
+                                jornadaId: JORNADA.jornadaId, items: [], fallas: [f] });
+}
+
+/* ── HOJA DE COMBUSTIBLE (en litros) ── */
+function abrirHojaCombustible_(){
+  var ult = leerLocal(K_ULT_EST, "");
+  HC = { veh: JORNADA.vehiculo, est: ult || ESTACIONES[0], litros: "", monto: "", km: "", foto: "", cambiar: false };
+  pintarHojaCombustible_();
+}
+function pintarHojaCombustible_(){
+  var v = velo_("hoja-comb");
+  var ult = leerLocal(K_ULT_EST, "");
+  var est = ESTACIONES.slice().sort(function(a, b){ return (b === ult) - (a === ult); });
+  var precio = num(HC.litros) > 0 && num(HC.monto) > 0 ? B_(num(HC.monto) / num(HC.litros)) : "—";
+  var d = num(HC.km) - num(JORNADA.kmInicio);
+  var odo = !(num(HC.km) > 0) ? { c: "", t: "Salida " + nMiles_(JORNADA.kmInicio) + " km" }
+          : d < 0 ? { c: "mal", t: "Es menor que el de salida (" + nMiles_(JORNADA.kmInicio) + " km)" }
+          : { c: "bien", t: "✓ Salida " + nMiles_(JORNADA.kmInicio) + " · +" + nMiles_(d) + " km hoy" };
+  var listo = num(HC.litros) > 0 && num(HC.km) > 0 && d >= 0 && HC.est;
+  var vehs = (FLOTA ? FLOTA.vehiculos : [{ placa: HC.veh }]);
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()"><h3>⛽ Cargar combustible</h3><div class="sub">Maxiflota Delta · ' + esc(nombreDia_(hoyISO())) + ' · ' + ahoraHM() + '</div><div style="height:12px"></div>' +
+    '<label class="jv-lab">Vehículo</label>' +
+    (HC.cambiar ? '<select class="jv-in" onchange="HC.veh=this.value;HC.cambiar=false;pintarHojaCombustible_()">' + vehs.map(function(x){ return '<option' + (x.placa === HC.veh ? ' selected' : '') + '>' + esc(x.placa) + '</option>'; }).join("") + '</select>'
+               : '<div class="jv-calc" style="margin-top:0"><b>' + esc(HC.veh) + (HC.veh === JORNADA.vehiculo ? ' · el de tu jornada' : '') + '</b><a href="#" onclick="HC.cambiar=true;pintarHojaCombustible_();return false" style="color:var(--eco-azul);font-weight:900">Cambiar</a></div>') +
+    '<label class="jv-lab">Estación Delta</label><div class="jv-chips">' + est.map(function(e){ return '<button class="' + (HC.est === e ? "on" : "") + '" onclick="HC.est=\'' + e + '\';pintarHojaCombustible_()">' + esc(e.replace(/^Delta /, "")) + '</button>'; }).join("") + '</div>' +
+    '<div class="fila" style="margin:0"><div><label class="jv-lab">Litros</label><input class="jv-in" id="hc-l" inputmode="decimal" value="' + esc(HC.litros) + '" placeholder="0.0 L" oninput="HC.litros=this.value;calcComb_()"></div>' +
+      '<div><label class="jv-lab">Monto B/.</label><input class="jv-in" id="hc-m" inputmode="decimal" value="' + esc(HC.monto) + '" placeholder="0.00" oninput="HC.monto=this.value;calcComb_()"></div></div>' +
+    '<div class="jv-calc" style="margin-top:-4px"><span>Precio por litro</span><b id="hc-precio">' + precio + '</b></div>' +
+    '<label class="jv-lab">Odómetro al cargar</label><div class="jv-odo"><input id="hc-k" inputmode="numeric" value="' + esc(HC.km) + '" placeholder="Kilometraje" oninput="HC.km=this.value.replace(/[^0-9]/g,\'\');calcComb_()"><span>km</span></div>' +
+    '<div class="jv-ay ' + odo.c + '" id="hc-odo">' + esc(odo.t) + '</div><div style="height:10px"></div>' +
+    (FOTOS_ACTIVAS ? '<label class="jv-foto">' + (HC.foto ? '📷 Foto del voucher lista' : '📷 Foto del voucher Maxiflota (opcional)') +
+       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HC.foto=d;pintarHojaCombustible_();})"></label>' : '') +
+    '<div class="jv-hpie"><button class="jv-btn sec" style="flex:1" onclick="$(\'hoja-comb\').classList.remove(\'ver\')">Cancelar</button>' +
+      '<button class="jv-btn azul" id="hc-ok" style="flex:1.4"' + (listo ? '' : ' disabled') + ' onclick="guardarCargaComb_()">Guardar carga</button></div></div>';
+  v.classList.add("ver"); v.onclick = function(){ v.classList.remove("ver"); };
+  calcComb_();
+}
+function calcComb_(){
+  var p = $("hc-precio"); if(p) p.textContent = num(HC.litros) > 0 && num(HC.monto) > 0 ? B_(num(HC.monto) / num(HC.litros)) : "—";
+  var d = num(HC.km) - num(JORNADA.kmInicio), o = $("hc-odo");
+  if(o){
+    if(!(num(HC.km) > 0)){ o.className = "jv-ay"; o.textContent = "Salida " + nMiles_(JORNADA.kmInicio) + " km"; }
+    else if(d < 0){ o.className = "jv-ay mal"; o.textContent = "Es menor que el de salida (" + nMiles_(JORNADA.kmInicio) + " km)"; }
+    else { o.className = "jv-ay bien"; o.textContent = "✓ Salida " + nMiles_(JORNADA.kmInicio) + " · +" + nMiles_(d) + " km hoy"; }
+  }
+  var ok = num(HC.litros) > 0 && num(HC.km) > 0 && d >= 0 && HC.est;
+  var b = $("hc-ok"); if(b){ b.disabled = !ok; b.className = "jv-btn " + (ok ? "azul" : "gris"); }
+}
+function guardarCargaComb_(){
+  var d = { litros: num(HC.litros), monto: num(HC.monto), kilometraje: num(HC.km), estacion: HC.est, vehiculo: HC.veh,
+            fecha: hoyISO(), hora: ahoraHM(), foto: FOTOS_ACTIVAS ? HC.foto : "" };
+  guardarLocal(K_ULT_EST, HC.est);
+  $("hoja-comb").classList.remove("ver");
+  toast("Guardando la carga…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    toast("Carga guardada ✓" + (r.rendimiento ? " · " + r.rendimiento + " km/L desde la anterior" : ""));
+    cargarFlota_(JORNADA.vehiculo, pintarTableroJornada_);
+  }).withFailureHandler(function(){ toast("Sin señal: no se guardó la carga"); })
+    .api_guardarCombustible(PIN, d);
+}
+
+/* ── CERRAR JORNADA ── */
+function irACierre_(){ JV.vista = "cierre"; JV.km = ""; JV.tanque = ""; JV.resp = {}; JV.fallas = {}; JV.revLocal = ""; JV.revisionId = ""; jvGuardar_(); pintarCierre_(); document.querySelector("main").scrollTop = 0; }
+function puntosCierre_(){ return FLOTA ? FLOTA.lista.filter(function(p){ return p.momento === "cierre"; }) : []; }
+function pintarCierre_(){
+  var caja = $("caja-jornada"); if(!caja || !JORNADA) return;
+  var P = puntosCierre_(), hechos = P.filter(function(p){ return JV.resp[p.puntoId]; }).length;
+  var d = num(JV.km) - num(JORNADA.kmInicio);
+  var odo = !(num(JV.km) > 0) ? { c: "", t: "Salió con " + nMiles_(JORNADA.kmInicio) + " km" }
+          : d < 0 ? { c: "mal", t: "Es menor que el de salida (" + nMiles_(JORNADA.kmInicio) + " km)" }
+          : d > 600 ? { c: "ojo", t: nMiles_(d) + " km en un día: ¿está bien el número?" }
+          : { c: "bien", t: "Recorrido de hoy: " + nMiles_(d) + " km" };
+  var R = (RUTA && RUTA.paradas) || [], hechas = R.filter(function(p){ return p.estadoParada === "completada"; }).length;
+  var kg = R.reduce(function(s, p){ return s + (p.estadoParada === "completada" ? num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo) : 0); }, 0);
+  var cargasHoy = FLOTA ? FLOTA.cargas.filter(function(c){ return c.fecha === hoyISO(); }).length : 0;
+  var nuevas = Object.keys(JV.fallas).length;
+  var tq = TANQUES.map(function(t){ return '<button class="' + (JV.tanque === t[0] ? "on" : "") + '" onclick="JV.tanque=\'' + t[0] + '\';jvGuardar_();pintarCierre_()">' + t[1] + '</button>'; }).join("");
+  var falta = !(num(JV.km) > 0) ? "Escribe el odómetro final" : d < 0 ? "Revisa el odómetro final" : !JV.tanque ? "Marca el tanque al llegar"
+            : hechos < P.length ? (P.length - hechos === 1 ? "Falta 1 punto para cerrar" : "Faltan " + (P.length - hechos) + " puntos para cerrar") : "";
+  caja.innerHTML =
+    '<button class="btn sec mini" style="margin-bottom:10px" onclick="JV.vista=\'tablero\';jvGuardar_();pintarTableroJornada_()">← Volver a la jornada</button>' +
+    '<div class="jv-card"><div class="jv-tit"><span class="n">1</span>Odómetro y tanque<span class="r">' + ahoraHM() + '</span></div>' +
+      '<label class="jv-lab">Odómetro final</label><div class="jv-odo"><input id="jv-kmf" inputmode="numeric" placeholder="Kilometraje" value="' + esc(JV.km) + '" oninput="JV.km=this.value.replace(/[^0-9]/g,\'\');jvGuardar_()" onblur="pintarCierre_()"><span>km</span></div>' +
+      '<div class="jv-ay ' + odo.c + '">' + esc(odo.t) + '</div>' +
+      '<label class="jv-lab" style="margin-top:11px">Tanque al llegar</label><div class="jv-tq">' + tq + '</div></div>' +
+    '<div class="jv-card"><div class="jv-tit"><span class="n' + (hechos >= P.length ? " ok" : "") + '">' + (hechos >= P.length ? "✓" : "2") + '</span>Revisión de cierre<span class="r">' + hechos + ' de ' + P.length + '</span></div>' +
+      listaAgrupada_(P, FLOTA ? FLOTA.fallas : []) + '</div>' +
+    '<div class="jv-card"><div class="jv-tit"><span class="n">3</span>Resumen del día</div><div class="jv-res">' +
+      '<div><b>' + hechas + '/' + R.length + '</b><span>paradas</span></div><div><b>' + (Math.round(kg * 10) / 10) + '</b><span>kg</span></div>' +
+      '<div><b>' + cargasHoy + '</b><span>cargas comb.</span></div><div><b>' + nuevas + '</b><span>fallas nuevas</span></div></div></div>' +
+    '<div class="jv-pie">' + (falta ? '<button class="jv-btn gris" disabled>' + falta + '</button>' : '<button class="jv-btn" onclick="cerrarJornadaConRevision_()">🏁 Cerrar jornada</button>') + '</div>';
+}
+function cerrarJornadaConRevision_(){
+  var kmF = num(JV.km);
+  if(!(kmF >= num(JORNADA.kmInicio))){ toast("Revisa el odómetro final"); return; }
+  if(!JV.revLocal){ JV.revLocal = "REV" + Date.now().toString(36).toUpperCase(); jvGuardar_(); }
+  var R = (RUTA && RUTA.paradas) || [];
+  var kg = R.reduce(function(s, p){ return s + (p.estadoParada === "completada" ? num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo) : 0); }, 0);
+  var hechas = R.filter(function(p){ return p.estadoParada === "completada"; }).length;
+  var fallas = Object.keys(JV.fallas).map(function(k){ return JV.fallas[k]; });
+  toast("Cerrando la jornada…");
+  var cerrar = function(revId){
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo cerrar"); return; }
+      JORNADA.cerrada = true; JORNADA.kmFinal = kmF; JORNADA.horaFinal = ahoraHM(); guardarLocal(K_JOR, JORNADA);
+      JV = jvNuevo_(JORNADA.vehiculo); JV.vista = "cerrada";
+      JV.resumen = { vehiculo: JORNADA.vehiculo, fecha: JORNADA.fecha, salio: JORNADA.horaInicio, llego: JORNADA.horaFinal,
+                     km: r.kmRecorridos, paradas: hechas + "/" + R.length, kg: Math.round(kg * 10) / 10, fallas: fallas.length };
+      jvGuardar_(); toast("Jornada cerrada ✓"); pintarJornadaCerrada_();
+    }).withFailureHandler(function(){ toast("Sin señal: no se cerró la jornada"); })
+      .api_cerrarJornada(PIN, { jornadaId: JORNADA.jornadaId, kmFinal: kmF, horaFinal: ahoraHM(), paradas: hechas,
+                                totalKg: Math.round(kg * 10) / 10, tanque: JV.tanque, revisionId: revId });
+  };
+  if(JV.revisionId){ cerrar(JV.revisionId); return; }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar la revisión"); return; }
+    JV.revisionId = r.revisionId; jvGuardar_(); cerrar(r.revisionId);
+  }).withFailureHandler(function(){ toast("Sin señal: no se pudo cerrar"); })
+    .api_guardarRevision(PIN, { revisionId: JV.revLocal, vehiculo: JORNADA.vehiculo, momento: "cierre", jornadaId: JORNADA.jornadaId,
+                                km: kmF, tanque: JV.tanque, items: itemsDe_(puntosCierre_()), fallas: fallas, confirmaciones: [] });
+}
+function pintarJornadaCerrada_(){
+  var caja = $("caja-jornada"), s = JV.resumen; if(!caja || !s) return;
+  caja.innerHTML = '<div class="jv-hero" style="background:linear-gradient(140deg,#1F4A06,var(--eco-verde))"><div class="et">Jornada cerrada · ' + esc(nombreDia_(s.fecha)) + '</div>' +
+      '<div class="t1">' + esc(s.vehiculo) + ' · ' + nMiles_(s.km) + ' km</div><div class="t2">Salió ' + esc(hora12_(s.salio)) + ' · llegó ' + esc(hora12_(s.llego)) + '</div>' +
+      '<div class="jv-kp"><div><b>' + esc(s.paradas) + '</b><span>paradas</span></div><div><b>' + s.kg + '</b><span>kg</span></div><div><b>' + s.fallas + '</b><span>fallas nuevas</span></div></div></div>' +
+    '<div class="jv-aviso az">Gracias. La revisión de cierre quedó guardada para mantenimiento.</div>' +
+    '<button class="jv-btn sec" onclick="JV=jvNuevo_(\'' + esc(s.vehiculo) + '\');jvGuardar_();renderJornada()">Iniciar otra jornada</button>';
+}
+
+/* ══════════════ FALLAS DE LA FLOTA (logística) ══════════════ */
+var FF = null, FF_T = 0;
+function cargarFallasFlota_(){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ var c = $("fallas-flota"); if(c) c.innerHTML = ""; return; }
+    FF = r; FF_T = Date.now(); pintarFallasFlota_(); pintarAvisoFallasHub_();
+  }).withFailureHandler(function(){}).api_fallasFlota(PIN);
+}
+function diasDesde_(f){ return Math.max(0, Math.round((new Date(hoyISO() + "T12:00:00") - new Date(f + "T12:00:00")) / 86400000)); }
+function pintarFallasFlota_(){
+  var c = $("fallas-flota"); if(!c || !FF) return;
+  var tarjeta = function(f){
+    var dias = diasDesde_(f.fecha);
+    var clase = f.bloquea ? "rj" : (f.estado === "por confirmar" ? "vd" : (f.estado === "en taller" ? "az" : ""));
+    var tag = f.bloquea ? '<span class="ff-tag r">NO PUEDE SALIR</span>'
+            : f.estado === "por confirmar" ? '<span class="ff-tag v">CONDUCTOR: YA ESTÁ BIEN</span>'
+            : f.estado === "en taller" ? '<span class="ff-tag g">EN TALLER</span>'
+            : '<span class="ff-tag a">' + (dias ? dias + ' DÍA' + (dias > 1 ? 'S' : '') : 'HOY') + (f.veces > 1 ? ' · ' + f.veces + ' REVISIONES' : '') + '</span>';
+    var bt = !FF.puedeDecidir ? ''
+      : f.bloquea ? '<button class="p" onclick="decidirFalla_(\'' + f.fallaId + '\',\'autorizar\')">Autorizar salida</button><button onclick="decidirFalla_(\'' + f.fallaId + '\',\'taller\')">Mandar a taller</button>'
+      : f.estado === "por confirmar" ? '<button class="p" onclick="decidirFalla_(\'' + f.fallaId + '\',\'resuelta\')">Confirmar resuelta</button><button onclick="decidirFalla_(\'' + f.fallaId + '\',\'abierta\')">Sigue abierta</button>'
+      : f.estado === "en taller" ? '<button class="p" onclick="decidirFalla_(\'' + f.fallaId + '\',\'resuelta\')">Ya está reparada</button>'
+      : '<button onclick="decidirFalla_(\'' + f.fallaId + '\',\'taller\')">Mandar a taller</button><button class="p" onclick="decidirFalla_(\'' + f.fallaId + '\',\'resuelta\')">Resuelta</button>';
+    return '<div class="ff-card ' + clase + '"><div class="ff-l1"><span>' + esc(f.vehiculo) + ' · ' + esc(dias ? nombreDia_(f.fecha) : 'hoy ' + f.hora) + ' · ' + esc(f.conductor.split(" ")[0]) + '</span>' + tag + '</div>' +
+      '<div class="ff-l2">' + esc(f.punto) + (f.donde ? ' · ' + esc(f.donde) : '') + '</div>' +
+      '<div class="ff-l3">' + esc([f.que, f.nota ? '“' + f.nota + '”' : '', f.bloquea ? '' : (f.puedeSalir === "si" ? 'puede salir' : ''), f.autorizadaPor ? 'salida autorizada por ' + f.autorizadaPor.split(" ")[0] : ''].filter(Boolean).join(" · ")) + '</div>' +
+      (bt ? '<div class="ff-bt">' + bt + '</div>' : '') + '</div>';
+  };
+  var F = FF.fallas, crit = F.filter(function(f){ return f.bloquea; }), resto = F.filter(function(f){ return !f.bloquea; });
+  var rev = FF.flota.map(function(v){
+    var r = v.revision;
+    return '<div class="jv-fila"><b>' + esc(v.vehiculo) + (r ? ' · ' + esc(r.conductor.split(" ")[0]) : '') + '</b>' +
+      (v.bloqueado ? '<span style="color:var(--eco-rojo)">⛔ bloqueado' + (r ? ' · ' + esc(r.hora) : '') + '</span>'
+       : r ? '<span style="color:' + (r.fallas ? '#8A6300' : 'var(--eco-verde)') + '">✓ ' + esc(r.hora) + ' · ' + r.bien + '/' + r.puntos + '</span>'
+       : '<span>sin revisión hoy</span>') + '</div>';
+  }).join("");
+  c.innerHTML = (crit.length ? '<div class="ff-sec">Requiere tu decisión</div>' + crit.map(tarjeta).join("") : '') +
+    '<div class="ff-sec">Fallas abiertas' + (resto.length ? ' · ' + resto.length : '') + '</div>' +
+    (resto.length ? resto.map(tarjeta).join("") : '<div class="jv-card" style="font-size:12.5px;color:var(--gris)">No hay fallas abiertas en la flota.</div>') +
+    '<div class="jv-card"><div class="jv-tit">📋 Revisiones de hoy</div>' + rev + '</div>';
+}
+function decidirFalla_(id, acc){
+  var f = (FF.fallas || []).filter(function(x){ return x.fallaId === id; })[0] || {};
+  var t = { autorizar: ["Autorizar la salida", "✅", "Autorizar", "<b>" + esc(f.vehiculo) + "</b> podrá salir con esta falla: <b>" + esc(f.punto) + "</b>" + (f.que ? " · " + esc(f.que) : "") + ".<br><br>Queda anotado que tú autorizaste."],
+            taller: ["Mandar a taller", "🔧", "Mandar a taller", "<b>" + esc(f.vehiculo) + "</b> · " + esc(f.punto) + ".<br>La falla queda «en taller» hasta que la des por reparada."],
+            resuelta: ["Dar por resuelta", "✓", "Sí, resuelta", "<b>" + esc(f.vehiculo) + "</b> · " + esc(f.punto) + ".<br>La falla se cierra y el conductor deja de verla."],
+            abierta: ["Sigue abierta", "!", "Dejar abierta", "El conductor dijo que ya está bien. Si no es así, la falla vuelve a quedar abierta."] }[acc];
+  preguntar({ titulo: t[0], icono: t[1], boton: t[2], texto: t[3], escribirLibre: "Nota (opcional)",
+    alAceptar: function(){
+      var nota = (($("dlg-input") || {}).value || "").trim();
+      toast("Guardando…");
+      google.script.run.withSuccessHandler(function(r){
+        if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+        toast({ autorizar: "Salida autorizada ✓", taller: "Enviada a taller ✓", resuelta: "Falla cerrada ✓", abierta: "Falla abierta" }[acc]);
+        cargarFallasFlota_();
+      }).withFailureHandler(function(){ toast("Sin señal"); }).api_decidirFalla(PIN, id, acc, nota);
+    } });
+}
+/* En el menú de logística: si un camión no puede salir, se ve de entrada. */
+function avisoFallasHub_(forzar){
+  if(!esSupervisor() || !PIN) return;
+  if(!forzar && Date.now() - FF_T < 60000){ pintarAvisoFallasHub_(); return; }
+  cargarFallasFlota_();
+}
+function pintarAvisoFallasHub_(){
+  var a = $("hub-fallas"); if(!a) return;
+  if(!esSupervisor() || !FF){ a.innerHTML = ""; return; }
+  var crit = FF.fallas.filter(function(f){ return f.bloquea; });
+  var porConf = FF.fallas.filter(function(f){ return f.estado === "por confirmar"; });
+  if(crit.length){
+    a.innerHTML = '<div class="hub-fallas" onclick="mostrarTab(\'jornada\')"><span class="ic">⛔</span><div class="tx"><b>' + esc(crit[0].vehiculo) + ' no puede salir</b> · ' + esc(crit[0].punto) +
+      (crit.length > 1 ? ' (y ' + (crit.length - 1) + ' más)' : '') + '</div><span class="go">Decidir →</span></div>';
+  } else if(porConf.length){
+    a.innerHTML = '<div class="hub-fallas am" onclick="mostrarTab(\'jornada\')"><span class="ic">🔧</span><div class="tx">' + porConf.length + ' falla(s) de la flota esperan que confirmes si ya se resolvieron</div><span class="go">Ver →</span></div>';
+  } else a.innerHTML = "";
 }
 
 function generarFolioSugerido(){
@@ -3313,12 +4329,13 @@ var ok=new Set([].concat(r.guardados||[], r.duplicados||[]));
 COLA=COLA.filter(function(x){return !ok.has(x.registroId);});
 
 guardarLocal(K_COLA,COLA); pintarSync(); toast("Sincronizado con ECOVSA ✓");
+if(r.rutas){ RUTA_REFRESCO_T = Date.now(); aplicarRutaServidor_(r.rutas, RUTA.fecha); }
 
 }
 
 })
 
-.api_guardarLote(PIN,COLA);
+.api_guardarLote(PIN,COLA,(!esSupervisor() && RUTA && RUTA.rutaId) ? RUTA.fecha : "");
 
 }
 
@@ -3775,8 +4792,14 @@ google.script.run.withSuccessHandler(function(r){
 CAL_DATOS_RUTAS = {};
 
 if(r && r.ok && r.dias){ r.dias.forEach(function(d){ CAL_DATOS_RUTAS[d.fecha] = d; }); }
-
+if(!esSupervisor()){
+  iniciarVistas_();
+  /* el conductor abre en su día de hoy si tiene ruta */
+  if(!CAL_DIA_SELEC && CAL_DATOS_RUTAS[hoyISO()]) CAL_DIA_SELEC = hoyISO();
+}
 dibujarCuerpoCalendario();
+pintarAvisoNuevas_();
+if(CAL_DIA_SELEC && (CAL_DATOS_RUTAS[CAL_DIA_SELEC] || !esSupervisor())) mostrarDetalleDiaCal(CAL_DIA_SELEC);
 
 }).api_agenda(PIN, null, iso(dInicio), iso(dFin));
 
@@ -3815,7 +4838,8 @@ var fechaIso = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).p
 var celda = document.createElement("div");
 
 var _ir = CAL_DATOS_RUTAS[fechaIso];
-var _est = !_ir ? "" : ((_ir.completadas >= _ir.total && _ir.total > 0) ? " completo" : " con-ruta");
+var _st = estadoDiaCal_(_ir);
+var _est = _st ? " st-" + _st : "";
 celda.className = "cal-celda" + _est + (fechaIso === hoyStr ? " hoy-dia" : "") + (fechaIso === CAL_DIA_SELEC ? " seleccionado" : "");
 
 celda.dataset.fecha = fechaIso;
@@ -3823,11 +4847,7 @@ celda.dataset.fecha = fechaIso;
 var infoRuta = CAL_DATOS_RUTAS[fechaIso], badgeHtml = "";
 
 if(infoRuta){
-
-var lista = infoRuta.completadas >= infoRuta.total && infoRuta.total > 0;
-
-badgeHtml = '<div class="cal-badge ' + (lista ? "b-listo" : "b-pend") + '"><b>' + infoRuta.completadas + '/' + infoRuta.total + '</b></div>';
-
+badgeHtml = '<div class="cal-est">' + (_st === "nueva" ? "nueva" : infoRuta.completadas + '/' + infoRuta.total) + '</div>';
 }
 
 celda.innerHTML = '<div class="cal-num">' + d + '</div>' + badgeHtml;
@@ -3853,6 +4873,8 @@ celda.className += ' vacio'; celda.innerHTML = '<div class="cal-num">' + s + '</
 }
 
 function mostrarDetalleDiaCal(fechaIso){
+
+if(!esSupervisor()){ detalleDiaConductor_(fechaIso); return; }
 
 var cont = $("cal-detalle-dia"); if(!cont) return;
 
@@ -4011,104 +5033,6 @@ return '<div class="tarjeta mon-dia" style="margin-bottom:10px">'+
 }
 
 /* JORNADA & FLOTA */
-
-function renderJornada(){
-
-var caja=$("caja-jornada"); if(!caja)return;
-
-/* Josue registra su odómetro y su combustible; el supervisor no captura,
-   revisa. Por eso ve el cierre del mes en vez de los formularios. */
-if(esSupervisor()){
-  caja.innerHTML="";
-  document.querySelectorAll("#pantalla-jornada .tarjeta").forEach(function(t){
-    if(t.textContent.indexOf("Combustible")>=0) t.style.display="none";
-  });
-  cargarResumenFlota();
-  return;
-}
-var rf=$("resumen-flota"); if(rf) rf.innerHTML="";
-document.querySelectorAll("#pantalla-jornada .tarjeta").forEach(function(t){
-  if(t.textContent.indexOf("Combustible")>=0) t.style.display="";
-});
-
-
-var cond=RUTA.conductor||USUARIO.nombre||"";
-
-if(!JORNADA||JORNADA.cerrada){
-
-caja.innerHTML='<div class="jornada-card">'+
-
-'<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:.9">Registrar Inicio de Ruta</div>'+
-
-'<div style="margin:8px 0">'+
-
-'<label style="color:#fff;margin:0 0 3px">Seleccionar Vehículo</label>'+
-
-'<select id="jornada-vehiculo-sel" style="background:#fff;color:var(--eco-azul-osc);font-weight:800">'+
-
-'<option value="CU-7697">CU-7697 (Camión Blanco)</option>'+
-
-'<option value="CU-7662">CU-7662 (Camión Secundario)</option>'+
-
-'<option value="AX-2051">AX-2051 (Panel)</option>'+
-
-'<option value="OTRO">Otro Vehículo</option>'+
-
-'</select>'+
-
-'</div>'+
-
-'<div style="font-size:12px;opacity:.9">'+esc(cond)+' · '+esc(RUTA.fecha||hoyISO())+'</div>'+
-
-'<div class="km-input-box">'+
-
-'<input id="km-inicio" inputmode="numeric" placeholder="Odómetro Inicial (km)">'+
-
-'<button onclick="abrirJornada()">Iniciar</button>'+
-
-'</div>'+
-
-'</div>';
-
-return;
-
-}
-
-caja.innerHTML='<div class="jornada-card">'+
-
-'<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:.9">Ruta en Curso</div>'+
-
-'<div style="margin:6px 0">'+
-
-'<label style="color:#fff;margin:0 0 3px">Vehículo en uso</label>'+
-
-'<select id="jornada-vehiculo-sel" onchange="cambiarVehiculoJornada()" style="background:#fff;color:var(--eco-azul-osc);font-weight:800">'+
-
-['CU-7697','CU-7662','AX-2051','OTRO'].map(function(v){
-
-return '<option value="'+v+'"'+(JORNADA.vehiculo===v?' selected':'')+'>'+v+'</option>';
-
-}).join('')+
-
-'</select>'+
-
-'</div>'+
-
-'<div style="font-size:22px;font-weight:900;margin:4px 0">'+JORNADA.kmInicio+' km</div>'+
-
-'<div style="font-size:12px;opacity:.9">Iniciado a las '+esc(JORNADA.horaInicio)+'</div>'+
-
-'<div class="km-input-box">'+
-
-'<input id="km-final" inputmode="numeric" placeholder="Odómetro Final (km)">'+
-
-'<button onclick="cerrarJornada()">Registrar Fin</button>'+
-
-'</div>'+
-
-'</div>';
-
-}
 
 function abrirJornada(){
 
@@ -4612,6 +5536,8 @@ $("pantalla-"+tab).classList.add("activa");
 if(tab==="paradas") renderParadas();
 
 if(tab==="hub" && !esSupervisor()) pintarTablero();
+if(tab==="hub" || tab==="agenda" || tab==="paradas") refrescarRuta_(30000);
+if(tab==="hub" && esSupervisor()) avisoFallasHub_();
 if(tab==="clientes"){
   renderClientes();
   /* El botón de arriba se acuerda de por dónde se entró. Si fue desde el
@@ -4756,7 +5682,7 @@ function guardarEnHistorialRecibos(reg, c){
 function abrirReciboPublico(folio){
   toast("Abriendo el recibo…");
   conUrlApp(function(u){
-    window.open(u + "?p=recibo&id=" + encodeURIComponent(folio), "_blank");
+    window.open(u + "?p=recibo&id=" + encodeURIComponent(folio) + (esSupervisor() ? "" : "&conductor=1"), "_blank");
   });
 }
 
@@ -4769,7 +5695,7 @@ function verReciboEnPantalla(folio){
   $("mvr-frame").src = "about:blank";
   m.style.setProperty("display", "flex", "important");
   conUrlApp(function(u){
-    $("mvr-frame").src = u + "?p=recibo&id=" + encodeURIComponent(folio);
+    $("mvr-frame").src = u + "?p=recibo&id=" + encodeURIComponent(folio) + (esSupervisor() ? "" : "&conductor=1");
   });
 }
 
@@ -5731,7 +6657,9 @@ function pintarKgPlanta(s){
   if(!chip || !sub) return;
   var kg = Number(s && s.kgTotal) || 0;
   var n  = Number(s && s.registros) || 0;
-  if(!n){ chip.style.display = "none"; sub.textContent = "Disposición final"; return; }
+  var cond = !esSupervisor();
+  if(!n){ chip.style.display = "none"; sub.textContent = cond ? "Nada por entregar" : "Disposición final"; return; }
+  if(cond){ chip.style.display = "none"; sub.textContent = kg.toFixed(1) + " kg por entregar"; return; }
   chip.style.display = "";
   chip.textContent = kg.toFixed(0) + " kg";
   sub.textContent = n + (n===1 ? " visita sin acta" : " visitas sin acta");
