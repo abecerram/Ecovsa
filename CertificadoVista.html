@@ -150,7 +150,7 @@ function seguir(folio, clienteViejo){
   google.script.run
     .withSuccessHandler(function(r){
       if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el certificado.")); return; }
-      if(r.empresa) DATOS_EMP=r.empresa;
+      if(r.empresaDoc) DATOS_EMP=r.empresaDoc;
       pintar(r);
       $("aviso").style.display="none";
       $("app").style.display="block";
@@ -190,7 +190,7 @@ function pieEmpresa(){
 }
 
 function pintar(r){
-  var emp = r.empresa || {};
+  var emp = Object.assign(function(){ return DATOS_EMP || EMP_RESP; }, r.empresa || {});
   var per = r.periodo || {};
   var tot = r.totales || {};
   var actas = r.actasAsociadas || [];
