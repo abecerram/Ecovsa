@@ -40,7 +40,7 @@ height:44px;
 
 width:72px;
 
-background:#fff url("https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400") center/contain no-repeat;
+background:#fff url("logo-ecovsa.png") center/contain no-repeat;
 
 border-radius:8px;
 
@@ -1777,7 +1777,7 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 
 <div style="text-align:center;margin-bottom:20px">
 
-<div style="height:76px;width:120px;background:#fff url('https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400') center/contain no-repeat;border-radius:12px;padding:6px;margin:0 auto 12px;box-shadow:0 3px 10px rgba(0,0,0,.15)"></div>
+<div style="height:76px;width:120px;background:#fff url('logo-ecovsa.png') center/contain no-repeat;border-radius:12px;padding:6px;margin:0 auto 12px;box-shadow:0 3px 10px rgba(0,0,0,.15)"></div>
 
 <h1 style="color:var(--eco-verde);font-size:26px;font-weight:900;letter-spacing:1px;margin:0">Rutas ECOVSA</h1>
 
@@ -2716,11 +2716,11 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <div style="display:flex;align-items:center;gap:8px">
 
-<div style="height:44px;width:68px;background:#fff url('https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400') center/contain no-repeat;"></div>
+<div style="height:44px;width:68px;background:#fff url('logo-ecovsa.png') center/contain no-repeat;"></div>
 
 <div>
 
-<b style="font-size:12.5px;color:var(--eco-azul-osc);display:block">GRUPO ASOCISA / ECOVSA</b>
+<b style="font-size:12.5px;color:var(--eco-azul-osc);display:block">ECOVSA</b>
 
 <span style="font-size:8px;color:#555">Recolección, transporte y disposición final de desechos hospitalarios</span>
 
@@ -6792,6 +6792,46 @@ function avzVentana_(v){
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){ toast("No se guardó la ventana"); }).api_guardarConfigLogistica(PIN, { avisoVentana: n });
 }
 
+/* ════════════ Paquete 8 (api 2.7.1) ════════════
+   Un solo mensaje para el recibo del cliente: el botón «Enviar» de la parada
+   y los botones del recibo abierto mandan el mismo texto, con el enlace. El
+   del recibo abierto antes ponía un camión fijo si faltaba el dato y no
+   llevaba enlace; el correo buscaba un campo que no existe. */
+function textoReciboCliente_(p, c){
+  var kg = num(p.kgBolsas) + num(p.kgAnatomo) + num(p.kgPunzo);
+  return "Estimados " + ((c && c.nombre) || "") + ":\n\n" +
+    "Adjuntamos el comprobante de la recolección de desechos hospitalarios realizada el " + (RUTA.fecha || hoyISO()) + ".\n\n" +
+    "Recibo N° " + (p.recibo || "") + "\nTotal retirado: " + kg.toFixed(2) + " kg\n\n" +
+    "Puede consultarlo en cualquier momento aquí:\n" + enlaceReciboCliente_(p.recibo) + "\n\n" +
+    "Gracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+}
+function abrirReciboCliente_(p, c, canal){
+  var txt = textoReciboCliente_(p, c);
+  if(canal === "whatsapp"){
+    var n = telWhatsDe_(c);
+    window.open(n ? "https://wa.me/" + n + "?text=" + encodeURIComponent(txt) : "https://api.whatsapp.com/send?text=" + encodeURIComponent(txt), "_blank");
+  } else {
+    window.open("mailto:" + encodeURIComponent((c && (c.correo || c.email)) || "") + "?subject=" +
+      encodeURIComponent("Comprobante de recolección " + (p.recibo || "") + " · ECOVSA") + "&body=" + encodeURIComponent(txt), "_blank");
+  }
+}
+mandarReciboDigital_ = function(p, c, kg){
+  var canal = p.reciboDigital || "";
+  if(!canal || canal === "no") return;
+  if(canal === "whatsapp" && !telWhatsDe_(c)) return;
+  if(canal === "correo" && !c.correo) return;
+  abrirReciboCliente_(p, c, canal);
+  p.envioPendiente = canal;
+};
+function enviarReciboDesdeModal_(canal){
+  if(!RECIBO_ACTUAL_DATA) return;
+  var p = RECIBO_ACTUAL_DATA.parada, c = RECIBO_ACTUAL_DATA.cliente || {};
+  abrirReciboCliente_(p, c, canal);
+  if(p && p.recibo){ p.envioPendiente = canal; try{ guardarLocal(K_PAR, RUTA); marcarEnviadosPendientes_(); }catch(e){} }
+}
+enviarReciboPorWhatsApp = function(){ enviarReciboDesdeModal_("whatsapp"); };
+enviarReciboPorEmail = function(){ enviarReciboDesdeModal_("correo"); };
+
 function generarFolioSugerido(){
 
 var y = new Date().getFullYear();
@@ -8300,7 +8340,7 @@ var html =
 
 '<div style="display:flex;align-items:center;gap:10px">' +
 
-'<div style="height:50px;width:76px;background:#fff url(\'https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400\') center/contain no-repeat;"></div>' +
+'<div style="height:50px;width:76px;background:#fff url(\'logo-ecovsa.png\') center/contain no-repeat;"></div>' +
 
 '<div><b style="font-size:14px;color:var(--eco-azul-osc);display:block">ECOVSA</b><span style="font-size:9.5px;color:#555">Ecología · Vida · Salud</span></div>' +
 
