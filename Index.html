@@ -2343,6 +2343,14 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 <div id="fl-cuerpo"></div>
 </section>
 
+<section id="pantalla-mto" class="pantalla">
+<div class="cr-tt"><div><h1>Mantenimiento</h1><div class="sub" id="mt-sub">Flota de logística</div></div><span class="sp"></span>
+<button class="pl-btn" onclick="FL_TAB='lis';mostrarTab('flota')">📋 Lista de revisión</button>
+<button class="pl-btn mt-pri" onclick="mtServicio_('','')">＋ Registrar servicio</button>
+<button class="pl-btn" onclick="mtCargar_()">⟳</button></div>
+<div id="mt-cuerpo"></div>
+</section>
+
 <section id="pantalla-dfin" class="pantalla">
 <div class="cr-tt"><div><h1>Disposición final</h1><div class="sub" id="df-sub"></div></div><span class="sp"></span>
 <div class="ini-seg" id="df-seg"></div>
@@ -4596,7 +4604,7 @@ var MENU_SUP = [
   ["Por revisar"],
   ["porrevisar","🔔","Clientes nuevos","porRevisar"], ["inspecciones","🔎","Inspecciones","inspecciones"],
   ["Administración"],
-  ["flota","🚚","Flota","flota"], ["@admin","🔧","Mantenimiento"], ["@admin","📦","Inventario"], ["@inicio","📈","Indicadores"]
+  ["flota","🚚","Flota","flota"], ["mto","🔧","Mantenimiento","mto"], ["@admin","📦","Inventario"], ["@inicio","📈","Indicadores"]
 ];
 
 function esEscritorio_(){ return window.matchMedia && window.matchMedia("(min-width:1000px)").matches; }
@@ -6229,7 +6237,7 @@ function flConfirmar_(){
   var f = FL_DEC.f, s = FL_DEC.sel, nota = ($("fl-nota").value || "").trim();
   if(s === "autorizar" && !nota){ toast("Escribe por qué autorizas la salida"); return; }
   var b = $("fl-okd"); b.disabled = true; b.textContent = "Guardando…";
-  var fin = function(r, msg){ if(!r || !r.ok){ b.disabled = false; b.textContent = "Confirmar"; toast((r && r.error) || "No se pudo"); return; } cerrarHojaIni_(); toast(msg); flCargar_(); if(typeof INI !== "undefined") INI = null; };
+  var fin = function(r, msg){ if(!r || !r.ok){ b.disabled = false; b.textContent = "Confirmar"; toast((r && r.error) || "No se pudo"); return; } cerrarHojaIni_(); toast(msg); flCargar_(); if(typeof INI !== "undefined") INI = null; if(INI_TAB === "mto") mtCargar_(); };
   var err = function(){ b.disabled = false; b.textContent = "Confirmar"; toast("Sin señal"); };
   if(s === "otro"){ var v = $("fl-otro").value; google.script.run.withSuccessHandler(function(r){ fin(r, "La ruta sale en " + v); }).withFailureHandler(err).api_cambiarCamionRuta(PIN, f.rutaHoy.rutaId, v, nota); }
   else if(s === "nosale") google.script.run.withSuccessHandler(function(r){ fin(r, "La ruta no sale hoy"); }).withFailureHandler(err).api_cerrarRuta(PIN, f.rutaHoy.rutaId, "No salió: " + f.vehiculo + " con falla", f.punto + (nota ? " · " + nota : ""));
@@ -9018,7 +9026,7 @@ document.querySelectorAll(".pantalla").forEach(function(p){p.classList.remove("a
 
 $("pantalla-"+tab).classList.add("activa");
 INI_TAB = tab;
-if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="flota") flCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
+if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="flota") flCargar_(); if(tab==="mto") mtCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
 
 if(tab==="paradas") renderParadas();
 
@@ -10847,6 +10855,189 @@ function bandejaAbrirItem(id){
   if(typeof window.bandejaAbrir === "function" && window.bandejaAbrir(x.enlace) !== false) return;
   if(window.URL_APP) window.open(window.URL_APP + x.enlace, "_blank");
   else bndAviso("Un momento, cargando…");
+}
+</script>
+
+<style id="estilo-mto">
+/* ═══ api 3.2 · Mantenimiento de la flota (opción A) ═══ */
+.mt-pri{background:var(--ini-azul,#14306b)!important;color:#fff!important}
+.mt-k4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.mt-k4 div{background:#fff;border:1px solid var(--ini-linea);border-radius:12px;padding:12px 14px}
+.mt-k4 b{display:block;font-size:22px;font-weight:700;color:var(--ini-tinta);letter-spacing:-.3px}
+.mt-k4 span{font-size:12px;color:var(--ini-gris)}.mt-k4 em{font-style:normal;font-weight:700;margin-left:4px}
+.mt-grid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px;align-items:start}
+.mt-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mt-card{background:#fff;border:1px solid var(--ini-linea);border-radius:14px;padding:14px 16px;min-width:0}
+.mt-card h3{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700;text-transform:uppercase;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.mt-card h3 .sp{flex:1}.mt-card h3 small{letter-spacing:0;text-transform:none;font-weight:500;font-size:12px;color:var(--ini-gris)}
+.mt-card h3 button{letter-spacing:0;text-transform:none}
+.mt-tb{width:100%;border-collapse:collapse;font-size:13px}
+.mt-tb th{font-size:10.5px;letter-spacing:.8px;color:#8a96a8;text-align:left;font-weight:700;padding:6px 8px;border-bottom:1px solid var(--ini-linea);text-transform:uppercase}
+.mt-tb td{padding:10px 8px;border-bottom:1px solid #eef1f5;vertical-align:middle}.mt-tb tr:last-child td{border-bottom:0}
+.mt-tb .r{text-align:right}.mt-tb tr.cl{cursor:pointer}.mt-tb tr.cl:hover td{background:#f7f9fc}
+.mt-tb b{font-weight:700}.mt-sub{font-size:11.5px;color:var(--ini-gris)}
+.mt-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;white-space:nowrap;background:#eaf6e4;color:#2f9e44}
+.mt-tag.am{background:#fff4d6;color:#8a6300}.mt-tag.r{background:#fdecea;color:#d64045}.mt-tag.g{background:#eef1f5;color:#667489}
+.mt-dots{display:flex;gap:3px}.mt-dots i{width:13px;height:13px;border-radius:4px;display:block;background:#f1f3f6}
+.mt-dots i.ok{background:#8fd19e}.mt-dots i.am{background:#f5c542}.mt-dots i.r{background:#e5484d}.mt-dots i.no{background:#fff;border:1.5px dashed #d64045}
+.mt-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--ini-gris);margin-top:8px}.mt-leg span{display:flex;gap:5px;align-items:center}.mt-leg i{width:11px;height:11px;border-radius:3px;display:block}
+.mt-bar{height:6px;border-radius:4px;background:#eef1f5;overflow:hidden;min-width:70px}.mt-bar i{display:block;height:100%;background:#2f9e44}
+.mt-bar i.am{background:#f5b301}.mt-bar i.r{background:#d64045}
+.mt-at{position:sticky;top:0}
+.mt-it{display:flex;gap:10px;padding:11px 0;border-top:1px solid #eef1f5}.mt-it:first-of-type{border-top:0;padding-top:2px}
+.mt-it .d{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none;background:#f5b301}.mt-it .d.r{background:#d64045}.mt-it .d.g{background:#9aa7ba}
+.mt-it b{display:block;font-size:13.5px;font-weight:700;color:var(--ini-tinta)}.mt-it small{display:block;color:var(--ini-gris);font-size:12px;margin:2px 0 7px;line-height:1.4}
+.mt-acc{display:flex;gap:5px;flex-wrap:wrap}
+.mt-b{border:1px solid var(--ini-linea);background:#fff;color:#14306b;border-radius:8px;padding:5px 10px;font:700 12px Archivo,sans-serif;cursor:pointer}
+.mt-b.p{background:#14306b;border-color:#14306b;color:#fff}.mt-b.gh{border-color:transparent;background:none;color:var(--ini-gris)}
+.mt-vacio{color:var(--ini-gris);font-size:13px;padding:6px 0}
+.mt-pt{border:1px solid var(--ini-linea);border-radius:12px;padding:10px 12px;margin-top:8px}
+.mt-pt .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mt-pt input.c2-in{padding:7px 9px;font-size:12.5px}
+.mt-pt .t{display:flex;gap:8px;align-items:center}.mt-pt .t input{flex:1}
+@media(max-width:1000px){.mt-grid{grid-template-columns:1fr}.mt-at{position:static;order:-1}}
+@media(max-width:700px){.mt-k4{grid-template-columns:1fr 1fr}.mt-tb .oc{display:none}.mt-pt .g3{grid-template-columns:1fr 1fr}}
+</style>
+<script>
+/* ═══ api 3.2 · MANTENIMIENTO DE LA FLOTA (opción A) ═══════════════════
+   Lo que requiere acción, las revisiones que manda el conductor, el plan
+   preventivo (km o fecha, lo que llegue primero) y los documentos.
+   Las decisiones sobre una falla usan la misma hoja de Flota. */
+var MT = null, MT_VUELO = false, MT_SV = null;
+function mtVistos_(){ try{ return JSON.parse(localStorage.getItem("eco_mto_visto") || "{}"); }catch(e){ return {}; } }
+function mtMarcarVisto_(k){ var v = mtVistos_(); v[k] = hoyISO(); try{ localStorage.setItem("eco_mto_visto", JSON.stringify(v)); }catch(e){} mtPintar_(); }
+function mtCargar_(){
+  if(!esSupervisor() || MT_VUELO) return; MT_VUELO = true;
+  if(!MT) $("mt-cuerpo").innerHTML = '<div class="pl-vacio">Consultando el mantenimiento…</div>';
+  google.script.run.withSuccessHandler(function(r){
+    MT_VUELO = false;
+    if(!r || !r.ok){ if(!MT) $("mt-cuerpo").innerHTML = '<div class="pl-vacio">' + esc((r && r.error) || "No se pudo consultar") + '</div>'; else toast((r && r.error) || "No se pudo"); return; }
+    MT = r; FL = FL || r.flota; mtPintar_();
+    if(typeof INI !== "undefined" && INI && INI.menu){ INI.menu.mto = MT.atencion.filter(function(a){ return a.nivel === "r"; }).length; pintarMenuSup_(); }
+  }).withFailureHandler(function(){ MT_VUELO = false; if(!MT) $("mt-cuerpo").innerHTML = '<div class="pl-vacio">Sin conexión.</div>'; }).api_mantenimientoFlota(PIN);
+}
+function mtF_(iso){ if(!iso) return ""; var d = new Date(iso + "T12:00:00"); return ["dom","lun","mar","mié","jue","vie","sáb"][d.getDay()] + " " + d.getDate() + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getMonth()] + (iso.slice(0,4) !== hoyISO().slice(0,4) ? " " + iso.slice(0,4) : ""); }
+function mtKm_(v){ return Math.round(Number(v) || 0).toLocaleString("en-US"); }
+function mtTag_(c, t){ return '<span class="mt-tag ' + (c || "") + '">' + esc(t) + '</span>'; }
+function mtEst_(t){ return t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "am" : (t.estado === "sin datos" ? "g" : "")); }
+function mtPintar_(){
+  if(!MT) return;
+  var K = MT.kpis, vis = mtVistos_();
+  var at = MT.atencion.filter(function(a){ return !a.clave || !vis[a.clave]; });
+  $("mt-sub").textContent = "Flota de logística · " + MT.camiones.length + " camiones · al " + mtF_(MT.hoy);
+  var h = '<div class="mt-k4">' +
+    '<div><b>' + K.vencidos + '</b><span>vencidos' + (K.vencidos ? ' <em style="color:#d64045">atender ya</em>' : '') + '</span></div>' +
+    '<div><b>' + K.proximos + '</b><span>se acercan · 500 km o 30 días</span></div>' +
+    '<div><b>' + K.fallas + '</b><span>fallas abiertas' + (K.bloquean ? ' · <em style="color:#d64045">' + K.bloquean + ' no deja salir</em>' : '') + '</span></div>' +
+    '<div><b>' + K.conRevision14 + '/' + K.salidas14 + '</b><span>salidas con revisión · 14 días</span></div></div>';
+  h += '<div class="mt-grid"><div class="mt-col">';
+  /* revisiones del conductor */
+  h += '<div class="mt-card"><h3>Revisiones del conductor<span class="sp"></span><small>toca un camión para ver sus revisiones</small></h3><table class="mt-tb"><thead><tr><th>Camión</th><th>Hoy</th><th class="oc">Últimos 14 días</th><th class="r">Semanal</th></tr></thead><tbody>' +
+    MT.camiones.map(function(c){
+      var hoy = c.hoy ? mtTag_(c.hoy.bloquea ? "r" : (c.hoy.fallas ? "am" : ""), "Salida " + c.hoy.bien + "/" + c.hoy.puntos + " · " + c.hoy.hora) : (c.salioHoy ? mtTag_("r", "Salió sin revisión") : mtTag_("g", "sin revisión hoy"));
+      var sem = c.semanal ? mtTag_("", "hecha " + mtF_(c.semanal.fecha)) : (c.semanalPendiente ? mtTag_("am", "pendiente") : mtTag_("g", "—"));
+      return '<tr class="cl" onclick="mtRev_(\'' + esc(c.placa) + '\')"><td><b>' + esc(c.placa) + '</b><div class="mt-sub">' + esc([c.marca, c.conductor].filter(Boolean).join(" · ") || "—") + (c.km ? ' · ' + mtKm_(c.km) + ' km' : '') + '</div></td><td>' + hoy + '</td>' +
+        '<td class="oc"><div class="mt-dots">' + c.franja.map(function(f){ return '<i class="' + f.e + '" title="' + esc(mtF_(f.fecha)) + ' · ' + ({ok:"revisión completa",am:"con falla (puede salir)",r:"falla que no deja salir",no:"salió sin revisión",sd:"no salió"})[f.e] + '"></i>'; }).join("") + '</div></td><td class="r">' + sem + '</td></tr>';
+    }).join("") + '</tbody></table><div class="mt-leg"><span><i style="background:#8fd19e"></i>completa</span><span><i style="background:#f5c542"></i>con falla</span><span><i style="background:#e5484d"></i>no dejó salir</span><span><i style="border:1.5px dashed #d64045"></i>salió sin revisión</span><span><i style="background:#f1f3f6"></i>no salió</span></div></div>';
+  /* próximos servicios */
+  h += '<div class="mt-card"><h3>Próximos servicios<span class="sp"></span><small>por km o por fecha, lo que llegue primero</small></h3>' + (MT.proximos.length ? '<table class="mt-tb"><tbody>' + MT.proximos.map(function(p){
+      var txt = p.faltanKm !== null && p.faltanKm !== undefined ? (p.faltanKm < 0 ? "pasado " + mtKm_(-p.faltanKm) + " km" : "faltan " + mtKm_(p.faltanKm) + " km") : (p.vence ? "vence " + mtF_(p.vence) : "");
+      var e = mtEst_(p);
+      return '<tr class="cl" onclick="mtServicio_(\'' + esc(p.placa) + '\',\'' + esc(p.planId) + '\')"><td style="width:92px"><b>' + esc(p.placa) + '</b></td><td>' + esc(p.tarea) + '<div class="mt-sub">' + esc(txt) + '</div></td><td class="oc" style="width:150px"><div class="mt-bar"><i class="' + e + '" style="width:' + p.pct + '%"></i></div></td><td class="r"><button class="mt-b" onclick="event.stopPropagation();mtServicio_(\'' + esc(p.placa) + '\',\'' + esc(p.planId) + '\')">Registrar</button></td></tr>'; }).join("") + '</tbody></table>'
+      : '<div class="mt-vacio">Todavía no hay tareas con punto de partida. Crea el plan de cada camión y anota su último servicio.</div>') +
+    '<div class="mt-acc" style="margin-top:10px">' + MT.camiones.map(function(c){ return '<button class="mt-b gh" onclick="mtPlan_(\'' + esc(c.placa) + '\')">Plan de ' + esc(c.placa) + '</button>'; }).join("") + '</div></div>';
+  /* documentos */
+  var orden = MT.planBase.filter(function(b){ return b.doc; }).map(function(b){ return b.tarea; });
+  var docs = MT.docs.slice().sort(function(a, b){ var i = orden.indexOf(a), j = orden.indexOf(b); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+  h += '<div class="mt-card"><h3>Documentos y vencimientos</h3>' + (docs.length ? '<div style="overflow-x:auto"><table class="mt-tb"><thead><tr><th>Camión</th>' + docs.map(function(d){ return '<th>' + esc(d) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    MT.camiones.map(function(c){ return '<tr class="cl" onclick="mtPlan_(\'' + esc(c.placa) + '\')"><td><b>' + esc(c.placa) + '</b></td>' + docs.map(function(d){
+      var t = c.documentos.find(function(x){ return x.tarea === d; });
+      if(!t) return '<td>' + mtTag_("g", "no aplica") + '</td>';
+      return '<td>' + mtTag_(mtEst_(t), t.vence ? mtF_(t.vence) : "sin fecha") + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div>'
+    : '<div class="mt-vacio">Sin documentos en el plan. Agrégalos desde el plan de cada camión (seguro, revisado, permiso de carga).</div>') + '</div>';
+  h += '</div>';
+  /* requiere tu atención */
+  h += '<div class="mt-card mt-at"><h3>Requiere tu atención<span class="sp"></span><small>' + at.length + '</small></h3>' + (at.length ? at.map(function(a, i){
+      var b = [];
+      if(a.tipo === "falla") b.push(['<button class="mt-b p" onclick="mtDecidir_(\'' + esc(a.fallaId) + '\')">Decidir</button>'], ['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>']);
+      else if(a.tipo === "servicio") b.push(['<button class="mt-b p" onclick="mtServicio_(\'' + esc(a.placa) + '\',\'' + esc(a.planId) + '\')">Registrar servicio</button>'], ['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Ver plan</button>']);
+      else if(a.tipo === "doc") b.push(['<button class="mt-b p" onclick="mtPlan_(\'' + esc(a.placa) + '\')">' + (a.texto.indexOf("Falta") === 0 ? "Agregar fecha" : "Actualizar fecha") + '</button>']);
+      else if(a.tipo === "sinrev" || a.tipo === "semanal") b.push(['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>'], ['<button class="mt-b gh" onclick="mtMarcarVisto_(\'' + esc(a.clave) + '\')">Ya lo hablé</button>']);
+      else if(a.tipo === "sinplan") b.push(['<button class="mt-b p" onclick="mtPlan_(\'' + esc(a.placa) + '\', true)">Crear plan</button>']);
+      else if(a.tipo === "sinpartida") b.push(['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Anotar último servicio</button>']);
+      return '<div class="mt-it"><i class="d ' + a.nivel + '"></i><div style="flex:1;min-width:0"><b>' + esc(a.titulo) + '</b>' + (a.texto ? '<small>' + esc(a.texto) + '</small>' : '') + '<div class="mt-acc">' + b.join("") + '</div></div></div>';
+    }).join("") : '<div class="mt-vacio">Nada pendiente. La flota está al día.</div>') + '</div>';
+  h += '</div>';
+  $("mt-cuerpo").innerHTML = h;
+}
+function mtRev_(placa){ FL_SEL = placa; FL_FT = "Revisiones"; FL_TAB = "cam"; mostrarTab("flota"); if(!esEscritorio_()) setTimeout(function(){ flFicha_(placa); }, 400); }
+function mtDecidir_(id){ if(!FL && MT) FL = MT.flota; if(!FL.fallas.some(function(f){ return f.fallaId === id; }) && MT) FL = MT.flota; flDecidir_(id); }
+
+/* ── registrar servicio ── */
+function mtServicio_(placa, planId){
+  if(!MT) return;
+  MT_SV = { placa: placa || (MT.camiones[0] || {}).placa || "", planId: planId || "" };
+  abrirHojaIni_('<div id="mt-sv">' + mtHtmlServicio_() + '</div>');
+}
+function mtHtmlServicio_(){
+  var c = MT.camiones.find(function(x){ return x.placa === MT_SV.placa; }) || {};
+  var tareas = (c.servicios || []).concat(c.documentos || []);
+  var fallas = ((MT.flota && MT.flota.fallas) || []).filter(function(f){ return f.vehiculo === c.placa; });
+  return '<div class="ini-pt">Registrar servicio</div><div class="ini-ps">Reinicia el reloj de las tareas que marques y cierra las fallas que resuelve.</div>' +
+    '<label class="c2-f">Camión</label><select class="c2-in" id="mt-sv-p" onchange="MT_SV.placa=this.value;MT_SV.planId=\'\';$(\'mt-sv\').innerHTML=mtHtmlServicio_()">' + MT.camiones.map(function(x){ return '<option' + (x.placa === c.placa ? ' selected' : '') + '>' + esc(x.placa) + '</option>'; }).join("") + '</select>' +
+    '<div class="c2-f">Tareas que se hicieron</div>' + (tareas.length ? tareas.map(function(t){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck mt-sv-t" value="' + esc(t.planId) + '"' + (t.planId === MT_SV.planId ? ' checked' : '') + '><div class="nm"><b>' + esc(t.tarea) + '</b> ' + (t.estado !== "al día" ? mtTag_(mtEst_(t), t.estado === "sin datos" ? "sin punto de partida" : t.estado.toLowerCase()) : '') + '</div></label>'; }).join("") : '<div class="mt-vacio">Este camión no tiene plan todavía. Igual puedes anotar el servicio con una observación.</div>') +
+    '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Fecha</label><input type="date" class="c2-in" id="mt-sv-f" value="' + hoyISO() + '"></div><div style="flex:1"><label class="c2-f">Odómetro</label><input type="number" class="c2-in" id="mt-sv-k" value="' + (c.km || "") + '"></div></div>' +
+    '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Taller</label><input class="c2-in" id="mt-sv-e"></div><div style="flex:1"><label class="c2-f">Costo B/.</label><input type="number" class="c2-in" id="mt-sv-c" step="0.01"></div></div>' +
+    '<label class="c2-f">Observaciones</label><input class="c2-in" id="mt-sv-o" placeholder="Qué se hizo, repuestos…">' +
+    (fallas.length ? '<div class="c2-f">Fallas que resuelve</div>' + fallas.map(function(f){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck mt-sv-fa" value="' + esc(f.fallaId) + '"><div class="nm"><b>' + esc(f.punto) + '</b> <span class="mt-sub">' + esc(f.estado) + (f.bloquea ? ' · no deja salir' : '') + '</span></div></label>'; }).join("") : '') +
+    '<div class="mt-sub" style="margin-top:8px">El costo es informativo: el pago entra por Solicitud de pago.</div>' +
+    '<button class="ini-ok" id="mt-sv-ok" style="margin-top:12px" onclick="mtGuardarServicio_()">Registrar</button>';
+}
+function mtGuardarServicio_(){
+  var q = function(s){ return [].slice.call(document.querySelectorAll(s)).map(function(x){ return x.value; }); };
+  var d = { placa: $("mt-sv-p").value, fecha: $("mt-sv-f").value, km: $("mt-sv-k").value, empresa: $("mt-sv-e").value, costo: $("mt-sv-c").value,
+            observaciones: $("mt-sv-o").value, planIds: q(".mt-sv-t:checked"), fallas: q(".mt-sv-fa:checked") };
+  var b = $("mt-sv-ok"); b.disabled = true; b.textContent = "Guardando…";
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ b.disabled = false; b.textContent = "Registrar"; toast((r && r.error) || "No se pudo"); return; }
+    cerrarHojaIni_(); toast("Servicio registrado" + (r.fallas ? " · " + r.fallas + " falla(s) cerrada(s)" : "") + " ✓"); FL = null; mtCargar_();
+  }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Registrar"; toast("Sin señal"); }).api_registrarServicioFlota(PIN, d);
+}
+
+/* ── plan del camión ── */
+var MT_PL = null;
+function mtPlan_(placa, base){
+  if(!MT) return;
+  var c = MT.camiones.find(function(x){ return x.placa === placa; }) || {};
+  var l = (c.servicios || []).concat(c.documentos || []).map(function(t){ return { planId: t.planId, tarea: t.tarea, cadaKm: t.cadaKm || "", cadaDias: t.cadaDias || "", ultimoKm: t.ultimoKm || "", ultimaFecha: t.ultimaFecha || "", vence: (t.venceCalculado ? "" : t.vence) || "" }; });
+  if(!l.length && base) l = MT.planBase.map(function(b){ return { planId: "", tarea: b.tarea, cadaKm: b.cadaKm || "", cadaDias: b.cadaDias || "", ultimoKm: "", ultimaFecha: "", vence: "", doc: !!b.doc }; });
+  MT_PL = { placa: placa, l: l };
+  abrirHojaIni_('<div id="mt-pl">' + mtHtmlPlan_() + '</div>');
+}
+function mtHtmlPlan_(){
+  var P = MT_PL, esDoc = function(t){ return t.doc || (!Number(t.cadaKm) && /seguro|p[oó]liza|revisado|permiso|registro|licencia|documento/i.test(t.tarea || "")); };
+  return '<div class="ini-pt">Plan de ' + esc(P.placa) + '</div><div class="ini-ps">Cada tarea vence cada tantos km, cada tantos días o en una fecha fija. Anota el último servicio para que el sistema sepa desde dónde contar.</div>' +
+    (P.l.length ? '' : '<div class="mt-vacio">Sin tareas. <button class="mt-b p" onclick="mtPlanBase_()">Usar el plan de base de ECOVSA</button></div>') +
+    P.l.map(function(t, i){
+      var d = esDoc(t);
+      return '<div class="mt-pt"><div class="t"><input class="c2-in" value="' + esc(t.tarea) + '" oninput="MT_PL.l[' + i + '].tarea=this.value" placeholder="Tarea">' + (t.planId ? '' : '<button class="mt-b gh" onclick="MT_PL.l.splice(' + i + ',1);$(\'mt-pl\').innerHTML=mtHtmlPlan_()">Quitar</button>') + '</div>' +
+        (d ? '<div class="g3"><div><label class="c2-f">Vence el</label><input type="date" class="c2-in" value="' + esc(t.vence) + '" oninput="MT_PL.l[' + i + '].vence=this.value"></div><div><label class="c2-f">Se renueva cada (días)</label><input type="number" class="c2-in" value="' + esc(t.cadaDias) + '" oninput="MT_PL.l[' + i + '].cadaDias=this.value" placeholder="365"></div><div></div></div>'
+           : '<div class="g3"><div><label class="c2-f">Cada km</label><input type="number" class="c2-in" value="' + esc(t.cadaKm) + '" oninput="MT_PL.l[' + i + '].cadaKm=this.value"></div><div><label class="c2-f">Último a los km</label><input type="number" class="c2-in" value="' + esc(t.ultimoKm) + '" oninput="MT_PL.l[' + i + '].ultimoKm=this.value"></div><div><label class="c2-f">Último el</label><input type="date" class="c2-in" value="' + esc(t.ultimaFecha) + '" oninput="MT_PL.l[' + i + '].ultimaFecha=this.value"></div>' +
+             '<div><label class="c2-f">O cada (días)</label><input type="number" class="c2-in" value="' + esc(t.cadaDias) + '" oninput="MT_PL.l[' + i + '].cadaDias=this.value"></div></div>') + '</div>';
+    }).join("") +
+    '<div class="mt-acc" style="margin-top:10px"><button class="mt-b" onclick="MT_PL.l.push({planId:\'\',tarea:\'\',cadaKm:\'\',cadaDias:\'\',ultimoKm:\'\',ultimaFecha:\'\',vence:\'\'});$(\'mt-pl\').innerHTML=mtHtmlPlan_()">＋ Tarea</button><button class="mt-b" onclick="MT_PL.l.push({planId:\'\',tarea:\'\',cadaKm:\'\',cadaDias:\'365\',ultimoKm:\'\',ultimaFecha:\'\',vence:\'\',doc:true});$(\'mt-pl\').innerHTML=mtHtmlPlan_()">＋ Documento</button></div>' +
+    '<button class="ini-ok" id="mt-pl-ok" style="margin-top:12px" onclick="mtGuardarPlan_()">Guardar plan</button>';
+}
+function mtPlanBase_(){ MT_PL.l = MT.planBase.map(function(b){ return { planId: "", tarea: b.tarea, cadaKm: b.cadaKm || "", cadaDias: b.cadaDias || "", ultimoKm: "", ultimaFecha: "", vence: "", doc: !!b.doc }; }); $("mt-pl").innerHTML = mtHtmlPlan_(); }
+function mtGuardarPlan_(){
+  var l = MT_PL.l.filter(function(t){ return String(t.tarea || "").trim(); });
+  var mal = l.filter(function(t){ return !Number(t.cadaKm) && !Number(t.cadaDias) && !t.vence; });
+  if(mal.length){ toast("«" + mal[0].tarea + "» necesita cada km, cada días o una fecha"); return; }
+  var b = $("mt-pl-ok"); b.disabled = true; b.textContent = "Guardando…";
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ b.disabled = false; b.textContent = "Guardar plan"; toast((r && r.error) || "No se pudo"); return; }
+    cerrarHojaIni_(); toast("Plan guardado · " + r.guardadas + " tarea(s)" + (r.errores && r.errores.length ? " · " + r.errores.length + " con error" : "") + " ✓"); mtCargar_();
+  }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Guardar plan"; toast("Sin señal"); }).api_guardarPlanFlota(PIN, MT_PL.placa, l);
 }
 </script>
 
