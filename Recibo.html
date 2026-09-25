@@ -158,7 +158,15 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
    el pie y la URL de Google alrededor del documento. */
 @page{ size:letter portrait; margin:12mm }
 
-/* En el celular la barra de arriba se amontonaba: el título va solo arriba y los botones parejos debajo */ .barra-accion{flex-wrap:wrap;gap:8px} @media (max-width:600px){   .barra-accion{padding:10px 12px;gap:6px}   .barra-accion .tit{flex:1 1 100%;font-size:11.5px;text-align:center}   .barra-accion .btn-imprimir{flex:1 1 0;padding:9px 6px;font-size:11.5px}   .hoja-recibo{padding:22px 16px;margin:10px 8px 0} } </style>
+/* En el celular la barra de arriba se amontonaba: el título va solo arriba y los botones parejos debajo */
+.barra-accion{flex-wrap:wrap;gap:8px}
+@media (max-width:600px){
+  .barra-accion{padding:10px 12px;gap:6px}
+  .barra-accion .tit{flex:1 1 100%;font-size:11.5px;text-align:center}
+  .barra-accion .btn-imprimir{flex:1 1 0;padding:9px 6px;font-size:11.5px}
+  .hoja-recibo{padding:22px 16px;margin:10px 8px 0}
+}
+</style>
 
 </head>
 
@@ -168,7 +176,7 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
 
   <div class="tit">COMPROBANTE OFICIAL DE RECOLECCIÓN</div>
 
-  <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  <button class="btn-imprimir" id="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
 
   <button class="btn-imprimir" id="btn-wa" onclick="enviarWhatsApp()" style="background:#25D366;color:#fff">📱 WhatsApp</button>
 
@@ -200,11 +208,14 @@ window.addEventListener("DOMContentLoaded", function(){
     google.script.url.getLocation(function(loc){
       var p = (loc && loc.parameter) || {};
       SOLO_VER = String(p.solover||"") === "1";
+      if(String(p.conductor||"") === "1"){ var bi = document.getElementById("btn-imprimir"); if(bi) bi.style.display = "none"; }
+      CLAVE_REC = String(p.k || "");
       arrancarRecibo(p.id || "");
     });
   } else {
     var up = new URLSearchParams(window.location.search);
     SOLO_VER = up.get("solover") === "1";
+    CLAVE_REC = up.get("k") || "";
     arrancarRecibo(up.get("id") || "");
   }
 });
@@ -213,7 +224,7 @@ window.addEventListener("DOMContentLoaded", function(){
    acciones —imprimir, WhatsApp, correo, copiar enlace— no se dibuja: son
    herramientas de quien emite el recibo, no de quien lo recibe. Es el mismo
    mecanismo que ya usaba el acta de disposición final. */
-var SOLO_VER = false;
+var SOLO_VER = false, CLAVE_REC = "";
 
 /* Los datos de la empresa vienen del servidor, de la constante EMPRESA. Este
    respaldo es solo por si no llegan: guarda lo que no cambia nunca —nombre,
@@ -246,7 +257,7 @@ function arrancarRecibo(reciboId){
 
     })
 
-    .api_obtenerDetalleRecibo(reciboId);
+    .api_obtenerDetalleRecibo(reciboId, CLAVE_REC, PIN_ENV);
 
 }
 
@@ -451,7 +462,7 @@ try{ PIN_ENV = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){}
    ese enlace se copia justamente para pasárselo a alguien. */
 function enlaceRecibo(){
   if(!URL_APP_REC || !DATOS_RECIBO) return "";
-  return URL_APP_REC + "?p=recibo&solover=1&id=" + encodeURIComponent(DATOS_RECIBO.recibo);
+  return URL_APP_REC + "?p=recibo&solover=1&id=" + encodeURIComponent(DATOS_RECIBO.recibo) + (DATOS_RECIBO.clave ? "&k=" + encodeURIComponent(DATOS_RECIBO.clave) : "");
 }
 
 function textoRecibo(d){
