@@ -1698,6 +1698,11 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 .cf-b.az{background:#14306b;color:#fff;border-color:#14306b}
 .cf-b[disabled]{opacity:.45}
 .p9-nota{font-size:12px;color:#5e6b7e;margin:4px 2px 8px}
+/* ── Paquete 10 · PDF desde la pantalla Recibos ── */
+.rx-b{background:#14306b!important;color:#fff!important;border-color:#14306b!important}
+.rx{padding:4px 0}.rx-h{font-weight:900;font-size:17px;color:#14306b}.rx-s{font-size:13px;color:#5e6b7e;margin:2px 0 10px}
+.rx .p9-in{margin-top:5px}.rx-n{font-size:11.5px;color:#5e6b7e;margin-top:4px}
+.rx-env{margin-top:10px;background:#eaf6e4;color:#2f6b0b;border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:700}
 </style>
 
 </head>
@@ -6897,9 +6902,18 @@ function p9Jpg_(src, ancho, fn){
 }
 
 /* ── El enlace lleva la clave ── */
+P9.claves = {};
+textoReciboCliente_ = function(p, c){
+  var kg = num(p.kgBolsas) + num(p.kgAnatomo) + num(p.kgPunzo);
+  return "Estimados " + ((c && c.nombre) || "") + ":\n\n" +
+    "Adjuntamos el comprobante de la recolección de desechos hospitalarios realizada el " + (p.fecha || RUTA.fecha || hoyISO()) + ".\n\n" +
+    "Recibo N° " + (p.recibo || "") + "\nTotal retirado: " + kg.toFixed(2) + " kg\n\n" +
+    "Puede consultarlo en cualquier momento aquí:\n" + enlaceReciboCliente_(p.recibo, p.clave) + "\n\n" +
+    "Gracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+};
 enlaceReciboCliente_ = function(folio, clave){
   var base = URL_APP || location.href.replace(/[?#].*$/, "").replace(/[^\/]*$/, "");
-  if(!clave){ var p = (RUTA.paradas || []).find(function(x){ return x.recibo === folio; }); clave = p && p.clave; }
+  if(!clave){ var p = (RUTA.paradas || []).find(function(x){ return x.recibo === folio; }); clave = (p && p.clave) || P9.claves[folio]; }
   return base + "?p=recibo&solover=1&id=" + encodeURIComponent(folio) + (clave ? "&k=" + encodeURIComponent(clave) : "");
 };
 
@@ -6936,8 +6950,17 @@ guardarRecoleccionDirecta = function(i){
 function p9Emp_(){ var e = (USUARIO && USUARIO.empresaRecibo) || {};
   return { comercial: e.comercial || "ECOVSA", ruc: e.ruc || "1074020-1-552789", dv: e.dv || "50", telefono: e.telefono || "310-2268", correo: e.correo || "info@ecovsa.com", formulario: e.formulario || "" }; }
 function p9Pdf_(i){
+  var p = RUTA.paradas[i], c = cli(p.clienteId) || { nombre: "" };
+  return p9PdfDe_({ recibo: p.recibo, cliente: c.nombre, contacto: p.contacto || c.contacto || "", fecha: RUTA.fecha || hoyISO(),
+    horaInicio: p.horaInicio, horaFinal: p.horaFinal, vehiculo: RUTA.vehiculo || "", operador: RUTA.conductor || (USUARIO && USUARIO.nombre) || "",
+    kgBolsas: p.kgBolsas, cantBolsas: p.cantBolsas, kgPunzo: p.kgPunzo, cantPunzo: p.cantPunzo, kgAnatomo: p.kgAnatomo, cantAnatomo: p.cantAnatomo,
+    obs: p.obs, clave: p.clave });
+}
+/* El PDF sale de un objeto de datos: sirve igual para la parada del conductor
+   y para un recibo ya guardado que se abre desde la pantalla Recibos. */
+function p9PdfDe_(D, E){
   var J = window.jspdf && window.jspdf.jsPDF; if(!J) return null;
-  var p = RUTA.paradas[i], c = cli(p.clienteId) || { nombre: "" }, E = p9Emp_();
+  E = E || p9Emp_();
   var d = new J({ unit: "mm", format: "letter" }), W = 215.9, M = 18, X2 = W - M, y = 16;
   var NAVY = [20, 48, 107], GRIS = [94, 107, 126], LIN = [227, 232, 239], FON = [241, 244, 248];
   var col = function(c3){ d.setTextColor(c3[0], c3[1], c3[2]); };
@@ -6952,7 +6975,7 @@ function p9Pdf_(i){
   if(E.formulario) txt(E.formulario, xT, y + 19);
   d.setFont("helvetica", "bold"); d.setFontSize(7.5); col(GRIS); txt("COMPROBANTE OFICIAL", X2, y + 3, { align: "right" });
   d.setFontSize(15); col(NAVY); txt("Recibo de Visita", X2, y + 10, { align: "right" });
-  d.setFontSize(13); var nr = String(p.recibo || "—"), wN = d.getTextWidth(nr) + 10;
+  d.setFontSize(13); var nr = String(D.recibo || "—"), wN = d.getTextWidth(nr) + 10;
   d.setFillColor(NAVY[0], NAVY[1], NAVY[2]); d.roundedRect(X2 - wN, y + 13, wN, 9, 2, 2, "F"); d.setTextColor(255, 255, 255); txt(nr, X2 - wN / 2, y + 19.3, { align: "center" });
   y += 28; d.setDrawColor(NAVY[0], NAVY[1], NAVY[2]); d.setLineWidth(1); d.line(M, y, X2, y);
   y += 6; d.setFillColor(245, 179, 1); d.rect(M, y - 3.5, 1.2, 5, "F");
@@ -6963,15 +6986,15 @@ function p9Pdf_(i){
       d.setFont("helvetica", "bold"); d.setFontSize(6.8); col(GRIS); txt(k[0].toUpperCase(), x + 3, y + 4.5);
       d.setFontSize(10.5); col([17, 17, 17]); txt(d.splitTextToSize(String(k[1] || "—"), w - 6)[0], x + 3, y + 10); }); y += 15; };
   sec("1 · GENERADOR");
-  cajas(["Establecimiento de salud", c.nombre], ["Contacto que atiende", p.contacto || c.contacto || "Enfermería / Personal Autorizado"]);
+  cajas(["Establecimiento de salud", D.cliente], ["Contacto que atiende", D.contacto || "Enfermería / Personal Autorizado"]);
   sec("2 · DATOS DEL RETIRO");
-  cajas(["Fecha de retiro", RUTA.fecha || hoyISO()], ["Horario (entrada / salida)", (p.horaInicio || "--:--") + " a " + (p.horaFinal || "--:--")]);
-  cajas(["Vehículo asignado", RUTA.vehiculo || "—"], ["Operador responsable", RUTA.conductor || (USUARIO && USUARIO.nombre) || ""]);
+  cajas(["Fecha de retiro", D.fecha], ["Horario (entrada / salida)", (D.horaInicio || "--:--") + " a " + (D.horaFinal || "--:--")]);
+  cajas(["Vehículo asignado", D.vehiculo || "—"], ["Operador responsable", D.operador || ""]);
   sec("3 · DESECHOS RETIRADOS");
   var cx = [M, M + 62, X2 - 42, X2]; d.setFillColor(NAVY[0], NAVY[1], NAVY[2]); d.rect(M, y - 1, X2 - M, 7, "F");
   d.setFont("helvetica", "bold"); d.setFontSize(7.5); d.setTextColor(255, 255, 255);
   txt("CLASIFICACIÓN", cx[0] + 3, y + 3.6); txt("ENVASE", cx[1], y + 3.6); txt("CANTIDAD", cx[2] - 2, y + 3.6, { align: "right" }); txt("PESO (KG)", cx[3] - 3, y + 3.6, { align: "right" }); y += 6;
-  var filas = [["Bioinfeccioso", "Bolsa roja", p.cantBolsas, p.kgBolsas, [192, 57, 43]], ["Anatomopatológico", "Bolsa roja rotulada", p.cantAnatomo, p.kgAnatomo, [142, 36, 170]], ["Punzocortante", "Recipiente rígido", p.cantPunzo, p.kgPunzo, [245, 179, 1]]]
+  var filas = [["Bioinfeccioso", "Bolsa roja", D.cantBolsas, D.kgBolsas, [192, 57, 43]], ["Anatomopatológico", "Bolsa roja rotulada", D.cantAnatomo, D.kgAnatomo, [142, 36, 170]], ["Punzocortante", "Recipiente rígido", D.cantPunzo, D.kgPunzo, [245, 179, 1]]]
     .filter(function(f){ return num(f[2]) > 0 || num(f[3]) > 0; });
   var tc = 0, tk = 0;
   filas.forEach(function(f){ y += 7; tc += num(f[2]); tk += num(f[3]);
@@ -6982,7 +7005,7 @@ function p9Pdf_(i){
   y += 4; d.setDrawColor(NAVY[0], NAVY[1], NAVY[2]); d.setLineWidth(0.6); d.line(M, y, X2, y);
   y += 6; d.setFillColor(FON[0], FON[1], FON[2]); d.rect(M, y - 4.5, X2 - M, 7.5, "F");
   d.setFont("helvetica", "bold"); d.setFontSize(10.5); col([17, 17, 17]); txt("TOTAL RETIRADO", M + 3, y); txt(tc, cx[2] - 2, y, { align: "right" }); txt(tk.toFixed(2), cx[3] - 3, y, { align: "right" });
-  y += 8; var obs = d.splitTextToSize(p.obs || "Cuarto de desechos en condiciones adecuadas. Retiro sin incidencias.", X2 - M - 6);
+  y += 8; var obs = d.splitTextToSize(D.obs || "Cuarto de desechos en condiciones adecuadas. Retiro sin incidencias.", X2 - M - 6);
   var hO = 9 + obs.length * 4.5; d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.roundedRect(M, y, X2 - M, hO, 1.5, 1.5, "S");
   d.setFont("helvetica", "bold"); d.setFontSize(6.8); col(GRIS); txt("OBSERVACIONES DEL RETIRO", M + 3, y + 4.5);
   d.setFont("helvetica", "italic"); d.setFontSize(10); col([17, 17, 17]); txt(obs, M + 3, y + 9.5); y += hO + 8;
@@ -6990,16 +7013,16 @@ function p9Pdf_(i){
   var w2 = (X2 - M - 14) / 2, xa = M, xb = M + w2 + 14, yF = y + 22;
   if(P9.firmaJpg){ try{ d.addImage(P9.firmaJpg, "JPEG", xa + w2 / 2 - 25, y, 50, 20); }catch(e){} }
   else { d.setFont("helvetica", "italic"); d.setFontSize(8); col(GRIS); txt("Sin firma registrada", xa + w2 / 2, y + 16, { align: "center" }); }
-  d.setFont("helvetica", "bold"); d.setFontSize(11); col(NAVY); txt(RUTA.conductor || (USUARIO && USUARIO.nombre) || "", xb + w2 / 2, y + 16, { align: "center" });
+  d.setFont("helvetica", "bold"); d.setFontSize(11); col(NAVY); txt(D.operador || "", xb + w2 / 2, y + 16, { align: "center" });
   d.setDrawColor(51, 51, 51); d.setLineWidth(0.4); d.line(xa, yF, xa + w2, yF); d.line(xb, yF, xb + w2, yF);
   d.setFont("helvetica", "bold"); d.setFontSize(9); col([17, 17, 17]);
-  txt(p.contacto || c.contacto || "________________", xa + w2 / 2, yF + 5, { align: "center" }); txt("Recibe --- " + E.comercial, xb + w2 / 2, yF + 5, { align: "center" });
+  txt(D.contacto || "________________", xa + w2 / 2, yF + 5, { align: "center" }); txt("Recibe --- " + E.comercial, xb + w2 / 2, yF + 5, { align: "center" });
   d.setFont("helvetica", "normal"); d.setFontSize(8.5); txt("Entrega · Generador", xa + w2 / 2, yF + 9.5, { align: "center" }); txt("Transportista Especializado", xb + w2 / 2, yF + 9.5, { align: "center" });
   y = yF + 17; d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.line(M, y, X2, y); y += 5;
   d.setFont("helvetica", "normal"); d.setFontSize(7.8); col(GRIS);
   txt(d.splitTextToSize("Declaración: El generador declara que los desechos entregados corresponden a las clasificaciones y pesos anotados, segregados conforme al Decreto Ejecutivo 111 de 23 de junio de 1999. " + E.comercial + " asume el transporte seguro hasta su tratamiento y disposición final en planta autorizada.", X2 - M), M, y);
-  d.setFontSize(7.5); txt("Comprobante digital emitido el " + (RUTA.fecha || hoyISO()) + " " + ahoraHM() + " · consulta en línea con la clave " + (p.clave || ""), M, 268);
-  var nom = "Recibo_" + String(p.recibo || "").replace(/[^A-Za-z0-9-]/g, "") + "_" + String(c.nombre || "").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30) + ".pdf";
+  d.setFontSize(7.5); txt("Comprobante digital emitido el " + hoyISO() + " " + ahoraHM() + (D.clave ? " · consulta en línea con la clave " + D.clave : ""), M, 268);
+  var nom = "Recibo_" + String(D.recibo || "").replace(/[^A-Za-z0-9-]/g, "") + "_" + String(D.cliente || "").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30) + ".pdf";
   return { blob: d.output("blob"), nombre: nom };
 }
 function p9FirmaLista_(i, fn){
@@ -7111,6 +7134,113 @@ function p9Descargar_(r){
   try{ var u = URL.createObjectURL(r.blob), a = document.createElement("a"); a.href = u; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
        toast("Este teléfono no deja compartir archivos: el PDF quedó en Descargas. Adjúntalo en el chat."); }catch(e){ toast("No se pudo guardar el PDF"); }
 }
+
+/* ════════════ Paquete 10 · PDF de cualquier recibo desde la pantalla Recibos ════════════
+   Para cuando un cliente lo pide después: sirve con recibos nuevos y viejos,
+   pida o no PDF en su ficha. Usa los datos guardados del recibo (servidor). */
+
+var RX = { d: null, pdf: null, emp: null, dest: {}, ok: {} };
+
+var _pintarRecibos10_ = pintarRecibos;
+pintarRecibos = function(h){
+  _pintarRecibos10_(h);
+  if(!esSupervisor()) return;
+  document.querySelectorAll("#lista-recibos .cli-item .acciones").forEach(function(a){
+    var b = a.querySelector("button"), m = b && String(b.getAttribute("onclick") || "").match(/verReciboEnPantalla\('(.*)'\)/);
+    if(!m || a.querySelector(".rx-b")) return;
+    var n = document.createElement("button"); n.className = "btn mini rx-b"; n.innerHTML = "📄 Enviar PDF";
+    n.onclick = function(){ rxAbrir_(m[1].replace(/&amp;/g, "&").replace(/&#39;/g, "'")); };
+    b.insertAdjacentElement("afterend", n);
+  });
+};
+
+function rxAbrir_(folio){
+  RX = { d: null, pdf: null, emp: null, dest: {}, ok: {} };
+  abrirHojaIni_('<div class="rx" id="rx"><div class="rx-h">📄 Enviar recibo en PDF</div><div class="rx-s">Recibo ' + esc(folio) + '</div><div class="p9-prep"><i class="p9-sp"></i>Buscando el recibo…</div></div>');
+  p9Preparar_();
+  google.script.run.withSuccessHandler(function(r){
+    if(!$("rx")) return;
+    if(!r || !r.ok){ $("rx").innerHTML = '<div class="rx-h">📄 Enviar recibo en PDF</div><div class="p9-chip a">⚠<div>' + esc((r && r.error) || "No se pudo abrir el recibo") + '</div></div>'; return; }
+    RX.d = r.datos; RX.emp = r.empresa || null;
+    if(RX.d.clave) P9.claves[RX.d.recibo] = RX.d.clave;
+    rxPintar_(); rxArmar_(0);
+  }).withFailureHandler(function(){ if($("rx")) $("rx").innerHTML = '<div class="rx-h">📄 Enviar recibo en PDF</div><div class="p9-chip a">⚠<div>Sin señal: para esto hace falta conexión.</div></div>'; })
+    .api_obtenerDetalleRecibo(folio, "", PIN);
+}
+function rxDatos_(){
+  var d = RX.d;
+  return { recibo: d.recibo, cliente: d.cliente, contacto: d.firmante || d.contactoAtiende || d.contacto || "", fecha: d.fecha,
+    horaInicio: d.horaInicio, horaFinal: d.horaFinal, vehiculo: d.vehiculo, operador: d.responsable,
+    kgBolsas: d.kgBio, cantBolsas: d.cantBio, kgPunzo: d.kgPunzo, cantPunzo: d.cantPunzo, kgAnatomo: d.kgAnatomo, cantAnatomo: d.cantAnatomo,
+    obs: d.obs, clave: d.clave };
+}
+function rxArmar_(n){
+  if(!$("rx") || !RX.d) return;
+  if(!window.jspdf || (!P9.logo && n < 6)){ if(n < 40) setTimeout(function(){ rxArmar_(n + 1); }, 500); else { var e = $("rx-prep"); if(e) e.innerHTML = "⚠ No se pudo cargar lo del PDF. Revisa la señal y vuelve a intentar."; } return; }
+  var seguir = function(){
+    var E = null; if(RX.emp){ var b = p9Emp_(); E = {}; Object.keys(b).forEach(function(k){ E[k] = RX.emp[k] || b[k]; }); }
+    try{ var r = p9PdfDe_(rxDatos_(), E); try{ r.file = new File([r.blob], r.nombre, { type: "application/pdf" }); }catch(e){ r.file = null; } RX.pdf = r; }catch(e){ console.log(e); }
+    rxPintar_();
+  };
+  P9.firmaJpg = "";
+  var f = String(RX.d.firma || "");
+  if(/^data:image\//.test(f)) p9Jpg_(f, 500, function(j){ P9.firmaJpg = j; seguir(); }); else seguir();
+}
+function rxTel_(){ return RX.dest.whatsapp !== undefined ? RX.dest.whatsapp : p9TelTxt_(telWhatsDe_({ whatsapp: RX.d.whatsapp, telefono: RX.d.telefono })); }
+function rxCor_(){ return RX.dest.correo !== undefined ? RX.dest.correo : String(RX.d.correo || "").split(/[;,\s]+/)[0]; }
+function rxPintar_(){
+  var box = $("rx"); if(!box || !RX.d) return;
+  var d = RX.d, r = RX.pdf, tel = rxTel_(), cor = rxCor_();
+  var h = '<div class="rx-h">📄 Enviar recibo en PDF</div><div class="rx-s">' + esc(d.cliente) + ' · Recibo ' + esc(d.recibo) + ' · ' + esc(c2Fecha_(d.fecha)) + '</div>';
+  h += '<div class="p9-prep" id="rx-prep">' + (r ? '📄 PDF listo · ' + esc(r.nombre) + ' · ' + Math.max(1, Math.round(r.blob.size / 1024)) + ' KB' : '<i class="p9-sp"></i>Armando el PDF…') + '</div>';
+  h += '<div class="p9-dst"><div class="l">💬 WhatsApp</div><input class="p9-in" id="rx-tel" inputmode="tel" placeholder="6612-3344" value="' + esc(tel) + '" oninput="RX.dest.whatsapp=this.value;rxBotones_()">' +
+       '<div class="rx-n">' + (RX.dest.whatsapp !== undefined ? 'Solo esta vez · la ficha no cambia' : 'De la ficha · puedes cambiarlo') + '</div></div>';
+  h += '<div class="p9-paso"><span class="k">1</span><div><button class="cf-b wa" id="rx-b1" onclick="rxChat_()">' + (RX.ok.wa1 ? '✓ Chat abierto · abrir otra vez' : 'Abrir el chat con el mensaje') + '</button><small>Envía el texto con el enlace</small></div></div>' +
+       '<div class="p9-paso"><span class="k">2</span><div><button class="cf-b wa" id="rx-b2" onclick="rxCompartir_(\'whatsapp\')">' + (RX.ok.whatsapp ? '✓ PDF compartido · otra vez' : '📎 Adjuntar el PDF') + '</button><small>Compartir → WhatsApp → el chat de arriba</small></div></div>';
+  h += '<div class="p9-dst"><div class="l">✉ Correo</div><input class="p9-in" id="rx-cor" inputmode="email" placeholder="correo@cliente.com" value="' + esc(cor) + '" oninput="RX.dest.correo=this.value;rxBotones_()">' +
+       '<div class="rx-n">' + (RX.dest.correo !== undefined ? 'Solo esta vez · la ficha no cambia' : 'De la ficha · puedes cambiarlo') + '</div></div>';
+  h += '<button class="cf-b az" id="rx-b3" onclick="rxCompartir_(\'correo\')">' + (RX.ok.correo ? '✓ PDF compartido · otra vez' : '✉ Copiar la dirección y compartir el PDF') + '</button>' +
+       '<button class="cf-b" id="rx-b4" onclick="rxBajar_()">⬇ Descargar el PDF</button>' +
+       (d.enviado ? '<div class="rx-env">Ya enviado: ' + esc(d.enviado) + '</div>' : '') +
+       '<div class="p9-nota">En la computadora, «Adjuntar» abre el menú Compartir de Windows. Si no sale WhatsApp o el correo, descarga el PDF y adjúntalo a mano.</div>' +
+       '<button class="cf-b" onclick="cerrarHojaIni_()">Cerrar</button>';
+  var foco = document.activeElement && document.activeElement.id, pos = foco && document.activeElement.selectionStart;
+  box.innerHTML = h;
+  if(foco === "rx-tel" || foco === "rx-cor"){ var e = $(foco); e.focus(); try{ e.setSelectionRange(pos, pos); }catch(x){} }
+  rxBotones_();
+}
+function rxBotones_(){
+  var t = p9TelNorm_(($("rx-tel") || {}).value), c = p9CorreoOk_(($("rx-cor") || {}).value), r = !!RX.pdf;
+  var s = function(id, ok){ var b = $(id); if(b) b.disabled = !ok; };
+  s("rx-b1", !!t); s("rx-b2", !!t && r); s("rx-b3", c && r); s("rx-b4", r);
+}
+function rxParada_(){ var d = RX.d; return { recibo: d.recibo, fecha: d.fecha, clave: d.clave, kgBolsas: d.kgBio, kgPunzo: d.kgPunzo, kgAnatomo: d.kgAnatomo }; }
+function rxMarcar_(canal, dest){
+  var s = canal + (dest ? " → " + dest : ""); RX.envios = (RX.envios || []).filter(function(x){ return x.split(" → ")[0] !== canal; }); RX.envios.push(s);
+  var txt = ("PDF " + RX.envios.join(" + ")).slice(0, 150), d = RX.d;
+  google.script.run.withSuccessHandler(function(r){ if(r && r.ok && RX.d === d){ d.enviado = r.sello; rxPintar_(); } }).withFailureHandler(function(){})
+    .api_marcarReciboEnviado(PIN, d.recibo, txt);
+}
+function rxChat_(){
+  var n = p9TelNorm_(($("rx-tel") || {}).value); if(!n){ toast("Escribe un número de WhatsApp válido"); return; }
+  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(textoReciboCliente_(rxParada_(), { nombre: RX.d.cliente })), "_blank");
+  RX.ok.wa1 = 1; rxMarcar_("whatsapp", p9TelTxt_(n)); rxPintar_();
+}
+function rxCompartir_(canal){
+  var r = RX.pdf; if(!r){ toast("El PDF todavía no está listo"); return; }
+  var dest = "", texto = "Recibo N.º " + RX.d.recibo + " · ECOVSA";
+  if(canal === "correo"){
+    dest = String(($("rx-cor") || {}).value || "").trim(); if(!p9CorreoOk_(dest)){ toast("Escribe un correo válido"); return; }
+    try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(dest).catch(function(){}); }catch(e){}
+    texto = textoReciboCliente_(rxParada_(), { nombre: RX.d.cliente });
+  } else { var n = p9TelNorm_(($("rx-tel") || {}).value); if(!n){ toast("Escribe un número de WhatsApp válido"); return; } dest = p9TelTxt_(n); }
+  var hecho = function(){ RX.ok[canal] = 1; rxMarcar_(canal, dest); toast(canal === "correo" ? "Dirección copiada · pégala en «Para»" : "Listo"); rxPintar_(); };
+  if(r.file && navigator.canShare && navigator.canShare({ files: [r.file] })){
+    navigator.share({ files: [r.file], title: "Comprobante de recolección " + RX.d.recibo + " · ECOVSA", text: texto })
+      .then(hecho).catch(function(e){ if(e && e.name !== "AbortError") p9Descargar_(r); });
+  } else { p9Descargar_(r); hecho(); }
+}
+function rxBajar_(){ if(!RX.pdf) return; try{ var u = URL.createObjectURL(RX.pdf.blob), a = document.createElement("a"); a.href = u; a.download = RX.pdf.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 60000); toast("PDF descargado"); }catch(e){ toast("No se pudo descargar"); } }
 
 function generarFolioSugerido(){
 
