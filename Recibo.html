@@ -166,6 +166,34 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
   .barra-accion .btn-imprimir{flex:1 1 0;padding:9px 6px;font-size:11.5px}
   .hoja-recibo{padding:22px 16px;margin:10px 8px 0}
 }
+
+/* ── api 2.9: barra de envío y hoja ── */
+.barra-accion .acc{display:flex;gap:7px;flex-wrap:wrap}
+.barra-accion .rb{border:0;border-radius:9px;padding:9px 14px;font:800 13px Archivo,system-ui,sans-serif;cursor:pointer;color:#fff}
+.barra-accion .rb.wa{background:#1fa855}.barra-accion .rb.co{background:#2a67c9}.barra-accion .rb.gr{background:rgba(255,255,255,.16);min-width:42px}
+.barra-accion .env{flex:1 1 100%;font-size:12px;color:#cfe9c4;font-weight:600}
+.hj{position:fixed;inset:0;background:rgba(10,25,50,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.hj.si{display:flex}
+.hj-c{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));font-family:Archivo,system-ui,sans-serif;color:#0f2140}
+@media(min-width:700px){.hj{align-items:center}.hj-c{border-radius:18px}}
+.hj-t{font-size:17px;font-weight:800;color:#14306b}.hj-s{font-size:12.5px;color:#5e6b7e;margin:3px 0 8px}
+.hj-s .sp{display:inline-block;width:11px;height:11px;border:2px solid #b8c3d3;border-top-color:#14306b;border-radius:50%;animation:hjg .8s linear infinite;vertical-align:-1px}
+@keyframes hjg{to{transform:rotate(360deg)}}
+.hj-l{display:block;font-size:11px;font-weight:800;color:#5e6b7e;letter-spacing:.3px;margin:10px 0 4px}
+.hj-in{display:flex;align-items:center;border:1.5px solid #14306b;border-radius:10px;padding:0 4px 0 10px}
+.hj-in input{flex:1;border:0;outline:0;padding:10px 0;font:600 15.5px Archivo,system-ui,sans-serif;min-width:0;background:transparent}
+.hj-in button{border:0;background:none;font-size:20px;color:#8a93a3;cursor:pointer;padding:4px 8px}
+.hj-in2{width:100%;border:1px solid #cfd8e3;border-radius:10px;padding:9px 10px;font:500 13.5px Archivo,system-ui,sans-serif}
+.hj-c textarea{width:100%;border:1px solid #e3e8ef;background:#f7f9fb;border-radius:10px;padding:9px 10px;font:500 13px/1.45 Archivo,system-ui,sans-serif;resize:vertical}
+.hj-n{font-size:11.5px;color:#5e6b7e;margin-top:4px;line-height:1.4}
+.hj-ck{display:flex;gap:8px;align-items:center;font-size:12.5px;color:#14306b;margin-top:8px}
+.hj-b{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:800 14.5px Archivo,system-ui,sans-serif;margin-top:10px;cursor:pointer}
+.hj-b.wa{background:#1fa855;color:#fff}.hj-b.az{background:#14306b;color:#fff}.hj-b.gr{background:#e9eef4;color:#14306b}
+.hj-b[disabled]{opacity:.45}
+.hj-lk{display:block;width:100%;border:0;background:none;color:#1f56b3;font:700 13px Archivo,system-ui,sans-serif;padding:8px;cursor:pointer;text-decoration:underline}
+#rec-aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f2a57;color:#fff;padding:11px 16px;border-radius:10px;font:600 13px Archivo,system-ui,sans-serif;max-width:90vw;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none}
+#rec-aviso.si{opacity:1}
+@media print{.hj,#rec-aviso{display:none!important}}
 </style>
 
 </head>
@@ -175,14 +203,6 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
 <div class="barra-accion" id="barra-accion">
 
   <div class="tit">COMPROBANTE OFICIAL DE RECOLECCIÓN</div>
-
-  <button class="btn-imprimir" id="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
-
-  <button class="btn-imprimir" id="btn-wa" onclick="enviarWhatsApp()" style="background:#25D366;color:#fff">📱 WhatsApp</button>
-
-  <button class="btn-imprimir" id="btn-mail" onclick="enviarCorreo()" style="background:#0B5394;color:#fff">✉️ Correo</button>
-
-  <button class="btn-imprimir" onclick="copiarEnlace()">🔗 Copiar enlace</button>
 
 </div>
 
@@ -208,6 +228,7 @@ window.addEventListener("DOMContentLoaded", function(){
     google.script.url.getLocation(function(loc){
       var p = (loc && loc.parameter) || {};
       SOLO_VER = String(p.solover||"") === "1";
+      ES_CONDUCTOR = String(p.conductor||"") === "1"; ENVIAR_AL_ABRIR = String(p.enviar||"");
       if(String(p.conductor||"") === "1"){ var bi = document.getElementById("btn-imprimir"); if(bi) bi.style.display = "none"; }
       CLAVE_REC = String(p.k || "");
       arrancarRecibo(p.id || "");
@@ -215,6 +236,7 @@ window.addEventListener("DOMContentLoaded", function(){
   } else {
     var up = new URLSearchParams(window.location.search);
     SOLO_VER = up.get("solover") === "1";
+    ES_CONDUCTOR = up.get("conductor") === "1"; ENVIAR_AL_ABRIR = up.get("enviar") || "";
     CLAVE_REC = up.get("k") || "";
     arrancarRecibo(up.get("id") || "");
   }
@@ -279,12 +301,7 @@ function renderizarRecibo(r){
 
   EMPRESA_R = r.empresa || EMP_RESP;
 
-  var barra=$("barra-accion");
-  if(barra && SOLO_VER) barra.style.display="none";
-
-  var bw=$("btn-wa"), bm=$("btn-mail");
-  if(bw) bw.style.display = (!SOLO_VER && telefonoWhatsApp(d)) ? "inline-flex" : "none";
-  if(bm) bm.style.display = (!SOLO_VER && d.correo) ? "inline-flex" : "none";
+  pintarBarra();
 
   var totKg = (num(d.kgBio) + num(d.kgAnatomo) + num(d.kgPunzo)).toFixed(2);
 
@@ -439,96 +456,322 @@ function renderizarRecibo(r){
   $("cuerpo-recibo").innerHTML = html;
 
   document.title = d.recibo + " · " + d.cliente + " · ECOVSA";
+  if(ENVIAR_AL_ABRIR && !SOLO_VER){ var cn = ENVIAR_AL_ABRIR === "correo" ? "correo" : "whatsapp"; ENVIAR_AL_ABRIR = ""; setTimeout(function(){ abrirEnvio(cn); }, 150); }
 
 }
 
 
-/* ═══════ Envío al cliente ═══════
-   El enlace viaja, no el archivo: si algo se corrige, el cliente ve la
-   versión buena. Y queda constancia de cuándo y por dónde se envió. */
-var PIN_ENV = "", URL_APP_REC = "";
+/* ═══════ Envío al cliente (api 2.9) ═══════
+   Lo que viaja es el PDF del recibo, con un mensaje que explica qué es.
+   · WhatsApp: se abre el menú Compartir con el PDF y el mensaje; se elige
+     el chat del cliente. Si no aparece, «abrir su chat primero».
+   · Correo: en el celular se comparte a Gmail/Outlook con asunto y mensaje;
+     en la computadora se descarga un borrador que Outlook abre con Para,
+     asunto, mensaje y el PDF adjunto. Se revisa y se da Enviar.
+   El número o el correo de la ficha se pueden cambiar solo esa vez, o
+   guardarse en la ficha (supervisión). Queda constancia en «enviado». */
+var PIN_ENV = "", URL_APP_REC = "", ROL_REC = "", ENVIAR_AL_ABRIR = "", ES_CONDUCTOR = false;
 try{ PIN_ENV = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){}
 
-/* Dentro del iframe, location.href es una URL interna de Google: no sirve
-   para compartir. La dirección real solo la conoce el servidor. */
 (function(){
-  if(window.google && google.script && google.script.run)
+  if(window.google && google.script && google.script.run){
     google.script.run.withSuccessHandler(function(u){ URL_APP_REC = u || ""; }).api_urlApp();
+    if(PIN_ENV) google.script.run.withSuccessHandler(function(r){ if(r && r.ok && r.usuario){ ROL_REC = r.usuario.rol; pintarBarra(); } }).withFailureHandler(function(){}).api_login(PIN_ENV);
+  }
 })();
 
-/* El enlace que se le manda al cliente lleva solover=1: abre el recibo sin la
-   barra de imprimir, WhatsApp, correo y copiar enlace. Esas son herramientas
-   de quien emite el recibo. El de «copiar enlace» también lo lleva, porque
-   ese enlace se copia justamente para pasárselo a alguien. */
 function enlaceRecibo(){
   if(!URL_APP_REC || !DATOS_RECIBO) return "";
   return URL_APP_REC + "?p=recibo&solover=1&id=" + encodeURIComponent(DATOS_RECIBO.recibo) + (DATOS_RECIBO.clave ? "&k=" + encodeURIComponent(DATOS_RECIBO.clave) : "");
 }
-
-function textoRecibo(d){
-  var url = enlaceRecibo();
-  return "Estimados " + (d.cliente||"") + ":\n\n" +
-    "Adjuntamos el comprobante de la recolección de desechos hospitalarios " +
-    "realizada el " + (d.fecha||"") + ".\n\n" +
-    "Recibo N° " + (d.recibo||"") + "\n" +
-    "Total retirado: " + (Number(d.totalKg)||0).toFixed(2) + " kg\n\n" +
-    (url ? "Puede consultarlo en cualquier momento aquí:\n" + url + "\n\n" : "") +
-    "Gracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+function fechaLarga(iso){
+  if(!iso) return "";
+  var d = new Date(String(iso).slice(0,10) + "T12:00:00");
+  var t = d.toLocaleDateString("es-PA",{weekday:"long", day:"numeric", month:"long"});
+  return t;
 }
+/* El mismo mensaje en todos lados: dice qué es el archivo que llega. */
+function textoRecibo(d){
+  var url = enlaceRecibo(), tipos = [];
+  if(num(d.kgBio)) tipos.push("bioinfeccioso " + num(d.kgBio).toFixed(2));
+  if(num(d.kgPunzo)) tipos.push("punzocortante " + num(d.kgPunzo).toFixed(2));
+  if(num(d.kgAnatomo)) tipos.push("anatomopatológico " + num(d.kgAnatomo).toFixed(2));
+  var tot = num(d.totalKg) || (num(d.kgBio) + num(d.kgPunzo) + num(d.kgAnatomo));
+  return "Estimados " + (d.cliente||"") + ":\n\n" +
+    "Le enviamos en PDF el comprobante de la recolección de desechos hospitalarios del " + fechaLarga(d.fecha) + ".\n\n" +
+    "Recibo N.º " + (d.recibo||"") + " · " + tot.toFixed(2) + " kg" + (tipos.length ? " (" + tipos.join(", ") + ")" : "") + ".\n" +
+    (d.firmante ? "Entregó: " + d.firmante + ".\n" : "") +
+    (url ? "\nTambién puede verlo aquí:\n" + url + "\n" : "") +
+    "\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+}
+function asuntoRecibo(d){ return "Recibo N.º " + (d.recibo||"") + " · recolección del " + fechaLarga(d.fecha) + " · ECOVSA"; }
 
-/* La columna whatsapp de la hoja a veces guarda el enlace completo
-   (https://wa.me/507xxxx?text=...) y no solo el número. */
+/* La columna whatsapp de la hoja a veces guarda el enlace completo. */
 function telefonoWhatsApp(d){
   var w = String(d.whatsapp || "");
-  var m = w.match(/wa\.me\/(\d+)/);            // enlace completo
+  var m = w.match(/wa\.me\/(\d+)/);
   if(m) return m[1];
   var n = w.replace(/[^0-9]/g, "");
   if(!n) n = String(d.telefono || "").replace(/[^0-9]/g, "");
   if(!n) return "";
-  if(n.length === 8) n = "507" + n;            // Panamá
-  if(n.length > 13) n = n.slice(0, 11);        // algo vino mal: no inventes
+  if(n.length === 8) n = "507" + n;
+  if(n.length > 13) n = n.slice(0, 11);
   return n;
 }
-
-function enviarWhatsApp(){
-  if(!DATOS_RECIBO) return;
-  if(!URL_APP_REC){ alert("Un momento, todavía se está cargando el enlace. Intenta de nuevo."); return; }
-  var num = telefonoWhatsApp(DATOS_RECIBO);
-  if(!num){ alert("Este cliente no tiene WhatsApp ni teléfono registrado."); return; }
-  window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(textoRecibo(DATOS_RECIBO)), "_blank");
-  marcarEnviado("whatsapp");
-}
-
-function enviarCorreo(){
-  if(!DATOS_RECIBO) return;
-  if(!URL_APP_REC){ alert("Un momento, todavía se está cargando el enlace. Intenta de nuevo."); return; }
-  var d = DATOS_RECIBO;
-  if(!d.correo){ alert("Este cliente no tiene correo registrado."); return; }
-  var asunto = "Comprobante de recolección " + (d.recibo||"") + " · ECOVSA";
-  window.open("mailto:" + encodeURIComponent(d.correo) +
-    "?subject=" + encodeURIComponent(asunto) +
-    "&body=" + encodeURIComponent(textoRecibo(d)), "_blank");
-  marcarEnviado("correo");
-}
-
-/* Copiar el enlace, para pegarlo donde haga falta. */
-function copiarEnlace(){
-  var u = enlaceRecibo();
-  if(!u){ alert("Todavía se está cargando el enlace."); return; }
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(u).then(
-      function(){ alert("Enlace copiado."); },
-      function(){ prompt("Copia este enlace:", u); });
-  } else prompt("Copia este enlace:", u);
-}
+function telBonito(n){ n = String(n||"").replace(/^507/,""); return n.length === 8 ? n.slice(0,4) + "-" + n.slice(4) : n; }
+function telNormal(v){ var n = String(v||"").replace(/\D/g,""); if(n.length === 8) n = "507" + n; return (n.length >= 10 && n.length <= 13) ? n : ""; }
+function correosValidos(v){ var l = String(v||"").split(/[;,\s]+/).filter(Boolean); return l.length && l.every(function(x){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x); }) ? l : null; }
+function esCelular(){ return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||""); }
+function puedeCompartirArchivo(f){ try{ return !!(f && navigator.canShare && navigator.canShare({ files:[f] })); }catch(e){ return false; } }
 
 function marcarEnviado(canal){
   if(!PIN_ENV || !DATOS_RECIBO) return;
   google.script.run
-    .withSuccessHandler(function(){})
+    .withSuccessHandler(function(r){ if(r && r.ok && r.sello){ DATOS_RECIBO.enviado = r.sello; pintarBarra(); } })
     .withFailureHandler(function(){})
     .api_marcarReciboEnviado(PIN_ENV, DATOS_RECIBO.recibo, canal);
 }
+
+/* ── La barra ── */
+function pintarBarra(){
+  var b = $("barra-accion"); if(!b || !DATOS_RECIBO) return;
+  if(SOLO_VER){ b.style.display = "none"; return; }
+  var d = DATOS_RECIBO, sup = ROL_REC === "admin" || ROL_REC === "supervisor";
+  b.innerHTML =
+    '<div class="tit">RECIBO ' + esc(d.recibo) + ' · ' + esc(d.cliente) + '</div>' +
+    '<div class="acc">' +
+      '<button class="rb wa" onclick="abrirEnvio(\'whatsapp\')">💬 WhatsApp</button>' +
+      '<button class="rb co" onclick="abrirEnvio(\'correo\')">✉ Correo</button>' +
+      '<button class="rb gr" onclick="bajarPdf()" title="Descargar el PDF" aria-label="Descargar el PDF">⬇</button>' +
+      (ES_CONDUCTOR ? '' : '<button class="rb gr" onclick="window.print()" title="Imprimir" aria-label="Imprimir">🖨</button>') +
+      (sup ? '<button class="rb gr" onclick="reabrirEste()" title="Reabrir el recibo" aria-label="Reabrir">🔓</button>' : '') +
+    '</div>' +
+    (d.enviado ? '<div class="env">Enviado: ' + esc(d.enviado) + '</div>' : '');
+}
+
+/* ── El PDF ── */
+var RP = { logo:"", firmaJpg:"", pdf:null, libOk:false };
+function cargarLib(fin){
+  if(window.jspdf){ fin(); return; }
+  var s = document.getElementById("rp-jspdf");
+  if(!s){ s = document.createElement("script"); s.id = "rp-jspdf"; s.src = "jspdf.umd.min.js"; document.head.appendChild(s); }
+  var n = 0; (function esperar(){ if(window.jspdf){ fin(); return; } if(++n > 60){ fin("No se pudo cargar lo del PDF. Revisa la señal."); return; } setTimeout(esperar, 250); })();
+}
+function recJpg(src, ancho, fn){
+  var im = new Image(); im.crossOrigin = "anonymous";
+  im.onload = function(){ try{ var w = Math.min(ancho, im.naturalWidth || ancho), h = Math.round(w * (im.naturalHeight || 1) / (im.naturalWidth || 1));
+      var cv = document.createElement("canvas"); cv.width = w; cv.height = h; var x = cv.getContext("2d");
+      x.fillStyle = "#fff"; x.fillRect(0, 0, w, h); x.drawImage(im, 0, 0, w, h); fn(cv.toDataURL("image/jpeg", 0.88)); }catch(e){ fn(""); } };
+  im.onerror = function(){ fn(""); }; im.src = src;
+}
+function hoyISO(){ var d = new Date(); return d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2); }
+function ahoraHM(){ var d = new Date(); return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2); }
+function recEmp_(){ var e = EMPRESA_R || {}; return { comercial: e.comercial || "ECOVSA", ruc: e.ruc || "1074020-1-552789", dv: e.dv || "50", telefono: e.telefono || "310-2268", correo: e.correo || "info@ecovsa.com", formulario: e.formulario || "" }; }
+function recPdfDe_(D, E){
+  var J = window.jspdf && window.jspdf.jsPDF; if(!J) return null;
+  E = E || recEmp_();
+  var d = new J({ unit: "mm", format: "letter" }), W = 215.9, M = 18, X2 = W - M, y = 16;
+  var NAVY = [20, 48, 107], GRIS = [94, 107, 126], LIN = [227, 232, 239], FON = [241, 244, 248];
+  var col = function(c3){ d.setTextColor(c3[0], c3[1], c3[2]); };
+  var txt = function(t, x, yy, o){ d.text(Array.isArray(t) ? t : String(t == null ? "" : t), x, yy, o || {}); };
+  /* encabezado */
+  if(RP.logo){ try{ d.addImage(RP.logo, "JPEG", M, y, 24, 23.7); }catch(e){} }
+  var xT = RP.logo ? M + 28 : M;
+  d.setFont("helvetica", "bold"); d.setFontSize(17); col(NAVY); txt(E.comercial, xT, y + 6);
+  d.setFont("helvetica", "normal"); d.setFontSize(8.5); col(GRIS);
+  txt("Recolección, transporte y disposición final de desechos hospitalarios", xT, y + 11);
+  txt("RUC: " + E.ruc + " DV " + E.dv + " · Tel. " + E.telefono + " · " + E.correo, xT, y + 15);
+  if(E.formulario) txt(E.formulario, xT, y + 19);
+  d.setFont("helvetica", "bold"); d.setFontSize(7.5); col(GRIS); txt("COMPROBANTE OFICIAL", X2, y + 3, { align: "right" });
+  d.setFontSize(15); col(NAVY); txt("Recibo de Visita", X2, y + 10, { align: "right" });
+  d.setFontSize(13); var nr = String(D.recibo || "—"), wN = d.getTextWidth(nr) + 10;
+  d.setFillColor(NAVY[0], NAVY[1], NAVY[2]); d.roundedRect(X2 - wN, y + 13, wN, 9, 2, 2, "F"); d.setTextColor(255, 255, 255); txt(nr, X2 - wN / 2, y + 19.3, { align: "center" });
+  y += 28; d.setDrawColor(NAVY[0], NAVY[1], NAVY[2]); d.setLineWidth(1); d.line(M, y, X2, y);
+  y += 6; d.setFillColor(245, 179, 1); d.rect(M, y - 3.5, 1.2, 5, "F");
+  d.setFont("helvetica", "bold"); d.setFontSize(7.5); col(GRIS); txt("DESECHOS HOSPITALARIOS PELIGROSOS · DECRETO EJECUTIVO 111 DE 1999 · RESOLUCIÓN 1010 DE 2022", M + 4, y);
+  var sec = function(t){ y += 7; d.setFillColor(FON[0], FON[1], FON[2]); d.roundedRect(M, y - 4.5, X2 - M, 7, 1.5, 1.5, "F"); d.setFont("helvetica", "bold"); d.setFontSize(9); col(NAVY); txt(t, M + 3, y); y += 5; };
+  var cajas = function(a, b){ var w = (X2 - M - 4) / 2; [a, b].forEach(function(k, j){ var x = M + j * (w + 4);
+      d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.roundedRect(x, y, w, 13, 1.5, 1.5, "S");
+      d.setFont("helvetica", "bold"); d.setFontSize(6.8); col(GRIS); txt(k[0].toUpperCase(), x + 3, y + 4.5);
+      d.setFontSize(10.5); col([17, 17, 17]); txt(d.splitTextToSize(String(k[1] || "—"), w - 6)[0], x + 3, y + 10); }); y += 15; };
+  sec("1 · GENERADOR");
+  cajas(["Establecimiento de salud", D.cliente], ["Contacto que atiende", D.contacto || "Enfermería / Personal Autorizado"]);
+  sec("2 · DATOS DEL RETIRO");
+  cajas(["Fecha de retiro", D.fecha], ["Horario (entrada / salida)", (D.horaInicio || "--:--") + " a " + (D.horaFinal || "--:--")]);
+  cajas(["Vehículo asignado", D.vehiculo || "—"], ["Operador responsable", D.operador || ""]);
+  sec("3 · DESECHOS RETIRADOS");
+  var cx = [M, M + 62, X2 - 42, X2]; d.setFillColor(NAVY[0], NAVY[1], NAVY[2]); d.rect(M, y - 1, X2 - M, 7, "F");
+  d.setFont("helvetica", "bold"); d.setFontSize(7.5); d.setTextColor(255, 255, 255);
+  txt("CLASIFICACIÓN", cx[0] + 3, y + 3.6); txt("ENVASE", cx[1], y + 3.6); txt("CANTIDAD", cx[2] - 2, y + 3.6, { align: "right" }); txt("PESO (KG)", cx[3] - 3, y + 3.6, { align: "right" }); y += 6;
+  var filas = [["Bioinfeccioso", "Bolsa roja", D.cantBolsas, D.kgBolsas, [192, 57, 43]], ["Anatomopatológico", "Bolsa roja rotulada", D.cantAnatomo, D.kgAnatomo, [142, 36, 170]], ["Punzocortante", "Recipiente rígido", D.cantPunzo, D.kgPunzo, [245, 179, 1]]]
+    .filter(function(f){ return num(f[2]) > 0 || num(f[3]) > 0; });
+  var tc = 0, tk = 0;
+  filas.forEach(function(f){ y += 7; tc += num(f[2]); tk += num(f[3]);
+    d.setFillColor(f[4][0], f[4][1], f[4][2]); d.rect(cx[0] + 3, y - 3, 3, 3, "F");
+    d.setFont("helvetica", "normal"); d.setFontSize(9.5); col([17, 17, 17]); txt(f[0], cx[0] + 8, y); txt(f[1], cx[1], y); txt(num(f[2]), cx[2] - 2, y, { align: "right" });
+    d.setFont("helvetica", "bold"); txt(num(f[3]).toFixed(2), cx[3] - 3, y, { align: "right" });
+    d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.line(M, y + 2.5, X2, y + 2.5); });
+  y += 4; d.setDrawColor(NAVY[0], NAVY[1], NAVY[2]); d.setLineWidth(0.6); d.line(M, y, X2, y);
+  y += 6; d.setFillColor(FON[0], FON[1], FON[2]); d.rect(M, y - 4.5, X2 - M, 7.5, "F");
+  d.setFont("helvetica", "bold"); d.setFontSize(10.5); col([17, 17, 17]); txt("TOTAL RETIRADO", M + 3, y); txt(tc, cx[2] - 2, y, { align: "right" }); txt(tk.toFixed(2), cx[3] - 3, y, { align: "right" });
+  y += 8; var obs = d.splitTextToSize(D.obs || "Cuarto de desechos en condiciones adecuadas. Retiro sin incidencias.", X2 - M - 6);
+  var hO = 9 + obs.length * 4.5; d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.roundedRect(M, y, X2 - M, hO, 1.5, 1.5, "S");
+  d.setFont("helvetica", "bold"); d.setFontSize(6.8); col(GRIS); txt("OBSERVACIONES DEL RETIRO", M + 3, y + 4.5);
+  d.setFont("helvetica", "italic"); d.setFontSize(10); col([17, 17, 17]); txt(obs, M + 3, y + 9.5); y += hO + 8;
+  /* firmas */
+  var w2 = (X2 - M - 14) / 2, xa = M, xb = M + w2 + 14, yF = y + 22;
+  if(RP.firmaJpg){ try{ d.addImage(RP.firmaJpg, "JPEG", xa + w2 / 2 - 25, y, 50, 20); }catch(e){} }
+  else { d.setFont("helvetica", "italic"); d.setFontSize(8); col(GRIS); txt("Sin firma registrada", xa + w2 / 2, y + 16, { align: "center" }); }
+  d.setFont("helvetica", "bold"); d.setFontSize(11); col(NAVY); txt(D.operador || "", xb + w2 / 2, y + 16, { align: "center" });
+  d.setDrawColor(51, 51, 51); d.setLineWidth(0.4); d.line(xa, yF, xa + w2, yF); d.line(xb, yF, xb + w2, yF);
+  d.setFont("helvetica", "bold"); d.setFontSize(9); col([17, 17, 17]);
+  txt(D.contacto || "________________", xa + w2 / 2, yF + 5, { align: "center" }); txt("Recibe --- " + E.comercial, xb + w2 / 2, yF + 5, { align: "center" });
+  d.setFont("helvetica", "normal"); d.setFontSize(8.5); txt("Entrega · Generador", xa + w2 / 2, yF + 9.5, { align: "center" }); txt("Transportista Especializado", xb + w2 / 2, yF + 9.5, { align: "center" });
+  y = yF + 17; d.setDrawColor(LIN[0], LIN[1], LIN[2]); d.setLineWidth(0.3); d.line(M, y, X2, y); y += 5;
+  d.setFont("helvetica", "normal"); d.setFontSize(7.8); col(GRIS);
+  txt(d.splitTextToSize("Declaración: El generador declara que los desechos entregados corresponden a las clasificaciones y pesos anotados, segregados conforme al Decreto Ejecutivo 111 de 23 de junio de 1999. " + E.comercial + " asume el transporte seguro hasta su tratamiento y disposición final en planta autorizada.", X2 - M), M, y);
+  d.setFontSize(7.5); txt("Comprobante digital emitido el " + hoyISO() + " " + ahoraHM() + (D.clave ? " · consulta en línea con la clave " + D.clave : ""), M, 268);
+  var nom = "Recibo_" + String(D.recibo || "").replace(/[^A-Za-z0-9-]/g, "") + "_" + String(D.cliente || "").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30) + ".pdf";
+  return { blob: d.output("blob"), nombre: nom };
+}
+function prepararPdf(fin){
+  if(RP.pdf){ fin(RP.pdf); return; }
+  cargarLib(function(err){
+    if(err){ fin(null, err); return; }
+    var d = DATOS_RECIBO, pasos = 0;
+    var listo = function(){ if(++pasos < 2) return;
+      try{
+        var r = recPdfDe_({ recibo:d.recibo, cliente:d.cliente, contacto: d.firmante || d.contactoAtiende || d.contacto || "", fecha:d.fecha,
+          horaInicio:d.horaInicio, horaFinal:d.horaFinal, vehiculo:d.vehiculo, operador:d.responsable,
+          kgBolsas:d.kgBio, cantBolsas:d.cantBio, kgPunzo:d.kgPunzo, cantPunzo:d.cantPunzo, kgAnatomo:d.kgAnatomo, cantAnatomo:d.cantAnatomo,
+          obs:d.obs, clave:d.clave }, recEmp_());
+        try{ r.file = new File([r.blob], r.nombre, { type:"application/pdf" }); }catch(e){ r.file = null; }
+        RP.pdf = r; fin(r);
+      }catch(e){ fin(null, "No se pudo armar el PDF."); }
+    };
+    if(RP.logo) listo(); else recJpg("logo-ecovsa.png", 260, function(j){ RP.logo = j; listo(); });
+    var f = String(d.firma || "");
+    if(/^data:image\//.test(f)) recJpg(f, 500, function(j){ RP.firmaJpg = j; listo(); }); else listo();
+  });
+}
+function descargar(blob, nombre){
+  try{ var u = URL.createObjectURL(blob), a = document.createElement("a"); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 60000); return true; }catch(e){ return false; }
+}
+function bajarPdf(){ prepararPdf(function(r, err){ if(!r){ avisoRec(err || "No se pudo armar el PDF."); return; } descargar(r.blob, r.nombre); avisoRec("PDF descargado"); }); }
+
+/* ── La hoja de envío ── */
+function abrirEnvio(canal){
+  if(!DATOS_RECIBO) return;
+  var d = DATOS_RECIBO, sup = ROL_REC === "admin" || ROL_REC === "supervisor", wa = canal === "whatsapp";
+  var h = '<div class="hj-t">' + (wa ? '💬 Enviar por WhatsApp' : '✉ Enviar por correo') + '</div>' +
+    '<div class="hj-s" id="hj-pdf">Recibo ' + esc(d.recibo) + ' · <i class="sp"></i> preparando el PDF…</div>';
+  if(wa){
+    h += '<label class="hj-l" for="hj-dest">NÚMERO DE WHATSAPP</label><div class="hj-in"><input id="hj-dest" inputmode="tel" value="' + esc(telBonito(telefonoWhatsApp(d))) + '" placeholder="6612-3344"><button type="button" onclick="limpiarDest()" aria-label="Borrar">×</button></div>' +
+         '<div class="hj-n">' + (telefonoWhatsApp(d) ? 'Es el de la ficha. Si escribes otro, vale solo esta vez.' : 'La ficha no tiene número: escríbelo.') + '</div>';
+  } else {
+    h += '<label class="hj-l" for="hj-dest">PARA</label><div class="hj-in"><input id="hj-dest" inputmode="email" value="' + esc(String(d.correo||"").split(/[;,\s]+/)[0] || "") + '" placeholder="correo@cliente.com"><button type="button" onclick="limpiarDest()" aria-label="Borrar">×</button></div>' +
+         '<div class="hj-n">Para varios, sepáralos con coma. Si cambias el de la ficha, vale solo esta vez.</div>' +
+         '<label class="hj-l" for="hj-asunto">ASUNTO</label><input class="hj-in2" id="hj-asunto" value="' + esc(asuntoRecibo(d)) + '"' + (ES_CONDUCTOR ? ' readonly' : '') + '>';
+  }
+  if(sup && d.clienteId) h += '<label class="hj-ck"><input type="checkbox" id="hj-guardar"> Guardar ' + (wa ? 'este número' : 'este correo') + ' en la ficha del cliente</label>';
+  h += '<label class="hj-l" for="hj-msg">MENSAJE QUE ACOMPAÑA AL PDF' + (ES_CONDUCTOR ? '' : ' · se puede editar') + '</label>' +
+       '<textarea id="hj-msg" rows="8"' + (ES_CONDUCTOR ? ' readonly' : '') + '>' + esc(textoRecibo(d)) + '</textarea>';
+  if(wa){
+    h += '<button type="button" class="hj-b wa" id="hj-ir" onclick="enviarWa()" disabled>📎 Enviar PDF por WhatsApp</button>' +
+         '<button type="button" class="hj-lk" onclick="abrirChat()">¿No aparece el cliente? Abrir su chat primero</button>' +
+         '<div class="hj-n">Se abre el menú Compartir con el PDF y el mensaje: elige el chat del cliente y envía.</div>';
+  } else {
+    h += '<button type="button" class="hj-b az" id="hj-ir" onclick="enviarCorreo()" disabled>✉ ' + (esCelular() ? 'Abrir el correo con el PDF' : 'Abrir borrador en Outlook') + '</button>' +
+         '<div class="hj-n">' + (esCelular() ? 'Eliges Gmail u Outlook y la cuenta; el PDF, el asunto y el mensaje ya van puestos. La dirección se copia para pegarla en «Para».'
+                                            : 'Se descarga un borrador que Outlook abre con Para, asunto, mensaje y el PDF adjunto. Elige la cuenta en «De», revisa y da Enviar. La primera vez, dile a Windows que lo abra siempre con Outlook.') + '</div>';
+  }
+  h += '<button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>';
+  var v = $("hj"); if(!v){ v = document.createElement("div"); v.id = "hj"; v.className = "hj"; v.onclick = function(e){ if(e.target === v) cerrarEnvio(); }; document.body.appendChild(v); }
+  v.innerHTML = '<div class="hj-c" role="dialog" aria-modal="true">' + h + '</div>'; v.classList.add("si");
+  v.setAttribute("data-canal", canal);
+  prepararPdf(function(r, err){
+    var e = $("hj-pdf"); if(!e) return;
+    if(!r){ e.innerHTML = '⚠ ' + esc(err || "No se pudo armar el PDF."); return; }
+    e.innerHTML = 'Recibo ' + esc(d.recibo) + ' · 📄 PDF listo (' + Math.max(1, Math.round(r.blob.size/1024)) + ' KB)';
+    var b = $("hj-ir"); if(b) b.disabled = false;
+  });
+}
+function cerrarEnvio(){ var v = $("hj"); if(v) v.classList.remove("si"); }
+function limpiarDest(){ var i = $("hj-dest"); if(i){ i.value = ""; i.focus(); } }
+function guardarEnFicha(campo, valor){
+  var ck = $("hj-guardar"); if(!ck || !ck.checked || !DATOS_RECIBO.clienteId) return;
+  var o = {}; o[campo] = valor;
+  google.script.run.withSuccessHandler(function(r){ if(r && r.ok){ DATOS_RECIBO[campo] = valor; avisoRec("Guardado en la ficha del cliente"); } else avisoRec((r && r.error) || "No se pudo guardar en la ficha"); })
+    .withFailureHandler(function(){ avisoRec("Sin señal: no se guardó en la ficha"); }).api_guardarOperativoCliente(PIN_ENV, DATOS_RECIBO.clienteId, o);
+}
+function enviarWa(){
+  var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
+  var msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO), r = RP.pdf; if(!r) return;
+  guardarEnFicha("whatsapp", n);
+  if(puedeCompartirArchivo(r.file)){
+    try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).catch(function(){}); }catch(e){}
+    navigator.share({ files:[r.file], text: msg, title: asuntoRecibo(DATOS_RECIBO) })
+      .then(function(){ marcarEnviado("PDF whatsapp → " + telBonito(n)); avisoRec("Listo · quedó anotado"); cerrarEnvio(); })
+      .catch(function(e){ if(e && e.name === "AbortError") return; descargar(r.blob, r.nombre); abrirChat(); });
+  } else {
+    /* sin menú Compartir: el PDF se descarga y se abre el chat para adjuntarlo */
+    descargar(r.blob, r.nombre); abrirChat();
+    avisoRec("El PDF quedó en Descargas: adjúntalo en el chat que se abrió");
+  }
+}
+function abrirChat(){
+  var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
+  var msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO);
+  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(msg), "_blank");
+  marcarEnviado("PDF whatsapp → " + telBonito(n));
+}
+function b64Lineas(s){ return s.replace(/.{1,76}/g, "$&\r\n"); }
+function b64Texto(t){ return btoa(unescape(encodeURIComponent(t))); }
+function armarEml(para, asunto, texto, pdf, fin){
+  var fr = new FileReader();
+  fr.onload = function(){
+    var b64 = String(fr.result).split(",")[1] || "", lim = "ECOVSA_" + Date.now().toString(36), nom = pdf.nombre.replace(/[^A-Za-z0-9._-]/g, "_");
+    var eml = "To: " + para.join(", ") + "\r\n" +
+      "Subject: =?UTF-8?B?" + b64Texto(asunto) + "?=\r\n" +
+      "X-Unsent: 1\r\nMIME-Version: 1.0\r\n" +
+      "Content-Type: multipart/mixed; boundary=\"" + lim + "\"\r\n\r\n" +
+      "--" + lim + "\r\nContent-Type: text/plain; charset=\"UTF-8\"\r\nContent-Transfer-Encoding: base64\r\n\r\n" + b64Lineas(b64Texto(texto)) + "\r\n" +
+      "--" + lim + "\r\nContent-Type: application/pdf; name=\"" + nom + "\"\r\nContent-Disposition: attachment; filename=\"" + nom + "\"\r\nContent-Transfer-Encoding: base64\r\n\r\n" + b64Lineas(b64) + "\r\n" +
+      "--" + lim + "--\r\n";
+    fin(new Blob([eml], { type:"message/rfc822" }));
+  };
+  fr.readAsDataURL(pdf.blob);
+}
+function enviarCorreo(){
+  var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
+  var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO), msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO), r = RP.pdf; if(!r) return;
+  guardarEnFicha("correo", para[0]);
+  var hecho = function(){ marcarEnviado("PDF correo → " + para.join(", ")); cerrarEnvio(); };
+  if(esCelular() && puedeCompartirArchivo(r.file)){
+    try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(para.join(", ")).catch(function(){}); }catch(e){}
+    navigator.share({ files:[r.file], title: asunto, text: msg })
+      .then(function(){ hecho(); avisoRec("Pega la dirección en «Para» y envía"); })
+      .catch(function(e){ if(e && e.name !== "AbortError") avisoRec("No se pudo abrir el correo"); });
+  } else {
+    armarEml(para, asunto, msg, r, function(blob){
+      descargar(blob, r.nombre.replace(/\.pdf$/i, "") + ".eml");
+      hecho(); avisoRec("Se descargó el borrador: ábrelo y Outlook lo muestra listo para enviar");
+    });
+  }
+}
+function reabrirEste(){
+  if(!DATOS_RECIBO) return;
+  var h = '<div class="hj-t">🔓 Reabrir el recibo ' + esc(DATOS_RECIBO.recibo) + '</div><p class="hj-n" style="font-size:14px;margin:8px 0 12px">La parada vuelve a quedar editable para el conductor. Úsalo solo para corregir un error: el cliente ya puede tener una copia.</p>' +
+          '<button type="button" class="hj-b az" onclick="reabrirSi()">Sí, reabrir</button><button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>';
+  var v = $("hj"); if(!v){ v = document.createElement("div"); v.id = "hj"; v.className = "hj"; v.onclick = function(e){ if(e.target === v) cerrarEnvio(); }; document.body.appendChild(v); }
+  v.innerHTML = '<div class="hj-c">' + h + '</div>'; v.classList.add("si");
+}
+function reabrirSi(){
+  google.script.run.withSuccessHandler(function(r){ cerrarEnvio(); avisoRec(r && r.ok ? "Recibo reabierto" : ((r && r.error) || "No se pudo reabrir")); })
+    .withFailureHandler(function(){ avisoRec("Sin señal"); }).api_reabrirRecibo(PIN_ENV, DATOS_RECIBO.recibo);
+}
+function avisoRec(t){ var a = $("rec-aviso"); if(!a){ a = document.createElement("div"); a.id = "rec-aviso"; document.body.appendChild(a); }
+  a.textContent = t; a.className = "si"; clearTimeout(avisoRec._t); avisoRec._t = setTimeout(function(){ a.className = ""; }, 3400); }
 
 </script>
 
