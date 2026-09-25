@@ -10849,6 +10849,580 @@ function bandejaAbrirItem(id){
   else bndAviso("Un momento, cargando…");
 }
 </script>
+
+<style id="estilo-sup">
+/* ═══ api 3.1 · Logística (solo supervisión) con el estilo de Mercadeo ═══
+   Todo va bajo body.es-sup: la pantalla del conductor no cambia en nada.
+   Es solo apariencia: no cambia qué hace ningún botón. */
+.mk-only{display:none!important}
+body.es-sup{--ini-navy:#0f2a57;--ini-azul:#14306b;--ini-tinta:#0f2140;--ini-gris:#667489;--ini-linea:#e1e6ee;
+  --eco-azul-osc:#14306b;--eco-azul:#14306b;--azul-osc:#14306b;--fondo:#f3f5f8;--borde:#e1e6ee;--tinta:#0f2140;--gris:#667489;
+  --mk-ok:#2f9e44;--mk-ok-bg:#eaf6e4;--mk-bad:#d64045;--mk-bad-bg:#fdecea;--mk-warn-bg:#fff4d6;--mk-line2:#eef1f5;--mk-muted2:#8a96a8;
+  background:#f3f5f8;color:#0f2140;font-size:14px}
+body.es-sup b,body.es-sup strong{font-weight:700}
+body.es-sup [style*="font-weight:900"],body.es-sup [style*="font-weight: 900"]{font-weight:700!important}
+body.es-sup [style*="font-weight:800"],body.es-sup [style*="font-weight: 800"]{font-weight:600!important}
+body.es-sup svg.mki{width:1.1em;height:1.1em;vertical-align:-.18em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;display:inline-block}
+
+/* pesos de letra: 900 → 700 y 800 → 600, como Mercadeo (generado de las reglas de esta página) */
+body.es-sup .acta-item .kg,
+body.es-sup .avz-lb,
+body.es-sup .avz-li .n,
+body.es-sup .avz-li .nm b,
+body.es-sup .avz-st,
+body.es-sup .avz-tabs button,
+body.es-sup .avz-x,
+body.es-sup .barra-navegacion-top h2,
+body.es-sup .bloque-desecho .titulo,
+body.es-sup .btn-reloj .hora-txt,
+body.es-sup .c2-btn,
+body.es-sup .c2-chip,
+body.es-sup .c2-dsem button,
+body.es-sup .c2-dt b,
+body.es-sup .c2-f,
+body.es-sup .c2-fic h2,
+body.es-sup .c2-full .cab b,
+body.es-sup .c2-lab,
+body.es-sup .c2-lista .nm b,
+body.es-sup .c2-lote b,
+body.es-sup .c2-lote u,
+body.es-sup .c2-m3 b,
+body.es-sup .c2-ob b,
+body.es-sup .c2-rt b,
+body.es-sup .c2-tabs button,
+body.es-sup .c2-tb .am,
+body.es-sup .c2-tb .bad,
+body.es-sup .c2-tb td b,
+body.es-sup .c2-tb th,
+body.es-sup .c2-tt h1,
+body.es-sup .c2-wa b,
+body.es-sup .cal-celda .cal-num,
+body.es-sup .cal-est,
+body.es-sup .cf-b,
+body.es-sup .cf-ok .ci,
+body.es-sup .cf-strip .h span,
+body.es-sup .cf-strip .n,
+body.es-sup .cf-strip .tot,
+body.es-sup .cr-card h3,
+body.es-sup .cr-ed{font-weight:700}
+body.es-sup .cr-fila .res,
+body.es-sup .cr-fila .who b,
+body.es-sup .cr-kp b,
+body.es-sup .cr-mc .h1,
+body.es-sup .cr-ob b,
+body.es-sup .cr-p,
+body.es-sup .cr-t5 b,
+body.es-sup .cr-tabs button,
+body.es-sup .cr-tb td b,
+body.es-sup .cr-tb th,
+body.es-sup .cr-tip b,
+body.es-sup .cr-tl.h,
+body.es-sup .cr-tt h1,
+body.es-sup .cr-z .gr,
+body.es-sup .cr-z .lp,
+body.es-sup .cr-z .lr,
+body.es-sup .cuadro-kpi .v,
+body.es-sup .cuenta-espera,
+body.es-sup .df-acop .am,
+body.es-sup .df-acop .bad,
+body.es-sup .df-acop .big b,
+body.es-sup .df-acop .mini b,
+body.es-sup .df-bars em,
+body.es-sup .df-flujo b,
+body.es-sup .df-flujo div:not(:first-child)::before,
+body.es-sup .df-flujo small,
+body.es-sup .df-kv .bad,
+body.es-sup .df-kv b,
+body.es-sup .df-lis button em,
+body.es-sup .df-t .am,
+body.es-sup .df-t .bad,
+body.es-sup .df-t .lnk,
+body.es-sup .df-t .ok,
+body.es-sup .df-t th,
+body.es-sup .dlg-ic,
+body.es-sup .en-b,
+body.es-sup .en-big b,
+body.es-sup .en-ck,
+body.es-sup .en-firma .cab b,
+body.es-sup .en-h1{font-weight:700}
+body.es-sup .en-l,
+body.es-sup .en-ok .ci,
+body.es-sup .en-pie .t b,
+body.es-sup .en-pie .t small,
+body.es-sup .en-rel input,
+body.es-sup .en-rel small,
+body.es-sup .en-stp,
+body.es-sup .en-viejos,
+body.es-sup .ff-bt button,
+body.es-sup .ff-l1,
+body.es-sup .ff-l2,
+body.es-sup .ff-sec,
+body.es-sup .ff-tag,
+body.es-sup .fk .v,
+body.es-sup .fl-bars small,
+body.es-sup .fl-cam .a b,
+body.es-sup .fl-carga .k,
+body.es-sup .fl-carga b,
+body.es-sup .fl-chip,
+body.es-sup .fl-dt b,
+body.es-sup .fl-fic h2,
+body.es-sup .fl-lab,
+body.es-sup .fl-li.h,
+body.es-sup .fl-m3 b,
+body.es-sup .hh-col b,
+body.es-sup .hh-col button,
+body.es-sup .hh-dos,
+body.es-sup .hoja-abajo h3,
+body.es-sup .hub-conductor .mosaico-tit,
+body.es-sup .hub-fallas .go,
+body.es-sup .hz-sug b,
+body.es-sup .in-bloque h3,
+body.es-sup .in-origen .t,
+body.es-sup .in-reloj .v,
+body.es-sup .ini-al .ac,
+body.es-sup .ini-al b,
+body.es-sup .ini-aten h3,
+body.es-sup .ini-barra b,
+body.es-sup .ini-bt h3,
+body.es-sup .ini-btns a{font-weight:700}
+body.es-sup .ini-btns button,
+body.es-sup .ini-cd .n,
+body.es-sup .ini-dato b,
+body.es-sup .ini-grp,
+body.es-sup .ini-hola,
+body.es-sup .ini-kpis b,
+body.es-sup .ini-lnk,
+body.es-sup .ini-ok,
+body.es-sup .ini-opc b,
+body.es-sup .ini-pt,
+body.es-sup .ini-seg button,
+body.es-sup .ini-sr .e,
+body.es-sup .ini-sr b,
+body.es-sup .ini-tag,
+body.es-sup .ini-tl b,
+body.es-sup .ini-vivo .big b,
+body.es-sup .ini-volver,
+body.es-sup .jornada-card button,
+body.es-sup .jornada-card input,
+body.es-sup .jv-acc button,
+body.es-sup .jv-btn,
+body.es-sup .jv-crit,
+body.es-sup .jv-dos button,
+body.es-sup .jv-fila b,
+body.es-sup .jv-gr,
+body.es-sup .jv-hero .et,
+body.es-sup .jv-hero .t1,
+body.es-sup .jv-kp b,
+body.es-sup .jv-lab,
+body.es-sup .jv-odo input,
+body.es-sup .jv-odo span,
+body.es-sup .jv-pend .fx button,
+body.es-sup .jv-res b,
+body.es-sup .jv-tg button,
+body.es-sup .jv-tit,
+body.es-sup .jv-veh button,
+body.es-sup .mon-cab .r b,
+body.es-sup .mon-kpi .v,
+body.es-sup .mosaico-badge,
+body.es-sup .mosaico-tit{font-weight:700}
+body.es-sup .mr-aviso button,
+body.es-sup .mr-mas,
+body.es-sup .mr-pill,
+body.es-sup .mr-t1,
+body.es-sup .msup .dh b,
+body.es-sup .msup .g,
+body.es-sup .msup a em,
+body.es-sup .msup a.on,
+body.es-sup .num-parada,
+body.es-sup .p7-rm .f i,
+body.es-sup .p7-rm .h span,
+body.es-sup .p7-rm .n,
+body.es-sup .p7-rm .t,
+body.es-sup .p7-rm td:last-child,
+body.es-sup .pc-hora b,
+body.es-sup .pc-hora small,
+body.es-sup .pc-n,
+body.es-sup .pc-tit,
+body.es-sup .pc-tot b,
+body.es-sup .pc-tot small,
+body.es-sup .pill-esp,
+body.es-sup .pill-mor,
+body.es-sup .pl-avis button,
+body.es-sup .pl-ban b,
+body.es-sup .pl-ban button,
+body.es-sup .pl-btn,
+body.es-sup .pl-cand .add,
+body.es-sup .pl-cand .nm b,
+body.es-sup .pl-cap .row div b,
+body.es-sup .pl-cap button,
+body.es-sup .pl-ch .x,
+body.es-sup .pl-ch h3,
+body.es-sup .pl-chip,
+body.es-sup .pl-est,
+body.es-sup .pl-gr,
+body.es-sup .pl-rec .nm b,
+body.es-sup .pl-seg button,
+body.es-sup .pl-st .eta,
+body.es-sup .pl-st .mas,
+body.es-sup .pl-st .n{font-weight:700}
+body.es-sup .pl-st .nm b,
+body.es-sup .pl-tt h1,
+body.es-sup .pr-ficha .rej span,
+body.es-sup .pr-ficha h4,
+body.es-sup .pv-c .v,
+body.es-sup .pv-ruta .frac,
+body.es-sup .rec-tabla tr.tot,
+body.es-sup .recibo-papel .rec-folio,
+body.es-sup .recibo-papel .rec-titulo,
+body.es-sup .tb-et,
+body.es-sup .tb-kpi b,
+body.es-sup .tb-pt,
+body.es-sup .tb-sig .l,
+body.es-sup .tb-sig .n,
+body.es-sup .tb-t1,
+body.es-sup .tb-tag{font-weight:700}
+body.es-sup .acta-item .id,
+body.es-sup .aviso-cli .marca-av,
+body.es-sup .aviso-cli .n,
+body.es-sup .aviso-editor b,
+body.es-sup .avz-prog span,
+body.es-sup .avz-sel,
+body.es-sup .bnd-cab,
+body.es-sup .bnd-pastilla b,
+body.es-sup .bnd-t,
+body.es-sup .bnd-t span,
+body.es-sup .btn,
+body.es-sup .btn-p-rapido,
+body.es-sup .btn-reloj,
+body.es-sup .btn-volver-hub,
+body.es-sup .c2-fil button,
+body.es-sup .c2-fil select,
+body.es-sup .c2-histm,
+body.es-sup .c2-lista .nm .bad,
+body.es-sup .c2-seg button,
+body.es-sup .c2-tb .sug,
+body.es-sup .cal-badge,
+body.es-sup .cal-grid-dias span,
+body.es-sup .cal-header b,
+body.es-sup .cal-header-btn,
+body.es-sup .cf-strip .ks .k,
+body.es-sup .cf-strip .ks i,
+body.es-sup .cli-horario,
+body.es-sup .cli-item .nom,
+body.es-sup .cr-kp em,
+body.es-sup .cr-t5 em,
+body.es-sup .cr-tt input[type=date],
+body.es-sup .cr-tt select,
+body.es-sup .cr-z .ax,
+body.es-sup .cr-z .nm,
+body.es-sup .cuadro-kpi .e,
+body.es-sup .df-bl span,
+body.es-sup .df-leg,
+body.es-sup .df-ok,
+body.es-sup .dlg-tit,
+body.es-sup .en-acta{font-weight:600}
+body.es-sup .en-chips i,
+body.es-sup .en-sug button,
+body.es-sup .en-vac,
+body.es-sup .fila-flota i,
+body.es-sup .firma-tit,
+body.es-sup .fl-barsx,
+body.es-sup .fl-parada,
+body.es-sup .hh-link,
+body.es-sup .in-chip,
+body.es-sup .ini-bt .x,
+body.es-sup .ini-chips span,
+body.es-sup .ini-kpis em,
+body.es-sup .ini-vivo .big span,
+body.es-sup .ini-vivo .est,
+body.es-sup .ins .nom,
+body.es-sup .jv-ay.mal,
+body.es-sup .jv-ay.ojo,
+body.es-sup .jv-calc,
+body.es-sup .jv-chips button,
+body.es-sup .jv-est,
+body.es-sup .jv-foto,
+body.es-sup .jv-it .nm small.f,
+body.es-sup .jv-kp span,
+body.es-sup .jv-res span,
+body.es-sup .jv-tit .r,
+body.es-sup .jv-tq button,
+body.es-sup .modal-head h3,
+body.es-sup .mon-cab .f,
+body.es-sup .mon-kpi .e,
+body.es-sup .mon-parada .i,
+body.es-sup .mr-lb,
+body.es-sup .mr-par .es,
+body.es-sup .mr-par .nm,
+body.es-sup .msup .pleg,
+body.es-sup .msup a small,
+body.es-sup .p7-rm .m,
+body.es-sup .parada-card .n,
+body.es-sup .pc-a,
+body.es-sup .pc-chip,
+body.es-sup .pc-kg span{font-weight:600}
+body.es-sup .pc-otro,
+body.es-sup .pill,
+body.es-sup .pl-cfg > div,
+body.es-sup .pl-cfg input,
+body.es-sup .pl-cfg select,
+body.es-sup .pl-cfg small,
+body.es-sup .pl-dias button,
+body.es-sup .pl-fil button,
+body.es-sup .pl-fin,
+body.es-sup .pl-menu a,
+body.es-sup .pl-menu button,
+body.es-sup .pl-rtabs button,
+body.es-sup .pl-tt input[type=date],
+body.es-sup .pv-et,
+body.es-sup .pv-fecha,
+body.es-sup .pv-p .ic,
+body.es-sup .pv-p .kg,
+body.es-sup .pv-ruta .cond,
+body.es-sup .rec-campo .v,
+body.es-sup .rec-sec-titulo,
+body.es-sup .sol .nom,
+body.es-sup .sync-status,
+body.es-sup .tarjeta-kpi-hist span,
+body.es-sup .tb-alerta,
+body.es-sup .tb-kpi span,
+body.es-sup .tb-lb,
+body.es-sup .texto-carga,
+body.es-sup .tit-sec,
+body.es-sup .total-barra,
+body.es-sup .v-item b,
+body.es-sup .v-item span,
+body.es-sup label{font-weight:600}
+
+/* barra de arriba: azul plano, como Mercadeo */
+body.es-sup header{background:#0f2a57;border-bottom:0;box-shadow:none;padding:0 22px;padding-top:env(safe-area-inset-top,0px);height:calc(58px + env(safe-area-inset-top,0px));display:flex;align-items:center}
+body.es-sup header .barra-top{width:100%;gap:14px}
+body.es-sup .logo-header-box{gap:14px}
+body.es-sup .logo-header-box > div:not(.logo-img-header):not(.mk-only){display:none}
+body.es-sup header .logo-img-header{width:34px;height:34px;border-radius:9px;background-size:26px;padding:0;box-shadow:none}
+body.es-sup .mk-only.mk-marca{display:flex!important;align-items:center;gap:14px}
+body.es-sup .mk-marca .mk b{display:block;font-size:14px;letter-spacing:2px;font-weight:700;line-height:1.2}
+body.es-sup .mk-marca .mk span{display:block;font-size:11px;color:#a9bbd9;font-weight:500}
+body.es-sup .mk-marca .sep{width:1px;height:24px;background:#2c4a7d}
+body.es-sup .mk-marca .mod{font-weight:700;font-size:14px}
+body.es-sup .barra-sync{flex-direction:row;align-items:center;gap:12px}
+body.es-sup .barra-sync > div{gap:8px!important}
+body.es-sup .mk-only.mk-us{display:flex!important;align-items:center;gap:9px;font-size:13px}
+body.es-sup .mk-us .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:#2c4a7d;color:#fff}
+body.es-sup header .btn-header{font:600 12.5px Archivo,sans-serif;border-radius:8px;padding:6px 10px;background:none;border:1px solid #3a5a8f;color:#dfe7f3}
+body.es-sup #btn-menu-sup{border:0;padding:6px;margin-right:0}
+body.es-sup header .barra-top{flex-wrap:nowrap;min-width:0}
+body.es-sup .logo-header-box,body.es-sup .barra-sync{min-width:0;flex-wrap:nowrap}
+@media(max-width:760px){
+  body.es-sup header{padding:0 12px;padding-top:env(safe-area-inset-top,0px)}
+  body.es-sup .mk-marca .mk,body.es-sup .mk-marca .sep,body.es-sup .mk-us span{display:none}
+  body.es-sup .logo-header-box{gap:10px}
+  body.es-sup header .semaforo span{display:none}
+  body.es-sup header .btn-header{padding:5px 8px}
+}
+body.es-sup header .semaforo{background:rgba(255,255,255,.08);border:0;color:#cfd9ea;font-weight:600;border-radius:8px}
+
+/* menú lateral */
+body.es-sup .msup{width:232px;padding:14px 10px 24px;border-right:1px solid #e1e6ee}
+body.es-sup .msup .g{font-size:10.5px;font-weight:700;letter-spacing:1px;color:#8a96a8;margin:12px 10px 5px}
+body.es-sup .msup a{gap:10px;padding:8px 10px;font-size:13.5px;font-weight:600;color:#0f2140}
+body.es-sup .msup a:hover{background:#f7f9fc}
+body.es-sup .msup a.on{background:#eaf0fa;color:#14306b;font-weight:600}
+body.es-sup .msup a .ic{width:18px;display:inline-flex;justify-content:center;color:#44516a}
+body.es-sup .msup a.on .ic{color:#14306b}
+body.es-sup .msup a em{font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;background:#fdecea;color:#d64045}
+body.es-sup .msup a em.a{background:#eef1f5;color:#667489}
+body.es-sup .msup .pleg{font-weight:600;background:none;border:1px solid #e1e6ee}
+body.es-sup.msup-pleg .msup{width:64px}
+body.es-sup.msup-pleg .msup a .ic{font-size:16px;width:auto}
+
+/* cuerpo */
+body.es-sup main{background:#f3f5f8}
+@media(min-width:900px){body.es-sup main{padding:20px 26px 60px}}
+body.es-sup .barra-navegacion-top{border-bottom:0;margin-bottom:14px;padding-bottom:0}
+body.es-sup .barra-navegacion-top h2{font-size:22px;font-weight:700;text-transform:none;letter-spacing:0;color:#0f2140}
+body.es-sup .btn-volver-hub{background:#fff;color:#14306b;border:1px solid #e1e6ee;border-radius:9px;padding:7px 12px;font-weight:700;font-size:12.5px}
+body.es-sup .modal-head,body.es-sup .c2-full .cab,body.es-sup .jv-hero,body.es-sup .panel-vivo{background:#0f2a57}
+body.es-sup input,body.es-sup select,body.es-sup textarea{font-family:inherit}
+
+/* Inicio: la operación en vivo en tarjetas blancas; el color queda solo para los estados */
+body.es-sup .ini-hola{font-size:22px;font-weight:700;color:#0f2140}
+body.es-sup .ini-hola span{font-weight:500}
+body.es-sup .ini-bt h3,body.es-sup .ini-aten h3{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700}
+body.es-sup .ini-vivo,body.es-sup .ini-vivo.cierre{background:#fff;color:#0f2140;border:1px solid #e1e6ee;border-radius:14px;padding:16px}
+body.es-sup .ini-vivo.cierre{border-color:#cfe5b4;box-shadow:inset 3px 0 0 #2f9e44}
+body.es-sup .ini-vivo .big b{font-size:22px;font-weight:700;color:#0f2140;letter-spacing:-.3px}
+body.es-sup .ini-vivo .big span{opacity:1;color:#667489;font-weight:500;text-transform:none;letter-spacing:0;font-size:12px}
+body.es-sup .ini-vivo .est{background:#eaf6e4;color:#2f9e44;font-weight:700;border-radius:6px}
+body.es-sup .ini-vivo .vacio2{color:#667489;opacity:1}
+body.es-sup .ini-cd{background:#fff;border:1px solid #e1e6ee;color:#0f2140}
+body.es-sup .ini-cd:hover{background:#f7f9fc;border-color:#9db4d8}
+body.es-sup .ini-cd .n{font-weight:700}
+body.es-sup .ini-cd .n small{opacity:1;color:#667489;font-weight:500}
+body.es-sup .ini-cd .t{opacity:1;color:#44516a}
+body.es-sup .ini-cd .pb{background:#eef1f5}
+body.es-sup .ini-cd .pb i{background:#2f9e44}
+body.es-sup .ini-cd.bq{background:#fffafa;border-color:#f0b9bb}
+body.es-sup .ini-tag{background:#eaf6e4;color:#2f9e44;font-weight:700;border-radius:6px}
+body.es-sup .ini-tag.r{background:#fdecea;color:#d64045}
+body.es-sup .ini-tag.g{background:#eef1f5;color:#667489}
+body.es-sup .ini-tag.a{background:#fff4d6;color:#8a6300}
+body.es-sup .ini-kpis{border-color:#e1e6ee}
+body.es-sup .ini-kpis b{font-weight:700;color:#0f2140;font-size:21px}
+body.es-sup .ini-kpis span{font-weight:500}
+body.es-sup .ini-seg button{font-weight:700}
+body.es-sup .ini-sr b{color:#0f2140}
+body.es-sup .ini-aten,body.es-sup .ini-atc,body.es-sup .ini-sem{border-color:#e1e6ee;border-radius:14px}
+body.es-sup .ini-al b{font-weight:700;color:#0f2140}
+body.es-sup .ini-al span{font-weight:500}
+body.es-sup .ini-al .ac{font-weight:700;color:#14306b;border:1px solid #e1e6ee;border-radius:8px;padding:5px 9px;background:#fff}
+body.es-sup .ini-al .ac.p{background:#14306b;border-color:#14306b;color:#fff}
+body.es-sup .ini-btns button,body.es-sup .ini-btns a{background:#fff;border:1px solid #e1e6ee;border-radius:9px;color:#14306b;font-weight:700}
+body.es-sup .ini-btns button:hover,body.es-sup .ini-btns a:hover{border-color:#9db4d8}
+body.es-sup .ini-ok{border-radius:9px;font-weight:700;background:#14306b}
+body.es-sup .ini-ok.sec{background:#fff;border:1px solid #e1e6ee;color:#14306b}
+body.es-sup .ini-pt{font-weight:700;color:#0f2140}
+body.es-sup .ini-chips span{font-weight:600;border-radius:6px}
+body.es-sup .ini-grp{font-weight:700;color:#8a96a8}
+</style>
+<script>
+/* ═══ api 3.1 · Logística con el estilo de Mercadeo (solo supervisión) ═══
+   Los íconos-emoji de las pantallas de supervisión se cambian por íconos de
+   línea, como los de Mercadeo. Solo corre con body.es-sup: el conductor sigue
+   viendo exactamente lo mismo. No cambia qué hace ningún botón. */
+var MK_IC = {
+    casa: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+    embudo: '<path d="M3 4h18l-7 8v6l-4 2v-8z"/>',
+    persona: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+    personas: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17" cy="7" r="2.8"/><path d="M16 12.8c2.7.2 4.6 2 5.5 5"/>',
+    edificio: '<rect x="4" y="3" width="11" height="18" rx="1"/><path d="M15 9h5v12h-5"/><path d="M8 7h3M8 11h3M8 15h3"/>',
+    calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    tarea: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>',
+    telefono: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    llamada: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    whatsapp: '<path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c.5 2 2.3 4 4.5 4.8l1.2-1.2 2 1-.5 1.5c-3.5.3-7.7-3.6-7.6-7.2l1.4-.6 1 2z"/>',
+    correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    visita: '<path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+    reunion: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17" cy="7" r="2.8"/><path d="M16 12.8c2.7.2 4.6 2 5.5 5"/>',
+    nota: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+    sistema: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    documento: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+    contrato: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 17c1.5-2 2.5-2 3 0s1.5 1 3-1"/>',
+    sello: '<circle cx="12" cy="9" r="5.5"/><path d="M9 13.8 7.5 21l4.5-2.4 4.5 2.4-1.5-7.2"/><path d="M10 9l1.5 1.5L14 7.5"/>',
+    qr: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v7M14 20h3"/>',
+    carrito: '<circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M3 4h2l2.4 11h11l2-8H6.5"/>',
+    billete: '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+    caja: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M3 13h18"/>',
+    grafico: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    tendencia: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    ajustes: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    plantilla: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/>',
+    campana: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    buscar: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    mas: '<path d="M12 5v14M5 12h14"/>',
+    filtro: '<path d="M4 5h16M7 12h10M10 19h4"/>',
+    flecha: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    atras: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    alerta: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+    estrella: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    ruta: '<path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+    camion: '<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+    moneda: '<circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a3 3 0 0 0-2.8-1.7c-1.6 0-2.7.9-2.7 2.1 0 2.9 5.6 1.6 5.6 4.5 0 1.3-1.2 2.2-2.9 2.2a3.1 3.1 0 0 1-2.9-1.8"/><path d="M12 6v12"/>',
+    lapiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+    clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>',
+    subir: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>',
+    bajar: '<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>',
+    imprimir: '<path d="M6 9V3h12v6M6 18H4v-7h16v7h-2"/><rect x="6" y="14" width="12" height="7"/>',
+    ojo: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    lista: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    renovar: '<path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 3v5h5M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 21v-5h-5"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+    basura: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    enlace: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    tarea2: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'
+  };
+MK_IC.combustible='<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10"/><path d="M14 8h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/>';
+MK_IC.prohibido='<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>';
+MK_IC.pausa='<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+MK_IC.alto='<rect x="6" y="6" width="12" height="12" rx="1.5"/>';
+MK_IC.mapa='<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>';
+MK_IC.recibo='<path d="M6 2.8h12a1 1 0 0 1 1 1v17.4l-2.6-1.6-2.6 1.6-2.6-1.6-2.6 1.6-2.6-1.6V3.8a1 1 0 0 1 1-1Z"/><path d="M9 8h6M9 12h6"/>';
+MK_IC.planta='<path d="M3 21V11l6 3V11l6 3V6h6v15z"/><path d="M7 17h2M12 17h2M17 17h2"/>';
+MK_IC.llave='<path d="M15.5 3.5a5 5 0 0 0-4.3 7.5L3.5 18.7a1.6 1.6 0 0 0 0 2.3l.5.5a1.6 1.6 0 0 0 2.3 0L13 13.8a5 5 0 1 0 2.5-10.3Z"/><circle cx="16.4" cy="8.1" r="2.1"/>';
+MK_IC.movil='<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>';
+MK_IC.chat='<path d="M4 5h16v11H9l-5 4z"/>';
+MK_IC.camara='<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>';
+MK_IC.guardar='<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>';
+MK_IC.pin='<path d="M9 3h6l-1 6 3 3H7l3-3z"/><path d="M12 12v9"/>';
+MK_IC.brujula='<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>';
+MK_IC.bandera='<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>';
+MK_IC.salir='<path d="M14 4h5v16h-5"/><path d="M10 8l-4 4 4 4M6 12h11"/>';
+MK_IC.idea='<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>';
+MK_IC.nube='<path d="M7 18a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.5 3.5 0 0 1 17.5 18z"/>';
+MK_IC.hoja='<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19l7-7"/>';
+MK_IC.candado='<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.7-1.5"/>';
+var MK_EMO = {"🏠":"casa","⌂":"casa","🛠":"llave","🔧":"llave","🗓":"calendario","📅":"calendario","📊":"grafico","📈":"tendencia",
+  "👥":"personas","👤":"persona","👨":"persona","🗺":"mapa","🧾":"recibo","🏭":"planta","🔔":"campana","🔎":"buscar","🔍":"buscar",
+  "🚚":"camion","📦":"caja","🕘":"reloj","⏱":"reloj","⏳":"reloj","🔁":"renovar","⚠":"alerta","⛽":"combustible","⛔":"prohibido",
+  "📄":"documento","📋":"lista","📱":"movil","💬":"chat","📍":"visita","⏸":"pausa","⏹":"alto","✉":"correo","✍":"nota","✏":"lapiz",
+  "📷":"camara","✅":"check","📞":"llamada","🛣":"ruta","💾":"guardar","📌":"pin","👁":"ojo","🧭":"brujula","⚙":"ajustes",
+  "🖨":"imprimir","🏁":"bandera","🗑":"basura","🚪":"salir","🔗":"enlace","💡":"idea","☁":"nube","📎":"clip","🌱":"hoja",
+  "🏥":"edificio","🔓":"candado","☰":"menu","⬇":"bajar"};
+var MK_RE = new RegExp("(" + Object.keys(MK_EMO).sort(function(a,b){ return b.length - a.length; })
+  .map(function(k){ return k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")️?", "g");
+var MK_SALTA = { SCRIPT:1, STYLE:1, TEXTAREA:1, OPTION:1, SELECT:1, INPUT:1, TITLE:1, NOSCRIPT:1 };
+function mkSvg_(n){ return '<svg class="mki" viewBox="0 0 24 24" aria-hidden="true">' + (MK_IC[n] || "") + '</svg>'; }
+function mkIconos_(raiz){
+  if(!raiz || !document.body.classList.contains("es-sup")) return;
+  var w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, null), lista = [], nodo;
+  while((nodo = w.nextNode())){ MK_RE.lastIndex = 0; if(MK_RE.test(nodo.nodeValue)) lista.push(nodo); }
+  lista.forEach(function(t){
+    var p = t.parentNode; if(!p || MK_SALTA[p.nodeName] || (p.closest && p.closest("#cargando,#login,.mk-no"))) return;
+    var tmp = document.createElement("span");
+    tmp.innerHTML = t.nodeValue.replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; })
+      .replace(MK_RE, function(m, e){ return mkSvg_(MK_EMO[e]); });
+    var f = document.createDocumentFragment(); while(tmp.firstChild) f.appendChild(tmp.firstChild);
+    p.replaceChild(f, t);
+  });
+}
+var MK_OBS = null, MK_PEND = [], MK_RAF = 0;
+function mkObservar_(){
+  if(MK_OBS || !window.MutationObserver) return;
+  MK_OBS = new MutationObserver(function(ms){
+    ms.forEach(function(m){ if(m.type === "characterData") MK_PEND.push(m.target.parentNode); else for(var i = 0; i < m.addedNodes.length; i++) MK_PEND.push(m.addedNodes[i]); });
+    if(!MK_RAF) MK_RAF = requestAnimationFrame(function(){ MK_RAF = 0; var l = MK_PEND; MK_PEND = [];
+      l.forEach(function(n){ if(n && n.isConnected){ if(n.nodeType === 3) n = n.parentNode; if(n) mkIconos_(n); } }); });
+  });
+  MK_OBS.observe(document.body, { childList:true, subtree:true, characterData:true });
+}
+function mkSup_(){
+  var sup = document.body.classList.contains("es-sup");
+  if(!sup){ if(MK_OBS){ MK_OBS.disconnect(); MK_OBS = null; } return; }
+  var box = document.querySelector(".logo-header-box");
+  if(box && !box.querySelector(".mk-marca")){
+    var d = document.createElement("div"); d.className = "mk-only mk-marca";
+    d.innerHTML = '<div class="mk"><b>ECOVSA</b><span>Sistema de operaciones</span></div><div class="sep"></div><span class="mod">Logística</span>';
+    box.appendChild(d);
+  }
+  var bs = document.querySelector(".barra-sync");
+  if(bs){
+    var u = bs.querySelector(".mk-us");
+    if(!u){ u = document.createElement("div"); u.className = "mk-only mk-us"; bs.insertBefore(u, bs.firstChild); }
+    var nom = String((typeof USUARIO !== "undefined" && USUARIO && USUARIO.nombre) || "").trim();
+    var ini = nom.split(/\s+/).filter(Boolean).map(function(x){ return x.charAt(0); }).slice(0, 2).join("").toUpperCase();
+    u.innerHTML = '<span>' + esc(nom) + '</span><div class="av">' + esc(ini) + '</div>';
+  }
+  mkIconos_(document.body);
+  mkObservar_();
+}
+(function(){
+  var orig = prepararMenuSup_;
+  prepararMenuSup_ = function(){ var r = orig.apply(this, arguments); try{ mkSup_(); }catch(e){ console.error(e); } return r; };
+})();
+</script>
 </body>
 
 </html>
