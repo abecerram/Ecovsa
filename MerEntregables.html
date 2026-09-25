@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificados y distintivos · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ═══ Certificados y distintivos · opción A «Dos pestañas con tabla y vista previa» ═══ */
+.tabs .cnt{font-size:11px;font-weight:700;background:var(--line2);color:var(--muted);border-radius:8px;padding:1px 7px;margin-left:6px}
+.pane{display:none}.pane.on{display:block}
+.a-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
+.a-prev{position:sticky;top:76px;max-height:calc(100vh - 90px);overflow:auto;scrollbar-width:thin}
+.prev-h{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.prev-h .t{font-size:11.5px;font-weight:700;letter-spacing:.8px;color:var(--muted)}
+.emit{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:0 10px}
+.emit label.lb{margin-top:0}
+.pres{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.nota{background:var(--hover);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#4d5b70;line-height:1.5}
+.nota.warn{background:var(--warn-bg);border-color:var(--amber-line);color:#6b4a00}
+.nota.bad{background:var(--bad-bg);border-color:#f3c1c3;color:#8f2226}
+.nota.ok{background:var(--ok-bg);border-color:#c5e6bd;color:#246f33}
+.nota b{color:inherit}
+.nota .row{margin-top:8px}
+.srch-in{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:#fff;color:var(--muted2);min-width:0}
+.srch-in input{border:0;outline:0;padding:8px 0;font:500 13.5px Archivo,sans-serif;flex:1;min-width:0;background:none;color:var(--ink)}
+.tb tr.clic{cursor:pointer}.tb tr.sel td{background:#eef3fb}
+.mono{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;flex-wrap:wrap}
+.card-h h3{margin:0}
+.tag.forz{background:var(--bad-bg);color:var(--bad)}
+.mobkg{display:none}
+
+/* certificado (vista previa con los datos reales) */
+.cert{background:#fff;border:1px solid #cfd7e3;border-radius:6px;padding:22px 22px 18px;position:relative;font-size:12px;color:#1b2536;box-shadow:0 6px 18px rgba(15,33,64,.07);overflow:hidden}
+.cert:before{content:'';position:absolute;inset:7px;border:1px solid #e4e9f1;border-radius:3px;pointer-events:none}
+.cert .ch{display:flex;align-items:flex-start;gap:10px;border-bottom:2px solid var(--navy2);padding-bottom:10px}
+.cert .ch img{width:42px;height:42px;object-fit:contain;flex:none}
+.cert .ch b{display:block;font-size:12.5px;letter-spacing:.4px}
+.cert .ch small{color:var(--muted);font-size:10.5px;display:block;line-height:1.35}
+.cert .fol{margin-left:auto;text-align:right;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.cert .fol b{font-size:13px;color:var(--ink);letter-spacing:.3px}
+.cert h2{text-align:center;font-size:12.5px;letter-spacing:1px;margin:14px 0 2px;text-transform:uppercase;line-height:1.35;color:var(--navy2)}
+.cert .sub{text-align:center;color:var(--muted);font-size:11px;margin-bottom:10px}
+.cert p{line-height:1.55}
+.cert .blq{background:#f8fafc;border:1px solid #e4e9f1;border-left:3px solid var(--navy2);border-radius:0 6px 6px 0;padding:8px 10px;margin:10px 0;font-size:11.5px;line-height:1.65}
+.cert .blq b{color:var(--navy2)}
+.cert table{width:100%;border-collapse:collapse;margin:8px 0}
+.cert td,.cert th{padding:5px 7px;border-bottom:1px solid #e4e9f1;text-align:left}
+.cert th{font-size:10px;letter-spacing:.5px;color:var(--muted)}
+.cert td.r,.cert th.r{text-align:right}
+.cert .tt td{font-weight:800;border-top:2px solid var(--navy2);border-bottom:0}
+.cert .pie{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:10.5px;color:var(--muted);border-top:1px dashed #d5dce6;padding-top:8px}
+.cert .pie b{color:var(--ink)}
+.cert .marca{position:absolute;top:46%;left:0;right:0;text-align:center;font-size:44px;font-weight:800;color:rgba(20,48,107,.07);transform:rotate(-14deg);pointer-events:none;letter-spacing:6px}
+.cert .forz{margin-top:10px;font-size:11px;color:#8f2226;border:1px dashed #e7a9ab;border-radius:6px;padding:5px 8px}
+.cert .avi{margin-top:10px;font-size:11px;color:#6b4a00;background:var(--warn-bg);border-radius:6px;padding:5px 8px}
+
+/* distintivos */
+.dres{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:10px}
+.dres b{color:var(--ink)}
+.dist-t td{vertical-align:middle}
+.dist-t input[type=checkbox]{width:17px;height:17px;accent-color:var(--navy2)}
+.dist-t .acc{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.miniw{width:100%;display:flex;justify-content:center}
+.mini{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 18px rgba(15,33,64,.08);background:#fff}
+.mini>.tarj{position:absolute;left:0;top:0;transform-origin:0 0}
+.sininicio ul{margin:6px 0 0 18px;columns:2;column-gap:20px}
+.sininicio li{margin:2px 0}
+.sug .it{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line2)}
+.sug .it:last-child{border:0}
+.sug .tx{flex:1;min-width:0}.sug .tx b{font-weight:600}.sug .tx small{display:block;color:var(--muted);font-size:12px}
+
+/* ══ La hoja del distintivo: igual que en Alta.html ══ */
+#dist-imprimir{display:none}
+.tarj{width:8.5in;height:11in;background:#fff;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;page-break-after:always;font-family:'Archivo',system-ui,sans-serif}
+.tarj:last-child{page-break-after:auto}
+.tarj .fr{flex:0 0 30px;display:flex}
+.tarj .fr i{display:block;height:100%}
+.tarj .fr i:nth-child(1){width:50%;background:#0C5395}
+.tarj .fr i:nth-child(2){width:28%;background:#00782E}
+.tarj .fr i:nth-child(3){width:22%;background:#86B62C}
+.tarj .cu{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:32px 62px 0;text-align:center}
+.tarj .at{font-size:14px;font-weight:600;letter-spacing:5.4px;color:#5B6880;text-transform:uppercase}
+.tarj .lg{width:200px;height:189px;margin:16px 0 2px;background:center/contain no-repeat}
+.tarj h2{font-size:31px;font-weight:800;line-height:1.28;color:#143666;margin-top:8px;
+  text-transform:none;letter-spacing:-.2px}
+.tarj h2 em{font-style:normal;color:#2F8655}
+.tarj .le{font-size:15.5px;line-height:1.6;color:#5B6880;margin-top:13px;max-width:500px}
+.tarj .cj{margin-top:20px;width:100%;border:2px solid #C3D6E8;border-radius:20px;
+  padding:24px 34px 20px}
+.tarj .qr{width:206px;height:206px;margin:0 auto 17px}
+.tarj .qr svg{width:100%;height:100%;display:block}
+.tarj .ct{font-size:18.5px;font-weight:800;letter-spacing:.9px;color:#0C5395;text-transform:uppercase}
+.tarj .sb{font-size:15px;line-height:1.55;color:#5B6880;margin-top:9px}
+.tarj .sd{margin-top:19px;padding-top:16px;border-top:1.6px dashed #CBD5E1;
+  font-size:15.5px;font-weight:700;letter-spacing:2.4px;color:#143666;text-transform:uppercase}
+.tarj .cv{font-size:12px;font-weight:600;letter-spacing:3.4px;color:#98A2B3;margin-top:7px}
+.tarj .pe{background:#0A3C6D;color:#fff;padding:24px 34px 20px;text-align:center;margin-top:auto}
+.tarj .pe .a{font-size:19px;font-weight:600}
+.tarj .pe .a b{font-weight:800}
+.tarj .pe .b{font-size:18px;font-weight:600;margin-top:8px}
+.tarj .pe .c{font-size:11.5px;font-weight:600;letter-spacing:3px;
+  color:rgba(255,255,255,.6);margin-top:14px;text-transform:uppercase}
+.tarj .pe .dir{font-size:14px;font-weight:600;margin-top:10px;line-height:1.5;
+  color:rgba(255,255,255,.92)}
+.tarj .pe .res{font-size:14.5px;font-weight:800;margin-top:10px;
+  padding-top:10px;border-top:1px solid rgba(255,255,255,.28)}
+.tarj .pe .cod{font-size:10.5px;font-weight:600;letter-spacing:2px;
+  color:rgba(255,255,255,.55);margin-top:12px}
+.tarj .ini{margin-top:12px;padding:9px 14px;border-radius:10px;
+  background:#EEF5E4;border:1px solid #C8DCA6;display:inline-block}
+.tarj .ini span{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.6px;
+  text-transform:uppercase;color:#5A7A22}
+.tarj .ini b{display:block;font-size:15px;font-weight:800;color:#2F4D0B;margin-top:2px}
+@media print{
+  body>*:not(#dist-imprimir){display:none!important}
+  body{background:#fff;padding:0}
+  #dist-imprimir{display:block!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  @page{ size:8.5in 11in; margin:0 }
+}
+
+/* barra del kit: que el buscador no empuje la página en celular */
+.sysbar .srch{min-width:0}.sysbar .srch input{width:100%}
+@media(max-width:1180px){ .a-grid{grid-template-columns:minmax(0,1fr)} .a-prev{position:static;max-height:none} }
+@media(max-width:900px){ .oc{display:none} #p-dist .a-prev{display:none} }
+@media(max-width:700px){
+  .emit{grid-template-columns:1fr 1fr}.emit>div:first-child{grid-column:1/-1}
+  .emit>div:first-child{margin-bottom:8px}
+  .sininicio ul{columns:1}
+  .dist-t .oc2{display:none}
+  .sug .it{flex-wrap:wrap}.sug .tx{min-width:calc(100% - 50px)}
+  .card-h .srch-in{width:100%!important}
+  .certs .ockg{display:none}.mobkg{display:inline}.txr{display:none}
+  .certs td,.certs th{padding:9px 8px}
+  .tabs button{padding:10px 10px}
+}
+@media(max-width:560px){.sysbar .mk{display:none}}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<div id="dist-imprimir"></div>
+<script>
+/* ═══ Generador de QR copiado tal cual de Alta.html (vista Distintivos) ═══ */
+/* ═══════════════════════════════════════════════════════════════════
+   Generador de QR, modo byte, corrección M. Sin librerías: el distintivo
+   y el certificado tienen que imprimirse aunque no haya internet, y un
+   QR que depende de un servicio de terceros muere el día que ese
+   servicio cambia. Devuelve la matriz de módulos; quien llame decide
+   si la dibuja en SVG, en canvas o en tabla.
+   ═══════════════════════════════════════════════════════════════════ */
+var QR = (function(){
+
+  /* ── aritmética del campo de Galois GF(256), para Reed-Solomon ── */
+  var EXP = new Array(512), LOG = new Array(256);
+  (function(){
+    var x = 1;
+    for (var i = 0; i < 255; i++) {
+      EXP[i] = x; LOG[x] = i;
+      x <<= 1;
+      if (x & 0x100) x ^= 0x11D;          // polinomio generador del campo
+    }
+    for (i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  })();
+  function mul(a, b){ return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]]; }
+
+  /* polinomio generador de grado n */
+  function generador(n){
+    var g = [1];
+    for (var i = 0; i < n; i++) {
+      var ng = new Array(g.length + 1).fill(0);
+      for (var j = 0; j < g.length; j++) {
+        ng[j]     ^= g[j];                    // el término en x
+        ng[j + 1] ^= mul(g[j], EXP[i]);       // el término α^i
+      }
+      g = ng;
+    }
+    return g;
+  }
+
+  function ecc(datos, n){
+    var g = generador(n);
+    var r = datos.concat(new Array(n).fill(0));
+    for (var i = 0; i < datos.length; i++) {
+      var c = r[i];
+      if (!c) continue;
+      for (var j = 0; j < g.length; j++) r[i + j] ^= mul(g[j], c);
+    }
+    return r.slice(datos.length);
+  }
+
+  /* ── tablas por versión, solo corrección M (la que usamos) ──
+     [ total de bytes de datos, bytes de ECC por bloque,
+       bloques del grupo 1, bloques del grupo 2 ] */
+  var VER = {
+     1:[16,10,1,0],   2:[28,16,1,0],   3:[44,26,1,0],   4:[64,18,2,0],
+     5:[86,24,2,0],   6:[108,16,4,0],  7:[124,18,4,0],  8:[154,22,2,2],
+     9:[182,22,3,2], 10:[216,26,4,1], 11:[254,30,1,4], 12:[290,22,6,2],
+    13:[334,22,8,1], 14:[365,24,4,5], 15:[415,24,5,5], 16:[453,28,7,3],
+    17:[507,28,10,1],18:[563,26,9,4], 19:[627,26,3,11],20:[669,26,3,13]
+  };
+
+  /* posiciones de los patrones de alineación, por versión */
+  var ALIN = {
+     1:[], 2:[6,18], 3:[6,22], 4:[6,26], 5:[6,30], 6:[6,34],
+     7:[6,22,38], 8:[6,24,42], 9:[6,26,46], 10:[6,28,50],
+    11:[6,30,54], 12:[6,32,58], 13:[6,34,62], 14:[6,26,46,66],
+    15:[6,26,48,70], 16:[6,26,50,74], 17:[6,30,54,78], 18:[6,30,56,82],
+    19:[6,30,58,86], 20:[6,34,62,90]
+  };
+
+  /* bits de formato ya calculados, corrección M, máscaras 0..7 */
+  var FORMATO = [0x5412,0x5125,0x5E7C,0x5B4B,0x45F9,0x40CE,0x4F97,0x4AA0];
+
+  /* información de versión, para versión 7 en adelante */
+  function bitsVersion(v){
+    if (v < 7) return null;
+    var r = v << 12, d = v << 12;
+    for (var i = 0; i < 6; i++) if (d & (1 << (17 - i))) d ^= 0x1F25 << (5 - i);
+    return (r | (d & 0xFFF));
+  }
+
+  function bytesUTF8(txt){
+    var out = [], s = unescape(encodeURIComponent(String(txt)));
+    for (var i = 0; i < s.length; i++) out.push(s.charCodeAt(i) & 0xFF);
+    return out;
+  }
+
+  /* ── armado de la secuencia de bits ── */
+  function armarDatos(bytes, ver){
+    var cap = VER[ver][0];
+    var bits = [];
+    var push = function(val, n){ for (var i = n - 1; i >= 0; i--) bits.push((val >> i) & 1); };
+
+    push(4, 4);                                   // modo byte
+    push(bytes.length, ver < 10 ? 8 : 16);        // largo
+    for (var i = 0; i < bytes.length; i++) push(bytes[i], 8);
+
+    var max = cap * 8;
+    for (i = 0; i < 4 && bits.length < max; i++) bits.push(0);   // terminador
+    while (bits.length % 8) bits.push(0);
+
+    var out = [];
+    for (i = 0; i < bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+      out.push(b);
+    }
+    var relleno = [0xEC, 0x11], k = 0;
+    while (out.length < cap) out.push(relleno[k++ % 2]);
+    return out;
+  }
+
+  /* ── bloques e intercalado ── */
+  function intercalar(datos, ver){
+    var cap = VER[ver][0], nEcc = VER[ver][1], g1 = VER[ver][2], g2 = VER[ver][3];
+    var total = g1 + g2;
+    var corto = Math.floor(cap / total);          // bytes del grupo 1
+    var bloques = [], p = 0;
+    for (var i = 0; i < total; i++) {
+      var largo = corto + (i < g1 ? 0 : 1);
+      bloques.push(datos.slice(p, p + largo));
+      p += largo;
+    }
+    var eccs = bloques.map(function(b){ return ecc(b, nEcc); });
+
+    var out = [], maxD = Math.max.apply(null, bloques.map(function(b){ return b.length; }));
+    for (i = 0; i < maxD; i++)
+      for (var j = 0; j < bloques.length; j++)
+        if (i < bloques[j].length) out.push(bloques[j][i]);
+    for (i = 0; i < nEcc; i++)
+      for (j = 0; j < eccs.length; j++) out.push(eccs[j][i]);
+    return out;
+  }
+
+  /* ── matriz: patrones fijos y zonas reservadas ── */
+  function nuevaMatriz(ver){
+    var n = ver * 4 + 17;
+    var m = [], res = [];
+    for (var i = 0; i < n; i++) { m.push(new Array(n).fill(0)); res.push(new Array(n).fill(0)); }
+
+    function ojo(fy, fx){
+      for (var y = -1; y <= 7; y++) for (var x = -1; x <= 7; x++) {
+        var Y = fy + y, X = fx + x;
+        if (Y < 0 || Y >= n || X < 0 || X >= n) continue;
+        var dentro = (0 <= y && y <= 6 && (x === 0 || x === 6)) ||
+                     (0 <= x && x <= 6 && (y === 0 || y === 6)) ||
+                     (2 <= x && x <= 4 && 2 <= y && y <= 4);
+        m[Y][X] = dentro ? 1 : 0; res[Y][X] = 1;
+      }
+    }
+    ojo(0, 0); ojo(0, n - 7); ojo(n - 7, 0);
+
+    /* temporizadores */
+    for (i = 8; i < n - 8; i++) {
+      m[6][i] = m[i][6] = (i % 2 === 0) ? 1 : 0;
+      res[6][i] = res[i][6] = 1;
+    }
+
+    /* patrones de alineación */
+    var a = ALIN[ver];
+    for (i = 0; i < a.length; i++) for (var j = 0; j < a.length; j++) {
+      var cy = a[i], cx = a[j];
+      /* Los tres que caerían encima de un ojo no van. Ojo con preguntarle
+         a `res`: los centrados sobre la línea de temporización ya figuran
+         reservados y se saltarían sin deber. */
+      if ((cy <= 8 && cx <= 8) || (cy <= 8 && cx >= n - 9) ||
+          (cy >= n - 9 && cx <= 8)) continue;
+      for (var y = -2; y <= 2; y++) for (var x = -2; x <= 2; x++) {
+        m[cy + y][cx + x] = (Math.max(Math.abs(x), Math.abs(y)) !== 1) ? 1 : 0;
+        res[cy + y][cx + x] = 1;
+      }
+    }
+
+    /* módulo siempre oscuro y zonas de formato */
+    m[n - 8][8] = 1; res[n - 8][8] = 1;
+    for (i = 0; i <= 8; i++) { if (!res[8][i]) res[8][i] = 1; if (!res[i][8]) res[i][8] = 1; }
+    for (i = n - 8; i < n; i++) { res[8][i] = 1; res[i][8] = 1; }
+
+    /* información de versión */
+    if (ver >= 7) for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) {
+      res[i][n - 11 + j] = 1; res[n - 11 + j][i] = 1;
+    }
+    return { m:m, res:res, n:n };
+  }
+
+  function colocar(M, datos){
+    var m = M.m, res = M.res, n = M.n;
+    var bits = [];
+    for (var i = 0; i < datos.length; i++)
+      for (var j = 7; j >= 0; j--) bits.push((datos[i] >> j) & 1);
+
+    var p = 0, arriba = true;
+    for (var col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col--;                        // la columna del temporizador se salta
+      for (var f = 0; f < n; f++) {
+        var y = arriba ? (n - 1 - f) : f;
+        for (var k = 0; k < 2; k++) {
+          var x = col - k;
+          if (res[y][x]) continue;
+          m[y][x] = p < bits.length ? bits[p] : 0;
+          p++;
+        }
+      }
+      arriba = !arriba;
+    }
+  }
+
+  function mascara(k, y, x){
+    switch (k) {
+      case 0: return (y + x) % 2 === 0;
+      case 1: return y % 2 === 0;
+      case 2: return x % 3 === 0;
+      case 3: return (y + x) % 3 === 0;
+      case 4: return (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0;
+      case 5: return ((y * x) % 2) + ((y * x) % 3) === 0;
+      case 6: return (((y * x) % 2) + ((y * x) % 3)) % 2 === 0;
+      case 7: return (((y + x) % 2) + ((y * x) % 3)) % 2 === 0;
+    }
+    return false;
+  }
+
+  function ponerFormato(M, k){
+    var m = M.m, n = M.n, f = FORMATO[k];
+    for (var i = 0; i < 15; i++) {
+      var b = (f >> i) & 1;
+      if (i < 6)       m[i][8] = b;
+      else if (i < 8)  m[i + 1][8] = b;
+      else if (i === 8) m[8][7] = b;
+      else              m[8][14 - i] = b;
+
+      if (i < 8)       m[8][n - 1 - i] = b;
+      else             m[n - 15 + i][8] = b;
+    }
+    m[n - 8][8] = 1;
+  }
+
+  function ponerVersion(M, ver){
+    if (ver < 7) return;
+    var m = M.m, n = M.n, v = bitsVersion(ver);
+    for (var i = 0; i < 18; i++) {
+      var b = (v >> i) & 1;
+      m[Math.floor(i / 3)][n - 11 + (i % 3)] = b;
+      m[n - 11 + (i % 3)][Math.floor(i / 3)] = b;
+    }
+  }
+
+  /* ── penalización, para elegir la máscara que mejor se lee ── */
+  function penalizar(m, n){
+    var p = 0, i, j, k;
+    /* 1: rachas de 5 o más del mismo color */
+    for (i = 0; i < n; i++) for (var eje = 0; eje < 2; eje++) {
+      var run = 1, prev = eje ? m[0][i] : m[i][0];
+      for (j = 1; j < n; j++) {
+        var v = eje ? m[j][i] : m[i][j];
+        if (v === prev) { run++; }
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; prev = v; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+    }
+    /* 2: bloques de 2x2 */
+    for (i = 0; i < n - 1; i++) for (j = 0; j < n - 1; j++) {
+      var a = m[i][j];
+      if (a === m[i][j+1] && a === m[i+1][j] && a === m[i+1][j+1]) p += 3;
+    }
+    /* 3: el patrón que se confunde con un ojo */
+    var pat1 = [1,0,1,1,1,0,1,0,0,0,0], pat2 = [0,0,0,0,1,0,1,1,1,0,1];
+    for (i = 0; i < n; i++) for (j = 0; j <= n - 11; j++) {
+      var okF = true, okC = true, okF2 = true, okC2 = true;
+      for (k = 0; k < 11; k++) {
+        if (m[i][j+k] !== pat1[k]) okF = false;
+        if (m[i][j+k] !== pat2[k]) okF2 = false;
+        if (m[j+k][i] !== pat1[k]) okC = false;
+        if (m[j+k][i] !== pat2[k]) okC2 = false;
+      }
+      if (okF) p += 40; if (okF2) p += 40; if (okC) p += 40; if (okC2) p += 40;
+    }
+    /* 4: proporción de oscuros lejos del 50% */
+    var osc = 0;
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) osc += m[i][j];
+    var pct = osc * 100 / (n * n);
+    p += Math.floor(Math.abs(pct - 50) / 5) * 10;
+    return p;
+  }
+
+  /* ── entrada pública: texto → matriz de 0 y 1 ── */
+  function generar(texto, mascaraFija){
+    var bytes = bytesUTF8(texto);
+    /* se cuenta en bits, no en bytes: 4 del modo más 8 o 16 del largo.
+       Redondear a bytes desperdicia una versión entera en el límite. */
+    var ver = 0;
+    for (var v = 1; v <= 20; v++) {
+      var cabecera = 4 + (v < 10 ? 8 : 16);
+      if (cabecera + bytes.length * 8 <= VER[v][0] * 8) { ver = v; break; }
+    }
+    if (!ver) throw new Error('El texto es demasiado largo para el código.');
+
+    var datos = intercalar(armarDatos(bytes, ver), ver);
+
+    var mejor = null, mejorP = Infinity;
+    var desde = (mascaraFija == null) ? 0 : mascaraFija;
+    var hasta = (mascaraFija == null) ? 7 : mascaraFija;
+    for (var k = desde; k <= hasta; k++) {
+      var M = nuevaMatriz(ver);
+      colocar(M, datos);
+      for (var y = 0; y < M.n; y++) for (var x = 0; x < M.n; x++)
+        if (!M.res[y][x] && mascara(k, y, x)) M.m[y][x] ^= 1;
+      ponerFormato(M, k);
+      ponerVersion(M, ver);
+      var p = penalizar(M.m, M.n);
+      if (p < mejorP) { mejorP = p; mejor = M.m; }
+    }
+    return mejor;
+  }
+
+  /* Dibujado en SVG: rectángulos, no imagen. Nítido a cualquier tamaño,
+     que es lo que hace falta si mañana se imprime en vinil grande. */
+  function svg(texto, color){
+    var m = generar(texto), n = m.length, partes = [];
+    for (var y = 0; y < n; y++) {
+      var x = 0;
+      while (x < n) {
+        if (m[y][x]) {
+          var x0 = x;
+          while (x < n && m[y][x]) x++;
+          partes.push('<rect x="'+x0+'" y="'+y+'" width="'+(x-x0)+'" height="1"/>');
+        } else x++;
+      }
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+n+' '+n+'" '+
+           'shape-rendering="crispEdges"><g fill="'+(color||'#0A2A4A')+'">'+
+           partes.join('')+'</g></svg>';
+  }
+
+  return { generar: generar, svg: svg };
+})();
+</script>
+<script>
+(function () {
+  var TAB = 'cert';
+  var CERTS = null, NOMBRES = [], CLIS = [], CLI_N = {}, DIST = null;
+  var PREV = null;          // {cliente, desde, hasta, r} de la vista previa
+  var VERF = null;          // folio que se está viendo
+  var ADF = 'falta', ASEL = {}, ADIST = null;
+  var LOGO_OK = null;
+  var LOGO_URL = "https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+  var DIST_EMP = null;
+
+  function $(i) { return document.getElementById(i); }
+  var esc = MK.esc;
+  function hoy() { return MK.hoy || MK.hoyLocal(); }
+  function clave(s) { return String(s || '').trim().toUpperCase().replace(/\s+/g, ' '); }
+  function puedeForzar() { return ['gerente', 'admin'].indexOf((MK.usuario || {}).rol) >= 0; }
+  function n2(v) { return MK.num(v, 2); }
+  function nb(v) { v = Number(v) || 0; return MK.num(v, v % 1 ? 2 : 0); }
+  function periodo(a, b) { return MK.fechaCorta(a) + ' – ' + MK.fechaCorta(b) + (b.slice(0, 4) !== hoy().slice(0, 4) ? '' : ' ' + b.slice(0, 4)); }
+  function larga(iso) { if (!/^\d{4}-\d{2}-\d{2}/.test(iso || '')) return iso || ''; var d = new Date(iso.slice(0, 10) + 'T12:00:00'); return d.getDate() + ' de ' + MK.MESES_L[d.getMonth()] + ' de ' + d.getFullYear(); }
+  function cliDe(nombre) { return CLI_N[clave(nombre)] || null; }
+  function telDe(c) { var w = String(c.whatsapp || ''); if (w && !/^https?:/i.test(w) && /\d{7}/.test(w.replace(/\D/g, ''))) return w; return c.telefono || ''; }
+  function iso(y, m, d) { var x = new Date(y, m, d, 12); return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); }
+  function minF(a, b) { return a < b ? a : b; }
+  function semestre() {
+    var h = hoy(), y = +h.slice(0, 4), m = +h.slice(5, 7);
+    return m <= 6 ? { d: y + '-01-01', h: y + '-06-30', n: '1er semestre ' + y } : { d: y + '-07-01', h: y + '-12-31', n: '2º semestre ' + y };
+  }
+  function atajos() {
+    var h = hoy(), y = +h.slice(0, 4), m = +h.slice(5, 7) - 1;
+    var s2 = m >= 6 ? [y + '-07-01', minF(y + '-12-31', h)] : [(y - 1) + '-07-01', (y - 1) + '-12-31'];
+    return [['Mes pasado', iso(y, m - 1, 1), iso(y, m, 0)], ['1er semestre', y + '-01-01', minF(y + '-06-30', h)],
+      ['2º semestre', s2[0], s2[1]], ['Año ' + y, y + '-01-01', h]];
+  }
+  function activo(c) {
+    return ['ACTIVO', 'AL DÍA', 'AL DIA', 'ATRASADO', 'VENCIDO', ''].indexOf(String(c.estado || '').toUpperCase()) >= 0 &&
+      ['BAJA', 'CIERRE', 'RETIRO'].indexOf(String(c.situacion || '').toUpperCase()) < 0;
+  }
+
+  /* ═════════════ pintar el esqueleto ═════════════ */
+  function pintar() {
+    $('main').innerHTML = '<div class="ph"><div><h1>Certificados y distintivos</h1><p>Lo que le entregamos al cliente: el certificado del tratamiento y el distintivo con su QR.</p></div></div>' +
+      '<div class="tabs" id="tabs"><button data-t="cert">Certificados <span class="cnt" id="n1"></span></button><button data-t="dist">Distintivos <span class="cnt" id="n2"></span></button><button data-t="sug">Sugeridos <span class="cnt" id="n3"></span></button></div>' +
+      /* certificados */
+      '<div class="pane" id="p-cert"><div class="a-grid"><div>' +
+        '<div class="card"><h3>Emitir un certificado</h3>' +
+          '<div class="emit"><div><label class="lb" for="c-cli">CLIENTE (NOMBRE O RUC)</label><input class="in" id="c-cli" list="dl-cli" placeholder="Escribe o elige un cliente…" autocomplete="off"><datalist id="dl-cli"></datalist></div>' +
+          '<div><label class="lb" for="c-des">DESDE</label><input class="in" type="date" id="c-des"></div><div><label class="lb" for="c-has">HASTA</label><input class="in" type="date" id="c-has"></div></div>' +
+          '<div class="pres" id="c-pres"></div><div id="c-msg" style="margin-top:12px"></div>' +
+          '<div class="row w" style="margin-top:12px"><button class="btn pri" id="c-emit" disabled>Emitir certificado</button><span class="small muted" style="flex:1;min-width:200px">Recibe un folio correlativo y queda registrado. Se entrega al percibir el pago: si el cliente tiene saldo, el sistema lo detiene.</span></div>' +
+        '</div>' +
+        '<div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div class="card-h"><h3>Certificados emitidos</h3><div class="sp"></div><label class="srch-in" style="width:240px">' + MK.ic('buscar', 15) + '<input id="c-q" placeholder="Buscar folio o cliente" autocomplete="off"></label></div><div id="c-lista" style="overflow-x:auto"></div></div>' +
+      '</div><div class="a-prev"><div class="prev-h"><span class="t">VISTA PREVIA</span><span class="sp"></span><span id="c-pacc"></span></div><div id="c-prev"></div></div></div></div>' +
+      /* distintivos */
+      '<div class="pane" id="p-dist"><div class="a-grid"><div>' +
+        '<div id="d-res"></div><div id="d-sin"></div>' +
+        '<div class="row w" style="margin-bottom:10px"><div class="seg" id="d-f"><button data-v="falta" class="on">Por entregar</button><button data-v="listo">Entregados</button><button data-v="">Todos</button></div>' +
+        '<label class="srch-in" style="flex:1;min-width:180px">' + MK.ic('buscar', 15) + '<input id="d-q" placeholder="Buscar cliente, N° o código" autocomplete="off"></label></div>' +
+        '<div class="row w" style="margin-bottom:10px"><button class="btn sm" id="d-todos">Marcar todos</button><button class="btn sm" id="d-ning">Ninguno</button><div class="sp"></div><button class="btn pri" id="d-imp">' + MK.ic('imprimir', 15) + ' Imprimir seleccionados</button></div>' +
+        '<div id="d-aviso"></div><div class="tbw"><table class="tb dist-t" id="d-tabla"></table></div>' +
+        '<p class="small muted" style="margin-top:10px">El distintivo se entrega al cliente cuando firma. Su QR abre una pantalla de solo lectura donde ve su servicio: frecuencia, última visita, mes de la próxima y el total retirado. Cada uno lleva su propio código: no sirve el de otro cliente.</p>' +
+      '</div><div class="a-prev"><div class="prev-h"><span class="t">DISTINTIVO</span></div><div class="card" id="d-prev"></div></div></div></div>' +
+      /* sugeridos */
+      '<div class="pane" id="p-sug"><div id="s-cuerpo"></div></div>';
+    [].forEach.call($('tabs').querySelectorAll('button'), function (b) { b.onclick = function () { verTab(b.getAttribute('data-t')); }; });
+    iniciarEmisor();
+    $('c-q').oninput = pintarCerts;
+    [].forEach.call($('d-f').querySelectorAll('button'), function (b) { b.onclick = function () { [].forEach.call($('d-f').querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); }); ADF = b.getAttribute('data-v'); pintarDist(); }; });
+    $('d-q').oninput = pintarDist;
+    $('d-todos').onclick = function () { distFiltrados().forEach(function (c) { ASEL[c.id] = true; }); pintarDist(); };
+    $('d-ning').onclick = function () { distFiltrados().forEach(function (c) { delete ASEL[c.id]; }); pintarDist(); };
+    $('d-imp').onclick = function () { imprimirDistintivos(Object.keys(ASEL).filter(function (k) { return ASEL[k]; })); };
+    var h = (location.hash || '').replace('#', ''); verTab(h === 'distintivos' ? 'dist' : h === 'sugeridos' ? 'sug' : 'cert', true);
+  }
+  function verTab(t, sinHash) {
+    TAB = t;
+    [].forEach.call($('tabs').querySelectorAll('button'), function (b) { b.classList.toggle('on', b.getAttribute('data-t') === t); });
+    ['cert', 'dist', 'sug'].forEach(function (x) { $('p-' + x).classList.toggle('on', x === t); });
+    if (!sinHash) try { history.replaceState(null, '', location.pathname + location.search + (t === 'dist' ? '#distintivos' : t === 'sug' ? '#sugeridos' : '')); } catch (e) {}
+    if (t === 'dist') ajustarMini();
+  }
+
+  /* ═════════════ CERTIFICADOS ═════════════ */
+  function iniciarEmisor() {
+    var h = hoy();
+    $('c-des').value = h.slice(0, 8) + '01'; $('c-has').value = h;   // como la pantalla anterior: del 1 del mes a hoy
+    $('c-pres').innerHTML = atajos().map(function (a, i) { return '<button class="chip" data-i="' + i + '">' + esc(a[0]) + '</button>'; }).join('');
+    [].forEach.call($('c-pres').querySelectorAll('.chip'), function (b) { b.onclick = function () { var a = atajos()[+b.getAttribute('data-i')]; $('c-des').value = a[1]; $('c-has').value = a[2]; previa(); }; });
+    var t = null; var prog = function () { clearTimeout(t); t = setTimeout(previa, 450); };
+    $('c-cli').oninput = prog; $('c-cli').onchange = previa; $('c-des').onchange = previa; $('c-has').onchange = previa;
+    $('c-emit').onclick = function () { emitir(false); };
+    var pc = MK.param('cli'); if (pc) $('c-cli').value = pc;
+    marcarAtajo();
+  }
+  function marcarAtajo() {
+    var d = $('c-des').value, h = $('c-has').value, a = atajos();
+    [].forEach.call($('c-pres').querySelectorAll('.chip'), function (b, i) { b.classList.toggle('on', a[i][1] === d && a[i][2] === h); });
+  }
+  function msg(tipo, html) { $('c-msg').innerHTML = html ? '<div class="nota ' + tipo + '">' + html + '</div>' : ''; }
+  function botonEmitir(txt, on) { var b = $('c-emit'); b.innerHTML = txt; b.disabled = !on; }
+
+  var nPrev = 0;
+  function previa() {
+    marcarAtajo();
+    var cli = $('c-cli').value.trim(), d = $('c-des').value, h = $('c-has').value;
+    VERF = null; pintarCerts();
+    if (!cli) { msg('', ''); botonEmitir('Emitir certificado', false); $('c-pacc').innerHTML = ''; $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Elige un cliente y el período para ver aquí el certificado tal como le llega.') + '</div>'; return; }
+    if (!d || !h) { msg('bad', 'Selecciona el rango de fechas.'); botonEmitir('Emitir certificado', false); return; }
+    if (d > h) { msg('bad', 'La fecha inicial es posterior a la final.'); botonEmitir('Emitir certificado', false); return; }
+    if (h > hoy()) { msg('warn', 'La fecha final es posterior a hoy. El certificado solo puede cubrir recolecciones ya hechas.'); botonEmitir('Emitir certificado', false); return; }
+    var n = ++nPrev;
+    MK.cargando('c-prev', 'Calculando los kilos del período…'); $('c-pacc').innerHTML = ''; msg('', ''); botonEmitir('Emitir certificado', false);
+    MK.api('api_datosCertificado', MK.pin, cli, d, h).then(function (r) {
+      if (n !== nPrev) return;
+      if (!r || !r.ok) { PREV = null; msg('bad', esc((r && r.error) || 'No se pudo calcular el certificado.')); $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Sin vista previa.') + '</div>'; return; }
+      PREV = { cliente: cli, desde: d, hasta: h, r: r };
+      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return clave(x.cliente) === clave(r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
+      var partes = [];
+      if (!av.alDia) partes.push(['bad', '<b>No se puede emitir todavía.</b> ' + esc(r.empresa.nombre) + ' tiene un saldo pendiente de <b>' + MK.dinero(av.saldo) + '</b> en ' + av.facturasAbiertas + ' factura' + (av.facturasAbiertas === 1 ? '' : 's') + '. El certificado se entrega al percibir el pago: cuando el pago esté registrado en Cobros, vuelve a intentarlo.' +
+        (puedeForzar() ? '<br>Como ' + esc(MK.usuario.rol) + ' puedes emitirlo de todos modos; queda registrado como <b>forzado</b>.' : '<br><b>Solo gerencia o administración puede emitirlo de todos modos.</b>')]);
+      else partes.push(['ok', esc(r.empresa.nombre) + ' está al día. ' + r.totales.visitas + ' visita' + (r.totales.visitas === 1 ? '' : 's') + ' y ' + n2(r.totales.totalKg) + ' kg en el período.']);
+      var cc = cliDe(r.empresa.nombre);
+      if (av.alDia && cc && Number(cc.saldo) > 0.009) partes.push(['warn', 'Ojo: en Cobros ' + esc(cc.nombre) + ' aparece con un saldo de <b>' + MK.dinero(cc.saldo) + '</b>' + (Number(cc.vencido) > 0.009 ? ' (' + MK.dinero(cc.vencido) + ' vencido)' : '') + '. Confírmalo antes de entregar el certificado.']);
+      if (ya) partes.push(['warn', 'Ya existe <b>' + esc(ya.folio) + '</b> para este cliente y este período. <a href="#" id="c-ya">Verlo</a> o reenviarlo en vez de emitir otro.']);
+      if (av.sinActa) partes.push(['warn', av.sinActa + ' recolección' + (av.sinActa === 1 ? '' : 'es') + ' del período no tiene' + (av.sinActa === 1 ? '' : 'n') + ' acta de entrega a planta asociada.']);
+      $('c-msg').innerHTML = partes.map(function (p) { return '<div class="nota ' + p[0] + '" style="margin-bottom:8px">' + p[1] + '</div>'; }).join('');
+      var y = $('c-ya'); if (y) y.onclick = function (e) { e.preventDefault(); ver(ya.folio); };
+      if (!av.alDia) botonEmitir(puedeForzar() ? 'Emitir de todos modos (queda como forzado)' : 'Emitir certificado', puedeForzar());
+      else botonEmitir('Emitir certificado', true);
+      $('c-pacc').innerHTML = '<span class="tag t-gris">borrador</span>';
+      $('c-prev').innerHTML = certHTML(r, { borrador: true });
+    }, function (e) { if (n !== nPrev) return; msg('bad', 'Sin conexión con el servidor: ' + esc(e.message)); $('c-prev').innerHTML = ''; });
+  }
+  function certHTML(r, o) {
+    o = o || {};
+    var e = r.empresa || {}, t = r.totales || {}, p = r.periodo || {}, actas = r.actasAsociadas || [];
+    var puntos = (e.puntos || []).filter(function (x) { return x && x !== e.nombre; });
+    return '<div class="cert">' + (o.borrador ? '<div class="marca">BORRADOR</div>' : '') +
+      '<div class="ch"><img src="logo-ecovsa.png" alt=""><div><b>ECOTERMO DE PANAMA S.A.</b><small>ECOVSA · Recolección, transporte, tratamiento y disposición final de desechos peligrosos</small></div>' +
+      '<div class="fol">Folio<br><b>' + esc(r.folio || 'CERT-····') + '</b><br>' + esc(larga(r.fechaEmision || hoy())) + '</div></div>' +
+      '<h2>Certificado de prestación de servicios, tratamiento y disposición final</h2><div class="sub">Del ' + esc(larga(p.desde)) + ' al ' + esc(larga(p.hasta)) + '</div>' +
+      '<div class="blq"><b>CLIENTE:</b> ' + esc(e.razonSocial || e.nombre) + '<br>' + (e.nombre && e.nombre !== e.razonSocial ? '<b>NOMBRE COMERCIAL:</b> ' + esc(e.nombre) + '<br>' : '') +
+      '<b>RUC:</b> ' + esc(e.rucCompleto || e.ruc || 'SIN RUC') + '<br><b>UBICACIÓN:</b> ' + esc(e.direccion || 'No especificada') + '<br>' +
+      (puntos.length ? '<b>PUNTOS ATENDIDOS:</b> ' + esc(e.puntos.join(', ')) + '<br>' : '') + '<b>VISITAS REALIZADAS:</b> ' + esc(t.visitas) + '</div>' +
+      '<table><tr><th>CORRIENTE</th><th class="r">NETO (KG)</th><th class="r">BULTOS</th></tr>' +
+      '<tr><td>Bioinfecciosos</td><td class="r num">' + n2(t.kgBio) + '</td><td class="r num">' + nb(t.bultosBio) + '</td></tr>' +
+      '<tr><td>Anatomopatológicos</td><td class="r num">' + n2(t.kgAnatomo) + '</td><td class="r num">' + nb(t.bultosAnatomo) + '</td></tr>' +
+      '<tr><td>Punzocortantes</td><td class="r num">' + n2(t.kgPunzo) + '</td><td class="r num">' + nb(t.bultosPunzo) + '</td></tr>' +
+      '<tr class="tt"><td>Total tratado</td><td class="r num">' + n2(t.totalKg) + ' kg</td><td class="r num">' + nb(t.totalBultos) + '</td></tr></table>' +
+      (actas.length ? '<p class="small">Actas de entrega a planta: <b>' + esc(actas.join(', ')) + '</b>.</p>' : '') +
+      (r.forzado ? '<div class="forz">Emitido con saldo pendiente' + (r.avisos && r.avisos.saldo ? ' de ' + MK.dinero(r.avisos.saldo) : '') + ' · autorizado por gerencia o administración</div>' : '') +
+      (o.borrador && r.avisos && !r.avisos.alDia ? '<div class="forz">Saldo pendiente: ' + MK.dinero(r.avisos.saldo) + '</div>' : '') +
+      '<div class="pie"><div><b>Emitido:</b> ' + esc(larga(r.fechaEmision || hoy())) + '</div><div style="text-align:right"><b>Por:</b> ' + esc(r.emitidoPor || (MK.usuario || {}).nombre || '') + '</div></div></div>' +
+      (o.borrador ? '<p class="small muted" style="margin-top:8px">Así se verá con su folio. La hoja oficial, con firmas y marca de agua, se abre para imprimir al emitirlo.</p>' : '');
+  }
+  function emitir(forzar) {
+    if (!PREV) return;
+    var av = PREV.r.avisos || {}, b = $('c-emit');
+    if (!av.alDia && !puedeForzar()) return;
+    var f = forzar || (!av.alDia && puedeForzar());
+    var hacer = function () {
+      MK.ocupado(b, true, 'Emitiendo…');
+      MK.api('api_emitirCertificado', MK.pin, PREV.cliente, PREV.desde, PREV.hasta, f).then(function (r) {
+        MK.ocupado(b, false);
+        if (r && r.sinPazYSalvo) {
+          msg('bad', '<b>No se emitió.</b> ' + esc(r.error) + (r.puedeForzar ? '<div class="row"><button class="btn sm bad" id="c-forz">Emitir de todos modos (queda como forzado)</button></div>' : '<br>Cuando el pago esté registrado en Cobros, vuelve a intentarlo.'));
+          var z = $('c-forz'); if (z) z.onclick = function () { emitir(true); }; return;
+        }
+        if (!r || !r.ok) { msg('bad', esc((r && r.error) || 'No se pudo emitir el certificado.')); return; }
+        MK.aviso('Certificado ' + r.folio + ' emitido' + (r.forzado ? ' · forzado' : ''));
+        botonEmitir('Emitir certificado', false); PREV = null;
+        msg('ok', 'Certificado <b>' + esc(r.folio) + '</b> emitido para ' + esc(r.empresa.nombre) + (r.forzado ? ' <span class="tag forz">forzado</span>' : '') + '.' +
+          '<div class="row w"><a class="btn sm pri" href="' + urlCert(r.folio) + '" target="_blank" rel="noopener">' + MK.ic('imprimir', 14) + ' Abrir para imprimir o guardar PDF</a><button class="btn sm" id="c-env">' + MK.ic('correo', 14) + ' Enviar al cliente</button></div>');
+        $('c-env').onclick = function () { reenviar(r.folio); };
+        cargarCerts().then(function () { ver(r.folio, true); });
+      }, function (e) { MK.ocupado(b, false); msg('bad', 'Sin conexión con el servidor. Intenta de nuevo.'); });
+    };
+    if (f) MK.confirmar('El cliente tiene un saldo de ' + MK.dinero(av.saldo) + '. El certificado queda registrado como forzado, con tu nombre.', hacer, { titulo: '¿Emitir con saldo pendiente?', boton: 'Emitir de todos modos', peligro: true });
+    else hacer();
+  }
+  function urlCert(folio) { return 'CertificadoVista.html?p=vercert&folio=' + encodeURIComponent(folio); }
+  function cargarCerts() {
+    return MK.api('api_certificadosEmitidos', MK.pin, 500).then(function (r) {
+      if (!r || !r.ok) { CERTS = CERTS || []; $('c-lista').innerHTML = '<div class="aviso rj" style="margin:0 16px 16px">' + esc((r && r.error) || 'No se pudo cargar la lista.') + '</div>'; return; }
+      CERTS = r.certificados || []; pintarCerts(); pintarSug(); contadores();
+    }, function () { $('c-lista').innerHTML = '<div class="aviso rj" style="margin:0 16px 16px">Sin conexión: no se pudo cargar la lista.</div>'; });
+  }
+  function pintarCerts() {
+    if (!CERTS) return;
+    var q = ($('c-q').value || '').trim().toLowerCase();
+    var l = CERTS.filter(function (x) { return !q || (x.folio + ' ' + x.cliente).toLowerCase().indexOf(q) >= 0; });
+    $('c-lista').innerHTML = !CERTS.length ? MK.vacio('Todavía no se ha emitido ningún certificado.') :
+      '<table class="tb certs"><thead><tr><th>Folio</th><th>Cliente y período</th><th class="r ockg">Kg</th><th class="oc">Emitido por</th><th></th></tr></thead><tbody>' +
+      (l.length ? l.map(function (x) {
+        return '<tr class="clic' + (VERF === x.folio ? ' sel' : '') + '" data-f="' + esc(x.folio) + '"><td><b class="mono" style="font-weight:600">' + esc(x.folio) + '</b><small>' + esc(MK.fechaCorta(x.fecha)) + '</small>' + (x.forzado ? '<span class="tag forz" style="margin-top:3px">forzado</span>' : '') + '</td>' +
+          '<td>' + esc(x.cliente) + '<small>' + esc(periodo(x.desde, x.hasta)) + ' · ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '<span class="mobkg"> · ' + n2(x.totalKg) + ' kg</span></small></td><td class="r mono ockg">' + n2(x.totalKg) + '</td>' +
+          '<td class="oc small">' + esc(x.emitidoPor) + '</td><td class="r" style="white-space:nowrap"><a class="btn sm gh" href="' + urlCert(x.folio) + '" target="_blank" rel="noopener" title="Abrir para imprimir">' + MK.ic('imprimir', 14) + '</a><button class="btn sm" data-env="' + esc(x.folio) + '" title="Reenviar al cliente">' + MK.ic('correo', 14) + '<span class="txr"> Reenviar</span></button></td></tr>';
+      }).join('') : '<tr><td colspan="5">' + MK.vacio('Nada con «' + q + '».') + '</td></tr>') + '</tbody></table>';
+    [].forEach.call($('c-lista').querySelectorAll('tr[data-f]'), function (tr) {
+      tr.onclick = function (e) { if (e.target.closest('a,button')) return; ver(tr.getAttribute('data-f')); };
+    });
+    [].forEach.call($('c-lista').querySelectorAll('[data-env]'), function (b) { b.onclick = function () { reenviar(b.getAttribute('data-env')); }; });
+  }
+  function ver(folio, sinScroll) {
+    VERF = folio; pintarCerts();
+    MK.cargando('c-prev', 'Abriendo ' + folio + '…');
+    $('c-pacc').innerHTML = '<a class="btn sm" href="' + urlCert(folio) + '" target="_blank" rel="noopener">' + MK.ic('imprimir', 14) + ' Imprimir / PDF</a><button class="btn sm pri" id="c-penv">' + MK.ic('correo', 14) + ' Enviar</button>';
+    $('c-penv').onclick = function () { reenviar(folio); };
+    MK.api('api_verCertificado', MK.pin, folio).then(function (r) {
+      if (VERF !== folio) return;
+      if (!r || !r.ok) { MK.error('c-prev', (r && r.error) || 'No se pudo abrir el certificado.'); return; }
+      $('c-prev').innerHTML = certHTML(r);
+      if (!sinScroll && window.innerWidth < 1180) $('c-prev').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, function (e) { MK.error('c-prev', 'Sin conexión: ' + e.message); });
+  }
+  function reenviar(folio) {
+    var x = (CERTS || []).filter(function (c) { return c.folio === folio; })[0]; if (!x) return;
+    var c = cliDe(x.cliente) || {};
+    var texto = MK.rellenar('{saludo} {contacto}:\n\nLe compartimos el certificado ' + x.folio + ' del tratamiento y disposición final de los desechos de {empresa}, del ' + larga(x.desde) + ' al ' + larga(x.hasta) + ' (' + n2(x.totalKg) + ' kg en ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '). Se lo adjuntamos en PDF.\n\n{firma}', { contacto: c.contacto || '', empresa: x.cliente });
+    MK.mensaje({ canal: c.correo ? 'correo' : 'whatsapp', telefono: telDe(c), correo: c.correo || '', ref: c.id || '', refTipo: 'cli', cuenta: x.cliente, contacto: c.contacto || '', momento: 'Certificado', texto: texto, vars: { empresa: x.cliente, contacto: c.contacto || '' } });
+  }
+
+  /* ═════════════ DISTINTIVOS ═════════════ */
+  function cargarDistintivos() {
+    return MK.api('api_distintivos', MK.pin).then(function (r) {
+      if (!r || !r.ok) { $('d-tabla').innerHTML = '<tbody><tr><td>' + MK.vacio((r && r.error) || 'No se pudo cargar.') + '</td></tr></tbody>'; return; }
+      DIST = r; if (r.empresa) DIST_EMP = r.empresa;
+      pintarDist(); contadores();
+    }, function () { $('d-tabla').innerHTML = '<tbody><tr><td><div class="aviso rj">Sin conexión con el servidor.</div></td></tr></tbody>'; });
+  }
+  function distFiltrados() {
+    if (!DIST) return [];
+    var q = ($('d-q').value || '').trim().toUpperCase();
+    return DIST.clientes.filter(function (c) {
+      if (ADF === 'falta' && (c.entregado || !c.activo)) return false;
+      if (ADF === 'listo' && !c.entregado) return false;
+      if (q && (c.nombre + ' ' + c.razonSocial + ' ' + c.id + ' ' + c.codigo).toUpperCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+  function porIdD(id) { return DIST && DIST.clientes.filter(function (x) { return x.id === id; })[0]; }
+  function pintarDist() {
+    if (!DIST) return;
+    var faltan = DIST.clientes.filter(function (c) { return c.activo && !c.entregado; }).length;
+    var listos = DIST.clientes.filter(function (c) { return !!c.entregado; }).length;
+    $('d-res').innerHTML = '<div class="dres"><span><b>' + listos + '</b> entregado' + (listos === 1 ? '' : 's') + '</span><span><b>' + faltan + '</b> por entregar</span></div>';
+    var sin = DIST.clientes.filter(function (c) { return c.activo && !c.inicioServicio; });
+    $('d-sin').innerHTML = sin.length ? '<div class="aviso am sininicio" style="margin-bottom:12px">' + MK.ic('alerta', 15) + ' <b>' + sin.length + ' cliente' + (sin.length === 1 ? '' : 's') + ' activo' + (sin.length === 1 ? '' : 's') + ' sin fecha de inicio.</b> Su distintivo saldría sin «Servicio contratado desde», que es lo que el MINSA revisa en la pared. Complétala en la ficha del cliente antes de imprimir.' +
+      '<details style="margin-top:6px"><summary style="cursor:pointer;font-weight:600">Ver cuáles</summary><ul>' + sin.map(function (c) { return '<li><a href="MerCliente.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.nombre) + '</a></li>'; }).join('') + '</ul></details></div>' : '';
+    var l = distFiltrados(), nSel = Object.keys(ASEL).filter(function (k) { return ASEL[k]; }).length;
+    $('d-imp').innerHTML = MK.ic('imprimir', 15) + ' Imprimir seleccionados (' + nSel + ')'; $('d-imp').disabled = !nSel;
+    if (!ADIST || !porIdD(ADIST)) ADIST = (l[0] || DIST.clientes[0] || {}).id;
+    $('d-tabla').innerHTML = '<thead><tr><th style="width:36px"></th><th>Cliente</th><th class="oc">Región</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      (l.length ? l.map(function (c) {
+        return '<tr class="clic' + (ADIST === c.id ? ' sel' : '') + '" data-id="' + esc(c.id) + '"><td><input type="checkbox" data-sel="' + esc(c.id) + '"' + (ASEL[c.id] ? ' checked' : '') + ' aria-label="Seleccionar ' + esc(c.nombre) + '"></td>' +
+          '<td><b style="font-weight:600">' + esc(c.nombre) + '</b><small>N° ' + esc(c.id) + ' · código ' + esc(c.codigo) + (c.frecuencia ? ' · ' + esc(c.frecuencia) : '') + '</small>' + (c.activo && !c.inicioServicio ? '<span class="tag t-warn" style="margin-top:3px">sin fecha de inicio</span>' : '') + '</td>' +
+          '<td class="oc small">' + esc(c.region) + '</td>' +
+          '<td>' + (c.entregado ? '<span class="tag t-ok">Entregado</span><small>' + esc(MK.fechaCorta(c.entregado)) + (c.entregadoPor ? ' · ' + esc(c.entregadoPor) : '') + '</small>' : c.activo ? '<span class="tag t-warn">Por entregar</span>' + (c.inicioServicio ? '<small>cliente desde ' + esc(c.inicioServicio) + '</small>' : '') : '<span class="tag t-gris">' + esc(c.estado || 'Retirado') + '</span>') + '</td>' +
+          '<td><div class="acc">' + (c.entregado ? '<button class="btn sm gh oc2" data-q="' + esc(c.id) + '">Quitar marca</button>' : '<button class="btn sm" data-m="' + esc(c.id) + '">Marcar entregado</button>') + '<button class="btn sm gh" data-p="' + esc(c.id) + '" title="Imprimir su distintivo">' + MK.ic('imprimir', 14) + '</button></div></td></tr>';
+      }).join('') : '<tr><td colspan="5">' + MK.vacio('No hay clientes con ese filtro.') + '</td></tr>') + '</tbody>';
+    var t = $('d-tabla');
+    [].forEach.call(t.querySelectorAll('tr[data-id]'), function (tr) { tr.onclick = function (e) { if (e.target.closest('button,input,a')) return; ADIST = tr.getAttribute('data-id'); pintarDist();
+      if (window.innerWidth <= 900) { var l = MK.lado('<div class="prev-h" style="margin-top:4px"><span class="t">DISTINTIVO</span></div><div id="d-prev-l"></div>'); pintarPrevDist(l.querySelector('#d-prev-l')); } }; });
+    [].forEach.call(t.querySelectorAll('[data-sel]'), function (i) { i.onchange = function () { if (i.checked) ASEL[i.getAttribute('data-sel')] = true; else delete ASEL[i.getAttribute('data-sel')]; pintarDist(); }; });
+    [].forEach.call(t.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { entregar(b.getAttribute('data-m')); }; });
+    [].forEach.call(t.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { quitar(b.getAttribute('data-q')); }; });
+    [].forEach.call(t.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { imprimirDistintivos([b.getAttribute('data-p')], b); }; });
+    pintarPrevDist();
+  }
+  function pintarPrevDist(destino) {
+    var c = porIdD(ADIST), el = destino || $('d-prev'); if (!el) return;
+    if (!c) { el.innerHTML = MK.vacio('Elige un cliente para ver su distintivo.'); return; }
+    var mid = destino ? 'd-mini-l' : 'd-mini';
+    el.innerHTML = '<div class="miniw"><div class="mini" id="' + mid + '">' + tarjetaHTML(c) + '</div></div>' +
+      '<div style="text-align:center;margin-top:12px"><b>' + esc(c.nombre) + '</b><div style="margin-top:6px">' + (c.entregado ? '<span class="tag t-ok">Entregado el ' + esc(MK.fechaCorta(c.entregado)) + '</span>' + (c.entregadoPor ? '<div class="small muted" style="margin-top:4px">marcado por ' + esc(c.entregadoPor) + '</div>' : '') : '<span class="tag t-warn">Por entregar</span>') + '</div></div>' +
+      (!c.inicioServicio ? '<div class="nota warn" style="margin-top:10px">Sin fecha de inicio: el distintivo sale sin «Servicio contratado desde». <a href="MerCliente.html?id=' + encodeURIComponent(c.id) + '">Completar en la ficha</a></div>' : '') +
+      '<div class="row w" style="justify-content:center;margin-top:12px"><button class="btn sm" data-dp="imp">' + MK.ic('imprimir', 14) + ' Imprimir</button>' +
+      (DIST.url ? '<a class="btn sm" href="' + esc(enlaceCliente(c)) + '" target="_blank" rel="noopener">' + MK.ic('ojo', 14) + ' Lo que abre el QR</a>' : '') +
+      (c.entregado ? '' : '<button class="btn sm pri" data-dp="ent">' + MK.ic('check', 14) + ' Marcar entregado</button>') + '</div>';
+    el.querySelector('[data-dp="imp"]').onclick = function () { imprimirDistintivos([c.id], this); };
+    var en = el.querySelector('[data-dp="ent"]'); if (en) en.onclick = function () { MK.cerrarLado(); entregar(c.id); };
+    ajustarMini();
+  }
+  function ajustarMini() {
+    ['d-mini', 'd-mini-l'].forEach(function (id) {
+      var m = $(id); if (!m || !m.offsetParent) return;
+      var ancho = Math.min(m.parentNode.clientWidth || 300, 340), s = ancho / 816;
+      m.style.width = Math.round(816 * s) + 'px'; m.style.height = Math.round(1056 * s) + 'px';
+      m.firstChild.style.transform = 'scale(' + s + ')';
+    });
+  }
+  function entregar(id) {
+    var c = porIdD(id); if (!c) return;
+    var cl = cliDe(c.nombre) || CLIS.filter(function (x) { return String(x.id) === id; })[0] || {};
+    MK.hoja('<h2>Marcar distintivo entregado</h2><p class="muted small">' + esc(c.nombre) + ' · N° ' + esc(c.id) + ' · código ' + esc(c.codigo) + '</p>' +
+      '<div class="grid g2" style="gap:0 10px"><div><label class="lb" for="en-f">FECHA DE ENTREGA</label><input class="in" type="date" id="en-f" value="' + hoy() + '" max="' + hoy() + '"></div>' +
+      '<div><label class="lb" for="en-q">¿QUIÉN LO RECIBIÓ?</label><input class="in" id="en-q" value="' + esc(cl.contacto || '') + '" placeholder="Nombre y cargo"></div></div>' +
+      '<label class="lb" for="en-n">NOTA <span class="muted">(opcional)</span></label><input class="in" id="en-n" placeholder="Dónde quedó pegado, quién lo llevó…">' +
+      '<p class="small muted" style="margin-top:8px">Queda marcado a tu nombre y la entrega se anota en la actividad del cliente.</p>' +
+      '<div class="msgerr small" id="en-msg" style="color:var(--bad);margin-top:6px"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ok" id="en-ok">' + MK.ic('check', 15) + ' Entregado</button></div>');
+    $('en-ok').onclick = function () {
+      var b = this, f = $('en-f').value, q = $('en-q').value.trim(), n = $('en-n').value.trim();
+      if (!f) { $('en-msg').textContent = 'Pon la fecha de entrega.'; return; }
+      if (!q) { $('en-msg').textContent = 'Escribe quién lo recibió.'; $('en-q').focus(); return; }
+      MK.ocupado(b, true);
+      MK.api('api_marcarDistintivo', MK.pin, id, true, f).then(function (r) {
+        if (!r || !r.ok) { MK.ocupado(b, false); $('en-msg').textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        c.entregado = r.entregado || f; c.entregadoPor = r.entregadoPor || ''; delete ASEL[id];
+        return MK.api('api_crmGuardarActividad', MK.pin, { tipo: 'nota', ref: id, refTipo: 'cli', cuenta: c.nombre, contacto: q, fecha: f,
+          texto: 'Distintivo entregado el ' + larga(f) + '. Lo recibió ' + q + '.' + (n ? ' ' + n : ''), resultado: 'Entregado' }).catch(function () {}).then(function () {
+          MK.cerrarHoja(); MK.aviso('Distintivo de ' + c.nombre + ' marcado como entregado'); pintarDist(); contadores(); MK.cambio({ tipo: 'distintivo' });
+        });
+      }, function (e) { MK.ocupado(b, false); $('en-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  function quitar(id) {
+    var c = porIdD(id); if (!c) return;
+    MK.confirmar(c.nombre + ' vuelve a quedar «por entregar». Úsalo si se marcó por error o si hay que reponer el distintivo.', function () {
+      MK.llamar('api_marcarDistintivo', MK.pin, id, false).then(function (r) { c.entregado = r.entregado || ''; c.entregadoPor = ''; MK.aviso('Se quitó la marca de entregado'); pintarDist(); contadores(); });
+    }, { titulo: '¿Quitar la marca de entregado?', boton: 'Quitar marca', peligro: true });
+  }
+  function avisoDist(html, malo) {
+    var a = $('d-aviso'); a.innerHTML = '<div class="nota ' + (malo ? 'bad' : 'ok') + '" style="margin-bottom:10px">' + html + '</div>';
+    clearTimeout(window._avd); window._avd = setTimeout(function () { a.innerHTML = ''; }, 7000);
+  }
+
+  /* ── La hoja del distintivo: misma lógica, QR y diseño que Alta.html ── */
+  /* El enlace que va dentro del QR: la app real más el cliente y su código. */
+  function enlaceCliente(c) {
+    var base = (DIST && DIST.url) || "";
+    /* ni "c" ni otros nombres de una letra: Google los reserva en las
+       direcciones de script.google.com y la petición nunca llega al script */
+    return base + "?p=micliente&cli=" + encodeURIComponent(c.id) +
+           "&cod=" + encodeURIComponent(c.codigo);
+  }
+  function tarjetaHTML(c) {
+    /* Solo el nombre: con nombres largos la región partía el renglón en dos,
+       y el nombre del local ya identifica la sede por sí solo. */
+    var sede = esc(c.nombre);
+    var E = empDist();
+    var cod = esc(c.codigo);
+    return '<div class="tarj">'+
+      '<div class="fr"><i></i><i></i><i></i></div>'+
+      '<div class="cu">'+
+        '<div class="at">Establecimiento atendido por</div>'+
+        '<div class="lg" style="background-image:url(\''+LOGO_URL+'\')"></div>'+
+        '<h2>Recolección, transporte y<br><em>disposición final</em> de<br>desechos peligrosos</h2>'+
+        '<div class="le">Este local cuenta con servicio contratado y trazabilidad '+
+          'documentada de cada retiro.</div>'+
+        '<div class="cj">'+
+          '<div class="qr">'+QR.svg(enlaceCliente(c))+'</div>'+
+          '<div class="ct">Escanee para ver su servicio</div>'+
+          '<div class="sb">Consulte su frecuencia, su última visita y el total<br>'+
+            'retirado de su establecimiento, en cualquier momento.</div>'+
+          '<div class="sd">'+sede+'</div>'+
+          '<div class="cv">Cliente N° '+esc(c.id)+' &nbsp;·&nbsp; '+cod.slice(0,4)+' · '+cod.slice(4)+'</div>'+
+          /* La fecha que MINSA verifica al llegar. Impresa, no solo detrás del QR:
+             el inspector mira la pared antes de sacar el teléfono. */
+          (c.inicioServicio
+            ? '<div class="ini"><span>Servicio contratado desde</span><b>'+
+              esc(c.inicioServicio)+'</b></div>'
+            : '')+
+        '</div>'+
+      '</div>'+
+      '<div class="pe">'+
+        '<div class="a">Tel. <b>'+esc(E.telefono)+'</b> &nbsp;·&nbsp; WhatsApp <b>'+
+          esc(E.whatsapp)+'</b></div>'+
+        '<div class="b">'+esc(E.correo)+' &nbsp;·&nbsp; '+esc(E.instagram)+'</div>'+
+        (E.direccion
+          ? '<div class="dir">'+esc(E.razonSocial)+' · RUC '+esc(E.ruc)+' DV '+esc(E.dv)+'<br>'+
+            esc(E.direccion.toUpperCase().indexOf(String(E.ciudad).toUpperCase())>=0
+              ? E.direccion : E.direccion+' · '+E.ciudad)+'</div>'
+          : '')+
+        '<div class="res">'+esc(E.resolucionCorta)+'</div>'+
+        '<div class="c">'+esc(E.decreto)+'</div>'+
+        (E.formulario ? '<div class="cod">'+esc(E.formulario)+'</div>' : '')+
+      '</div></div>';
+  }
+  /* Los datos de la empresa del distintivo vienen del servidor. La dirección
+     del respaldo va vacía a propósito: si el servidor no responde, es mejor una
+     tarjeta sin dirección — que se nota — que una con la dirección vieja pegada
+     en la pared de un cliente. */
+  function empDist() {
+    return DIST_EMP || {razonSocial:"ECOTERMO DE PANAMA S.A.",ruc:"1074020-1-552789",
+      dv:"50",direccion:"",ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
+      correo:"info@ecovsa.com",instagram:"@ecovsapanama",
+      resolucionCorta:"Resolución Sanitaria N° 1519",
+      decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+  }
+  /* El logo viene de Drive. Si no cargó, salen las hojas sin logo y nadie se
+     entera hasta que están impresas: mejor avisar antes. */
+  function revisarLogo(cb) {
+    if (LOGO_OK !== null) { cb(LOGO_OK); return; }
+    var im = new Image();
+    im.onload = function () { LOGO_OK = true; cb(true); };
+    im.onerror = function () { LOGO_OK = false; cb(false); };
+    im.src = LOGO_URL;
+    setTimeout(function () { if (LOGO_OK === null) { LOGO_OK = false; cb(false); } }, 6000);
+  }
+  function imprimirDistintivos(ids, boton) {
+    if (!DIST) return;
+    var sel = DIST.clientes.filter(function (c) { return ids.indexOf(c.id) >= 0; });
+    if (!sel.length) { avisoDist('Marca al menos un cliente para imprimir.', true); return; }
+    if (!DIST.url) { avisoDist('Todavía no tengo la dirección de la app. Recarga la página.', true); return; }
+    var b = boton || $('d-imp'); MK.ocupado(b, true, 'Preparando…');
+    revisarLogo(function (ok) {
+      MK.ocupado(b, false);
+      if (!ok) {
+        avisoDist('<b>El logo no cargó.</b> Se imprimiría' + (sel.length > 1 ? 'n ' : ' ') + sel.length + ' hoja' + (sel.length > 1 ? 's' : '') + ' sin logo. Revisa tu conexión o los permisos del archivo en Drive, y vuelve a intentar.', true);
+        if (TAB !== 'dist') MK.aviso('El logo no cargó: no se imprimió.');
+        return;
+      }
+      $('dist-imprimir').innerHTML = sel.map(tarjetaHTML).join('');
+      setTimeout(function () { window.print(); }, 400);
+    });
+  }
+
+  /* ═════════════ SUGERIDOS ═════════════ */
+  function sugeridos() {
+    var s = semestre(), con = {};
+    (CERTS || []).forEach(function (x) { if (x.hasta >= s.d && x.desde <= s.h) con[clave(x.cliente)] = x; });
+    var act = CLIS.filter(activo), l = [], saldo = [], sinRec = 0;
+    act.forEach(function (c) {
+      if (con[clave(c.nombre)]) return;
+      if (!c.ultimaVisita || c.ultimaVisita < s.d) { sinRec++; return; }
+      (Number(c.saldo) > 0.009 ? saldo : l).push(c);
+    });
+    var ord = function (a, b) { return a.nombre.localeCompare(b.nombre); };
+    return { s: s, al: l.sort(ord), saldo: saldo.sort(ord), sinRec: sinRec, con: Object.keys(con).length };
+  }
+  function pintarSug() {
+    if (!CERTS) return;
+    var x = sugeridos(), s = x.s, hasta = minF(s.h, hoy());
+    var fila = function (c, conSaldo) {
+      return '<div class="it"><span class="av">' + esc(MK.ini(c.nombre)) + '</span><div class="tx"><b>' + esc(c.nombre) + '</b><small>Última recolección ' + esc(MK.fechaCorta(c.ultimaVisita)) + ' · ' + MK.num(c.kgMes, 1) + ' kg al mes' +
+        (conSaldo ? ' · <span style="color:var(--bad);font-weight:700">saldo ' + MK.dinero(c.saldo) + '</span>' : ' · al día') + '</small></div>' +
+        '<button class="btn sm' + (conSaldo ? '' : ' pri') + '" data-prep="' + esc(c.nombre) + '">Preparar</button></div>';
+    };
+    $('s-cuerpo').innerHTML = '<div class="grid" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px" id="s-grid">' +
+      '<div class="card"><h3>Sugeridos para emitir <span class="sp"></span><span class="l muted">' + esc(s.n) + ' · ' + esc(MK.fechaCorta(s.d)) + ' a ' + esc(MK.fechaCorta(hasta)) + '</span></h3>' +
+      '<p class="small muted" style="margin:-4px 0 6px">Clientes activos, al día, con recolecciones este semestre y sin certificado que lo cubra.</p><div class="sug">' +
+      (x.al.length ? x.al.map(function (c) { return fila(c, false); }).join('') : MK.vacio('No hay sugerencias: todos los clientes al día ya tienen su certificado del semestre.')) + '</div></div>' +
+      '<div><div class="card"><h3>Con saldo pendiente <span class="sp"></span><span class="l muted">' + x.saldo.length + '</span></h3><p class="small muted" style="margin:-4px 0 6px">Cobros les muestra saldo. El certificado se entrega al percibir el pago: al prepararlo verás si el sistema lo detiene.</p><div class="sug">' +
+      (x.saldo.length ? x.saldo.map(function (c) { return fila(c, true); }).join('') : MK.vacio('Ninguno.')) + '</div></div>' +
+      '<div class="nota" style="margin-top:12px">' + x.con + ' cliente' + (x.con === 1 ? '' : 's') + ' ya tiene' + (x.con === 1 ? '' : 'n') + ' certificado que cubre el ' + esc(s.n) + '. ' + (x.sinRec ? x.sinRec + ' cliente' + (x.sinRec === 1 ? '' : 's') + ' activo' + (x.sinRec === 1 ? '' : 's') + ' no aparece' + (x.sinRec === 1 ? '' : 'n') + ' porque no tiene' + (x.sinRec === 1 ? '' : 'n') + ' recolecciones este semestre.' : '') + '</div></div></div>';
+    [].forEach.call($('s-cuerpo').querySelectorAll('[data-prep]'), function (b) {
+      b.onclick = function () { $('c-cli').value = b.getAttribute('data-prep'); $('c-des').value = s.d; $('c-has').value = hasta; verTab('cert'); window.scrollTo(0, 0); previa(); };
+    });
+    if (window.innerWidth < 900) $('s-grid').style.gridTemplateColumns = 'minmax(0,1fr)';
+    contadores();
+  }
+  function contadores() {
+    if ($('n1')) $('n1').textContent = CERTS ? CERTS.length : '';
+    if ($('n2')) $('n2').innerHTML = DIST ? DIST.clientes.filter(function (c) { return c.activo && !c.entregado; }).length + '<span class="txr"> por entregar</span>' : '';
+    if ($('n3')) $('n3').textContent = CERTS ? sugeridos().al.length : '';
+  }
+
+  /* ═════════════ carga ═════════════ */
+  function cargar() {
+    pintar();
+    MK.cargando('c-lista'); MK.cargando('d-tabla'); MK.cargando('s-cuerpo');
+    $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Elige un cliente y el período para ver aquí el certificado tal como le llega.') + '</div>';
+    MK.api('api_obtenerListaClientes', MK.pin).then(function (l) {
+      NOMBRES = Array.isArray(l) ? l : [];
+      $('dl-cli').innerHTML = NOMBRES.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+    }, function () {});
+    var pCli = MK.api('api_crmClientes', MK.pin).then(function (r) { CLIS = (r && r.clientes) || []; CLI_N = {}; CLIS.forEach(function (c) { CLI_N[clave(c.nombre)] = c; }); }, function () { CLIS = []; });
+    Promise.all([cargarCerts(), pCli]).then(function () { pintarSug(); });
+    cargarDistintivos();
+    if ($('c-cli').value) previa();
+  }
+  var tRec = null;
+  window.addEventListener('mk:cambio', function (e) {
+    var t = e.detail && e.detail.tipo; if (t === 'distintivo') return;
+    clearTimeout(tRec); tRec = setTimeout(function () { cargarCerts(); }, 300);
+  });
+  window.addEventListener('resize', function () { clearTimeout(window._tz); window._tz = setTimeout(function () { ajustarMini(); var g = $('s-grid'); if (g) g.style.gridTemplateColumns = window.innerWidth < 900 ? 'minmax(0,1fr)' : 'minmax(0,1.5fr) minmax(0,1fr)'; }, 150); });
+
+  MK.iniciar('entregables', function () { cargar(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ── Reportes · opción B «Catálogo de reportes» ── */
+.sysbar .srch{min-width:0}  /* la barra del kit se desborda a 390 px sin esto */
+.cat{display:grid;grid-template-columns:268px minmax(0,1fr);gap:16px;align-items:start}
+.lista{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;position:sticky;top:72px;max-height:calc(100vh - 88px);overflow:auto}
+.lista .g{font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--muted2);padding:10px 10px 4px}
+.lista a{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:9px;color:var(--ink);cursor:pointer}
+.lista a svg{margin-top:1px;color:#46546b}
+.lista a:hover{background:var(--hover)}
+.lista a.on{background:#eaf0fa}
+.lista a.on svg{color:var(--navy2)}
+.lista a b{display:block;font-weight:600;font-size:13px}
+.lista a small{display:block;color:var(--muted);font-size:11.5px;line-height:1.3}
+.lista .bus{margin:4px 4px 6px;width:calc(100% - 8px)}
+.lista .nada{padding:6px 10px 8px;font-size:12px;color:var(--muted)}
+.selm{display:none;margin-bottom:12px}
+.rep{min-width:0}
+.rep .cab{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.rep .cab .tt{flex:1;min-width:200px}
+.rep .cab .gr{font-size:12px;color:var(--muted);font-weight:600}
+.rep .cab h2{font-size:19px;font-weight:700;line-height:1.25}
+.rep .como{background:var(--hover);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#43516a;margin:12px 0}
+.rep .como b{color:var(--ink)}
+.rep .como .fx{display:block;margin-top:6px;font-weight:600;color:var(--navy2)}
+.ctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.ctr .lab{font-size:13px;color:var(--muted)}
+.ctr .lab b{color:var(--ink);font-weight:600}
+.nav{display:inline-flex;align-items:center;gap:2px}
+.nav .btn{padding:5px 8px}
+.rango{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rango .in{width:auto;padding:5px 8px}
+.mini{display:grid;gap:10px;margin-bottom:14px}
+.mini .m{border:1px solid var(--line2);border-radius:10px;padding:8px 11px;min-width:0}
+.mini .m span{display:block;font-size:11.5px;color:var(--muted)}
+.mini .m b{display:block;font-size:19px;font-weight:700;letter-spacing:-.2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .m em{font-style:normal;font-size:11.5px;font-weight:700}
+.mini .m em.igual{color:var(--muted);font-weight:600}
+.ley{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 6px}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ley i.ln{height:0;border-top:2px dashed #7d8aa0;border-radius:0;width:14px;vertical-align:3px}
+.ch{width:100%;min-height:20px}
+.ch svg{display:block;width:100%;height:auto;overflow:visible}
+.ch text{font-family:Archivo,system-ui,sans-serif}
+.ch .hit{fill:transparent}
+.ch g.b:hover .bar{opacity:.82}
+.tctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 8px}
+.tctr h4{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700;text-transform:uppercase;margin-right:auto}
+.tctr .in,.tctr .sel{width:auto;padding:5px 9px;font-size:12.5px}
+.tctr .in{min-width:170px}
+.tb td .mb{display:inline-block;height:6px;border-radius:3px;background:var(--navy2);vertical-align:middle;margin-right:6px}
+.tb tr.tot td{font-weight:700;background:#fafbfd}
+.tb td.num,.tb td.r,.tb td.nw{white-space:nowrap}
+.tb tr.ex{cursor:pointer}
+.tb tr.ex td:first-child{white-space:nowrap}
+.tb tr.ex .fl{display:inline-block;width:12px;color:var(--muted);transition:transform .15s}
+.tb tr.ex.abierto .fl{transform:rotate(90deg)}
+.tb tr.sub td{background:#fbfcfe;padding:0}
+.tb tr.sub .lst{padding:4px 14px 6px 34px}
+.tb tr.sub .it{padding:7px 0;font-size:12.5px;gap:10px;flex-wrap:wrap}
+.tb th.ord{user-select:none}
+.tb th .fl{font-size:10px;margin-left:3px}
+.tb td.t{max-width:300px;min-width:180px}
+.tb td.t div{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tb a.lk{font-weight:600;color:var(--navy2)}
+.tb a.lk:hover{text-decoration:underline}
+.pieT{font-size:12px;color:var(--muted);margin-top:8px}
+.guard{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:12px;background:#fafbfd;font-size:12.5px;flex-wrap:wrap}
+.guard svg{color:var(--amber)}
+.guard b{font-weight:700}
+.solo-imp{display:none}
+@media(max-width:1180px){.mini{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:900px){.cat{grid-template-columns:minmax(0,1fr)}.lista{display:none}.selm{display:block}}
+@media(max-width:600px){
+  .mini{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .rep.card{padding:14px 12px}
+  .rep .cab h2{font-size:17px}
+  .hide-m{display:none}
+  .tctr h4{flex-basis:100%}
+  .tctr .in{min-width:0;flex:1 1 100%}
+  .tctr .sel{flex:1 1 40%;min-width:0}
+  .tb td,.tb th{padding:8px 9px}
+}
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  body.mk{background:#fff;font-size:12px}
+  .lista,.selm,.no-imp,.toast,#hoja,.ph{display:none!important}
+  .cat{display:block}
+  .rep.card{border:0;padding:0}
+  .solo-imp{display:flex;align-items:flex-end;gap:12px;border-bottom:2px solid var(--navy);padding-bottom:8px;margin-bottom:12px}
+  .solo-imp b{font-size:15px;letter-spacing:2px;color:var(--navy)}
+  .solo-imp span{font-size:11px;color:var(--muted);margin-left:auto;text-align:right}
+  .rep .como{background:#fff}
+  .tbw{overflow:visible;border:1px solid var(--line)}
+  .tb tbody tr:hover td{background:none}
+  .tb tr{page-break-inside:avoid}
+  .ch{page-break-inside:avoid}
+  a{color:var(--ink)}
+}
+/* gerencia solo consulta: no guarda reportes (el servidor no se lo permite) */
+body.solo-ver #rGuardar,body.solo-ver #rAct,body.solo-ver #rQuitar{display:none!important}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  'use strict';
+
+  /* ═══ Catálogo de reportes ═══ */
+  var CAT = [
+    { g: 'VENTAS' },
+    { id: 'resumen', n: 'Resumen del periodo', d: 'Cifras clave y su comparación', i: 'grafico' },
+    { id: 'conversion', n: 'Conversión y ciclo', d: 'Ganadas ÷ cerradas y días a firma', i: 'tendencia', usa: ['ops'] },
+    { id: 'embudo', n: 'Embudo', d: 'Lo abierto hoy, por etapa', i: 'embudo', sinPer: true, usa: ['ops'] },
+    { id: 'pronostico', n: 'Pronóstico de cierre', d: 'Lo que se espera firmar por mes', i: 'calendario', sinPer: true, usa: ['ops'] },
+    { id: 'ganadas', n: 'Ganadas', d: 'Lo firmado en el periodo', i: 'check' },
+    { g: 'ORIGEN' },
+    { id: 'fuente', n: 'Por fuente', d: 'De dónde vienen las oportunidades', i: 'flecha', usa: ['ops'] },
+    { id: 'sector', n: 'Por sector', d: 'Privado, gobierno, minera…', i: 'edificio', usa: ['ops'] },
+    { id: 'servicio', n: 'Por tipo de servicio', d: 'Recurrente o visita única', i: 'renovar', usa: ['ops'] },
+    { g: 'EQUIPO' },
+    { id: 'asesor', n: 'Por asesor', d: 'Resultados de cada asesor', i: 'personas', usa: ['ops'] },
+    { id: 'actividades', n: 'Actividades', d: 'Llamadas, visitas, WhatsApp…', i: 'telefono', usa: ['act'] },
+    { g: 'CARTERA' },
+    { id: 'salud', n: 'Salud de la cartera', d: 'Sanos, atención, riesgo', i: 'sello', sinPer: true, usa: ['cli'] },
+    { id: 'riesgo', n: 'Clientes en riesgo', d: 'A quién atender primero', i: 'alerta', sinPer: true },
+    { id: 'crecer', n: 'Para crecer', d: 'El plan les queda chico', i: 'tendencia', sinPer: true },
+    { id: 'renovaciones', n: 'Renovaciones', d: 'Contratos que vencen pronto', i: 'renovar', sinPer: true },
+    { g: 'PÉRDIDAS' },
+    { id: 'perdidas', n: 'Motivos y lista', d: 'Por qué se pierde', i: 'x' }
+  ];
+  function catDe(id) { for (var i = 0; i < CAT.length; i++) if (CAT[i].id === id) return CAT[i]; return null; }
+
+  /* ═══ Estado ═══ */
+  var ST = { rep: 'resumen', per: { tipo: 'mes', desp: 0, desde: '', hasta: '' }, filtros: {}, guardado: '' };
+  var D = null, DP = null, RKEY = '', PKEY = '', CARGANDO = false, ERR = '';
+  var OPS = null, CLI = null, ACT = {};       // datos de apoyo (se piden solo cuando un reporte los usa)
+  var ABIERTOS = {};                          // filas de grupo desplegadas
+  var TABLA = null;                           // la tabla que se ve (para exportar)
+  var CHART = null;                           // función del gráfico visible
+  var LIMITE = 50, VERTODAS = {}, TODAS = false; // filas visibles (al imprimir salen todas)
+
+  /* ═══ Periodos ═══ */
+  function p2(n) { return ('0' + n).slice(-2); }
+  function ymd(y, m, d) { var x = new Date(Date.UTC(y, m - 1, d)); return x.getUTCFullYear() + '-' + p2(x.getUTCMonth() + 1) + '-' + p2(x.getUTCDate()); }
+  function finMes(y, m) { return ymd(y, m + 1, 0); }
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function rangoDe(per) {
+    var hoy = MK.hoy, y = +hoy.slice(0, 4), m = +hoy.slice(5, 7), r = {};
+    var dsp = per.desp || 0;
+    if (per.tipo === 'mes') {
+      var a = ymd(y, m + dsp, 1); r.desde = a; r.hasta = finMes(+a.slice(0, 4), +a.slice(5, 7));
+      r.lab = cap(MK.mesNombre(a.slice(0, 7)));
+      var ap = ymd(y, m + dsp - 1, 1); r.prev = { desde: ap, hasta: finMes(+ap.slice(0, 4), +ap.slice(5, 7)), lab: MK.mesNombre(ap.slice(0, 7)) };
+    } else if (per.tipo === 'trimestre') {
+      var q0 = Math.floor((m - 1) / 3) * 3 + 1 + dsp * 3, b = ymd(y, q0, 1), by = +b.slice(0, 4), bm = +b.slice(5, 7);
+      r.desde = b; r.hasta = finMes(by, bm + 2);
+      r.lab = cap(MK.MESES[bm - 1]) + ' – ' + MK.MESES[(bm + 1) % 12] + ' ' + by + ' (T' + ((bm + 2) / 3) + ')';
+      var c = ymd(y, q0 - 3, 1); r.prev = { desde: c, hasta: finMes(+c.slice(0, 4), +c.slice(5, 7) + 2), lab: 'el trimestre anterior' };
+    } else if (per.tipo === 'anio') {
+      var yy = y + dsp; r.desde = yy + '-01-01'; r.hasta = yy + '-12-31'; r.lab = 'Año ' + yy;
+      r.prev = { desde: (yy - 1) + '-01-01', hasta: (yy - 1) + '-12-31', lab: 'el año ' + (yy - 1) };
+    } else {
+      var d1 = per.desde || MK.masDias(hoy, -29), d2 = per.hasta || hoy; if (d2 < d1) { var t = d1; d1 = d2; d2 = t; }
+      r.desde = d1; r.hasta = d2; r.lab = MK.fechaCorta(d1) + ' – ' + MK.fechaCorta(d2) + (d2.slice(0, 4) === hoy.slice(0, 4) && d1.slice(0, 4) === d2.slice(0, 4) ? ' ' + d2.slice(0, 4) : '');
+      var n = MK.dias(d1, d2) + 1; r.prev = { desde: MK.masDias(d1, -n), hasta: MK.masDias(d1, -1), lab: 'los ' + n + ' días anteriores' };
+    }
+    r.enCurso = hoy >= r.desde && hoy <= r.hasta;
+    if (r.enCurso && r.hasta > hoy) r.lab += ' · al ' + MK.fechaCorta(hoy);
+    return r;
+  }
+  function descPer(per) {
+    if (per.tipo === 'rango') return 'Del ' + MK.fechaCorta(per.desde) + ' al ' + MK.fechaCorta(per.hasta);
+    var n = { mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' }[per.tipo], d = per.desp || 0;
+    if (d === 0) return n + ' en curso'; if (d === -1) return n + ' anterior';
+    return n + ' · hace ' + (-d) + (per.tipo === 'mes' ? ' meses' : per.tipo === 'anio' ? ' años' : ' trimestres');
+  }
+
+  /* ═══ Formatos ═══ */
+  function pc(x) { return x == null || x === '' ? '—' : Math.round(x) + ' %'; }
+  function din(v) { return MK.dinero(v); }
+  function din0(v) { return 'B/. ' + Math.round(Number(v) || 0).toLocaleString('en-US'); }
+  function kf(n) { n = Math.round(n); var a = Math.abs(n); return a >= 10000 ? Math.round(n / 1000) + ' mil' : a >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + ' mil' : String(n); }
+  function mesC(ym) { if (!/^\d{4}-\d{2}/.test(ym || '')) return ym === 'sin fecha' ? 'Sin fecha' : (ym || ''); return MK.MESES[+ym.slice(5, 7) - 1] + (ym.slice(0, 4) !== MK.hoy.slice(0, 4) ? ' ' + ym.slice(2, 4) : ''); }
+  function mesL(ym) { return ym === 'sin fecha' ? 'Sin fecha' : cap(MK.mesNombre(ym)); }
+  function pl(n, s) { return n + ' ' + s + (n === 1 ? '' : 's'); }
+  function sum(l, f) { return l.reduce(function (s, x) { return s + (Number(typeof f === 'function' ? f(x) : x[f]) || 0); }, 0); }
+  function lkOp(cod, t) { return '<a class="lk" href="MerOportunidad.html?id=' + encodeURIComponent(cod) + '">' + MK.esc(t || cod) + '</a>'; }
+  function lkCli(id, t) { return '<a class="lk" href="MerCliente.html?id=' + encodeURIComponent(id) + '">' + MK.esc(t || id) + '</a>'; }
+  function delta(v, ref, fmt, menosMejor) {
+    if (ref == null || v == null || !DP) return '';
+    var d = v - ref; if (Math.abs(d) < 1e-9) return '<em class="igual">= igual</em>';
+    var bueno = menosMejor ? d < 0 : d > 0;
+    return '<em class="' + (bueno ? 'up' : 'down') + '">' + (d > 0 ? '▲ +' : '▼ −') + (fmt ? fmt(Math.abs(d)) : Math.abs(d)) + '</em>';
+  }
+  var NIVEL = { sano: ['Sano', 't-ok'], atencion: ['Atención', 't-warn'], riesgo: ['Riesgo', 't-bad'], crecer: ['Para crecer', 't-info'] };
+
+  /* La misma regla del servidor para saber qué oportunidades caen en el periodo */
+  function creada(p) { return String(p['fecha contacto'] || '').slice(0, 10) || String(p.registradoEn || '').slice(0, 10) || ''; }
+  function cierre(p) { return String(p['fecha cierre'] || (p.ganada ? (p['fecha contrato'] || p['fecha etapa']) : p.perdida ? p['fecha etapa'] : '') || '').slice(0, 10); }
+  function enP(f) { return f && f >= D.desde && f <= D.hasta; }
+  function txt(v) { return String(v == null ? '' : v).trim(); }
+
+  /* ═══ Gráficos SVG ═══ */
+  var NAVY = '#14306b', CLARO = '#8fa3c7', GRIS = '#c3cddd', REJ = '#eef1f5', TXT = '#667489', INK = '#0f2140', BANDA = '#f1f4f9';
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function tx(x, y, s, o) { o = o || {}; return '<text x="' + r1(x) + '" y="' + r1(y) + '" font-size="' + (o.fs || 11) + '" fill="' + (o.c || TXT) + '"' + (o.a ? ' text-anchor="' + o.a + '"' : '') + (o.w ? ' font-weight="' + o.w + '"' : '') + '>' + MK.esc(s) + '</text>'; }
+  function escala(max) {
+    if (!(max > 0)) return [1, [0, 1]];
+    var p = Math.pow(10, Math.floor(Math.log10(max))), paso = [1, 2, 2.5, 5, 10].map(function (m) { return m * p; }).filter(function (s) { return max / s <= 4; })[0] || p * 10;
+    if (max <= 4 && paso < 1) paso = 1;
+    var top = Math.ceil(max / paso) * paso, t = []; for (var v = 0; v <= top + 1e-9; v += paso) t.push(Math.round(v * 1000) / 1000); return [top, t];
+  }
+  function rectR(x, y, w, h, f, cls) { if (h <= 0 || w <= 0) return ''; var r = Math.min(4, w / 2, h); return '<path class="bar' + (cls ? ' ' + cls : '') + '" d="M' + r1(x) + ',' + r1(y + h) + 'V' + r1(y + r) + 'Q' + r1(x) + ',' + r1(y) + ' ' + r1(x + r) + ',' + r1(y) + 'H' + r1(x + w - r) + 'Q' + r1(x + w) + ',' + r1(y) + ' ' + r1(x + w) + ',' + r1(y + r) + 'V' + r1(y + h) + 'Z" fill="' + f + '"/>'; }
+  function svgA(W, H, aria) { return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + MK.esc(aria || '') + '" preserveAspectRatio="xMinYMin meet">'; }
+  /* barras verticales agrupadas (+ línea de meta opcional) */
+  function barrasV(W, o) {
+    var H = o.H || (W < 480 ? 190 : 230), L = o.L || 44, B = 24, T = 20, cats = o.cats, ser = o.series, n = cats.length, iw = W - L - 6, ih = H - B - T;
+    var mx = 0; ser.forEach(function (s) { s.v.forEach(function (v) { mx = Math.max(mx, v || 0); }); }); if (o.linea) o.linea.v.forEach(function (v) { mx = Math.max(mx, v || 0); });
+    var e = escala(mx), top = e[0], cw = iw / Math.max(1, n);
+    var g = svgA(W, H, o.aria);
+    (o.band || []).forEach(function (i) { g += '<rect x="' + r1(L + i * cw) + '" y="' + T + '" width="' + r1(cw) + '" height="' + ih + '" fill="' + BANDA + '"/>'; });
+    e[1].forEach(function (v) { var y = T + ih - v / top * ih; g += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + r1(y) + '" y2="' + r1(y) + '" stroke="' + REJ + '"/>' + tx(L - 6, y + 4, o.fy ? o.fy(v) : v, { a: 'end', fs: 10.5 }); });
+    var gap = 3, bw = Math.max(3, Math.min(o.bwMax || 28, (cw * .68 - gap * (ser.length - 1)) / ser.length)), cada = Math.ceil(n / Math.max(1, Math.floor(iw / 44)));
+    cats.forEach(function (c, i) {
+      var x0 = L + i * cw + (cw - (bw * ser.length + gap * (ser.length - 1))) / 2, tope = T + ih;
+      var tit = (o.tipT ? o.tipT(i) : c) + '\n' + ser.map(function (s) { return s.n + ': ' + (o.fv ? o.fv(s.v[i] || 0) : (s.v[i] || 0)); }).join('\n') + (o.linea ? '\n' + o.linea.n + ': ' + (o.fv ? o.fv(o.linea.v[i] || 0) : o.linea.v[i]) : '');
+      g += '<g class="b"><title>' + MK.esc(tit) + '</title><rect class="hit" x="' + r1(L + i * cw) + '" y="' + T + '" width="' + r1(cw) + '" height="' + ih + '"/>';
+      ser.forEach(function (s, j) {
+        var v = s.v[i] || 0, h = v / top * ih;
+        if (s.contorno) g += h > 0 ? '<rect x="' + r1(x0 + j * (bw + gap)) + '" y="' + r1(T + ih - h) + '" width="' + r1(bw) + '" height="' + r1(h) + '" rx="3" fill="#fff" stroke="' + s.c + '" stroke-width="1.5" stroke-dasharray="4 3"/>' : '';
+        else g += rectR(x0 + j * (bw + gap), T + ih - h, bw, h, s.c);
+        tope = Math.min(tope, T + ih - h);
+      });
+      g += '</g>';
+      if (o.etq) { var et = o.etq(i); if (et) g += tx(L + i * cw + cw / 2, tope - 6, et, { a: 'middle', fs: 11, c: INK, w: 700 }); }
+      if (i % cada === 0) g += tx(L + i * cw + cw / 2, H - 7, c, { a: 'middle', fs: 10.5, c: (o.band || []).indexOf(i) >= 0 ? INK : TXT });
+    });
+    if (o.linea && o.linea.v.some(function (v) { return v > 0; })) {
+      var pts = o.linea.v.map(function (v, i) { return r1(L + i * cw + cw / 2) + ',' + r1(T + ih - (v || 0) / top * ih); }).join(' ');
+      g += '<polyline points="' + pts + '" fill="none" stroke="#7d8aa0" stroke-width="1.6" stroke-dasharray="5 4"/>';
+    }
+    g += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + (T + ih + .5) + '" y2="' + (T + ih + .5) + '" stroke="#cfd6e2"/>';
+    return g + '</svg>';
+  }
+  /* barras horizontales (una o dos series) */
+  function barrasH(W, items, o) {
+    o = o || {}; var dos = items.some(function (x) { return x.v2 != null; });
+    var fila = o.fila || (dos ? 38 : 32), lw = Math.min(o.lw || 190, W * (W < 480 ? .38 : .34)), vw = Math.min(o.vw || 110, W * .3), iw = Math.max(40, W - lw - vw - 10), H = items.length * fila + 4;
+    var mx = Math.max.apply(null, items.map(function (x) { return Math.max(x.v || 0, x.v2 || 0); }).concat([o.max || 0, 1e-9]));
+    var g = svgA(W, H, o.aria);
+    items.forEach(function (it, i) {
+      var y = i * fila + 2, lab = corta(String(it.l), lw - 12);
+      var bh = dos ? 10 : Math.min(15, fila - 14), w1 = (it.v || 0) / mx * iw, w2 = (it.v2 || 0) / mx * iw;
+      g += '<g class="b"><title>' + MK.esc(it.tip || (it.l + ': ' + (it.lab != null ? it.lab : it.v))) + '</title><rect class="hit" x="0" y="' + y + '" width="' + W + '" height="' + fila + '"/>' + tx(0, y + fila / 2 + 4, lab, { c: INK, fs: 12 });
+      if (dos) {
+        g += (w1 > 0 ? '<rect class="bar" x="' + r1(lw) + '" y="' + r1(y + fila / 2 - bh - 1) + '" width="' + r1(Math.max(2, w1)) + '" height="' + bh + '" rx="2.5" fill="' + (o.c1 || CLARO) + '"/>' : '<rect x="' + r1(lw) + '" y="' + r1(y + fila / 2 - bh - 1) + '" width="1.5" height="' + bh + '" fill="' + GRIS + '"/>') +
+          (w2 > 0 ? '<rect class="bar" x="' + r1(lw) + '" y="' + r1(y + fila / 2 + 1) + '" width="' + r1(Math.max(2, w2)) + '" height="' + bh + '" rx="2.5" fill="' + (o.c2 || NAVY) + '"/>' : '<rect x="' + r1(lw) + '" y="' + r1(y + fila / 2 + 1) + '" width="1.5" height="' + bh + '" fill="' + GRIS + '"/>');
+        g += tx(lw + Math.max(w1, w2) + 8, y + fila / 2 + 4, it.lab != null ? it.lab : '', { c: INK, fs: 11.5, w: 600 });
+      } else {
+        g += (w1 > 0 ? '<rect class="bar" x="' + r1(lw) + '" y="' + r1(y + fila / 2 - bh / 2) + '" width="' + r1(Math.max(2, w1)) + '" height="' + bh + '" rx="3" fill="' + (it.c || o.c || NAVY) + '"/>' : '<rect x="' + r1(lw) + '" y="' + r1(y + fila / 2 - bh / 2) + '" width="1.5" height="' + bh + '" fill="' + GRIS + '"/>') +
+          tx(lw + w1 + 8, y + fila / 2 + 4, it.lab != null ? it.lab : it.v, { c: INK, fs: 12, w: 600 });
+      }
+      g += '</g>';
+    });
+    return g + '</svg>';
+  }
+  function anchoTx(t) { var w = 0; for (var i = 0; i < t.length; i++) { var c = t.charAt(i); w += /[A-ZÁÉÍÓÚÑMW]/.test(c) ? 8 : /[ il.,:;'|()]/.test(c) ? 3.6 : /[mw]/.test(c) ? 9.4 : 6.4; } return w; }
+  function corta(t, max) { if (anchoTx(t) <= max) return t; while (t.length > 3 && anchoTx(t + '…') > max) t = t.slice(0, -1); return t.replace(/\s+$/, '') + '…'; }
+  function pintarChart() {
+    var el = document.getElementById('chR'); if (!el) return;
+    if (!CHART) { el.innerHTML = ''; return; }
+    var W = Math.floor(el.clientWidth || 0); if (!W) return;
+    var h = CHART(Math.max(260, W)); el.innerHTML = h || '';
+  }
+  window.addEventListener('beforeprint', function () { TODAS = true; pintarTabla(); });
+  window.addEventListener('afterprint', function () { TODAS = false; pintarTabla(); });
+  var tRes; window.addEventListener('resize', function () { clearTimeout(tRes); tRes = setTimeout(pintarChart, 150); });
+
+  /* ═══ Tablas ═══ */
+  function filtroDe(id) { return ST.filtros[id] = ST.filtros[id] || { q: '', f: {}, o: null }; }
+  function valCol(c, f) { return c.v ? c.v(f) : f[c.k]; }
+  function filasVisibles(def, fl) {
+    var l = def.filas.slice();
+    Object.keys(fl.f || {}).forEach(function (k) { var v = fl.f[k]; if (v !== '' && v != null) l = l.filter(function (f) { return String(f[k] == null ? '' : f[k]) === v; }); });
+    if (fl.q) {
+      var q = fl.q.toLowerCase();
+      l = l.filter(function (f) { return def.cols.some(function (c) { var v = c.csv ? c.csv(f) : valCol(c, f); return String(v == null ? '' : v).toLowerCase().indexOf(q) >= 0; }); });
+    }
+    if (fl.o && fl.o.k) {
+      var c = def.cols.filter(function (x) { return x.k === fl.o.k; })[0];
+      if (c) l.sort(function (a, b) { var x = valCol(c, a), y = valCol(c, b); if (x == null || x === '') return 1; if (y == null || y === '') return -1; var r = (typeof x === 'number' && typeof y === 'number') ? x - y : String(x).localeCompare(String(y), 'es'); return fl.o.d === 'desc' ? -r : r; });
+    }
+    return l;
+  }
+  function htmlTabla(def) {
+    var fl = filtroDe(ST.rep), l = filasVisibles(def, fl);
+    var h = '<div class="tctr"><h4>' + MK.esc(def.titulo || 'Detalle') + ' <span class="muted" style="font-weight:600;letter-spacing:0;text-transform:none">· ' + l.length + (l.length !== def.filas.length ? ' de ' + def.filas.length : '') + '</span></h4>';
+    if (def.filas.length > 5) h += '<input class="in no-imp" id="tq" placeholder="Buscar en la tabla…" value="' + MK.esc(fl.q || '') + '" autocomplete="off">';
+    (def.filtros || []).forEach(function (fx) {
+      var vals = []; def.filas.forEach(function (f) { var v = String(f[fx.k] == null ? '' : f[fx.k]); if (v && vals.indexOf(v) < 0) vals.push(v); });
+      if (vals.length < 2 && !(fl.f && fl.f[fx.k])) return;
+      vals.sort(function (a, b) { return a.localeCompare(b, 'es'); });
+      h += '<select class="sel no-imp" data-f="' + fx.k + '"><option value="">' + MK.esc(fx.t) + ': todos</option>' + vals.map(function (v) { return '<option value="' + MK.esc(v) + '"' + (fl.f && fl.f[fx.k] === v ? ' selected' : '') + '>' + MK.esc(fx.fmt ? fx.fmt(v) : v) + '</option>'; }).join('') + '</select>';
+    });
+    h += '</div>';
+    if (!def.filas.length) return h + '<div class="tbw">' + MK.vacio(def.vacio || 'No hay datos para este periodo.') + '</div>';
+    h += '<div class="tbw"><table class="tb"><thead><tr>' + def.cols.map(function (c) {
+      var o = fl.o && fl.o.k === c.k ? '<span class="fl">' + (fl.o.d === 'desc' ? '▼' : '▲') + '</span>' : '';
+      return '<th class="ord' + (c.r ? ' r' : '') + (c.m ? ' hide-m' : '') + '" data-o="' + c.k + '">' + MK.esc(c.t) + o + '</th>';
+    }).join('') + '</tr></thead><tbody>';
+    if (!l.length) h += '<tr><td colspan="' + def.cols.length + '">' + MK.vacio('Nada coincide con el filtro.') + '</td></tr>';
+    var todas = TODAS || VERTODAS[ST.rep] || l.length <= LIMITE, vis = todas ? l : l.slice(0, LIMITE);
+    vis.forEach(function (f) {
+      var clave = def.expande ? String(f[def.cols[0].k]) : '', ab = def.expande && ABIERTOS[ST.rep + '|' + clave];
+      h += '<tr' + (def.expande ? ' class="ex' + (ab ? ' abierto' : '') + '" data-x="' + MK.esc(clave) + '"' : '') + '>' + def.cols.map(function (c, i) {
+        var v = c.f ? c.f(f) : MK.esc(valCol(c, f));
+        if (i === 0 && def.expande) v = '<span class="fl">▸</span> ' + v;
+        return '<td class="' + (c.r ? 'r num' : '') + (c.m ? ' hide-m' : '') + (c.cls ? ' ' + c.cls : '') + '">' + v + '</td>';
+      }).join('') + '</tr>';
+      if (ab) h += '<tr class="sub"><td colspan="' + def.cols.length + '">' + def.expande(f) + '</td></tr>';
+    });
+    if (def.total && l.length > 1) h += '<tr class="tot">' + def.total(l) + '</tr>';
+    h += '</tbody></table></div>';
+    if (!todas) h += '<div class="no-imp" style="text-align:center;margin-top:10px"><button class="btn sm" id="tTodas">Ver las ' + l.length + ' filas</button> <span class="small muted">Se muestran las primeras ' + LIMITE + '.</span></div>';
+    if (def.pie) h += '<div class="pieT' + (def.expande ? ' no-imp' : '') + '">' + def.pie + '</div>';
+    return h;
+  }
+  function activarTabla() {
+    var box = document.getElementById('tabR'); if (!box || !TABLA) return;
+    var fl = filtroDe(ST.rep);
+    var q = document.getElementById('tq');
+    if (q) q.oninput = function () { var pos = q.selectionStart; fl.q = q.value; pintarTabla(); var n = document.getElementById('tq'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } marcarCambio(); };
+    [].forEach.call(box.querySelectorAll('select[data-f]'), function (s) { s.onchange = function () { fl.f = fl.f || {}; fl.f[s.getAttribute('data-f')] = s.value; pintarTabla(); marcarCambio(); }; });
+    [].forEach.call(box.querySelectorAll('th[data-o]'), function (th) {
+      th.onclick = function () { var k = th.getAttribute('data-o'); fl.o = fl.o && fl.o.k === k ? { k: k, d: fl.o.d === 'asc' ? 'desc' : 'asc' } : { k: k, d: 'asc' }; pintarTabla(); marcarCambio(); };
+    });
+    var tt = document.getElementById('tTodas'); if (tt) tt.onclick = function () { VERTODAS[ST.rep] = true; pintarTabla(); };
+    [].forEach.call(box.querySelectorAll('tr.ex'), function (tr) {
+      tr.onclick = function (e) { if (e.target.closest('a')) return; var k = ST.rep + '|' + tr.getAttribute('data-x'); ABIERTOS[k] = !ABIERTOS[k]; pintarTabla(); };
+    });
+  }
+  function pintarTabla() { var box = document.getElementById('tabR'); if (!box || !TABLA) return; box.innerHTML = htmlTabla(TABLA); activarTabla(); }
+
+  /* ═══ Grupos (fuente, sector, servicio, asesor) ═══ */
+  function opsDelGrupo(campo, def, clave) {
+    if (!OPS) return [];
+    return OPS.filter(function (p) {
+      if (!(enP(creada(p)) || enP(cierre(p)))) return false;
+      var v = txt(typeof campo === 'function' ? campo(p) : p[campo]) || def; return v === clave;
+    });
+  }
+  function listaOps(l) {
+    if (!l.length) return '<div class="lst"><div class="it muted">Sin oportunidades.</div></div>';
+    return '<div class="lst">' + l.map(function (p) {
+      var c = cierre(p), n = creada(p), qu = [];
+      if (enP(n)) qu.push('nueva el ' + MK.fechaCorta(n));
+      if (enP(c) && p.ganada) qu.push('ganada el ' + MK.fechaCorta(c));
+      if (enP(c) && p.perdida) qu.push('perdida el ' + MK.fechaCorta(c));
+      return '<div class="it"><span class="tx">' + lkOp(p.codigoPropuesta, p.empresa) + '<small>' + MK.esc(qu.join(' · ')) + (p.asesor ? ' · ' + MK.esc(p.asesor) : '') + '</small></span>' + MK.ETAPA_TAG(p.estado) + '<span class="num" style="min-width:90px;text-align:right">' + din(p.valor) + '</span></div>';
+    }).join('') + '</div>';
+  }
+  function repGrupo(lista, campo, def, titulo, como) {
+    var l = (lista || []).slice(), tot = { nuevas: sum(l, 'nuevas'), ganadas: sum(l, 'ganadas'), perdidas: sum(l, 'perdidas'), abiertas: sum(l, 'abiertas'), valor: sum(l, 'valorGanado') };
+    var ce = tot.ganadas + tot.perdidas, conv = ce ? Math.round(tot.ganadas / ce * 100) : null;
+    var mejor = l.filter(function (x) { return x.ganadas; }).sort(function (a, b) { return b.valorGanado - a.valorGanado; })[0];
+    return {
+      como: como,
+      kpis: [['Nuevas', MK.num(tot.nuevas)], ['Ganadas', MK.num(tot.ganadas)], ['Perdidas', MK.num(tot.perdidas)], ['Conversión', pc(conv)], ['Más valor ganado', mejor ? mejor.clave : '—', mejor ? din(mejor.valorGanado) : '']],
+      ley: '<div class="ley"><span><i style="background:' + CLARO + '"></i>Nuevas</span><span><i style="background:' + NAVY + '"></i>Ganadas</span></div>',
+      chart: l.length ? function (W) { return barrasH(W, l.map(function (x) { return { l: x.clave, v: x.nuevas, v2: x.ganadas, lab: W < 480 ? x.nuevas + ' · ' + x.ganadas : pl(x.nuevas, 'nueva') + ' · ' + pl(x.ganadas, 'ganada'), tip: x.clave + '\nNuevas: ' + x.nuevas + '\nGanadas: ' + x.ganadas + '\nPerdidas: ' + x.perdidas + '\nConversión: ' + pc(x.conversion) }; }), { vw: W < 480 ? 60 : 150, aria: titulo }); } : null,
+      tabla: {
+        titulo: titulo, vacio: 'No hubo oportunidades nuevas ni cerradas en este periodo.', filas: l,
+        cols: [
+          { k: 'clave', t: cap(titulo.replace(/^Por /, '')), f: function (f) { return '<b style="font-weight:600">' + MK.esc(f.clave) + '</b>'; } },
+          { k: 'nuevas', t: 'Nuevas', r: 1 }, { k: 'ganadas', t: 'Ganadas', r: 1 }, { k: 'perdidas', t: 'Perdidas', r: 1 },
+          { k: 'abiertas', t: 'Abiertas', r: 1, m: 1 },
+          { k: 'conversion', t: 'Conversión', cls: 'nw', f: function (f) { return f.conversion == null ? '<span class="muted">—</span>' : '<span class="mb" style="width:' + Math.round(f.conversion * .5) + 'px"></span>' + pc(f.conversion); }, csv: function (f) { return f.conversion == null ? '' : f.conversion; } },
+          { k: 'valorGanado', t: 'Valor ganado', r: 1, f: function (f) { return f.valorGanado ? din(f.valorGanado) : '<span class="muted">—</span>'; } },
+          { k: 'ciclo', t: 'Ciclo', r: 1, m: 1, f: function (f) { return f.ciclo == null ? '<span class="muted">—</span>' : f.ciclo + ' d'; } }
+        ],
+        total: function (fs) { var g = sum(fs, 'ganadas'), p = sum(fs, 'perdidas'); return '<td>Total</td><td class="r num">' + sum(fs, 'nuevas') + '</td><td class="r num">' + g + '</td><td class="r num">' + p + '</td><td class="r num hide-m">' + sum(fs, 'abiertas') + '</td><td class="num">' + pc(g + p ? g / (g + p) * 100 : null) + '</td><td class="r num">' + din(sum(fs, 'valorGanado')) + '</td><td class="hide-m"></td>'; },
+        expande: function (f) { return listaOps(opsDelGrupo(campo, def, f.clave)); },
+        pie: 'Toca una fila para ver las oportunidades que hay detrás del número. «Abiertas» cuenta las de este grupo que hoy no se han cerrado.'
+      }
+    };
+  }
+
+  /* ═══ Cada reporte ═══ */
+  var REP = {
+    resumen: function () {
+      var r = D.resumen, p = DP ? DP.resumen : null, rg = rangoDe(ST.per), meta = (D.porMes[0] || {}).meta || 0;
+      return {
+        como: 'Lo que pasó en el periodo comparado con ' + MK.esc(rg.prev.lab) + '. <b>Nuevas</b> = registradas en el periodo. <b>Ganadas / perdidas</b> = cerradas en el periodo. <b>Ciclo</b> = días promedio desde el registro hasta el cierre de las ganadas. Lo <b>abierto</b> y el <b>ponderado</b> son de hoy.' + (D.formula ? '<span class="fx">' + MK.esc(D.formula) + '</span>' : ''),
+        kpis: [
+          ['Nuevas', MK.num(r.nuevas), delta(r.nuevas, p && p.nuevas)],
+          ['Ganadas', MK.num(r.ganadas), delta(r.ganadas, p && p.ganadas)],
+          ['Perdidas', MK.num(r.perdidas), delta(r.perdidas, p && p.perdidas, null, true)],
+          ['Conversión', pc(r.conversion), r.conversion != null && p && p.conversion != null ? delta(r.conversion, p.conversion, function (x) { return x + ' pts'; }) : ''],
+          ['Ciclo de venta', r.ciclo == null ? '—' : r.ciclo + ' días', r.ciclo != null && p && p.ciclo != null ? delta(r.ciclo, p.ciclo, function (x) { return x + ' d'; }, true) : ''],
+          ['Valor ganado', din(r.valorGanado), delta(r.valorGanado, p && p.valorGanado, din0)],
+          ['Abiertas hoy', MK.num(r.abiertas), din(r.valorAbierto)],
+          ['Ponderado hoy', din(r.ponderado), 'valor × probabilidad'],
+          ['Actividades', MK.num(r.actividades), delta(r.actividades, p && p.actividades)]
+        ],
+        cols: 5,
+        ley: '<div class="ley"><span><i style="background:' + NAVY + '"></i>Valor ganado</span>' + (meta ? '<span><i class="ln"></i>Meta mensual</span>' : '') + '<span><i style="background:' + BANDA + ';border:1px solid #dfe5ee"></i>Periodo elegido</span></div>',
+        chart: function (W) { return barrasV(W, { cats: D.porMes.map(function (m) { return mesC(m.mes); }), series: [{ n: 'Valor ganado', c: NAVY, v: D.porMes.map(function (m) { return m.valorGanado; }) }], linea: meta ? { n: 'Meta', v: D.porMes.map(function (m) { return m.meta; }) } : null, band: banda(), fy: kf, fv: din, tipT: function (i) { return mesL(D.porMes[i].mes); }, etq: function (i) { var v = D.porMes[i].valorGanado; return v ? kf(v) : ''; }, aria: 'Valor ganado por mes' }); },
+        tabla: {
+          titulo: 'Mes a mes (últimos 6 meses)', filas: D.porMes,
+          cols: [
+            { k: 'mes', t: 'Mes', f: function (f) { return MK.esc(mesL(f.mes)); }, csv: function (f) { return f.mes; } },
+            { k: 'nuevas', t: 'Nuevas', r: 1 }, { k: 'ganadas', t: 'Ganadas', r: 1 }, { k: 'perdidas', t: 'Perdidas', r: 1 },
+            { k: 'conversion', t: 'Conversión', r: 1, f: function (f) { return pc(f.conversion); }, csv: function (f) { return f.conversion == null ? '' : f.conversion; } },
+            { k: 'valorGanado', t: 'Valor ganado', r: 1, f: function (f) { return din(f.valorGanado); } }
+          ].concat(meta ? [{ k: 'meta', t: '% de la meta', r: 1, m: 1, v: function (f) { return f.meta ? Math.round(f.valorGanado / f.meta * 100) : null; }, f: function (f) { return f.meta ? Math.round(f.valorGanado / f.meta * 100) + ' %' : '—'; } }] : [])
+        }
+      };
+    },
+    conversion: function () {
+      var r = D.resumen, cer = [];
+      (D.ganadasLista || []).forEach(function (g) { cer.push({ codigo: g.codigo, empresa: g.empresa, fecha: g.fecha, resultado: 'Ganada', motivo: '', valor: g.valor, asesor: g.asesor || '' }); });
+      (D.perdidas || []).forEach(function (g) { cer.push({ codigo: g.codigo, empresa: g.empresa, fecha: g.fecha, resultado: 'Perdida', motivo: g.motivo || '', valor: g.valor, asesor: '' }); });
+      if (OPS) cer.forEach(function (c) { var o = OPS.filter(function (p) { return p.codigoPropuesta === c.codigo; })[0]; if (o) { var n = creada(o); c.ciclo = n && c.fecha ? MK.dias(n, c.fecha) : null; if (!c.asesor) c.asesor = o.asesor || ''; } });
+      cer.sort(function (a, b) { return String(b.fecha).localeCompare(String(a.fecha)); });
+      return {
+        como: '<b>Conversión</b>: de las oportunidades que se cerraron en el periodo, qué porcentaje se ganó. Las que siguen abiertas no cuentan. <b>Ciclo</b>: días desde que se registró la oportunidad hasta que se cerró (promedio de las ganadas).' + '<span class="fx">' + MK.esc(D.formula || '') + '</span>',
+        kpis: [['Conversión', pc(r.conversion), r.ganadas + ' de ' + (r.ganadas + r.perdidas) + ' cerradas'], ['Ganadas', MK.num(r.ganadas)], ['Perdidas', MK.num(r.perdidas)], ['Ciclo promedio', r.ciclo == null ? '—' : r.ciclo + ' días']],
+        ley: '<div class="ley"><span><i style="background:' + NAVY + '"></i>Ganadas</span><span><i style="background:' + GRIS + '"></i>Perdidas</span><span>Arriba: conversión del mes</span></div>',
+        chart: function (W) { return barrasV(W, { cats: D.porMes.map(function (m) { return mesC(m.mes); }), series: [{ n: 'Ganadas', c: NAVY, v: D.porMes.map(function (m) { return m.ganadas; }) }, { n: 'Perdidas', c: GRIS, v: D.porMes.map(function (m) { return m.perdidas; }) }], band: banda(), tipT: function (i) { return mesL(D.porMes[i].mes) + ' · conversión ' + pc(D.porMes[i].conversion); }, etq: function (i) { var c = D.porMes[i].conversion; return c == null ? '' : c + ' %'; }, aria: 'Ganadas y perdidas por mes' }); },
+        tabla: {
+          titulo: 'Oportunidades cerradas en el periodo', filas: cer, vacio: 'No se cerró ninguna oportunidad en este periodo.',
+          filtros: [{ k: 'resultado', t: 'Resultado' }, { k: 'asesor', t: 'Asesor' }],
+          cols: [
+            { k: 'fecha', t: 'Cierre', f: function (f) { return MK.esc(MK.fechaCorta(f.fecha)); } },
+            { k: 'empresa', t: 'Oportunidad', f: function (f) { return lkOp(f.codigo, f.empresa) + '<small>' + MK.esc(f.codigo) + '</small>'; } },
+            { k: 'resultado', t: 'Resultado', f: function (f) { return '<span class="tag ' + (f.resultado === 'Ganada' ? 't-ok' : 't-bad') + '">' + f.resultado + '</span>' + (f.motivo ? '<small>' + MK.esc(f.motivo) + '</small>' : ''); } },
+            { k: 'asesor', t: 'Asesor', m: 1 },
+            { k: 'ciclo', t: 'Ciclo', r: 1, f: function (f) { return f.ciclo == null ? '<span class="muted">—</span>' : f.ciclo + ' d'; } },
+            { k: 'valor', t: 'Valor', r: 1, f: function (f) { return din(f.valor); } }
+          ]
+        }
+      };
+    },
+    embudo: function () {
+      var abiertos = ['Registrado', 'Formulario enviado', 'Formulario recibido', 'Propuesta enviada', 'En negociación', 'Contrato en proceso', 'Stand-by'];
+      var st = D.embudo.filter(function (e) { return abiertos.indexOf(e.etapa) >= 0; });
+      var ops = (OPS || []).filter(function (p) { return p.abierta; }).map(function (p) { return { codigo: p.codigoPropuesta, empresa: p.empresa, etapa: p.estado, asesor: p.asesor || '', valor: p.valor, prob: p.probabilidad, pond: p.ponderado, dias: p.diasEtapa, limite: p.limiteDias, excedido: !!p.excedido }; });
+      ops.sort(function (a, b) { return abiertos.indexOf(b.etapa) - abiertos.indexOf(a.etapa) || b.valor - a.valor; });
+      var exc = ops.filter(function (o) { return o.excedido; }).length;
+      return {
+        como: 'Oportunidades <b>abiertas hoy</b>, por etapa. <b>Ponderado</b> = valor × probabilidad de la etapa (' + st.filter(function (e) { return e.etapa !== 'Stand-by'; }).map(function (e) { return MK.esc(e.etapa) + ' ' + e.probabilidad + ' %'; }).join(', ') + '). Las probabilidades y los días máximos por etapa se cambian en Plantillas y ajustes.',
+        kpis: [['Abiertas', MK.num(D.resumen.abiertas)], ['Valor abierto', din(D.resumen.valorAbierto)], ['Ponderado', din(D.resumen.ponderado)], ['Pasadas de tiempo', MK.num(exc), 'más días de los permitidos']],
+        chart: function (W) { return barrasH(W, st.map(function (e) { return { l: e.etapa, v: e.n, lab: e.n + ' · ' + din0(e.valor), tip: e.etapa + '\n' + e.n + ' oportunidades\nValor: ' + din(e.valor) + '\nPonderado: ' + din(e.ponderado) + '\nProbabilidad: ' + e.probabilidad + ' %\nDías promedio en la etapa: ' + e.diasPromedio }; }), { vw: 150, aria: 'Embudo por etapa' }); },
+        tabla: {
+          titulo: 'Oportunidades abiertas', filas: ops, vacio: 'No hay oportunidades abiertas.',
+          filtros: [{ k: 'etapa', t: 'Etapa' }, { k: 'asesor', t: 'Asesor' }],
+          cols: [
+            { k: 'empresa', t: 'Oportunidad', f: function (f) { return lkOp(f.codigo, f.empresa) + '<small>' + MK.esc(f.codigo) + '</small>'; } },
+            { k: 'etapa', t: 'Etapa', f: function (f) { return MK.ETAPA_TAG(f.etapa); } },
+            { k: 'asesor', t: 'Asesor', m: 1 },
+            { k: 'valor', t: 'Valor', r: 1, f: function (f) { return din(f.valor); } },
+            { k: 'prob', t: 'Prob.', r: 1, m: 1, f: function (f) { return f.prob + ' %'; } },
+            { k: 'pond', t: 'Ponderado', r: 1, f: function (f) { return din(f.pond); } },
+            { k: 'dias', t: 'Días en la etapa', r: 1, f: function (f) { return f.excedido ? '<span class="tag t-warn">' + f.dias + ' de ' + f.limite + '</span>' : f.dias + (f.limite ? '<span class="muted"> / ' + f.limite + '</span>' : ''); } }
+          ],
+          total: function (fs) { return '<td>Total</td><td></td><td class="hide-m"></td><td class="r num">' + din(sum(fs, 'valor')) + '</td><td class="hide-m"></td><td class="r num">' + din(sum(fs, 'pond')) + '</td><td></td>'; }
+        }
+      };
+    },
+    pronostico: function () {
+      var pr = D.pronostico || [];
+      var ops = (OPS || []).filter(function (p) { return p.abierta && p.estado !== 'Stand-by'; }).map(function (p) { var m = p.cierreEsperado ? String(p.cierreEsperado).slice(0, 7) : 'sin fecha'; return { mes: m, mesL: mesL(m), codigo: p.codigoPropuesta, empresa: p.empresa, etapa: p.estado, asesor: p.asesor || '', valor: p.valor, prob: p.probabilidad, pond: p.ponderado, fecha: p.cierreEsperado || '' }; });
+      ops.sort(function (a, b) { return (a.mes === 'sin fecha' ? 'z' : a.mes).localeCompare(b.mes === 'sin fecha' ? 'z' : b.mes) || b.pond - a.pond; });
+      var con = pr.filter(function (x) { return x.mes !== 'sin fecha'; });
+      return {
+        como: 'Oportunidades abiertas (sin las que están en Stand-by) según su <b>fecha esperada de cierre</b>. Barra oscura: lo <b>ponderado</b> (valor × probabilidad de la etapa), que es lo que de verdad se espera. Contorno: lo que entraría <b>si se gana todo</b>. La fecha esperada se ajusta en la ficha de cada oportunidad.',
+        kpis: con.slice(0, 4).map(function (x) { return [mesL(x.mes), din(x.ponderado), x.n + ' oport. · total ' + din0(x.valor)]; }).concat(pr.filter(function (x) { return x.mes === 'sin fecha'; }).map(function (x) { return ['Sin fecha esperada', MK.num(x.n) + ' oport.', din0(x.valor)]; })),
+        ley: '<div class="ley"><span><i style="background:' + NAVY + '"></i>Ponderado</span><span><i style="border:1.5px dashed ' + CLARO + ';background:#fff"></i>Si se gana todo</span></div>',
+        chart: pr.length ? function (W) { return barrasV(W, { cats: pr.map(function (x) { return mesC(x.mes); }), series: [{ n: 'Si se gana todo', c: CLARO, v: pr.map(function (x) { return x.valor; }), contorno: true }, { n: 'Ponderado', c: NAVY, v: pr.map(function (x) { return x.ponderado; }) }], fy: kf, fv: din, bwMax: 36, tipT: function (i) { return mesL(pr[i].mes) + ' · ' + pr[i].n + ' oportunidades'; }, etq: function (i) { return pr[i].ponderado ? kf(pr[i].ponderado) : ''; }, aria: 'Pronóstico de cierre por mes' }); } : null,
+        tabla: {
+          titulo: 'Oportunidades por mes de cierre', filas: ops, vacio: 'No hay oportunidades abiertas con fecha de cierre.',
+          filtros: [{ k: 'mesL', t: 'Mes' }, { k: 'asesor', t: 'Asesor' }],
+          cols: [
+            { k: 'mes', t: 'Cierre esperado', f: function (f) { return f.fecha ? MK.esc(MK.fechaCorta(f.fecha)) : '<span class="muted">Sin fecha</span>'; } },
+            { k: 'empresa', t: 'Oportunidad', f: function (f) { return lkOp(f.codigo, f.empresa) + '<small>' + MK.esc(f.codigo) + '</small>'; } },
+            { k: 'etapa', t: 'Etapa', m: 1, f: function (f) { return MK.ETAPA_TAG(f.etapa); } },
+            { k: 'valor', t: 'Valor', r: 1, f: function (f) { return din(f.valor); } },
+            { k: 'prob', t: 'Prob.', r: 1, m: 1, f: function (f) { return f.prob + ' %'; } },
+            { k: 'pond', t: 'Ponderado', r: 1, f: function (f) { return din(f.pond); } }
+          ],
+          total: function (fs) { return '<td>Total</td><td></td><td class="hide-m"></td><td class="r num">' + din(sum(fs, 'valor')) + '</td><td class="hide-m"></td><td class="r num">' + din(sum(fs, 'pond')) + '</td>'; }
+        }
+      };
+    },
+    ganadas: function () {
+      var l = (D.ganadasLista || []).map(function (g) { return { codigo: g.codigo, empresa: g.empresa, fecha: g.fecha, asesor: g.asesor || 'Sin asesor', fuente: g.fuente || 'Sin fuente', valor: g.valor }; });
+      l.sort(function (a, b) { return String(b.fecha).localeCompare(String(a.fecha)); });
+      var v = sum(l, 'valor');
+      return {
+        como: 'Oportunidades que pasaron a <b>Firmado</b> o <b>Pasado a cartera</b> con fecha de cierre dentro del periodo. En las recurrentes el valor es el <b>mensual</b>; en las visitas únicas, el total.',
+        kpis: [['Ganadas', MK.num(l.length)], ['Valor ganado', din(v)], ['Promedio por oportunidad', l.length ? din(v / l.length) : '—']],
+        chart: function (W) { return barrasV(W, { cats: D.porMes.map(function (m) { return mesC(m.mes); }), series: [{ n: 'Ganadas', c: NAVY, v: D.porMes.map(function (m) { return m.ganadas; }) }], band: banda(), tipT: function (i) { return mesL(D.porMes[i].mes) + ' · ' + din(D.porMes[i].valorGanado); }, etq: function (i) { return D.porMes[i].ganadas || ''; }, aria: 'Ganadas por mes' }); },
+        ley: '<div class="ley"><span><i style="background:' + NAVY + '"></i>Ganadas por mes (últimos 6)</span></div>',
+        tabla: {
+          titulo: 'Ganadas en el periodo', filas: l, vacio: 'No se ganó ninguna oportunidad en este periodo.',
+          filtros: [{ k: 'asesor', t: 'Asesor' }, { k: 'fuente', t: 'Fuente' }],
+          cols: [
+            { k: 'fecha', t: 'Cierre', f: function (f) { return MK.esc(MK.fechaCorta(f.fecha)); } },
+            { k: 'empresa', t: 'Oportunidad', f: function (f) { return lkOp(f.codigo, f.empresa) + '<small>' + MK.esc(f.codigo) + '</small>'; } },
+            { k: 'asesor', t: 'Asesor', m: 1 }, { k: 'fuente', t: 'Fuente', m: 1 },
+            { k: 'valor', t: 'Valor', r: 1, f: function (f) { return din(f.valor); } }
+          ],
+          total: function (fs) { return '<td>Total</td><td></td><td class="hide-m"></td><td class="hide-m"></td><td class="r num">' + din(sum(fs, 'valor')) + '</td>'; }
+        }
+      };
+    },
+    fuente: function () { return repGrupo(D.porFuente, 'fuente', 'Sin fuente', 'Por fuente', 'Cada oportunidad guarda su <b>fuente</b> al registrarse (referido, llamada, página web, visita en frío…). Aquí se ve cuántas llegaron de cada una en el periodo, cuántas se ganaron y su conversión: dice dónde conviene invertir el tiempo. La lista de fuentes se cambia en Plantillas y ajustes.'); },
+    sector: function () { return repGrupo(D.porSector, 'sector', 'Sin sector', 'Por sector', 'Resultados por <b>sector</b> del cliente (privado, gobierno, minera, mercados…). El gobierno suele tardar más porque depende de licitaciones.'); },
+    servicio: function () { return repGrupo(D.porServicio, function (p) { return p.tipoServicio; }, 'RECURRENTE', 'Por tipo de servicio', '<b>Recurrente</b> = cliente con contrato y frecuencia fija (su valor es mensual). <b>Visita única</b> = una sola recolección (su valor es el total).'); },
+    asesor: function () {
+      var g = repGrupo(D.porAsesor, 'asesor', 'Sin asesor', 'Por asesor', 'Nuevas, ganadas, perdidas y conversión de cada <b>asesor</b> (el asesor asignado en la oportunidad). Las actividades registradas por cada persona están en el reporte «Actividades».');
+      return g;
+    },
+    actividades: function () {
+      var a = D.actividades || { total: 0, porTipo: {}, porUsuario: {} }, pt = a.porTipo || {}, tipos = Object.keys(pt).sort(function (x, y) { return pt[y] - pt[x]; });
+      var pu = a.porUsuario || {}, us = Object.keys(pu).sort(function (x, y) { return pu[y] - pu[x]; });
+      var l = (ACT[RKEY] || []).map(function (x) { return { fecha: x.fecha, hora: x.hora || '', tipo: MK.TIPOS[x.tipo] || x.tipo, tipoK: x.tipo, ref: x.ref, refTipo: x.refTipo, cuenta: x.cuenta || '', texto: x.texto || '', resultado: x.resultado || '', usuario: x.usuario || '' }; });
+      return {
+        como: 'Todo lo que se registró en la Agenda y en las fichas: llamadas, visitas, WhatsApp, correos, reuniones y notas, con la fecha en que ocurrieron.',
+        kpis: [['Total', MK.num(a.total)]].concat(tipos.slice(0, 4).map(function (t) { return [MK.TIPOS[t] || t, MK.num(pt[t])]; })),
+        chart: tipos.length ? function (W) { return barrasH(W, tipos.map(function (t) { return { l: MK.TIPOS[t] || t, v: pt[t], lab: pt[t] + ' · ' + Math.round(pt[t] / Math.max(1, a.total) * 100) + ' %' }; }), { vw: 90, aria: 'Actividades por tipo' }); } : null,
+        extra: us.length ? '<div class="small muted" style="margin-top:10px"><b style="color:var(--ink)">Por persona:</b> ' + us.map(function (u) { return MK.esc(u) + ' ' + pu[u]; }).join(' · ') + '</div>' : '',
+        tabla: {
+          titulo: 'Actividades del periodo', filas: l, vacio: 'No se registraron actividades en este periodo.',
+          filtros: [{ k: 'tipo', t: 'Tipo' }, { k: 'usuario', t: 'Persona' }],
+          cols: [
+            { k: 'fecha', t: 'Fecha', v: function (f) { return f.fecha + ' ' + f.hora; }, f: function (f) { return MK.esc(MK.fechaCorta(f.fecha)) + (f.hora ? '<small>' + MK.esc(f.hora) + '</small>' : ''); } },
+            { k: 'tipo', t: 'Tipo', f: function (f) { return '<span class="row" style="gap:6px">' + MK.ic(f.tipoK === 'nota' ? 'nota' : f.tipoK, 15) + MK.esc(f.tipo) + '</span>'; } },
+            { k: 'cuenta', t: 'Con quién', f: function (f) { return !f.ref ? MK.esc(f.cuenta || '—') : f.refTipo === 'cli' ? lkCli(f.ref, f.cuenta) : lkOp(f.ref, f.cuenta); } },
+            { k: 'texto', t: 'Qué pasó', m: 1, cls: 't', f: function (f) { return '<div>' + MK.esc(f.texto) + '</div>' + (f.resultado ? '<small>' + MK.esc(f.resultado) + '</small>' : ''); } },
+            { k: 'usuario', t: 'Quién', m: 1 }
+          ]
+        }
+      };
+    },
+    salud: function () {
+      var rs = (D.cartera && D.cartera.resumen) || {}, l = ((CLI && CLI.clientes) || []).map(function (c) { var s = c.salud || {}; return { id: c.id, nombre: c.nombre, estado: c.estado || '', nivel: s.nivel || '', nivelT: (NIVEL[s.nivel] || [s.nivel || '—'])[0], motivos: (s.motivos || []).join(' · '), accion: s.accion || '', puntos: s.puntos || 0, plan: Number(c.planCosto) || 0 }; });
+      var ord = { riesgo: 0, atencion: 1, crecer: 2, sano: 3 }; l.sort(function (a, b) { return (ord[a.nivel] == null ? 9 : ord[a.nivel]) - (ord[b.nivel] == null ? 9 : ord[b.nivel]) || b.puntos - a.puntos; });
+      return {
+        como: 'Cada cliente se revisa en cuatro cosas: <b>pago</b> (facturas vencidas), <b>kilos</b> (usa su plan o le queda grande o chico), <b>contrato</b> (vencido o por vencer) y <b>visitas</b> (recolecciones al día). Según eso queda <b>sano</b>, en <b>atención</b>, en <b>riesgo</b> o <b>para crecer</b>. Son datos de hoy.',
+        kpis: [['Clientes activos', MK.num(rs.activos), 'de ' + MK.num(rs.total) + ' en total'], ['Sanos', MK.num(rs.sanos)], ['En atención', MK.num(rs.atencion)], ['En riesgo', MK.num(rs.riesgo)], ['Para crecer', MK.num(rs.crecer)], ['Ficha por completar', MK.num(rs.porCompletar)]],
+        cols: 6,
+        chart: function (W) { return barrasH(W, [['Sanos', rs.sanos], ['En atención', rs.atencion], ['En riesgo', rs.riesgo], ['Para crecer', rs.crecer]].map(function (x) { return { l: x[0], v: x[1] || 0, lab: (x[1] || 0) + ' · ' + Math.round((x[1] || 0) / Math.max(1, rs.total) * 100) + ' %' }; }), { vw: 90, aria: 'Salud de la cartera' }); },
+        tabla: {
+          titulo: 'Clientes', filas: l, vacio: 'No hay clientes.',
+          filtros: [{ k: 'nivelT', t: 'Salud' }, { k: 'accion', t: 'Acción' }, { k: 'estado', t: 'Estado' }],
+          cols: [
+            { k: 'nombre', t: 'Cliente', f: function (f) { return lkCli(f.id, f.nombre) + (f.estado ? '<small>' + MK.esc(f.estado) + '</small>' : ''); } },
+            { k: 'nivelT', t: 'Salud', v: function (f) { return ord[f.nivel] == null ? 9 : ord[f.nivel]; }, csv: function (f) { return f.nivelT; }, f: function (f) { var n = NIVEL[f.nivel]; return n ? '<span class="tag ' + n[1] + '">' + n[0] + '</span>' : '<span class="muted">—</span>'; } },
+            { k: 'motivos', t: 'Por qué', m: 1, cls: 't', f: function (f) { return '<div>' + (MK.esc(f.motivos) || '<span class="muted">Todo en orden</span>') + '</div>'; } },
+            { k: 'accion', t: 'Acción', f: function (f) { return MK.esc(f.accion || '—'); } },
+            { k: 'plan', t: 'Plan', r: 1, m: 1, f: function (f) { return f.plan ? din(f.plan) : '<span class="muted">—</span>'; } }
+          ]
+        }
+      };
+    },
+    riesgo: function () {
+      var l = ((D.cartera && D.cartera.enRiesgo) || []).map(function (c) { return { id: c.id, nombre: c.nombre, motivos: (c.motivos || []).join(' · '), accion: c.accion || '' }; });
+      var acc = {}; l.forEach(function (c) { var k = c.accion || 'Sin acción'; acc[k] = (acc[k] || 0) + 1; });
+      var ks = Object.keys(acc).sort(function (a, b) { return acc[b] - acc[a]; });
+      return {
+        como: 'Clientes cuya revisión de salud salió en <b>riesgo</b>: deben, el contrato venció o está por vencer, el plan les queda muy grande o no se les está recogiendo. Cada uno trae la <b>acción</b> sugerida. Son datos de hoy.',
+        kpis: [['En riesgo', MK.num(((D.cartera || {}).resumen || {}).riesgo || l.length)]].concat(ks.slice(0, 3).map(function (k) { return [k, MK.num(acc[k]), 'clientes']; })),
+        chart: ks.length ? function (W) { return barrasH(W, ks.map(function (k) { return { l: k, v: acc[k] }; }), { vw: 50, aria: 'Clientes en riesgo por acción' }); } : null,
+        tabla: {
+          titulo: 'Clientes en riesgo', filas: l, vacio: 'Ningún cliente está en riesgo. ¡Bien!', filtros: [{ k: 'accion', t: 'Acción' }],
+          cols: [
+            { k: 'nombre', t: 'Cliente', f: function (f) { return lkCli(f.id, f.nombre); } },
+            { k: 'motivos', t: 'Por qué', cls: 't', f: function (f) { return '<div>' + MK.esc(f.motivos) + '</div>'; } },
+            { k: 'accion', t: 'Acción', f: function (f) { return f.accion ? '<span class="tag t-bad">' + MK.esc(f.accion) + '</span>' : '—'; } }
+          ],
+          pie: l.length >= 30 ? 'Se muestran los primeros 30.' : ''
+        }
+      };
+    },
+    crecer: function () {
+      var l = ((D.cartera && D.cartera.crecer) || []).map(function (c) { var k = Number(c.kgMes) || 0, p = Number(c.planKg) || 0; return { id: c.id, nombre: c.nombre, kgMes: k, planKg: p, uso: p ? Math.round(k / p * 100) : null, motivos: (c.motivos || []).join(' · ') }; });
+      l.sort(function (a, b) { return (b.uso || 0) - (a.uso || 0); });
+      return {
+        como: 'Clientes que <b>generan más kilos de los que cubre su plan</b>. Son candidatos a subir de plan: se les propone con base en sus kilos reales de los últimos meses. Son datos de hoy.',
+        kpis: [['Para crecer', MK.num(l.length)], ['Kilos al mes (suma)', MK.num(sum(l, 'kgMes'), 1) + ' kg'], ['Kilos del plan (suma)', MK.num(sum(l, 'planKg'), 1) + ' kg']],
+        ley: '<div class="ley"><span><i style="background:' + CLARO + '"></i>Plan (kg/mes)</span><span><i style="background:' + NAVY + '"></i>Lo que genera (kg/mes)</span></div>',
+        chart: l.length ? function (W) { return barrasH(W, l.slice(0, 15).map(function (c) { return { l: c.nombre, v: c.planKg, v2: c.kgMes, lab: MK.num(c.kgMes, 1) + ' de ' + MK.num(c.planKg) + ' kg', tip: c.nombre + '\nPlan: ' + c.planKg + ' kg\nGenera: ' + c.kgMes + ' kg/mes' }; }), { vw: 120, aria: 'Clientes para crecer' }); } : null,
+        tabla: {
+          titulo: 'Clientes para crecer', filas: l, vacio: 'Ningún cliente se pasa de su plan.',
+          cols: [
+            { k: 'nombre', t: 'Cliente', f: function (f) { return lkCli(f.id, f.nombre); } },
+            { k: 'kgMes', t: 'Genera (kg/mes)', r: 1, f: function (f) { return MK.num(f.kgMes, 1); } },
+            { k: 'planKg', t: 'Plan (kg)', r: 1, f: function (f) { return MK.num(f.planKg); } },
+            { k: 'uso', t: 'Uso del plan', r: 1, f: function (f) { return f.uso == null ? '—' : f.uso + ' %'; } },
+            { k: 'motivos', t: 'Detalle', m: 1, cls: 't', f: function (f) { return '<div>' + MK.esc(f.motivos) + '</div>'; } }
+          ]
+        }
+      };
+    },
+    renovaciones: function () {
+      var l = ((D.cartera && D.cartera.renovaciones) || []).map(function (c) { var k = Number(c.kgMes) || 0, p = Number(c.planKg) || 0; return { id: c.id, nombre: c.nombre, dias: Number(c.dias), vencimiento: c.vencimiento || '', mes: c.vencimiento ? mesL(String(c.vencimiento).slice(0, 7)) : '', kgMes: k, planKg: p, uso: p ? Math.round(k / p * 100) : null }; });
+      l.sort(function (a, b) { return a.dias - b.dias; });
+      var venc = l.filter(function (c) { return c.dias < 0; }).length, m30 = l.filter(function (c) { return c.dias >= 0 && c.dias <= 30; }).length;
+      var porMes = {}; l.forEach(function (c) { var k = c.dias < 0 ? 'Vencidos' : c.mes || 'Sin fecha'; porMes[k] = (porMes[k] || 0) + 1; });
+      var ks = Object.keys(porMes);
+      return {
+        como: 'Contratos que <b>vencen en los próximos 90 días</b> y los ya vencidos sin renovar. La renovación se propone con el <b>volumen real</b> de kilos: si el plan le queda grande o chico, se ajusta. El aviso en la salud del cliente sale con los días de anticipación que se fijan en Plantillas y ajustes.',
+        kpis: [['Por renovar', MK.num(l.length)], ['Ya vencidos', MK.num(venc)], ['Vencen en 30 días', MK.num(m30)]],
+        chart: ks.length ? function (W) { return barrasH(W, ks.map(function (k) { return { l: k, v: porMes[k], c: k === 'Vencidos' ? GRIS : NAVY }; }), { vw: 40, aria: 'Renovaciones por mes' }); } : null,
+        tabla: {
+          titulo: 'Contratos por renovar', filas: l, vacio: 'Ningún contrato vence en los próximos 90 días.', filtros: [{ k: 'mes', t: 'Mes' }],
+          cols: [
+            { k: 'nombre', t: 'Cliente', f: function (f) { return lkCli(f.id, f.nombre); } },
+            { k: 'vencimiento', t: 'Vence', f: function (f) { return MK.esc(MK.fechaCorta(f.vencimiento)); } },
+            { k: 'dias', t: 'Días', r: 1, f: function (f) { return f.dias < 0 ? '<span class="tag t-bad">Vencido hace ' + (-f.dias) + '</span>' : f.dias <= 30 ? '<span class="tag t-warn">' + f.dias + '</span>' : f.dias; } },
+            { k: 'uso', t: 'Kilos reales / plan', r: 1, m: 1, f: function (f) { return f.planKg ? MK.num(f.kgMes, 1) + ' de ' + MK.num(f.planKg) + ' kg <span class="muted">(' + f.uso + ' %)</span>' : '—'; } }
+          ]
+        }
+      };
+    },
+    perdidas: function () {
+      var mo = D.motivosPerdida || [], np = sum(mo, 'n');
+      var l = (D.perdidas || []).map(function (p) { return { codigo: p.codigo, empresa: p.empresa, motivo: p.motivo || 'Sin motivo anotado', valor: p.valor, fecha: p.fecha }; });
+      l.sort(function (a, b) { return String(b.fecha).localeCompare(String(a.fecha)); });
+      return {
+        como: 'Oportunidades que se cerraron como <b>Rechazado</b> en el periodo y el <b>motivo</b> que se anotó al cerrarlas. Así se ve si el problema es precio, seguimiento o zona. La lista de motivos se cambia en Plantillas y ajustes.',
+        kpis: [['Perdidas', MK.num(l.length)], ['Valor perdido', din(sum(l, 'valor'))], ['Motivo principal', mo[0] ? mo[0].motivo : '—', mo[0] ? Math.round(mo[0].n / Math.max(1, np) * 100) + ' % de las pérdidas' : '']],
+        chart: mo.length ? function (W) { return barrasH(W, mo.map(function (m) { return { l: m.motivo, v: m.n, lab: m.n + ' · ' + Math.round(m.n / Math.max(1, np) * 100) + ' %' }; }), { vw: 80, aria: 'Motivos de pérdida' }); } : null,
+        tabla: {
+          titulo: 'Oportunidades perdidas', filas: l, vacio: 'No se perdió ninguna oportunidad en este periodo.', filtros: [{ k: 'motivo', t: 'Motivo' }],
+          cols: [
+            { k: 'fecha', t: 'Cierre', f: function (f) { return MK.esc(MK.fechaCorta(f.fecha)); } },
+            { k: 'empresa', t: 'Oportunidad', f: function (f) { return lkOp(f.codigo, f.empresa) + '<small>' + MK.esc(f.codigo) + '</small>'; } },
+            { k: 'motivo', t: 'Motivo' },
+            { k: 'valor', t: 'Valor', r: 1, f: function (f) { return din(f.valor); } }
+          ],
+          total: function (fs) { return '<td>Total</td><td></td><td></td><td class="r num">' + din(sum(fs, 'valor')) + '</td>'; }
+        }
+      };
+    }
+  };
+  function banda() { var r = rangoDe(ST.per), a = r.desde.slice(0, 7), b = r.hasta.slice(0, 7); return D.porMes.map(function (m, i) { return m.mes >= a && m.mes <= b ? i : -1; }).filter(function (i) { return i >= 0; }); }
+
+  /* ═══ Carga ═══ */
+  function claveRango(r) { return r.desde + '|' + r.hasta; }
+  function cargar() {
+    var r = rangoDe(ST.per), k = claveRango(r);
+    if (k === RKEY && D) { asegurarApoyo(); return; }
+    RKEY = k; CARGANDO = true; ERR = ''; pintar();
+    var pk = claveRango(r.prev);
+    var pa = MK.api('api_crmReportes', MK.pin, r.desde, r.hasta), pb = MK.api('api_crmReportes', MK.pin, r.prev.desde, r.prev.hasta);
+    pa.then(function (x) {
+      if (RKEY !== k) return;
+      CARGANDO = false;
+      if (!x || !x.ok) { ERR = (x && x.error) || 'No se pudieron leer los reportes.'; D = null; pintar(); return; }
+      D = x; asegurarApoyo(); pintar();
+    }, function (e) { if (RKEY !== k) return; CARGANDO = false; ERR = 'Sin conexión: ' + e.message; pintar(); });
+    pb.then(function (x) { if (RKEY !== k) return; DP = x && x.ok ? x : null; PKEY = pk; if (ST.rep === 'resumen' && D) pintarRep(); }, function () { DP = null; });
+  }
+  var PIDIENDO = {};
+  function asegurarApoyo() {
+    var c = catDe(ST.rep); if (!c || !c.usa || !D) return;
+    c.usa.forEach(function (u) {
+      if (u === 'ops' && !OPS && !PIDIENDO.ops) { PIDIENDO.ops = 1; MK.api('api_crmOportunidades', MK.pin).then(function (x) { PIDIENDO.ops = 0; OPS = x && x.ok ? (x.oportunidades || []) : []; pintarRep(); }, function () { PIDIENDO.ops = 0; OPS = []; pintarRep(); }); }
+      if (u === 'cli' && !CLI && !PIDIENDO.cli) { PIDIENDO.cli = 1; MK.api('api_crmClientes', MK.pin).then(function (x) { PIDIENDO.cli = 0; CLI = x && x.ok ? x : { clientes: [] }; pintarRep(); }, function () { PIDIENDO.cli = 0; CLI = { clientes: [], error: 1 }; pintarRep(); }); }
+      if (u === 'act' && !ACT[RKEY] && !PIDIENDO['act' + RKEY]) {
+        var k = RKEY, pr = k.split('|'); PIDIENDO['act' + k] = 1;
+        MK.api('api_crmActividades', MK.pin, { desde: pr[0], hasta: pr[1], limite: 2000 }).then(function (x) { PIDIENDO['act' + k] = 0; ACT[k] = x && x.ok ? (x.actividades || []) : []; pintarRep(); }, function () { PIDIENDO['act' + k] = 0; ACT[k] = []; pintarRep(); });
+      }
+    });
+  }
+  function faltaApoyo() {
+    var c = catDe(ST.rep); if (!c || !c.usa) return false;
+    return c.usa.some(function (u) { return (u === 'ops' && !OPS) || (u === 'cli' && !CLI) || (u === 'act' && !ACT[RKEY]); });
+  }
+
+  /* ═══ Pintar ═══ */
+  function guardados() { var g = (D && D.guardados) || (MK.base && MK.base.ajustes && MK.base.ajustes.reportesGuardados) || []; return Array.isArray(g) ? g : []; }
+  function pintarLista() {
+    var el = document.getElementById('rLista'); if (!el) return;
+    var q = (document.getElementById('rBus') || {}).value || '';
+    var gs = guardados();
+    var h = '<input class="in bus" id="rBus" placeholder="Buscar reporte…" value="' + MK.esc(q) + '" autocomplete="off">';
+    CAT.forEach(function (c) {
+      if (c.g) { h += '<div class="g">' + c.g + '</div>'; return; }
+      h += '<a class="' + (!ST.guardado && ST.rep === c.id ? 'on' : '') + '" data-r="' + c.id + '" data-n="' + MK.esc((c.n + ' ' + c.d).toLowerCase()) + '">' + MK.ic(c.i, 16) + '<span><b>' + MK.esc(c.n) + '</b><small>' + MK.esc(c.d) + '</small></span></a>';
+    });
+    h += '<div class="g">GUARDADOS</div>';
+    if (!gs.length) h += '<div class="nada">Aún no hay reportes guardados. ' + (document.body.classList.contains('solo-ver') ? 'Los guarda mercadeo o administración.' : 'Abre uno, ajusta el periodo y los filtros y toca «Guardar como…».') + '</div>';
+    gs.forEach(function (g) {
+      var c = catDe(g.reporte) || {};
+      h += '<a class="' + (ST.guardado === g.id ? 'on' : '') + '" data-g="' + MK.esc(g.id) + '" data-n="' + MK.esc(((g.nombre || '') + ' ' + (c.n || '')).toLowerCase()) + '">' + MK.ic('estrella', 16) + '<span><b>' + MK.esc(g.nombre) + '</b><small>' + MK.esc((c.n || '') + ' · ' + descPer(g.periodo || {}) + (g.por ? ' · ' + g.por : '')) + '</small></span></a>';
+    });
+    el.innerHTML = h;
+    var b = document.getElementById('rBus');
+    b.oninput = function () { filtrarLista(b.value); };
+    if (q) filtrarLista(q);
+    [].forEach.call(el.querySelectorAll('a[data-r]'), function (a) { a.onclick = function () { abrirReporte(a.getAttribute('data-r')); }; });
+    [].forEach.call(el.querySelectorAll('a[data-g]'), function (a) { a.onclick = function () { abrirGuardado(a.getAttribute('data-g')); }; });
+    /* celular: la misma lista en un selector */
+    var sm = document.getElementById('rSelm');
+    if (sm) {
+      var o = '', abierto = false;
+      CAT.forEach(function (c) { if (c.g) { o += (abierto ? '</optgroup>' : '') + '<optgroup label="' + MK.esc(cap(c.g.toLowerCase())) + '">'; abierto = true; return; } o += '<option value="r:' + c.id + '"' + (!ST.guardado && ST.rep === c.id ? ' selected' : '') + '>' + MK.esc(c.n) + '</option>'; });
+      if (abierto) o += '</optgroup>';
+      if (gs.length) o += '<optgroup label="Guardados">' + gs.map(function (g) { return '<option value="g:' + MK.esc(g.id) + '"' + (ST.guardado === g.id ? ' selected' : '') + '>★ ' + MK.esc(g.nombre) + '</option>'; }).join('') + '</optgroup>';
+      sm.innerHTML = o;
+      sm.onchange = function () { var v = sm.value; if (v.indexOf('g:') === 0) abrirGuardado(v.slice(2)); else abrirReporte(v.slice(2)); };
+    }
+  }
+  function filtrarLista(q) {
+    q = q.toLowerCase().trim(); var el = document.getElementById('rLista');
+    [].forEach.call(el.querySelectorAll('a'), function (a) { a.style.display = !q || a.getAttribute('data-n').indexOf(q) >= 0 ? '' : 'none'; });
+    [].forEach.call(el.querySelectorAll('.g'), function (g) { var n = g.nextElementSibling, vis = false; while (n && !n.classList.contains('g')) { if (n.tagName === 'A' && n.style.display !== 'none') vis = true; if (n.classList.contains('nada')) vis = !q; n = n.nextElementSibling; } g.style.display = vis ? '' : 'none'; });
+  }
+  function ctrPeriodo(c) {
+    if (c.sinPer) return '<span class="tag t-gris">No depende del periodo · datos de hoy</span>';
+    var p = ST.per, r = rangoDe(p);
+    var h = '<div class="seg no-imp" id="rSeg">' + [['mes', 'Mes'], ['trimestre', 'Trimestre'], ['anio', 'Año'], ['rango', 'Rango']].map(function (x) { return '<button class="' + (p.tipo === x[0] ? 'on' : '') + '" data-t="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    if (p.tipo === 'rango') h += '<span class="rango no-imp"><input class="in" type="date" id="rD1" value="' + MK.esc(r.desde) + '"><span class="muted">a</span><input class="in" type="date" id="rD2" value="' + MK.esc(r.hasta) + '"></span>';
+    else h += '<span class="nav no-imp"><button class="btn sm gh" id="rAnt" title="Periodo anterior" aria-label="Periodo anterior">' + MK.ic('atras', 15) + '</button><button class="btn sm gh" id="rSig" title="Periodo siguiente" aria-label="Periodo siguiente"' + ((p.desp || 0) >= 0 ? ' disabled' : '') + '>' + MK.ic('flecha', 15) + '</button></span>';
+    h += '<span class="lab"><b>' + MK.esc(r.lab) + '</b></span>';
+    return h;
+  }
+  function activarPeriodo() {
+    var s = document.getElementById('rSeg');
+    if (s) [].forEach.call(s.querySelectorAll('button'), function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute('data-t'); if (t === ST.per.tipo) return;
+        var r = rangoDe(ST.per);
+        ST.per = t === 'rango' ? { tipo: 'rango', desde: r.desde, hasta: r.hasta > MK.hoy ? MK.hoy : r.hasta } : { tipo: t, desp: 0 };
+        marcarCambio(); cargar();
+      };
+    });
+    var a = document.getElementById('rAnt'), g = document.getElementById('rSig');
+    if (a) a.onclick = function () { ST.per.desp = (ST.per.desp || 0) - 1; marcarCambio(); cargar(); };
+    if (g) g.onclick = function () { if ((ST.per.desp || 0) < 0) { ST.per.desp++; marcarCambio(); cargar(); } };
+    var d1 = document.getElementById('rD1'), d2 = document.getElementById('rD2');
+    var cambia = function () { if (!d1.value || !d2.value) return; ST.per = { tipo: 'rango', desde: d1.value <= d2.value ? d1.value : d2.value, hasta: d1.value <= d2.value ? d2.value : d1.value }; marcarCambio(); cargar(); };
+    if (d1) { d1.onchange = cambia; d2.onchange = cambia; }
+  }
+  function pintar() {
+    pintarLista();
+    pintarRep();
+    try { history.replaceState(null, '', '#' + (ST.guardado ? 'g=' + encodeURIComponent(ST.guardado) : ST.rep)); } catch (e) {}
+  }
+  function pintarRep() {
+    var el = document.getElementById('rRep'); if (!el) return;
+    var c = catDe(ST.rep), g = ST.guardado ? guardados().filter(function (x) { return x.id === ST.guardado; })[0] : null;
+    var rg = rangoDe(ST.per);
+    var cab = '<div class="solo-imp"><b>ECOVSA</b><div><div style="font-weight:700">Reporte comercial · ' + MK.esc(g ? g.nombre : c.n) + '</div><div class="small">' + MK.esc(c.sinPer ? 'Datos al ' + MK.fechaLarga(MK.hoy) : rg.lab) + '</div></div><span>Generado el ' + MK.esc(MK.fechaLarga(MK.hoy)) + '<br>por ' + MK.esc((MK.usuario || {}).nombre || '') + '</span></div>' +
+      '<div class="cab"><div class="tt"><div class="gr">' + MK.esc(grupoDe(ST.rep)) + (g ? ' · guardado' : '') + '</div><h2>' + MK.esc(g ? g.nombre : c.n) + '</h2>' + (g ? '<div class="small muted">' + MK.esc(c.n + ' · ' + descPer(g.periodo || {})) + '</div>' : '') + '</div>' +
+      '<div class="row w no-imp"><button class="btn sm" id="rCsv">' + MK.ic('bajar', 15) + 'Exportar CSV</button><button class="btn sm" id="rImp">' + MK.ic('imprimir', 15) + 'Imprimir</button>' +
+      (g ? '<button class="btn sm" id="rAct"' + (cambioGuardado(g) ? '' : ' disabled') + '>' + MK.ic('check', 15) + 'Actualizar guardado</button><button class="btn sm gh" id="rQuitar" title="Quitar de guardados">' + MK.ic('basura', 15) + 'Quitar</button>' : '') +
+      '<button class="btn sm pri" id="rGuardar">' + MK.ic('estrella', 15) + 'Guardar como…</button></div></div>';
+    if (CARGANDO && !D) { el.innerHTML = cab + '<div class="cargando">Leyendo los datos…</div>'; activarCab(); return; }
+    if (ERR) { el.innerHTML = cab + '<div class="aviso rj" style="margin-top:12px">' + MK.esc(ERR) + ' <a href="#" id="rReint">Reintentar</a></div>'; activarCab(); var ri = document.getElementById('rReint'); if (ri) ri.onclick = function (e) { e.preventDefault(); RKEY = ''; cargar(); }; return; }
+    if (!D) { el.innerHTML = cab + '<div class="cargando">Cargando…</div>'; activarCab(); return; }
+    var ctr = '<div class="ctr">' + ctrPeriodo(c) + (CARGANDO ? '<span class="small muted">Actualizando…</span>' : '') + '</div>';
+    if (faltaApoyo()) { el.innerHTML = cab + '<div style="height:12px"></div>' + ctr + '<div class="cargando">Preparando el detalle…</div>'; activarCab(); activarPeriodo(); asegurarApoyo(); return; }
+    var r;
+    try { r = REP[ST.rep](); } catch (e) { console.error(e); el.innerHTML = cab + ctr + '<div class="aviso rj">No se pudo armar este reporte: ' + MK.esc(e.message) + '</div>'; activarCab(); activarPeriodo(); return; }
+    var n = r.kpis.length, cols = r.cols || Math.min(n, 5);
+    var h = cab + '<div class="como">' + r.como + '</div>' + ctr;
+    if (n) h += '<div class="mini" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' + r.kpis.map(function (k) { return '<div class="m"><span>' + MK.esc(k[0]) + '</span><b' + (String(k[1]).length > 16 ? ' style="font-size:15px;line-height:1.55"' : '') + ' title="' + MK.esc(String(k[1]).replace(/<[^>]+>/g, '')) + '">' + k[1] + '</b>' + (k[2] ? '<span>' + k[2] + '</span>' : '') + '</div>'; }).join('') + '</div>';
+    CHART = r.chart || null;
+    h += (r.chart ? (r.ley || '') + '<div class="ch" id="chR"></div>' : '') + (r.extra || '');
+    h += '<div id="tabR"></div>';
+    el.innerHTML = h;
+    TABLA = r.tabla || null;
+    pintarChart(); pintarTabla(); activarCab(); activarPeriodo();
+  }
+  function grupoDe(id) { var g = ''; for (var i = 0; i < CAT.length; i++) { if (CAT[i].g) g = CAT[i].g; if (CAT[i].id === id) return cap(g.toLowerCase()); } return 'Reporte'; }
+  function activarCab() {
+    var b;
+    if ((b = document.getElementById('rCsv'))) b.onclick = exportar;
+    if ((b = document.getElementById('rImp'))) b.onclick = function () { window.print(); };
+    if ((b = document.getElementById('rGuardar'))) b.onclick = guardarComo;
+    if ((b = document.getElementById('rAct'))) b.onclick = function () { actualizarGuardado(this); };
+    if ((b = document.getElementById('rQuitar'))) b.onclick = quitarGuardado;
+  }
+  function marcarCambio() { var b = document.getElementById('rAct'); if (!b || !ST.guardado) return; var g = guardados().filter(function (x) { return x.id === ST.guardado; })[0]; b.disabled = !g || !cambioGuardado(g); }
+  function cambioGuardado(g) { return JSON.stringify(normPer(g.periodo)) !== JSON.stringify(normPer(ST.per)) || JSON.stringify(normFil(g.filtros)) !== JSON.stringify(normFil(ST.filtros[ST.rep])); }
+  function normPer(p) { p = p || {}; return p.tipo === 'rango' ? { tipo: 'rango', desde: p.desde, hasta: p.hasta } : { tipo: p.tipo || 'mes', desp: p.desp || 0 }; }
+  function normFil(f) { f = f || {}; var ff = {}; Object.keys(f.f || {}).sort().forEach(function (k) { if (f.f[k]) ff[k] = f.f[k]; }); return { q: f.q || '', f: ff, o: f.o && f.o.k ? { k: f.o.k, d: f.o.d } : null }; }
+
+  function abrirReporte(id) {
+    if (!catDe(id)) id = 'resumen';
+    var antes = ST.rep; ST.rep = id;
+    if (ST.guardado) { ST.guardado = ''; }
+    if (antes !== id) CHART = null;
+    pintar(); asegurarApoyo();
+    if (innerWidth < 900) { var r = document.getElementById('rRep'); if (r) r.scrollIntoView({ block: 'start' }); }
+  }
+  function abrirGuardado(gid) {
+    var g = guardados().filter(function (x) { return x.id === gid; })[0]; if (!g) { abrirReporte(ST.rep); return; }
+    ST.guardado = g.id; ST.rep = catDe(g.reporte) ? g.reporte : 'resumen';
+    ST.per = JSON.parse(JSON.stringify(normPer(g.periodo)));
+    ST.filtros[ST.rep] = JSON.parse(JSON.stringify(normFil(g.filtros)));
+    pintar(); cargar();
+  }
+
+  /* ═══ Guardados (ajuste 'reportesGuardados') ═══ */
+  function grabarGuardados(lista, btn, ok) {
+    MK.ocupado(btn, true);
+    return MK.api('api_crmGuardarAjuste', MK.pin, 'reportesGuardados', lista).then(function (r) {
+      MK.ocupado(btn, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return; }
+      var nueva = (r.ajustes && r.ajustes.reportesGuardados) || lista;
+      if (D) D.guardados = Array.isArray(nueva) ? nueva : lista;
+      if (MK.base && MK.base.ajustes) MK.base.ajustes.reportesGuardados = D ? D.guardados : lista;
+      ok();
+    }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: no se guardó. ' + e.message); });
+  }
+  function guardarComo() {
+    var c = catDe(ST.rep), sug = c.n + (c.sinPer ? '' : ' · ' + descPer(ST.per).toLowerCase());
+    MK.hoja('<h2>Guardar reporte</h2><p class="muted small">Queda en «Guardados» con ' + (c.sinPer ? 'los filtros de la tabla' : 'el periodo (' + MK.esc(descPer(ST.per).toLowerCase()) + ') y los filtros de la tabla') + '. Lo ve todo el equipo de mercadeo.</p>' +
+      '<label class="lb" for="gNom">NOMBRE</label><input class="in" id="gNom" autofocus maxlength="80" value="' + MK.esc(sug) + '">' +
+      '<div id="gMsg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="gOk">Guardar</button></div>');
+    var inp = document.getElementById('gNom'); inp.onkeydown = function (e) { if (e.key === 'Enter') document.getElementById('gOk').click(); };
+    setTimeout(function () { inp.select(); }, 80);
+    document.getElementById('gOk').onclick = function () {
+      var n = inp.value.trim(); if (!n) { document.getElementById('gMsg').textContent = 'Ponle un nombre.'; return; }
+      if (guardados().some(function (x) { return String(x.nombre).toLowerCase() === n.toLowerCase(); })) { document.getElementById('gMsg').textContent = 'Ya hay un guardado con ese nombre.'; return; }
+      var g = { id: 'RG-' + Date.now().toString(36).toUpperCase(), nombre: n, reporte: ST.rep, periodo: normPer(ST.per), filtros: normFil(ST.filtros[ST.rep]), por: (MK.usuario || {}).nombre || '', creado: MK.hoy };
+      var lista = guardados().concat([g]);
+      grabarGuardados(lista, this, function () { MK.cerrarHoja(); ST.guardado = g.id; pintar(); MK.aviso('Guardado en «Guardados»'); });
+    };
+  }
+  function actualizarGuardado(btn) {
+    var lista = guardados().map(function (x) { return x.id === ST.guardado ? Object.assign({}, x, { periodo: normPer(ST.per), filtros: normFil(ST.filtros[ST.rep]), actualizado: MK.hoy }) : x; });
+    grabarGuardados(lista, btn, function () { pintar(); MK.aviso('Guardado actualizado'); });
+  }
+  function quitarGuardado() {
+    var g = guardados().filter(function (x) { return x.id === ST.guardado; })[0]; if (!g) return;
+    MK.confirmar('«' + g.nombre + '» sale de la lista de guardados. El reporte sigue disponible en el catálogo.', function () {
+      grabarGuardados(guardados().filter(function (x) { return x.id !== g.id; }), null, function () { ST.guardado = ''; pintar(); MK.aviso('Guardado quitado'); });
+    }, { titulo: 'Quitar de guardados', boton: 'Quitar', peligro: true });
+  }
+
+  /* ═══ Exportar ═══ */
+  function limpio(h) { var d = document.createElement('div'); d.innerHTML = String(h == null ? '' : h); return (d.textContent || '').replace(/\s+/g, ' ').trim(); }
+  function exportar() {
+    if (!TABLA) { MK.aviso('Este reporte no tiene tabla para exportar.'); return; }
+    var c = catDe(ST.rep), rg = rangoDe(ST.per), fl = filtroDe(ST.rep), l = filasVisibles(TABLA, fl), L = [];
+    L.push(['ECOVSA · Reporte comercial', c.n]);
+    L.push(['Periodo', c.sinPer ? 'Datos al ' + MK.hoy : rg.desde + ' a ' + rg.hasta]);
+    L.push(['Generado', MK.hoy + ' por ' + ((MK.usuario || {}).nombre || '')]);
+    L.push([]);
+    L.push(TABLA.cols.map(function (x) { return x.t; }));
+    l.forEach(function (f) { L.push(TABLA.cols.map(function (x) { var v = x.csv ? x.csv(f) : valCol(x, f); return typeof v === 'number' ? v : limpio(v); })); });
+    var csv = '﻿' + L.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[",;\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\r\n');
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      a.href = url; a.download = 'ECOVSA-reporte-' + ST.rep + (c.sinPer ? '-' + MK.hoy : '-' + rg.desde + '_' + rg.hasta) + '.csv';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      MK.aviso('Se descargó el CSV (' + l.length + ' filas). Ábrelo con Excel.');
+    } catch (e) { MK.aviso('No se pudo descargar: ' + e.message); }
+  }
+
+  /* ═══ Arranque ═══ */
+  MK.iniciar('reportes', function (base) {
+    if (base && base.usuario && base.usuario.rol === 'gerente') document.body.classList.add('solo-ver');
+    document.getElementById('main').innerHTML =
+      '<div class="ph"><div><h1>Reportes</h1><p>Conversión, ciclo de venta, pronóstico, pérdidas, origen de los clientes y la cartera. Datos al ' + MK.esc(MK.fechaLarga(MK.hoy)) + '.</p></div></div>' +
+      '<select class="sel selm" id="rSelm" aria-label="Reporte"></select>' +
+      '<div class="cat"><nav class="lista" id="rLista" aria-label="Catálogo de reportes"></nav><section class="card rep" id="rRep"></section></div>';
+    var h = decodeURIComponent((location.hash || '').slice(1));
+    var gi = h.indexOf('g=') === 0 ? h.slice(2) : '';
+    if (!gi && catDe(h)) ST.rep = h;
+    pintar(); cargar();
+    if (gi) { var t = setInterval(function () { if (D) { clearInterval(t); abrirGuardado(gi); } }, 120); setTimeout(function () { clearInterval(t); }, 15000); }
+  });
+  window.addEventListener('mk:cambio', function () { RKEY = ''; OPS = null; CLI = null; ACT = {}; cargar(); });
+})();
+</script>
+</body>
+</html>

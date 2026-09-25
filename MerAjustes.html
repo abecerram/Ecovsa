@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plantillas y ajustes · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ── Plantillas y ajustes · opción A «Ajustes con menú lateral» ── */
+.sysbar .srch{min-width:0}  /* la barra del kit se desborda a 390 px sin esto */
+.aj{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start}
+.subm{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;position:sticky;top:74px}
+.subm a{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer}
+.subm a:hover{background:var(--hover)}
+.subm a.on{background:#eaf0fa;color:var(--navy2)}
+.subm a small{margin-left:auto;font-size:11px;color:var(--muted2);font-weight:700}
+.subm a .pt{width:7px;height:7px;border-radius:50%;background:var(--amber);margin-left:auto;flex:none}
+.subm a .pt+small{margin-left:6px}
+.subm .pie{border-top:1px solid var(--line2);margin-top:6px;padding:10px 8px 4px;font-size:11.5px;color:var(--muted);line-height:1.4}
+.sec-h{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sec-h h2{font-size:18px;font-weight:700}
+.sec-h p{color:var(--muted);font-size:12.5px;margin-top:2px;max-width:680px}
+.estado{font-size:12.5px;color:var(--muted);font-weight:600}
+.estado.sucio{color:#8a5a00}
+.kp2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.kp2 .kpi b{font-size:19px}
+.in.n{width:72px;text-align:right;padding:6px 8px}
+.in.sm,.sel.sm{padding:6px 8px;font-size:13px}
+.uni{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.recbox{display:block;font-size:11.5px;color:var(--muted);margin-top:4px;min-height:16px}
+.recbox .btn{padding:1px 6px;font-size:11.5px;margin-left:4px;color:var(--info);vertical-align:0}
+.recbox .btn svg{width:12px;height:12px}
+.difiere{border-color:#e7c872!important;background:#fffdf5!important}
+.it-l{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line2)}
+.it-l:last-child{border:0}
+.it-l .in{flex:1;min-width:0}
+.it-l .u{font-size:11.5px;color:var(--muted);white-space:nowrap;min-width:64px;text-align:right}
+.ib{border:1px solid var(--line);background:#fff;border-radius:7px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;color:var(--muted);flex:none}
+.ib:hover{color:var(--bad);border-color:#f0b9bb}
+.ib svg{width:15px;height:15px}
+.fila-v{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line2)}
+.fila-v:last-child{border:0;padding-bottom:2px}
+.fila-v:first-child{padding-top:2px}
+.fila-v h4{font-size:14px;font-weight:700}
+.fila-v p{font-size:12.5px;color:var(--muted);margin-top:3px}
+.fila-v .hoy{font-size:12px;margin-top:6px;color:#3d4a60}
+.pref{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}
+.pref span{padding:0 9px;color:var(--muted);font-weight:700;font-size:13px;background:#fafbfd;align-self:stretch;display:flex;align-items:center;border-right:1px solid var(--line)}
+.pref .in{border:0;border-radius:0}
+/* plantillas */
+.pl-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center}
+.pl-list .g{font-size:10.5px;font-weight:700;letter-spacing:.8px;color:var(--muted2);margin:0 2px 0 8px;text-transform:uppercase}
+.pl-list .grp{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin-right:8px}
+.pl-list .grp .g{margin-left:0}
+.pl-list .chip.off{color:var(--muted2);border-style:dashed}
+.pl-list .chip.off.on{color:#fff}
+.pl-list .chip svg{width:12px;height:12px}
+.pl-list .chip .st{color:var(--amber)}
+.pl-list .chip .st svg{fill:var(--amber)}
+.ed-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+textarea.ta{font:500 13.5px/1.5 Archivo,sans-serif;resize:vertical;min-height:220px}
+.vars{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.vars button{border:1px dashed #b9c6da;background:#f8fafd;border-radius:6px;padding:3px 7px;font:600 11.5px ui-monospace,Menlo,Consolas,monospace;color:var(--navy2);cursor:pointer}
+.vars button:hover{background:var(--info-bg);border-style:solid}
+.vv{background:var(--info-bg);color:var(--navy2);border-radius:4px;padding:0 3px;font-weight:600}
+.vfalta{background:var(--warn-bg);color:#8a5a00;border-radius:4px;padding:0 4px;font-weight:700;font-size:12px}
+.vbad{background:var(--bad-bg);color:var(--bad);border-radius:4px;padding:0 4px;font-weight:700;font-size:12px}
+.wa{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f1f3f6}
+.wa-h{display:flex;align-items:center;gap:9px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
+.wa-h small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.wa-b{padding:14px 12px 16px;min-height:200px}
+.bub{background:#fff;border:1px solid #dfe6dc;border-left:3px solid #1fa855;border-radius:10px 10px 10px 3px;padding:9px 11px 7px;font-size:13.5px;line-height:1.5;max-width:94%;box-shadow:0 1px 2px rgba(0,0,0,.04);overflow-wrap:anywhere}
+.bub .hr{display:block;text-align:right;font-size:10.5px;color:var(--muted2);margin-top:3px}
+.mail{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.mail .mh{padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;background:#fafbfd}
+.mail .mh div{padding:2px 0;overflow-wrap:anywhere}.mail .mh span{color:var(--muted);display:inline-block;width:52px}
+.mail .ms{font-weight:700;font-size:14px;padding:10px 14px 0;overflow-wrap:anywhere}
+.mail .mb{padding:10px 14px 16px;font-size:13.5px;line-height:1.55;min-height:180px;overflow-wrap:anywhere}
+.chk2{margin-top:8px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sw{position:relative;display:inline-block;width:34px;height:20px;flex:none}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:#cfd7e3;border-radius:20px;transition:.2s;cursor:pointer}
+.sw i:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+i{background:var(--navy2)}
+.sw input:checked+i:before{transform:translateX(14px)}
+.sw input:focus-visible+i{outline:2px solid #bcd0f0;outline-offset:2px}
+.ck{display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;font-weight:600}
+.meta-pl{font-size:12px;color:var(--muted);margin-top:2px}
+.pie-ed{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--line2)}
+.ev{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:#fff}
+.ev h4{font-size:14px;font-weight:700}
+.ev .ex{font-size:12.5px;color:var(--muted);margin:3px 0 8px}
+.firma-prev{border:1px solid var(--line);border-radius:10px;background:#fafbfd;padding:10px 12px;font-size:13px;white-space:pre-wrap;color:#2a3850;margin-top:8px}
+@media(max-width:1100px){.kp2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){
+  .aj{grid-template-columns:minmax(0,1fr)}
+  .subm{position:static;display:flex;overflow-x:auto;gap:4px;padding:6px}
+  .subm a{white-space:nowrap;flex:none}.subm a small,.subm .pie{display:none}.subm a .pt{margin-left:4px}
+  .ed-grid{grid-template-columns:minmax(0,1fr)}
+  .fila-v{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+  .ph .sp{display:none}
+  .tb td,.tb th{padding:8px 9px}
+  .hide-m{display:none}
+  .tb.et thead{display:none}
+  .tb.et tr{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:12px;border-bottom:1px solid var(--line2)}
+  .tb.et tr:last-child{border:0}
+  .tb.et td{border:0;padding:0}
+  .tb.et td:first-child,.tb.et td.r{grid-column:1/-1;text-align:left}
+  .tb.et td[data-l]::before{content:attr(data-l);display:block;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--muted2);margin:4px 0 3px}
+}
+/* gerencia solo consulta: ve los ajustes pero no los cambia */
+body.solo-ver #ajGuardar,body.solo-ver #ajDesc,body.solo-ver #ajEstado,body.solo-ver #plNueva,body.solo-ver #plDup,body.solo-ver #plBorrar,body.solo-ver #plGuardar,body.solo-ver #plDeshacer,body.solo-ver #plCanc,body.solo-ver [data-rec],body.solo-ver [data-add],body.solo-ver [data-n],body.solo-ver #ajCuerpo .ib{display:none!important}
+body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver #ajCuerpo [data-v],body.solo-ver #ajCuerpo label.ck{pointer-events:none}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  'use strict';
+
+  var SECS = [
+    ['etapas', 'Etapas del embudo', 'embudo'],
+    ['listas', 'Fuentes y motivos', 'lista'],
+    ['metas', 'Metas y alertas', 'tendencia'],
+    ['plantillas', 'Plantillas', 'plantilla'],
+    ['avisos', 'Notificaciones', 'campana'],
+    ['firma', 'Firma, tono y agenda', 'lapiz']
+  ];
+  var ABIERTAS = ['Registrado', 'Formulario enviado', 'Formulario recibido', 'Propuesta enviada', 'En negociación', 'Contrato en proceso', 'Stand-by'];
+  var ESCALARES = ['metaMensual', 'diasRenovacion', 'diasSinContacto', 'tono', 'firma', 'horaInicio', 'horaFin'];
+  var VARS = { empresa: 'Nombre de la empresa', contacto: 'Nombre del contacto', asesor: 'Quien envía el mensaje', fecha: 'La fecha de hoy', hora: 'Hora de la próxima cita', propuesta: 'Código de la propuesta', enlace: 'Enlace del formulario del cliente', firma: 'Tu firma', saludo: 'Buenos días / tardes / noches' };
+
+  var DAT = null, AJ = null, ED = null, REC = null, ERR = '';
+  var OPS = null, CLI = null, URL_APP = '';
+  var SEC = 'etapas';
+  var PL = [], PSEL = '', PED = null, PORIG = null, PFOCO = 'texto', MUESTRA = '';
+  var NOTIF = null;
+
+  function cp(x) { return JSON.parse(JSON.stringify(x)); }
+  function get(o, k) { var i = k.indexOf('.'); if (i < 0) return o[k]; var g = o[k.slice(0, i)]; return g ? g[k.slice(i + 1)] : undefined; }
+  function set(o, k, v) { var i = k.indexOf('.'); if (i < 0) { o[k] = v; return; } var g = k.slice(0, i); o[g] = o[g] || {}; o[g][k.slice(i + 1)] = v; }
+  function igual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function hayRec(k) { return REC && get(REC, k) !== undefined; }
+
+  /* ═══ Lo que cambió (clave → valor) ═══ */
+  function cambios() {
+    if (!AJ || !ED) return [];
+    var out = [];
+    ['probabilidades', 'limitesDias'].forEach(function (g) {
+      var ks = Object.keys(Object.assign({}, AJ[g] || {}, ED[g] || {}));
+      ks.forEach(function (e) { if (!igual((ED[g] || {})[e], (AJ[g] || {})[e])) out.push([g + '.' + e, ED[g][e]]); });
+    });
+    ['fuentes', 'motivosPerdida'].forEach(function (k) { if (!igual(ED[k], AJ[k])) out.push([k, ED[k]]); });
+    ESCALARES.forEach(function (k) { if (!igual(ED[k], AJ[k])) out.push([k, ED[k]]); });
+    return out;
+  }
+  function secDe(clave) {
+    var r = clave.split('.')[0];
+    if (r === 'probabilidades' || r === 'limitesDias') return 'etapas';
+    if (r === 'fuentes' || r === 'motivosPerdida') return 'listas';
+    if (r === 'metaMensual' || r === 'diasRenovacion' || r === 'diasSinContacto') return 'metas';
+    return 'firma';
+  }
+  function plSucia() { return !!(PED && PORIG && !igual(normPl(PED), normPl(PORIG))) || !!(PED && !PORIG); }
+  function normPl(p) { return { nombre: p.nombre || '', momento: p.momento || '', canal: p.canal || 'whatsapp', asunto: p.asunto || '', texto: p.texto || '' }; }
+  function pintarEstado() {
+    var c = cambios(), e = document.getElementById('ajEstado'), b = document.getElementById('ajGuardar'), d = document.getElementById('ajDesc');
+    if (e) { e.textContent = c.length ? (c.length === 1 ? '1 cambio sin guardar' : c.length + ' cambios sin guardar') : 'Todo guardado'; e.className = 'estado' + (c.length ? ' sucio' : ''); }
+    if (b && !b._ocupado) b.disabled = !c.length;
+    if (d) d.hidden = !c.length;
+    var m = document.getElementById('ajMenu'); if (m) pintarMenu();
+  }
+
+  /* ═══ Validación ═══ */
+  function errores() {
+    var e = [];
+    ABIERTAS.forEach(function (s) { var v = ED.probabilidades[s]; if (!(v >= 0 && v <= 100) || v !== Math.round(v)) e.push('La probabilidad de «' + s + '» debe ser un número entero de 0 a 100.'); });
+    Object.keys(ED.limitesDias || {}).forEach(function (s) { var v = ED.limitesDias[s]; if (!(v >= 1 && v <= 180) || v !== Math.round(v)) e.push('Los días máximos de «' + s + '» deben ser de 1 a 180.'); });
+    [['fuentes', 'fuentes'], ['motivosPerdida', 'motivos de pérdida']].forEach(function (x) {
+      var l = ED[x[0]] || []; if (!l.length) e.push('La lista de ' + x[1] + ' no puede quedar vacía.');
+      var vis = {}; l.forEach(function (v) { var k = String(v).trim().toLowerCase(); if (!k) e.push('Hay un renglón vacío en ' + x[1] + '.'); else if (vis[k]) e.push('«' + v + '» está repetido en ' + x[1] + '.'); vis[k] = 1; });
+    });
+    if (!(ED.metaMensual >= 0)) e.push('La meta mensual debe ser un número (0 = sin meta).');
+    if (!(ED.diasRenovacion >= 1 && ED.diasRenovacion <= 365)) e.push('El aviso de renovación debe ser de 1 a 365 días.');
+    if (!(ED.diasSinContacto >= 1 && ED.diasSinContacto <= 365)) e.push('Los días sin contacto deben ser de 1 a 365.');
+    if (!String(ED.firma || '').trim()) e.push('La firma no puede quedar vacía.');
+    if (!/^\d{2}:\d{2}$/.test(ED.horaInicio || '') || !/^\d{2}:\d{2}$/.test(ED.horaFin || '')) e.push('Escribe la hora de inicio y fin de la agenda.');
+    else if (ED.horaInicio >= ED.horaFin) e.push('La agenda debe empezar antes de terminar.');
+    return e;
+  }
+
+  /* ═══ Guardar ajustes ═══ */
+  function guardarTodo() {
+    var b = document.getElementById('ajGuardar'), c = cambios(); if (!c.length) return;
+    var er = errores();
+    if (er.length) { MK.hoja('<h2>Revisa antes de guardar</h2><ul style="margin:10px 0 0 18px;font-size:13px;line-height:1.6">' + er.map(function (x) { return '<li>' + MK.esc(x) + '</li>'; }).join('') + '</ul><div class="pie"><button class="btn pri" onclick="MK.cerrarHoja()">Entendido</button></div>'); return; }
+    MK.ocupado(b, true); b._ocupado = true;
+    var i = 0, fallo = '';
+    (function sig() {
+      if (i >= c.length) {
+        b._ocupado = false; MK.ocupado(b, false); pintarEstado();
+        if (fallo) { MK.aviso(fallo); pintarSeccion(); return; }
+        MK.aviso('Ajustes guardados. Se aplican desde ya en todo Mercadeo.');
+        MK.cambio({ tipo: 'ajustes' });
+        return;
+      }
+      var k = c[i][0], v = c[i][1];
+      MK.api('api_crmGuardarAjuste', MK.pin, k, v).then(function (r) {
+        if (!r || !r.ok) { fallo = (r && r.error) || 'No se pudo guardar «' + k + '».'; i = c.length; sig(); return; }
+        set(AJ, k, cp(v));   // lo que ya quedó guardado
+        i++; sig();
+      }, function (e) { fallo = 'Sin conexión: no se guardó todo. ' + e.message; i = c.length; sig(); });
+    })();
+  }
+  function descartar() {
+    MK.confirmar('Se pierden los cambios que no has guardado y vuelven los valores guardados.', function () { ED = cp(AJ); pintarSeccion(); pintarEstado(); MK.aviso('Cambios descartados'); }, { titulo: 'Descartar cambios', boton: 'Descartar', peligro: true });
+  }
+
+  /* ═══ Recomendado ═══ */
+  function fmtRec(k, v) {
+    if (Array.isArray(v)) return v.length + ' elementos';
+    if (/^probabilidades\./.test(k)) return v + ' %';
+    if (/^limitesDias\./.test(k) || k === 'diasRenovacion' || k === 'diasSinContacto') return v + ' días';
+    if (k === 'metaMensual') return Number(v) ? MK.dinero(v) : 'sin meta';
+    if (k === 'tono') return v === 'cercano' ? 'Cercano' : 'Formal';
+    if (k === 'horaInicio' || k === 'horaFin') return v;
+    return '«' + String(v) + '»';
+  }
+  function recHtml(k) {
+    if (!hayRec(k)) return '';
+    var r = get(REC, k), dif = !igual(get(ED, k), r);
+    return '<span class="recbox" data-rk="' + MK.esc(k) + '">' + (dif ? 'Recomendado: ' + MK.esc(fmtRec(k, r)) + '<button type="button" class="btn gh sm" data-rec="' + MK.esc(k) + '">' + MK.ic('renovar', 12) + 'Usar</button>' : '<span style="color:var(--ok)">✓</span> Es el recomendado') + '</span>';
+  }
+  function refrescarRec(k) {
+    [].forEach.call(document.querySelectorAll('.recbox[data-rk]'), function (el) { if (el.getAttribute('data-rk') === k) { el.outerHTML = recHtml(k); } });
+    [].forEach.call(document.querySelectorAll('[data-k]'), function (el) { if (el.getAttribute('data-k') === k) el.classList.toggle('difiere', !igual(get(ED, k), get(AJ, k))); });
+    activarRec();
+  }
+  function activarRec() {
+    [].forEach.call(document.querySelectorAll('[data-rec]'), function (b) {
+      b.onclick = function () { var k = b.getAttribute('data-rec'); set(ED, k, cp(get(REC, k))); pintarSeccion(); pintarEstado(); };
+    });
+  }
+  /* entradas con data-k: se guardan en ED al escribir */
+  function activarEntradas(alCambiar) {
+    [].forEach.call(document.querySelectorAll('#ajCuerpo [data-k]'), function (el) {
+      var k = el.getAttribute('data-k'), t = el.getAttribute('data-t') || 'txt';
+      el.classList.toggle('difiere', !igual(get(ED, k), get(AJ, k)));
+      var h = function () {
+        var v = el.value;
+        if (t === 'int') v = v === '' ? NaN : Math.round(Number(v));
+        else if (t === 'num') v = v === '' ? 0 : Number(v);
+        set(ED, k, v); refrescarRec(k); pintarEstado(); if (alCambiar) alCambiar(k);
+      };
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', h);
+    });
+    activarRec();
+  }
+
+  /* ═══ Menú y cuerpo ═══ */
+  function pintarMenu() {
+    var c = cambios(), sucias = {}; c.forEach(function (x) { sucias[secDe(x[0])] = 1; }); if (plSucia()) sucias.plantillas = 1;
+    var cnt = { etapas: ABIERTAS.length, listas: (ED.fuentes || []).length + (ED.motivosPerdida || []).length, plantillas: PL.length, avisos: NOTIF ? NOTIF.eventos.filter(function (e) { return e.activo; }).length + ' de ' + NOTIF.eventos.length : '' };
+    document.getElementById('ajMenu').innerHTML = SECS.map(function (s) {
+      return '<a class="' + (s[0] === SEC ? 'on' : '') + '" data-s="' + s[0] + '" href="#' + s[0] + '">' + MK.ic(s[2], 16) + MK.esc(s[1]) + (sucias[s[0]] ? '<span class="pt" title="Cambios sin guardar"></span>' : '') + (cnt[s[0]] !== undefined && cnt[s[0]] !== '' ? '<small>' + cnt[s[0]] + '</small>' : '') + '</a>';
+    }).join('') + '<div class="pie">Cada cambio queda registrado con la fecha y quién lo hizo. Los valores con fondo amarillo aún no se han guardado.</div>';
+    [].forEach.call(document.querySelectorAll('#ajMenu a'), function (a) { a.onclick = function (e) { e.preventDefault(); irA(a.getAttribute('data-s')); }; });
+  }
+  function irA(s) {
+    if (s === SEC) return;
+    if (SEC === 'plantillas' && plSucia()) {
+      MK.confirmar('La plantilla «' + (PED.nombre || 'nueva') + '» tiene cambios sin guardar. ¿Salir sin guardarla?', function () { PED = PORIG ? cp(PORIG) : null; if (!PORIG) PSEL = ''; ir(s); }, { titulo: 'Plantilla sin guardar', boton: 'Salir sin guardar', peligro: true });
+      return;
+    }
+    ir(s);
+  }
+  function ir(s) { SEC = s; try { history.replaceState(null, '', '#' + s); } catch (e) {} pintarMenu(); pintarSeccion(); if (innerWidth < 900) { var c = document.getElementById('ajCuerpo'); if (c) c.scrollIntoView({ block: 'start' }); } }
+  function pintarSeccion() {
+    var el = document.getElementById('ajCuerpo'); if (!el) return;
+    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, avisos: secAvisos, firma: secFirma }[SEC] || secEtapas)(el); }
+    catch (e) { console.error(e); el.innerHTML = '<div class="aviso rj">No se pudo mostrar esta sección: ' + MK.esc(e.message) + '</div>'; }
+  }
+
+  /* ═══ 1 · Etapas ═══ */
+  function vivoEtapas() {
+    var ab = (OPS || []).filter(function (p) { return p.abierta; }), pond = 0, val = 0, exc = 0, por = {};
+    ab.forEach(function (p) {
+      var pr = Number(ED.probabilidades[p.estado]); if (!isFinite(pr)) pr = 0;
+      pond += (Number(p.valor) || 0) * pr / 100; val += Number(p.valor) || 0;
+      var lim = Number((ED.limitesDias || {})[p.estado]) || 0, pasa = lim > 0 && Number(p.diasEtapa) > lim;
+      if (pasa) exc++;
+      var o = por[p.estado] = por[p.estado] || { n: 0, exc: 0 }; o.n++; if (pasa) o.exc++;
+    });
+    return { n: ab.length, pond: pond, val: val, exc: exc, por: por };
+  }
+  function secEtapas(el) {
+    var v = vivoEtapas();
+    el.innerHTML = '<div class="sec-h"><div><h2>Etapas del embudo</h2><p>La <b>probabilidad</b> de cada etapa arma el valor ponderado (lo que de verdad se espera cerrar). Los <b>días máximos</b> marcan una oportunidad como «pasada de tiempo» si se queda quieta más de eso en la etapa.</p></div></div>' +
+      '<div class="kp2" id="etVivo"></div>' +
+      '<div class="tbw"><table class="tb et"><thead><tr><th>Etapa</th><th>Probabilidad</th><th>Días máximos</th><th class="r">Hoy</th></tr></thead><tbody>' +
+      ABIERTAS.map(function (s) {
+        var tieneLim = (REC.limitesDias && REC.limitesDias[s] !== undefined) || (ED.limitesDias && ED.limitesDias[s] !== undefined);
+        return '<tr><td>' + MK.ETAPA_TAG(s) + '</td>' +
+          '<td data-l="PROBABILIDAD"><span class="uni"><input class="in n" type="number" min="0" max="100" step="1" inputmode="numeric" data-k="probabilidades.' + MK.esc(s) + '" data-t="int" value="' + MK.esc(ED.probabilidades[s]) + '" aria-label="Probabilidad de ' + MK.esc(s) + '"> %</span>' + recHtml('probabilidades.' + s) + '</td>' +
+          '<td data-l="DÍAS MÁXIMOS">' + (tieneLim ? '<span class="uni"><input class="in n" type="number" min="1" max="180" step="1" inputmode="numeric" data-k="limitesDias.' + MK.esc(s) + '" data-t="int" value="' + MK.esc(ED.limitesDias[s]) + '" aria-label="Días máximos en ' + MK.esc(s) + '"> días</span>' + recHtml('limitesDias.' + s) : '<span class="muted small">No aplica: queda en espera hasta la fecha de retomar.</span>') + '</td>' +
+          '<td class="r small" id="etHoy-' + ABIERTAS.indexOf(s) + '"></td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="small muted" style="margin-top:8px">Firmado y Pasado a cartera cuentan siempre 100 % y Rechazado 0 %: no entran en el embudo abierto. ' + (OPS ? '' : 'Cargando las oportunidades de hoy…') + '</p>';
+    pintarVivoEtapas(v);
+    activarEntradas(function () { pintarVivoEtapas(vivoEtapas()); });
+  }
+  function pintarVivoEtapas(v) {
+    var k = document.getElementById('etVivo'); if (!k) return;
+    var base = { pond: 0, exc: 0 };
+    if (OPS) { OPS.filter(function (p) { return p.abierta; }).forEach(function (p) { var pr = Number(AJ.probabilidades[p.estado]) || 0, lim = Number((AJ.limitesDias || {})[p.estado]) || 0; base.pond += (Number(p.valor) || 0) * pr / 100; if (lim > 0 && Number(p.diasEtapa) > lim) base.exc++; }); }
+    var dPond = v.pond - base.pond, dExc = v.exc - base.exc;
+    k.innerHTML = OPS ? '<div class="kpi"><b class="num">' + MK.num(v.n) + '</b><span>Oportunidades abiertas</span></div>' +
+      '<div class="kpi"><b class="num">' + MK.dinero(v.val) + '</b><span>Valor abierto sin ponderar</span></div>' +
+      '<div class="kpi"><b class="num">' + MK.dinero(v.pond) + '</b><span>Ponderado con estos valores' + (Math.abs(dPond) > .004 ? ' <em class="' + (dPond > 0 ? 'up' : 'down') + '">' + (dPond > 0 ? '+' : '−') + MK.dinero(Math.abs(dPond)).replace('B/. ', '') + '</em>' : '') + '</span></div>' +
+      '<div class="kpi"><b class="num">' + MK.num(v.exc) + '</b><span>Pasadas de tiempo hoy' + (dExc ? ' <em class="muted">(' + (dExc > 0 ? '+' : '') + dExc + ' con el cambio)</em>' : '') + '</span></div>'
+      : '<div class="kpi" style="grid-column:1/-1"><div class="cargando" style="padding:6px">Calculando con las oportunidades de hoy…</div></div>';
+    ABIERTAS.forEach(function (s, i) {
+      var c = document.getElementById('etHoy-' + i); if (!c) return; var o = v.por[s] || { n: 0, exc: 0 };
+      c.innerHTML = !OPS ? '' : '<span class="muted">' + o.n + (o.n === 1 ? ' abierta' : ' abiertas') + '</span>' + (o.exc ? ' <span class="tag t-warn">' + o.exc + ' pasada' + (o.exc > 1 ? 's' : '') + '</span>' : '');
+    });
+  }
+
+  /* ═══ 2 · Fuentes y motivos ═══ */
+  function usos(k) {
+    var u = {}; if (!OPS) return u;
+    OPS.forEach(function (p) { var v = String(k === 'fuentes' ? p.fuente || '' : p['motivo perdida'] || '').trim(); if (v) u[v.toLowerCase()] = (u[v.toLowerCase()] || 0) + 1; });
+    return u;
+  }
+  function secListas(el) {
+    function card(k, tit, sub, unidad) {
+      var u = usos(k), l = ED[k] || [];
+      return '<div class="card"><h3>' + tit + '<span class="sp"></span><span class="l muted">' + l.length + '</span></h3><p class="small muted" style="margin-bottom:6px">' + sub + '</p>' +
+        '<div>' + l.map(function (x, i) {
+          var n = u[String(x).trim().toLowerCase()] || 0;
+          return '<div class="it-l"><input class="in sm" data-l="' + k + '" data-i="' + i + '" value="' + MK.esc(x) + '" aria-label="' + MK.esc(tit) + ' ' + (i + 1) + '"><span class="u">' + (OPS ? n + ' ' + unidad : '') + '</span><button class="ib" type="button" title="Quitar" aria-label="Quitar ' + MK.esc(x) + '" data-q="' + k + '" data-i="' + i + '">' + MK.ic('x', 15) + '</button></div>';
+        }).join('') + '</div>' +
+        '<div class="row" style="margin-top:10px"><input class="in sm" id="add-' + k + '" placeholder="Agregar…" maxlength="60"><button class="btn sm" type="button" data-add="' + k + '">' + MK.ic('mas', 14) + 'Agregar</button></div>' +
+        (igual(ED[k], REC[k]) ? '<span class="recbox"><span style="color:var(--ok)">✓</span> Es la lista recomendada</span>' : '<span class="recbox">La lista recomendada tiene ' + REC[k].length + ': ' + MK.esc(REC[k].join(', ')) + '. <button type="button" class="btn gh sm" data-rec="' + k + '">' + MK.ic('renovar', 12) + 'Volver a ella</button></span>') +
+        '</div>';
+    }
+    el.innerHTML = '<div class="sec-h"><div><h2>Fuentes y motivos de pérdida</h2><p>Las listas que se eligen al registrar una oportunidad (¿de dónde viene?) y al cerrarla como perdida (¿por qué?). Alimentan los reportes por fuente y de pérdidas. Cambiar un nombre aquí <b>no cambia</b> las oportunidades que ya lo tienen: esas conservan el nombre viejo.</p></div></div>' +
+      '<div class="grid g2">' + card('fuentes', 'Fuentes', '¿Cómo llegó el prospecto?', 'oport.') + card('motivosPerdida', 'Motivos de pérdida', 'Se piden al marcar una oportunidad como Rechazado.', 'usos') + '</div>';
+    [].forEach.call(el.querySelectorAll('input[data-l]'), function (inp) {
+      var k = inp.getAttribute('data-l'), i = +inp.getAttribute('data-i');
+      inp.classList.toggle('difiere', (AJ[k] || [])[i] !== ED[k][i]);
+      inp.oninput = function () { ED[k][i] = inp.value; inp.classList.toggle('difiere', (AJ[k] || [])[i] !== ED[k][i]); pintarEstado(); };
+      inp.onchange = function () { var v = inp.value.trim(); if (!v) { MK.aviso('El nombre no puede quedar vacío. Usa la X para quitarlo.'); ED[k][i] = (AJ[k] || [])[i] || ''; secListas(el); pintarEstado(); return; } ED[k][i] = v; if (ED[k].some(function (x, j) { return j !== i && String(x).trim().toLowerCase() === v.toLowerCase(); })) MK.aviso('«' + v + '» ya está en la lista.'); pintarEstado(); };
+    });
+    [].forEach.call(el.querySelectorAll('[data-q]'), function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-q'), i = +b.getAttribute('data-i'), x = ED[k][i], n = usos(k)[String(x).trim().toLowerCase()] || 0;
+        ED[k].splice(i, 1); secListas(el); pintarEstado();
+        MK.aviso('«' + x + '» quitado' + (n ? '. Las ' + n + ' oportunidades que lo tienen lo conservan.' : '') + ' Se aplica al guardar.');
+      };
+    });
+    [].forEach.call(el.querySelectorAll('[data-add]'), function (b) {
+      var k = b.getAttribute('data-add'), inp = document.getElementById('add-' + k);
+      var add = function () {
+        var v = inp.value.trim(); if (!v) { inp.focus(); return; }
+        if (ED[k].some(function (x) { return String(x).trim().toLowerCase() === v.toLowerCase(); })) { MK.aviso('«' + v + '» ya está en la lista.'); return; }
+        ED[k].push(v); secListas(el); pintarEstado(); var n = document.getElementById('add-' + k); if (n) n.focus();
+      };
+      b.onclick = add; inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } };
+    });
+    activarRec();
+  }
+
+  /* ═══ 3 · Metas y alertas ═══ */
+  function secMetas(el) {
+    if (!CLI) cargarClientes();
+    el.innerHTML = '<div class="sec-h"><div><h2>Metas y alertas</h2><p>La meta del mes y cuándo el sistema te avisa de una renovación o de alguien a quien no se le ha escrito.</p></div></div>' +
+      '<div class="card">' +
+      '<div class="fila-v"><div><h4>Meta mensual</h4><p>Valor que se espera ganar cada mes (suma de lo firmado: mensual en recurrentes, total en visitas únicas). Se compara en «Mi día comercial» y en Reportes. Deja 0 si no hay meta.</p><div class="hoy" id="mtHoy"></div></div>' +
+      '<div><div class="pref"><span>B/.</span><input class="in" type="number" min="0" step="50" inputmode="decimal" data-k="metaMensual" data-t="num" value="' + MK.esc(ED.metaMensual) + '" aria-label="Meta mensual en balboas"></div>' + recHtml('metaMensual') + '</div></div>' +
+      '<div class="fila-v"><div><h4>Aviso de renovación</h4><p>Cuántos días antes de que venza el contrato de un cliente se marca para renovar (su salud pasa a «atención» por contrato).</p><div class="hoy" id="rnHoy"></div></div>' +
+      '<div><span class="uni"><input class="in n" type="number" min="1" max="365" step="1" inputmode="numeric" data-k="diasRenovacion" data-t="int" value="' + MK.esc(ED.diasRenovacion) + '" aria-label="Días de aviso de renovación"> días antes</span>' + recHtml('diasRenovacion') + '</div></div>' +
+      '<div class="fila-v"><div><h4>Días sin contacto</h4><p>Pasados estos días sin ninguna actividad registrada (llamada, WhatsApp, visita…), una oportunidad abierta cuenta como «sin contacto».</p><div class="hoy" id="scHoy"></div></div>' +
+      '<div><span class="uni"><input class="in n" type="number" min="1" max="365" step="1" inputmode="numeric" data-k="diasSinContacto" data-t="int" value="' + MK.esc(ED.diasSinContacto) + '" aria-label="Días sin contacto"> días</span>' + recHtml('diasSinContacto') + '</div></div>' +
+      '</div>';
+    vivoMetas();
+    activarEntradas(vivoMetas);
+  }
+  function vivoMetas() {
+    var a = document.getElementById('mtHoy'), b = document.getElementById('rnHoy'), c = document.getElementById('scHoy');
+    if (a) {
+      if (!OPS) a.innerHTML = '';
+      else {
+        var mes = MK.hoy.slice(0, 7), g = OPS.filter(function (p) { var f = String(p['fecha cierre'] || p['fecha contrato'] || p['fecha etapa'] || '').slice(0, 7); return p.ganada && f === mes; }), v = g.reduce(function (s, p) { return s + (Number(p.valor) || 0); }, 0), m = Number(ED.metaMensual) || 0;
+        a.innerHTML = 'Este mes van <b>' + MK.dinero(v) + '</b> ganados' + (m ? ' · ' + Math.round(v / m * 100) + ' % de la meta' : '') + '.';
+      }
+    }
+    if (b) {
+      if (!CLI) b.innerHTML = '<span class="muted">Contando contratos…</span>';
+      else if (CLI.error) b.innerHTML = '';
+      else { var n = Number(ED.diasRenovacion) || 0, l = (CLI.clientes || []).filter(function (x) { return x.diasVence != null && x.diasVence !== '' && Number(x.diasVence) >= 0 && Number(x.diasVence) <= n; }); b.innerHTML = 'Hoy, con este valor: <b>' + l.length + '</b> contrato' + (l.length === 1 ? '' : 's') + ' por renovar.'; }
+    }
+    if (c) {
+      if (!OPS) c.innerHTML = '';
+      else { var d = Number(ED.diasSinContacto) || 0, lim = MK.masDias(MK.hoy, -d), s = OPS.filter(function (p) { if (!p.abierta) return false; var u = p.ultimaActividad && p.ultimaActividad.fecha; var f = u || String(p['fecha contacto'] || '').slice(0, 10); return !f || f < lim; }); c.innerHTML = 'Hoy, con este valor: <b>' + s.length + '</b> oportunidad' + (s.length === 1 ? '' : 'es') + ' abierta' + (s.length === 1 ? '' : 's') + ' sin contacto.'; }
+    }
+  }
+  function cargarClientes() {
+    if (cargarClientes._p) return; cargarClientes._p = 1;
+    MK.api('api_crmClientes', MK.pin).then(function (r) { cargarClientes._p = 0; CLI = r && r.ok ? r : { error: 1, clientes: [] }; if (SEC === 'metas') vivoMetas(); }, function () { cargarClientes._p = 0; CLI = { error: 1, clientes: [] }; if (SEC === 'metas') vivoMetas(); });
+  }
+
+  /* ═══ 4 · Plantillas ═══ */
+  function momentos() {
+    var l = (DAT.estados || []).filter(function (e) { return e !== 'Rechazado'; }).concat(['Renovación', 'Cobro', 'General']);
+    PL.forEach(function (p) { if (p.momento && l.indexOf(p.momento) < 0) l.push(p.momento); });
+    return l;
+  }
+  function saludo() { var h = new Date().getHours(); if (ED.tono === 'cercano') return 'Hola'; return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; }
+  function muestra() { return (OPS || []).filter(function (p) { return p.codigoPropuesta === MUESTRA; })[0] || null; }
+  function valores() {
+    var o = muestra() || {}, t = o.proximaTarea || null;
+    return { empresa: o.empresa || '', contacto: o.contacto || '', asesor: (MK.usuario || {}).nombre || '', fecha: MK.fechaLarga(MK.hoy), hora: t && t.hora ? t.hora : '',
+      propuesta: o.codigoPropuesta || '', enlace: o.codigoPropuesta && URL_APP ? URL_APP + '?p=formulario&token=' + encodeURIComponent(o.codigoPropuesta) : '', firma: ED.firma || '', saludo: saludo() };
+  }
+  function pintarTexto(txt, v, wa) {
+    var h = MK.esc(txt || '');
+    if (wa) h = h.replace(/\*([^*\n]+)\*/g, '\u0001$1\u0002');
+    h = h.replace(/\{(\w+)\}/g, function (x, k) {
+      if (!VARS[k]) return '<span class="vbad">{' + k + '} no existe</span>';
+      var val = v[k]; if (!val) return '<span class="vfalta">sin ' + k + '</span>';
+      return '<span class="vv">' + MK.esc(val).replace(/\n/g, '<br>') + '</span>';
+    });
+    return h.replace(/\u0001/g, '<b>').replace(/\u0002/g, '</b>').replace(/\n/g, '<br>');
+  }
+  function revisar(txt, v) { var f = [], m = []; String(txt || '').replace(/\{(\w+)\}/g, function (x, k) { if (!VARS[k]) { if (m.indexOf(k) < 0) m.push(k); } else if (!v[k] && f.indexOf(k) < 0) f.push(k); }); return { falt: f, mal: m }; }
+  function selPl(id) {
+    var p = PL.filter(function (x) { return x.id === id; })[0];
+    if (!p) { PSEL = ''; PED = null; PORIG = null; return; }
+    PSEL = id; PORIG = cp(p); PED = cp(p); PFOCO = 'texto';
+  }
+  function cambiarPl(fn) {
+    if (plSucia()) MK.confirmar('La plantilla «' + (PED.nombre || 'nueva') + '» tiene cambios sin guardar. ¿Descartarlos?', fn, { titulo: 'Plantilla sin guardar', boton: 'Descartar', peligro: true });
+    else fn();
+  }
+  function secPlantillas(el) {
+    if (!PED && PL.length) selPl(PSEL && PL.some(function (x) { return x.id === PSEL; }) ? PSEL : PL[0].id);
+    var ms = momentos(), h = '';
+    h += '<div class="sec-h"><div><h2>Plantillas de mensajes</h2><p>Lo que se escribe al tocar «WhatsApp» o «Correo» en una ficha. Las variables entre llaves se llenan solas con los datos de la oportunidad. Las <b>favoritas</b> salen primero y las <b>desactivadas</b> no se ofrecen.</p></div><span class="sp"></span><button class="btn sm" id="plNueva">' + MK.ic('mas', 14) + 'Nueva plantilla</button></div>';
+    if (DAT.plantillasBase) h += '<div class="aviso az" style="margin-bottom:12px">Estas son las plantillas de fábrica. La primera vez que guardes, crees o borres una, se copian todas a tu lista y desde ahí son tuyas.</div>';
+    var grupos = {}; PL.forEach(function (p) { var m = p.momento || 'General'; (grupos[m] = grupos[m] || []).push(p); });
+    var orden = ms.filter(function (m) { return grupos[m]; }).concat(Object.keys(grupos).filter(function (m) { return ms.indexOf(m) < 0; }));
+    h += '<div class="pl-list">' + (PL.length ? '' : '<span class="muted small">No hay plantillas. Crea la primera.</span>') + orden.map(function (m) {
+      return '<span class="grp"><span class="g">' + MK.esc(m) + '</span>' + grupos[m].map(function (p) {
+        return '<button type="button" class="chip' + (p.id === PSEL ? ' on' : '') + (p.activa === false ? ' off' : '') + '" data-p="' + MK.esc(p.id) + '" title="' + (p.activa === false ? 'Desactivada' : MK.esc(p.canal === 'correo' ? 'Correo' : 'WhatsApp')) + '">' + (p.favorita ? '<span class="st">' + MK.ic('estrella', 12) + '</span>' : '') + MK.ic(p.canal === 'correo' ? 'correo' : 'whatsapp', 12) + MK.esc(p.nombre) + '</button>';
+      }).join('') + '</span>';
+    }).join('') + (PED && !PORIG ? '<span class="g">NUEVA</span><button type="button" class="chip on">' + MK.esc(PED.nombre || 'Plantilla nueva') + '</button>' : '') + '</div>';
+    h += '<div class="card" id="plEd">' + (PED ? edHtml(ms) : MK.vacio('Elige una plantilla o crea una nueva.')) + '</div>';
+    el.innerHTML = h;
+    document.getElementById('plNueva').onclick = function () { cambiarPl(nuevaPl); };
+    [].forEach.call(el.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { var id = b.getAttribute('data-p'); if (id === PSEL && PORIG) return; cambiarPl(function () { selPl(id); secPlantillas(el); pintarEstado(); }); }; });
+    if (PED) activarEd(el);
+  }
+  function edHtml(ms) {
+    var p = PED, nueva = !PORIG, o = PORIG || {};
+    var opsSel = (OPS || []).slice().sort(function (a, b) { return (b.abierta ? 1 : 0) - (a.abierta ? 1 : 0) || String(a.empresa).localeCompare(String(b.empresa), 'es'); });
+    if (!MUESTRA && opsSel.length) { var pref = opsSel.filter(function (x) { return x.abierta && x.contacto; })[0] || opsSel[0]; MUESTRA = pref.codigoPropuesta; }
+    return '<div class="row w" style="margin-bottom:6px;align-items:flex-start"><div style="flex:1;min-width:200px"><div style="font-size:17px;font-weight:700">' + MK.esc(p.nombre || 'Plantilla nueva') + '</div>' +
+      '<div class="meta-pl">' + (nueva ? 'Sin guardar todavía' : MK.esc(p.momento || 'General') + ' · usada ' + (o.usos || 0) + (o.usos === 1 ? ' vez' : ' veces') + (o.actualizado ? ' · editada ' + MK.esc(MK.cuando(String(o.actualizado).slice(0, 10))) + (o.actualizadoPor ? ' por ' + MK.esc(o.actualizadoPor) : '') : '') + (o.base ? ' · de fábrica' : '')) + '</div></div>' +
+      (nueva ? '' : '<div class="row w" style="gap:14px"><label class="ck" title="Las favoritas salen primero"><span class="sw"><input type="checkbox" id="plFav"' + (o.favorita ? ' checked' : '') + '><i></i></span>Favorita</label><label class="ck" title="Las desactivadas no se ofrecen al enviar"><span class="sw"><input type="checkbox" id="plAct"' + (o.activa !== false ? ' checked' : '') + '><i></i></span>Activa</label></div>') + '</div>' +
+      '<div class="ed-grid"><div>' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="plNom">NOMBRE</label><input class="in" id="plNom" maxlength="60" value="' + MK.esc(p.nombre) + '" placeholder="Ej.: Confirmar la visita"></div>' +
+      '<div><label class="lb" for="plMom">MOMENTO</label><select class="sel" id="plMom">' + ms.map(function (m) { return '<option' + (m === (p.momento || 'General') ? ' selected' : '') + '>' + MK.esc(m) + '</option>'; }).join('') + '</select></div></div>' +
+      '<label class="lb">CANAL</label><div class="seg" id="plCanal"><button type="button" data-c="whatsapp" class="' + (p.canal !== 'correo' ? 'on' : '') + '">WhatsApp</button><button type="button" data-c="correo" class="' + (p.canal === 'correo' ? 'on' : '') + '">Correo</button></div>' +
+      '<div id="plAsB"' + (p.canal === 'correo' ? '' : ' hidden') + '><label class="lb" for="plAs">ASUNTO</label><input class="in" id="plAs" value="' + MK.esc(p.asunto) + '"></div>' +
+      '<label class="lb" for="plTx">MENSAJE' + (p.canal !== 'correo' ? ' <span class="muted" style="font-weight:500">· *texto* sale en negrita</span>' : '') + '</label><textarea class="in ta" id="plTx">' + MK.esc(p.texto) + '</textarea>' +
+      '<div class="small muted" style="margin-top:8px">Toca una variable para ponerla donde está el cursor:</div>' +
+      '<div class="vars">' + Object.keys(VARS).map(function (k) { return '<button type="button" data-v="' + k + '" title="' + MK.esc(VARS[k]) + '">{' + k + '}</button>'; }).join('') + '</div>' +
+      '</div><div>' +
+      '<label class="lb" for="plMu">VISTA PREVIA CON</label><select class="sel" id="plMu">' + (opsSel.length ? opsSel.map(function (x) { return '<option value="' + MK.esc(x.codigoPropuesta) + '"' + (x.codigoPropuesta === MUESTRA ? ' selected' : '') + '>' + MK.esc(x.empresa) + ' · ' + MK.esc(x.estado) + '</option>'; }).join('') : '<option value="">' + (OPS ? 'No hay oportunidades' : 'Cargando oportunidades…') + '</option>') + '</select>' +
+      '<div id="plPrev" style="margin-top:10px"></div></div></div>' +
+      '<div class="pie-ed">' + (nueva ? '' : '<button type="button" class="btn bad sm" id="plBorrar">' + MK.ic('basura', 14) + 'Borrar</button><button type="button" class="btn sm" id="plDup">' + MK.ic('documento', 14) + 'Duplicar</button>') +
+      '<span class="sp"></span><span class="small" id="plMsg" style="color:var(--bad)"></span>' +
+      (nueva ? '<button type="button" class="btn sm" id="plCanc">Cancelar</button>' : '<button type="button" class="btn sm gh" id="plDeshacer"' + (plSucia() ? '' : ' hidden') + '>Deshacer cambios</button>') +
+      '<button type="button" class="btn pri" id="plGuardar"' + (plSucia() ? '' : ' disabled') + '>' + (nueva ? 'Crear plantilla' : 'Guardar plantilla') + '</button></div>';
+  }
+  function prevPl() {
+    var el = document.getElementById('plPrev'); if (!el || !PED) return;
+    var o = muestra() || {}, v = valores(), wa = PED.canal !== 'correo', r = revisar(PED.texto + (wa ? '' : ' ' + PED.asunto), v), h = '';
+    if (wa) h = '<div class="wa"><div class="wa-h"><div class="av">' + MK.esc(MK.ini(o.contacto || o.empresa || '?')) + '</div><div>' + MK.esc(o.contacto || 'Sin contacto') + '<small>' + MK.esc((o.celular || 'sin celular') + ' · ' + (o.empresa || '')) + '</small></div></div><div class="wa-b"><div class="bub">' + pintarTexto(PED.texto, v, true) + '<span class="hr">' + MK.esc(MK.ahoraHM()) + '</span></div></div></div><div class="chk2"><span class="muted">' + String(PED.texto || '').length + ' caracteres</span>';
+    else h = '<div class="mail"><div class="mh"><div><span>De</span>' + MK.esc(v.asesor) + '</div><div><span>Para</span>' + MK.esc(o.correo || 'sin correo') + '</div></div><div class="ms">' + (PED.asunto ? pintarTexto(PED.asunto, v, false) : '<span class="muted" style="font-weight:500">(sin asunto)</span>') + '</div><div class="mb">' + pintarTexto(PED.texto, v, false) + '</div></div><div class="chk2">';
+    if (r.mal.length) h += '<span class="tag t-bad">No existe: ' + MK.esc(r.mal.map(function (x) { return '{' + x + '}'; }).join(', ')) + '</span>';
+    if (r.falt.length) h += '<span class="tag t-warn">Con esta oportunidad faltaría: ' + MK.esc(r.falt.join(', ')) + '</span>';
+    if (!r.mal.length && !r.falt.length) h += '<span class="tag t-ok">' + MK.ic('check', 12) + 'Todo se llena con esta oportunidad</span>';
+    el.innerHTML = h + '</div>';
+  }
+  function marcarPl() {
+    var s = plSucia(), g = document.getElementById('plGuardar'), d = document.getElementById('plDeshacer');
+    if (g && !g._oc) g.disabled = !s; if (d) d.hidden = !s; pintarMenu();
+  }
+  function activarEd(sec) {
+    var nom = document.getElementById('plNom'), mom = document.getElementById('plMom'), as = document.getElementById('plAs'), tx = document.getElementById('plTx');
+    nom.oninput = function () { PED.nombre = nom.value; marcarPl(); };
+    mom.onchange = function () { PED.momento = mom.value; marcarPl(); };
+    as.oninput = function () { PED.asunto = as.value; prevPl(); marcarPl(); }; as.onfocus = function () { PFOCO = 'asunto'; };
+    tx.oninput = function () { PED.texto = tx.value; prevPl(); marcarPl(); }; tx.onfocus = function () { PFOCO = 'texto'; };
+    [].forEach.call(document.querySelectorAll('#plCanal button'), function (b) {
+      b.onclick = function () { PED.canal = b.getAttribute('data-c'); [].forEach.call(document.querySelectorAll('#plCanal button'), function (x) { x.classList.toggle('on', x === b); }); document.getElementById('plAsB').hidden = PED.canal !== 'correo'; if (PED.canal !== 'correo') PFOCO = 'texto'; prevPl(); marcarPl(); };
+    });
+    [].forEach.call(document.querySelectorAll('.vars [data-v]'), function (b) {
+      b.onmousedown = function (e) { e.preventDefault(); };
+      b.onclick = function () {
+        var el = PFOCO === 'asunto' && PED.canal === 'correo' ? as : tx, k = '{' + b.getAttribute('data-v') + '}';
+        var a = el.selectionStart != null ? el.selectionStart : el.value.length, z = el.selectionEnd != null ? el.selectionEnd : a;
+        el.value = el.value.slice(0, a) + k + el.value.slice(z); el.focus(); el.selectionStart = el.selectionEnd = a + k.length;
+        el.dispatchEvent(new Event('input'));
+      };
+    });
+    document.getElementById('plMu').onchange = function () { MUESTRA = this.value; prevPl(); };
+    var b;
+    if ((b = document.getElementById('plGuardar'))) b.onclick = function () { guardarPl(this, sec); };
+    if ((b = document.getElementById('plDeshacer'))) b.onclick = function () { PED = cp(PORIG); secPlantillas(sec); pintarMenu(); };
+    if ((b = document.getElementById('plCanc'))) b.onclick = function () { PED = null; PORIG = null; PSEL = ''; secPlantillas(sec); pintarMenu(); };
+    if ((b = document.getElementById('plDup'))) b.onclick = function () { cambiarPl(function () { var c = normPl(PORIG); c.nombre = (c.nombre + ' (copia)').slice(0, 60); PED = c; PORIG = null; PSEL = ''; secPlantillas(sec); MK.aviso('Copia lista: revísala y toca «Crear plantilla».'); var n = document.getElementById('plNom'); if (n) n.focus(); }); };
+    if ((b = document.getElementById('plBorrar'))) b.onclick = function () { borrarPl(sec); };
+    var fav = document.getElementById('plFav'), act = document.getElementById('plAct');
+    if (fav) fav.onchange = function () { interruptor('favorita', fav.checked, fav, sec); };
+    if (act) act.onchange = function () { interruptor('activa', act.checked, act, sec); };
+    prevPl();
+  }
+  function nuevaPl() {
+    PSEL = ''; PORIG = null; PFOCO = 'texto';
+    PED = { nombre: '', momento: 'General', canal: 'whatsapp', asunto: '', texto: '{saludo} {contacto}, le escribe {asesor} de ECOVSA.\n\n\n{firma}' };
+    ir('plantillas'); secPlantillas(document.getElementById('ajCuerpo')); var n = document.getElementById('plNom'); if (n) n.focus();
+  }
+  /* favorita y activa se guardan al tocarlas, con lo que ya estaba guardado (no con lo que se está escribiendo) */
+  function interruptor(campo, valor, inp, sec) {
+    var base = Object.assign({}, PORIG); base[campo] = valor; inp.disabled = true;
+    MK.api('api_crmGuardarPlantilla', MK.pin, { id: base.id, nombre: base.nombre, momento: base.momento, canal: base.canal, asunto: base.asunto, texto: base.texto, favorita: !!base.favorita, activa: base.activa !== false }).then(function (r) {
+      inp.disabled = false;
+      if (!r || !r.ok) { inp.checked = !valor; MK.aviso((r && r.error) || 'No se pudo guardar.'); return; }
+      PORIG[campo] = valor; PED[campo] = valor;
+      MK.aviso(campo === 'favorita' ? (valor ? 'Marcada como favorita' : 'Ya no es favorita') : (valor ? 'Plantilla activada' : 'Plantilla desactivada: ya no se ofrece al enviar'));
+      recargarPlantillas(PSEL, sec);
+    }, function (e) { inp.disabled = false; inp.checked = !valor; MK.aviso('Sin conexión: ' + e.message); });
+  }
+  function guardarPl(btn, sec) {
+    var msg = document.getElementById('plMsg'), p = PED;
+    if (!String(p.nombre || '').trim()) { msg.textContent = 'Ponle un nombre.'; document.getElementById('plNom').focus(); return; }
+    if (!String(p.texto || '').trim()) { msg.textContent = 'Escribe el mensaje.'; document.getElementById('plTx').focus(); return; }
+    var mal = revisar(p.texto + ' ' + (p.asunto || ''), {}).mal;
+    if (mal.length) { msg.textContent = 'Corrige: ' + mal.map(function (x) { return '{' + x + '}'; }).join(', ') + ' no existe.'; return; }
+    if (PL.some(function (x) { return x.id !== PSEL && String(x.nombre).trim().toLowerCase() === String(p.nombre).trim().toLowerCase(); })) { msg.textContent = 'Ya hay una plantilla con ese nombre.'; return; }
+    msg.textContent = '';
+    var o = PORIG || {};
+    var d = { id: PORIG ? PORIG.id : '', nombre: p.nombre.trim(), momento: p.momento, canal: p.canal, asunto: p.canal === 'correo' ? p.asunto : (p.asunto || ''), texto: p.texto, favorita: !!o.favorita, activa: PORIG ? o.activa !== false : true };
+    btn._oc = true; MK.ocupado(btn, true);
+    MK.api('api_crmGuardarPlantilla', MK.pin, d).then(function (r) {
+      btn._oc = false; MK.ocupado(btn, false);
+      if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+      MK.aviso(PORIG ? 'Plantilla «' + d.nombre + '» guardada' : 'Plantilla «' + d.nombre + '» creada');
+      PED = null; PORIG = null; recargarPlantillas(r.id, sec);
+    }, function (e) { btn._oc = false; MK.ocupado(btn, false); msg.textContent = 'Sin conexión: ' + e.message; });
+  }
+  function borrarPl(sec) {
+    var p = PORIG; if (!p) return;
+    MK.confirmar('«' + p.nombre + '» se borra y ya no se ofrece al enviar mensajes. Si solo quieres dejar de usarla, mejor desactívala.', function () {
+      MK.api('api_crmBorrarPlantilla', MK.pin, p.id).then(function (r) {
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo borrar.'); return; }
+        MK.aviso('Plantilla borrada'); PED = null; PORIG = null; PSEL = ''; recargarPlantillas('', sec);
+      }, function (e) { MK.aviso('Sin conexión: ' + e.message); });
+    }, { titulo: 'Borrar plantilla', boton: 'Borrar', peligro: true });
+  }
+  function recargarPlantillas(id, sec) {
+    MK.api('api_crmAjustes', MK.pin).then(function (r) {
+      if (!r || !r.ok) return;
+      DAT.plantillas = r.plantillas || []; DAT.plantillasBase = r.plantillasBase; PL = DAT.plantillas;
+      if (!plSucia()) { if (id && PL.some(function (x) { return x.id === id; })) selPl(id); else if (!PED) { PSEL = ''; } }
+      if (SEC === 'plantillas') secPlantillas(sec || document.getElementById('ajCuerpo'));
+      pintarMenu();
+    }, function () {});
+  }
+
+  /* ═══ 5 · Notificaciones (igual que Alta › Notificaciones) ═══ */
+  function secAvisos(el) {
+    var h = '<div class="sec-h"><div><h2>Notificaciones</h2><p>A quién se le escribe cuando pasa cada cosa. El correo se abre ya redactado y lo mandas tú desde tu cuenta. Varios correos van separados por coma.</p></div></div>';
+    if (!NOTIF) { el.innerHTML = h + '<div class="aviso">A quién le llega cada aviso lo decide supervisión o gerencia. Si hay que cambiar un correo, pídeselo a ellos.</div>'; return; }
+    h += NOTIF.eventos.map(function (e, i) {
+      return '<div class="ev"><div class="row w"><h4>' + MK.esc(e.titulo) + '</h4><span class="sp"></span><span class="tag ' + (e.activo ? 't-ok' : 't-gris') + '">' + (e.activo ? 'Se usa' : 'Apagado') + '</span></div><div class="ex">' + MK.esc(e.explica) + '</div>' +
+        '<label class="lb" for="nt-' + i + '">CORREOS, SEPARADOS POR COMA</label><input class="in" id="nt-' + i + '" type="text" value="' + MK.esc(e.destinatarios) + '" placeholder="contabilidad@ecovsa.com, kmezua@ecovsa.com" autocomplete="off">' +
+        '<div class="row w" style="margin-top:11px"><label class="ck"><input type="checkbox" id="na-' + i + '"' + (e.activo ? ' checked' : '') + ' style="width:16px;height:16px"> Usar estos correos</label><span class="sp"></span><button type="button" class="btn sm" data-n="' + i + '">Guardar</button></div></div>';
+    }).join('') +
+      '<div class="aviso" style="margin-top:4px"><b>El sistema no manda correos.</b> Cuando ocurre la acción, te abre tu programa de correo con el mensaje escrito y estas direcciones puestas; lo revisas y lo mandas tú. Así sale con tu firma y te queda en Enviados.</div>';
+    el.innerHTML = h;
+    [].forEach.call(el.querySelectorAll('[data-n]'), function (b) { b.onclick = function () { guardarNotificacion(+b.getAttribute('data-n'), b); }; });
+  }
+  function guardarNotificacion(i, btn) {
+    var e = NOTIF.eventos[i], d = document.getElementById('nt-' + i).value, a = document.getElementById('na-' + i).checked;
+    MK.ocupado(btn, true);
+    MK.api('api_guardarNotificacion', MK.pin, e.evento, d, a).then(function (r) {
+      MK.ocupado(btn, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar'); return; }
+      e.destinatarios = (r.destinatarios || []).join(', '); e.activo = !!r.activo;
+      secAvisos(document.getElementById('ajCuerpo')); pintarMenu();
+      MK.aviso('Guardado ✓');
+    }, function () { MK.ocupado(btn, false); MK.aviso('Sin conexión — no se guardó'); });
+  }
+
+  /* ═══ 6 · Firma, tono y agenda ═══ */
+  function secFirma(el) {
+    el.innerHTML = '<div class="sec-h"><div><h2>Firma, tono y agenda</h2><p>Cómo cierran tus mensajes, con qué saludo empiezan y qué horas muestra la Agenda.</p></div></div>' +
+      '<div class="card">' +
+      '<div class="fila-v"><div><h4>Firma</h4><p>Reemplaza a <b>{firma}</b> al final de las plantillas de WhatsApp y de correo.</p><label class="lb" for="fiTx">FIRMA</label><textarea class="in" id="fiTx" rows="3" data-k="firma" maxlength="300" style="min-height:70px">' + MK.esc(ED.firma) + '</textarea>' + recHtml('firma') + '</div>' +
+      '<div><label class="lb">ASÍ SE VE</label><div class="firma-prev" id="fiPrev"></div></div></div>' +
+      '<div class="fila-v"><div><h4>Tono de los mensajes</h4><p>Define el saludo que pone <b>{saludo}</b>. <b>Formal</b>: «Buenos días / Buenas tardes / Buenas noches» según la hora. <b>Cercano</b>: «Hola».</p>' +
+      '<div class="seg" id="toSeg" style="margin-top:10px"><button type="button" data-t="formal" class="' + (ED.tono !== 'cercano' ? 'on' : '') + '">Formal</button><button type="button" data-t="cercano" class="' + (ED.tono === 'cercano' ? 'on' : '') + '">Cercano</button></div>' + recHtml('tono') + '</div>' +
+      '<div><label class="lb">EJEMPLO</label><div class="firma-prev" id="toPrev"></div></div></div>' +
+      '<div class="fila-v"><div><h4>Horario de la agenda</h4><p>La Agenda muestra el día desde esta hora hasta esta otra.</p></div>' +
+      '<div><div class="grid g2" style="gap:10px"><div><label class="lb" for="hi">DESDE</label><input class="in" type="time" id="hi" step="1800" data-k="horaInicio" value="' + MK.esc(ED.horaInicio) + '">' + recHtml('horaInicio') + '</div>' +
+      '<div><label class="lb" for="hf">HASTA</label><input class="in" type="time" id="hf" step="1800" data-k="horaFin" value="' + MK.esc(ED.horaFin) + '">' + recHtml('horaFin') + '</div></div><div class="small" id="hMsg" style="color:var(--bad);margin-top:6px"></div></div></div>' +
+      '</div>';
+    var prev = function () {
+      document.getElementById('fiPrev').textContent = '…\n\n' + (ED.firma || '');
+      document.getElementById('toPrev').textContent = saludo() + ' Ana, le escribe ' + ((MK.usuario || {}).nombre || '') + ' de ECOVSA.';
+      document.getElementById('hMsg').textContent = ED.horaInicio && ED.horaFin && ED.horaInicio >= ED.horaFin ? 'La hora de inicio debe ser antes de la de fin.' : '';
+    };
+    prev();
+    [].forEach.call(document.querySelectorAll('#toSeg button'), function (b) {
+      b.onclick = function () { ED.tono = b.getAttribute('data-t'); [].forEach.call(document.querySelectorAll('#toSeg button'), function (x) { x.classList.toggle('on', x === b); }); refrescarRec('tono'); pintarEstado(); prev(); };
+    });
+    activarEntradas(prev);
+  }
+
+  /* ═══ Carga ═══ */
+  function aplicar(r, conservar) {
+    DAT = r; REC = r.recomendados || {};
+    var viejoAJ = AJ, cambiosAntes = conservar && AJ ? cambios() : [];
+    AJ = cp(r.ajustes || {});
+    ED = cp(AJ);
+    ['probabilidades', 'limitesDias'].forEach(function (g) { AJ[g] = AJ[g] || {}; ED[g] = ED[g] || {}; });
+    cambiosAntes.forEach(function (c) { set(ED, c[0], cp(c[1])); });   // lo que se estaba editando no se pierde
+    PL = r.plantillas || [];
+    NOTIF = r.notificaciones && r.notificaciones.ok ? r.notificaciones : null;
+    if (PSEL && !PL.some(function (x) { return x.id === PSEL; }) && PORIG) { PSEL = ''; PED = null; PORIG = null; }
+    else if (PSEL && !plSucia()) selPl(PSEL);
+    void viejoAJ;
+  }
+  function cargar(conservar) {
+    return MK.api('api_crmAjustes', MK.pin).then(function (r) {
+      if (!r || !r.ok) { ERR = (r && r.error) || 'No se pudieron leer los ajustes.'; pintarTodo(); return; }
+      ERR = ''; aplicar(r, conservar); pintarTodo();
+    }, function (e) { ERR = 'Sin conexión: ' + e.message; pintarTodo(); });
+  }
+  function cargarOps() {
+    MK.api('api_crmOportunidades', MK.pin).then(function (r) { OPS = r && r.ok ? (r.oportunidades || []) : []; if (AJ) pintarSeccion(); }, function () { OPS = []; if (AJ) pintarSeccion(); });
+  }
+  function pintarTodo() {
+    var m = document.getElementById('main');
+    if (ERR && !AJ) { m.innerHTML = cabecera(); MK.error('ajCuerpo', ERR); return; }
+    if (!AJ) return;
+    if (!document.getElementById('ajMenu')) m.innerHTML = cabecera();
+    pintarMenu(); pintarSeccion(); pintarEstado();
+  }
+  function cabecera() {
+    return '<div class="ph"><div><h1>Plantillas y ajustes</h1><p>Reglas del embudo, listas, metas, mensajes, avisos y tu firma. Lo que cambies aquí se aplica en todo Mercadeo.</p></div><div class="sp"></div>' +
+      '<span class="estado" id="ajEstado">Todo guardado</span><button class="btn gh sm" id="ajDesc" hidden>Descartar</button><button class="btn pri" id="ajGuardar" disabled>Guardar cambios</button></div>' +
+      '<div class="aj"><nav class="subm" id="ajMenu" aria-label="Apartados"></nav><section id="ajCuerpo" style="min-width:0"><div class="cargando">Cargando…</div></section></div>';
+  }
+
+  MK.iniciar('ajustes', function (base) {
+    var h = (location.hash || '').slice(1); if (SECS.some(function (s) { return s[0] === h; })) SEC = h;
+    document.getElementById('main').innerHTML = cabecera();
+    if (base && base.usuario && base.usuario.rol === 'gerente') {
+      /* modo consulta: todo a la vista, nada editable */
+      document.body.classList.add('solo-ver');
+      var soloLeer = function () {
+        [].forEach.call(document.querySelectorAll('#ajCuerpo input, #ajCuerpo textarea, #ajCuerpo select'), function (x) {
+          if (x.id === 'plMu') return;
+          if (x.tagName === 'SELECT' || x.type === 'checkbox' || x.type === 'radio') x.disabled = true; else x.readOnly = true;
+        });
+      };
+      new MutationObserver(soloLeer).observe(document.getElementById('main'), { childList: true, subtree: true });
+      var ph = document.querySelector('#main .ph > div'); if (ph) ph.insertAdjacentHTML('beforeend', '<p class="small muted">Modo consulta: gerencia ve los ajustes; los cambia mercadeo o administración.</p>');
+    }
+    document.getElementById('main').addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('#ajGuardar, #ajDesc'); if (!t) return;
+      if (t.id === 'ajGuardar') guardarTodo(); else descartar();
+    });
+    cargar(false); cargarOps();
+    MK.api('api_urlApp').then(function (u) { URL_APP = typeof u === 'string' ? u : ''; if (SEC === 'plantillas') prevPl(); }, function () {});
+  });
+  window.addEventListener('mk:cambio', function () { cargar(true); OPS = null; CLI = null; cargarOps(); });
+  window.addEventListener('beforeunload', function (e) { if ((AJ && cambios().length) || plSucia()) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>

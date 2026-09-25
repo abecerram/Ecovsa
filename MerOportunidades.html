@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oportunidades · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ── Oportunidades · opción C: tabla densa con pronóstico ── */
+.tabs{margin-bottom:14px}
+.tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.tot>div,.tot>button{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 14px;text-align:left;font:inherit;color:inherit;min-width:0}
+.tot>button{cursor:pointer}.tot>button:hover{border-color:#9db4d8}
+.tot>button.on{border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2);background:#f6f9fd}
+.tot b{display:block;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tot span{font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tot b.am{color:#8a5a00}
+
+.fc-t{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+.fc-t b{color:var(--ink)}
+.fc{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.fc button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.fc button:hover{border-color:#9db4d8}
+.fc button.on{border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2);background:#f6f9fd}
+.fc small{font-size:11.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc small.pas{color:var(--bad)}
+.fc b{display:block;font-size:18px;margin:2px 0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fc .bar-h{height:5px;margin-top:6px}
+.fc .vac{grid-column:1/-1;background:#fff;border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:12.5px;color:var(--muted)}
+
+.fb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:12px}
+.fb-q{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;padding:0 10px;flex:1;min-width:130px;color:var(--muted)}
+.fb-q input{border:0;outline:0;padding:8px 0;font:500 13.5px Archivo,sans-serif;width:100%;color:var(--ink);background:none}
+.fb .sel{width:auto;padding:7px 8px;font-size:13px;max-width:132px}
+.fb .sel.on{border-color:var(--navy2);background:#eaf0fa;color:var(--navy2);font-weight:700}
+.fb .chip .n{font-size:11px;opacity:.8}
+.fb .chk{font-size:12.5px;font-weight:600;color:#3d4a5e;white-space:nowrap}
+.fb-mob{display:none}
+.fb .limpiar{display:none}.fb.act .limpiar{display:inline-flex}
+
+.c-bulk{position:sticky;top:66px;z-index:6;display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--navy);color:#fff;border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.c-bulk.si{display:flex}
+.c-bulk .btn{background:#1b3a6e;border-color:#2c4a7d;color:#fff}
+.c-bulk .btn:hover{border-color:#6f8fc2}
+.c-bulk .sel{width:auto;background:#1b3a6e;border-color:#2c4a7d;color:#fff;padding:5px 8px;font-size:12.5px}
+
+.c-tw{max-width:100%;max-height:calc(100vh - 150px);overflow:auto}
+.c-t{table-layout:fixed;width:100%;min-width:900px;border-collapse:separate;border-spacing:0}
+.c-t th{position:sticky;top:0;z-index:3;padding:9px 8px;white-space:normal;line-height:1.5;vertical-align:bottom}
+.c-t th .ob{border:0;background:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;white-space:nowrap}
+.c-t th .ob:hover{color:var(--navy2)}
+.c-t th .ob.on{color:var(--navy2)}
+.c-t th .ar{opacity:.35;margin-left:3px;font-size:10px}
+.c-t th .ob.on .ar{opacity:1}
+.c-t th .sep{margin:0 5px;color:#b7c0cd}
+.c-t td{padding:7px 8px;font-size:12.5px;vertical-align:middle;overflow:hidden}
+.c-t td.ck,.c-t th.ck{padding-left:12px;padding-right:0}
+.c-t td.c{text-align:center}.c-t th.c{text-align:center}
+.c-t tbody tr:hover td{background:var(--hover)}
+.c-t tr.sel td{background:#eef3fb}
+.c-t tr.cerr td{color:var(--muted)}
+.c-t tr.cerr .c-emp{color:#51607a}
+.c-t input[type=checkbox]{accent-color:var(--navy2);width:15px;height:15px;cursor:pointer;vertical-align:middle}
+.c-t tfoot td{font-weight:700;background:#fafbfd;border-top:1px solid var(--line);position:sticky;bottom:0;z-index:1}
+.c-t td.r,.c-t th.r{text-align:right}
+.c-t .sub{overflow:hidden;text-overflow:ellipsis}
+.c-t td.r .sub{white-space:nowrap}
+.c-t .fecha-c{white-space:nowrap;padding:4px 4px}
+.c-t .tarea span.t1 span{display:inline}
+.c-t .etp{display:flex}.c-t .etp .sel{flex:1;min-width:0;max-width:none}
+.c-t .dl{margin-top:4px;font-size:11px;color:var(--muted);white-space:nowrap}
+.c-t .tarea{max-width:100%;width:100%}
+.c-t .tarea span.t1{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3a4a63}
+.c-t .tarea span.t1 b{margin-right:4px}
+.ul1{margin-top:3px;font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ul1 b{font-weight:600;color:#5b6a80}
+.dn{font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.dn.ok{color:var(--ok)}
+.colw{position:relative}
+.colmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(15,33,64,.18);padding:10px 12px;width:230px}
+.colmenu b{display:block;font-size:11px;letter-spacing:.7px;color:#7a879b;margin-bottom:6px}
+.colmenu .chk{padding:5px 0}
+.c-emp{font-weight:700;color:var(--navy2);line-height:1.25}
+.c-emp:hover{text-decoration:underline}
+.sub{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.etp{display:inline-flex;align-items:center;gap:6px}
+.etp .sel{padding:4px 6px;font-size:12px;width:auto;border-radius:7px;max-width:170px}
+.dias{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.dias.est{color:#8a5a00;background:var(--warn-bg);border-radius:6px;padding:1px 6px}
+.venc{color:var(--bad);font-weight:700}
+.hoyt{color:var(--navy2);font-weight:700}
+.docs{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.docs i{display:inline-block;width:34px;height:5px;border-radius:3px;background:var(--line2);overflow:hidden;position:relative}
+.docs i s{position:absolute;left:0;top:0;bottom:0;background:var(--navy2)}
+.docs.ok i s{background:var(--ok)}
+.fecha-c{border:1px solid transparent;background:none;border-radius:7px;padding:4px 6px;font:600 12.5px Archivo,sans-serif;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.fecha-c:hover{border-color:var(--line);background:#fff}
+.fecha-c.vac{color:var(--muted2);font-weight:500}
+.fecha-c.venc{color:var(--bad)}
+.in-f{border:1px solid #9db4d8;border-radius:7px;padding:3px 5px;font:500 12.5px Archivo,sans-serif;color:var(--ink);width:140px}
+.tarea{display:block;text-align:left;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;max-width:200px;min-width:0}
+.tarea b{font-weight:700;font-size:12px}
+.tarea span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3a4a63}
+.tarea:hover span{color:var(--navy2);text-decoration:underline}
+.tarea:hover span b{text-decoration:none}
+.agendar{display:inline-flex;align-items:center;gap:4px;border:1px dashed #c3cedf;background:#fff;color:var(--navy2);border-radius:7px;padding:3px 8px;font:700 11.5px Archivo,sans-serif;cursor:pointer}
+.agendar:hover{border-color:var(--navy2);border-style:solid}
+.av.sm{width:24px;height:24px;font-size:10px}
+
+/* completar después */
+.cp-l{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cp-r{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,2fr) 140px 300px;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line2)}
+.cp-r:last-child{border-bottom:0}
+.cp-hd{background:#fafbfd;font-size:11px;letter-spacing:.7px;color:#7a879b;font-weight:700;padding:9px 14px;text-transform:uppercase}
+.cp-r .fal{display:flex;flex-wrap:wrap;gap:5px}
+.cp-r .acc{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+
+/* tarjetas (celular) */
+.oc-l{display:grid;gap:10px}
+.oc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.oc.sel{border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2)}
+.oc.cerr{background:#fbfcfd}
+.oc-h{display:flex;gap:10px;align-items:flex-start}
+.oc-h input{margin-top:3px;accent-color:var(--navy2);width:17px;height:17px;flex:none}
+.oc-h .tx{flex:1;min-width:0}
+.oc-k{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
+.oc-k>div{border:1px solid var(--line2);border-radius:9px;padding:6px 8px;min-width:0}
+.oc-k b{display:block;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oc-k small{font-size:11px;color:var(--muted)}
+.oc-e{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.oc-e .sel{flex:1;min-width:0;padding:7px 8px;font-size:13px}
+.oc-t{display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--line2);margin-top:10px;padding-top:9px;font-size:12.5px}
+.oc-t .tarea{max-width:none;flex:1;min-width:0}
+.oc-f{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--muted)}
+.ord-m{display:none}
+
+/* hojas */
+.req{color:var(--bad);font-size:12px;font-weight:700;margin-top:6px;display:none}
+.req.si{display:block}
+.hoja .caja{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fafbfd;font-size:12.5px;margin-top:10px}
+.hoja .caja ul{margin:6px 0 0 18px}
+.hoja textarea.mono{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+
+@media(max-width:1100px){.c-bulk{top:62px}}
+@media(max-width:760px){
+  .fb .sel,.fb .chk{display:none;flex:1 1 44%;max-width:none}
+  .fb.abierto .sel,.fb.abierto .chk{display:flex}
+  .fb.abierto .sel{display:block}
+  .fb-mob{display:inline-flex}
+  .fb .fb-q{min-width:0;flex-basis:100%}
+  .fc{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:150px}
+  .tot{grid-template-columns:1fr 1fr}
+  .tot b{font-size:16px}
+  .ph .btn .tx{display:none}
+  .colw{display:none}
+  .ord-m{display:flex;gap:8px;align-items:center;margin-bottom:10px;font-size:12.5px;color:var(--muted)}
+  .ord-m .sel{width:auto;flex:1;padding:6px 8px;font-size:13px}
+  .c-bulk{top:62px}
+  .cp-hd{display:none}
+  .cp-r{grid-template-columns:1fr;gap:8px}
+  .cp-r .acc{justify-content:flex-start}
+}
+/* gerencia solo consulta */
+body.solo-ver #bt-nueva,body.solo-ver [data-chk],body.solo-ver [data-todos],body.solo-ver label.chk:has([data-todos]),body.solo-ver [data-formulario],body.solo-ver [data-completar],body.solo-ver [data-nueva-tarea],body.solo-ver #bulk{display:none!important}
+body.solo-ver [data-tarea]{cursor:default}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  var D = null, OPS = [], ESTADOS = [], URL_APP = '';
+  var F = { q: '', etapa: '', asesor: '', fuente: '', tipo: '', cerradas: false, lim: false, mes: '' };
+  var ORD = { k: 'tarea', d: 1 }, SEL = {}, VISTA = 'embudo', CARGANDO = false;
+  var CEL = window.matchMedia('(max-width:760px)');
+  var DOCS = [['doc aviso operacion', 'Aviso de operación'], ['doc cedula representante', 'Cédula del representante'], ['doc registro publico', 'Registro público'],
+    ['doc datos generales', 'Datos generales'], ['doc datos bancarios', 'Datos bancarios'], ['doc propuesta firmada', 'Propuesta firmada'], ['doc contrato firmado', 'Contrato firmado']];
+  var CERRADOS = ['Contrato en proceso', 'Firmado', 'Pasado a cartera'];   // desde aquí el formulario ya no recibe datos
+  var COLS = [
+    ['chk', ''], ['empresa', 'Oportunidad'], ['etapa', 'Etapa'], ['valor', 'Valor', 1], ['prob', 'Prob.', 1], ['pond', 'Ponderado', 1], ['dias', 'Días'],
+    ['cierre', 'Cierre esperado'], ['tarea', 'Próxima tarea'], ['ultima', 'Última actividad'], ['asesor', 'Asesor'], ['fuente', 'Fuente'], ['docs', 'Docs']
+  ];
+  var DESC = { valor: 1, prob: 1, pond: 1, dias: 1, docs: 1, ultima: 1 };
+  /* columnas opcionales de la tabla: cada quien deja las que usa (se recuerda en este navegador) */
+  var OPC = [['fuente', 'Fuente (bajo la empresa)'], ['dias', 'Días en la etapa'], ['cierre', 'Cierre esperado'], ['tarea', 'Próxima tarea'], ['ultima', 'Última actividad'], ['asesor', 'Asesor'], ['docs', 'Documentos']];
+  var K_COLS = 'mer_oportunidades_columnas';
+  var VER = (function () {
+    var v = {}; OPC.forEach(function (c) { v[c[0]] = true; });
+    try { var g = JSON.parse(localStorage.getItem(K_COLS) || 'null'); if (g && typeof g === 'object') OPC.forEach(function (c) { if (typeof g[c[0]] === 'boolean') v[c[0]] = g[c[0]]; }); } catch (e) {}
+    return v;
+  })();
+  function guardarCols() { try { localStorage.setItem(K_COLS, JSON.stringify(VER)); } catch (e) {} }
+
+  /* ── utilidades ── */
+  function $(id) { return document.getElementById(id); }
+  var esc = MK.esc;
+  function b0(v) { return MK.dinero(v).replace(/\.00$/, ''); }
+  function clave(n) { return String(n || '').trim().toLowerCase(); }
+  function nombreAsesor(n) {
+    var k = clave(n); if (!k) return '';
+    var a = ((D && D.asesores) || []).filter(function (x) { return clave(x.nombre) === k; })[0];
+    var s = String(a ? a.nombre : n).trim();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function tipoTxt(o) { return o.visitaUnica ? 'Visita única' : 'Recurrente'; }
+  function porOp(cod) { return OPS.filter(function (o) { return o.codigoPropuesta === cod; })[0]; }
+  function enCurso(o) { return (o.abierta && o.estado !== 'Stand-by') || o.estado === 'Firmado'; }
+  function tareaVencida(o) { var t = o.proximaTarea; return !!(o.abierta && t && t.fecha && t.fecha < MK.hoy); }
+  function atrasada(o) { return o.abierta && o.estado !== 'Stand-by' && (o.excedido || tareaVencida(o)); }
+  function mesDe(o) { return o.cierreEsperado ? o.cierreEsperado.slice(0, 7) : 'sin fecha'; }
+  function dotEtapa(e) {
+    var m = { 'Registrado': 'd-gris', 'Formulario enviado': 'd-info', 'Formulario recibido': 'd-info', 'Propuesta enviada': 'd-info', 'En negociación': 'd-warn',
+      'Contrato en proceso': 'd-warn', 'Firmado': 'd-ok', 'Pasado a cartera': 'd-ok', 'Rechazado': 'd-bad', 'Stand-by': 'd-gris' };
+    return '<span class="dot ' + (m[e] || 'd-gris') + '"></span>';
+  }
+  function waNumero(v) {   // igual que Alta: solo celular panameño (8 dígitos que empiezan en 6)
+    var n = String(v || '').replace(/[^0-9]/g, '');
+    if (/^6\d{7}$/.test(n)) return '507' + n;
+    if (/^5076\d{7}$/.test(n)) return n;
+    return '';
+  }
+  function nombresOps(cods) {
+    if (cods.length === 1) { var o = porOp(cods[0]); return o ? o.empresa : cods[0]; }
+    return cods.length + ' oportunidades';
+  }
+  function mostrarErrores(titulo, errores) {
+    MK.hoja('<h2>' + esc(titulo) + '</h2><div class="aviso am" style="margin-top:10px">' + errores.map(esc).join('<br>') + '</div>' +
+      '<div class="pie"><button class="btn pri" onclick="MK.cerrarHoja()">Entendido</button></div>');
+  }
+
+  /* ── filtros ── */
+  function coincide(o) {
+    if (F.etapa && o.estado !== F.etapa) return false;
+    if (F.asesor && clave(o.asesor) !== F.asesor) return false;
+    if (F.fuente && (F.fuente === '—' ? o.fuente : o.fuente !== F.fuente)) return false;
+    if (F.tipo && o.tipoServicio !== F.tipo) return false;
+    if (F.lim && !atrasada(o)) return false;
+    if (F.q) {
+      var q = F.q.toLowerCase();
+      var txt = [o.empresa, o['razon social'], o.codigoPropuesta, o.contacto, o.ruc, o.celular, o.telefono, o.correo, o.zona, o.sector].join(' ').toLowerCase();
+      if (txt.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+  function filtrosActivos() { return !!(F.q || F.etapa || F.asesor || F.fuente || F.tipo || F.lim || F.cerradas); }
+  function listaTabla() {
+    var etapaCerrada = F.etapa && ['Pasado a cartera', 'Rechazado', 'Stand-by'].indexOf(F.etapa) >= 0;
+    var l = OPS.filter(function (o) {
+      return coincide(o) && (F.cerradas || etapaCerrada || enCurso(o)) && (!F.mes || (o.abierta && o.estado !== 'Stand-by' && mesDe(o) === F.mes));
+    });
+    return ordenar(l);
+  }
+  function valorOrden(o, k) {
+    switch (k) {
+      case 'empresa': return clave(o.empresa);
+      case 'etapa': return ESTADOS.indexOf(o.estado);
+      case 'valor': return o.valor;
+      case 'prob': return o.probabilidad;
+      case 'pond': return o.ponderado;
+      case 'dias': return o.abierta ? o.diasEtapa : null;
+      case 'cierre': return o.cierreEsperado || null;
+      case 'tarea': return o.proximaTarea && o.proximaTarea.fecha ? o.proximaTarea.fecha + ' ' + (o.proximaTarea.hora || '99') : null;
+      case 'ultima': return o.ultimaActividad ? o.ultimaActividad.fecha + ' ' + (o.ultimaActividad.hora || '') : null;
+      case 'asesor': return clave(nombreAsesor(o.asesor)) || null;
+      case 'fuente': return clave(o.fuente) || null;
+      case 'docs': return o.docsTotal ? o.docsListos / o.docsTotal : 0;
+    }
+    return null;
+  }
+  function ordenar(l) {
+    return l.slice().sort(function (a, b) {
+      var x = valorOrden(a, ORD.k), y = valorOrden(b, ORD.k);
+      if (x == null && y == null) return clave(a.empresa) < clave(b.empresa) ? -1 : 1;
+      if (x == null) return 1; if (y == null) return -1;   // lo vacío siempre al final
+      if (x < y) return -ORD.d; if (x > y) return ORD.d;
+      return clave(a.empresa) < clave(b.empresa) ? -1 : 1;
+    });
+  }
+
+  /* ── armado de la pantalla ── */
+  function opcionesSel(k, ops, ph) {
+    return '<select class="sel" data-f="' + k + '" aria-label="' + esc(ph) + '"><option value="">' + esc(ph) + '</option>' + ops.map(function (o) {
+      var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o;
+      return '<option value="' + esc(v) + '">' + esc(t) + '</option>';
+    }).join('') + '</select>';
+  }
+  function esqueleto() {
+    var aj = D.ajustes || {};
+    var ases = {}; ((D.asesores || []).map(function (a) { return a.nombre; }).concat(OPS.map(function (o) { return o.asesor; }))).forEach(function (n) { var k = clave(n); if (k && !ases[k]) ases[k] = nombreAsesor(n); });
+    var fuentes = (aj.fuentes || []).slice(); OPS.forEach(function (o) { if (o.fuente && fuentes.indexOf(o.fuente) < 0) fuentes.push(o.fuente); });
+    var tipos = (MK.base.tiposServicio || ['RECURRENTE', 'VISITA UNICA']).map(function (t) { return [t, t === 'VISITA UNICA' ? 'Visita única' : t.charAt(0) + t.slice(1).toLowerCase()]; });
+    $('main').innerHTML =
+      '<div class="ph"><div><h1>Oportunidades</h1><p>Todo lo que está en venta: prospectos, propuestas, negociaciones y contratos por firmar.</p></div><div class="sp"></div>' +
+      '<div class="colw" id="colw"><button class="btn" id="bt-cols" aria-haspopup="true" aria-expanded="false" title="Mostrar u ocultar columnas de la tabla">' + MK.ic('lista', 16) + '<span class="tx">Columnas</span></button>' +
+        '<div class="colmenu" id="colmenu" hidden><b>COLUMNAS DE LA TABLA</b>' + OPC.map(function (c) { return '<label class="chk"><input type="checkbox" data-col="' + c[0] + '"' + (VER[c[0]] ? ' checked' : '') + '> ' + esc(c[1]) + '</label>'; }).join('') +
+        '<p class="small muted" style="margin-top:6px">Oportunidad, etapa y valor siempre se ven.</p></div></div>' +
+      '<button class="btn" id="bt-csv" title="Descargar lo que se ve en un archivo CSV (se abre en Excel)">' + MK.ic('bajar', 16) + '<span class="tx">Exportar</span></button>' +
+      '<button class="btn pri" id="bt-nueva">' + MK.ic('mas', 16) + '<span class="tx">Nueva oportunidad</span></button></div>' +
+      '<div class="tabs" id="tabs"></div>' +
+      '<div id="v-embudo"><div class="tot" id="tot"></div><div class="fc-t" id="fc-t"></div><div class="fc" id="fc"></div></div>' +
+      '<div class="fb" id="fb"><div class="fb-q">' + MK.ic('buscar', 15) + '<input data-f="q" placeholder="Empresa, contacto, RUC…" aria-label="Buscar"></div>' +
+        opcionesSel('etapa', ESTADOS, 'Etapa') + opcionesSel('asesor', Object.keys(ases).map(function (k) { return [k, ases[k]]; }), 'Asesor') +
+        opcionesSel('fuente', fuentes.concat([['—', 'Sin fuente']]), 'Fuente') + opcionesSel('tipo', tipos, 'Tipo de servicio') +
+        '<button type="button" class="chip fb-mob" data-f="mob">' + MK.ic('filtro', 13) + ' Filtros</button>' +
+        '<button type="button" class="chip" data-f="lim" title="Pasaron el límite de días de su etapa o tienen la tarea vencida">' + MK.ic('reloj', 13) + ' Estancadas <span class="n"></span></button>' +
+        '<label class="chk" data-vista="embudo"><input type="checkbox" data-f="cerradas"> Ver cerradas</label>' +
+        '<button type="button" class="btn sm gh limpiar" data-f="limpiar">Limpiar</button></div>' +
+      '<div id="v-tabla"><div class="c-bulk" id="bulk" role="region" aria-label="Acciones en lote"></div>' +
+        '<div class="ord-m"><span>Ordenar por</span><select class="sel" id="ord-m">' + COLS.slice(1).map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('') + '</select>' +
+        '<button class="btn sm" id="ord-d" aria-label="Cambiar sentido"></button></div>' +
+        '<div id="tabla"></div></div>' +
+      '<div id="v-completar" hidden></div>';
+    $('bt-nueva').onclick = function () { MK.captura(); };
+    $('bt-csv').onclick = exportar;
+    var cm = $('colmenu'), bc = $('bt-cols');
+    bc.onclick = function (e) { e.stopPropagation(); cm.hidden = !cm.hidden; bc.setAttribute('aria-expanded', String(!cm.hidden)); };
+    cm.addEventListener('click', function (e) { e.stopPropagation(); });
+    cm.addEventListener('change', function (e) { var k = e.target.getAttribute('data-col'); if (!k) return; VER[k] = e.target.checked; guardarCols(); pintar(); });
+    document.addEventListener('click', function () { if (!cm.hidden) { cm.hidden = true; bc.setAttribute('aria-expanded', 'false'); } });
+    var fb = $('fb');
+    fb.addEventListener('input', function (e) {
+      var k = e.target.getAttribute('data-f'); if (!k) return;
+      if (k === 'cerradas') F.cerradas = e.target.checked;
+      else if (k === 'asesor') F.asesor = e.target.value;
+      else F[k] = e.target.value.trim ? e.target.value.trim() : e.target.value;
+      if (k === 'q') { clearTimeout(fb._t); fb._t = setTimeout(pintar, 120); } else pintar();
+    });
+    fb.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-f]'); if (!b || b.tagName !== 'BUTTON') return;
+      var k = b.getAttribute('data-f');
+      if (k === 'mob') fb.classList.toggle('abierto');
+      if (k === 'lim') { F.lim = !F.lim; pintar(); }
+      if (k === 'limpiar') { F = { q: '', etapa: '', asesor: '', fuente: '', tipo: '', cerradas: false, lim: false, mes: F.mes }; pintar(); }
+    });
+    $('ord-m').onchange = function () { ORD.k = this.value; ORD.d = DESC[ORD.k] ? -1 : 1; pintar(); };
+    $('ord-d').onclick = function () { ORD.d = -ORD.d; pintar(); };
+    $('main').addEventListener('click', clicPrincipal);
+    $('main').addEventListener('change', cambioPrincipal);
+  }
+
+  function sincronizarFiltros() {
+    var fb = $('fb'); if (!fb) return;
+    fb.classList.toggle('act', filtrosActivos());
+    [].forEach.call(fb.querySelectorAll('[data-f]'), function (el) {
+      var k = el.getAttribute('data-f');
+      if (el.tagName === 'SELECT') { if (el.value !== F[k]) el.value = F[k]; el.classList.toggle('on', !!F[k]); }
+      else if (k === 'q' && el !== document.activeElement) el.value = F.q;
+      else if (k === 'cerradas') el.checked = F.cerradas;
+      else if (k === 'lim') { el.classList.toggle('on', F.lim); el.querySelector('.n').textContent = OPS.filter(atrasada).length; }
+    });
+    [].forEach.call(fb.querySelectorAll('[data-vista]'), function (el) { el.hidden = el.getAttribute('data-vista') !== VISTA; });
+    var om = $('ord-m'); if (om) { om.value = ORD.k; $('ord-d').textContent = ORD.d > 0 ? '▲ Ascendente' : '▼ Descendente'; }
+  }
+
+  function pintar() {
+    if (!D) return;
+    sincronizarFiltros();
+    var nComp = OPS.filter(function (o) { return o.porCompletar; }).length;
+    $('tabs').innerHTML = '<button class="' + (VISTA === 'embudo' ? 'on' : '') + '" data-vista-b="embudo">Embudo <span class="n">' + OPS.filter(enCurso).length + '</span></button>' +
+      '<button class="' + (VISTA === 'completar' ? 'on' : '') + '" data-vista-b="completar">Completar después <span class="n">' + nComp + '</span></button>';
+    $('colw').hidden = VISTA !== 'embudo';
+    $('v-embudo').hidden = VISTA !== 'embudo'; $('v-tabla').hidden = VISTA !== 'embudo'; $('v-completar').hidden = VISTA !== 'completar';
+    if (VISTA === 'completar') { pintarCompletar(); return; }
+    pintarPronostico();
+    pintarTabla();
+  }
+
+  /* ── totales y pronóstico ── */
+  function pintarPronostico() {
+    var base = OPS.filter(coincide);
+    var ab = base.filter(function (o) { return o.abierta && o.estado !== 'Stand-by'; });
+    var sb = base.filter(function (o) { return o.estado === 'Stand-by'; }).length;
+    var fir = base.filter(function (o) { return o.estado === 'Firmado'; }).length;
+    var atr = base.filter(atrasada).length;
+    var suma = function (l, k) { return l.reduce(function (s, o) { return s + (Number(o[k]) || 0); }, 0); };
+    $('tot').innerHTML =
+      '<div><b class="num">' + ab.length + '</b><span>Abiertas</span></div>' +
+      '<div><b class="num">' + b0(suma(ab, 'valor')) + '</b><span>Valor en juego</span></div>' +
+      '<div><b class="num">' + b0(suma(ab, 'ponderado')) + '</b><span title="Valor × probabilidad de cada etapa">Ponderado</span></div>' +
+      '<button class="' + (F.lim ? 'on' : '') + '" data-acc="lim" title="Toca para ver solo estas"><b class="num' + (atr ? ' am' : '') + '">' + atr + '</b><span>Estancadas o vencidas</span></button>' +
+      (fir ? '<button class="' + (F.etapa === 'Firmado' ? 'on' : '') + '" data-acc="firmadas" title="Toca para ver solo estas"><b class="num">' + fir + '</b><span title="Firmadas: falta pasarlas a cartera">Por pasar a cartera</span></button>' : '') +
+      (sb ? '<div><b class="num">' + sb + '</b><span title="No cuentan en el pronóstico">En stand-by</span></div>' : '');
+    var meses = {};
+    ab.forEach(function (o) { var m = mesDe(o); var x = meses[m] = meses[m] || { m: m, n: 0, v: 0, p: 0 }; x.n++; x.v += o.valor; x.p += o.ponderado; });
+    var l = Object.keys(meses).sort(function (a, b) { return a === 'sin fecha' ? 1 : b === 'sin fecha' ? -1 : a < b ? -1 : 1; }).map(function (k) { return meses[k]; });
+    var mx = l.reduce(function (s, d) { return Math.max(s, d.p); }, 0);
+    var mesHoy = (MK.hoy || '').slice(0, 7);
+    if (F.mes && !meses[F.mes]) F.mes = '';
+    $('fc-t').innerHTML = MK.ic('tendencia', 15) + ' <b>Pronóstico ponderado por mes de cierre esperado</b><span>· toca un mes para filtrar la tabla</span>' +
+      (F.mes ? '<a href="#" data-acc="sinmes">quitar el filtro de ' + esc(F.mes === 'sin fecha' ? 'sin fecha' : MK.mesNombre(F.mes)) + '</a>' : '');
+    $('fc').innerHTML = l.length ? l.map(function (d) {
+      var pas = d.m !== 'sin fecha' && d.m < mesHoy;
+      return '<button class="' + (F.mes === d.m ? 'on' : '') + '" data-mes="' + esc(d.m) + '" aria-pressed="' + (F.mes === d.m) + '">' +
+        '<small class="' + (pas ? 'pas' : '') + '">' + (d.m === 'sin fecha' ? 'Sin fecha de cierre' : esc(MK.mesNombre(d.m))) + (pas ? ' · ya pasó' : '') + '</small>' +
+        '<b>' + b0(d.p) + '</b><small class="num">de ' + b0(d.v) + ' · ' + d.n + ' oport.</small>' +
+        '<div class="bar-h"><i style="width:' + (mx ? Math.max(2, d.p / mx * 100) : 0) + '%"></i></div></button>';
+    }).join('') : '<div class="vac">No hay oportunidades abiertas con estos filtros.</div>';
+  }
+
+  /* ── tabla (computadora) y tarjetas (celular) ── */
+  function diasHTML(o) {
+    if (!o.abierta) return '<span class="muted">—</span>';
+    var e = o.excedido;
+    return '<span class="dias' + (e ? ' est' : '') + '" title="' + (e ? 'Pasó el límite de ' + o.limiteDias + ' días de esta etapa' : 'Días en esta etapa' + (o.limiteDias ? ' (límite ' + o.limiteDias + ')' : '')) + '">' + (e ? MK.ic('reloj', 12) : '') + o.diasEtapa + ' d</span>';
+  }
+  function docsHTML(o) {
+    var t = o.docsTotal || 0, n = o.docsListos || 0;
+    return '<span class="docs' + (t && n >= t ? ' ok' : '') + '" title="Documentos listos">' + '<i><s style="width:' + (t ? n / t * 100 : 0) + '%"></s></i>' + n + '/' + t + '</span>';
+  }
+  function etapaHTML(o) {
+    if (o.estado === 'Pasado a cartera' || SOLO_VER) return MK.ETAPA_TAG(o.estado);
+    return '<span class="etp">' + dotEtapa(o.estado) + '<select class="sel" data-etapa="' + esc(o.codigoPropuesta) + '" aria-label="Etapa de ' + esc(o.empresa) + '">' + ESTADOS.map(function (e) {
+      return '<option value="' + esc(e) + '"' + (e === o.estado ? ' selected' : '') + '>' + (e === 'Pasado a cartera' ? 'Pasar a cartera…' : esc(e)) + '</option>';
+    }).join('') + '</select></span>';
+  }
+  function cierreHTML(o) {
+    var c = o.cierreEsperado;
+    if (!o.abierta || SOLO_VER) return c ? '<span class="muted">' + esc(MK.fechaCorta(c)) + '</span>' : '<span class="muted">—</span>';
+    var venc = c && c < MK.hoy;
+    return '<button class="fecha-c' + (c ? '' : ' vac') + (venc ? ' venc' : '') + '" data-cierre="' + esc(o.codigoPropuesta) + '" title="' + (venc ? 'La fecha de cierre ya pasó · toca para cambiarla' : 'Toca para cambiar la fecha de cierre esperada') + '">' +
+      MK.ic('calendario', 13) + (c ? esc(MK.fechaCorta(c)) : 'Poner fecha') + '</button>';
+  }
+  function tareaHTML(o, enLinea) {
+    var t = o.proximaTarea;
+    if (t && enLinea) {
+      var cl = !o.abierta ? '' : t.fecha && t.fecha < MK.hoy ? 'venc' : t.fecha === MK.hoy ? 'hoyt' : '';
+      return '<button class="tarea" data-tarea="' + esc(o.codigoPropuesta) + '" title="' + esc(t.titulo) + ' · toca para editarla"><span class="t1"><b class="' + cl + '">' + (t.fecha ? esc(MK.cuando(t.fecha)) : 'Sin fecha') + (t.hora ? ' · ' + esc(t.hora) : '') + '</b>' +
+        esc(t.titulo) + (o.tareasAbiertas > 1 ? ' <span class="muted">+' + (o.tareasAbiertas - 1) + '</span>' : '') + '</span></button>';
+    }
+    if (t) {
+      var cls = !o.abierta ? '' : t.fecha && t.fecha < MK.hoy ? 'venc' : t.fecha === MK.hoy ? 'hoyt' : '';
+      return '<button class="tarea" data-tarea="' + esc(o.codigoPropuesta) + '" title="' + esc(t.titulo) + ' · toca para editarla"><b class="' + cls + '">' + (t.fecha ? esc(MK.cuando(t.fecha)) : 'Sin fecha') + (t.hora ? ' · ' + esc(t.hora) : '') + '</b>' +
+        '<span>' + esc(t.titulo) + (o.tareasAbiertas > 1 ? ' <span class="muted" style="display:inline">+' + (o.tareasAbiertas - 1) + '</span>' : '') + '</span></button>';
+    }
+    if (!o.abierta) return '<span class="muted">—</span>';
+    return '<button class="agendar" data-nueva-tarea="' + esc(o.codigoPropuesta) + '" title="Sin próxima tarea: agenda una">' + MK.ic('mas', 12) + ' Agendar</button>';
+  }
+  function pintarTabla() {
+    var l = listaTabla();
+    Object.keys(SEL).forEach(function (k) { if (!l.some(function (o) { return o.codigoPropuesta === k; })) delete SEL[k]; });
+    var cont = $('tabla');
+    if (!OPS.length) { cont.innerHTML = '<div class="card">' + MK.vacio('Todavía no hay oportunidades. Crea la primera con «Nueva oportunidad».') + '</div>'; pintarLote(); return; }
+    if (!l.length) {
+      cont.innerHTML = '<div class="card">' + MK.vacio(F.mes ? 'Ninguna oportunidad con cierre en ese mes y estos filtros.' : 'Ninguna oportunidad coincide con los filtros.') +
+        (filtrosActivos() || F.mes ? '<div style="text-align:center;margin-top:-8px"><button class="btn sm" data-acc="limpiar">Quitar filtros</button></div>' : '') + '</div>';
+      pintarLote(); return;
+    }
+    var scroll = cont.querySelector('.c-tw'), sy = scroll ? scroll.scrollTop : 0;
+    if (CEL.matches) cont.innerHTML = tarjetas(l); else { cont.innerHTML = tabla(l); var nw = cont.querySelector('.c-tw'); if (nw) nw.scrollTop = sy; }
+    pintarLote();
+  }
+
+  function ob(k, t, tit) {
+    var on = ORD.k === k;
+    return '<button type="button" class="ob' + (on ? ' on' : '') + '" data-ord="' + k + '" title="Ordenar por ' + esc(tit || t.toLowerCase()) + '">' + t + '<span class="ar">' + (on ? (ORD.d > 0 ? '▲' : '▼') : '↕') + '</span></button>';
+  }
+  var SEP = '<span class="sep">·</span>';
+  function ultLinea(o) {
+    var a = o.ultimaActividad;
+    if (!a) return '<div class="ul1">Sin actividad registrada</div>';
+    return '<div class="ul1" title="' + esc(a.texto || a.resultado || '') + '">Última: <b>' + esc(MK.cuando(a.fecha)) + ' · ' + esc(MK.TIPOS[a.tipo] || a.tipo) + '</b> ' + esc(a.texto || a.resultado || '') + '</div>';
+  }
+  /* La tabla cabe en el ancho de la pantalla (1366 px): varios datos comparten celda y cada uno se ordena por separado. */
+  function columnas() {
+    var c = [];
+    if (!SOLO_VER) c.push({ k: 'chk', w: '34px', cls: 'ck' });
+    c.push({ k: 'op', w: '23%', th: ob('empresa', 'Oportunidad', 'empresa') + (VER.fuente ? SEP + ob('fuente', 'Fuente') : '') });
+    c.push({ k: 'etapa', w: '170px', th: ob('etapa', 'Etapa') + (VER.dias ? SEP + ob('dias', 'Días', 'días en la etapa') : '') });
+    c.push({ k: 'valor', w: '152px', cls: 'r', th: ob('pond', 'Ponderado') + '<br>' + ob('valor', 'Valor') + SEP + ob('prob', '%', 'probabilidad') });
+    if (VER.cierre) c.push({ k: 'cierre', w: '100px', th: ob('cierre', 'Cierre', 'cierre esperado') });
+    if (VER.tarea || VER.ultima) c.push({ k: 'seg', w: '', th: (VER.tarea ? ob('tarea', 'Próxima tarea') : '') + (VER.tarea && VER.ultima ? '<br>' : '') + (VER.ultima ? ob('ultima', 'Última actividad') : '') });
+    if (VER.asesor) c.push({ k: 'asesor', w: '66px', cls: 'c', th: ob('asesor', 'Asesor') });
+    if (VER.docs) c.push({ k: 'docs', w: '58px', cls: 'c', th: ob('docs', 'Docs', 'documentos listos') });
+    return c;
+  }
+  function celda(k, o) {
+    var cod = o.codigoPropuesta;
+    switch (k) {
+      case 'chk': return '<input type="checkbox" data-chk="' + esc(cod) + '" ' + (SEL[cod] ? 'checked' : '') + ' aria-label="Seleccionar ' + esc(o.empresa) + '">';
+      case 'op': return '<a class="c-emp" href="MerOportunidad.html?id=' + encodeURIComponent(cod) + '">' + esc(o.empresa || cod) + '</a>' +
+        '<span class="sub">' + esc(cod) + ' · ' + tipoTxt(o) + (VER.fuente && o.fuente ? ' · ' + esc(o.fuente) : '') + '</span>' +
+        (o.estado === 'Rechazado' && o['motivo perdida'] ? '<span class="sub" style="color:var(--bad)" title="' + esc(o['motivo perdida']) + '">' + esc(o['motivo perdida']) + '</span>' : '') +
+        (o.estado === 'Stand-by' && o.retomar ? '<span class="sub">Retomar ' + esc(MK.fechaCorta(o.retomar)) + '</span>' : '');
+      case 'etapa': return etapaHTML(o) + (VER.dias && o.abierta ? '<div class="dl">' + diasHTML(o) + ' en la etapa</div>' : '');
+      case 'valor': return '<b class="num">' + b0(o.ponderado) + '</b><span class="sub num">' + (o.valor ? b0(o.valor) + (o.visitaUnica ? ' único' : '/mes') : 'Sin tarifa') + ' · ' + o.probabilidad + ' %</span>';
+      case 'cierre': return '<span data-celda-cierre="' + esc(cod) + '">' + cierreHTML(o) + '</span>';
+      case 'seg': return (VER.tarea ? tareaHTML(o, true) : '') + (VER.ultima ? ultLinea(o) : '');
+      case 'asesor': var n = nombreAsesor(o.asesor); return n ? '<span class="av sm" style="margin:auto" title="' + esc(n) + '">' + esc(MK.ini(n)) + '</span>' : '<span class="muted" title="Sin asesor">—</span>';
+      case 'docs': var t = o.docsTotal || 0, d = o.docsListos || 0; return '<span class="dn' + (t && d >= t ? ' ok' : '') + '" title="Documentos listos: ' + d + ' de ' + t + '">' + d + '/' + t + '</span>';
+    }
+    return '';
+  }
+  function tabla(l) {
+    var cols = columnas();
+    var todos = l.every(function (o) { return SEL[o.codigoPropuesta]; });
+    var h = '<div class="tbw c-tw"><table class="tb c-t"><colgroup>' + cols.map(function (c) { return '<col' + (c.w ? ' style="width:' + c.w + '"' : '') + '>'; }).join('') + '</colgroup><thead><tr>' + cols.map(function (c) {
+      if (c.k === 'chk') return '<th class="ck"><input type="checkbox" data-todos ' + (todos ? 'checked' : '') + ' aria-label="Seleccionar todas las que se ven"></th>';
+      return '<th class="' + (c.cls || '') + '">' + c.th + '</th>';
+    }).join('') + '</tr></thead><tbody>';
+    h += l.map(function (o) {
+      return '<tr class="' + (SEL[o.codigoPropuesta] ? 'sel ' : '') + (enCurso(o) ? '' : 'cerr') + '">' + cols.map(function (c) { return '<td class="' + (c.cls || '') + '">' + celda(c.k, o) + '</td>'; }).join('') + '</tr>';
+    }).join('');
+    var tv = l.reduce(function (s, o) { return s + (o.abierta ? o.valor : 0); }, 0), tp = l.reduce(function (s, o) { return s + (o.abierta ? o.ponderado : 0); }, 0);
+    var nAb = l.filter(function (o) { return o.abierta; }).length;
+    h += '</tbody><tfoot><tr>' + cols.map(function (c) {
+      if (c.k === 'op') return '<td>' + l.length + ' oportunidad' + (l.length === 1 ? '' : 'es') + (nAb !== l.length ? '<span class="sub" style="font-weight:500">totales de las ' + nAb + ' abiertas</span>' : '') + '</td>';
+      if (c.k === 'valor') return '<td class="r"><span class="num">' + b0(tp) + '</span><span class="sub num" style="font-weight:500">de ' + b0(tv) + '</span></td>';
+      return '<td></td>';
+    }).join('') + '</tr></tfoot></table></div>';
+    return h;
+  }
+
+  function tarjetas(l) {
+    var todos = l.every(function (o) { return SEL[o.codigoPropuesta]; });
+    return '<label class="chk small" style="margin:0 0 8px 2px"><input type="checkbox" data-todos ' + (todos ? 'checked' : '') + '> Seleccionar las ' + l.length + ' que se ven</label><div class="oc-l">' + l.map(function (o) {
+      var cod = o.codigoPropuesta, s = !!SEL[cod];
+      return '<div class="oc' + (s ? ' sel' : '') + (enCurso(o) ? '' : ' cerr') + '">' +
+        '<div class="oc-h"><input type="checkbox" data-chk="' + esc(cod) + '" ' + (s ? 'checked' : '') + ' aria-label="Seleccionar ' + esc(o.empresa) + '">' +
+          '<div class="tx"><a class="c-emp" href="MerOportunidad.html?id=' + encodeURIComponent(cod) + '">' + esc(o.empresa || cod) + '</a><span class="sub">' + esc(cod) + ' · ' + tipoTxt(o) + (o.fuente ? ' · ' + esc(o.fuente) : '') + '</span>' +
+          (o.estado === 'Rechazado' && o['motivo perdida'] ? '<span class="sub" style="color:var(--bad)">' + esc(o['motivo perdida']) + '</span>' : '') + '</div>' + (nombreAsesor(o.asesor) ? '<span class="av sm" title="' + esc(nombreAsesor(o.asesor)) + '">' + esc(MK.ini(nombreAsesor(o.asesor))) + '</span>' : '') + '</div>' +
+        '<div class="oc-k"><div><b>' + (o.valor ? b0(o.valor) : '—') + '</b><small>' + (o.visitaUnica ? 'único' : 'mensual') + '</small></div>' +
+          '<div><b>' + b0(o.ponderado) + '</b><small>pond. · ' + o.probabilidad + ' %</small></div>' +
+          '<div><b>' + (o.abierta ? diasHTML(o) : '—') + '</b><small>en la etapa</small></div></div>' +
+        '<div class="oc-e">' + etapaHTML(o) + '<span data-celda-cierre="' + esc(cod) + '">' + cierreHTML(o) + '</span></div>' +
+        '<div class="oc-t">' + MK.ic('tarea', 15) + tareaHTML(o) + '</div>' +
+        '<div class="oc-f">' + docsHTML(o) + (o.ultimaActividad ? '<span>Última actividad ' + esc(MK.cuando(o.ultimaActividad.fecha)) + '</span>' : '<span>Sin actividad</span>') + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function pintarLote() {
+    var ids = Object.keys(SEL), bk = $('bulk'); if (!bk) return;
+    bk.classList.toggle('si', ids.length > 0);
+    if (!ids.length) { bk.innerHTML = ''; return; }
+    var ases = (D.asesores || []).map(function (a) { return String(a.nombre).trim(); });
+    bk.innerHTML = '<b>' + ids.length + ' seleccionada' + (ids.length !== 1 ? 's' : '') + '</b><span class="sp"></span>' +
+      '<select class="sel" data-lote="mover" aria-label="Mover a"><option value="">Mover a…</option>' + ESTADOS.filter(function (e) { return e !== 'Pasado a cartera'; }).map(function (e) { return '<option value="' + esc(e) + '">' + esc(e) + '</option>'; }).join('') + '</select>' +
+      '<select class="sel" data-lote="asesor" aria-label="Reasignar"><option value="">Reasignar a…</option>' + ases.map(function (a) { return '<option value="' + esc(a) + '">' + esc(a) + '</option>'; }).join('') + '</select>' +
+      '<button class="btn sm" data-acc="lote-standby">' + MK.ic('reloj', 14) + ' Stand-by</button>' +
+      '<button class="btn sm" data-acc="lote-perdida">' + MK.ic('x', 14) + ' Marcar perdida</button>' +
+      '<button class="btn sm gh" data-acc="lote-quitar">Quitar selección</button>';
+  }
+
+  /* ── completar después ── */
+  function pintarCompletar() {
+    var l = OPS.filter(function (o) { return o.porCompletar && coincide(o); })
+      .sort(function (a, b) { return String(b['fecha contacto'] || '').localeCompare(String(a['fecha contacto'] || '')); });
+    var c = $('v-completar');
+    if (!l.length) {
+      c.innerHTML = '<div class="card">' + MK.vacio(OPS.some(function (o) { return o.porCompletar; }) ? 'Ninguna captura por completar coincide con los filtros.' : 'Nada pendiente: todas las capturas rápidas ya tienen sus datos.') + '</div>';
+      return;
+    }
+    c.innerHTML = '<p class="small muted" style="margin:-4px 0 10px">Capturas rápidas a las que les faltan datos para cotizar. Complétalas tú en la ficha o mándale el formulario al cliente para que las llene él.</p>' +
+      '<div class="cp-l"><div class="cp-r cp-hd"><div>Oportunidad</div><div>Le falta</div><div>Registrada</div><div></div></div>' + l.map(function (o) {
+        var cod = o.codigoPropuesta, fe = String(o['formulario estado'] || '').toUpperCase(), puede = CERRADOS.indexOf(o.estado) < 0;
+        var fEnv = String(o['formulario enviado'] || ''), fFecha = /^\d{4}-\d{2}-\d{2}/.test(fEnv) ? fEnv.slice(0, 10) : '', fCanal = fFecha ? (fEnv.split(' · ')[1] || '') : '';
+        var envio = fe === 'RECIBIDO' ? '<span class="tag t-ok" style="margin-top:6px">El cliente llenó el formulario</span>'
+          : fe === 'EN PROCESO' ? '<span class="sub" style="margin-top:4px">El cliente empezó a llenar el formulario</span>'
+          : fe === 'ENVIADO' || fFecha ? '<span class="sub" style="margin-top:4px">Formulario enviado' + (fFecha ? ' ' + esc(MK.cuando(fFecha)) : '') + (fCanal ? ' por ' + esc(fCanal) : '') + '</span>' : '';
+        var yaFue = fe === 'RECIBIDO' || fe === 'EN PROCESO' || fe === 'ENVIADO' || !!fFecha;
+        return '<div class="cp-r"><div><a class="c-emp" href="MerOportunidad.html?id=' + encodeURIComponent(cod) + '">' + esc(o.empresa || cod) + '</a><span class="sub">' + esc(cod) + ' · ' + tipoTxt(o) + '</span>' +
+          '<div style="margin-top:4px">' + MK.ETAPA_TAG(o.estado) + '</div></div>' +
+          '<div><div class="fal">' + o.faltan.map(function (f) { return '<span class="tag t-warn">' + esc(f) + '</span>'; }).join('') + '</div>' + envio + '</div>' +
+          '<div class="small">' + (o['fecha contacto'] ? esc(MK.cuando(o['fecha contacto'])) : '<span class="muted">—</span>') + '<span class="sub">' + esc(nombreAsesor(o.asesor) || 'Sin asesor') + '</span></div>' +
+          '<div class="acc"><button class="btn sm" data-completar="' + esc(cod) + '">' + MK.ic('lapiz', 14) + ' Completar</button>' +
+          (puede ? '<button class="btn sm pri" data-formulario="' + esc(cod) + '">' + MK.ic('enlace', 14) + (yaFue ? ' Reenviar formulario' : ' Enviar formulario') + '</button>' : '') + '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  /* ── eventos ── */
+  function clicPrincipal(e) {
+    var t = e.target, b;
+    if (SOLO_VER && t.closest('[data-cierre],[data-tarea],[data-nueva-tarea],[data-completar],[data-formulario],[data-acc^="lote-"]')) return;
+    if ((b = t.closest('[data-vista-b]'))) { VISTA = b.getAttribute('data-vista-b'); SEL = {}; pintar(); return; }
+    if ((b = t.closest('[data-ord]'))) { var k = b.getAttribute('data-ord'); ORD.d = ORD.k === k ? -ORD.d : (DESC[k] ? -1 : 1); ORD.k = k; pintar(); return; }
+    if ((b = t.closest('[data-mes]'))) { var m = b.getAttribute('data-mes'); F.mes = F.mes === m ? '' : m; pintar(); return; }
+    if ((b = t.closest('[data-cierre]'))) { editarCierre(b.getAttribute('data-cierre')); return; }
+    if ((b = t.closest('[data-tarea]'))) { var o = porOp(b.getAttribute('data-tarea')); if (o && o.proximaTarea) MK.tarea(o.proximaTarea); return; }
+    if ((b = t.closest('[data-nueva-tarea]'))) { var o2 = porOp(b.getAttribute('data-nueva-tarea')); if (o2) MK.tarea({ ref: o2.codigoPropuesta, refTipo: 'op', cuenta: o2.empresa, asignado: nombreAsesor(o2.asesor) || undefined }); return; }
+    if ((b = t.closest('[data-completar]'))) { MK.irOportunidad(b.getAttribute('data-completar')); return; }
+    if ((b = t.closest('[data-formulario]'))) { enviarFormulario(porOp(b.getAttribute('data-formulario'))); return; }
+    if ((b = t.closest('[data-acc]'))) {
+      var a = b.getAttribute('data-acc'), ids = Object.keys(SEL);
+      if (a === 'sinmes') { e.preventDefault(); F.mes = ''; pintar(); }
+      else if (a === 'lim') { F.lim = !F.lim; pintar(); }
+      else if (a === 'firmadas') { F.etapa = F.etapa === 'Firmado' ? '' : 'Firmado'; pintar(); }
+      else if (a === 'limpiar') { F = { q: '', etapa: '', asesor: '', fuente: '', tipo: '', cerradas: false, lim: false, mes: '' }; pintar(); }
+      else if (a === 'lote-quitar') { SEL = {}; pintar(); }
+      else if (a === 'lote-standby') hojaStandby(ids);
+      else if (a === 'lote-perdida') hojaPerdida(ids);
+    }
+  }
+  function cambioPrincipal(e) {
+    var t = e.target, v;
+    if (SOLO_VER && (t.hasAttribute('data-todos') || t.hasAttribute('data-chk') || t.hasAttribute('data-etapa') || t.hasAttribute('data-lote'))) return;
+    if (t.hasAttribute('data-todos')) { SEL = {}; if (t.checked) listaTabla().forEach(function (o) { SEL[o.codigoPropuesta] = 1; }); pintar(); return; }
+    if ((v = t.getAttribute('data-chk'))) { if (t.checked) SEL[v] = 1; else delete SEL[v]; pintar(); return; }
+    if ((v = t.getAttribute('data-etapa'))) { var nueva = t.value; pintar(); moverUna(v, nueva); return; }
+    if ((v = t.getAttribute('data-lote'))) {
+      var val = t.value; t.value = ''; if (!val) return;
+      var ids = Object.keys(SEL);
+      if (v === 'asesor') reasignar(ids, val); else moverVarias(ids, val);
+    }
+  }
+
+  /* ── cierre esperado editable en la fila ── */
+  function editarCierre(cod) {
+    var o = porOp(cod); if (!o) return;
+    var celda = document.querySelector('[data-celda-cierre="' + cod.replace(/"/g, '\\"') + '"]'); if (!celda) return;
+    celda.innerHTML = '<input type="date" class="in-f" value="' + esc(o.cierreEsperado) + '" aria-label="Cierre esperado de ' + esc(o.empresa) + '">';
+    var inp = celda.querySelector('input'), hecho = false;
+    inp.focus(); try { if (inp.showPicker) inp.showPicker(); } catch (x) {}
+    var guardar = function () {
+      if (hecho) return; hecho = true;
+      var v = inp.value;
+      if (v === (o.cierreEsperado || '')) { celda.innerHTML = cierreHTML(o); return; }
+      inp.disabled = true;
+      MK.api('api_crmGuardarOportunidad', MK.pin, cod, { 'cierre esperado': v }).then(function (r) {
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar la fecha.'); celda.innerHTML = cierreHTML(o); return; }
+        o.cierreEsperado = v; o['cierre esperado'] = v;
+        MK.aviso('Cierre esperado: ' + (v ? MK.fechaLarga(v) : 'sin fecha'));
+        MK.cambio({ tipo: 'oportunidad', codigo: cod });
+      }, function (e) { MK.aviso(e.message || 'Sin conexión'); celda.innerHTML = cierreHTML(o); });
+    };
+    inp.addEventListener('change', guardar);
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') guardar(); if (e.key === 'Escape') { hecho = true; celda.innerHTML = cierreHTML(o); } });
+    inp.addEventListener('blur', function () { setTimeout(function () { if (!hecho && document.activeElement !== inp) guardar(); }, 150); });
+  }
+
+  /* ── cambios de etapa ── */
+  function moverUna(cod, etapa) {
+    var o = porOp(cod); if (!o || o.estado === etapa) return;
+    if (etapa === 'Pasado a cartera') return pasarACartera(o);
+    if (etapa === 'Rechazado') return hojaPerdida([cod]);
+    if (etapa === 'Stand-by') return hojaStandby([cod]);
+    MK.api('api_crmMoverEtapa', MK.pin, [cod], etapa, {}).then(function (r) {
+      if (!r || !r.ok) { mostrarErrores('No se movió', [(r && r.error) || 'No se pudo cambiar la etapa.']); return; }
+      if (r.errores && r.errores.length) mostrarErrores('No se movió', r.errores);
+      else MK.aviso(o.empresa + ' → ' + etapa + (etapa === 'Firmado' ? ' · ya puedes pasarla a cartera' : ''));
+      MK.cambio({ tipo: 'etapa', codigo: cod });
+    }, function (e) { MK.aviso(e.message || 'Sin conexión'); });
+  }
+  function moverVarias(ids, etapa) {
+    if (!ids.length) return;
+    if (etapa === 'Rechazado') return hojaPerdida(ids);
+    if (etapa === 'Stand-by') return hojaStandby(ids);
+    MK.confirmar(nombresOps(ids) + ' pasan a «' + etapa + '». Queda anotado en el historial de cada una.', function () {
+      MK.aviso('Moviendo…');
+      MK.api('api_crmMoverEtapa', MK.pin, ids, etapa, {}).then(function (r) {
+        if (!r || !r.ok) { mostrarErrores('No se movieron', [(r && r.error) || 'No se pudo cambiar la etapa.']); return; }
+        SEL = {};
+        if (r.errores && r.errores.length) mostrarErrores(r.movidas + ' movida' + (r.movidas === 1 ? '' : 's') + ' a «' + etapa + '»; estas no:', r.errores);
+        else MK.aviso(r.movidas + ' movida' + (r.movidas === 1 ? '' : 's') + ' a «' + etapa + '»');
+        MK.cambio({ tipo: 'etapa' });
+      }, function (e) { MK.aviso(e.message || 'Sin conexión'); });
+    }, { titulo: 'Mover de etapa', boton: 'Mover' });
+  }
+  function reasignar(ids, asesor) {
+    if (!ids.length) return;
+    MK.confirmar(nombresOps(ids) + ' quedan a cargo de ' + asesor + '.', function () {
+      MK.api('api_crmReasignar', MK.pin, ids, asesor).then(function (r) {
+        if (!r || !r.ok) { mostrarErrores('No se reasignaron', [(r && r.error) || 'No se pudo reasignar.']); return; }
+        SEL = {};
+        if (r.errores && r.errores.length) mostrarErrores(r.reasignadas + ' reasignada' + (r.reasignadas === 1 ? '' : 's') + '; estas no:', r.errores);
+        else MK.aviso(r.reasignadas + ' reasignada' + (r.reasignadas === 1 ? '' : 's') + ' a ' + asesor);
+        MK.cambio({ tipo: 'asesor' });
+      }, function (e) { MK.aviso(e.message || 'Sin conexión'); });
+    }, { titulo: 'Reasignar asesor', boton: 'Reasignar' });
+  }
+
+  function hojaPerdida(ids) {
+    if (!ids.length) return;
+    var motivos = ((D.ajustes && D.ajustes.motivosPerdida) || []).slice();
+    if (!motivos.some(function (m) { return clave(m) === 'otro'; })) motivos.push('Otro');
+    var valor = ids.reduce(function (s, c) { var o = porOp(c); return s + (o ? o.valor : 0); }, 0);
+    var h = MK.hoja('<h2>Marcar como perdida</h2><p class="small muted">' + esc(nombresOps(ids)) + (valor ? ' · ' + b0(valor) : '') + '</p>' +
+      '<label class="lb">MOTIVO <span style="color:var(--bad)">(obligatorio)</span></label>' + MK.chips('motivo', motivos.map(function (m) { return [m, esc(m)]; }), '') +
+      '<div class="req" id="dp-req">Elige el motivo: sin él no se puede marcar como perdida.</div>' +
+      '<label class="lb" for="dp-d">DETALLE <span class="muted" id="dp-dop">(opcional)</span></label><textarea class="in" rows="2" id="dp-d" placeholder="Ej.: se quedó con otro proveedor a B/. 45 por visita"></textarea>' +
+      '<label class="chk" style="margin-top:12px"><input type="checkbox" id="dp-r"> Dejar una tarea para volver a intentar en 6 meses</label>' +
+      '<p class="small muted" style="margin-top:8px">Sus tareas pendientes se anulan y queda anotado en el historial.</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="dp-ok">Marcar como perdida</button></div>');
+    MK.activarChips(h);
+    h.querySelector('[data-chips="motivo"]')._cambio = function (v) { $('dp-req').classList.remove('si'); $('dp-dop').textContent = clave(v) === 'otro' ? '(obligatorio: di cuál)' : '(opcional)'; };
+    $('dp-ok').onclick = function () {
+      var btn = this, m = MK.valorChips(h, 'motivo'), det = $('dp-d').value.trim();
+      if (!m) { $('dp-req').textContent = 'Elige el motivo: sin él no se puede marcar como perdida.'; $('dp-req').classList.add('si'); return; }
+      if (clave(m) === 'otro' && !det) { $('dp-req').textContent = 'Escribe cuál fue el motivo.'; $('dp-req').classList.add('si'); $('dp-d').focus(); return; }
+      var motivo = clave(m) === 'otro' ? det : m + (det ? ': ' + det : '');
+      var reintentar = $('dp-r').checked;
+      MK.ocupado(btn, true);
+      MK.api('api_crmMoverEtapa', MK.pin, ids, 'Rechazado', { motivo: motivo }).then(function (r) {
+        MK.ocupado(btn, false);
+        if (!r || !r.ok) { $('dp-req').textContent = (r && r.error) || 'No se pudo guardar.'; $('dp-req').classList.add('si'); return; }
+        MK.cerrarHoja(); SEL = {};
+        var errores = r.errores || [];
+        var tareas = [];
+        if (reintentar) ids.forEach(function (c) {
+          var o = porOp(c); if (!o) return;
+          if (errores.some(function (x) { return x.indexOf(o.empresa) === 0; })) return;
+          tareas.push(MK.api('api_crmGuardarTarea', MK.pin, { titulo: 'Volver a intentar con ' + o.empresa, tipo: 'llamada', ref: c, refTipo: 'op', cuenta: o.empresa, fecha: MK.masDias(MK.hoy, 182), duracion: 15, notas: 'Se perdió por: ' + motivo }).catch(function () {}));
+        });
+        Promise.all(tareas).then(function () {
+          if (errores.length) mostrarErrores(r.movidas + ' marcada' + (r.movidas === 1 ? '' : 's') + ' como perdida; estas no:', errores);
+          else MK.aviso((r.movidas === 1 && ids.length === 1 ? nombresOps(ids) : r.movidas + ' oportunidades') + ' → perdida · ' + m + (reintentar ? ' · tarea para ' + MK.fechaCorta(MK.masDias(MK.hoy, 182)) : ''));
+          MK.cambio({ tipo: 'etapa' });
+        });
+      }, function (e) { MK.ocupado(btn, false); $('dp-req').textContent = e.message || 'Sin conexión'; $('dp-req').classList.add('si'); });
+    };
+  }
+
+  function hojaStandby(ids) {
+    if (!ids.length) return;
+    var atajos = [['En 1 mes', 30], ['En 3 meses', 91], ['En 6 meses', 182]];
+    MK.hoja('<h2>Poner en stand-by</h2><p class="small muted">' + esc(nombresOps(ids)) + '. Sale del pronóstico y vuelve sola a tu agenda en la fecha que elijas.</p>' +
+      '<label class="lb" for="ds-f">RETOMAR EL <span style="color:var(--bad)">(obligatorio)</span></label><div class="row w"><input class="in" type="date" id="ds-f" style="width:170px" min="' + MK.masDias(MK.hoy, 1) + '">' +
+      atajos.map(function (a) { return '<button type="button" class="chip" data-dias="' + a[1] + '">' + a[0] + '</button>'; }).join('') + '</div>' +
+      '<div class="req" id="ds-req">Pon la fecha para retomarla.</div>' +
+      '<label class="lb" for="ds-m">¿POR QUÉ SE PAUSA?</label><input class="in" id="ds-m" placeholder="Ej.: esperan el presupuesto del próximo año">' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ds-ok">Poner en stand-by</button></div>');
+    [].forEach.call(document.querySelectorAll('#hoja [data-dias]'), function (c) {
+      c.onclick = function () { $('ds-f').value = MK.masDias(MK.hoy, Number(c.getAttribute('data-dias'))); $('ds-req').classList.remove('si'); };
+    });
+    $('ds-ok').onclick = function () {
+      var btn = this, f = $('ds-f').value, nota = $('ds-m').value.trim();
+      if (!f) { $('ds-req').textContent = 'Pon la fecha para retomarla.'; $('ds-req').classList.add('si'); return; }
+      if (f <= MK.hoy) { $('ds-req').textContent = 'La fecha para retomarla tiene que ser después de hoy.'; $('ds-req').classList.add('si'); return; }
+      MK.ocupado(btn, true);
+      MK.api('api_crmMoverEtapa', MK.pin, ids, 'Stand-by', { retomar: f, nota: nota }).then(function (r) {
+        MK.ocupado(btn, false);
+        if (!r || !r.ok) { $('ds-req').textContent = (r && r.error) || 'No se pudo guardar.'; $('ds-req').classList.add('si'); return; }
+        MK.cerrarHoja(); SEL = {};
+        if (r.errores && r.errores.length) mostrarErrores(r.movidas + ' en stand-by; estas no:', r.errores);
+        else MK.aviso('En stand-by hasta el ' + MK.fechaCorta(f) + ' · quedó la tarea para retomarla');
+        MK.cambio({ tipo: 'etapa' });
+      }, function (e) { MK.ocupado(btn, false); $('ds-req').textContent = e.message || 'Sin conexión'; $('ds-req').classList.add('si'); });
+    };
+  }
+
+  /* ── pasar a cartera: mismas reglas y avisos que Alta ── */
+  function pasarACartera(o) {
+    var cod = o.codigoPropuesta;
+    if (o.estado !== 'Firmado') {
+      MK.hoja('<h2>Todavía no se puede pasar a cartera</h2><p style="margin-top:8px">' + esc(o.empresa) + ' está en <b>' + esc(o.estado) + '</b>. Solo se pasan a cartera las oportunidades en <b>Firmado</b>' +
+        (o.visitaUnica ? ' (propuesta firmada)' : ' (contrato firmado)') + '.</p>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Entendido</button><button class="btn pri" id="pc-fir">Marcar como firmado</button></div>');
+      $('pc-fir').onclick = function () { MK.cerrarHoja(); moverUna(cod, 'Firmado'); };
+      return;
+    }
+    var docs = o.visitaUnica ? DOCS.filter(function (d) { return d[0] !== 'doc contrato firmado'; }) : DOCS;
+    var faltan = docs.filter(function (d) { return String(o[d[0]] || '').toUpperCase() !== 'SI'; }).map(function (d) { return d[1]; });
+    MK.hoja('<h2>Pasar a cartera</h2><p class="small muted">' + esc(o.empresa) + ' · ' + tipoTxt(o) + (o.valor ? ' · ' + b0(o.valor) + (o.visitaUnica ? '' : ' al mes') : '') + '</p>' +
+      '<div class="caja"><b>Qué va a pasar</b><ul><li>Se envía a operaciones como <b>solicitud de alta</b> para que la aprueben con su ubicación. Viajan todos los datos de la oportunidad.</li>' +
+      '<li>Después se arma el correo para avisarle a contabilidad.</li></ul></div>' +
+      '<label class="lb">DOCUMENTOS</label>' + (faltan.length ? '<div class="aviso am">Faltan ' + faltan.length + ': ' + esc(faltan.join(', ')) + '. Se envía igual y la solicitud lo anota como pendiente.</div>' : '<span class="tag t-ok">' + docs.length + '/' + docs.length + ' completos</span>') +
+      '<div class="req" id="pc-err"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ok" id="pc-ok">Sí, enviar a operaciones</button></div>');
+    $('pc-ok').onclick = function () {
+      var btn = this; MK.ocupado(btn, true, 'Enviando…');
+      MK.api('api_pasarACartera', MK.pin, cod).then(function (r) {
+        MK.ocupado(btn, false);
+        if (!r || !r.ok) {
+          if (r && r.yaEnviada) { MK.cerrarHoja(); mostrarErrores('Ya estaba enviada', [r.error]); MK.cambio({ tipo: 'cartera', codigo: cod }); return; }
+          var er = $('pc-err'); er.textContent = (r && r.error) || 'No se pudo enviar.'; er.classList.add('si'); return;
+        }
+        MK.cerrarHoja();
+        MK.aviso(r.faltan && r.faltan.length ? 'Enviado, pero faltan documentos: ' + r.faltan.join(', ') : 'Enviado a operaciones ✓');
+        MK.cambio({ tipo: 'cartera', codigo: cod });
+        if (r.aviso) mostrarErrores('Revisa esto', [r.aviso]);
+        else setTimeout(function () { correoCartera(cod); }, 400);
+      }, function (e) { MK.ocupado(btn, false); var er = $('pc-err'); er.textContent = e.message || 'Sin conexión'; er.classList.add('si'); });
+    };
+  }
+  function outlook(para, asunto, cuerpo) {
+    return 'https://outlook.live.com/mail/0/deeplink/compose?to=' + encodeURIComponent(para || '') + '&subject=' + encodeURIComponent(asunto || '') + '&body=' + encodeURIComponent(cuerpo || '');
+  }
+  function correoCartera(cod) {
+    MK.api('api_correoCartera', MK.pin, cod).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No pude armar el correo a contabilidad'); return; }
+      MK.hoja('<h2>Avisarle a contabilidad</h2><p class="small muted">' + esc(r.empresa || '') + '</p>' +
+        (r.sinDestinatarios ? '<div class="aviso rj" style="margin-top:10px"><b>No hay correos configurados para contabilidad.</b> Se abre igual, pero vas a tener que escribir tú a quién.</div>' : '') +
+        (r.faltan && r.faltan.length ? '<div class="aviso am" style="margin-top:10px">Al cliente le falta <b>' + esc(r.faltan.join(', ')) + '</b>. El correo lo dice, para que contabilidad no lo descubra facturando.</div>' : '') +
+        '<p class="small" style="margin-top:10px">' + (r.sinDestinatarios ? 'Sin destinatarios' : 'Para: <b>' + esc((r.para || []).join(', ')) + '</b>') + '</p>' +
+        '<textarea class="in mono" id="cc-t" rows="9" style="margin-top:6px">' + esc(r.cuerpo || '') + '</textarea>' +
+        '<p class="small muted" style="margin-top:6px">Se abre tu correo con todo puesto. Lo revisas y lo mandas tú.</p>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><button class="btn" id="cc-cp">Copiar</button><button class="btn pri" id="cc-ab">' + MK.ic('correo', 15) + ' Abrir en mi correo</button></div>');
+      $('cc-ab').onclick = function () {
+        var url = outlook((r.para || []).join(','), r.asunto, $('cc-t').value);
+        if (url.length > 1900) MK.aviso('El mensaje es largo: si te llega cortado, usa Copiar');
+        window.open(url, '_blank');
+      };
+      $('cc-cp').onclick = function () {
+        var t = $('cc-t'); t.select();
+        var ok = false; try { ok = document.execCommand('copy'); } catch (x) {}
+        if (!ok && navigator.clipboard) navigator.clipboard.writeText(t.value).then(function () { MK.aviso('Copiado ✓'); }, function () { MK.aviso('Selecciónalo y cópialo con Ctrl+C'); });
+        else MK.aviso(ok ? 'Copiado ✓' : 'Selecciónalo y cópialo con Ctrl+C');
+      };
+    }, function () { MK.aviso('Sin conexión: no pude armar el correo a contabilidad'); });
+  }
+
+  /* ── enviar el formulario al cliente (mismo enlace que Alta) ── */
+  function enlaceFormulario(cod) {
+    var base = URL_APP || (location.origin + location.pathname.replace(/[^\/]*$/, ''));
+    return base + '?p=formulario&token=' + encodeURIComponent(cod);
+  }
+  function enviarFormulario(o) {
+    if (!o) return;
+    var cod = o.codigoPropuesta, enlace = enlaceFormulario(cod);
+    var tel = waNumero(o.celular) || waNumero(o.telefono), correo = String(o.correo || '').trim();
+    if (!tel && !correo) {
+      var crudo = String(o.celular || o.telefono || '').trim();
+      MK.hoja('<h2>Enviar el formulario a ' + esc(o.empresa) + '</h2>' +
+        '<div class="aviso am" style="margin-top:10px">' + (crudo ? 'Por WhatsApp no se puede: <b>' + esc(crudo) + '</b> no es un celular. En Panamá el celular tiene ocho dígitos y empieza en 6.' : 'Por WhatsApp no se puede: no tiene celular en la ficha.') +
+        '<br>Por correo no se puede: no tiene correo en la ficha.</div>' +
+        '<p class="small muted" style="margin-top:10px">Agrega el celular o el correo en la ficha, o copia el enlace y mándalo tú.</p>' +
+        '<input class="in" readonly id="fm-l" value="' + esc(enlace) + '" style="margin-top:6px">' +
+        '<div class="pie"><button class="btn" id="fm-cp">Copiar enlace</button><button class="btn pri" id="fm-fi">Completar la ficha</button></div>');
+      $('fm-fi').onclick = function () { MK.irOportunidad(cod); };
+      $('fm-cp').onclick = function () {
+        var i = $('fm-l'); i.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (x) {}
+        MK.aviso(ok ? 'Enlace copiado. Cuando lo mandes, márcalo con «Enviar formulario» otra vez.' : 'Selecciónalo y cópialo con Ctrl+C');
+      };
+      return;
+    }
+    var viejo = $('ms-ok'); if (viejo) viejo.removeAttribute('id');
+    MK.mensaje({ canal: tel ? 'whatsapp' : 'correo', telefono: tel, correo: correo, ref: cod, refTipo: 'op', cuenta: o.empresa, contacto: o.contacto,
+      momento: 'Formulario enviado', vars: { enlace: enlace, empresa: o.empresa, contacto: o.contacto || '' } });
+    /* Cuando se abre el mensaje, se marca el formulario como enviado, igual que Alta. */
+    var intentos = 0;
+    (function enganchar() {
+      var b = $('ms-ok');
+      if (!b) { if (++intentos < 60) setTimeout(enganchar, 100); return; }
+      b.addEventListener('click', function () {
+        var hoja = $('hoja'), canal = MK.valorChips(hoja, 'canal') || 'whatsapp';
+        setTimeout(function () {
+          if (hoja.classList.contains('si') && $('ms-ok')) return;   // no se abrió: faltaba el número o el mensaje
+          MK.api('api_marcarFormularioEnviado', MK.pin, cod, canal).then(function (r) {
+            if (!r || !r.ok) { MK.aviso('Se abrió el mensaje, pero no se registró el envío' + (r && r.error ? ': ' + r.error : '')); return; }
+            MK.aviso('Formulario enviado ✓'); MK.cambio({ tipo: 'formulario', codigo: cod });
+          }, function () { MK.aviso('Se abrió el mensaje, pero no se registró el envío'); });
+        }, 60);
+      }, true);
+    })();
+  }
+
+  /* ── exportar lo que se ve ── */
+  function exportar() {
+    if (!D) return;
+    var l = VISTA === 'completar' ? OPS.filter(function (o) { return o.porCompletar && coincide(o); }) : listaTabla();
+    if (!l.length) { MK.aviso('No hay nada que exportar con estos filtros.'); return; }
+    var cab = ['Código', 'Empresa', 'Etapa', 'Tipo de servicio', 'Valor', 'Valor es', 'Probabilidad %', 'Ponderado', 'Días en la etapa', 'Límite de días', 'Cierre esperado',
+      'Próxima tarea (fecha)', 'Próxima tarea', 'Última actividad (fecha)', 'Última actividad', 'Asesor', 'Fuente', 'Sector', 'Contacto', 'Celular', 'Correo', 'Documentos', 'Le falta', 'Motivo de pérdida'];
+    var filas = l.map(function (o) {
+      var t = o.proximaTarea || {}, a = o.ultimaActividad || {};
+      return [o.codigoPropuesta, o.empresa, o.estado, tipoTxt(o), o.valor, o.visitaUnica ? 'único' : 'mensual', o.probabilidad, o.ponderado, o.abierta ? o.diasEtapa : '', o.limiteDias || '',
+        o.cierreEsperado, t.fecha ? t.fecha + (t.hora ? ' ' + t.hora : '') : '', t.titulo || '', a.fecha || '', a.texto || '', nombreAsesor(o.asesor), o.fuente, o.sector, o.contacto,
+        o.celular || o.telefono, o.correo, o.docsListos + '/' + o.docsTotal, (o.faltan || []).join(', '), o['motivo perdida'] || ''];
+    });
+    var celda = function (v) { var s = String(v == null ? '' : v); return /[",\n\r;]/.test(s) || /^\d+\/\d+$/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    var csv = '﻿' + [cab].concat(filas).map(function (r) { return r.map(celda).join(','); }).join('\r\n');
+    var url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    var a = document.createElement('a'); a.href = url; a.download = 'oportunidades_' + (VISTA === 'completar' ? 'por_completar_' : '') + MK.hoy + '.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    MK.aviso(l.length + ' oportunidad' + (l.length === 1 ? '' : 'es') + ' exportada' + (l.length === 1 ? '' : 's'));
+  }
+
+  /* ── datos ── */
+  function recargar() {
+    if (CARGANDO) { recargar._otra = true; return; }
+    CARGANDO = true;
+    MK.api('api_crmOportunidades', MK.pin).then(function (r) {
+      CARGANDO = false;
+      if (!r || !r.ok) { if (!D) MK.error('main', (r && r.error) || 'No se pudieron cargar las oportunidades.'); else MK.aviso((r && r.error) || 'No se pudo actualizar la lista.'); return; }
+      var primera = !D;
+      D = r; OPS = r.oportunidades || []; ESTADOS = r.estados || MK.base.estados || [];
+      if (primera) esqueleto();
+      pintar();
+      if (recargar._otra) { recargar._otra = false; recargar(); }
+    }, function (e) {
+      CARGANDO = false;
+      if (!D) MK.error('main', 'Sin conexión: ' + e.message); else MK.aviso('Sin conexión: no se pudo actualizar la lista.');
+    });
+  }
+
+  var SOLO_VER = false;
+  MK.iniciar('oportunidades', function (base) {
+    SOLO_VER = !!(base && base.usuario && base.usuario.rol === 'gerente');
+    if (SOLO_VER) document.body.classList.add('solo-ver');
+    var p = MK.param('etapa'); if (p) F.etapa = p;
+    var a = MK.param('asesor'); if (a) F.asesor = clave(a);
+    if (MK.param('vista') === 'completar') VISTA = 'completar';
+    if (MK.param('filtro') === 'estancadas') F.lim = true;
+    if (p && ['Pasado a cartera', 'Rechazado', 'Stand-by'].indexOf(p) >= 0) F.cerradas = true;
+    MK.cargando('main', 'Cargando oportunidades…');
+    MK.api('api_urlApp').then(function (u) { if (u && typeof u === 'string') URL_APP = u; }, function () {});
+    recargar();
+    window.addEventListener('mk:cambio', recargar);
+    var alCambiarPantalla = function () { if (D) pintar(); };
+    if (CEL.addEventListener) CEL.addEventListener('change', alCambiarPantalla); else if (CEL.addListener) CEL.addListener(alCambiarPantalla);
+  });
+})();
+</script>
+</body>
+</html>

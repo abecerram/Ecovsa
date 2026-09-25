@@ -110,6 +110,42 @@
   '#ent-aviso .aro{width:96px;height:96px;margin:0 auto;position:relative}#ent-aviso svg{transform:rotate(-90deg)}#ent-aviso .aro b{position:absolute;inset:0;display:grid;place-items:center;font-size:26px}' +
   '#ent-aviso button{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:800 15px Archivo,system-ui,sans-serif;margin-top:10px;cursor:pointer}' +
   '#ent-aviso .si{background:#14306b;color:#fff}#ent-aviso .no{background:#e9eef4;color:#14306b}' +
+  /* computadora (opción C): como la pantalla de bloqueo de Windows. La hora grande
+     arriba a la izquierda, el logo arriba a la derecha y abajo, al centro, el PIN
+     escrito con el teclado. Sin elegir usuario: el PIN dice quién eres. */
+  '#ent .e-pc{display:none}' +
+  '#ent.ancho .e-pan,#ent.ancho .e-tec{display:none}' +
+  '#ent.ancho .e-pc{display:block;position:absolute;inset:0;pointer-events:none}' +
+  '#ent .e-pc-velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 50%,rgba(6,18,40,.78))}' +
+  '#ent .e-pc-reloj{position:absolute;top:40px;left:50px;text-shadow:0 2px 16px rgba(0,0,0,.45)}' +
+  '#ent .e-pc-reloj b{display:block;font-size:78px;font-weight:600;line-height:1;letter-spacing:-2px;font-variant-numeric:tabular-nums}' +
+  '#ent .e-pc-reloj span{font-size:19px;font-weight:600}' +
+  '#ent .e-pc-marca{position:absolute;top:44px;right:50px;display:flex;align-items:center;gap:12px;text-shadow:0 1px 8px rgba(0,0,0,.5)}' +
+  '#ent .e-pc-marca img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:50%;padding:5px}' +
+  '#ent .e-pc-marca b{display:block;letter-spacing:4px;font-size:16px}#ent .e-pc-marca small{font-size:10px;letter-spacing:2px;opacity:.85}' +
+  '#ent .e-pc-zona{position:absolute;left:0;right:0;bottom:84px;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:auto;text-shadow:0 1px 8px rgba(0,0,0,.5)}' +
+  '#ent .e-pc-av{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.93);border:2px solid #fff;box-shadow:0 8px 30px rgba(0,0,0,.35)}' +
+  '#ent .e-pc-av img{width:70px;height:70px;object-fit:contain}' +
+  '#ent .e-pc-av.ini{background:#14306b;color:#fff;font-size:34px;font-weight:700;text-shadow:none}' +
+  '#ent .e-pc-nom{font-size:20px;font-weight:700;text-align:center}#ent .e-pc-sub{font-size:13px;opacity:.92;text-align:center;margin-top:-6px}' +
+  '#ent .e-pc-otro{background:none;border:0;color:#fff;font:600 13px Archivo,system-ui,sans-serif;text-decoration:underline;cursor:pointer;opacity:.9;margin-top:-4px}' +
+  '#ent .e-pc-fila{display:flex;gap:8px;align-items:center}' +
+  '#ent .e-pc-pin{display:flex;gap:8px}' +
+  '#ent .e-pc-pin i{width:44px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:.15s}' +
+  '#ent .e-pc-pin i.on::after{content:"";width:12px;height:12px;border-radius:50%;background:#fff}' +
+  '#ent .e-pc-pin i.cur{box-shadow:0 0 0 2px #F5B301}#ent .e-pc-pin i.ext{opacity:.45}' +
+  '#ent .e-pc-pin.mal{animation:eSac .45s}#ent .e-pc-pin.mal i{border-color:#ff6b5e;background:rgba(255,107,94,.3)}' +
+  '#ent .e-pc-pin.ok i{border-color:#7cc242;background:rgba(124,194,66,.35)}' +
+  '#ent .e-pc-ir{width:52px;height:52px;border-radius:10px;border:0;background:#fff;color:#14306b;font-size:22px;font-weight:800;cursor:pointer}#ent .e-pc-ir[disabled]{opacity:.4;cursor:default}' +
+  '#ent .e-pc-msg{min-height:18px;font-size:13px;font-weight:700;color:#ffd5cf}' +
+  '#ent .e-pc-hint{font-size:12.5px;display:flex;gap:6px;align-items:center;opacity:.9}' +
+  '#ent .e-pc-hint kbd{font:600 11.5px Archivo,system-ui,sans-serif;border:1px solid currentColor;border-bottom-width:2px;border-radius:5px;padding:1px 6px}' +
+  '#ent .e-pc-hint button{background:none;border:0;color:#fff;font:700 12.5px Archivo,system-ui,sans-serif;text-decoration:underline;cursor:pointer;padding:0}' +
+  '#ent .e-pc-tec{display:none;grid-template-columns:repeat(3,64px);gap:6px}#ent.teclado .e-pc-tec{display:grid}' +
+  '#ent .e-pc-tec button{height:44px;border:0;border-radius:9px;background:rgba(255,255,255,.16);color:#fff;font:700 18px Archivo,system-ui,sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
+  '#ent .e-pc-tec button:hover{background:rgba(255,255,255,.26)}' +
+  '#ent.ancho.entrando .e-pc-zona{opacity:0;transition:opacity .3s}' +
+  '#ent.azul .e-pc-velo{display:none}' +
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
   function ponerCss() {
@@ -150,6 +186,15 @@
       '<div class="e-bienv"><b></b><span></span></div>' +
       '<div class="e-tec"><div class="e-tt">' + (op.bloqueo ? 'Escribe tu PIN para seguir' : 'Escribe tu PIN') + '<small>' + (op.bloqueo ? 'Si eres otra persona, escribe el tuyo' : 'Rutas ECOVSA') + '</small></div>' +
         '<div class="e-pts"></div><div class="e-teclas"></div><div class="e-msg" aria-live="polite"></div></div>' +
+      '<div class="e-pc"><div class="e-pc-velo"></div>' +
+        '<div class="e-pc-reloj"><b></b><span></span></div>' +
+        '<div class="e-pc-marca"><img src="' + BASE + 'logo-ecovsa.png" alt=""><div><b>ECOVSA</b><small>ECOLOGÍA · VIDA · SALUD</small></div></div>' +
+        '<div class="e-pc-zona"><div class="e-pc-yo"></div>' +
+          '<div class="e-pc-fila"><div class="e-pc-pin"></div><button type="button" class="e-pc-ir" title="Entrar" aria-label="Entrar" disabled>→</button></div>' +
+          '<div class="e-pc-msg" aria-live="polite"></div>' +
+          '<div class="e-pc-hint">Escribe tu PIN · <kbd>Enter</kbd> · <button type="button" class="e-pc-vtec">teclado en pantalla</button></div>' +
+          '<div class="e-pc-tec"></div>' +
+        '</div></div>' +
       '<button type="button" class="e-fnd-b">🌳 Fondo</button>' +
       '<div class="e-fnd"><b>FONDO DE ESTA PANTALLA</b>' +
         '<button type="button" data-f="vivo">🌳<span>Árbol con movimiento<small>Viento, luz y hojas que caen</small></span></button>' +
@@ -165,6 +210,10 @@
       if (k === 'ok') return '<button type="button" class="e-ok" data-k="ok" disabled>Entrar</button>';
       return '<button type="button" data-k="' + k + '"' + (k === '⌫' ? ' class="e-bs" aria-label="Borrar"' : '') + '>' + k + '</button>';
     }).join('');
+    q('.e-pc-tec').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', 'ok'].map(function (k) {
+      return '<button type="button" data-k="' + k + '"' + (k === '⌫' ? ' aria-label="Borrar"' : '') + '>' + (k === 'ok' ? '→' : k) + '</button>';
+    }).join('');
+    pcYo();
     pts();
     ancho(); fondoAplicar(fondo); reloj();
     E.t.push(setInterval(reloj, 5000));
@@ -198,11 +247,15 @@
     q('.e-fnd').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     q('.e-fnd').addEventListener('click', function (e) { var b = e.target.closest('button[data-f]'); if (!b) return; fondoAplicar(b.getAttribute('data-f')); lsSet(K_FONDO, b.getAttribute('data-f')); q('.e-fnd').classList.remove('si'); });
     d.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b')) return;
+      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b,.e-pc-zona')) return;
       q('.e-fnd').classList.remove('si');
       if (d.classList.contains('abierto')) cerrarTec(); else abrir();
     });
     q('.e-toca').addEventListener('keydown', function (e) { if (e.key === ' ') { abrir(); e.preventDefault(); } });
+    q('.e-pc-tec').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
+    q('.e-pc-ir').addEventListener('click', function (e) { e.stopPropagation(); tecla('ok'); });
+    q('.e-pc-vtec').addEventListener('click', function (e) { e.stopPropagation(); d.classList.toggle('teclado'); });
+    q('.e-pc-yo').addEventListener('click', function (e) { if (!e.target.closest('.e-pc-otro')) return; e.stopPropagation(); E.otro = true; E.pin = ''; pts(); pcYo(); msg(''); });
     E.onVis = function () { if (!document.hidden && E && !E.raf) cuadro(); };
     document.addEventListener('visibilitychange', E.onVis);
     cuadro();
@@ -218,6 +271,29 @@
     E = null;
   }
 
+  /* el círculo de abajo: el logo al abrir el sistema; en una sesión en pausa,
+     quién estaba, con la opción de entrar con otro PIN */
+  function pcYo() {
+    if (!E) return;
+    var y = E.q('.e-pc-yo'), op = E.op, nom = String(op.nombre || '').trim();
+    var h = new Date().getHours(), sal = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+    if (op.bloqueo && nom && !E.otro) {
+      var p = nom.split(/\s+/), ini = ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+      y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
+      y.innerHTML = '<div class="e-pc-av ini">' + esc(ini) + '</div><div class="e-pc-nom">' + esc(nom) + '</div>' +
+        '<div class="e-pc-sub">🔒 Sesión en pausa · escribe tu PIN para seguir donde estabas</div>' +
+        '<button type="button" class="e-pc-otro">¿No eres ' + esc(p[0]) + '? Entrar con otro PIN</button>';
+    } else {
+      y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
+      y.innerHTML = '<div class="e-pc-av"><img src="' + BASE + 'logo-ecovsa.png" alt=""></div><div class="e-pc-nom">Rutas ECOVSA</div>' +
+        '<div class="e-pc-sub">' + sal + ' · escribe tu PIN</div>';
+    }
+  }
+  function msg(t, color) {
+    if (!E) return;
+    var a = E.q('.e-msg'), b = E.q('.e-pc-msg');
+    a.textContent = t; b.textContent = t; a.style.color = color || ''; b.style.color = color || '';
+  }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function ancho() { if (E) E.d.classList.toggle('ancho', innerWidth > innerHeight && innerWidth > 700); }
   function tam() { if (!E) return; var k = devicePixelRatio || 1; E.cv.width = innerWidth * k; E.cv.height = innerHeight * k; }
@@ -226,6 +302,7 @@
     E.q('.e-reloj').innerHTML = (h % 12 || 12) + '<i>:</i>' + ('0' + m).slice(-2);
     var f = x.toLocaleDateString('es-PA', { weekday: 'long', day: 'numeric', month: 'long' });
     E.q('.e-fecha').textContent = f.charAt(0).toUpperCase() + f.slice(1);
+    var pr = E.q('.e-pc-reloj'); if (pr) { pr.querySelector('b').textContent = h + ':' + ('0' + m).slice(-2); pr.querySelector('span').textContent = f; }
   }
   function solSitio() {
     if (!E) return; var W0 = innerWidth + 48, H0 = innerHeight + 48, w0 = 900, h0 = 1350, k = Math.max(W0 / w0, H0 / h0) * 1.06;
@@ -265,12 +342,18 @@
     if (!E) return; var n = Math.max(4, E.pin.length);
     E.q('.e-pts').innerHTML = Array.from({ length: n }, function (_, i) { return '<i class="' + (i < E.pin.length ? 'on' : '') + '"></i>'; }).join('');
     var ok = E.q('.e-ok'); if (ok) ok.disabled = E.pin.length < 4;
+    var pp = E.q('.e-pc-pin');
+    if (pp) {
+      var hh = '';
+      for (var i = 0; i < 6; i++) hh += '<i class="' + (i < E.pin.length ? 'on' : '') + (i === E.pin.length ? ' cur' : '') + (i >= 4 && i > E.pin.length ? ' ext' : '') + '"></i>';
+      pp.innerHTML = hh; E.q('.e-pc-ir').disabled = E.pin.length < 4;
+    }
   }
   function abrir() { if (!E || E.ocupado) return; E.d.classList.add('abierto'); tocarTec(); }
-  function cerrarTec() { if (!E) return; E.d.classList.remove('abierto'); E.pin = ''; pts(); E.q('.e-msg').textContent = ''; }
+  function cerrarTec() { if (!E) return; E.d.classList.remove('abierto'); E.pin = ''; pts(); msg(''); }
   function tocarTec() { if (!E) return; clearTimeout(E.tq); E.tq = setTimeout(function () { if (E && E.d.classList.contains('abierto') && !E.ocupado) cerrarTec(); }, 20000); }
   function tecla(k) {
-    if (!E || E.ocupado) return; tocarTec(); E.q('.e-msg').textContent = '';
+    if (!E || E.ocupado) return; tocarTec(); msg('');
     if (k === '⌫') { E.pin = E.pin.slice(0, -1); pts(); return; }
     if (k === 'ok') { if (E.pin.length >= 4) probar(); return; }
     if (E.pin.length >= 6) return;
@@ -279,13 +362,13 @@
   }
   function probar() {
     if (!E || E.ocupado) return;
-    var pin = E.pin; E.ocupado = true; E.q('.e-msg').textContent = 'Verificando…'; E.q('.e-msg').style.color = '#cfe0ff';
+    var pin = E.pin; E.ocupado = true; msg('Verificando…', '#cfe0ff');
     var validar = E.op.validar || function (p, fin) { fin({ ok: false, error: 'Sin validación' }); };
     validar(pin, function (r) {
       if (!E) return;
-      E.q('.e-msg').style.color = '';
+      msg('');
       if (r && r.ok) {
-        E.q('.e-pts').classList.add('ok'); E.vel = 30; E.q('.e-msg').textContent = '';
+        E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30;
         var nom = String((r.nombre || '')).trim().split(' ')[0];
         E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
         E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
@@ -293,9 +376,9 @@
         setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, r.pausa || 1500);
       } else {
         E.ocupado = false;
-        var p = E.q('.e-pts'); p.classList.add('mal'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
-        E.q('.e-msg').textContent = (r && r.error) || 'PIN no válido · intenta otra vez';
-        setTimeout(function () { if (!E) return; p.classList.remove('mal'); E.pin = ''; pts(); }, 600);
+        var p = E.q('.e-pts'), p2 = E.q('.e-pc-pin'); p.classList.add('mal'); p2.classList.add('mal'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
+        msg((r && r.error) || 'PIN no válido · intenta otra vez');
+        setTimeout(function () { if (!E) return; p.classList.remove('mal'); p2.classList.remove('mal'); E.pin = ''; pts(); }, 600);
       }
     });
   }

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi día comercial · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ── Mi día comercial · opción A «Cabina con la agenda primero» ── */
+.ico-c{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:#eef2f8;color:var(--navy2);flex:none}
+.ico-c svg.i{width:16px;height:16px}
+.lnk{color:var(--navy2);font-weight:600;cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.venc{color:var(--bad);font-weight:700}
+
+/* registrar rápido */
+.a-ql{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.a-ql .lb2{font-size:12px;font-weight:700;color:var(--muted);margin-right:4px}
+
+/* cifras del mes */
+.a-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.a-kpis .kpi{min-width:0}
+.a-kpis .kpi b{font-size:20px}
+.a-kpis .kpi small{display:block;font-size:11.5px;color:var(--muted2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a-kpis .kpi .bar-h{height:5px;margin-top:6px}
+.a-kpis .kpi .bar-h i{background:var(--ok)}
+.a-kpis .kpi em.gris{color:var(--muted2)}
+
+.a-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:start}
+.a-col>.card+.card{margin-top:14px}
+
+/* agenda de hoy */
+.a-atr{border:1px solid #f1c3c4;background:#fffafa;border-radius:12px;padding:6px 12px 4px;margin-bottom:12px}
+.a-atr .t{font-size:12px;font-weight:700;color:var(--bad);letter-spacing:.5px;padding:6px 0 2px;display:flex;gap:6px;align-items:center}
+.a-atr .a-ev{margin:6px 0}
+.a-tl{position:relative;margin-top:4px}
+.a-h{display:grid;grid-template-columns:52px minmax(0,1fr);min-height:44px;border-top:1px solid var(--line2)}
+.a-h>span{font-size:11.5px;color:var(--muted2);padding-top:5px}
+.a-h>div{padding:5px 0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.a-h.sinh{background:#fbfcfe}
+.a-h.sinh>span{font-weight:700;color:var(--muted)}
+.a-ev{position:relative;z-index:3;display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-left:3px solid var(--navy2);border-radius:9px;padding:7px 10px;background:#fff}
+.a-ev.hecha{opacity:.55;border-left-color:var(--ok)}
+.a-ev.hecha .tx b{text-decoration:line-through;font-weight:500}
+.a-ev.tarde{border-left-color:var(--amber)}
+.a-ev.atr{border-left-color:var(--bad)}
+.a-ev .tx{flex:1;min-width:0}
+.a-ev .tx b{font-weight:600;display:block}
+.a-ev .tx small{display:flex;flex-wrap:wrap;gap:0 6px;align-items:center;color:var(--muted);font-size:12px;margin-top:1px}
+.a-ev .tx small svg.i{width:13px;height:13px}
+.a-ev .acc{display:flex;gap:4px;flex:none}
+.a-chk{width:24px;height:24px;border-radius:7px;border:1.5px solid #b8c4d6;background:#fff;display:grid;place-items:center;cursor:pointer;color:transparent;flex:none;padding:0}
+.a-chk svg.i{width:14px;height:14px}
+.a-chk:hover{border-color:var(--ok);color:var(--ok)}
+.a-chk.si{background:var(--ok);border-color:var(--ok);color:#fff;cursor:default}
+.a-now{position:absolute;left:44px;right:0;height:0;border-top:2px solid var(--bad);z-index:2;pointer-events:none}
+.a-now span{position:absolute;left:-46px;top:-9px;font-size:10.5px;font-weight:700;color:#fff;background:var(--bad);border-radius:6px;padding:1px 5px}
+
+/* próximos días */
+.a-sem .it{cursor:pointer}
+.a-sem .it:hover{background:var(--hover)}
+.a-sem .cuando{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.a-sub{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted2);margin:12px 0 2px}
+
+/* lo que te espera */
+.a-grp{border-bottom:1px solid var(--line2)}
+.a-grp:last-child{border:0}
+.a-grp>button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:10px 2px;font:700 13px Archivo,sans-serif;color:var(--ink);cursor:pointer;text-align:left}
+.a-grp>button .n{margin-left:auto}
+.a-grp .body{display:none;padding:0 0 8px}
+.a-grp.open .body{display:block}
+.a-caret{transition:transform .2s;color:var(--muted);display:inline-flex}
+.a-grp.open .a-caret{transform:rotate(90deg)}
+.a-al{padding:9px 0 9px 24px;border-top:1px dashed var(--line2)}
+.a-al .tx b{font-weight:600}
+.a-al .tx small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.a-al .acc{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.a-al .acc .sep{width:1px;height:18px;background:var(--line);margin:0 2px}
+.a-al .acc .btn.gh{font-weight:600;color:var(--muted)}
+.a-al .acc .btn.gh:hover{color:var(--navy2);background:var(--hover)}
+.a-al.sale{opacity:.35;pointer-events:none;transition:opacity .2s}
+.a-mas{padding:6px 0 0 24px}
+
+/* embudo */
+.a-embtot{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.a-embtot b{font-size:20px}
+.mini-bar{display:grid;grid-template-columns:150px minmax(0,1fr) 108px;gap:10px;align-items:center;font-size:12.5px;padding:5px 4px;border-radius:7px;color:var(--ink)}
+.mini-bar:hover{background:var(--hover)}
+.mini-bar .bar-h{height:7px}
+.mini-bar .r{text-align:right;color:var(--muted);white-space:nowrap}
+.mini-bar .r b{color:var(--ink);font-weight:700}
+.mini-bar .ex{display:block;font-size:11px;color:var(--bad);font-weight:600}
+
+/* compras y actividad */
+a.it{color:var(--ink)}
+a.it:hover{background:var(--hover)}
+.feed .it{align-items:flex-start}
+.feed .tx p{font-size:12.5px;color:#3a4a63;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.feed .when{font-size:11.5px;color:var(--muted2);white-space:nowrap;text-align:right}
+
+/* hoja de registro rápido */
+.ql-cuentas{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.ql-cuentas .chip{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.ql-lista{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.ql-lista:empty{display:none}
+.ql-lista button{display:flex;width:100%;text-align:left;gap:10px;align-items:center;padding:9px 12px;border:0;border-bottom:1px solid var(--line2);background:#fff;font:500 13px Archivo,sans-serif;color:var(--ink);cursor:pointer}
+.ql-lista button:last-child{border-bottom:0}
+.ql-lista button:hover{background:var(--hover)}
+.ql-lista button span{flex:1;min-width:0}
+.ql-lista small{display:block;color:var(--muted);font-size:11.5px}
+.ql-lista .vac{padding:12px;color:var(--muted);font-size:13px}
+
+/* la barra del kit se desborda a 390 px: el buscador no se deja encoger */
+.sysbar .srch{min-width:0}
+@media(max-width:1180px){
+  .a-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .a-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:560px){
+  .a-kpis{grid-template-columns:1fr 1fr}
+  .a-kpis .kpi:last-child{grid-column:1/-1}
+  .a-ql .lb2{width:100%}
+  .a-ql .btn{flex:1 1 40%}
+  .a-ql .sp{display:none}
+  .a-ev{flex-wrap:wrap}
+  .a-ev .tx{flex-basis:calc(100% - 40px)}
+  .a-ev .acc{width:100%;justify-content:flex-end}
+  .a-h{grid-template-columns:44px minmax(0,1fr)}
+  .a-now{left:36px}.a-now span{left:-38px}
+  .mini-bar{grid-template-columns:118px minmax(0,1fr) 92px;gap:8px}
+  .a-al{padding-left:4px}
+  .a-mas{padding-left:4px}
+}
+/* gerencia solo consulta: sin botones que escriben */
+body.solo-ver .a-ql,body.solo-ver [data-a="completar"],body.solo-ver .a-ev .acc,body.solo-ver a[data-a="editar"],body.solo-ver [data-a="nueva-tarea"],body.solo-ver [data-a="op-act"],body.solo-ver [data-a="op-tarea"],body.solo-ver [data-a="captura"]{display:none!important}
+body.solo-ver .it[data-a="editar"]{cursor:default}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  var D = null;              // respuesta de api_crmInicio
+  var HECHAS = [];           // tareas de hoy ya hechas (api_crmTareas del día)
+  var TAR = {};              // tareas por id
+  var NOV = {};              // novedades por clave
+  var OCULTAS = {};          // avisos que se están cerrando (optimista)
+  var ABIERTOS = null;       // grupos abiertos de «Lo que te espera»
+  var VERMAS = {};           // grupos con «ver todos»
+  var CONOCIDAS = null;      // claves de novedades ya vistas en esta sesión
+  var MARCA = null;          // marcador del módulo (vigía)
+  var CARGANDO = false, OTRA = false;
+  var ICO = { llamada: 'llamada', visita: 'visita', whatsapp: 'whatsapp', correo: 'correo', reunion: 'reunion', tarea: 'tarea', nota: 'nota', sistema: 'sistema' };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = MK.esc;
+
+  function hm(h) { var p = String(h || '').split(':'); return (+p[0] || 0) * 60 + (+p[1] || 0); }
+  function horaTxt(x) { return x === 12 ? '12 m.' : (x > 12 ? x - 12 : x) + (x < 12 ? ' a. m.' : ' p. m.'); }
+  function nombrePila(n) { var p = String(n || '').trim().split(/\s+/)[0] || ''; return p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : ''; }
+  function saludo() { var h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; }
+  function durTxt(m) { m = Number(m) || 0; if (!m) return ''; return m < 60 ? m + ' min' : (m % 60 ? (m / 60).toFixed(1).replace('.0', '') : m / 60) + ' h'; }
+  function mesAnteriorNombre() { var m = Number(String(MK.hoy).slice(5, 7)); return MK.MESES_L[(m + 10) % 12]; }
+  function hace(f, h) {
+    if (!f) return '';
+    var n = MK.dias(f, MK.hoy);
+    if (n === 0) return 'hoy' + (h ? ' ' + h : '');
+    if (n === 1) return 'ayer';
+    if (n > 1 && n < 8) return 'hace ' + n + ' días';
+    return MK.fechaCorta(f);
+  }
+  function cuentaHtml(t) {
+    if (!t.cuenta && !t.ref) return '<span>Sin cuenta ligada</span>';
+    if (!t.ref) return '<span>' + esc(t.cuenta) + '</span>';
+    return '<a class="lnk" data-a="ficha" data-rt="' + esc(t.refTipo || 'op') + '" data-ref="' + esc(t.ref) + '">' + esc(t.cuenta || t.ref) + '</a>';
+  }
+  /* el servidor a veces manda la fecha como texto largo de JavaScript («Fri Sep 25 2026 09:58:00 GMT-0500…») */
+  function iso(s) {
+    s = String(s || '').trim(); if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    var d = new Date(s); if (isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function irRef(rt, ref) { if (!ref) return; if (rt === 'cli') MK.irCliente(ref); else MK.irOportunidad(ref); }
+
+  /* ═══ esqueleto ═══ */
+  function esqueleto(base) {
+    var u = base.usuario || {};
+    $('main').innerHTML =
+      '<div class="ph"><div><h1>Mi día comercial</h1><p>' + esc(MK.fechaLarga(MK.hoy).replace(/^./, function (c) { return c.toUpperCase(); })) + ' · ' + saludo() + ', ' + esc(nombrePila(u.nombre)) + '</p></div>' +
+      '<div class="sp"></div><button class="btn sm" id="i-act" title="Volver a leer todo">' + MK.ic('renovar', 15) + 'Actualizar</button></div>' +
+      '<div class="a-ql">' +
+      '<span class="lb2">Registrar rápido:</span>' +
+      ['llamada', 'visita', 'whatsapp', 'correo'].map(function (k) { return '<button class="btn sm" data-a="ql" data-tipo="' + k + '">' + MK.ic(ICO[k], 15) + MK.TIPOS[k] + '</button>'; }).join('') +
+      '<span class="sp"></span>' +
+      '<button class="btn sm" data-a="nueva-tarea">' + MK.ic('mas', 15) + 'Tarea</button>' +
+      '<button class="btn sm pri" data-a="captura">' + MK.ic('mas', 15) + 'Oportunidad</button></div>' +
+      '<div class="a-kpis" id="i-kpis"><div class="kpi" style="grid-column:1/-1"><div class="cargando" style="padding:6px">Cargando cifras del mes…</div></div></div>' +
+      '<div class="a-grid">' +
+      '<div class="a-col">' +
+      '<div class="card"><h3>Agenda de hoy <span class="sp"></span><span class="l muted" id="i-cuenta"></span></h3><div id="i-agenda"><div class="cargando">Cargando…</div></div></div>' +
+      '<div class="card"><h3>Próximos días <span class="sp"></span><a href="MerAgenda.html">Ver agenda completa</a></h3><div id="i-sem"><div class="cargando">Cargando…</div></div></div>' +
+      '</div>' +
+      '<div class="a-col">' +
+      '<div class="card"><h3>Lo que te espera <span class="sp"></span><span class="l muted" id="i-alcount"></span></h3><div id="i-alertas"><div class="cargando">Cargando…</div></div></div>' +
+      '<div class="card"><h3>Embudo <span class="sp"></span><a href="MerOportunidades.html">Abrir oportunidades</a></h3><div id="i-emb"><div class="cargando">Cargando…</div></div></div>' +
+      '<div class="card"><h3>Mis solicitudes de compra <span class="sp"></span><a href="MerCompras.html">Ver todas</a></h3><div id="i-compras"><div class="cargando">Cargando…</div></div></div>' +
+      '<div class="card"><h3>Actividad reciente <span class="sp"></span><a href="MerAgenda.html?vista=actividades">Ver el diario</a></h3><div id="i-feed"><div class="cargando">Cargando…</div></div></div>' +
+      '</div></div>';
+    $('main').addEventListener('click', clic);
+    $('i-act').onclick = function () { var b = this; MK.ocupado(b, true, 'Actualizando…'); cargar().then(function () { MK.ocupado(b, false); }); };
+  }
+
+  /* ═══ carga ═══ */
+  function cargar() {
+    if (CARGANDO) { OTRA = true; return Promise.resolve(); }
+    CARGANDO = true;
+    var pT = MK.api('api_crmTareas', MK.pin, MK.hoy, MK.hoy).then(function (r) { return r && r.ok ? r : null; }, function () { return null; });
+    return Promise.all([MK.api('api_crmInicio', MK.pin), pT]).then(function (res) {
+      var r = res[0];
+      if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo leer el día.');
+      D = r;
+      HECHAS = res[1] ? (res[1].tareas || []).filter(function (t) { return t.estado === 'hecha' && t.fecha === MK.hoy; }) : [];
+      TAR = {};
+      [r.tareas.hoy, r.tareas.atrasadas, r.tareas.sinFecha, r.tareas.semana, HECHAS].forEach(function (l) { (l || []).forEach(function (t) { TAR[t.id] = t; }); });
+      NOV = {}; (r.novedades || []).forEach(function (n) { n.cuando = iso(n.cuando); NOV[n.clave] = n; });
+      (r.compras || []).forEach(function (c) { c.fecha = iso(c.fecha); });
+      avisarNuevas();
+      pintar();
+    }).catch(function (e) {
+      ['i-agenda', 'i-sem', 'i-alertas', 'i-emb', 'i-compras', 'i-feed'].forEach(function (id) { MK.error(id, e.message || 'Sin conexión.'); });
+      $('i-kpis').innerHTML = '';
+    }).then(function () {
+      CARGANDO = false;
+      if (OTRA) { OTRA = false; return cargar(); }
+    });
+  }
+  function avisarNuevas() {
+    var claves = (D.novedades || []).map(function (n) { return n.clave; });
+    if (CONOCIDAS) {
+      var nuevas = claves.filter(function (k) { return !CONOCIDAS[k]; });
+      if (nuevas.length) MK.aviso(nuevas.length === 1 ? 'Llegó una novedad nueva: ' + ((NOV[nuevas[0]] || {}).titulo || '') : 'Llegaron ' + nuevas.length + ' novedades nuevas');
+    } else CONOCIDAS = {};
+    claves.forEach(function (k) { CONOCIDAS[k] = 1; });
+  }
+
+  function pintar() {
+    pintarKpis(); pintarAgenda(); pintarSemana(); pintarAlertas(); pintarEmbudo(); pintarCompras(); pintarFeed();
+  }
+
+  /* ═══ cifras del mes ═══ */
+  function delta(a, b, modo, inverso) {
+    if (a == null || b == null) return '<em class="gris">—</em>';
+    var d = a - b;
+    if (!d) return '<em class="gris">igual</em>';
+    var bueno = inverso ? d < 0 : d > 0, t;
+    if (modo === 'pts') t = (d > 0 ? '+' : '−') + Math.abs(d) + ' pts';
+    else if (modo === 'dinero') t = b > 0 ? (d > 0 ? '+' : '−') + Math.round(Math.abs(d) / b * 100) + ' %' : '+' + MK.dinero(d, true).replace('.00', '');
+    else t = (d > 0 ? '+' : '−') + Math.abs(d);
+    return '<em class="' + (bueno ? 'up' : 'down') + '">' + t + '</em>';
+  }
+  function pintarKpis() {
+    var m = D.mes || {}, a = D.mesAnterior || {}, meta = Number(D.meta) || 0, ant = mesAnteriorNombre();
+    var k = function (val, lbl, dl, pie, extra) {
+      return '<div class="kpi"><b class="num">' + val + '</b><span>' + lbl + '</span>' + dl + (extra || '') + '<small>' + pie + '</small></div>';
+    };
+    var pctMeta = meta ? Math.round((m.valorGanado || 0) / meta * 100) : 0;
+    $('i-kpis').innerHTML =
+      k(MK.num(m.nuevas), 'Nuevas oportunidades', delta(m.nuevas, a.nuevas), ant + ': ' + MK.num(a.nuevas)) +
+      k(MK.num(m.ganadas), 'Ganadas', delta(m.ganadas, a.ganadas), ant + ': ' + MK.num(a.ganadas)) +
+      k(MK.dinero(m.valorGanado).replace('.00', ''), 'Valor ganado', delta(m.valorGanado, a.valorGanado, 'dinero'),
+        meta ? pctMeta + ' % de la meta de ' + MK.dinero(meta).replace('.00', '') : ant + ': ' + MK.dinero(a.valorGanado).replace('.00', '') + ' · <a href="MerAjustes.html">poner meta</a>',
+        meta ? '<div class="bar-h"><i style="width:' + Math.min(100, pctMeta) + '%"></i></div>' : '') +
+      k(m.conversion == null ? '—' : m.conversion + ' %', 'Conversión', delta(m.conversion, a.conversion, 'pts'),
+        m.conversion == null ? 'sin cierres este mes' : 'ganadas ÷ cerradas · ' + ant + ': ' + (a.conversion == null ? '—' : a.conversion + ' %')) +
+      k(MK.num(m.perdidas), 'Perdidas', delta(m.perdidas, a.perdidas, '', true), ant + ': ' + MK.num(a.perdidas));
+  }
+
+  /* ═══ agenda de hoy ═══ */
+  function evento(t, clase, extra) {
+    var hecha = t.estado === 'hecha';
+    return '<div class="a-ev ' + (hecha ? 'hecha ' : '') + (clase || '') + '" data-id="' + esc(t.id) + '">' +
+      '<button class="a-chk' + (hecha ? ' si' : '') + '"' + (hecha ? ' disabled title="Hecha"' : ' data-a="completar" title="Completar: qué pasó y lo que sigue"') + ' aria-label="Completar">' + MK.ic('check', 14) + '</button>' +
+      '<div class="tx"><b>' + esc(t.titulo) + '</b><small>' + MK.ic(ICO[t.tipo] || 'tarea', 13) + '<span>' + esc(MK.TIPOS[t.tipo] || 'Tarea') + (t.hora ? ' · ' + esc(t.hora) : '') + (t.duracion && t.hora ? ' · ' + durTxt(t.duracion) : '') + '</span>· ' + cuentaHtml(t) +
+      (extra ? ' · ' + extra : '') + (hecha && t.resultado ? ' · <span class="tag t-ok">' + esc(t.resultado) + '</span>' : '') + (t.asignado && MK.usuario && t.asignado !== MK.usuario.nombre ? ' · <span>' + esc(t.asignado) + '</span>' : '') + '</small></div>' +
+      (hecha ? '' : '<div class="acc"><button class="btn sm gh" data-a="editar" title="Cambiar fecha, hora o datos">' + MK.ic('lapiz', 14) + 'Editar</button></div>') +
+      '</div>';
+  }
+  function pintarAgenda() {
+    var aj = (MK.base && MK.base.ajustes) || {};
+    var pend = D.tareas.hoy || [], atr = D.tareas.atrasadas || [];
+    var todas = pend.concat(HECHAS);
+    var H0 = Math.floor(hm(aj.horaInicio || '07:00') / 60), H1 = Math.ceil(hm(aj.horaFin || '18:00') / 60);
+    if (!(H1 > H0)) { H0 = 7; H1 = 18; }
+    var ahora = MK.ahoraHM(), esHoy = MK.hoyLocal() === MK.hoy;
+    $('i-cuenta').textContent = pend.length + ' pendiente' + (pend.length === 1 ? '' : 's') + ' · ' + (D.tareas.hechasHoy || 0) + ' hecha' + (D.tareas.hechasHoy === 1 ? '' : 's') + ' hoy';
+    var h = '';
+    if (atr.length) {
+      h += '<div class="a-atr"><div class="t">' + MK.ic('alerta', 14) + ' ATRASADAS · ' + atr.length + '</div>' +
+        atr.map(function (t) { return evento(t, 'atr', '<span class="venc">era para ' + (MK.dias(t.fecha, MK.hoy) === 1 ? 'ayer' : 'el ' + esc(MK.fecha(t.fecha))) + '</span>'); }).join('') + '</div>';
+    }
+    var sinh = todas.filter(function (t) { return !t.hora; });
+    var conh = todas.filter(function (t) { return t.hora; }).sort(function (a, b) { return a.hora.localeCompare(b.hora); });
+    var tl = '';
+    if (sinh.length) tl += '<div class="a-h sinh"><span>Sin hora</span><div>' + sinh.map(function (t) { return evento(t); }).join('') + '</div></div>';
+    for (var x = H0; x < H1; x++) {
+      var ev = conh.filter(function (t) { var hh = Math.floor(hm(t.hora) / 60); return hh === x || (x === H0 && hh < H0) || (x === H1 - 1 && hh >= H1); });
+      tl += '<div class="a-h" data-h="' + x + '"><span>' + horaTxt(x) + '</span><div>' + ev.map(function (t) {
+        return evento(t, (esHoy && t.estado === 'pendiente' && t.hora < ahora) ? 'tarde' : '');
+      }).join('') + '</div></div>';
+    }
+    if (!todas.length && !atr.length) h += '<div class="aviso az" style="margin-bottom:10px">No tienes tareas para hoy. <a href="#" data-a="nueva-tarea">Programar una</a></div>';
+    $('i-agenda').innerHTML = h + '<div class="a-tl" id="i-tl" data-h0="' + H0 + '" data-h1="' + H1 + '">' + tl + '</div>';
+    lineaAhora();
+  }
+  function lineaAhora() {
+    var tl = $('i-tl'); if (!tl) return;
+    var v = tl.querySelector('.a-now'); if (v) v.remove();
+    if (MK.hoyLocal() !== MK.hoy) return;
+    var d = new Date(), x = d.getHours(), mi = d.getMinutes();
+    var fila = tl.querySelector('.a-h[data-h="' + x + '"]'); if (!fila) return;
+    var n = document.createElement('div'); n.className = 'a-now'; n.title = 'Ahora';
+    n.style.top = (fila.offsetTop + fila.offsetHeight * mi / 60) + 'px';
+    n.innerHTML = '<span>' + MK.ahoraHM() + '</span>';
+    tl.appendChild(n);
+  }
+
+  /* ═══ próximos días ═══ */
+  function itemTarea(t, cuando) {
+    return '<div class="it" data-id="' + esc(t.id) + '" data-a="editar" title="Tocar para editar o mover"><div class="ico-c">' + MK.ic(ICO[t.tipo] || 'tarea', 16) + '</div>' +
+      '<div class="tx"><b>' + esc(t.titulo) + '</b><small>' + cuentaHtml(t) + '</small></div><span class="cuando">' + cuando + '</span></div>';
+  }
+  function pintarSemana() {
+    var sem = D.tareas.semana || [], sf = D.tareas.sinFecha || [];
+    var h = sem.length ? '<div class="lst a-sem">' + sem.map(function (t) {
+      return itemTarea(t, esc(MK.cuando(t.fecha) === 'mañana' ? 'mañana' : MK.fecha(t.fecha)) + (t.hora ? '<br>' + esc(t.hora) : '<br><span class="muted">sin hora</span>'));
+    }).join('') + '</div>' : MK.vacio('Nada programado para los próximos 7 días.');
+    if (sf.length) h += '<div class="a-sub">SIN FECHA · ' + sf.length + '</div><div class="lst a-sem">' + sf.map(function (t) { return itemTarea(t, '<a class="lnk" data-a="editar">Ponerle fecha</a>'); }).join('') + '</div>';
+    $('i-sem').innerHTML = h;
+  }
+
+  /* ═══ lo que te espera ═══ */
+  function parseEnlace(e) {
+    var c = /[?&]cod=([^&]+)/.exec(e || ''); if (c) return { rt: 'op', ref: decodeURIComponent(c[1]) };
+    var k = /[?&]cli=([^&]+)/.exec(e || ''); if (k) return { rt: 'cli', ref: decodeURIComponent(k[1]) };
+    return null;
+  }
+  function cierre(clave) {
+    return '<span class="sep"></span><button class="btn sm gh" data-a="nov-manana" data-clave="' + esc(clave) + '" title="Sale de la lista y vuelve mañana">Mañana</button>' +
+      '<button class="btn sm gh" data-a="nov-atendi" data-clave="' + esc(clave) + '" title="Ya está resuelto">Ya lo atendí</button>' +
+      '<button class="btn sm gh" data-a="nov-noaplica" data-clave="' + esc(clave) + '" title="No es un problema; no vuelve a salir">No aplica</button>';
+  }
+  function grupos() {
+    var G = [], porCat = {};
+    var vivas = (D.novedades || []).filter(function (n) { return !OCULTAS[n.clave]; });
+    var form = vivas.filter(function (n) { return n.tipo === 'formulario'; });
+    var dev = vivas.filter(function (n) { return n.tipo === 'devuelta'; });
+    if (form.length) G.push({ k: 'form', t: 'Formularios recibidos', i: 'documento', tag: 't-info', items: form.map(function (n) {
+      return { clave: n.clave, tit: n.titulo, sub: 'Envió sus datos' + (n.cuando ? ' · ' + MK.cuando(n.cuando) : '') + '. Ya se puede armar la propuesta.',
+        acc: (n.codigoPropuesta ? '<button class="btn sm pri" data-a="nov-abrir" data-clave="' + esc(n.clave) + '">Abrir ficha</button>' : '') + cierre(n.clave) };
+    }) });
+    if (dev.length) G.push({ k: 'dev', t: 'Altas devueltas por logística', i: 'renovar', tag: 't-bad', items: dev.map(function (n) {
+      return { clave: n.clave, tit: n.titulo, sub: 'Motivo: ' + n.detalle + (n.quien ? ' · ' + n.quien : '') + (n.cuando ? ' · ' + MK.cuando(n.cuando) : ''),
+        acc: '<button class="btn sm pri" data-a="nov-abrir" data-clave="' + esc(n.clave) + '">' + (n.codigoPropuesta ? 'Abrir ficha y corregir' : 'Buscar la ficha') + '</button>' + cierre(n.clave) };
+    }) });
+    var PRI = { alta: 0, media: 1, baja: 2 };
+    vivas.filter(function (n) { return n.tipo === 'pendiente'; }).forEach(function (n) {
+      var p = String(n.detalle || '').split(' · '), cat = p.length > 1 ? p.shift() : 'Pendientes del vigía';
+      var g = porCat[cat]; if (!g) { g = porCat[cat] = { k: 'pen:' + cat, t: cat, i: 'campana', tag: 't-warn', pri: 9, items: [] }; }
+      var pr = PRI[n.prioridad] == null ? 1 : PRI[n.prioridad]; if (pr < g.pri) { g.pri = pr; g.tag = pr === 0 ? 't-bad' : pr === 1 ? 't-warn' : 't-gris'; }
+      var liga = parseEnlace(n.enlace);
+      g.items.push({ clave: n.clave, tit: n.titulo || 'Sin nombre', sub: p.join(' · ').replace(/\b(\d{4}-\d{2}-\d{2})\b/g, function (f) { return MK.fecha(f); }) + (n.cuando ? ' · desde ' + MK.cuando(n.cuando) : '') + (n.estadoPend === 'pospuesto' ? ' · pospuesto, volvió hoy' : ''),
+        tag: n.prioridad === 'alta' ? '<span class="tag t-bad">Prioridad alta</span> ' : '',
+        acc: '<button class="btn sm pri" data-a="nov-abrir" data-clave="' + esc(n.clave) + '">' + (liga ? 'Abrir ficha' : 'Buscar la ficha') + '</button>' + cierre(n.clave) });
+    });
+    Object.keys(porCat).map(function (c) { return porCat[c]; }).sort(function (a, b) { return a.pri - b.pri || b.items.length - a.items.length; }).forEach(function (g) { G.push(g); });
+    var ex = D.excedidas || [];
+    if (ex.length) G.push({ k: 'exc', t: 'Pasadas de su límite de días', i: 'reloj', tag: 't-warn', items: ex.map(function (o) {
+      return { tit: o.empresa, sub: o.dias + ' días en «' + o.etapa + '» · el límite es ' + o.limite,
+        acc: '<button class="btn sm pri" data-a="op-act" data-ref="' + esc(o.codigo) + '" data-cuenta="' + esc(o.empresa) + '">Registrar seguimiento</button>' +
+          '<button class="btn sm" data-a="op-tarea" data-ref="' + esc(o.codigo) + '" data-cuenta="' + esc(o.empresa) + '">Crear tarea</button>' +
+          '<button class="btn sm gh" data-a="ficha" data-rt="op" data-ref="' + esc(o.codigo) + '">Abrir ficha</button>' };
+    }) });
+    var st = D.sinTarea || [];
+    if (st.length) G.push({ k: 'sint', t: 'Abiertas sin próxima tarea', i: 'tarea', tag: 't-gris', items: st.map(function (o) {
+      return { tit: o.empresa, sub: 'En «' + o.etapa + '» y sin ningún paso programado.',
+        acc: '<button class="btn sm pri" data-a="op-tarea" data-ref="' + esc(o.codigo) + '" data-cuenta="' + esc(o.empresa) + '">Crear tarea</button>' +
+          '<button class="btn sm gh" data-a="ficha" data-rt="op" data-ref="' + esc(o.codigo) + '">Abrir ficha</button>' };
+    }) });
+    return G;
+  }
+  function pintarAlertas() {
+    var G = grupos(), total = G.reduce(function (s, g) { return s + g.items.length; }, 0);
+    $('i-alcount').textContent = total ? total + ' abiertas' : '';
+    if (ABIERTOS === null) { ABIERTOS = {}; var acum = 0; G.forEach(function (g, i) { if (i < 2 || acum + g.items.length <= 6) ABIERTOS[g.k] = 1; acum += g.items.length; }); }
+    if (!G.length) { $('i-alertas').innerHTML = MK.vacio('Nada pendiente. Buen trabajo.'); return; }
+    var TOPE = 4;
+    $('i-alertas').innerHTML = G.map(function (g) {
+      var ver = VERMAS[g.k] ? g.items : g.items.slice(0, TOPE);
+      return '<div class="a-grp' + (ABIERTOS[g.k] ? ' open' : '') + '" data-g="' + esc(g.k) + '"><button data-a="grp"><span class="a-caret">' + MK.ic('flecha', 14) + '</span>' + MK.ic(g.i, 16) + '<span>' + esc(g.t) + '</span><span class="n"><span class="tag ' + g.tag + '">' + g.items.length + '</span></span></button><div class="body">' +
+        ver.map(function (a) { return '<div class="a-al"' + (a.clave ? ' data-clave="' + esc(a.clave) + '"' : '') + '><div class="tx">' + (a.tag || '') + '<b>' + esc(a.tit) + '</b><small>' + esc(a.sub) + '</small></div><div class="acc">' + a.acc + '</div></div>'; }).join('') +
+        (g.items.length > TOPE ? '<div class="a-mas"><button class="btn sm gh" data-a="vermas">' + (VERMAS[g.k] ? 'Ver menos' : 'Ver los ' + g.items.length) + '</button></div>' : '') +
+        '</div></div>';
+    }).join('');
+  }
+
+  function novCerrar(clave, como, btn) {
+    var n = NOV[clave]; if (!n) return;
+    var fila = btn && btn.closest('.a-al'); if (fila) fila.classList.add('sale');
+    var p;
+    if (n.tipo === 'pendiente') {
+      var k = (como === 'manana' ? 'pen:' : como === 'atendi' ? 'hecho:' : 'noaplica:') + n.pendienteId;
+      p = MK.api('api_marcarNovedadVista', MK.pin, k);
+    } else if (como === 'manana') {
+      /* un formulario o un alta devuelta no se pueden «posponer» en el servidor:
+         se deja una tarea para mañana a primera hora y el aviso se apaga */
+      var aj = (MK.base && MK.base.ajustes) || {};
+      p = MK.api('api_crmGuardarTarea', MK.pin, {
+        titulo: n.tipo === 'formulario' ? 'Armar la propuesta: ya llegó el formulario' : 'Corregir y reenviar el alta devuelta',
+        tipo: 'tarea', ref: n.codigoPropuesta || '', refTipo: 'op', cuenta: n.titulo, fecha: MK.masDias(MK.hoy, 1), hora: aj.horaInicio || '08:00', duracion: 30,
+        notas: n.tipo === 'devuelta' ? 'Motivo de logística: ' + n.detalle : ''
+      }).then(function (r) { if (!r || !r.ok) return r; return MK.api('api_marcarNovedadVista', MK.pin, clave); });
+    } else {
+      p = MK.api('api_marcarNovedadVista', MK.pin, clave);
+    }
+    p.then(function (r) {
+      if (!r || r.ok === false) throw new Error((r && r.error) || 'No se pudo cerrar el aviso.');
+      OCULTAS[clave] = 1;
+      MK.aviso(como === 'manana' ? (n.tipo === 'pendiente' ? 'Te lo vuelvo a mostrar mañana' : 'Quedó una tarea para mañana') : como === 'atendi' ? 'Marcado como atendido · queda en el historial' : 'Cerrado como «no aplica» · no vuelve a salir');
+      pintarAlertas();
+      MK.cambio({ tipo: 'novedad' });
+    }).catch(function (e) {
+      if (fila) fila.classList.remove('sale');
+      MK.aviso(e.message || 'Sin conexión: el aviso sigue ahí');
+    });
+  }
+  function novAbrir(clave, btn) {
+    var n = NOV[clave]; if (!n) return;
+    if (n.tipo === 'formulario' && n.codigoPropuesta) { MK.irOportunidad(n.codigoPropuesta); return; }
+    if (n.tipo === 'devuelta') {
+      /* al entrar a corregirla se apaga el aviso para todos (igual que en Alta) */
+      MK.api('api_marcarNovedadVista', MK.pin, clave).catch(function () {});
+      if (n.codigoPropuesta) { setTimeout(function () { MK.irOportunidad(n.codigoPropuesta); }, 250); return; }
+    }
+    var liga = parseEnlace(n.enlace);
+    if (liga) { irRef(liga.rt, liga.ref); return; }
+    buscarFicha(n.titulo, btn);
+  }
+  function buscarFicha(nombre, btn) {
+    MK.ocupado(btn, true, 'Buscando…');
+    MK.api('api_crmBuscar', MK.pin, nombre).then(function (x) {
+      MK.ocupado(btn, false);
+      var l = ((x && x.resultados) || []).filter(function (z) { return z.tipo !== 'contacto'; });
+      var q = String(nombre || '').trim().toUpperCase();
+      var z = l.filter(function (y) { return String(y.nombre).trim().toUpperCase() === q; })[0] || (l.length === 1 ? l[0] : null);
+      if (z) { irRef(z.tipo === 'cliente' ? 'cli' : 'op', z.id); return; }
+      if (!l.length) { MK.aviso('No encontré una ficha con ese nombre.'); return; }
+      MK.hoja('<h2>¿Cuál es?</h2><p class="muted small">Hay varias fichas parecidas a «' + esc(nombre) + '».</p><div class="ql-lista" style="margin-top:10px">' +
+        l.slice(0, 12).map(function (y) { return '<button data-rt="' + (y.tipo === 'cliente' ? 'cli' : 'op') + '" data-ref="' + esc(y.id) + '">' + MK.ic(y.tipo === 'cliente' ? 'edificio' : 'embudo', 15) + '<span>' + esc(y.nombre) + '<small>' + (y.tipo === 'cliente' ? 'Cliente' : 'Oportunidad') + (y.detalle ? ' · ' + esc(y.detalle) : '') + '</small></span></button>'; }).join('') +
+        '</div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>');
+      [].forEach.call(document.querySelectorAll('#hoja .ql-lista button'), function (b) { b.onclick = function () { irRef(b.getAttribute('data-rt'), b.getAttribute('data-ref')); }; });
+    }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+  }
+
+  /* ═══ embudo ═══ */
+  function pintarEmbudo() {
+    var e = (D.embudo || []), t = D.totales || {};
+    var mx = e.reduce(function (s, x) { return Math.max(s, x.n); }, 0) || 1;
+    if (!t.abiertas) { $('i-emb').innerHTML = MK.vacio('No hay oportunidades abiertas.') + '<div style="text-align:center"><button class="btn sm pri" data-a="captura">' + MK.ic('mas', 14) + 'Nueva oportunidad</button></div>'; return; }
+    $('i-emb').innerHTML = '<div class="a-embtot"><b class="num">' + MK.dinero(t.ponderado).replace('.00', '') + '</b><span class="small muted">valor ponderado · de ' + MK.dinero(t.valor).replace('.00', '') + ' en juego · ' + t.abiertas + ' abierta' + (t.abiertas === 1 ? '' : 's') + '</span></div>' +
+      e.map(function (x) {
+        return '<a class="mini-bar" href="MerOportunidades.html" title="' + esc(x.etapa) + ': ' + x.n + ' · ' + MK.dinero(x.valor) + '"><span>' + esc(x.etapa) + (x.excedidas ? '<span class="ex">' + x.excedidas + ' pasada' + (x.excedidas === 1 ? '' : 's') + ' del límite</span>' : '') + '</span>' +
+          '<div class="bar-h"><i style="width:' + (x.n / mx * 100) + '%"></i></div><span class="r"><b class="num">' + x.n + '</b>' + (x.valor ? ' · ' + MK.dinero(x.valor, true).replace('.00', '') : '') + '</span></a>';
+      }).join('');
+  }
+
+  /* ═══ compras ═══ */
+  function pintarCompras() {
+    var c = D.compras || [];
+    if (!c.length) { $('i-compras').innerHTML = MK.vacio('No tienes solicitudes por aprobar ni por pagar.'); return; }
+    $('i-compras').innerHTML = '<div class="lst">' + c.slice(0, 5).map(function (s) {
+      var est = s.estado === 'SOLICITADA' ? '<span class="tag t-warn">Por aprobar</span>' : '<span class="tag t-info">Aprobada · por pagar</span>';
+      return '<a class="it" href="MerCompras.html"><div class="ico-c">' + MK.ic('carrito', 16) + '</div><div class="tx"><b>' + esc(s.proveedor || 'Sin proveedor') + '</b><small>N.º ' + esc(s.numero || s.solicitudId) + ' · ' + esc(MK.fechaCorta(s.fecha)) + (s.dias ? ' · hace ' + s.dias + ' día' + (s.dias === 1 ? '' : 's') : '') + '</small></div>' +
+        '<div style="text-align:right"><b class="num">' + MK.dinero(s.total) + '</b><br>' + est + (/URG/i.test(s.urgencia || '') ? ' <span class="tag t-bad">Urge</span>' : '') + '</div></a>';
+    }).join('') + '</div>' + (c.length > 5 ? '<div class="small muted" style="margin-top:6px">y ' + (c.length - 5) + ' más · <a href="MerCompras.html">ver todas</a></div>' : '');
+  }
+
+  /* ═══ actividad reciente ═══ */
+  function pintarFeed() {
+    var l = (D.actividad || []).slice(0, 6);
+    if (!l.length) { $('i-feed').innerHTML = MK.vacio('Todavía no hay actividades registradas.'); return; }
+    $('i-feed').innerHTML = '<div class="lst feed">' + l.map(function (a) {
+      return '<div class="it"><div class="ico-c">' + MK.ic(ICO[a.tipo] || 'nota', 16) + '</div><div class="tx"><b>' + (a.ref ? cuentaHtml(a) : esc(a.cuenta || MK.TIPOS[a.tipo] || '')) + '</b>' +
+        '<p>' + esc(a.texto) + '</p>' + (a.resultado ? '<span class="tag t-gris" style="margin-top:4px">' + esc(a.resultado) + '</span>' : '') + '</div>' +
+        '<span class="when">' + esc(hace(a.fecha, a.hora)) + '<br><span class="muted">' + esc(nombrePila(a.usuario)) + '</span></span></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ═══ registrar rápido: tipo + cuenta ═══ */
+  var QL = { tipo: 'llamada', t: null };
+  function sugeridas() {
+    var vistas = {}, l = [];
+    var add = function (ref, rt, cuenta, det) { if (!ref || vistas[rt + ref]) return; vistas[rt + ref] = 1; l.push({ ref: ref, rt: rt || 'op', cuenta: cuenta || ref, det: det }); };
+    (D.tareas.atrasadas || []).concat(D.tareas.hoy || []).forEach(function (t) { add(t.ref, t.refTipo, t.cuenta, 'Tarea: ' + t.titulo); });
+    (D.excedidas || []).forEach(function (o) { add(o.codigo, 'op', o.empresa, o.etapa); });
+    (D.actividad || []).forEach(function (a) { add(a.ref, a.refTipo, a.cuenta, 'Último contacto ' + hace(a.fecha)); });
+    (D.sinTarea || []).forEach(function (o) { add(o.codigo, 'op', o.empresa, o.etapa); });
+    return l;
+  }
+  function qlAbrir(tipo) {
+    if (!D) return;
+    QL.tipo = tipo || 'llamada';
+    var sug = sugeridas().slice(0, 8);
+    var h = MK.hoja('<h2>Registrar actividad</h2><p class="muted small">Toca el tipo y luego la cuenta; después anotas qué pasó.</p>' +
+      '<label class="lb">¿QUÉ FUE?</label>' + MK.chips('qltipo', ['llamada', 'visita', 'whatsapp', 'correo', 'reunion'].map(function (k) { return [k, MK.ic(ICO[k], 14) + ' ' + MK.TIPOS[k]]; }), QL.tipo) +
+      '<label class="lb">¿CON QUIÉN?</label>' +
+      (sug.length ? '<div class="ql-cuentas">' + sug.map(function (c, i) { return '<button type="button" class="chip" data-i="' + i + '" title="' + esc(c.det || '') + '">' + MK.ic(c.rt === 'cli' ? 'edificio' : 'embudo', 13) + esc(c.cuenta) + '</button>'; }).join('') + '</div>' : '') +
+      '<input class="in" id="ql-q" placeholder="Buscar otra cuenta: nombre, RUC o contacto" autocomplete="off" autofocus>' +
+      '<div class="ql-lista" id="ql-l" style="margin-top:8px"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
+    MK.activarChips(h);
+    h.querySelector('[data-chips="qltipo"]')._cambio = function (v) { QL.tipo = v; };
+    [].forEach.call(h.querySelectorAll('.ql-cuentas .chip'), function (b) { b.onclick = function () { var c = sug[+b.getAttribute('data-i')]; qlElegir(c.ref, c.rt, c.cuenta, ''); }; });
+    var q = $('ql-q'), tt = null, lst = $('ql-l');
+    q.oninput = function () {
+      clearTimeout(tt); var v = q.value.trim();
+      if (v.length < 2) { lst.innerHTML = ''; return; }
+      lst.innerHTML = '<div class="vac">Buscando…</div>';
+      tt = setTimeout(function () {
+        MK.api('api_crmBuscar', MK.pin, v).then(function (x) {
+          if (q.value.trim() !== v) return;
+          var l = (x && x.resultados) || [];
+          if (!l.length) { lst.innerHTML = '<div class="vac">Nada con «' + esc(v) + '».</div>'; return; }
+          lst.innerHTML = l.slice(0, 15).map(function (z, i) {
+            var ic = z.tipo === 'cliente' ? 'edificio' : z.tipo === 'oportunidad' ? 'embudo' : 'persona';
+            return '<button type="button" data-i="' + i + '">' + MK.ic(ic, 15) + '<span>' + esc(z.nombre) + '<small>' + (z.tipo === 'cliente' ? 'Cliente' : z.tipo === 'oportunidad' ? 'Oportunidad' : 'Contacto') + (z.detalle ? ' · ' + esc(z.detalle) : '') + '</small></span></button>';
+          }).join('');
+          [].forEach.call(lst.querySelectorAll('button'), function (b) {
+            b.onclick = function () {
+              var z = l[+b.getAttribute('data-i')];
+              if (z.tipo === 'contacto') { var p = String(z.detalle || '').split(' · '); qlElegir(z.id, z.refTipo || 'op', p[p.length - 1] || z.nombre, z.nombre); }
+              else qlElegir(z.id, z.tipo === 'cliente' ? 'cli' : 'op', z.nombre, '');
+            };
+          });
+        }, function () { lst.innerHTML = '<div class="vac">Sin conexión.</div>'; });
+      }, 250);
+    };
+  }
+  function qlElegir(ref, rt, cuenta, contacto) {
+    MK.cerrarHoja();
+    MK.actividad({ tipo: QL.tipo, ref: ref, refTipo: rt, cuenta: cuenta, contacto: contacto });
+  }
+
+  /* ═══ clics ═══ */
+  function clic(e) {
+    var b = e.target.closest('[data-a]'); if (!b || !$('main').contains(b)) return;
+    var a = b.getAttribute('data-a');
+    var cont = b.closest('[data-id]'), t = cont ? TAR[cont.getAttribute('data-id')] : null;
+    if (b.tagName === 'A') e.preventDefault();
+    if (SOLO_VER && ['completar', 'editar', 'nueva-tarea', 'captura', 'ql', 'op-act', 'op-tarea'].indexOf(a) >= 0) return;
+    if (a === 'ficha') { e.stopPropagation(); irRef(b.getAttribute('data-rt'), b.getAttribute('data-ref')); return; }
+    if (a === 'completar' && t) { MK.completar(t); return; }
+    if (a === 'editar' && t) { MK.tarea(t); return; }
+    if (a === 'nueva-tarea') { MK.tarea({ fecha: MK.hoy }); return; }
+    if (a === 'captura') { MK.captura(); return; }
+    if (a === 'ql') { qlAbrir(b.getAttribute('data-tipo')); return; }
+    if (a === 'grp') { var g = b.parentNode, k = g.getAttribute('data-g'); g.classList.toggle('open'); if (g.classList.contains('open')) ABIERTOS[k] = 1; else delete ABIERTOS[k]; return; }
+    if (a === 'vermas') { var k2 = b.closest('.a-grp').getAttribute('data-g'); VERMAS[k2] = !VERMAS[k2]; pintarAlertas(); return; }
+    if (a === 'nov-abrir') { novAbrir(b.getAttribute('data-clave'), b); return; }
+    if (a === 'nov-manana') { novCerrar(b.getAttribute('data-clave'), 'manana', b); return; }
+    if (a === 'nov-atendi') { novCerrar(b.getAttribute('data-clave'), 'atendi', b); return; }
+    if (a === 'nov-noaplica') {
+      var n = NOV[b.getAttribute('data-clave')];
+      MK.confirmar('«' + ((n && n.titulo) || '') + '» sale de la lista y no se vuelve a avisar.', function () { novCerrar(b.getAttribute('data-clave'), 'noaplica', b); }, { titulo: '¿No aplica?', boton: 'Sí, no aplica' });
+      return;
+    }
+    if (a === 'op-tarea') { MK.tarea({ ref: b.getAttribute('data-ref'), refTipo: 'op', cuenta: b.getAttribute('data-cuenta'), fecha: MK.hoy, titulo: 'Dar seguimiento' }); return; }
+    if (a === 'op-act') { MK.actividad({ ref: b.getAttribute('data-ref'), refTipo: 'op', cuenta: b.getAttribute('data-cuenta'), tipo: 'llamada' }); return; }
+  }
+
+  /* ═══ vigía: si algo cambió en mercadeo, se vuelve a leer solo ═══ */
+  function vigia() {
+    setInterval(function () {
+      lineaAhora();
+      if (document.hidden) return;
+      MK.api('api_marcador', MK.pin, 'mercadeo').then(function (r) {
+        if (!r || !r.ok) return;
+        if (MARCA !== null && r.marca !== MARCA) cargar();
+        MARCA = r.marca;
+      }, function () {});
+    }, 60000);
+    MK.api('api_marcador', MK.pin, 'mercadeo').then(function (r) { if (r && r.ok) MARCA = r.marca; }, function () {});
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && D) cargar(); });
+  }
+
+  /* enlaces viejos (?p=alta&cod=… o &cli=…, los que dejan el vigía y el lobby)
+     llevan directo a la ficha nueva */
+  (function () {
+    var cod = MK.param('cod'), cli = MK.param('cli');
+    if (cod) { location.replace('MerOportunidad.html?id=' + encodeURIComponent(cod)); return; }
+    if (cli) { location.replace('MerCliente.html?id=' + encodeURIComponent(cli)); return; }
+  })();
+  var SOLO_VER = false;
+  MK.iniciar('inicio', function (base) {
+    SOLO_VER = !!(base.usuario && base.usuario.rol === 'gerente');
+    if (SOLO_VER) document.body.classList.add('solo-ver');
+    esqueleto(base);
+    cargar();
+    window.addEventListener('mk:cambio', function () { cargar(); });
+    window.addEventListener('resize', function () { clearTimeout(window._rz); window._rz = setTimeout(lineaAhora, 150); });
+    vigia();
+  });
+})();
+</script>
+</body>
+</html>
