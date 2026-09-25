@@ -4,327 +4,378 @@
 <title>Su servicio · ECOVSA</title>
 <base target="_top">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap">
+<!-- api 3.1 · Página del QR: Verificación (pública) y Mi servicio (con el RUC) -->
+<script>window.PUENTE_CONFIG={sinCopia:/./, enSupabase:/^api_(?!optimizarRuta$)/, escritura:/^api_pedir/};</script>
 <script src="puente.js"></script>
 <style>
+:root{--navy:#0f2a57;--navy2:#14306b;--ok:#2f9e44;--okbg:#eaf6e4;--line:#e1e6ee;--line2:#eef1f5;--mu:#667489;--bg:#eef2f6;--am:#F5B301;--link:#1f56b3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Archivo,system-ui,-apple-system,sans-serif;background:var(--bg);color:#0f2140;line-height:1.4}
+.num{font-variant-numeric:tabular-nums}
+#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+button{font-family:inherit}
 
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%}
-body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
-  min-height:100vh;padding-bottom:34px;line-height:1.5}
+/* ── cabecera: emblema vivo (una vuelta al abrir; otra si lo tocan) ── */
+.hC{background:radial-gradient(circle at 50% 30%,#1a3f80 0,#0B2A5B 60%,#081f45 100%);color:#fff;text-align:center;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 46px}
+.emb{width:136px;height:111px;margin:0 auto;position:relative;cursor:pointer}
+.emb .e3{position:absolute;inset:0;filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+.emb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.emb .fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}
+.emb .fl.gira{animation:vuelta 1.8s cubic-bezier(.25,.7,.25,1)}
+@keyframes vuelta{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.hC .wm{font-size:26px;font-weight:800;letter-spacing:5px;margin-top:6px;line-height:1}
+.hC .tg{font-size:10px;letter-spacing:2.4px;color:#8fd46a;font-weight:700;margin-top:5px}
+.fC{background:#fff;margin:-32px 14px 0;border-radius:16px;padding:12px 14px;text-align:center;position:relative;box-shadow:0 8px 22px rgba(15,33,64,.14)}
+.fC .n{font-size:20px;font-weight:800;color:var(--navy)}.fC small{color:var(--mu);font-size:12.5px}
+.fC .ok{display:inline-block;margin-top:6px;background:var(--okbg);color:#1f7a3a;font-size:11.5px;font-weight:800;border-radius:20px;padding:3px 10px}
+.fC .ok.gris{background:#eef1f5;color:#4a5872}
 
-/* ── cabecera ── */
-header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
-  padding:22px 20px 26px;border-bottom:4px solid var(--lima)}
-.cab{max-width:620px;margin:0 auto;text-align:center}
-.logo{height:74px;width:118px;margin:0 auto 14px;background:#fff center/contain no-repeat;
-  background-image:url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400);
-  border-radius:11px;padding:6px 9px;box-shadow:0 3px 10px rgba(0,0,0,.24)}
-.cab .r{font-size:10px;font-weight:700;letter-spacing:2.6px;text-transform:uppercase;
-  color:rgba(255,255,255,.72)}
-.cab h1{font-size:22px;font-weight:800;line-height:1.25;margin-top:7px}
-.cab .cod{display:inline-block;margin-top:10px;background:rgba(255,255,255,.16);
-  border-radius:14px;padding:5px 14px;font-size:11.5px;font-weight:700;letter-spacing:.8px}
+.tab{display:flex;margin:12px 14px 0;background:#dfe5ee;border-radius:12px;padding:4px}
+.tab button{flex:1;border:0;background:none;padding:10px;border-radius:9px;font-weight:700;font-size:13.5px;color:#44516a;cursor:pointer}
+.tab button.on{background:#fff;color:var(--navy2);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 
-.wrap{max-width:620px;margin:0 auto;padding:16px 16px 0}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:12px 14px}
+.card h3{margin:0 0 8px;font-size:11px;letter-spacing:1px;color:#5b6a80}
+.k{font-size:10.5px;letter-spacing:.8px;color:#6a7689;font-weight:700}
+.v{font-size:15px;font-weight:700}.v small{display:block;font-weight:500;color:var(--mu);font-size:12px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nota{font-size:12px;color:var(--mu);margin:4px 0 0}
+.pie{padding:14px 18px 22px;text-align:center;font-size:11px;color:#6a7689;line-height:1.6}
+.pie a,.pie button{color:var(--link);background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
 
-.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:16px;
-  padding:16px 17px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,48,107,.08)}
-h2{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
-  color:var(--gris);margin-bottom:11px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;font-weight:700;font-size:14px;color:var(--navy2);cursor:pointer;width:100%;text-decoration:none}
+.btn.pri{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.btn.wa{background:#1fa855;color:#fff;border-color:#1fa855}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
 
-/* ── estado del servicio ── */
-.estado{display:flex;align-items:center;gap:12px;background:var(--verde-suave);
-  border:1px solid #CFE3B8;border-radius:16px;padding:15px 17px;margin-bottom:12px}
-.estado .punto{width:13px;height:13px;border-radius:50%;background:var(--verde);
-  flex:0 0 13px;box-shadow:0 0 0 4px rgba(47,107,10,.16)}
-.estado .t{font-size:15.5px;font-weight:800;color:var(--verde);line-height:1.3}
-.estado .s{font-size:12.5px;color:#4A6B33;margin-top:2px}
-.estado.ambar{background:#FFF6DF;border-color:#EFD79B}
-.estado.ambar .punto{background:var(--ambar);box-shadow:0 0 0 4px rgba(245,179,1,.18)}
-.estado.ambar .t{color:#8A6300}
-.estado.ambar .s{color:#8A6300}
-.estado.gris{background:#F1F3F6;border-color:var(--borde)}
-.estado.gris .punto{background:var(--gris);box-shadow:0 0 0 4px rgba(91,104,128,.14)}
-.estado.gris .t{color:var(--gris)}
-.estado.gris .s{color:var(--gris)}
+/* ── sello vivo: una captura vieja no sirve porque la hora corre y el código cambia cada día ── */
+.sello{margin:14px;border-radius:20px;background:linear-gradient(160deg,#1f7a3a,#2f9e44);color:#fff;padding:18px 16px;text-align:center;position:relative;overflow:hidden}
+.sello::after{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(255,255,255,.18) 80%,transparent 90%);animation:gira 4s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.sello>*{position:relative;z-index:1}
+.sello .ic{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;margin:0 auto 8px;animation:late 1.6s ease-in-out infinite}
+@keyframes late{50%{transform:scale(1.08);box-shadow:0 0 0 10px rgba(255,255,255,.08)}}
+.sello b{display:block;font-size:22px;letter-spacing:.5px}.sello .hora{font-size:13px;opacity:.95;margin-top:4px}
+.sello .cod{display:inline-block;margin-top:10px;background:rgba(0,0,0,.18);border-radius:8px;padding:5px 10px;font-weight:800;letter-spacing:3px;font-size:15px}
+.sello.gris{background:linear-gradient(160deg,#5b6a80,#7a879b)}.sello.gris::after,.sello.gris .ic{animation:none}
+@media (prefers-reduced-motion:reduce){.sello::after,.sello .ic{animation:none}}
 
-/* ── filas de dato ── */
-.dato{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid #EDF1F6}
-.dato:last-child{border-bottom:none;padding-bottom:0}
-.dato:first-child{padding-top:0}
-.dato .k{flex:0 0 116px;font-size:11px;font-weight:800;color:var(--gris);
-  text-transform:uppercase;letter-spacing:.4px;padding-top:2px}
-.dato .v{flex:1;font-size:15px;font-weight:700;line-height:1.4}
-.dato .v small{display:block;font-size:12.5px;font-weight:600;color:var(--gris);
-  margin-top:2px;letter-spacing:0}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line2);font-size:13.5px;font-weight:600}
+.chk:last-child{border:0}.chk i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--okbg);color:var(--ok);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px}
+.chk i.no{background:#eef1f5;color:#7a879b}
+.chk small{display:block;color:var(--mu);font-size:12px;font-weight:500}
 
-/* ── acumulado: la cifra que defiende el contrato ── */
-.total{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
-  border-radius:16px;padding:20px 18px;text-align:center;margin-bottom:12px}
-.total .r{font-size:10.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;
-  color:rgba(255,255,255,.74)}
-.total .n{font-size:44px;font-weight:900;line-height:1.05;margin:6px 0 1px;
-  font-variant-numeric:tabular-nums}
-.total .u{font-size:14px;font-weight:700;color:rgba(255,255,255,.86)}
-.total .p{font-size:12.5px;color:rgba(255,255,255,.72);margin-top:9px;line-height:1.5}
+.lock{background:#fff8e6;border:1px solid #f3dc9c;border-radius:12px;padding:12px;font-size:13px;color:#4d3a00}
+.in{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font:600 16px Archivo,sans-serif;color:#0f2140;background:#fff}
+.in.ruc{text-align:center;letter-spacing:1px;font-size:18px}
+.msg{font-size:13px;color:#b42318;margin-top:8px;min-height:1em}
 
-.rejilla{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.mini{background:#fff;border:1px solid var(--borde);border-radius:13px;
-  padding:13px 9px;text-align:center}
-.mini .n{font-size:20px;font-weight:900;color:var(--azul-osc);line-height:1.1;
-  font-variant-numeric:tabular-nums}
-.mini .r{font-size:10px;font-weight:700;color:var(--gris);text-transform:uppercase;
-  letter-spacing:.4px;margin-top:4px;line-height:1.3}
+.bar2{display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px));background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+.bar2 button{border:0;background:#eef2f8;border-radius:10px;width:38px;height:38px;font-size:18px;color:var(--navy2);cursor:pointer;flex:none}
+.bar2 b{font-size:16px}.bar2 small{display:block;color:var(--mu);font-size:12px;font-weight:500}
+.fila{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2);cursor:pointer}
+.fila:last-child{border:0}.fila .ic2{width:38px;height:38px;border-radius:10px;background:#eef2f8;display:grid;place-items:center;flex:none;font-size:17px}
+.fila .tx{flex:1;min-width:0;font-size:14px;font-weight:700}.fila .tx small{display:block;color:var(--mu);font-size:12px;font-weight:500;margin-top:1px}
+.fila .ac{font-size:13px;font-weight:800;color:var(--link);white-space:nowrap;background:none;border:0;padding:6px 0 6px 6px;cursor:pointer}
+.mas2{display:block;width:100%;border:0;background:none;color:var(--link);font-weight:800;font-size:13.5px;padding:10px 0 2px;text-align:left;cursor:pointer}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 14px 0}.chips.en{margin:6px 0 0}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-weight:700;font-size:12.5px;color:#44516a;cursor:pointer}
+.chips button.on{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.mes{font-size:11px;letter-spacing:1px;font-weight:800;color:#6a7689;margin:14px 14px 0}
+.rec{background:#fff;margin:12px 14px;border-radius:14px;border:1px solid var(--line);padding:14px;font-size:12.5px}
+.rec .h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;border-bottom:2px solid var(--navy2);padding-bottom:8px}
+.rec .h b{font-size:15px;color:var(--navy2)}.rec .nro{background:var(--navy2);color:#fff;border-radius:8px;padding:3px 8px;font-weight:800;white-space:nowrap}
+.rec table{width:100%;border-collapse:collapse;margin-top:8px}.rec th{background:var(--navy2);color:#fff;font-size:10.5px;text-align:left;padding:6px}.rec td{padding:6px;border-bottom:1px solid var(--line2)}
+.rec .g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.rec .g div{background:#f6f8fb;border-radius:8px;padding:7px;min-width:0;overflow-wrap:anywhere}.rec .g small{display:block;font-size:10px;color:var(--mu);font-weight:800;letter-spacing:.5px}
+.aviso{margin:10px 14px 0;font-size:12.5px;color:#44516a;background:#fff;border:1px dashed #c9d3e2;border-radius:10px;padding:10px}
+.per{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:11px;margin-top:8px;cursor:pointer;font-size:14px;font-weight:700}
+.per small{display:block;color:var(--mu);font-size:12px;font-weight:500}.per.on{border-color:var(--navy2);background:#f3f7ff}.per.ya,.per.nada{cursor:default}.per.nada{opacity:.55}
+.per .t{margin-left:auto;font-size:11.5px;font-weight:800;border-radius:6px;padding:5px 8px;background:#e7f3dd;color:#2f6b0a;border:0;cursor:pointer;white-space:nowrap}
+.est{font-size:11px;font-weight:800;border-radius:6px;padding:3px 8px;white-space:nowrap;background:#fff4d6;color:#8a5a00}
+.est.at{background:var(--okbg);color:#1f7a3a}.est.ce{background:#eef1f5;color:#4a5872}
+.tema{margin:12px 14px 0;background:#fff6df;border:1px solid #efd79b;border-radius:12px;padding:10px 12px;font-size:13px;color:#8a6300}
 
-.nota{font-size:12px;color:var(--gris);line-height:1.6;text-align:center;
-  padding:4px 8px;margin-top:2px}
+#hoja{position:fixed;inset:0;background:rgba(10,25,50,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+#hoja.si{display:flex}
+#hc{background:#fff;width:520px;max-width:100%;border-radius:20px 20px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom,0px));max-height:90vh;overflow:auto}
+#hc h2{margin:0;font-size:18px}#hc .sub{color:var(--mu);font-size:13px;margin:4px 0 6px}
+#hc .k{margin-top:14px;display:block}
 
-/* ── pie ── */
-.pie{max-width:620px;margin:20px auto 0;padding:18px 20px;text-align:center;
-  border-top:1px solid var(--borde)}
-.pie .m{font-size:13.5px;font-weight:700;color:var(--azul-osc);line-height:1.7}
-.pie .m a{color:var(--azul);text-decoration:none;font-weight:800}
-.pie .l{font-size:11px;color:var(--gris);margin-top:11px;line-height:1.6}
-
-/* ── carga y error ── */
-.centro{max-width:520px;margin:56px auto;background:#fff;border:1px solid var(--borde);
-  border-radius:16px;padding:34px 26px;text-align:center;box-shadow:0 3px 16px rgba(20,48,107,.1)}
-.centro .ic{font-size:34px;margin-bottom:12px}
-.centro h3{font-size:17px;font-weight:800;color:var(--azul-osc);margin-bottom:8px}
-.centro p{font-size:13.5px;color:var(--gris);line-height:1.65}
-.spin{width:34px;height:34px;border:4px solid var(--borde);border-top-color:var(--azul);
-  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 14px}
-@keyframes g{to{transform:rotate(360deg)}}
-
-@media(max-width:420px){
-  .dato{flex-direction:column;gap:2px}
-  .dato .k{flex:none}
-  .total .n{font-size:38px}
-  .rejilla{gap:7px}
-  .mini{padding:11px 5px}
-  .mini .n{font-size:17px}
-}
+.centro{max-width:460px;margin:56px auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px 24px;text-align:center}
+.centro h3{margin:8px 0;color:var(--navy)}.centro p{color:var(--mu);font-size:14px;margin:0}
+.spin{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--navy2);border-radius:50%;animation:gira 1s linear infinite;margin:0 auto 14px}
+.carga{padding:30px 14px;text-align:center;color:var(--mu);font-size:13.5px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:600;max-width:90vw;z-index:30;display:none}
 </style>
 </head>
 <body>
-
-<div id="cargando" class="centro">
-  <div class="spin"></div>
-  <p>Cargando la información de su servicio…</p>
-</div>
-
-<div id="error" class="centro" style="display:none">
-  <div class="ic">🔒</div>
-  <h3 id="err-t">No pudimos abrir esta página</h3>
-  <p id="err-p"></p>
-</div>
-
-<div id="app" style="display:none">
-  <header>
-    <div class="cab">
-      <div class="logo"></div>
-      <div class="r">Servicio prestado por ECOVSA</div>
-      <h1 id="c-nombre">—</h1>
-      <div class="cod" id="c-codigo">—</div>
-    </div>
-  </header>
-
-  <div class="wrap">
-    <div class="estado" id="c-estado">
-      <div class="punto"></div>
-      <div><div class="t" id="c-estado-t">Servicio activo</div>
-           <div class="s" id="c-estado-s">—</div></div>
-    </div>
-
-    <div class="tarjeta">
-      <h2>Su servicio</h2>
-      <div id="c-servicio"></div>
-    </div>
-
-    <div class="total">
-      <div class="r">Total retirado de su establecimiento</div>
-      <div class="n" id="c-kg">0</div>
-      <div class="u">kilogramos</div>
-      <div class="p" id="c-kg-pie">—</div>
-    </div>
-
-    <div class="rejilla">
-      <div class="mini"><div class="n" id="c-visitas">0</div><div class="r">Visitas</div></div>
-      <div class="mini"><div class="n" id="c-punzo">0</div><div class="r">Kg punzo&shy;cortantes</div></div>
-      <div class="mini"><div class="n" id="c-anatomo">0</div><div class="r">Kg anatomo&shy;patológico</div></div>
-    </div>
-
-    <div class="nota">
-      Cada retiro queda documentado con su recibo y su acta de disposición final.
-      Los comprobantes llegan a su correo después de cada visita.
-    </div>
-
-    <div class="pie">
-      <div class="m">¿Alguna consulta sobre su servicio?<br>
-        Tel. <a href="tel:3102268">310-2268</a> &nbsp;·&nbsp;
-        WhatsApp <a href="https://wa.me/50762641647">6264-1647</a><br>
-        <a href="mailto:info@ecovsa.com">info@ecovsa.com</a></div>
-      <div class="l" id="c-legal"></div>
-    </div>
-  </div>
-</div>
+<div id="app"><div class="centro"><div class="spin"></div><p>Cargando la información de su servicio…</p></div></div>
+<div id="hoja"><div id="hc"></div></div>
+<div class="toast" id="toast"></div>
 
 <script>
-function $(i){return document.getElementById(i);}
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function mil(v){return (Number(v)||0).toLocaleString("es-PA");}
-function n1(v){var x=Number(v)||0; return x%1 ? x.toFixed(1) : String(x);}
+/* ═══ Página del QR del cliente (api 3.1) ═══
+   Verificación: pública, la ve cualquiera que escanee el distintivo (también un
+   inspector del MINSA). Nunca dice cuánto se debe: se abre desde un adhesivo en
+   la pared de la recepción.
+   Mi servicio: solo el establecimiento, con el RUC. Queda abierto 30 días en ese
+   celular. Recibos, certificados y pedidos (recolección extra → logística;
+   certificado → mercadeo). */
+var CLI="", COD="", PUB=null, MIO=null, V="ver", FIL="todos", RI=0, YA_GIRO=false, LLAVE="";
+var MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function f(i){ var d=new Date(String(i)+"T12:00:00"); return isNaN(d)?String(i||""):d.getDate()+" "+MES[d.getMonth()]+" "+d.getFullYear(); }
+function fl(i){ var d=new Date(String(i)+"T12:00:00"); return isNaN(d)?String(i||""):d.getDate()+" de "+MESL[d.getMonth()]+" de "+d.getFullYear(); }
+function kg(v){ var x=Math.round((Number(v)||0)*100)/100; return x.toLocaleString("es-PA"); }
+function toast(t){ var a=$("toast"); a.textContent=t; a.style.display="block"; clearTimeout(a._t); a._t=setTimeout(function(){ a.style.display="none"; },3200); }
+function lsGet(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }
+function lsSet(k,v){ try{ if(v) localStorage.setItem(k,v); else localStorage.removeItem(k); }catch(e){} }
+function kLlave(){ return "qr_llave_"+CLI; }
 
-function falla(titulo, texto){
-  $("cargando").style.display="none";
-  $("app").style.display="none";
-  $("err-t").textContent=titulo;
-  $("err-p").innerHTML=texto;
-  $("error").style.display="block";
+/* ── llamadas al servidor ── */
+function llamar(fn, args){
+  return new Promise(function(ok, mal){
+    var r=google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){ mal(e||new Error("Sin conexión")); });
+    r[fn].apply(r, args);
+  });
 }
 
-/* La página vive dentro del iframe de Apps Script: su propia location no
-   trae los parámetros del enlace. Se piden con google.script.url. */
 function arrancar(){
-  if(window.google && google.script && google.script.url){
-    google.script.url.getLocation(function(loc){
-      var p=(loc&&loc.parameter)||{};
-      seguir(p.cli||"", p.cod||"");
-    });
-  } else {
-    var q=location.search||"";
-    var a=q.match(/[?&]cli=([^&]+)/), b=q.match(/[?&]cod=([^&]+)/);
-    seguir(a?decodeURIComponent(a[1]):"", b?decodeURIComponent(b[1]):"");
-  }
+  var q=location.search||"";
+  var a=q.match(/[?&]cli=([^&]+)/), b=q.match(/[?&]cod=([^&]+)/);
+  CLI=a?decodeURIComponent(a[1]):""; COD=b?decodeURIComponent(b[1]):"";
+  if(!CLI||!COD){ falla("Enlace incompleto","Escanee de nuevo el código de su distintivo ECOVSA. Si el problema sigue, escríbanos al WhatsApp <b>6264-1647</b> y le enviamos el enlace correcto."); return; }
+  LLAVE=lsGet(kLlave());
+  if(/(^|#)mio$/.test(location.hash)) V="mio";
+  llamar("api_miCliente",[CLI,COD]).then(function(r){
+    if(!r||!r.ok){ falla("No pudimos abrir esta página", esc((r&&r.error)||"Intente de nuevo en unos minutos.")+"<br><br>Si necesita ayuda, escríbanos al WhatsApp <b>6264-1647</b>."); return; }
+    PUB=r; ir(V);
+  },function(){ falla("Sin conexión","No pudimos conectar en este momento. Intente de nuevo en unos minutos."); });
+}
+function falla(t,p){ $("app").innerHTML='<div class="centro"><div style="font-size:34px">🔒</div><h3>'+esc(t)+'</h3><p>'+p+'</p></div>'; }
+
+/* ── navegación ── */
+function ir(v){
+  if((v==="mio"||v==="recibos"||v==="recibo") && !LLAVE) v="clave";
+  V=v;
+  var h={ver:vVer,clave:vClave,mio:vMio,recibos:vRecibos,recibo:vRecibo}[v]();
+  $("app").innerHTML=h; window.scrollTo(0,0);
+  var tb=document.querySelector(".tab"); if(tb) tb.onclick=function(e){ var b=e.target.closest("button"); if(b) ir(b.getAttribute("data-t")); };
+  hora();
+  if(v==="mio" && !MIO) cargarMio();
+  if(v==="clave"){ var i=$("ruc"); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },100); }
 }
 
-function seguir(c, v){
-  if(!c || !v){
-    falla("Enlace incompleto",
-      "Escanee de nuevo el código de su distintivo ECOVSA. Si el problema sigue, "+
-      "escríbanos al WhatsApp <b>6264-1647</b> y le enviamos el enlace correcto.");
-    return;
-  }
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){
-        falla("No pudimos abrir esta página",
-          esc((r&&r.error)||"Intente de nuevo en unos minutos.")+
-          "<br><br>Si necesita ayuda, escríbanos al WhatsApp <b>6264-1647</b>.");
-        return;
-      }
-      pintar(r);
-    })
-    .withFailureHandler(function(){
-      falla("Sin conexión",
-        "No pudimos conectar en este momento. Intente de nuevo en unos minutos.");
-    })
-    .api_miCliente(c, v);
+function estado(){
+  var r=PUB;
+  if(r.suspendido) return {sello:"SERVICIO EN PAUSA", gris:true, pill:"Servicio en pausa", nota:"Comuníquese con nosotros para reactivarlo."};
+  if(!r.contratoVigente) return {sello:"CONTRATO POR RENOVAR", gris:true, pill:"Contrato por renovar", nota:"Escríbanos para renovar su servicio."};
+  return {sello:"SERVICIO VIGENTE", gris:false, pill:"Cliente con servicio vigente", nota:""};
 }
 
-function fila(rotulo, valor, detalle){
-  if(!valor) return "";
-  return '<div class="dato"><div class="k">'+esc(rotulo)+'</div>'+
-    '<div class="v">'+esc(valor)+
-    (detalle?'<small>'+esc(detalle)+'</small>':'')+'</div></div>';
+function cab(){
+  var g=YA_GIRO?"":" gira"; YA_GIRO=true; var e=estado();
+  return '<div class="hC"><div class="emb" onclick="girar(this)" title="ECOVSA"><div class="e3">'+
+      '<img src="entrada-globo.png" alt=""><img src="entrada-bio.png" alt="">'+
+      '<div class="fl'+g+'"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div></div>'+
+      '<div class="wm">ECOVSA</div><div class="tg">ECOLOGÍA · VIDA · SALUD</div></div>'+
+    '<div class="fC"><div class="n">'+esc(PUB.establecimiento)+'</div><small>Cliente N.º '+esc(PUB.codigoCliente)+'</small><br>'+
+      '<span class="ok'+(e.gris?' gris':'')+'">● '+esc(e.pill)+'</span></div>'+
+    '<div class="tab"><button data-t="ver" class="'+(V==="ver"?"on":"")+'">Verificación</button><button data-t="mio" class="'+(V!=="ver"?"on":"")+'">Mi servicio 🔒</button></div>';
+}
+function girar(el){ var a=el.querySelector(".fl"); a.classList.remove("gira"); void a.offsetWidth; a.classList.add("gira"); }
+function barra(t,s,atras){ return '<div class="bar2"><button onclick="ir(\''+atras+'\')" aria-label="Volver">←</button><div><b>'+esc(t)+'</b>'+(s?'<small>'+esc(s)+'</small>':'')+'</div></div>'; }
+
+/* ═══ Verificación (pública) ═══ */
+function vVer(){
+  var r=PUB, e=estado(), E=r.empresa||{};
+  var chk=function(ok,t,s){ return '<div class="chk"><i class="'+(ok?'':'no')+'">'+(ok?'✓':'–')+'</i><div>'+esc(t)+(s?'<small>'+esc(s)+'</small>':'')+'</div></div>'; };
+  var h=cab()+
+    '<div class="sello'+(e.gris?' gris':'')+'"><div class="ic">'+(e.gris?'<span style="font-size:28px">⏸</span>':'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>')+'</div>'+
+      '<b>'+esc(e.sello)+'</b><div class="hora num" id="hora"></div>'+(r.codigoDia?'<div class="cod num" title="Cambia cada día">'+esc(r.codigoDia)+'</div>':'')+
+      (e.nota?'<div class="hora">'+esc(e.nota)+'</div>':'')+'</div>'+
+    '<div class="card"><h3>LO QUE SE VERIFICA</h3>'+
+      chk(r.contratoVigente && !!r.servicioDesde, "Contrato vigente", (r.servicioDesde?"Servicio desde el "+r.servicioDesde:"Fecha de inicio pendiente de registrar")+(r.contratoHasta?" · vigente hasta el "+r.contratoHasta:""))+
+      chk(!!r.ultimaVisita, "Recolección registrada", (r.frecuencia?r.frecuencia+(r.frecuenciaDetalle?" ("+r.frecuenciaDetalle+")":""):"")+(r.ultimaVisita?" · última el "+r.ultimaVisita:" · primera recolección por realizarse"))+
+      (r.ultimoRecibo?chk(true,"Última recolección documentada","Recibo "+r.ultimoRecibo+(r.ultimaVisitaKg?" · "+kg(r.ultimaVisitaKg)+" kg":"")+(r.ultimaActa?" · Acta "+r.ultimaActa:"")):"")+
+      chk(true,"Tratamiento autorizado", E.resolucion||"Resolución Sanitaria vigente")+
+      (r.proximaMes?chk(true,"Próxima visita","Durante "+r.proximaMes+" · la fecha exacta se coordina con el establecimiento"):"")+
+    '</div>'+
+    '<div style="margin:0 14px"><a class="btn wa" href="https://wa.me/50762641647" target="_blank" rel="noopener">WhatsApp ECOVSA · 6264-1647</a></div>'+
+    '<div class="pie">'+legal()+'</div>';
+  return h;
+}
+function legal(){
+  var e=PUB.empresa||{}, r=PUB;
+  return esc(e.razonSocial||"ECOTERMO DE PANAMA S.A.")+" · Nombre comercial "+esc(e.comercial||"ECOVSA")+"<br>"+
+    "RUC "+esc(e.ruc||"")+(e.dv?" DV "+esc(e.dv):"")+"<br>"+
+    (e.direccion?esc(e.direccion)+"<br>":"")+
+    (e.resolucion?esc(e.resolucion)+"<br>":"")+(e.decreto?esc(e.decreto)+"<br>":"")+
+    (e.formulario?esc(e.formulario)+"<br>":"")+
+    "Tel. 310-2268 · WhatsApp 6264-1647 · info@ecovsa.com<br>"+
+    '<span style="opacity:.8">Información en vivo al '+esc(r.hoy)+'</span>';
+}
+function hora(){
+  var e=$("hora"); if(!e) return; var d=new Date();
+  e.textContent="Verificado hoy · "+d.toLocaleDateString("es-PA",{day:"numeric",month:"long"})+" · "+d.toLocaleTimeString("es-PA",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+setInterval(hora,1000);
+
+/* ═══ Entrar con el RUC ═══ */
+function vClave(){
+  return cab()+'<div class="card"><div class="lock">🔒 <b>Solo para el establecimiento.</b> Aquí están sus recibos, sus certificados y los pedidos a ECOVSA. Escriba el <b>RUC de su empresa</b>, como aparece en su factura.</div>'+
+    '<form onsubmit="entrar(event)"><input class="in ruc num" id="ruc" inputmode="text" autocomplete="off" placeholder="Ej. 155714552-2-2021" style="margin-top:12px">'+
+    '<div class="msg" id="rmsg"></div><button class="btn pri" id="rbt" style="margin-top:6px">Entrar</button></form>'+
+    '<p class="nota" style="text-align:center">Queda abierto en este celular por 30 días.</p></div>'+
+    '<div class="pie">¿No tiene el RUC a mano? Escríbanos al WhatsApp <b>6264-1647</b>.</div>';
+}
+function entrar(ev){
+  ev.preventDefault();
+  var v=$("ruc").value.trim(), m=$("rmsg"), b=$("rbt");
+  if(v.replace(/\D/g,"").length<4){ m.textContent="Escriba el RUC completo."; return; }
+  b.disabled=true; b.textContent="Revisando…"; m.textContent="";
+  llamar("api_miServicioEntrar",[CLI,COD,v]).then(function(r){
+    b.disabled=false; b.textContent="Entrar";
+    if(!r||!r.ok){ m.textContent=(r&&r.error)||"No se pudo entrar."; return; }
+    LLAVE=r.llave; lsSet(kLlave(),LLAVE); MIO=null; ir("mio");
+  },function(){ b.disabled=false; b.textContent="Entrar"; m.textContent="Sin conexión. Intente de nuevo."; });
+}
+function salir(){ LLAVE=""; MIO=null; lsSet(kLlave(),""); ir("ver"); }
+
+/* ═══ Mi servicio ═══ */
+function cargarMio(){
+  llamar("api_miServicio",[CLI,COD,LLAVE]).then(function(r){
+    if(!r||!r.ok){ if(r&&r.salir){ LLAVE=""; lsSet(kLlave(),""); ir("clave"); var m=$("rmsg"); if(m) m.textContent=r.error; return; }
+      var c=$("mio-cuerpo"); if(c) c.innerHTML='<div class="carga">'+esc((r&&r.error)||"No se pudo cargar.")+'</div>'; return; }
+    MIO=r; if(V==="mio") ir("mio");
+  },function(){ var c=$("mio-cuerpo"); if(c) c.innerHTML='<div class="carga">Sin conexión. <button class="mas2" style="display:inline;width:auto" onclick="cargarMio()">Reintentar</button></div>'; });
+}
+function filaRec(x,i){ return '<div class="fila" onclick="verRec('+i+')"><div class="ic2">🧾</div><div class="tx">'+f(x.fecha)+'<small>Recibo '+esc(x.recibo||"s/n")+' · '+kg(x.kg)+' kg</small></div><span class="ac">Ver →</span></div>'; }
+function filaCert(c){ return '<div class="fila" onclick="bajarCert(\''+esc(c.folio)+'\')"><div class="ic2">📄</div><div class="tx">'+esc(c.folio)+'<small>Del '+f(c.desde)+' al '+f(c.hasta)+' · '+kg(c.kg)+' kg · '+c.visitas+' visita'+(c.visitas===1?'':'s')+'</small></div><span class="ac">⬇ Descargar</span></div>'; }
+function vMio(){
+  var h=cab()+'<div style="margin:12px 14px 0"><button class="btn wa" onclick="extra()">🚚 Pedir recolección extra</button></div>';
+  if(!MIO) return h+'<div id="mio-cuerpo"><div class="carga"><div class="spin"></div>Cargando su servicio…</div></div>';
+  var r=MIO, P=PUB, R=r.recibos||[], C=r.certificados||[];
+  if(r.temaAdministrativo) h+='<div class="tema">Tiene un tema administrativo pendiente. Escríbanos al WhatsApp <b>6264-1647</b> y lo revisamos.</div>';
+  h+='<div class="card"><h3>TU SERVICIO</h3><div class="dos"><div><div class="k">FRECUENCIA</div><div class="v">'+esc(P.frecuencia||"—")+(P.frecuenciaDetalle?'<small>'+esc(P.frecuenciaDetalle)+'</small>':'')+'</div></div>'+
+     '<div><div class="k">PRÓXIMA VISITA</div><div class="v">'+esc(P.proximaMes?P.proximaMes.charAt(0).toUpperCase()+P.proximaMes.slice(1):"Por coordinar")+'<small>se coordina contigo</small></div></div>'+
+     '<div><div class="k">TOTAL RETIRADO</div><div class="v num">'+kg(r.acumulado.kg)+' kg<small>en '+r.acumulado.visitas+' visita'+(r.acumulado.visitas===1?'':'s')+'</small></div></div>'+
+     '<div><div class="k">CONTRATO</div><div class="v">'+(P.contratoHasta?'Hasta el '+esc(P.contratoHasta):'Vigente')+'</div></div></div></div>';
+  h+='<div class="card"><h3>ÚLTIMA RECOLECCIÓN</h3>'+(R.length?filaRec(R[0],0)+'<button class="mas2" onclick="FIL=\'todos\';ir(\'recibos\')">Ver todos mis recibos ('+R.length+') →</button>':'<p class="nota">Su primera recolección está por realizarse.</p>')+'</div>';
+  h+='<div class="card"><h3>MIS CERTIFICADOS DE TRATAMIENTO</h3>'+
+     (C.length?'<p class="nota" style="margin:0 0 4px">Cada fila es un certificado distinto: toque ⬇ Descargar en el que necesite.</p>'+C.map(filaCert).join(""):'<p class="nota" style="margin:0 0 4px">Todavía no tiene certificados emitidos.</p>')+
+     '<button class="btn" style="margin-top:10px" onclick="pedirCert()">+ Pedir un certificado'+(C.length?' de otro periodo':'')+'</button></div>';
+  var S=r.solicitudes||[];
+  if(S.length) h+='<div class="card"><h3>MIS SOLICITUDES</h3>'+S.map(function(s){
+      var cl=s.estado==="Atendida"?" at":s.estado==="Cerrada"?" ce":"";
+      return '<div class="fila" style="cursor:default"><div class="ic2">'+(s.tipo==="recoleccion"?"🚚":"📄")+'</div><div class="tx">'+esc(s.resumen)+'<small>'+esc(s.folio)+' · '+f(s.fecha)+(s.nota?' · '+esc(s.nota):'')+'</small></div><span class="est'+cl+'">'+esc(s.estado)+'</span></div>'; }).join("")+'</div>';
+  h+='<div class="pie">¿Consultas? Tel. 310-2268 · WhatsApp 6264-1647<br><button onclick="salir()">Salir de mi servicio en este celular</button></div>';
+  return h;
 }
 
-/* Los datos de la empresa vienen del servidor. Esta pantalla la abre un
-   inspector del MINSA desde el QR del distintivo, así que lleva razón social,
-   RUC, dirección, resolución y el código del formulario. */
-var DATOS_EMP=null;
-var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
-  ruc:"1074020-1-552789",dv:"50",direccion:"",ciudad:"Panamá",
-  telefono:"310-2268",whatsapp:"6264-1647",correo:"info@ecovsa.com",
-  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
-  resolucionCorta:"Resolución Sanitaria N° 1519",
-  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
-function emp(){ return DATOS_EMP || EMP_RESP; }
+/* ═══ Mis recibos ═══ */
+function vRecibos(){
+  var R=(MIO&&MIO.recibos)||[], años=["todos"];
+  R.forEach(function(x){ var y=x.fecha.slice(0,4); if(años.indexOf(y)<0) años.push(y); });
+  var L=R.map(function(x,i){ return [x,i]; }).filter(function(p){ return FIL==="todos"||p[0].fecha.slice(0,4)===FIL; });
+  var tot=L.reduce(function(s,p){ return s+p[0].kg; },0);
+  var h=barra("Mis recibos",L.length+" recoleccion"+(L.length===1?"":"es")+" · "+kg(tot)+" kg","mio");
+  if(años.length>2) h+='<div class="chips">'+años.map(function(a){ return '<button class="'+(FIL===a?'on':'')+'" onclick="FIL=\''+a+'\';ir(\'recibos\')">'+(a==="todos"?"Todos":a)+'</button>'; }).join("")+'</div>';
+  var y="";
+  L.forEach(function(p){ var yy=p[0].fecha.slice(0,4); if(yy!==y){ y=yy; h+='<div class="mes">'+yy+'</div>'; } h+='<div class="card" style="margin-top:6px;padding:4px 14px">'+filaRec(p[0],p[1])+'</div>'; });
+  if(!L.length) h+='<div class="carga">No hay recibos en este periodo.</div>';
+  return h+'<div class="aviso">Cada recibo es el comprobante oficial de esa recolección: kilos por tipo, camión, conductor y quién entregó.</div><div style="height:20px"></div>';
+}
+function verRec(i){ RI=i; ir("recibo"); }
+function enlaceRec(x){ return "Recibo.html?p=recibo&solover=1&id="+encodeURIComponent(x.recibo)+(x.clave?"&k="+encodeURIComponent(x.clave):""); }
+function vRecibo(){
+  var R=(MIO&&MIO.recibos)||[], x=R[RI]; if(!x) return vRecibos();
+  var fila=function(t,v){ return v?'<tr><td>'+t+'</td><td style="text-align:right" class="num">'+kg(v)+'</td></tr>':''; };
+  return barra("Recibo "+(x.recibo||"s/n"),fl(x.fecha),"recibos")+
+    (x.recibo?'<div style="margin:12px 14px 0" class="row"><button class="btn pri" onclick="bajarRec()">⬇ Descargar PDF</button><button class="btn" onclick="compartirRec()">Compartir</button></div>':'')+
+    '<div class="rec"><div class="h"><div><b>Recibo de Visita</b><div style="color:var(--mu);font-size:11px">ECOVSA · Comprobante oficial</div></div><span class="nro num">'+esc(x.recibo||"s/n")+'</span></div>'+
+      '<div class="g"><div><small>ESTABLECIMIENTO</small>'+esc(PUB.establecimiento)+'</div><div><small>FECHA</small>'+f(x.fecha)+'</div>'+
+      '<div><small>CAMIÓN</small>'+esc(x.vehiculo||"—")+'</div><div><small>CONDUCTOR</small>'+esc(x.conductor||"—")+'</div></div>'+
+      '<table><tr><th>CLASIFICACIÓN</th><th style="text-align:right">KG</th></tr>'+fila("Bioinfeccioso",x.kgBio)+fila("Punzocortante",x.kgPunzo)+fila("Anatomopatológico",x.kgAnatomo)+
+      '<tr><td><b>TOTAL</b></td><td style="text-align:right" class="num"><b>'+kg(x.kg)+'</b></td></tr></table>'+
+      '<div class="g"><div><small>ACTA DE DISPOSICIÓN</small>'+esc(x.acta||"En trámite")+'</div><div><small>ENTREGÓ</small>'+esc(x.firmante||"—")+'</div></div></div>'+
+    '<div class="row" style="margin:0 14px 20px"><button class="btn" '+(RI>=R.length-1?'disabled':'onclick="verRec('+(RI+1)+')"')+'>← Anterior</button><button class="btn" '+(RI<=0?'disabled':'onclick="verRec('+(RI-1)+')"')+'>Siguiente →</button></div>';
+}
+function bajarRec(){ var x=MIO.recibos[RI]; window.open(enlaceRec(x)+"&bajar=1","_blank"); }
+function compartirRec(){
+  var x=MIO.recibos[RI], u=new URL(enlaceRec(x), location.href).href;
+  if(navigator.share){ navigator.share({title:"Recibo "+x.recibo+" · ECOVSA", url:u}).catch(function(){}); return; }
+  (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){ toast("Enlace del recibo copiado"); },function(){ prompt("Copie el enlace del recibo:",u); });
+}
+function bajarCert(folio){ window.open("CertificadoVista.html?p=vercert&folio="+encodeURIComponent(folio)+"&cli="+encodeURIComponent(CLI)+"&cod="+encodeURIComponent(COD)+"&t="+encodeURIComponent(LLAVE),"_blank"); }
 
-function pintar(r){
-  if(r && r.empresa) DATOS_EMP=r.empresa;
-  $("c-nombre").textContent = r.establecimiento;
-  $("c-codigo").textContent = "Cliente N° "+r.codigoCliente;
+/* ═══ Hojas: pedir recolección extra y pedir certificado ═══ */
+function hoja(h){ $("hc").innerHTML=h; $("hoja").classList.add("si"); }
+function cerrar(){ $("hoja").classList.remove("si"); }
+$("hoja").addEventListener("click",function(e){ if(e.target.id==="hoja") cerrar(); });
+function chips(nombre, ops, on){ return '<div class="chips en" data-g="'+nombre+'">'+ops.map(function(o){ return '<button type="button" class="'+(o===on?'on':'')+'">'+esc(o)+'</button>'; }).join("")+'</div>'; }
+function chipVal(nombre){ var b=document.querySelector('[data-g="'+nombre+'"] button.on'); return b?b.textContent:""; }
+document.addEventListener("click",function(e){ var b=e.target.closest(".chips.en button"); if(!b) return; b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); });
 
-  /* Estado del servicio, en semáforo. Nunca dice cuánto debe ni la palabra
-     deuda: esta pantalla se abre desde un adhesivo en la pared de su
-     recepción y la puede escanear cualquiera que pase. Quien deba entiende
-     "comuníquese con nosotros"; quien no, ve un servicio activo. */
-  var caja=$("c-estado");
-  if(r.suspendido){
-    caja.className="estado gris";
-    $("c-estado-t").textContent="Servicio en pausa";
-    $("c-estado-s").textContent="Comuníquese con nosotros para reactivarlo.";
-  } else if(!r.contratoVigente){
-    caja.className="estado gris";
-    $("c-estado-t").textContent="Contrato por renovar";
-    $("c-estado-s").textContent="Escríbanos para renovar su servicio.";
-  } else if(r.semaforo==="rojo" || r.semaforo==="ambar"){
-    caja.className="estado ambar";
-    $("c-estado-t").textContent="Servicio activo";
-    $("c-estado-s").textContent="Tiene un tema administrativo pendiente · comuníquese con nosotros.";
-  } else {
-    caja.className="estado";
-    $("c-estado-t").textContent="Servicio activo";
-    $("c-estado-s").textContent = "Recolección, transporte y disposición final "+
-      "de desechos peligrosos.";
-  }
-
-  /* datos del servicio */
-  var html="";
-  /* Primero, y siempre. Es el dato que MINSA verifica al llegar, y antes vivía
-     como subtítulo del bloque de estado — donde desaparecía en cuanto el
-     cliente tenía una factura pendiente. Un cliente en mora sigue necesitando
-     esta fecha delante del inspector. */
-  html += fila("Servicio contratado desde", r.servicioDesde,
-               r.servicioDesde ? "" : "Pendiente de registrar · consúltenos");
-  html += fila("Frecuencia", r.frecuencia, r.frecuenciaDetalle);
-  html += fila("Última visita", r.ultimaVisita,
-               r.ultimaVisitaKg ? n1(r.ultimaVisitaKg)+" kg retirados" : "");
-  /* al cliente se le dice el mes, nunca el día: una fecha exacta es una
-     promesa, y si el camión no llega ese día el reclamo lo generamos solos */
-  html += fila("Próxima visita", r.proximaMes ? "Durante "+r.proximaMes : "",
-               "La fecha exacta se coordina con su establecimiento");
-  html += fila("Dirección", r.direccion, r.region);
-  html += fila("Contrato", r.contratoHasta ? "Vigente hasta el "+r.contratoHasta : "", "");
-  $("c-servicio").innerHTML = html || '<div class="nota">Su servicio se está configurando.</div>';
-
-  /* acumulado */
-  var a=r.acumulado||{};
-  $("c-kg").textContent   = mil(Math.round(a.kg||0));
-  $("c-visitas").textContent = mil(a.visitas||0);
-  $("c-punzo").textContent   = n1(a.punzo||0);
-  $("c-anatomo").textContent = n1(a.anatomo||0);
-  $("c-kg-pie").textContent = (a.visitas
-      ? "En "+a.visitas+" visita"+(a.visitas===1?"":"s")+
-        (r.primeraVisita?" desde el "+r.primeraVisita:"")
-      : "Su primera recolección está por realizarse.");
-
-  /* El pie legal se arma con lo que manda el servidor. Es lo que un inspector
-     lee para saber a qué empresa autorizada corresponde este establecimiento. */
-  var e=emp();
-  $("c-legal").innerHTML =
-    esc(e.razonSocial)+" · Nombre comercial "+esc(e.comercial||"ECOVSA")+"<br>"+
-    "RUC "+esc(e.ruc)+" DV "+esc(e.dv)+"<br>"+
-    (e.direccion ? esc(String(e.direccion).toUpperCase()
-        .indexOf(String(e.ciudad||"").toUpperCase())>=0
-        ? e.direccion : e.direccion+" · "+e.ciudad)+"<br>" : "")+
-    esc(e.resolucion)+"<br>"+
-    esc(e.decreto)+
-    (e.formulario ? "<br>"+esc(e.formulario) : "")+
-    '<br><span style="opacity:.8">Información al '+esc(r.hoy)+'</span>';
-
-  $("cargando").style.display="none";
-  $("error").style.display="none";
-  $("app").style.display="block";
+function extra(){
+  if(!LLAVE){ ir("clave"); toast("Primero escriba el RUC de su empresa"); return; }
+  var abierta=MIO&&(MIO.solicitudes||[]).some(function(s){ return s.tipo==="recoleccion"&&s.estado!=="Atendida"&&s.estado!=="Cerrada"; });
+  hoja('<h2>Pedir recolección extra</h2><p class="sub">Le llega directo a logística. Le confirmamos el día por WhatsApp.</p>'+
+    (abierta?'<div class="tema" style="margin:8px 0 0">Ya tiene una recolección extra en camino. Si es urgente, escríbanos al 6264-1647.</div>':'')+
+    '<span class="k">¿POR QUÉ?</span>'+chips("motivo",["Se llenó antes","Evento o campaña","Limpieza","Otro"],"Se llenó antes")+
+    '<span class="k">¿PARA CUÁNDO?</span>'+chips("cuando",["Lo antes posible","Esta semana","La próxima semana"],"Lo antes posible")+
+    '<span class="k">¿CUÁNTO HAY?</span>'+chips("cantidad",["1–3 bolsas","4–10 bolsas","Más de 10","No sé"],"4–10 bolsas")+
+    '<span class="k">¿A QUIÉN LLAMAMOS?</span><input class="in" id="x-cont" style="margin-top:6px" value="'+esc((MIO&&MIO.contacto)||"")+'" placeholder="Nombre y teléfono">'+
+    '<div class="msg" id="x-msg"></div><button class="btn wa" id="x-ok" style="margin-top:8px" onclick="enviarExtra()">Enviar solicitud</button>'+
+    '<button class="btn" style="margin-top:8px;border:0" onclick="cerrar()">Cancelar</button>');
+}
+function enviarExtra(){
+  var d={tipo:"recoleccion",motivo:chipVal("motivo"),cuando:chipVal("cuando"),cantidad:chipVal("cantidad"),contacto:$("x-cont").value.trim()};
+  if(!d.contacto){ $("x-msg").textContent="Escriba a quién llamamos."; return; }
+  enviar(d,$("x-ok"),$("x-msg"),"Solicitud enviada a logística");
+}
+function pedirCert(){
+  var P=(MIO&&MIO.periodos)||[];
+  hoja('<h2>Pedir un certificado</h2><p class="sub">Elija el periodo. Los que ya tienen certificado se descargan, no se piden.</p>'+
+    P.map(function(p,i){
+      if(p.folio) return '<div class="per ya">📄<div>'+esc(p.texto)+'<small>Ya emitido: '+esc(p.folio)+'</small></div><button class="t" onclick="cerrar();bajarCert(\''+esc(p.folio)+'\')">⬇ Descargar</button></div>';
+      if(!p.visitas) return '<div class="per nada">🗓️<div>'+esc(p.texto)+'<small>Sin recolecciones en este periodo</small></div></div>';
+      return '<div class="per" data-i="'+i+'" onclick="elegirPer(this)">🗓️<div>'+esc(p.texto)+'<small>'+p.visitas+' visita'+(p.visitas===1?'':'s')+' · '+kg(p.kg)+' kg · aún no tiene certificado</small></div></div>';
+    }).join("")+
+    '<div class="per" data-i="otro" onclick="elegirPer(this)">✏️<div>Otro periodo<small>Escríbalo abajo</small></div></div>'+
+    '<input class="in" id="c-otro" style="margin-top:8px;display:none" placeholder="Ej. marzo a agosto de 2026">'+
+    '<span class="k">¿A QUÉ CORREO LO ENVIAMOS?</span><input class="in" id="c-mail" type="email" style="margin-top:6px" value="'+esc((MIO&&MIO.correo)||"")+'">'+
+    '<p class="nota">Se entrega cuando el periodo está pagado. Le avisamos si falta algo.</p>'+
+    '<div class="msg" id="c-msg"></div><button class="btn pri" id="c-ok" onclick="enviarCert()">Enviar solicitud</button>'+
+    '<button class="btn" style="margin-top:8px;border:0" onclick="cerrar()">Cancelar</button>');
+}
+function elegirPer(el){ document.querySelectorAll(".per").forEach(function(x){ x.classList.toggle("on",x===el); }); $("c-otro").style.display=el.getAttribute("data-i")==="otro"?"block":"none"; }
+function enviarCert(){
+  var el=document.querySelector(".per.on"), m=$("c-msg");
+  if(!el){ m.textContent="Elija un periodo arriba."; return; }
+  var i=el.getAttribute("data-i"), d={tipo:"certificado",correo:$("c-mail").value.trim()};
+  if(i==="otro"){ d.texto=$("c-otro").value.trim(); if(!d.texto){ m.textContent="Escriba el periodo que necesita."; return; } }
+  else { var p=MIO.periodos[Number(i)]; d.desde=p.desde; d.hasta=p.hasta; d.texto=p.texto.replace(/\s*\(hasta hoy\)/,""); }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.correo)){ m.textContent="Escriba un correo válido."; return; }
+  enviar(d,$("c-ok"),m,"Solicitud enviada a mercadeo");
+}
+function enviar(d,b,m,ok){
+  b.disabled=true; var t=b.textContent; b.textContent="Enviando…"; m.textContent="";
+  llamar("api_pedirDesdeQR",[CLI,COD,LLAVE,d]).then(function(r){
+    b.disabled=false; b.textContent=t;
+    if(!r||!r.ok){ if(r&&r.salir){ cerrar(); salir(); ir("clave"); return; } m.textContent=(r&&r.error)||"No se pudo enviar."; return; }
+    cerrar(); toast(ok+" · "+r.folio); MIO=null; ir("mio");
+  },function(e){ b.disabled=false; b.textContent=t; m.textContent=/cola/i.test(String(e&&e.message))?"Sin señal: se enviará sola al volver la conexión. No la repita.":"Sin conexión. Intente de nuevo."; });
 }
 
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
-else arrancar();
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar); else arrancar();
 </script>
 </body>
 </html>

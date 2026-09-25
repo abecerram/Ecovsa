@@ -230,14 +230,14 @@ window.addEventListener("DOMContentLoaded", function(){
       SOLO_VER = String(p.solover||"") === "1";
       ES_CONDUCTOR = String(p.conductor||"") === "1"; ENVIAR_AL_ABRIR = String(p.enviar||"");
       if(String(p.conductor||"") === "1"){ var bi = document.getElementById("btn-imprimir"); if(bi) bi.style.display = "none"; }
-      CLAVE_REC = String(p.k || "");
+      CLAVE_REC = String(p.k || ""); BAJAR_AL_ABRIR = String(p.bajar||"") === "1";
       arrancarRecibo(p.id || "");
     });
   } else {
     var up = new URLSearchParams(window.location.search);
     SOLO_VER = up.get("solover") === "1";
     ES_CONDUCTOR = up.get("conductor") === "1"; ENVIAR_AL_ABRIR = up.get("enviar") || "";
-    CLAVE_REC = up.get("k") || "";
+    CLAVE_REC = up.get("k") || ""; BAJAR_AL_ABRIR = up.get("bajar") === "1";
     arrancarRecibo(up.get("id") || "");
   }
 });
@@ -247,6 +247,9 @@ window.addEventListener("DOMContentLoaded", function(){
    herramientas de quien emite el recibo, no de quien lo recibe. Es el mismo
    mecanismo que ya usaba el acta de disposición final. */
 var SOLO_VER = false, CLAVE_REC = "";
+/* api 3.1 · el cliente sí puede bajar su recibo en PDF (solo ese botón).
+   bajar=1 lo descarga al abrir: así llega desde «Mi servicio» del QR. */
+var BAJAR_AL_ABRIR = false;
 
 /* Los datos de la empresa vienen del servidor, de la constante EMPRESA. Este
    respaldo es solo por si no llegan: guarda lo que no cambia nunca —nombre,
@@ -535,7 +538,13 @@ function marcarEnviado(canal){
 /* ── La barra ── */
 function pintarBarra(){
   var b = $("barra-accion"); if(!b || !DATOS_RECIBO) return;
-  if(SOLO_VER){ b.style.display = "none"; return; }
+  if(SOLO_VER){
+    b.style.display = "";
+    b.innerHTML = '<div class="tit">RECIBO ' + esc(DATOS_RECIBO.recibo) + ' · ' + esc(DATOS_RECIBO.cliente) + '</div>' +
+      '<div class="acc"><button class="rb wa" onclick="bajarPdf()">⬇ Descargar PDF</button></div>';
+    if(BAJAR_AL_ABRIR){ BAJAR_AL_ABRIR = false; setTimeout(bajarPdf, 400); }
+    return;
+  }
   var d = DATOS_RECIBO, sup = ROL_REC === "admin" || ROL_REC === "supervisor";
   b.innerHTML =
     '<div class="tit">RECIBO ' + esc(d.recibo) + ' · ' + esc(d.cliente) + '</div>' +

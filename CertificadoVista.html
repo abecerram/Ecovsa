@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={sinCopia:/./, enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -124,13 +124,32 @@ function arrancar(){
   if(window.google && google.script && google.script.url){
     google.script.url.getLocation(function(loc){
       var p=(loc&&loc.parameter)||{};
+      if(p.folio && p.cli && p.cod && p.t){ seguirCliente(p.folio, p.cli, p.cod, p.t); return; }
       seguir(p.folio||"", p.cliente||"");
     });
   } else {
     var q=location.search||"";
     var m1=q.match(/[?&]folio=([^&]+)/), m2=q.match(/[?&]cliente=([^&]+)/);
+    /* api 3.1 · el cliente lo abre desde «Mi servicio» de la página del QR:
+       trae su enlace (cli, cod) y la llave de su acceso (t), sin PIN */
+    var c1=q.match(/[?&]cli=([^&]+)/), c2=q.match(/[?&]cod=([^&]+)/), c3=q.match(/[?&]t=([^&]+)/);
+    if(m1 && c1 && c2 && c3){ seguirCliente(decodeURIComponent(m1[1]), decodeURIComponent(c1[1]), decodeURIComponent(c2[1]), decodeURIComponent(c3[1])); return; }
     seguir(m1?decodeURIComponent(m1[1]):"", m2?decodeURIComponent(m2[1]):"");
   }
+}
+
+function seguirCliente(folio, cli, cod, llave){
+  var b=document.querySelector(".barra button"); if(b) b.textContent="⬇ Guardar PDF";
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el certificado.")); return; }
+      if(r.empresaDoc) DATOS_EMP=r.empresaDoc;
+      pintar(r);
+      $("aviso").style.display="none";
+      $("app").style.display="block";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión con el servidor."); })
+    .api_miCertificado(cli, cod, llave, folio);
 }
 
 function seguir(folio, clienteViejo){
