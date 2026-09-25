@@ -118,14 +118,18 @@
   '#ent.ancho .e-pc{display:block;position:absolute;inset:0;pointer-events:none}' +
   '#ent .e-pc-velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 50%,rgba(6,18,40,.78))}' +
   '#ent .e-pc-reloj{position:absolute;top:40px;left:50px;text-shadow:0 2px 16px rgba(0,0,0,.45)}' +
-  '#ent .e-pc-reloj b{display:block;font-size:78px;font-weight:600;line-height:1;letter-spacing:-2px;font-variant-numeric:tabular-nums}' +
-  '#ent .e-pc-reloj span{font-size:19px;font-weight:600}' +
-  '#ent .e-pc-marca{position:absolute;top:44px;right:50px;display:flex;align-items:center;gap:12px;text-shadow:0 1px 8px rgba(0,0,0,.5)}' +
-  '#ent .e-pc-marca img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:50%;padding:5px}' +
-  '#ent .e-pc-marca b{display:block;letter-spacing:4px;font-size:16px}#ent .e-pc-marca small{font-size:10px;letter-spacing:2px;opacity:.85}' +
+  '#ent .e-pc-reloj b{display:block;font-size:46px;font-weight:600;line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums}' +
+  '#ent .e-pc-reloj span{display:block;margin-top:4px;font-size:14px;font-weight:600;opacity:.95}' +
   '#ent .e-pc-zona{position:absolute;left:0;right:0;bottom:84px;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:auto;text-shadow:0 1px 8px rgba(0,0,0,.5)}' +
   '#ent .e-pc-av{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.93);border:2px solid #fff;box-shadow:0 8px 30px rgba(0,0,0,.35)}' +
   '#ent .e-pc-av img{width:70px;height:70px;object-fit:contain}' +
+  /* el emblema sin círculo blanco: en relieve, con un destello blanco detrás para que se lea
+     sobre el árbol oscuro. Da una vuelta al abrir, avanza con cada número del PIN y gira si lo tocan. */
+  '#ent .e-pc-emb{position:relative;width:136px;height:111px;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+  '#ent .e-pc-3d{position:absolute;inset:0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45)) drop-shadow(0 2px 3px rgba(0,0,0,.35))}' +
+  '#ent .e-pc-emb::before{content:"";position:absolute;left:50%;top:50%;width:190px;height:190px;margin:-95px 0 0 -95px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.72) 0,rgba(255,255,255,.34) 34%,rgba(255,255,255,.1) 55%,rgba(255,255,255,0) 70%);pointer-events:none}' +
+  '#ent .e-pc-emb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}' +
+  '#ent .e-pc-fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}' +
   '#ent .e-pc-av.ini{background:#14306b;color:#fff;font-size:34px;font-weight:700;text-shadow:none}' +
   '#ent .e-pc-nom{font-size:20px;font-weight:700;text-align:center}#ent .e-pc-sub{font-size:13px;opacity:.92;text-align:center;margin-top:-6px}' +
   '#ent .e-pc-otro{background:none;border:0;color:#fff;font:600 13px Archivo,system-ui,sans-serif;text-decoration:underline;cursor:pointer;opacity:.9;margin-top:-4px}' +
@@ -188,7 +192,6 @@
         '<div class="e-pts"></div><div class="e-teclas"></div><div class="e-msg" aria-live="polite"></div></div>' +
       '<div class="e-pc"><div class="e-pc-velo"></div>' +
         '<div class="e-pc-reloj"><b></b><span></span></div>' +
-        '<div class="e-pc-marca"><img src="' + BASE + 'logo-ecovsa.png" alt=""><div><b>ECOVSA</b><small>ECOLOGÍA · VIDA · SALUD</small></div></div>' +
         '<div class="e-pc-zona"><div class="e-pc-yo"></div>' +
           '<div class="e-pc-fila"><div class="e-pc-pin"></div><button type="button" class="e-pc-ir" title="Entrar" aria-label="Entrar" disabled>→</button></div>' +
           '<div class="e-pc-msg" aria-live="polite"></div>' +
@@ -255,7 +258,8 @@
     q('.e-pc-tec').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-pc-ir').addEventListener('click', function (e) { e.stopPropagation(); tecla('ok'); });
     q('.e-pc-vtec').addEventListener('click', function (e) { e.stopPropagation(); d.classList.toggle('teclado'); });
-    q('.e-pc-yo').addEventListener('click', function (e) { if (!e.target.closest('.e-pc-otro')) return; e.stopPropagation(); E.otro = true; E.pin = ''; pts(); pcYo(); msg(''); });
+    q('.e-pc-yo').addEventListener('click', function (e) { if (e.target.closest('.e-pc-emb')) { e.stopPropagation(); E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.4); return; }
+      if (!e.target.closest('.e-pc-otro')) return; e.stopPropagation(); E.otro = true; E.pin = ''; pts(); pcYo(); msg(''); });
     E.onVis = function () { if (!document.hidden && E && !E.raf) cuadro(); };
     document.addEventListener('visibilitychange', E.onVis);
     cuadro();
@@ -285,9 +289,26 @@
         '<button type="button" class="e-pc-otro">¿No eres ' + esc(p[0]) + '? Entrar con otro PIN</button>';
     } else {
       y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
-      y.innerHTML = '<div class="e-pc-av"><img src="' + BASE + 'logo-ecovsa.png" alt=""></div><div class="e-pc-nom">Rutas ECOVSA</div>' +
+      y.innerHTML = '<div class="e-pc-emb" title="ECOVSA"><div class="e-pc-3d">' +
+          '<img src="' + BASE + 'entrada-globo.png" alt="" draggable="false"><img src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
+          '<div class="e-pc-fl"><img src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div></div></div>' +
+        '<div class="e-pc-nom">Rutas ECOVSA</div>' +
         '<div class="e-pc-sub">' + sal + ' · escribe tu PIN</div>';
+      pcGiro(0);
+      if (!E.pcVuelta) {                     /* una sola vuelta al abrir; luego quieto */
+        E.pcVuelta = true;
+        var quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
+        if (!quieto) setTimeout(function () { if (E) { E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.8); } }, 350);
+      }
     }
+  }
+  /* gira las flechas del emblema de la computadora hasta su ángulo: las vueltas dadas
+     más 60° por cada número escrito (6 números = una vuelta completa) */
+  function pcGiro(seg) {
+    if (!E) return; var f = E.q('.e-pc-fl'); if (!f) return;
+    var a = (E.pcBase || 0) + Math.min(E.pin.length, 6) * 60;
+    f.style.transition = seg ? 'transform ' + seg + 's cubic-bezier(.25,.75,.25,1)' : 'none';
+    f.style.transform = 'rotate(' + a + 'deg)';
   }
   function msg(t, color) {
     if (!E) return;
@@ -347,6 +368,7 @@
       var hh = '';
       for (var i = 0; i < 6; i++) hh += '<i class="' + (i < E.pin.length ? 'on' : '') + (i === E.pin.length ? ' cur' : '') + (i >= 4 && i > E.pin.length ? ' ext' : '') + '"></i>';
       pp.innerHTML = hh; E.q('.e-pc-ir').disabled = E.pin.length < 4;
+      pcGiro(.5);
     }
   }
   function abrir() { if (!E || E.ocupado) return; E.d.classList.add('abierto'); tocarTec(); }
@@ -368,7 +390,7 @@
       if (!E) return;
       msg('');
       if (r && r.ok) {
-        E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30;
+        E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30; E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.2);
         var nom = String((r.nombre || '')).trim().split(' ')[0];
         E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
         E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
@@ -467,7 +489,9 @@
         location.href = destino;
       } });
   }
-  function desbloquearAqui() { V.bloqueado = false; V.ultLocal = Date.now(); desmontar(); }
+  function desbloquearAqui() { V.bloqueado = false; V.ultLocal = Date.now(); desmontar();
+    /* la pantalla de abajo puede repintarse (p. ej. el lobby toma el fondo que se eligió al bloquear) */
+    try { window.dispatchEvent(new Event('eco-desbloqueo')); } catch (e) {} }
 
   window.EntradaECOVSA = { montar: montar, quitar: desmontar, vigiar: vigiar, detener: function () { V.activo = false; quitarAviso(); },
                            reanudar: function () { V.pin = pinGuardado(); if (V.iniciado) { V.activo = true; V.ultLocal = Date.now(); } else vigiar(); }, bloquear: function () { quitarAviso(); bloquear(); },
