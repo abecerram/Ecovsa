@@ -63,6 +63,9 @@ button{font-family:inherit}
 .sello b{display:block;font-size:22px;letter-spacing:.5px}.sello .hora{font-size:13px;opacity:.95;margin-top:4px}
 .sello .cod{display:inline-block;margin-top:10px;background:rgba(0,0,0,.18);border-radius:8px;padding:5px 10px;font-weight:800;letter-spacing:3px;font-size:15px}
 .sello.gris{background:linear-gradient(160deg,#5b6a80,#7a879b)}.sello.gris::after,.sello.gris .ic{animation:none}
+.sello.off{background:linear-gradient(160deg,#8a96a8,#a7b1c0)}.sello.off::after,.sello.off .ic{animation:none}.sello.off b{font-size:18px}
+.sello.fuera{background:linear-gradient(160deg,#3d4656,#586274)}.sello.fuera::after,.sello.fuera .ic{animation:none}
+.btn.apag{background:#eef1f5;color:#8a96a8;border-color:#e1e6ee;cursor:default}
 @media (prefers-reduced-motion:reduce){.sello::after,.sello .ic{animation:none}}
 
 .chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line2);font-size:13.5px;font-weight:600}
@@ -173,9 +176,12 @@ function ir(v){
   if(v==="clave"){ var i=$("ruc"); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },100); }
 }
 
+/* api 3.3 · tres caras: en servicio (verde), apagado (suspendido o en pausa:
+   no dice por qué, la página la ve cualquiera) y fuera de servicio (baja). */
 function estado(){
   var r=PUB;
-  if(r.suspendido) return {sello:"SERVICIO EN PAUSA", gris:true, pill:"Servicio en pausa", nota:"Comuníquese con nosotros para reactivarlo."};
+  if(r.estadoServicio==="baja") return {sello:"FUERA DE SERVICIO", cls:"fuera", gris:true, pill:"Fuera de servicio", nota:"Este establecimiento ya no cuenta con el servicio de ECOVSA"+(r.fechaBaja?" · desde "+r.fechaBaja:""), sinHora:true, icono:"x"};
+  if(r.estadoServicio==="apagado"||r.suspendido) return {sello:"VERIFICACIÓN NO DISPONIBLE", cls:"off", gris:true, pill:"", nota:"Consulte el estado de este servicio con ECOVSA", sinHora:true, icono:"off"};
   if(!r.contratoVigente) return {sello:"CONTRATO POR RENOVAR", gris:true, pill:"Contrato por renovar", nota:"Escríbanos para renovar su servicio."};
   return {sello:"SERVICIO VIGENTE", gris:false, pill:"Cliente con servicio vigente", nota:""};
 }
@@ -187,7 +193,7 @@ function cab(){
       '<div class="fl'+g+'"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div></div>'+
       '<div class="wm">ECOVSA</div><div class="tg">ECOLOGÍA · VIDA · SALUD</div></div>'+
     '<div class="fC"><div class="n">'+esc(PUB.establecimiento)+'</div><small>Cliente N.º '+esc(PUB.codigoCliente)+'</small><br>'+
-      '<span class="ok'+(e.gris?' gris':'')+'">● '+esc(e.pill)+'</span></div>'+
+      (e.pill?'<span class="ok'+(e.gris?' gris':'')+'">● '+esc(e.pill)+'</span>':'')+'</div>'+
     '<div class="tab"><button data-t="ver" class="'+(V==="ver"?"on":"")+'">Verificación</button><button data-t="mio" class="'+(V!=="ver"?"on":"")+'">Mi servicio 🔒</button></div>';
 }
 function girar(el){ var a=el.querySelector(".fl"); a.classList.remove("gira"); void a.offsetWidth; a.classList.add("gira"); }
@@ -198,16 +204,20 @@ function vVer(){
   var r=PUB, e=estado(), E=r.empresa||{};
   var chk=function(ok,t,s){ return '<div class="chk"><i class="'+(ok?'':'no')+'">'+(ok?'✓':'–')+'</i><div>'+esc(t)+(s?'<small>'+esc(s)+'</small>':'')+'</div></div>'; };
   var h=cab()+
-    '<div class="sello'+(e.gris?' gris':'')+'"><div class="ic">'+(e.gris?'<span style="font-size:28px">⏸</span>':'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>')+'</div>'+
-      '<b>'+esc(e.sello)+'</b><div class="hora num" id="hora"></div>'+(r.codigoDia?'<div class="cod num" title="Cambia cada día">'+esc(r.codigoDia)+'</div>':'')+
+    '<div class="sello'+(e.cls?' '+e.cls:(e.gris?' gris':''))+'"><div class="ic">'+
+        (e.icono==="off"?'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>'
+        :e.icono==="x"?'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+        :e.gris?'<span style="font-size:28px">⏸</span>':'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>')+'</div>'+
+      '<b>'+esc(e.sello)+'</b>'+(e.sinHora?'':'<div class="hora num" id="hora"></div>'+(r.codigoDia?'<div class="cod num" title="Cambia cada día">'+esc(r.codigoDia)+'</div>':''))+
       (e.nota?'<div class="hora">'+esc(e.nota)+'</div>':'')+'</div>'+
+    (e.sinHora?'<div class="card"><h3>PRESTADOR DEL SERVICIO</h3>'+chk(true,"Empresa autorizada",(E.razonSocial||"ECOTERMO DE PANAMA S.A.")+" · "+(E.resolucionCorta||E.resolucion||"Resolución Sanitaria vigente"))+'</div>':
     '<div class="card"><h3>LO QUE SE VERIFICA</h3>'+
       chk(r.contratoVigente && !!r.servicioDesde, "Contrato vigente", (r.servicioDesde?"Servicio desde el "+r.servicioDesde:"Fecha de inicio pendiente de registrar")+(r.contratoHasta?" · vigente hasta el "+r.contratoHasta:""))+
       chk(!!r.ultimaVisita, "Recolección registrada", (r.frecuencia?r.frecuencia+(r.frecuenciaDetalle?" ("+r.frecuenciaDetalle+")":""):"")+(r.ultimaVisita?" · última el "+r.ultimaVisita:" · primera recolección por realizarse"))+
       (r.ultimoRecibo?chk(true,"Última recolección documentada","Recibo "+r.ultimoRecibo+(r.ultimaVisitaKg?" · "+kg(r.ultimaVisitaKg)+" kg":"")+(r.ultimaActa?" · Acta "+r.ultimaActa:"")):"")+
       chk(true,"Tratamiento autorizado", E.resolucion||"Resolución Sanitaria vigente")+
       (r.proximaMes?chk(true,"Próxima visita","Durante "+r.proximaMes+" · la fecha exacta se coordina con el establecimiento"):"")+
-    '</div>'+
+    '</div>')+
     '<div style="margin:0 14px"><a class="btn wa" href="https://wa.me/50762641647" target="_blank" rel="noopener">WhatsApp ECOVSA · 6264-1647</a></div>'+
     '<div class="pie">'+legal()+'</div>';
   return h;
@@ -260,7 +270,10 @@ function cargarMio(){
 function filaRec(x,i){ return '<div class="fila" onclick="verRec('+i+')"><div class="ic2">🧾</div><div class="tx">'+f(x.fecha)+'<small>Recibo '+esc(x.recibo||"s/n")+' · '+kg(x.kg)+' kg</small></div><span class="ac">Ver →</span></div>'; }
 function filaCert(c){ return '<div class="fila" onclick="bajarCert(\''+esc(c.folio)+'\')"><div class="ic2">📄</div><div class="tx">'+esc(c.folio)+'<small>Del '+f(c.desde)+' al '+f(c.hasta)+' · '+kg(c.kg)+' kg · '+c.visitas+' visita'+(c.visitas===1?'':'s')+'</small></div><span class="ac">⬇ Descargar</span></div>'; }
 function vMio(){
-  var h=cab()+'<div style="margin:12px 14px 0"><button class="btn wa" onclick="extra()">🚚 Pedir recolección extra</button></div>';
+  var es=PUB.estadoServicio||"activo";
+  var h=cab()+(es==="baja"?'<div class="tema" style="background:#eef1f5;border-color:#e1e6ee;color:#44516a">Este establecimiento ya no tiene servicio con ECOVSA. Aquí puede descargar sus recibos y certificados anteriores.</div>'
+    :es==="apagado"?'<div style="margin:12px 14px 0"><button class="btn apag" disabled>🚚 Pedir recolección extra</button><p class="nota" style="text-align:center;margin-top:6px">Para coordinar una recolección escríbanos al WhatsApp 6264-1647.</p></div>'
+    :'<div style="margin:12px 14px 0"><button class="btn wa" onclick="extra()">🚚 Pedir recolección extra</button></div>');
   if(!MIO) return h+'<div id="mio-cuerpo"><div class="carga"><div class="spin"></div>Cargando su servicio…</div></div>';
   var r=MIO, P=PUB, R=r.recibos||[], C=r.certificados||[];
   if(r.temaAdministrativo) h+='<div class="tema">Tiene un tema administrativo pendiente. Escríbanos al WhatsApp <b>6264-1647</b> y lo revisamos.</div>';
@@ -271,7 +284,7 @@ function vMio(){
   h+='<div class="card"><h3>ÚLTIMA RECOLECCIÓN</h3>'+(R.length?filaRec(R[0],0)+'<button class="mas2" onclick="FIL=\'todos\';ir(\'recibos\')">Ver todos mis recibos ('+R.length+') →</button>':'<p class="nota">Su primera recolección está por realizarse.</p>')+'</div>';
   h+='<div class="card"><h3>MIS CERTIFICADOS DE TRATAMIENTO</h3>'+
      (C.length?'<p class="nota" style="margin:0 0 4px">Cada fila es un certificado distinto: toque ⬇ Descargar en el que necesite.</p>'+C.map(filaCert).join(""):'<p class="nota" style="margin:0 0 4px">Todavía no tiene certificados emitidos.</p>')+
-     '<button class="btn" style="margin-top:10px" onclick="pedirCert()">+ Pedir un certificado'+(C.length?' de otro periodo':'')+'</button></div>';
+     (es==="baja"?'':'<button class="btn" style="margin-top:10px" onclick="pedirCert()">+ Pedir un certificado'+(C.length?' de otro periodo':'')+'</button>')+'</div>';
   var S=r.solicitudes||[];
   if(S.length) h+='<div class="card"><h3>MIS SOLICITUDES</h3>'+S.map(function(s){
       var cl=s.estado==="Atendida"?" at":s.estado==="Cerrada"?" ce":"";
@@ -325,6 +338,7 @@ function chipVal(nombre){ var b=document.querySelector('[data-g="'+nombre+'"] bu
 document.addEventListener("click",function(e){ var b=e.target.closest(".chips.en button"); if(!b) return; b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); });
 
 function extra(){
+  if(PUB.estadoServicio&&PUB.estadoServicio!=="activo") return;
   if(!LLAVE){ ir("clave"); toast("Primero escriba el RUC de su empresa"); return; }
   var abierta=MIO&&(MIO.solicitudes||[]).some(function(s){ return s.tipo==="recoleccion"&&s.estado!=="Atendida"&&s.estado!=="Cerrada"; });
   hoja('<h2>Pedir recolección extra</h2><p class="sub">Le llega directo a logística. Le confirmamos el día por WhatsApp.</p>'+

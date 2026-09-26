@@ -487,7 +487,9 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     var c = D.compras || [];
     if (!c.length) { $('i-compras').innerHTML = MK.vacio('No tienes solicitudes por aprobar ni por pagar.'); return; }
     $('i-compras').innerHTML = '<div class="lst">' + c.slice(0, 5).map(function (s) {
-      var est = s.estado === 'SOLICITADA' ? '<span class="tag t-warn">Por aprobar</span>' : '<span class="tag t-info">Aprobada · por pagar</span>';
+      /* api 3.4: la etiqueta la da el servidor según la regla de Configuración */
+      var et = s.etiqueta || (s.estado === 'SOLICITADA' ? 'Por aprobar' : 'Aprobada · por pagar');
+      var est = '<span class="tag ' + (/aprobar|visto/i.test(et) ? 't-warn' : 't-info') + '">' + esc(et) + '</span>' + (s.notaGerencia ? ' <span class="tag t-warn" title="' + esc(s.notaGerencia) + '">nota de gerencia</span>' : '');
       return '<a class="it" href="MerCompras.html"><div class="ico-c">' + MK.ic('carrito', 16) + '</div><div class="tx"><b>' + esc(s.proveedor || 'Sin proveedor') + '</b><small>N.º ' + esc(s.numero || s.solicitudId) + ' · ' + esc(MK.fechaCorta(s.fecha)) + (s.dias ? ' · hace ' + s.dias + ' día' + (s.dias === 1 ? '' : 's') : '') + '</small></div>' +
         '<div style="text-align:right"><b class="num">' + MK.dinero(s.total) + '</b><br>' + est + (/URG/i.test(s.urgencia || '') ? ' <span class="tag t-bad">Urge</span>' : '') + '</div></a>';
     }).join('') + '</div>' + (c.length > 5 ? '<div class="small muted" style="margin-top:6px">y ' + (c.length - 5) + ' más · <a href="MerCompras.html">ver todas</a></div>' : '');

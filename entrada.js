@@ -21,6 +21,26 @@
     return s ? s.replace(/[^\/]*$/, '') : '';
   })();
   var MIN_INACTIVO = 15, SEG_AVISO = 60;
+  /* api 3.4: lo que decide Configuración › Seguridad (largo del PIN, bloqueo,
+     intentos, «cerrar todas»). Se guarda una copia para arrancar al instante. */
+  var AJ = { largoPin: 4, minInactivo: 15, intentos: 5, esperaMin: 10, alUltimo: true, sesionDesde: 0 };
+  (function () { try { var c = JSON.parse(localStorage.getItem('eco_ajustes') || 'null'); if (c && c.largoPin) for (var k in c) AJ[k] = c[k]; } catch (e) {} })();
+  function largo() { return AJ.largoPin === 6 ? 6 : 4; }
+  function traerAjustes(listo) {
+    if (!window.google || !google.script || !google.script.run) { if (listo) listo(); return; }
+    google.script.run.withSuccessHandler(function (r) {
+      if (r && r.ok) { for (var k in r) if (k !== 'ok') AJ[k] = r[k]; try { localStorage.setItem('eco_ajustes', JSON.stringify(AJ)); } catch (e) {} if (E) pts(); }
+      if (listo) listo();
+    }).withFailureHandler(function () { if (listo) listo(); }).api_entradaAjustes();
+  }
+  /* intentos equivocados en ESTE equipo */
+  function bloqueadoHasta() { try { var f = JSON.parse(localStorage.getItem('eco_fallos') || '{}'); return f.hasta && f.hasta > Date.now() ? f.hasta : 0; } catch (e) { return 0; } }
+  function fallo() {
+    try { var f = JSON.parse(localStorage.getItem('eco_fallos') || '{}'); f.n = (f.n || 0) + 1;
+      if (f.n >= (AJ.intentos || 5)) { f.hasta = Date.now() + (AJ.esperaMin || 10) * 60000; f.n = 0; }
+      localStorage.setItem('eco_fallos', JSON.stringify(f)); } catch (e) {}
+  }
+  function acierto() { try { localStorage.removeItem('eco_fallos'); localStorage.setItem('eco_login_t', String(Date.now())); } catch (e) {} }
   var K_PIN = 'ecovsa_pin', K_ACT = 'eco_actividad', K_BLOQ = 'eco_bloqueado', K_FONDO = 'eco_fondo', K_ROL = 'eco_rol_sesion';
   var SOL = [0.49, 0.40];                         /* dónde está el sol en la foto */
 
@@ -167,7 +187,7 @@
   function montar(op) {
     op = op || {};
     desmontar();
-    ponerCss();
+    ponerCss(); traerAjustes();
     var fondo = lsGet(K_FONDO) || '';
     if (!fondo) { try { fondo = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'quieto' : 'vivo'; } catch (e) { fondo = 'vivo'; } }
     var d = document.createElement('div'); d.id = 'ent'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Entrada ECOVSA');
@@ -306,7 +326,7 @@
      más 60° por cada número escrito (6 números = una vuelta completa) */
   function pcGiro(seg) {
     if (!E) return; var f = E.q('.e-pc-fl'); if (!f) return;
-    var a = (E.pcBase || 0) + Math.min(E.pin.length, 6) * 60;
+    var a = (E.pcBase || 0) + Math.min(E.pin.length, largo()) * (360 / largo());
     f.style.transition = seg ? 'transform ' + seg + 's cubic-bezier(.25,.75,.25,1)' : 'none';
     f.style.transform = 'rotate(' + a + 'deg)';
   }
@@ -360,13 +380,13 @@
     E.raf = requestAnimationFrame(cuadro);
   }
   function pts() {
-    if (!E) return; var n = Math.max(4, E.pin.length);
+    if (!E) return; var n = Math.max(largo(), E.pin.length);
     E.q('.e-pts').innerHTML = Array.from({ length: n }, function (_, i) { return '<i class="' + (i < E.pin.length ? 'on' : '') + '"></i>'; }).join('');
     var ok = E.q('.e-ok'); if (ok) ok.disabled = E.pin.length < 4;
     var pp = E.q('.e-pc-pin');
     if (pp) {
       var hh = '';
-      for (var i = 0; i < 6; i++) hh += '<i class="' + (i < E.pin.length ? 'on' : '') + (i === E.pin.length ? ' cur' : '') + (i >= 4 && i > E.pin.length ? ' ext' : '') + '"></i>';
+      for (var i = 0; i < Math.max(largo(), E.pin.length); i++) hh += '<i class="' + (i < E.pin.length ? 'on' : '') + (i === E.pin.length ? ' cur' : '') + '"></i>';
       pp.innerHTML = hh; E.q('.e-pc-ir').disabled = E.pin.length < 4;
       pcGiro(.5);
     }
@@ -380,16 +400,20 @@
     if (k === 'ok') { if (E.pin.length >= 4) probar(); return; }
     if (E.pin.length >= 6) return;
     E.pin += k; pts(); E.vel += 6;
-    if (E.pin.length === 6) setTimeout(probar, 150);
+    if ((AJ.alUltimo !== false && E.pin.length === largo()) || E.pin.length === 6) setTimeout(probar, 150);
   }
   function probar() {
     if (!E || E.ocupado) return;
-    var pin = E.pin; E.ocupado = true; msg('Verificando…', '#cfe0ff');
+    var pin = E.pin;
+    var hasta = bloqueadoHasta();
+    if (hasta) { msg('Demasiados intentos. Espera ' + Math.ceil((hasta - Date.now()) / 60000) + ' min.'); E.pin = ''; pts(); return; }
+    E.ocupado = true; msg('Verificando…', '#cfe0ff');
     var validar = E.op.validar || function (p, fin) { fin({ ok: false, error: 'Sin validación' }); };
     validar(pin, function (r) {
       if (!E) return;
       msg('');
       if (r && r.ok) {
+        acierto();
         E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30; E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.2);
         var nom = String((r.nombre || '')).trim().split(' ')[0];
         E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
@@ -397,7 +421,7 @@
         setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
         setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, r.pausa || 1500);
       } else {
-        E.ocupado = false;
+        E.ocupado = false; fallo();
         var p = E.q('.e-pts'), p2 = E.q('.e-pc-pin'); p.classList.add('mal'); p2.classList.add('mal'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
         msg((r && r.error) || 'PIN no válido · intenta otra vez');
         setTimeout(function () { if (!E) return; p.classList.remove('mal'); p2.classList.remove('mal'); E.pin = ''; pts(); }, 600);
@@ -434,6 +458,8 @@
       });
       setInterval(revisar, 10000);
       if (lsGet(K_BLOQ) === '1') bloquear(true);
+      /* «Cerrar la sesión de todos» (Configuración): si esta sesión es de antes, pide el PIN */
+      traerAjustes(function () { if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear(); });
     };
     var cache = null; try { cache = JSON.parse(sessionStorage.getItem(K_ROL) || 'null'); } catch (e) {}
     if (cache && cache.p === pin.length + ':' + pin.slice(-1)) { seguir(cache.rol, cache.nombre); return; }
@@ -447,7 +473,8 @@
   function revisar() {
     if (!V.activo || V.bloqueado) return;
     var quieto = (Date.now() - ultimaActividad()) / 60000;
-    if (quieto >= MIN_INACTIVO && !V.aviso) mostrarAviso();
+    if (quieto >= (AJ.minInactivo || MIN_INACTIVO) && !V.aviso) mostrarAviso();
+    if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear();
   }
   function mostrarAviso() {
     ponerCss();
@@ -472,12 +499,19 @@
     lsSet(K_BLOQ, '1'); lsDel(K_PIN);                   /* sin PIN guardado: nadie entra sin escribirlo */
     montar({ bloqueo: true, nombre: V.nombre,
       validar: function (p, fin) {
-        if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
-        if (!window.google || !google.script || !google.script.run) { fin({ ok: false, error: 'Sin conexión. Intenta con señal.' }); return; }
+        var sinRed = !window.google || !google.script || !google.script.run;
+        /* sin señal, el mismo PIN abre (como antes); con señal se pregunta al
+           servidor, así un usuario dado de baja ya no desbloquea */
+        if (V.pin && p === V.pin && sinRed) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
+        if (sinRed) { fin({ ok: false, error: 'Sin conexión. Intenta con señal.' }); return; }
         google.script.run.withSuccessHandler(function (r) {
           if (!r || !r.ok) { fin({ ok: false, error: (r && r.error) || 'PIN no válido' }); return; }
+          if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
           fin({ ok: true, mismo: false, nombre: r.usuario.nombre, otro: p, rol: r.usuario.rol, texto: 'Abriendo tus módulos…' });
-        }).withFailureHandler(function () { fin({ ok: false, error: 'Sin conexión. Intenta con señal.' }); }).api_login(p);
+        }).withFailureHandler(function () {
+          if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
+          fin({ ok: false, error: 'Sin conexión. Intenta con señal.' });
+        }).api_login(p);
       },
       alEntrar: function (r) {
         if (r.mismo) { lsSet(K_PIN, JSON.stringify(V.pin)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now())); desbloquearAqui(); return; }

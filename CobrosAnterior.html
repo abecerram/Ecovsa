@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>Cobros (pantalla anterior) · ECOVSA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="estilos-operaciones.css">
+<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script src="puente.js"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 10% 0%,rgba(11,83,148,.09),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:50px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(20,48,107,.28)}
+.marca{display:flex;align-items:center;gap:12px;max-width:1240px;margin:0 auto}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.78;letter-spacing:.6px;text-transform:uppercase}
+header button{background:rgba(255,255,255,.16);border:none;color:#fff;font-family:inherit;
+  font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.wrap{max-width:1240px;margin:0 auto;padding:16px 18px}
+h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:20px 0 10px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
+  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:10px;font-size:15px;font-family:inherit;
+  border:1.5px solid var(--borde);border-radius:10px;background:#FBFDFC;color:var(--tinta)}
+input:focus,select:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 16px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
+.tabs button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+.vista{display:none}.vista.on{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 18px;
+  border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;width:100%;margin-top:12px;
+  box-shadow:0 3px 10px rgba(11,83,148,.28)}
+.btn.mini{width:auto;padding:9px 14px;font-size:12.5px;margin-top:0;border-radius:10px}
+.btn.sec{background:rgba(11,83,148,.10);color:var(--azul-osc);
+  box-shadow:inset 0 0 0 1.5px rgba(11,83,148,.20)}
+.btn.ambar{background:linear-gradient(160deg,#FFC42E,var(--ambar));color:#4A3300;box-shadow:none}
+.btn:active{transform:translateY(1px)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:13px 15px;
+  box-shadow:var(--sombra);border-top:3px solid var(--azul)}
+.kpi.mal{border-top-color:var(--rojo)}.kpi.ok{border-top-color:var(--verde)}
+.kpi.avi{border-top-color:var(--ambar)}
+.kpi .e{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gris)}
+.kpi .v{font-size:22px;font-weight:900;color:var(--azul-osc);line-height:1.2}
+.kpi .s{font-size:11px;color:var(--gris);line-height:1.5}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
+th{background:#EEF2F7;border:1px solid var(--borde);padding:8px 9px;text-align:left;
+  font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris)}
+td{border:1px solid var(--borde);padding:8px 9px;vertical-align:top}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc)}
+.tabla-caja{overflow-x:auto;border-radius:var(--radio);box-shadow:var(--sombra)}
+
+.pill{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  border-radius:5px;padding:3px 7px;white-space:nowrap}
+.p-pagada{background:var(--verde-suave);color:var(--verde)}
+.p-parcial{background:var(--azul-suave);color:var(--azul)}
+.p-pendiente{background:#F1F3F6;color:var(--gris)}
+.p-vencida{background:var(--rojo-suave);color:var(--rojo)}
+.vacio{text-align:center;color:var(--gris);font-size:13.5px;padding:32px 16px;line-height:1.6}
+
+/* ═══ LA AYUDA NACE ESCONDIDA ═══════════════════════════════════════
+   Una pantalla de trabajo se abre todos los días; su explicación se lee
+   una vez. Dejarla fija le quita sitio al dato y, de tanto verla, deja
+   de leerse igual. Con el botón, quien la necesita la abre.
+
+   Lo que INFORMA no se esconde nunca: un pago sin enlazar es trabajo
+   pendiente, no una lección. */
+.ayuda{display:none}
+body.con-ayuda .ayuda{display:block}
+.ayuda.linea{margin:-2px 0 11px;font-size:12.5px;color:var(--gris);line-height:1.55}
+.ayuda.caja{background:var(--azul-suave);border-left:4px solid var(--azul);border-radius:10px;
+  padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--azul-osc);margin-bottom:14px}
+.btn-ayuda{margin-left:auto;border:1.5px solid var(--borde);background:#fff;border-radius:20px;
+  padding:9px 15px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-ayuda:hover{border-color:var(--azul-claro);color:var(--azul-osc)}
+.btn-ayuda.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+.btn-ayuda i{font-style:normal;font-weight:900;font-size:13px}
+
+/* ═══ FILTROS Y ORDEN DE LA LISTA DE FACTURAS ═══════════════════════
+   Los estados como botones y no como lista desplegable: el conteo se ve
+   sin abrir nada, y saber que hay 12 vencidas y 31 pagadas ya es media
+   respuesta. */
+.filtros{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.fil{border:1.5px solid var(--borde);background:#fff;border-radius:18px;padding:7px 13px;
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px}
+.fil:hover{border-color:var(--azul-claro)}
+.fil.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));border-color:var(--azul-osc);
+  color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+.fil.on.rojo{background:linear-gradient(160deg,#D9534F,var(--rojo));border-color:var(--rojo);
+  box-shadow:0 2px 7px rgba(192,57,43,.3)}
+.fil.on.verde{background:linear-gradient(160deg,#3E8B12,var(--verde));border-color:var(--verde);
+  box-shadow:0 2px 7px rgba(47,107,10,.3)}
+.fil .c{background:rgba(0,0,0,.07);border-radius:9px;padding:1px 7px;font-size:11px}
+.fil.on .c{background:rgba(255,255,255,.22)}
+
+/* La flecha solo en la columna activa: nueve flechitas grises a la vez
+   no dicen cuál manda. */
+th.ord{cursor:pointer;user-select:none;white-space:nowrap}
+th.ord:hover{background:var(--azul-suave);color:var(--azul-osc)}
+th.ord .f{opacity:0;font-size:9px;margin-left:3px}
+th.ord:hover .f{opacity:.4}
+th.ord.act{background:var(--azul-osc);color:#fff}
+th.ord.act .f{opacity:1}
+
+/* Lo que convierte el filtro en herramienta: cuánto es lo que estoy
+   viendo. Sin esto se filtra y después se suma a mano. */
+.resumen{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
+  background:#fff;border:1px solid var(--borde);border-left:4px solid var(--azul);
+  border-radius:12px;padding:11px 15px;margin-top:12px;box-shadow:var(--sombra)}
+.resumen .r{font-size:11px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.resumen .r b{display:block;font-size:17px;font-weight:900;color:var(--azul-osc);
+  text-transform:none;letter-spacing:0}
+.resumen .r.mal b{color:var(--rojo)}
+
+/* ═══ LA CARTERA COMO PANTALLA DE DIRECCIÓN ═════════════════════════ */
+.hero{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--rojo);
+  border-radius:var(--radio);padding:20px 22px;box-shadow:var(--sombra);margin-bottom:12px;
+  display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.hero.ok{border-left-color:var(--verde)}
+.hero .cifra{font-size:56px;font-weight:900;line-height:1;color:var(--rojo);letter-spacing:-1px}
+.hero.ok .cifra{color:var(--verde)}
+.hero .dice{flex:1;min-width:280px}
+.hero .dice > b{display:block;font-size:15px;font-weight:800;margin-bottom:3px}
+.hero .dice span{font-size:12.5px;color:var(--gris);line-height:1.6}
+.hero .ayuda{margin-top:7px;font-size:12.5px;color:var(--azul-osc);
+  background:var(--azul-suave);border-radius:8px;padding:8px 11px;line-height:1.55}
+.kpi .ayuda{font-size:11.5px;color:var(--azul-osc);margin-top:7px;padding-top:7px;
+  border-top:1px dashed var(--borde);line-height:1.5}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;
+  border-radius:6px;padding:2px 7px;margin-top:5px}
+.delta.mal{background:var(--rojo-suave);color:var(--rojo)}
+.delta.bien{background:var(--verde-suave);color:var(--verde)}
+.delta.neutro{background:#F1F3F6;color:var(--gris)}
+
+/* La barra dentro de la tabla. Una sola medida por fila, así que un solo
+   color: la barra dice cuánto, no dice quién. La pista es el mismo azul
+   más claro para que se lea como la misma escala, y el número va SIEMPRE
+   en texto al lado — quien no distingue el color igual lee la cifra. */
+.medidor{display:flex;align-items:center;gap:9px;min-width:170px}
+.pista{flex:1;height:14px;background:var(--azul-claro);border-radius:3px;overflow:hidden}
+.relleno{height:100%;background:var(--azul);border-radius:0 4px 4px 0}
+.relleno.alerta{background:var(--rojo)}
+.relleno.bueno{background:var(--verde)}
+.medidor .cif{font-size:12px;font-weight:800;color:var(--tinta);min-width:44px;text-align:right}
+.nota{background:#FFF8E1;border-left:4px solid var(--ambar);border-radius:10px;
+  padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--ambar-osc);margin-bottom:13px}
+.nota.azul{background:var(--azul-suave);border-left-color:var(--azul);color:var(--azul-osc)}
+
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(20,48,107,.14)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(20,48,107,.96);color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;
+  border-radius:24px;opacity:0;pointer-events:none;transition:all .25s;z-index:999;
+  max-width:88%;text-align:center;border-left:4px solid var(--ambar)}
+#toast.ver{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.sug{background:#fff;border:1px solid var(--borde);border-radius:10px;margin-top:7px;overflow:hidden}
+.sug div{padding:10px 13px;cursor:pointer;font-size:13.5px;border-bottom:1px solid var(--borde)}
+.sug div:last-child{border-bottom:none}
+.sug div:hover{background:var(--azul-suave)}
+.sug b{display:block;font-weight:800}
+.sug span{font-size:11.5px;color:var(--gris)}
+.ec-caja{background:linear-gradient(140deg,var(--azul),var(--azul-osc));color:#fff;
+  border-radius:var(--radio);padding:18px;margin-bottom:14px;box-shadow:0 3px 14px rgba(11,83,148,.3)}
+.ec-caja .n{font-size:19px;font-weight:900;line-height:1.25}
+.ec-caja .r{font-size:12.5px;opacity:.85;margin-top:3px;line-height:1.5}
+.ec-caja .cif{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px}
+.ec-caja .c{background:rgba(255,255,255,.12);border-radius:11px;padding:10px 11px}
+.ec-caja .c .v{font-size:18px;font-weight:900;line-height:1.15}
+.ec-caja .c .e{font-size:9.5px;opacity:.82;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.ec-alerta{background:var(--rojo-suave);border-left:4px solid var(--rojo);border-radius:10px;
+  padding:12px 15px;font-size:13px;line-height:1.6;color:var(--rojo);margin-bottom:13px;font-weight:600}
+
+
+/* ── Morosidad ── */
+.deudor{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--gris);
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--sombra)}
+.deudor.d30{border-left-color:var(--ambar)}
+.deudor.d60{border-left-color:#E07B00}
+.deudor.d90{border-left-color:var(--rojo)}
+.deudor .enc{display:flex;align-items:flex-start;gap:11px;flex-wrap:wrap}
+.deudor .n{font-size:15.5px;font-weight:800;line-height:1.25;flex:1;min-width:180px}
+.deudor .n small{display:block;font-size:11.5px;font-weight:500;color:var(--gris);margin-top:2px}
+.deudor .sal{text-align:right;white-space:nowrap}
+.deudor .sal b{font-size:19px;font-weight:900;color:var(--azul-osc);display:block;line-height:1.15}
+.deudor .sal span{font-size:11px;color:var(--gris)}
+.deudor .met{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--gris);
+  margin-top:9px;padding-top:9px;border-top:1px solid var(--borde);line-height:1.5}
+.deudor .met b{color:var(--tinta)}
+.deudor .acc{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.eti{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  border-radius:5px;padding:3px 8px;white-space:nowrap}
+.eti.rojo{background:var(--rojo-suave);color:var(--rojo)}
+.eti.ambar{background:#FFF3D1;color:var(--ambar-osc)}
+.eti.verde{background:var(--verde-suave);color:var(--verde)}
+.eti.gris{background:#F1F3F6;color:var(--gris)}
+.btn-wa{background:#25D366;color:#fff;border:none;border-radius:9px;padding:9px 14px;
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.btn-mail{background:var(--azul);color:#fff;border:none;border-radius:9px;padding:9px 14px;
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.promesa{background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:7px;
+  border-left:4px solid var(--rojo);font-size:13px;line-height:1.55;
+  display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+.promesa.viva{border-left-color:var(--verde)}
+.promesa .p1{flex:1;min-width:170px}
+
+
+/* ══════════ Reporte de facturación impreso ══════════
+   En pantalla es una herramienta de trabajo; en papel es el documento que va
+   a contabilidad. Se imprime solo la tabla, con su encabezado y su sello. */
+.enc-print, .sello-print{display:none}
+
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  body{background:#fff;margin:0;padding:0}
+
+  /* fuera todo lo que es navegación o control: pestañas, filtros, KPIs, botones */
+  header, #tabs, .vista:not(.on), .kpis, .filtros, .nota, .aviso,
+  #cartera-avisos, #aviso-sin-cliente, .btn, button, .ec-caja{ display:none !important }
+
+  .wrap{max-width:none;margin:0;padding:0}
+  .vista.on{display:block}
+
+  .enc-print{display:flex !important;align-items:center;gap:14px;
+    padding-bottom:10px;margin-bottom:12px;border-bottom:3px solid var(--azul-osc)}
+  .enc-print img{height:54px;width:auto}
+  .ep-txt{line-height:1.3}
+  .ep-emp{font-size:14px;font-weight:900;color:var(--verde);letter-spacing:.3px}
+  .ep-ruc{font-size:10px;color:#555;margin-top:2px}
+  .ep-der{margin-left:auto;text-align:right}
+  .ep-doc{font-size:15px;font-weight:900;color:var(--azul-osc);text-transform:uppercase;
+    letter-spacing:.5px}
+  .ep-per{font-size:11px;color:#555;margin-top:3px}
+
+  .tabla-caja{overflow:visible;box-shadow:none;border-radius:0;margin:0}
+  #tabla-fact{font-size:8.5px;width:100%}
+  #tabla-fact th{background:var(--azul-osc) !important;color:#fff !important;
+    padding:5px 4px;font-size:7.5px;letter-spacing:.2px}
+  #tabla-fact td{padding:4px;border:1px solid #ccc;vertical-align:top}
+  #tabla-fact thead{display:table-header-group}      /* se repite en cada página */
+  #tabla-fact tr{page-break-inside:avoid}
+  #tabla-fact tr.tot td{background:#EEF5E4 !important;font-weight:800;font-size:9.5px}
+
+  .sello-print{display:block !important;margin-top:12px;padding-top:8px;
+    border-top:1px solid #ccc;font-size:8.5px;color:#666;line-height:1.6;text-align:center}
+}
+@page{size:letter landscape;margin:10mm}
+
+/* ── El redactor ──────────────────────────────────────────────────────
+   El mensaje se LEE antes de salir. Antes se armaba y saltaba directo a
+   Outlook: para cambiar una línea había que hacerlo con la ventana ya
+   abierta y el cliente en el campo «para». */
+#red-fondo{position:fixed;inset:0;background:rgba(15,25,45,.55);z-index:5000;display:none}
+#red-fondo.ver{display:block}
+#red{position:fixed;z-index:5001;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(720px,calc(100vw - 24px));max-height:min(88vh,760px);
+  display:none;flex-direction:column;overflow:hidden;
+  background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,25,45,.34)}
+#red.ver{display:flex}
+.red-cab{flex:0 0 auto;padding:14px 18px;border-bottom:1px solid var(--borde);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.red-cab h3{font-size:16px;font-weight:800;color:var(--tinta);line-height:1.25}
+.red-cab small{display:block;font-size:11.5px;font-weight:600;color:var(--gris);margin-top:3px}
+.red-cab button{border:none;background:none;font-size:22px;color:var(--gris);cursor:pointer;
+  line-height:1;padding:2px 8px;border-radius:8px;flex:0 0 auto}
+.red-cab button:hover{background:#F1F3F6;color:var(--tinta)}
+.red-cuerpo{flex:1 1 auto;overflow-y:auto;padding:14px 18px}
+.red-pie{flex:0 0 auto;padding:12px 18px;border-top:1px solid var(--borde);
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#FAFBFC}
+.red-tonos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.red-tonos button{border:1.5px solid var(--borde);background:#fff;border-radius:999px;
+  font-family:inherit;font-size:11.5px;font-weight:700;color:var(--gris);
+  cursor:pointer;padding:6px 12px}
+.red-tonos button.on{background:var(--azul);border-color:var(--azul);color:#fff}
+.red-tonos button.rango{border-color:var(--azul-claro)}
+.red-tonos button.rango.on{border-color:var(--azul)}
+#red-asunto{width:100%;font-weight:700}
+#red-texto{width:100%;min-height:260px;font-family:inherit;font-size:13.5px;line-height:1.6;
+  padding:12px;border:1px solid var(--borde);border-radius:10px;resize:vertical;
+  color:var(--tinta);background:#fff}
+.red-porque{font-size:12px;color:var(--gris);line-height:1.5;margin-top:9px;
+  padding:9px 12px;background:var(--azul-suave);border-radius:9px}
+.red-aviso{font-size:12px;line-height:1.5;margin-top:9px;padding:9px 12px;
+  background:var(--rojo-suave);color:#7a1d14;border-radius:9px}
+@media print{ #red,#red-fondo{display:none!important} }
+
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Cobros</h1>
+  <div class="tag">Facturación y cartera</div>
+  <p>Escribe tu PIN para entrar.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="marca">
+      <div class="logo"></div>
+      <div><h1>Cobros</h1><div class="sub" id="cab-usuario">—</div></div>
+      <button onclick="volverInicio()" style="margin-left:auto">← Inicio</button>
+      <button onclick="salir()" style="margin-left:8px">Salir</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+
+    <!-- ═══ CARTERA · la pantalla de dirección ═══════════════════════
+         Ya no repite lo que hace Morosidad —la antigüedad, la lista de
+         quién debe— sino que contesta lo único que ninguna otra pestaña
+         contesta: ¿vamos cobrando mejor o peor que antes? -->
+    <section id="v-cartera" class="vista on">
+      <div class="ayuda caja">
+        <b>Esta pantalla contesta una sola pregunta: ¿vamos cobrando mejor o peor?</b><br>
+        El día a día —a quién le escribo, qué factura está pagada— vive en Morosidad y en
+        Facturas. Aquí todo es comparación contra el pasado, y por eso no depende del rango
+        de fechas de ninguna otra pestaña.
+      </div>
+      <div id="dir-hero"></div>
+      <div id="dir-fichas"></div>
+      <h2>De cada mes facturado, cuánto ya entró</h2>
+      <p class="ayuda linea">Es la salud real de la cartera: no cuánto se debe hoy, sino qué
+        tan rápido se convierte en efectivo lo que facturas. El cobro se cuenta contra el mes
+        de la FACTURA aunque entre medio año después — si se contara contra el mes del pago,
+        un mes malo se vería bueno el día que por fin cobra.</p>
+      <div id="dir-curva"></div>
+      <h2>Quién es la cartera</h2>
+      <p class="ayuda linea">Morosidad las lista; aquí se pesan. Una lista de doce nombres no
+        dice que dos de ellos son el 80&nbsp;% del problema, y eso cambia qué se hace el lunes.</p>
+      <div id="dir-concentra"></div>
+      <h2>Lo que hay que arreglar en el libro</h2>
+      <div id="cartera-avisos"></div>
+      <div id="aviso-sin-cliente"></div>
+    </section>
+
+    <section id="v-morosidad" class="vista">
+      <div id="mor-kpis"></div>
+      <div id="mor-promesas"></div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:11px">
+        <input id="mor-buscar" placeholder="🔍 Filtrar deudor…" oninput="pintarMorosidad()"
+               style="flex:1;min-width:200px">
+        <select id="mor-filtro" onchange="pintarMorosidad()" style="width:auto;min-width:190px">
+          <option value="">Todos los que deben</option>
+          <option value="vencido">Solo con saldo vencido</option>
+          <option value="silencio">Sin pagar hace 60+ días</option>
+          <option value="90">Con más de 90 días de mora</option>
+          <option value="singestion">A los que no he escrito</option>
+        </select>
+        <select id="mor-cartera" onchange="pintarMorosidad()" style="width:auto;min-width:170px">
+          <option value="">Las dos carteras</option>
+          <option value="recurrente">Solo recurrentes</option>
+          <option value="contrato">Solo cuentas de contrato</option>
+        </select>
+      </div>
+      <div id="mor-lista"></div>
+    </section>
+
+    <section id="v-cliente" class="vista">
+      <div class="tarjeta" style="padding:14px">
+        <label style="margin-top:0">Buscar cliente</label>
+        <input id="ec-buscar" placeholder="Escribe el nombre, razón social o RUC…"
+               oninput="sugerirClientes()" onkeydown="if(event.key==='Enter')verEstadoCuenta()"
+               autocomplete="off">
+        <div id="ec-sugerencias"></div>
+        <button class="btn" onclick="verEstadoCuenta()">Ver estado de cuenta</button>
+      </div>
+      <div id="ec-resultado"></div>
+    </section>
+
+    <section id="v-facturas" class="vista">
+      <div class="tarjeta" style="padding:13px">
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:135px"><label>Desde</label>
+            <input id="f-desde" type="date" onchange="cargar()"></div>
+          <div style="flex:1;min-width:135px"><label>Hasta</label>
+            <input id="f-hasta" type="date" onchange="cargar()"></div>
+          <button class="btn mini" onclick="rango('mes')">Este mes</button>
+          <button class="btn mini" onclick="rango('ano')">Año</button>
+          <button class="btn mini" onclick="rango('todo')">Todo</button>
+        </div>
+      </div>
+
+      <!-- los dos KPI del periodo viven aquí y no en Cartera: los manda
+           el selector de fechas de arriba, y un número que cambia por un
+           filtro que está en otra pestaña no se puede leer -->
+      <div id="fac-kpis"></div>
+
+      <div class="tarjeta" style="padding:13px">
+        <label style="margin-top:0">Estado</label>
+        <div class="filtros" id="fac-filtros"></div>
+      </div>
+
+      <div id="lista-facturas"></div>
+      <div id="fac-resumen"></div>
+      <p class="ayuda linea" style="margin-top:9px">Haz clic en <b>Total</b>, <b>Cobrado</b>,
+        <b>Saldo</b>, <b>Fecha</b>, <b>Vence</b> o <b>Cliente</b> para ordenar; un segundo clic
+        invierte. El número de factura se ordena <b>como texto</b> a propósito: en este libro
+        conviven <code>0000000106</code> y <code>106</code>, son facturas distintas y el cero
+        adelante es lo único que las separa. Ni el filtro ni el orden vuelven a llamar al
+        servidor: trabajan sobre lo que ya está en pantalla.</p>
+    </section>
+
+    <section id="v-pagos" class="vista">
+      <div id="lista-pagos"></div>
+    </section>
+
+    <section id="v-registrar" class="vista">
+      <div class="tarjeta">
+        <h2 style="margin-top:0">Registrar una factura</h2>
+        <div class="rejilla">
+          <div><label>N° de factura</label><input id="nf-num" placeholder="1234"></div>
+          <div><label>Fecha</label><input id="nf-fecha" type="date"></div>
+          <div><label>Cliente</label><input id="nf-cliente" list="lista-cli" placeholder="Nombre"></div>
+          <div><label>Razón social</label><input id="nf-razon"></div>
+          <div><label>RUC</label><input id="nf-ruc"></div>
+          <div><label>Periodo</label><input id="nf-periodo" placeholder="agosto 2026"></div>
+          <div><label>Monto total <span style="text-transform:none;letter-spacing:0;font-weight:500">· ITBMS incluido</span></label>
+            <input id="nf-monto" inputmode="decimal" placeholder="0.00" oninput="calcFactura()"></div>
+
+          <div><label>Plazo (días)</label><input id="nf-plazo" inputmode="numeric" value="30" oninput="calcFactura()"></div>
+          <div><label>Vence <span style="text-transform:none;letter-spacing:0;font-weight:500">· se calcula</span></label>
+            <input id="nf-vence" type="date" disabled style="background:#F1F3F6"></div>
+        </div>
+        <label style="margin-top:11px">Concepto</label>
+        <input id="nf-concepto" placeholder="Servicio de recolección · agosto 2026">
+        <div id="nf-total" style="margin-top:12px;font-size:15px;font-weight:800;color:var(--azul-osc)"></div>
+        <button class="btn" onclick="guardarFactura()">Registrar factura</button>
+      </div>
+
+      <div class="tarjeta">
+        <h2 style="margin-top:0">Registrar un pago o abono</h2>
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:170px"><label>N° de factura</label>
+            <input id="np-factura" placeholder="Escribe el número y toca Buscar"
+                   onkeydown="if(event.key==='Enter')buscarFactura()"></div>
+          <button class="btn mini" onclick="buscarFactura()">Buscar factura</button>
+        </div>
+        <div id="np-ficha"></div>
+        <div id="np-form" style="display:none">
+          <div class="rejilla" style="margin-top:12px">
+            <div><label>Fecha del pago</label><input id="np-fecha" type="date"></div>
+            <div><label>Monto del abono</label><input id="np-monto" inputmode="decimal" placeholder="0.00"></div>
+            <div><label>Método</label><select id="np-metodo"></select></div>
+            <div><label>Referencia</label><input id="np-ref" placeholder="ACH, recibo, cheque…"></div>
+          </div>
+          <label style="margin-top:11px">Notas</label>
+          <input id="np-notas" placeholder="Opcional">
+          <button class="btn" onclick="guardarPago()">Registrar el abono</button>
+        </div>
+      </div>
+      <datalist id="lista-cli"></datalist>
+    </section>
+
+    <section id="v-facturar" class="vista">
+      <div class="nota azul">Esto es lo que hay que facturar del periodo, calculado desde las
+        recolecciones y el plan de cada cliente. Es el reporte que necesita contabilidad.</div>
+      <div class="tarjeta" style="padding:13px">
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:135px"><label>Desde</label><input id="pf-desde" type="date"></div>
+          <div style="flex:1;min-width:135px"><label>Hasta</label><input id="pf-hasta" type="date"></div>
+          <button class="btn mini" onclick="rangoFact('mes')">Mes pasado</button>
+          <button class="btn mini" onclick="rangoFact('actual')">Mes en curso</button>
+          <button class="btn mini ambar" onclick="calcularFacturacion()">Calcular</button>
+        </div>
+      </div>
+      <div id="para-facturar"></div>
+    </section>
+  </div>
+
+</div>
+
+<div id="red-fondo" onclick="cerrarRedactor()"></div>
+<div id="red">
+  <div class="red-cab">
+    <div><h3 id="red-titulo">Mensaje</h3><small id="red-sub"></small></div>
+    <button onclick="cerrarRedactor()" title="Cerrar">✕</button>
+  </div>
+  <div class="red-cuerpo">
+    <div class="red-tonos" id="red-tonos"></div>
+    <div id="red-campo-asunto"><label>Asunto</label><input id="red-asunto"></div>
+    <label style="margin-top:11px">Mensaje</label>
+    <textarea id="red-texto"></textarea>
+    <div class="red-porque" id="red-porque"></div>
+    <div id="red-falta"></div>
+  </div>
+  <div class="red-pie">
+    <button class="btn mini sec" onclick="cerrarRedactor()">Cancelar</button>
+    <button class="btn mini sec" onclick="restaurarRedactor()">↺ Volver al original</button>
+    <span style="flex:1"></span>
+    <button class="btn" id="red-abrir" onclick="abrirEnvio()">Abrir para enviar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     LA BANDEJA DEL ASISTENTE · una sola, para todas las pantallas
+     ───────────────────────────────────────────────────────────────────
+     Cobros, rutas y solicitudes necesitan exactamente la misma esquina.
+     Copiarla tres veces habría sido lo rápido, y en tres meses serían
+     tres bandejas distintas: alguien arregla un botón en una y las otras
+     dos se quedan con el error. Así que vive aquí y cada pantalla la
+     incluye con un scriptlet que llama a incluir('Bandeja') y una línea:
+
+         bandejaIniciar('logistica');     // después de tener el PIN
+
+     (El ejemplo va escrito así, sin los signos del scriptlet, porque Apps
+     Script evalúa los scriptlets AUNQUE estén dentro de un comentario
+     HTML: escribirlo completo aquí haría que este archivo se incluyera a
+     sí mismo, sin fin. Lo atrapó la verificación de plantillas, que existe
+     justamente porque ya pasó una vez.)
+
+     No necesita HTML en la página: se arma su propio panel y su propia
+     pastilla al iniciar. Tampoco depende de las funciones de la página
+     —tiene sus propios ayudantes con prefijo bnd— salvo de `PIN`, que sí
+     lee de la ventana porque es lo único que de verdad es de la pantalla.
+
+     Si la pantalla define bandejaAbrir(enlace), la bandeja se lo entrega
+     para que navegue por dentro. Si no, abre el enlace en otra pestaña.
+
+     LO QUE PASA AL CERRAR UNA TARJETA — y es lo importante:
+       Ya lo atendí  → resuelto.   No vuelve.
+       Mañana        → pospuesto.  Vuelve mañana si el problema sigue.
+       No aplica     → descartado. No vuelve nunca.
+     El botón grande es «Mañana» a propósito: quitar de la vista algo que
+     todavía hay que hacer no puede costar que el sistema deje de avisarlo.
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+.bnd-pastilla{position:fixed;right:18px;bottom:18px;z-index:4000;
+  display:flex;align-items:center;gap:9px;border:none;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:700;color:#fff;
+  background:#8A97AD;border-radius:999px;padding:12px 14px;
+  box-shadow:0 6px 22px rgba(15,25,45,.28);transition:.2s}
+.bnd-pastilla i{width:11px;height:11px;border-radius:50%;background:#fff;opacity:.85;flex:0 0 auto}
+.bnd-pastilla b{font-weight:800}
+.bnd-pastilla.hay{background:linear-gradient(140deg,#2FBF71,#1E9E58);padding:12px 20px}
+.bnd-pastilla.hay i{opacity:1}
+.bnd-pastilla.abierto{opacity:.55}
+.bnd-pastilla:hover{transform:translateY(-2px)}
+.bnd-pastilla.late{animation:bndLate 1.1s ease-out 2}
+@keyframes bndLate{
+  0%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 0 rgba(47,191,113,.55)}
+  70%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 15px rgba(47,191,113,0)}
+  100%{box-shadow:0 6px 22px rgba(15,25,45,.28),0 0 0 0 rgba(47,191,113,0)}
+}
+@media (prefers-reduced-motion:reduce){ .bnd-pastilla.late{animation:none} }
+
+/* EL PANEL NO SCROLLEA: SCROLLEA SU LISTA.
+   El encabezado estaba pegado con position:sticky dentro de un panel que
+   se desplazaba entero. Sticky funciona en el escritorio y se despega en
+   el teléfono, donde la barra de direcciones cambia el alto de la
+   ventana. Resultado: al bajar por los pendientes se perdía el
+   encabezado, y con él la ✕ — había que subir hasta arriba para poder
+   cerrar. Con flex el encabezado NO está dentro de lo que se desplaza,
+   así que no puede irse a ninguna parte. */
+#bnd-panel{position:fixed;right:18px;bottom:74px;z-index:4001;
+  width:min(376px,calc(100vw - 36px));max-height:min(68vh,490px);
+  display:none;flex-direction:column;overflow:hidden;
+  background:#fff;border:1px solid var(--borde,#E1E5EA);border-radius:14px;
+  box-shadow:0 16px 44px rgba(15,25,45,.24)}
+#bnd-panel.ver{display:flex}
+#bnd-lista{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.bnd-cab{flex:0 0 auto;background:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--borde,#E1E5EA);
+  border-radius:14px 14px 0 0;
+  font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gris,#6B7686)}
+/* La ✕ con tamaño de dedo: 16 píxeles de tipografía no se aciertan en un
+   teléfono con el camión andando. */
+.bnd-cab button{border:none;background:none;font-size:20px;color:var(--gris,#6B7686);
+  cursor:pointer;line-height:1;padding:4px 10px;margin:-4px -6px -4px 0;border-radius:8px}
+.bnd-cab button:hover{background:#F1F3F6;color:var(--tinta,#14202E)}
+
+/* En un teléfono el panel ocupa casi toda la pantalla: 376 px de ancho y
+   68vh de alto dejan las tarjetas en una columna ilegible. */
+@media (max-width:520px){
+  #bnd-panel{left:10px;right:10px;bottom:70px;width:auto;max-height:72vh}
+  .bnd-pastilla{right:12px;bottom:12px}
+}
+.bnd-it{position:relative;padding:13px 16px;border-bottom:1px solid var(--borde,#E1E5EA);
+  border-left:4px solid var(--azul,#0B5394);background:var(--azul-suave,#E9F1FA)}
+.bnd-t{font-size:14px;font-weight:800;color:var(--tinta,#14202E);line-height:1.3}
+.bnd-t span{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 7px;border-radius:999px;vertical-align:middle;margin-left:6px}
+.bnd-t span.pri-alta{background:var(--rojo-suave,#FBEAE8);color:#7a1d14}
+.bnd-t span.pri-media{background:#FFF3D1;color:var(--ambar-osc,#9A6E00)}
+.bnd-t span.pri-baja{background:var(--borde,#E1E5EA);color:var(--gris,#6B7686)}
+.bnd-d{font-size:12.5px;color:var(--gris,#6B7686);line-height:1.5;margin-top:3px}
+.bnd-f{font-size:11px;color:var(--gris,#6B7686);margin-top:7px}
+.bnd-acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.bnd-acc button{border:1px solid var(--borde,#E1E5EA);background:#fff;border-radius:8px;
+  font-family:inherit;font-size:11.5px;font-weight:700;color:var(--gris,#6B7686);
+  cursor:pointer;padding:6px 10px}
+.bnd-acc button:hover{background:#F1F3F6;color:var(--tinta,#14202E)}
+.bnd-acc button.abrir{border-color:var(--ambar,#F5B301);color:var(--ambar-osc,#9A6E00);
+  background:#FFFBF0}
+.bnd-acc button.hecho{border-color:#2FBF71;color:#1E7A45;background:#EAF7F0}
+.bnd-acc button.nunca{margin-left:auto;border-color:transparent;opacity:.7}
+.bnd-acc button.nunca:hover{border-color:var(--rojo-suave,#FBEAE8);color:var(--rojo,#C0392B);opacity:1}
+.bnd-vacio{padding:22px 18px;font-size:13px;color:var(--gris,#6B7686);line-height:1.6;text-align:center}
+.bnd-aviso{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:4002;
+  background:var(--tinta,#14202E);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(15,25,45,.3);
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.bnd-aviso.ver{opacity:1}
+@media print{ .bnd-pastilla,#bnd-panel,.bnd-aviso{display:none!important} }
+</style>
+
+<script>
+/* ── Estado ─────────────────────────────────────────────────────────── */
+var BND_MODULO = "", BND = [], BND_ABIERTO = false, BND_MARCA = null, BND_VIVA = false;
+var BND_ESPERA = 45000, BND_MIN = 45000, BND_MAX = 480000, BND_RELOJ = null;
+
+/* Ayudantes propios: la bandeja no puede depender de que cada pantalla
+   tenga un $ o un esc con el mismo nombre y el mismo comportamiento. */
+function bndEl(i){ return document.getElementById(i); }
+function bndEsc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function bndAviso(m){
+  var a = bndEl("bnd-aviso"); if(!a) return;
+  a.textContent = m; a.classList.add("ver");
+  clearTimeout(a._h); a._h = setTimeout(function(){ a.classList.remove("ver"); }, 2600);
+}
+function bndPin(){ return (typeof PIN !== "undefined" && PIN) ? PIN : ""; }
+
+/* ── Arranque ───────────────────────────────────────────────────────── */
+function bandejaIniciar(modulo){
+  BND_MODULO = String(modulo || "");
+  if(!bndEl("bnd-panel")) bndMontar();
+  BND_VIVA = true;
+  bndRevisar(false);
+}
+
+function bndMontar(){
+  var p = document.createElement("div");
+  p.id = "bnd-panel";
+  p.innerHTML = '<div class="bnd-cab">Pendientes' +
+    '<button onclick="bandejaCerrar()" title="Cerrar">✕</button></div>' +
+    '<div id="bnd-lista"></div>';
+  document.body.appendChild(p);
+
+  var b = document.createElement("button");
+  b.id = "bnd-pastilla"; b.className = "bnd-pastilla";
+  b.title = "Lo que encontró el asistente";
+  b.innerHTML = "<i></i>";
+  b.onclick = bandejaVer;
+  document.body.appendChild(b);
+
+  var a = document.createElement("div");
+  a.id = "bnd-aviso"; a.className = "bnd-aviso";
+  document.body.appendChild(a);
+
+  /* Dos salidas más, porque una sola ✕ en una esquina no basta: en un
+     teléfono se falla el toque, y con la lista larga el reflejo es tocar
+     fuera. Escape para el escritorio, tocar fuera para el teléfono. */
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && BND_ABIERTO) bandejaCerrar();
+  });
+  document.addEventListener("click", function(e){
+    if(!BND_ABIERTO) return;
+    var panel = bndEl("bnd-panel"), past = bndEl("bnd-pastilla");
+    if(panel && !panel.contains(e.target) && past && !past.contains(e.target))
+      bandejaCerrar();
+  }, true);
+}
+
+function bandejaVer(){
+  BND_ABIERTO = !BND_ABIERTO;
+  bndEl("bnd-panel").classList.toggle("ver", BND_ABIERTO);
+  bndPintar();
+  if(BND_ABIERTO) bndTraer(true);
+}
+function bandejaCerrar(){
+  BND_ABIERTO = false;
+  bndEl("bnd-panel").classList.remove("ver");
+  bndPintar();
+}
+function bndPulsar(){
+  var p = bndEl("bnd-pastilla"); if(!p) return;
+  p.classList.remove("late"); void p.offsetWidth; p.classList.add("late");
+}
+
+/* ── El sondeo barato ───────────────────────────────────────────────────
+   Preguntar «¿hay pendientes?» cada minuto obliga al servidor a leer la
+   hoja entera cada minuto. En vez de eso se pregunta por una sola celda
+   —la hora del último cambio del módulo— y solo si cambió se pide la
+   lista. Cuando no pasa nada, la espera se va duplicando hasta el tope:
+   una pantalla abierta toda la tarde sin novedades casi no cuesta. */
+function bndRevisar(manual){
+  if(!bndPin() || !BND_MODULO) return;
+  if(!manual && BND_MARCA !== null){
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(r && r.ok && r.marca === BND_MARCA){
+          BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX);
+          bndProgramar(); return;
+        }
+        bndTraer(false);
+      })
+      .withFailureHandler(function(){
+        BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX); bndProgramar();
+      })
+      .api_marcador(bndPin(), BND_MODULO);
+    return;
+  }
+  bndTraer(manual);
+}
+
+function bndTraer(manual){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ bndProgramar(); return; }
+      var antes = {};
+      BND.forEach(function(x){ antes[x.pendienteId] = 1; });
+      var nuevas = (r.pendientes || []).filter(function(x){ return !antes[x.pendienteId]; });
+
+      BND = r.pendientes || [];
+      BND_MARCA = r.marca;
+      /* algo cambió: se vuelve a la espera corta, porque cuando pasa una
+         cosa suele venir otra detrás */
+      BND_ESPERA = nuevas.length ? BND_MIN : Math.min(BND_ESPERA * 1.5, BND_MAX);
+
+      if(nuevas.length && !manual){
+        bndAviso(nuevas.length === 1 ? "📌 " + nuevas[0].titulo
+                                     : "📌 " + nuevas.length + " pendientes nuevos");
+        bndPulsar();
+      }
+      if(manual) bndAviso(BND.length ? BND.length + " pendiente(s)" : "Nada pendiente");
+      bndPintar();
+      bndProgramar();
+    })
+    .withFailureHandler(function(){
+      if(manual) bndAviso("Sin conexión");
+      BND_ESPERA = Math.min(BND_ESPERA * 2, BND_MAX);
+      bndProgramar();
+    })
+    .api_pendientes(bndPin(), BND_MODULO, false);
+}
+
+/* Solo corre mientras la pestaña está a la vista. */
+function bndProgramar(){
+  if(!BND_VIVA) return;
+  clearTimeout(BND_RELOJ);
+  BND_RELOJ = setTimeout(function(){
+    if(document.hidden){ bndProgramar(); return; }
+    bndRevisar(false);
+  }, BND_ESPERA);
+}
+
+/* ── Lo que se ve ───────────────────────────────────────────────────── */
+function bndPintar(){
+  var p = bndEl("bnd-pastilla"), l = bndEl("bnd-lista");
+  if(!p || !l) return;
+  var n = BND.length;
+
+  p.className = "bnd-pastilla" + (n ? " hay" : "") + (BND_ABIERTO ? " abierto" : "");
+  p.innerHTML = n ? '<i></i><b>' + n + '</b> pendiente' + (n === 1 ? '' : 's') : '<i></i>';
+  p.title = n ? n + " pendiente(s)" : "Nada pendiente";
+
+  l.innerHTML = n
+    ? BND.map(function(x){
+        var pri = bndEsc(x.prioridad || "media");
+        var id = bndEsc(x.pendienteId);
+        return '<div class="bnd-it">' +
+          '<div class="bnd-t">' + bndEsc(x.titulo) +
+            ' <span class="pri-' + pri + '">' + pri + '</span></div>' +
+          '<div class="bnd-d">' + bndEsc(x.descripcion) + '</div>' +
+          '<div class="bnd-f">' + bndEsc(x.asistente || '') + ' · ' + bndEsc(x.fecha || '') +
+            (x.estado === 'pospuesto' ? ' · pospuesto, volvió hoy' : '') + '</div>' +
+          '<div class="bnd-acc">' +
+            (x.enlace
+              ? '<button class="abrir" onclick="bandejaAbrirItem(&#39;' + id + '&#39;)">Abrir</button>'
+              : '') +
+            '<button class="hecho" onclick="bandejaResolver(&#39;' + id + '&#39;)">Ya lo atendí</button>' +
+            '<button onclick="bandejaPosponer(&#39;' + id + '&#39;,1)" ' +
+              'title="Vuelve mañana si el problema sigue">Mañana</button>' +
+            '<button onclick="bandejaPosponer(&#39;' + id + '&#39;,7)" ' +
+              'title="Vuelve en una semana si el problema sigue">En 7 días</button>' +
+            '<button class="nunca" onclick="bandejaNoAplica(&#39;' + id + '&#39;)" ' +
+              'title="No es un problema. No se vuelve a avisar.">No aplica</button>' +
+          '</div></div>';
+      }).join("")
+    : '<div class="bnd-vacio">Nada pendiente por ahora.<br>' +
+      'Cuando el asistente encuentre algo en este módulo, aparece aquí.</div>';
+}
+
+/* ── Cerrar una tarjeta ─────────────────────────────────────────────────
+   Cerrar deja constancia en la hoja: quién, cuándo y con qué resultado.
+   Un pendiente que solo desaparece de la pantalla es una decisión que
+   nadie puede revisar después —y peor, vuelve al recargar. */
+function bndCerrar(id, estado, nota, dias){
+  var antes = BND.slice();
+  BND = BND.filter(function(x){ return x.pendienteId !== id; });
+  bndPintar();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){
+        BND = antes; bndPintar();
+        bndAviso((r && r.error) || "No se pudo cerrar");
+        return;
+      }
+      BND_MARCA = null;              // que la próxima consulta traiga la lista fresca
+      if(estado === 'pospuesto') bndAviso(dias === 1 ? "Vuelve mañana" : "Vuelve en " + dias + " días");
+    })
+    .withFailureHandler(function(){ BND = antes; bndPintar(); bndAviso("Sin conexión"); })
+    .api_cerrarPendiente(bndPin(), id, estado, nota || "", dias || 0);
+}
+function bandejaResolver(id){ bndCerrar(id, "resuelto", "Atendido desde la bandeja", 0); }
+function bandejaPosponer(id, dias){ bndCerrar(id, "pospuesto", "Pospuesto desde la bandeja", dias); }
+function bandejaNoAplica(id){ bndCerrar(id, "descartado", "Marcado «no aplica» desde la bandeja", 0); }
+
+/* ── Abrir lo que el asistente señaló ───────────────────────────────────
+   El enlace es un pedazo de consulta —"?p=cobros&fac=00231"—, nunca una
+   dirección completa: si se guardara entera, el día que la app se vuelva
+   a publicar todos los pendientes viejos apuntarían a la anterior.
+
+   Si la pantalla sabe llevar a ese sitio por dentro, se lo deja a ella:
+   recargar para llegar al mismo lugar tira lo que alguien tenga a medio
+   escribir. Solo si no sabe, se abre en otra pestaña. */
+function bandejaAbrirItem(id){
+  var x = BND.filter(function(y){ return y.pendienteId === id; })[0];
+  if(!x || !x.enlace) return;
+  bandejaCerrar();
+  /* window.bandejaAbrir y no bandejaAbrir a secas: la función es OPCIONAL
+     —la define la pantalla que sabe navegar por dentro— y nombrarla como
+     miembro de window deja claro que puede no existir, en vez de parecer
+     una función que alguien olvidó escribir. */
+  if(typeof window.bandejaAbrir === "function" && window.bandejaAbrir(x.enlace) !== false) return;
+  if(window.URL_APP) window.open(window.URL_APP + x.enlace, "_blank");
+  else bndAviso("Un momento, cargando…");
+}
+</script>
+
+<script>
+var PIN="", DATOS=null, TAB="cartera", FACT=null;
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function B(v){return "B/. "+Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function n1(v){return Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:1,maximumFractionDigits:1});}
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("ver");
+  clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("ver");},3200);}
+/* Dentro del iframe, location.href es una URL interna de Google que da página
+   en blanco. La dirección real solo la conoce el servidor. */
+var URL_LOBBY = "";
+(function(){
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){ URL_LOBBY = u || ""; }).api_urlApp();
+})();
+
+function volverInicio(){
+  if(URL_LOBBY){ irA(URL_LOBBY); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){})
+    .api_urlApp();
+}
+function salir(){ try{localStorage.removeItem("ecovsa_pin");}catch(e){} volverInicio(); }
+
+var ROTULO={admin:"Administración",supervisor:"Supervisión de operaciones",
+  gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta",operador:"Operador",
+  cobros:"Cobros"};
+
+function arrancar(){
+  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  var h=new Date();
+  $("f-desde").value=iso(new Date(h.getFullYear(),h.getMonth(),1));
+  $("f-hasta").value=iso(new Date(h.getFullYear(),h.getMonth()+1,0));
+  $("nf-fecha").value=iso(h); $("np-fecha").value=iso(h);
+  rangoFact("mes");
+  if(PIN) cargar(); else pedirPin("");
+}
+function pedirPin(m){
+  $("app").style.display="none"; $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=m||""; setTimeout(function(){$("pin").focus();},130);
+}
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…"; PIN=p; cargar();
+}
+
+function cargar(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      DATOS=r;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(PIN)); }catch(e){}
+      $("cab-usuario").textContent=r.usuario.nombre+" · "+(ROTULO[r.usuario.rol]||r.usuario.rol);
+      $("pantalla-pin").style.display="none"; $("app").style.display="block";
+      aplicarAyuda(); pintarTabs(); pintarTodo();
+      /* la Cartera es la pestaña con la que abre la pantalla: si solo se
+         pidiera al cambiar de pestaña, quien entra la vería vacía */
+      if(TAB==="cartera") cargarDireccion();
+      /* la bandeja arranca sola: si no se pide, nadie la ve */
+      bandejaIniciar("cobros");
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión. Intenta con señal."); })
+    .api_cobros(PIN, $("f-desde").value||"", $("f-hasta").value||"");
+}
+
+function pintarTabs(){
+  var t=[["cartera","Cartera"],["morosidad","Morosidad"],["cliente","Buscar cliente"],
+         ["facturas","Facturas"],["pagos","Pagos"],["facturar","Para facturar"]];
+  if(DATOS.puedeEditar) t.splice(5,0,["registrar","Registrar"]);
+  $("tabs").innerHTML=t.map(function(x){
+    return '<button class="'+(TAB===x[0]?"on":"")+'" onclick="verTab(&#39;'+x[0]+'&#39;)">'+x[1]+'</button>';
+  }).join("")+
+  '<button class="btn-ayuda'+(AYUDA?" on":"")+'" onclick="verAyuda()">'+
+    '<i>'+(AYUDA?"×":"?")+'</i> '+(AYUDA?"Ocultar ayuda":"Ayuda")+'</button>';
+}
+
+/* ── El interruptor de la ayuda ──────────────────────────────────────
+   La explicación de una pantalla se lee una vez y estorba las otras
+   doscientas. Nace escondida y se abre a pedido.
+
+   La elección se recuerda en este navegador: quien la deja abierta
+   porque está aprendiendo no tiene que encenderla en cada pantalla, y
+   quien ya sabe no la vuelve a ver. Si el navegador no deja guardar
+   —modo privado, permisos— no pasa nada: arranca escondida. */
+var AYUDA=false;
+try{ AYUDA = localStorage.getItem("ecovsa_ayuda")==="1"; }catch(e){}
+function aplicarAyuda(){ document.body.classList.toggle("con-ayuda", AYUDA); }
+function verAyuda(){
+  AYUDA=!AYUDA;
+  try{ localStorage.setItem("ecovsa_ayuda", AYUDA?"1":"0"); }catch(e){}
+  aplicarAyuda(); pintarTabs();
+}
+function verTab(v){
+  TAB=v;
+  if(v==="morosidad") cargarMorosidad();
+  if(v==="cartera") cargarDireccion();
+  document.querySelectorAll(".vista").forEach(function(x){x.classList.remove("on");});
+  $("v-"+v).classList.add("on");
+  pintarTabs();
+}
+
+function rango(t){
+  var h=new Date(), d1, d2;
+  if(t==="mes"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
+  else if(t==="ano"){ d1=new Date(h.getFullYear(),0,1); d2=new Date(h.getFullYear(),11,31); }
+  else { d1=new Date(2020,0,1); d2=new Date(h.getFullYear()+1,0,1); }
+  $("f-desde").value=iso(d1); $("f-hasta").value=iso(d2); cargar();
+}
+function rangoFact(t){
+  var h=new Date(), d1, d2;
+  if(t==="actual"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
+  else { d1=new Date(h.getFullYear(),h.getMonth()-1,1); d2=new Date(h.getFullYear(),h.getMonth(),0); }
+  $("pf-desde").value=iso(d1); $("pf-hasta").value=iso(d2);
+}
+
+function pintarTodo(){
+  var t=DATOS.totales;
+
+  /* Los dos KPI del periodo ahora viven en la pestaña de Facturas, que
+     es donde está el selector de fechas que los gobierna. Antes estaban
+     en Cartera, junto a dos cifras que NO son del periodo: cuatro
+     cuadros pegados, dos midiendo el rango y dos midiendo siempre, sin
+     nada que lo dijera. */
+  $("fac-kpis").innerHTML='<div class="kpis">'+
+    '<div class="kpi"><div class="e">Facturado del periodo</div>'+
+      '<div class="v">'+B(t.facturado)+'</div><div class="s">'+t.facturas+' factura(s)</div></div>'+
+    '<div class="kpi ok"><div class="e">Cobrado del periodo</div>'+
+      '<div class="v">'+B(t.cobradoPeriodo)+'</div><div class="s">'+t.pagos+' pago(s)</div></div>'+
+    '</div>';
+
+  revisarFacturasSinCliente();
+  $("cartera-avisos").innerHTML = DATOS.sueltos
+    ? '<div class="nota"><b>'+DATOS.sueltos+' pago(s) sin factura enlazada</b>, por '+
+      B(DATOS.sueltosMonto)+'. No se pueden aplicar a ninguna cuenta hasta que se les asigne '+
+      'su número de factura.</div>' : '';
+
+  pintarFacturas();
+
+  /* pagos */
+  var p=DATOS.pagos;
+  $("lista-pagos").innerHTML = p.length
+    ? '<div class="tabla-caja"><table><thead><tr><th>Fecha</th><th>Factura</th><th>Cliente</th>'+
+      '<th>Método</th><th>Referencia</th><th>Monto</th></tr></thead><tbody>'+
+      p.map(function(x){
+        return '<tr><td>'+esc(x.fecha)+'</td>'+
+          '<td>'+(x.factura?'<b>'+esc(x.factura)+'</b>':'<span class="pill p-vencida">sin factura</span>')+'</td>'+
+          '<td>'+esc(x.cliente||"—")+'</td><td>'+esc(x.metodo||"—")+'</td>'+
+          '<td>'+esc(x.referencia||"—")+'</td><td class="n"><b>'+B(x.monto)+'</b></td></tr>';
+      }).join("")+
+      '<tr class="tot"><td colspan="5">TOTAL DEL PERIODO</td><td class="n">'+
+      B(DATOS.totales.cobradoPeriodo)+'</td></tr></tbody></table></div>'
+    : '<div class="vacio">No hay pagos en este periodo.</div>';
+
+  /* métodos y clientes para los formularios */
+  var s=$("np-metodo");
+  if(s && !s.options.length)
+    s.innerHTML=DATOS.metodos.map(function(m){return '<option>'+m+'</option>';}).join("");
+  var dl=$("lista-cli");
+  if(dl){
+    var n={}; DATOS.facturas.forEach(function(x){ if(x.cliente) n[x.cliente]=1; });
+    DATOS.deudores.forEach(function(x){ if(x.cliente) n[x.cliente]=1; });
+    dl.innerHTML=Object.keys(n).map(function(x){return '<option value="'+esc(x)+'">';}).join("");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA LISTA DE FACTURAS · filtrar y ordenar sin ir al servidor
+   ───────────────────────────────────────────────────────────────────
+   Todo lo que hace falta ya vino en `DATOS.facturas`. Filtrar y ordenar
+   aquí es instantáneo; hacerlo en el servidor sería un viaje de segundos
+   por cada clic. El rango de fechas sí manda al servidor, y eso no
+   cambia: decide QUÉ se trae, no cómo se mira.
+   ═══════════════════════════════════════════════════════════════════ */
+
+var FAC_ESTADO="", FAC_ORDEN="fecha", FAC_DESC=true;
+
+var FAC_ESTADOS=[["","Todas",""],["PAGADA","Pagadas","verde"],["VENCIDA","Vencidas","rojo"],
+                 ["PARCIAL","Parciales",""],["PENDIENTE","Pendientes",""]];
+
+/* `tipo` dice cómo comparar. Las que no lo tienen no ordenan: el periodo
+   y el estado se leen de un vistazo y una flecha más solo estorba. */
+var FAC_COLS=[["factura","Factura","texto"],["fecha","Fecha","fecha"],
+              ["cliente","Cliente","texto"],["periodo","Periodo",""],
+              ["total","Total","num"],["cobrado","Cobrado","num"],
+              ["saldo","Saldo","num"],["vencimiento","Vence","fecha"],
+              ["estado","Estado",""]];
+
+function facVisibles(){
+  var f=(DATOS.facturas||[]).slice();
+  if(FAC_ESTADO) f=f.filter(function(x){ return x.estado===FAC_ESTADO; });
+  var col=FAC_COLS.filter(function(c){ return c[0]===FAC_ORDEN; })[0];
+  if(col && col[2]){
+    f.sort(function(a,b){
+      var x=a[FAC_ORDEN], y=b[FAC_ORDEN], r;
+      if(col[2]==="num") r=(Number(x)||0)-(Number(y)||0);
+      /* EL NÚMERO DE FACTURA SE ORDENA COMO TEXTO.
+         En este libro conviven dos series: 0000000106 de una junta
+         comunal y 106 de una clínica. Son facturas distintas y el cero
+         adelante es lo único que las separa. Ordenadas como número
+         caerían pegadas y parecerían la misma. */
+      else r=String(x==null?"":x).localeCompare(String(y==null?"":y),"es");
+      return FAC_DESC ? -r : r;
+    });
+  }
+  return f;
+}
+
+function pintarFacturas(){
+  var f=facVisibles();
+
+  $("fac-filtros").innerHTML=FAC_ESTADOS.map(function(e){
+    var n=e[0] ? (DATOS.facturas||[]).filter(function(x){return x.estado===e[0];}).length
+               : (DATOS.facturas||[]).length;
+    return '<button class="fil'+(FAC_ESTADO===e[0]?" on "+e[2]:"")+'" '+
+           'onclick="filtrarFacturas(&#39;'+e[0]+'&#39;)">'+e[1]+
+           '<span class="c">'+n+'</span></button>';
+  }).join("");
+
+  if(!f.length){
+    $("lista-facturas").innerHTML='<div class="vacio">'+
+      (FAC_ESTADO ? "Ninguna factura con ese estado en el periodo."
+                  : "No hay facturas en este periodo.")+'</div>';
+    $("fac-resumen").innerHTML=""; return;
+  }
+
+  var cab=FAC_COLS.map(function(c){
+    if(!c[2]) return '<th>'+c[1]+'</th>';
+    var act=FAC_ORDEN===c[0];
+    return '<th class="ord'+(act?" act":"")+'" onclick="ordenarFacturas(&#39;'+c[0]+'&#39;)">'+
+           c[1]+'<span class="f">'+(act?(FAC_DESC?"▼":"▲"):"▼")+'</span></th>';
+  }).join("");
+
+  $("lista-facturas").innerHTML=
+    '<div class="tabla-caja"><table><thead><tr>'+cab+'</tr></thead><tbody>'+
+    f.map(function(x){
+      return '<tr><td><b>'+esc(x.factura)+'</b></td><td>'+esc(x.fecha)+'</td>'+
+        '<td>'+esc(x.cliente)+'</td><td>'+esc(x.periodo||"—")+'</td>'+
+        '<td class="n">'+B(x.total)+'</td><td class="n">'+B(x.cobrado)+'</td>'+
+        '<td class="n"'+(x.saldo>0.009?' style="font-weight:800"':'')+'>'+B(x.saldo)+'</td>'+
+        '<td>'+esc(x.vencimiento||"—")+
+          (x.mora?'<br><small style="color:var(--rojo)">'+x.mora+' días</small>':'')+'</td>'+
+        '<td><span class="pill p-'+x.estado.toLowerCase()+'">'+x.estado+'</span></td></tr>';
+    }).join("")+'</tbody></table></div>';
+
+  /* Lo que convierte el filtro en herramienta. Sin esta línea se filtra
+     «vencidas» y hay que sumar a mano para saber de cuánto se habla. */
+  var tot=0, cob=0, sal=0, ven=0;
+  f.forEach(function(x){ tot+=x.total; cob+=x.cobrado; sal+=x.saldo; if(x.mora) ven+=x.saldo; });
+  var q=FAC_ESTADO ? FAC_ESTADOS.filter(function(e){return e[0]===FAC_ESTADO;})[0][1].toLowerCase()
+                   : "factura"+(f.length===1?"":"s");
+  $("fac-resumen").innerHTML=
+    '<div class="r">Mostrando<b>'+f.length+' '+q+'</b></div>'+
+    '<div class="r">Facturado<b>'+B(tot)+'</b></div>'+
+    '<div class="r">Cobrado<b>'+B(cob)+'</b></div>'+
+    '<div class="r'+(sal>0.009?" mal":"")+'">Saldo<b>'+B(sal)+'</b></div>'+
+    /* si ya estoy filtrando vencidas, repetir el vencido es decir dos
+       veces la misma cifra */
+    (ven>0.009 && FAC_ESTADO!=="VENCIDA"
+      ? '<div class="r mal">De eso, vencido<b>'+B(ven)+'</b></div>' : '');
+}
+
+function filtrarFacturas(e){ FAC_ESTADO=e; pintarFacturas(); }
+function ordenarFacturas(c){
+  if(FAC_ORDEN===c) FAC_DESC=!FAC_DESC;
+  else { FAC_ORDEN=c;
+         /* los montos y las fechas se quieren ver de mayor a menor la
+            primera vez; los nombres, de la A a la Z */
+         FAC_DESC=["fecha","vencimiento","total","cobrado","saldo"].indexOf(c)>=0; }
+  pintarFacturas();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARTERA · la pantalla de dirección
+   ───────────────────────────────────────────────────────────────────
+   Las otras pestañas dicen cómo están las cosas hoy. Esta dice si van
+   mejor o peor, que es otra pregunta y no la tenía nadie.
+
+   Viaja aparte de api_cobros a propósito: sus cifras salen del libro
+   ENTERO, no del rango de fechas de la pantalla. Se pide una sola vez y
+   se guarda: nada de aquí cambia entre un clic y otro.
+   ═══════════════════════════════════════════════════════════════════ */
+
+var DIR=null;
+
+function cargarDireccion(){
+  if(DIR){ pintarDireccion(); return; }
+  $("dir-hero").innerHTML='<div class="vacio">Calculando desde el libro completo…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("dir-hero").innerHTML='<div class="nota">'+
+        esc((r&&r.error)||"No se pudo calcular.")+'</div>'; return; }
+      DIR=r; pintarDireccion();
+    })
+    .withFailureHandler(function(){
+      $("dir-hero").innerHTML='<div class="nota">Sin conexión. Intenta con señal.</div>'; })
+    .api_cob_direccion(PIN);
+}
+
+function medidor(pct, clase){
+  var p=Math.max(0, Math.min(100, Number(pct)||0));
+  return '<div class="medidor"><div class="pista">'+
+         '<div class="relleno'+(clase?" "+clase:"")+'" style="width:'+p.toFixed(1)+'%"></div>'+
+         '</div><span class="cif">'+p.toFixed(p<10?1:0)+' %</span></div>';
+}
+
+function pintarDireccion(){
+  if(!DIR) return;
+  if(DIR.vacio){
+    $("dir-hero").innerHTML='<div class="vacio">Todavía no hay facturas en el libro.<br>'+
+      'Esta pantalla compara meses: aparece sola cuando haya con qué comparar.</div>';
+    $("dir-fichas").innerHTML=""; $("dir-curva").innerHTML=""; $("dir-concentra").innerHTML="";
+    return;
+  }
+
+  var k=DIR.concentracion, d=DIR.diasEnCobrar, e=DIR.envejecimiento, c=DIR.curva;
+
+  /* ── el número que encabeza ──
+     No es un KPI más: es el dato que reencuadra todos los demás. Una
+     cartera de B/. 21,000 se lee como un problema general hasta que uno
+     ve que el 72 % es un solo cliente; entonces se lee como dos cuentas
+     atascadas y el resto sano, que es otra conversación. */
+  if(!k.mayor || !k.vencido){
+    $("dir-hero").innerHTML='<div class="hero ok"><div class="cifra">0</div>'+
+      '<div class="dice"><b>No hay nada vencido</b>'+
+      '<span>Toda la cartera está dentro de su plazo.</span></div></div>';
+  } else {
+    var m=k.mayor, solo=k.cuentas===1;
+    $("dir-hero").innerHTML='<div class="hero"><div class="cifra">'+
+      m.parte.toFixed(m.parte<10?1:0)+'%</div><div class="dice">'+
+      '<b>de tu mora vencida es un solo cliente</b><span>'+
+      esc(m.cliente)+' debe '+B(m.saldo)+' de los '+B(k.vencido)+' vencidos, en '+
+      m.facturas+' factura'+(m.facturas===1?"":"s")+', con '+m.mora+' días la más vieja.'+
+      (k.arriba.length>1
+        ? ' Con '+esc(k.arriba[1].cliente)+', el '+
+          (m.parte+k.arriba[1].parte).toFixed(0)+' % entre dos.' : '')+
+      '</span><div class="ayuda">'+
+      (solo ? 'Es la única cuenta vencida que tienes.'
+            : 'No tienes una cartera enferma: tienes una cuenta atascada y '+
+              (k.facturas-m.facturas)+' facturas más detrás. Sin este dato, los '+
+              B(k.vencido)+' se leen como un problema general y se trabajan como tal.')+
+      '</div></div></div>';
+  }
+
+  /* ── las tres fichas ──
+     Cada una con su comparación: un número solo no dice nada. «47 días»
+     no significa nada hasta que al lado dice que hace tres meses eran 38. */
+  var f=[];
+  f.push('<div class="kpi"><div class="e">Días en cobrar</div>'+
+    '<div class="v">'+(d.pagos ? d.dias+' días' : '—')+'</div>'+
+    '<div class="s">'+(d.pagos ? 'de la factura al pago · '+d.pagos+' pago(s) en '+d.ventana+' días'
+                               : 'sin pagos en los últimos '+d.ventana+' días')+'</div>'+
+    (d.comparable ? delta(d.dias-d.antes, 'días vs. los '+d.ventana+' anteriores', true)
+                  : '<div class="delta neutro">sin suficientes pagos para comparar</div>')+
+    '<div class="ayuda">Promedio <b>ponderado por monto</b> entre la fecha de la factura y la '+
+    'del pago. Ponderado y no simple: una de B/. 5,000 que tardó 90 días pesa en el flujo '+
+    'mucho más que una de B/. 50 que tardó 5, y el promedio simple las cuenta igual.</div></div>');
+
+  var act=c.actual, ad=c.alMismoDia;
+  f.push('<div class="kpi"><div class="e">De lo facturado en '+esc(act.etiqueta||"")+'</div>'+
+    '<div class="v">'+act.pct.toFixed(act.pct<10?1:0)+' %</div>'+
+    '<div class="s">ya entró · '+B(act.cobrado)+' de '+B(act.facturado)+'</div>'+
+    (ad.comparable ? delta(act.pct-ad.pct, 'pts vs. '+esc(ad.etiqueta)+' al día '+ad.dia, false)
+                   : '<div class="delta neutro">nada facturado el mes anterior</div>')+
+    '<div class="ayuda">Se compara contra el mes anterior <b>al mismo día del mes</b>, no '+
+    'contra el mes anterior cerrado: comparar un mes a medias con uno completo daría '+
+    'alarma todos los meses del año.</div></div>');
+
+  f.push('<div class="kpi"><div class="e">Cartera de más de 90 días</div>'+
+    '<div class="v">'+B(e.monto)+'</div>'+
+    '<div class="s">'+e.parte.toFixed(e.parte<10?1:0)+' % de todo lo vencido</div>'+
+    (e.comparable ? delta(e.parte-e.parteAntes, 'pts vs. hace '+e.diasAtras+' días', true)
+                  : '<div class="delta neutro">no había cartera vencida hace '+e.diasAtras+' días</div>')+
+    '<div class="ayuda">Lo que pasa de 90 días rara vez se cobra completo. Que suba su '+
+    '<b>participación</b> es peor señal que el monto: significa que lo nuevo entra y lo '+
+    'viejo se queda.</div></div>');
+  $("dir-fichas").innerHTML='<div class="kpis">'+f.join("")+'</div>';
+
+  /* ── la curva ── */
+  $("dir-curva").innerHTML='<div class="tabla-caja"><table><thead><tr>'+
+    '<th>Mes facturado</th><th>Facturado</th><th>Cobrado</th>'+
+    '<th style="width:34%">Ya entró</th><th>Pendiente</th></tr></thead><tbody>'+
+    c.filas.map(function(x){
+      /* el color dice estado, no identidad, y siempre lleva su número al
+         lado: quien no distingue el color igual lee la cifra */
+      var cl = x.pct>=90 ? "bueno" : (x.pct>=60 ? "" : "alerta");
+      return '<tr><td><b>'+esc(x.etiqueta)+'</b></td>'+
+        '<td class="n">'+B(x.facturado)+'</td><td class="n">'+B(x.cobrado)+'</td>'+
+        '<td>'+(x.facturado>0.009 ? medidor(x.pct, cl)
+                                  : '<span style="color:var(--gris)">nada facturado</span>')+'</td>'+
+        '<td class="n"'+(x.pendiente>0.009?' style="font-weight:800"':'')+'>'+
+          B(x.pendiente)+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+
+  /* ── quién es la cartera ── */
+  if(!k.vencido){
+    $("dir-concentra").innerHTML='<div class="vacio">Nada vencido que repartir.</div>';
+  } else {
+    var filas=k.arriba.map(function(x){
+      return '<tr><td><b>'+esc(x.cliente)+'</b>'+
+        (x.razon && x.razon!==x.cliente
+          ? '<br><small style="color:var(--gris)">'+esc(x.razon)+'</small>' : '')+'</td>'+
+        '<td class="n">'+x.facturas+'</td>'+
+        '<td class="n" style="color:var(--rojo);font-weight:800">'+x.mora+' días</td>'+
+        '<td class="n"><b>'+B(x.saldo)+'</b></td>'+
+        '<td>'+medidor(x.parte, x.parte>=20?"alerta":"")+'</td></tr>';
+    }).join("");
+    if(k.resto.cuentas) filas+='<tr><td>Las demás cuentas'+
+      '<br><small style="color:var(--gris)">'+k.resto.cuentas+' clientes</small></td>'+
+      '<td class="n">'+k.resto.facturas+'</td><td class="n">—</td>'+
+      '<td class="n">'+B(k.resto.saldo)+'</td><td>'+medidor(k.resto.parte,"")+'</td></tr>';
+    $("dir-concentra").innerHTML='<div class="tabla-caja"><table><thead><tr>'+
+      '<th>Cuenta</th><th>Facturas</th><th>Mora</th><th>Saldo vencido</th>'+
+      '<th style="width:30%">Parte del total</th></tr></thead><tbody>'+filas+
+      '<tr class="tot"><td>Total vencido</td><td class="n">'+k.facturas+'</td>'+
+      '<td class="n">—</td><td class="n">'+B(k.vencido)+'</td>'+
+      '<td class="n" style="padding-right:16px">100.0 %</td></tr></tbody></table></div>';
+  }
+}
+
+/* `subirEsMalo` es el detalle que evita leer al revés: en días de mora
+   subir es malo, y en porcentaje cobrado subir es bueno. Sin ese
+   parámetro el verde y el rojo mienten la mitad de las veces. */
+function delta(dif, texto, subirEsMalo){
+  var d=Math.round(dif*10)/10;
+  if(Math.abs(d)<0.05) return '<div class="delta neutro">igual que antes</div>';
+  var peor = subirEsMalo ? d>0 : d<0;
+  return '<div class="delta '+(peor?"mal":"bien")+'">'+(d>0?"▲ ":"▼ ")+
+         Math.abs(d)+' '+texto+'</div>';
+}
+
+function calcFactura(){
+  // los reportes de contabilidad traen el ITBMS dentro del monto
+  var m=parseFloat($("nf-monto").value)||0;
+  $("nf-total").textContent = m
+    ? "Total: "+B(m)+"   ·   base "+B(m/1.07)+" + ITBMS "+B(m-m/1.07)
+    : "";
+  var f=$("nf-fecha").value, pl=parseInt($("nf-plazo").value)||30;
+  if(f){ var d=new Date(f+"T12:00:00"); d.setDate(d.getDate()+pl); $("nf-vence").value=iso(d); }
+}
+
+function guardarFactura(){
+  var d={factura:$("nf-num").value.trim(), fecha:$("nf-fecha").value,
+    cliente:$("nf-cliente").value.trim(), 'razon social':$("nf-razon").value.trim(),
+    ruc:$("nf-ruc").value.trim(), periodo:$("nf-periodo").value.trim(),
+    concepto:$("nf-concepto").value.trim(), monto:$("nf-monto").value,
+    itbms:0, plazo:$("nf-plazo").value, vencimiento:$("nf-vence").value};
+  if(!d.factura){ toast("Falta el número de factura"); return; }
+  if(!(parseFloat(d.monto)>0)){ toast("El monto debe ser mayor que cero"); return; }
+  toast("Registrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
+      toast("Factura "+r.factura+" registrada · "+B(r.total));
+      ["nf-num","nf-cliente","nf-razon","nf-ruc","nf-periodo","nf-concepto","nf-monto"]
+        .forEach(function(i){$(i).value="";});
+      $("nf-total").textContent=""; cargar();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se registró"); })
+    .api_guardarFactura(PIN, d);
+}
+
+function guardarPago(){
+  if(!FACTURA_ACTUAL){ toast("Busca primero la factura"); return; }
+  var d={factura:FACTURA_ACTUAL.factura, fecha:$("np-fecha").value,
+    monto:$("np-monto").value, metodo:$("np-metodo").value,
+    referencia:$("np-ref").value.trim(),
+    cliente:FACTURA_ACTUAL.razon || FACTURA_ACTUAL.cliente,
+    notas:$("np-notas").value.trim()};
+  if(!(parseFloat(d.monto)>0)){ toast("El monto debe ser mayor que cero"); return; }
+  var m=parseFloat(d.monto);
+  if(m > FACTURA_ACTUAL.saldo + 0.01 &&
+     !confirm("El abono de "+B(m)+" excede el saldo de "+B(FACTURA_ACTUAL.saldo)+".\n\n¿Registrarlo igual?"))
+    return;
+  toast("Registrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
+      toast(r.aviso ? r.aviso : "Abono registrado ✓");
+      limpiarPago(); cargar();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se registró"); })
+    .api_guardarPago(PIN, d);
+}
+
+/* ═══ lo que hay que facturar ═══ */
+function calcularFacturacion(){
+  var d1=$("pf-desde").value, d2=$("pf-hasta").value;
+  if(!d1||!d2){ toast("Elige el periodo"); return; }
+  $("para-facturar").innerHTML='<div class="vacio">Calculando desde las recolecciones…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("para-facturar").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo calcular")+'</div>'; return; }
+      FACT=r; pintarFacturacion(r);
+    })
+    .withFailureHandler(function(){ $("para-facturar").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_paraFacturar(PIN, d1, d2);
+}
+
+/* Los datos de la empresa los manda el servidor desde la constante EMPRESA de
+   Codigo.gs. El respaldo va sin RUC a propósito: mejor que el reporte salga
+   incompleto y se note, a que salga con un dato viejo. */
+var EMP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",ruc:"",dv:""};
+
+function pintarFacturacion(r){
+  if(r && r.empresa) EMP=r.empresa;
+  var t=r.totales;
+  if(!r.lineas.length){
+    $("para-facturar").innerHTML='<div class="vacio">No hubo recolecciones entre el '+
+      esc(r.desde)+' y el '+esc(r.hasta)+'.</div>';
+    return;
+  }
+  $("para-facturar").innerHTML=
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="e">A facturar</div><div class="v">'+B(t.total)+'</div>'+
+        '<div class="s">'+t.titulares+' factura(s) · ITBMS incluido</div></div>'+
+      '<div class="kpi"><div class="e">Planes</div><div class="v">'+B(t.plan)+'</div>'+
+        '<div class="s">tarifa base del periodo</div></div>'+
+      '<div class="kpi'+(t.exceso?' avi':'')+'"><div class="e">Kilos excedentes</div>'+
+        '<div class="v">'+B(t.exceso)+'</div><div class="s">sobre el plan contratado</div></div>'+
+      '<div class="kpi"><div class="e">Recolectado</div><div class="v">'+n1(t.kg)+' kg</div>'+
+        '<div class="s">'+t.visitas+' visita(s)</div></div>'+
+    '</div>'+
+    (t.incompletos ? '<div class="nota"><b>'+t.incompletos+' cliente(s) sin datos completos.</b> '+
+      'Les falta ficha comercial o tarifa, así que su monto no se puede calcular. '+
+      'Mercadeo lo completa desde la ficha del cliente.</div>' : '')+
+    '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">'+
+      '<button class="btn mini" onclick="window.print()">🖨️ Imprimir</button>'+
+      '<button class="btn mini sec" onclick="copiarFacturacion()">📋 Copiar para contabilidad</button>'+
+    '</div>'+
+    (t.retenedores
+      ? '<div class="nota"><b>'+t.retenedores+' cliente(s) retienen ITBMS.</b> '+
+        'La factura sale por el total, pero al banco entran '+B(t.aCobrar)+' porque retienen '+
+        B(t.retiene)+' y lo enteran al fisco. Esa diferencia no es deuda.</div>'
+      : '')+
+    '<div class="enc-print">'+
+      '<img src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400" alt="ECOVSA">'+
+      '<div class="ep-txt">'+
+        '<div class="ep-emp">'+esc(EMP.comercial||"ECOVSA")+
+          (EMP.razonSocial?' · '+esc(EMP.razonSocial):'')+'</div>'+
+        '<div class="ep-ruc">'+(EMP.ruc?'RUC '+esc(EMP.ruc)+
+          (EMP.dv?' DV '+esc(EMP.dv):''):'')+'</div>'+
+      '</div>'+
+      '<div class="ep-der">'+
+        '<div class="ep-doc">Reporte de facturación</div>'+
+        '<div class="ep-per">Periodo del '+esc(r.desde)+' al '+esc(r.hasta)+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="tabla-caja"><table id="tabla-fact"><thead><tr>'+
+      '<th>#</th><th>Facturar a</th><th>RUC</th><th>Cómo se cobra</th><th>Visitas</th>'+
+      '<th>Kg</th><th>Cargo</th><th>Excedente</th><th>Subtotal</th><th>ITBMS</th><th>Total</th>'+
+      '<th>Retiene</th><th>A cobrar</th><th>Recibos</th></tr></thead><tbody>'+
+      r.lineas.map(function(l,i){
+        return '<tr'+(l.aviso?' style="background:#FFF8E1"':'')+'>'+
+          '<td class="n">'+(i+1)+'</td>'+
+          '<td><b>'+esc(l.titular)+'</b>'+
+            (l.agrupada?'<br><small style="color:var(--azul)">factura agrupada · '+l.puntos.length+' puntos</small>':'')+
+            (l.aviso?'<br><small style="color:var(--ambar-osc)">'+esc(l.aviso)+'</small>':'')+'</td>'+
+          '<td>'+esc(l.ruc||"—")+'</td>'+
+          '<td style="font-size:11px">'+esc(l.detalleCobro||"—")+
+            (l.puntos.length>1?'<br><small style="color:var(--azul)">'+l.puntos.length+' puntos</small>':'')+
+          '</td><td class="n">'+l.visitas+'</td>'+
+          '<td class="n">'+n1(l.kg)+'</td>'+
+          '<td class="n">'+B(l.cargoPlan)+'</td>'+
+          '<td class="n">'+(l.kgExceso?n1(l.kgExceso)+' kg<br>'+B(l.cargoKg):"—")+'</td>'+
+          '<td class="n">'+B(l.subtotal)+'</td><td class="n">'+B(l.itbms)+'</td>'+
+          '<td class="n">'+B(l.total)+'</td>'+
+          '<td class="n">'+(l.retiene>0.009
+            ? '<span style="color:var(--ambar-osc)">−'+B(l.retiene)+'<br>'+
+              '<small>'+l.retencion+'% ITBMS</small></span>' : '—')+'</td>'+
+          '<td class="n"><b>'+B(l.aCobrar)+'</b></td>'+
+          '<td style="font-size:10px;max-width:170px">'+esc(l.recibos.join(", ")||"—")+'</td></tr>';
+      }).join("")+
+      '<tr class="tot"><td colspan="4">TOTAL DEL PERIODO</td><td class="n">'+t.visitas+'</td>'+
+      '<td class="n">'+n1(t.kg)+'</td><td class="n">'+B(t.plan)+'</td>'+
+      '<td class="n">'+B(t.exceso)+'</td><td class="n">'+B(t.subtotal)+'</td>'+
+      '<td class="n">'+B(t.itbms)+'</td><td class="n">'+B(t.total)+'</td>'+
+      '<td class="n">'+(t.retiene>0.009?'−'+B(t.retiene):'—')+'</td>'+
+      '<td class="n"><b>'+B(t.aCobrar)+'</b></td><td></td></tr>'+
+      '</tbody></table></div>'+
+    '<div class="sello-print">'+
+      'Documento generado por el sistema Rutas ECOVSA el '+esc(r.hoy)+' a las '+selloHora_()+
+      ' · '+esc((DATOS&&DATOS.usuario&&DATOS.usuario.nombre)||'')+
+      ' · '+r.lineas.length+' titular(es) · total '+B(t.total)+
+      '<br>Cifras calculadas desde las recolecciones registradas y el plan vigente de cada cliente.'+
+    '</div>';
+}
+
+/* Sello de cuándo se generó: hace verificable el documento sin necesidad de firma. */
+function selloHora_(){
+  var d = new Date();
+  return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2);
+}
+
+function copiarFacturacion(){
+  if(!FACT) return;
+  var l=["Facturar a\tRUC\tCómo se cobra\tVisitas\tKg\tCargo\tExcedente\tSubtotal\tITBMS\tTotal\tRetiene\tA cobrar\tRecibos"];
+  FACT.lineas.forEach(function(x){
+    l.push([x.titular,x.ruc,x.detalleCobro||"",x.visitas,x.kg,x.cargoPlan,x.cargoKg,
+            x.subtotal,x.itbms,x.total,x.retiene||0,x.aCobrar||x.total,
+            x.recibos.join(" ")].join("\t"));
+  });
+  var txt=l.join("\n");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ toast("Copiado — pégalo en Excel"); },
+      function(){ toast("No se pudo copiar"); });
+  } else {
+    var a=document.createElement("textarea"); a.value=txt; document.body.appendChild(a);
+    a.select(); try{ document.execCommand("copy"); toast("Copiado — pégalo en Excel"); }
+    catch(e){ toast("No se pudo copiar"); } document.body.removeChild(a);
+  }
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter" && $("pantalla-pin").style.display==="block") entrar();
+});
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+/* ═══════ Buscador y estado de cuenta ═══════ */
+var SUG_T = null;
+
+function sugerirClientes(){
+  clearTimeout(SUG_T);
+  var q = ($("ec-buscar").value||"").trim();
+  if(q.length < 2){ $("ec-sugerencias").innerHTML=""; return; }
+  SUG_T = setTimeout(function(){
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(!r || !r.ok || !r.lista.length){ $("ec-sugerencias").innerHTML=""; return; }
+        $("ec-sugerencias").innerHTML = '<div class="sug">' + r.lista.map(function(c){
+          return '<div onclick="elegirCliente(&#39;'+esc(c.nombre).replace(/'/g,"&#39;")+'&#39;)">'+
+            '<b>'+esc(c.nombre)+'</b>'+
+            '<span>'+esc(c.razon||"—")+(c.ruc?' · RUC '+esc(c.ruc):'')+'</span></div>';
+        }).join("") + '</div>';
+      })
+      .withFailureHandler(function(){})
+      .api_buscarClientes(PIN, q);
+  }, 260);
+}
+
+function elegirCliente(nombre){
+  $("ec-buscar").value = nombre;
+  $("ec-sugerencias").innerHTML = "";
+  verEstadoCuenta();
+}
+
+function verEstadoCuenta(){
+  var q = ($("ec-buscar").value||"").trim();
+  if(q.length < 2){ toast("Escribe al menos dos letras"); return; }
+  $("ec-sugerencias").innerHTML = "";
+  $("ec-resultado").innerHTML = '<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("ec-resultado").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo consultar")+'</div>'; return; }
+      if(r.vacio){
+        $("ec-resultado").innerHTML = '<div class="vacio">No hay facturas de <b>'+esc(r.texto)+'</b>.'+
+          (r.sugerencias && r.sugerencias.length
+            ? '<br><br>¿Buscabas alguno de estos?<br>'+r.sugerencias.map(function(s){
+                return '<button class="btn mini sec" style="margin:4px" onclick="elegirCliente(&#39;'+
+                  esc(s).replace(/'/g,"&#39;")+'&#39;)">'+esc(s)+'</button>'; }).join("")
+            : '')+'</div>';
+        return;
+      }
+      pintarEstadoCuenta(r);
+    })
+    .withFailureHandler(function(){ $("ec-resultado").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_estadoCuenta(PIN, q);
+}
+
+function pintarEstadoCuenta(r){
+  var t = r.totales, rec = r.recoleccion || {};
+  var pct = t.facturado ? Math.round(t.cobrado / t.facturado * 100) : 0;
+
+  var html =
+    '<div class="ec-caja">'+
+      '<div class="n">'+esc(r.razon || (r.puntos[0]||"—"))+'</div>'+
+      '<div class="r">'+
+        (r.rucs && r.rucs.length ? 'RUC '+esc(r.rucs.join(", "))+' · ' : '')+
+        t.facturas+' factura(s)'+
+        (t.ultimaFactura ? ' · última el '+esc(t.ultimaFactura) : '')+
+        (t.ultimoPago ? ' · último pago el '+esc(t.ultimoPago) : ' · sin pagos registrados')+'</div>'+
+      (r.puntos && r.puntos.length > 1
+        ? '<div class="r" style="margin-top:6px;opacity:.95"><b>'+r.puntos.length+
+          ' puntos de recolección</b> · una sola cuenta por cobrar</div>'
+        : '')+
+      '<div class="cif">'+
+        '<div class="c"><div class="v">'+B(t.facturado)+'</div><div class="e">facturado</div></div>'+
+        '<div class="c"><div class="v">'+B(t.cobrado)+'</div><div class="e">cobrado · '+pct+'%</div></div>'+
+        '<div class="c"><div class="v">'+B(t.saldo)+'</div><div class="e">saldo</div></div>'+
+        '<div class="c"><div class="v">'+n1(rec.kg||0)+' kg</div><div class="e">'+(rec.visitas||0)+' visitas</div></div>'+
+      '</div>'+
+    '</div>'+
+    (t.vencido > 0.009
+      ? '<div class="ec-alerta">Debe '+B(t.vencido)+' vencido'+
+        (t.moraMax ? ', con hasta <b>'+t.moraMax+' días</b> de mora' : '')+'.</div>'
+      : '')+
+
+    ((rec.puntos && rec.puntos.length > 1)
+      ? '<h2>Recolección por punto</h2><div class="tabla-caja"><table>'+
+        '<thead><tr><th>Punto</th><th>Visitas</th><th>Kg</th><th>Última</th></tr></thead><tbody>'+
+        rec.puntos.map(function(p){
+          return '<tr><td><b>'+esc(p.punto)+'</b></td><td class="n">'+p.visitas+'</td>'+
+            '<td class="n">'+n1(p.kg)+'</td><td>'+esc(p.ultima||"—")+'</td></tr>';
+        }).join("")+
+        '<tr class="tot"><td>TOTAL</td><td class="n">'+(rec.visitas||0)+'</td>'+
+        '<td class="n">'+n1(rec.kg||0)+'</td><td></td></tr></tbody></table></div>'
+      : '')+
+
+    '<h2>Facturas</h2><div class="tabla-caja"><table>'+
+      '<thead><tr><th>Factura</th><th>Fecha</th><th>Periodo</th><th>Total</th>'+
+      '<th>Cobrado</th><th>Saldo</th><th>Vence</th><th>Estado</th></tr></thead><tbody>'+
+      r.facturas.map(function(f){
+        return '<tr><td><b>'+esc(f.factura)+'</b><br><small style="color:var(--gris)">'+
+            esc(f.cliente||"")+'</small></td><td>'+esc(f.fecha)+'</td>'+
+          '<td>'+esc(f.periodo||"—")+'</td><td class="n">'+B(f.total)+'</td>'+
+          '<td class="n">'+B(f.cobrado)+'</td>'+
+          '<td class="n"'+(f.saldo>0.009?' style="font-weight:800"':'')+'>'+B(f.saldo)+'</td>'+
+          '<td>'+esc(f.vencimiento||"—")+(f.mora?'<br><small style="color:var(--rojo)">'+f.mora+' d</small>':'')+'</td>'+
+          '<td><span class="pill p-'+f.estado.toLowerCase()+'">'+f.estado+'</span></td></tr>';
+      }).join("")+
+      '<tr class="tot"><td colspan="3">TOTAL</td><td class="n">'+B(t.facturado)+'</td>'+
+      '<td class="n">'+B(t.cobrado)+'</td><td class="n">'+B(t.saldo)+'</td><td colspan="2"></td></tr>'+
+      '</tbody></table></div>'+
+
+    '<h2>Pagos recibidos</h2>'+
+    (r.pagos.length
+      ? '<div class="tabla-caja"><table><thead><tr><th>Fecha</th><th>Factura</th>'+
+        '<th>Método</th><th>Referencia</th><th>Monto</th></tr></thead><tbody>'+
+        r.pagos.map(function(p){
+          return '<tr><td>'+esc(p.fecha)+'</td><td>'+esc(p.factura||"—")+'</td>'+
+            '<td>'+esc(p.metodo||"—")+'</td><td>'+esc(p.referencia||"—")+'</td>'+
+            '<td class="n"><b>'+B(p.monto)+'</b></td></tr>';
+        }).join("")+'</tbody></table></div>'
+      : '<div class="vacio">Este cliente no tiene pagos registrados.</div>');
+
+  $("ec-resultado").innerHTML = html;
+}
+
+
+/* Facturas cuyo RUC no está en la hoja de Clientes. Casi siempre son de otro
+   negocio del grupo, pero puede haber alguna de ECOVSA con el RUC mal escrito. */
+function revisarFacturasSinCliente(){
+  google.script.run
+    .withSuccessHandler(function(r){
+      var c = $("aviso-sin-cliente"); if(!c) return;
+      if(!r || !r.ok || !r.lista.length){ c.innerHTML=""; return; }
+      c.innerHTML = '<div class="nota"><b>'+r.lista.length+' RUC no está(n) en tu hoja de clientes</b>, '+
+        'por '+B(r.total)+' facturados. Suelen ser del otro negocio del grupo, pero conviene revisarlos '+
+        'por si alguno es de ECOVSA con el RUC mal escrito.'+
+        '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">Ver la lista</summary>'+
+        '<div class="tabla-caja" style="margin-top:8px"><table><thead><tr><th>RUC</th>'+
+        '<th>Facturado a</th><th>Facturas</th><th>Total</th></tr></thead><tbody>'+
+        r.lista.slice(0,25).map(function(x){
+          return '<tr><td>'+esc(x.ruc||"—")+'</td><td>'+esc(x.cliente)+'</td>'+
+            '<td class="n">'+x.facturas+'</td><td class="n"><b>'+B(x.total)+'</b></td></tr>';
+        }).join("")+'</tbody></table></div></details></div>';
+    })
+    .withFailureHandler(function(){})
+    .api_facturasSinCliente(PIN);
+}
+
+
+/* ═══════════════ MOROSIDAD Y GESTIÓN DE COBRO ═══════════════ */
+var MOR = null;
+
+function cargarMorosidad(){
+  $("mor-lista").innerHTML = '<div class="vacio">Consultando la cartera…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("mor-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
+      MOR = r; pintarKpisMorosidad(); pintarPromesas(); pintarMorosidad();
+    })
+    .withFailureHandler(function(){ $("mor-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_morosidad(PIN);
+}
+
+function pintarKpisMorosidad(){
+  var t = MOR.totales;
+  $("mor-kpis").innerHTML = '<div class="kpis">'+
+    '<div class="kpi'+(t.tmas?' mal':'')+'"><div class="e">Más de 90 días</div>'+
+      '<div class="v">'+B(t.tmas)+'</div><div class="s">lo que más riesgo tiene</div></div>'+
+    '<div class="kpi'+(t.vencido?' avi':' ok')+'"><div class="e">Vencido total</div>'+
+      '<div class="v">'+B(t.vencido)+'</div><div class="s">de '+B(t.saldo)+' por cobrar</div></div>'+
+    '<div class="kpi'+(t.silenciosos?' mal':'')+'"><div class="e">Sin pagar 60+ días</div>'+
+      '<div class="v">'+t.silenciosos+'</div><div class="s">de '+t.deudores+' deudores</div></div>'+
+    '<div class="kpi ok"><div class="e">Recuperado este mes</div>'+
+      '<div class="v">'+B(t.recuperadoMes)+'</div><div class="s">'+t.pagosMes+' pago(s)</div></div>'+
+    '<div class="kpi"><div class="e">Gestionados esta semana</div>'+
+      '<div class="v">'+t.escritosSemana+'</div><div class="s">mensajes enviados</div></div>'+
+  '</div>'+
+  (t.vencido ? '<div class="tabla-caja" style="margin-bottom:14px"><table>'+
+    '<thead><tr><th>Antigüedad</th><th>Saldo</th><th>Participación</th></tr></thead><tbody>'+
+    [["Hasta 30 días",t.t30],["31 a 60",t.t60],["61 a 90",t.t90],["Más de 90",t.tmas]]
+      .map(function(f){ return '<tr><td>'+f[0]+'</td><td class="n">'+B(f[1])+'</td>'+
+        '<td class="n">'+(t.vencido?(f[1]/t.vencido*100).toFixed(1):"0.0")+' %</td></tr>'; }).join("")+
+    '</tbody></table></div>' : '')+
+  carterasHTML();
+}
+
+/* ── Las dos carteras, cada una con su vara ──────────────────────────
+   Todo junto, el 90% de la deuda sale «con más de 90 días» y parece que
+   la empresa no cobra. Es un espejismo: son unos pocos contratos de
+   proyectos terminados encima de una cartera recurrente sana. Separadas,
+   cada una se lee como lo que es.
+
+   Si nadie ha marcado todavía el tipo de cartera, todos caen en
+   recurrente y esta tabla no aporta: se calla en vez de mostrar una
+   división que no existe. */
+function carterasHTML(){
+  var pc = MOR.porCartera; if(!pc) return "";
+  var hay = (MOR.carteras||[]).filter(function(k){ return pc[k] && pc[k].deudores > 0; });
+  if(hay.length < 2) return "";
+  var NOM = { recurrente:"Clientes recurrentes", contrato:"Cuentas de contrato" };
+  var PIE = { recurrente:"servicio mensual · se cobra por correo y llamada",
+              contrato:"actos públicos · se cobran con expediente y firmas" };
+  return '<h2>Las dos carteras</h2>'+
+    '<div class="tabla-caja" style="margin-bottom:14px"><table>'+
+    '<thead><tr><th>Cartera</th><th>Deudores</th><th>Por cobrar</th><th>Vencido</th>'+
+    '<th>Más de 90 días</th></tr></thead><tbody>'+
+    hay.map(function(k){ var c = pc[k];
+      return '<tr><td><b>'+esc(NOM[k]||k)+'</b><br>'+
+        '<small style="color:var(--gris)">'+esc(PIE[k]||"")+'</small></td>'+
+        '<td class="n">'+c.deudores+'</td>'+
+        '<td class="n">'+B(c.saldo)+'</td>'+
+        '<td class="n">'+B(c.vencido)+'</td>'+
+        '<td class="n">'+B(c.tmas)+
+          (c.vencido ? '<br><small style="color:var(--gris)">'+
+            (c.tmas/c.vencido*100).toFixed(0)+' % de lo vencido</small>' : '')+
+        '</td></tr>';
+    }).join("")+
+    '</tbody></table></div>'+
+    '<div class="nota" style="margin-bottom:14px">Se separan porque no se cobran igual: '+
+    'en un cliente recurrente 60 días vencido es una alarma; en una entidad pública es el '+
+    'trámite normal, y lo que falta suele ser un papel, no la plata.</div>';
+}
+
+function pintarPromesas(){
+  var c = $("mor-promesas");
+  var r = MOR.promesasRotas || [], v = MOR.promesasVivas || [];
+  if(!r.length && !v.length){ c.innerHTML=""; return; }
+  c.innerHTML =
+    (r.length ? '<h2>Compromisos que no se cumplieron</h2>'+
+      r.map(function(p){
+        return '<div class="promesa"><div class="p1"><b>'+esc(p.cliente)+'</b><br>'+
+          '<span style="color:var(--gris)">prometió '+B(p.monto)+' para el '+esc(p.fecha)+'</span></div>'+
+          '<button class="btn mini sec" onclick="cerrarGestion(&#39;'+esc(p.gestionId)+'&#39;,&#39;CUMPLIO&#39;)">Ya pagó</button>'+
+          '<button class="btn mini sec" onclick="cerrarGestion(&#39;'+esc(p.gestionId)+'&#39;,&#39;NO CUMPLIO&#39;)">No cumplió</button>'+
+        '</div>';
+      }).join("") : '')+
+    (v.length ? '<h2>Compromisos por vencer</h2>'+
+      v.map(function(p){
+        return '<div class="promesa viva"><div class="p1"><b>'+esc(p.cliente)+'</b><br>'+
+          '<span style="color:var(--gris)">pagará '+B(p.monto)+' el '+esc(p.fecha)+'</span></div></div>';
+      }).join("") : '');
+}
+
+function pintarMorosidad(){
+  if(!MOR) return;
+  var q = ($("mor-buscar").value||"").toLowerCase().trim();
+  var f = $("mor-filtro").value;
+  var car = ($("mor-cartera") && $("mor-cartera").value) || "";
+  var lista = MOR.deudores.filter(function(d){
+    if(q && (d.cliente+" "+d.razon+" "+d.ruc).toLowerCase().indexOf(q) < 0) return false;
+    if(car && (d.tipo||"recurrente") !== car) return false;
+    if(f==="vencido") return d.vencido > 0.009;
+    if(f==="silencio") return d.silencioso && d.vencido > 0.009;
+    if(f==="90") return d.tmas > 0.009;
+    if(f==="singestion") return !d.gestion;
+    return true;
+  });
+  if(!lista.length){ $("mor-lista").innerHTML='<div class="vacio">Ningún deudor coincide.</div>'; return; }
+
+  $("mor-lista").innerHTML =
+    '<div style="font-size:12px;color:var(--gris);margin-bottom:9px">'+lista.length+
+    ' de '+MOR.deudores.length+' deudores</div>'+
+    lista.map(function(d,i){
+      var cls = d.moraMax>90 ? "d90" : (d.moraMax>30 ? "d60" : (d.moraMax>0 ? "d30" : ""));
+      var eti = "";
+      if(d.moraMax>90) eti += '<span class="eti rojo">'+d.moraMax+' días de mora</span> ';
+      else if(d.moraMax>0) eti += '<span class="eti ambar">'+d.moraMax+' días</span> ';
+      if(d.silencioso && d.vencido>0.009)
+        eti += '<span class="eti rojo">'+(d.diasSinPagar===null?"nunca ha pagado":"sin pagar hace "+d.diasSinPagar+" d")+'</span> ';
+      if(d.gestion) eti += '<span class="eti '+(d.diasSinGestion>14?"ambar":"verde")+'">escrito hace '+d.diasSinGestion+' d</span> ';
+      else eti += '<span class="eti gris">sin gestionar</span> ';
+
+      return '<div class="deudor '+cls+'">'+
+        '<div class="enc">'+
+          '<div class="n">'+esc(d.razon || d.cliente)+
+            '<small>'+esc(d.cliente)+(d.ruc?' · RUC '+esc(d.ruc):'')+
+            (d.tipo==="contrato"?' · cuenta de contrato':'')+'</small></div>'+
+          '<div class="sal"><b>'+B(d.saldo)+'</b>'+
+            '<span>'+d.facturas+' factura(s)'+(d.vencido?' · '+B(d.vencido)+' vencido':'')+'</span></div>'+
+        '</div>'+
+        '<div style="margin-top:8px">'+eti+'</div>'+
+        '<div class="met">'+
+          '<span>Último pago: <b>'+(d.ultimoPago||"—")+'</b></span>'+
+          (d.tmas ? '<span>+90 días: <b>'+B(d.tmas)+'</b></span>' : '')+
+          (d.gestion && d.gestion.fechaPrometida
+            ? '<span>Prometió <b>'+B(d.gestion.prometido)+'</b> para el <b>'+esc(d.gestion.fechaPrometida)+'</b></span>'
+            : '')+
+        '</div>'+
+        '<div class="acc">'+
+          '<button class="btn-wa" onclick="redactar('+i+',&#39;whatsapp&#39;)">📱 WhatsApp</button>'+
+          '<button class="btn-mail" onclick="redactar('+i+',&#39;correo&#39;)">✉️ Correo</button>'+
+          (d.gestion && d.gestion.fechaPrometida && d.gestion.fechaPrometida < MOR.hoy
+            ? '<button class="btn mini ambar" onclick="redactar('+i+',&#39;correo&#39;,&#39;promesa&#39;)">'+
+              'Reclamar la promesa</button>'
+            : '')+
+          '<button class="btn mini sec" onclick="verFacturasDeudor('+i+')">Ver '+d.facturas+' factura(s)</button>'+
+          '<button class="btn mini sec" onclick="anotarCompromiso('+i+')">Anotar compromiso</button>'+
+        '</div>'+
+        '<div id="det-deudor-'+i+'"></div>'+
+      '</div>';
+    }).join("");
+  MOR.filtrados = lista;
+}
+
+function verFacturasDeudor(i){
+  var d = MOR.filtrados[i], c = $("det-deudor-"+i);
+  if(c.innerHTML){ c.innerHTML=""; return; }
+  c.innerHTML = '<div class="tabla-caja" style="margin-top:11px"><table>'+
+    '<thead><tr><th>Factura</th><th>Fecha</th><th>Total</th><th>Abonado</th>'+
+    '<th>Saldo</th><th>Vence</th><th>Mora</th></tr></thead><tbody>'+
+    d.detalle.map(function(f){
+      return '<tr><td><b>'+esc(f.factura)+'</b></td><td>'+esc(f.fecha)+'</td>'+
+        '<td class="n">'+B(f.total)+'</td><td class="n">'+B(f.cobrado)+'</td>'+
+        '<td class="n"><b>'+B(f.saldo)+'</b></td><td>'+esc(f.vencimiento||"—")+'</td>'+
+        '<td class="n"'+(f.mora>90?' style="color:var(--rojo);font-weight:800"':'')+'>'+
+          (f.mora?f.mora+" d":"—")+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+}
+
+
+/* ═══ Mensaje de cobro ═══
+   El tono no es de reclamo: es una invitación a acordar cómo ponerse al día. */
+/* ═══════════════════════════════════════════════════════════════════
+   EL REDACTOR · preparar, revisar, y ENTONCES enviar
+   ───────────────────────────────────────────────────────────────────
+   Lo que había antes armaba un texto fijo —el mismo para quien debe 12
+   días y para quien debe 200— y saltaba directo a WhatsApp o a Outlook.
+   Dos problemas de fondo:
+
+   · No se podía leer antes. Para cambiar una línea había que hacerlo con
+     la ventana ya abierta y el cliente en el campo «para».
+   · La gestión se registraba AL ABRIR la ventana. Si se cerraba sin
+     mandar, en el panel igual quedaba escrito que se le había escrito al
+     cliente — y ese dato falso hace callar al vigilante de «deuda sin
+     gestionar» sobre alguien a quien nadie ha contactado.
+
+   Ahora: el servidor arma el mensaje con el detalle real de las facturas
+   y la plantilla que le toca por días de mora y tipo de cartera; aquí se
+   lee, se cambia de tono si hace falta, se edita a mano si hace falta, y
+   la gestión se registra CUANDO la persona confirma que lo mandó.
+   ═══════════════════════════════════════════════════════════════════ */
+var RED = null;          // { deudor, canal, motivo, plantilla, opciones, original }
+
+function redactar(i, canal, motivo){
+  var d = MOR.filtrados[i];
+  if(!d) return;
+  if(canal === "correo" && !d.correo){
+    toast("Este cliente no tiene correo en su ficha — el asistente ya lo tenía anotado");
+    return;
+  }
+  pedirMensaje(d, canal, motivo || "saldo", null);
+}
+
+function pedirMensaje(d, canal, motivo, plantilla){
+  toast("Preparando el mensaje…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo preparar"); return; }
+      RED = { deudor:r.deudor, canal:r.canal, motivo:motivo,
+              plantilla:r.plantilla, opciones:r.opciones,
+              correo:r.correo, telefono:r.telefono,
+              original:{ asunto:r.asunto, cuerpo:r.cuerpo } };
+      pintarRedactor(r);
+      $("red-fondo").classList.add("ver");
+      $("red").classList.add("ver");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_cob_mensaje(PIN, d.ruc || d.cliente, canal, plantilla || "", motivo);
+}
+
+function pintarRedactor(r){
+  var d = r.deudor;
+  $("red-titulo").textContent = (d.razon || d.cliente);
+  $("red-sub").textContent =
+    B(d.saldo) + " · " + (d.facturas||0) + " factura(s)" +
+    (d.moraMax ? " · " + d.moraMax + " días de mora" : "") +
+    (d.tipo === "contrato" ? " · cuenta de contrato" : "") +
+    " · " + (r.canal === "whatsapp" ? "WhatsApp" : "Correo a " + (r.correo||"—"));
+
+  /* Los otros tonos disponibles. Se muestran porque quien cobra conoce al
+     cliente: a veces sabe que con este conviene el tono suave aunque
+     lleve sesenta días, y esa decisión es suya, no del sistema. */
+  $("red-tonos").innerHTML = (r.opciones||[]).map(function(o){
+    /* La que le toca por días de mora va marcada con un punto. Las otras
+       se ofrecen igual —bajar el tono es decisión de quien cobra— pero se
+       ve cuál es la del tramo, para que elegir otra sea a conciencia. */
+    return '<button class="'+(o.clave===r.plantilla?"on":"")+(o.enRango?" rango":"")+'" '+
+      'onclick="cambiarTono(&#39;'+esc(o.clave)+'&#39;)" '+
+      'title="'+esc(o.explica||"")+(o.enRango?"":" · fuera del tramo de días")+'">'+
+      (o.enRango?'● ':'')+esc(o.titulo)+'</button>';
+  }).join("");
+
+  var esWa = r.canal === "whatsapp";
+  $("red-campo-asunto").style.display = esWa ? "none" : "";
+  $("red-asunto").value = r.asunto || "";
+  $("red-texto").value = r.cuerpo || "";
+  $("red-texto").scrollTop = 0;      // que se lea desde la primera línea
+  $("red-porque").textContent = r.explica || "";
+  $("red-abrir").textContent = esWa ? "Abrir WhatsApp" : "Abrir Outlook";
+
+  /* Si falta el dato para enviar, se dice aquí y no al final. */
+  var falta = "";
+  if(esWa && !r.telefono) falta = "Este cliente no tiene un teléfono válido en su ficha. " +
+    "Puedes copiar el texto y mandarlo por otro medio.";
+  if(!esWa && !r.correo) falta = "Este cliente no tiene correo en su ficha.";
+  $("red-falta").innerHTML = falta ? '<div class="red-aviso">'+esc(falta)+'</div>' : "";
+  $("red-abrir").disabled = !!falta;
+}
+
+/* Cambiar de tono NO toca el servidor: los cinco textos vinieron armados
+   en la misma respuesta. Antes cada clic pedía el mensaje otra vez, y eso
+   obligaba a recalcular la morosidad entera —leer cuatro hojas y cruzar
+   los pagos con sus facturas— para cambiar un texto sobre los mismos
+   datos. Por eso se sentía lento. */
+function cambiarTono(clave){
+  if(!RED) return;
+  var o = (RED.opciones||[]).filter(function(x){ return x.clave === clave; })[0];
+  if(!o) return;
+  /* si ya había editado, se avisa antes de pisarle el trabajo */
+  if(editado() && !confirm("Cambiaste el texto a mano. Al elegir otro tono se pierde. ¿Sigo?"))
+    return;
+  RED.plantilla = o.clave;
+  RED.original = { asunto:o.asunto, cuerpo:o.cuerpo };
+  $("red-asunto").value = o.asunto || "";
+  $("red-texto").value = o.cuerpo || "";
+  $("red-texto").scrollTop = 0;
+  $("red-porque").textContent = o.explica || "";
+  $("red-tonos").innerHTML = (RED.opciones||[]).map(function(x){
+    return '<button class="'+(x.clave===o.clave?"on":"")+(x.enRango?" rango":"")+'" '+
+      'onclick="cambiarTono(&#39;'+esc(x.clave)+'&#39;)" '+
+      'title="'+esc(x.explica||"")+(x.enRango?"":" · fuera del tramo de días")+'">'+
+      (x.enRango?'● ':'')+esc(x.titulo)+'</button>';
+  }).join("");
+}
+
+function editado(){
+  if(!RED) return false;
+  return $("red-texto").value !== RED.original.cuerpo ||
+         $("red-asunto").value !== RED.original.asunto;
+}
+function restaurarRedactor(){
+  if(!RED) return;
+  $("red-asunto").value = RED.original.asunto;
+  $("red-texto").value = RED.original.cuerpo;
+  toast("Texto original");
+}
+function cerrarRedactor(){
+  if(RED && editado() && !confirm("Escribiste cambios que no se han enviado. ¿Cierro igual?"))
+    return;
+  $("red-fondo").classList.remove("ver");
+  $("red").classList.remove("ver");
+  RED = null;
+}
+
+/* Abre el correo o el WhatsApp con el texto puesto. NO registra nada
+   todavía: registrar aquí es lo que llenaba el panel de gestiones que
+   nunca ocurrieron. */
+function abrirEnvio(){
+  if(!RED) return;
+  var asunto = $("red-asunto").value, texto = $("red-texto").value;
+  if(!texto.trim()){ toast("El mensaje está vacío"); return; }
+
+  if(RED.canal === "whatsapp"){
+    window.open("https://wa.me/" + RED.telefono + "?text=" + encodeURIComponent(texto), "_blank");
+  } else {
+    window.open("mailto:" + encodeURIComponent(RED.correo) +
+      "?subject=" + encodeURIComponent(asunto) +
+      "&body=" + encodeURIComponent(texto), "_blank");
+  }
+  preguntarSiSalio(asunto, texto);
+}
+
+/* La pregunta que decide si esto queda escrito o no. Se hace después de
+   abrir la ventana, con un momento de espera, porque quien la responde
+   necesita haber visto si el correo salió. */
+function preguntarSiSalio(asunto, texto){
+  var d = RED.deudor, canal = RED.canal, plantilla = RED.plantilla;
+  var original = RED.original.cuerpo;
+  setTimeout(function(){
+    if(!confirm("¿Lo enviaste?\n\nSolo se anota la gestión si respondes que sí. " +
+                "Si cerraste sin mandar, di que no y no queda registrado.")){
+      toast("No se anotó ninguna gestión");
+      cerrarRedactorSinPreguntar();
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(!r || !r.ok){ toast((r&&r.error)||"No se pudo anotar la gestión"); return; }
+        toast("Gestión anotada ✓");
+        cerrarRedactorSinPreguntar();
+        preguntarCompromisoTras(d);
+      })
+      .withFailureHandler(function(){ toast("Se envió, pero no se pudo anotar la gestión"); })
+      .api_cob_registrarEnvio(PIN, {
+        cliente:d.cliente, razon:d.razon, ruc:d.ruc, canal:canal,
+        saldo:d.saldo,
+        facturas:(d.detalle||[]).map(function(f){ return f.factura; }).join(", "),
+        mensaje:texto, original:original, plantilla:plantilla,
+        seCompromete:false, montoPrometido:0, fechaPrometida:""
+      });
+  }, 900);
+}
+
+/* Escape cierra el redactor, como cualquier diálogo. Un cuadro que solo
+   se cierra acertándole a una ✕ es un cuadro que atrapa. */
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && RED) cerrarRedactor();
+});
+
+function cerrarRedactorSinPreguntar(){
+  $("red-fondo").classList.remove("ver");
+  $("red").classList.remove("ver");
+  RED = null;
+}
+
+function preguntarCompromisoTras(d){
+  setTimeout(function(){
+    if(confirm("¿Se comprometió a pagar algo?\n\nSi aceptas, anotas el monto y la fecha, " +
+               "y el asistente te avisa si esa fecha pasa sin el pago."))
+      anotarCompromisoDe(d);
+    else cargarMorosidad();
+  }, 500);
+}
+
+function telefonoDe_(d){
+  var n = String(d.telefono || "").replace(/[^0-9]/g, "");
+  if(!n){
+    var w = String(d.whatsapp || "");
+    var m = w.match(/wa\.me\/(\d+)/);
+    if(m) return m[1];
+    n = w.replace(/[^0-9]/g, "");
+  }
+  if(!n) return "";
+  if(n.length === 8) n = "507" + n;
+  return n.length > 13 ? "" : n;
+}
+
+function registrarGestion(d, canal, txt, comp, monto, fecha, cb){
+  google.script.run
+    .withSuccessHandler(function(r){ if(cb) cb(r); })
+    .withFailureHandler(function(){ toast("No se pudo registrar la gestión"); })
+    .api_guardarGestion(PIN, {
+      fecha:"", cliente:d.cliente, 'razon social':d.razon, ruc:d.ruc, canal:canal,
+      saldo:d.saldo, facturas:(d.detalle||[]).map(function(f){return f.factura;}).join(", "),
+      mensaje:txt, seCompromete:comp, montoPrometido:monto, fechaPrometida:fecha,
+      resultado: comp ? 'PENDIENTE' : 'ENVIADO', notas:''
+    });
+}
+
+function anotarCompromiso(i){ anotarCompromisoDe(MOR.filtrados[i]); }
+
+function anotarCompromisoDe(d){
+  var m = prompt("¿Cuánto se comprometió a pagar " + (d.razon||d.cliente) + "?\n\n" +
+                 "Debe B/. " + Number(d.saldo).toFixed(2), Number(d.saldo).toFixed(2));
+  if(m === null) return;
+  var monto = parseFloat(String(m).replace(",", "."));
+  if(!(monto > 0)){ toast("Monto no válido"); return; }
+  var f = prompt("¿Para qué fecha? (AAAA-MM-DD)", "");
+  if(f === null) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(f)){ toast("Escribe la fecha como 2026-09-15"); return; }
+  toast("Anotando…");
+  registrarGestion(d, "compromiso", "", true, monto, f, function(r){
+    if(r && r.ok){ toast("Compromiso anotado ✓"); MOR=null; cargarMorosidad(); }
+    else toast((r&&r.error)||"No se pudo anotar");
+  });
+}
+
+function cerrarGestion(id, resultado){
+  toast("Actualizando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.ok){ toast("Compromiso marcado como "+resultado); MOR=null; cargarMorosidad(); }
+      else toast((r&&r.error)||"No se pudo actualizar");
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_cerrarGestion(PIN, id, resultado, "");
+}
+
+
+/* ═══ El pago se registra contra la factura, no contra un nombre ═══ */
+var FACTURA_ACTUAL = null;
+
+function buscarFactura(){
+  var n = ($("np-factura").value||"").trim();
+  if(!n){ toast("Escribe el número de factura"); return; }
+  $("np-ficha").innerHTML = '<div class="vacio" style="padding:16px">Buscando…</div>';
+  $("np-form").style.display = "none";
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){
+        $("np-ficha").innerHTML = '<div class="nota" style="margin-top:11px">'+
+          esc((r&&r.error)||"No se encontró")+'</div>';
+        FACTURA_ACTUAL = null; return;
+      }
+      FACTURA_ACTUAL = r.factura;
+      pintarFichaFactura(r.factura);
+    })
+    .withFailureHandler(function(){ $("np-ficha").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_verFactura(PIN, n);
+}
+
+function pintarFichaFactura(f){
+  var pagada = f.saldo <= 0.009;
+  $("np-ficha").innerHTML =
+    '<div class="ec-caja" style="margin-top:12px">'+
+      '<div class="n">'+esc(f.razon || f.cliente)+'</div>'+
+      '<div class="r">Factura <b>'+esc(f.factura)+'</b> del '+esc(f.fecha)+
+        (f.ruc?' · RUC '+esc(f.ruc):'')+
+        (f.periodo?' · periodo '+esc(f.periodo):'')+'</div>'+
+      '<div class="cif">'+
+        '<div class="c"><div class="v">'+B(f.total)+'</div><div class="e">total</div></div>'+
+        '<div class="c"><div class="v">'+B(f.cobrado)+'</div><div class="e">ya abonado</div></div>'+
+        '<div class="c"><div class="v">'+B(f.saldo)+'</div><div class="e">saldo</div></div>'+
+        '<div class="c"><div class="v" style="font-size:14px">'+esc(f.vencimiento||"—")+'</div>'+
+          '<div class="e">'+(f.mora?f.mora+" días de mora":"vence")+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    (f.abonos.length
+      ? '<div class="tabla-caja" style="margin-top:10px"><table><thead><tr>'+
+        '<th>Abonos previos</th><th>Método</th><th>Referencia</th><th>Monto</th></tr></thead><tbody>'+
+        f.abonos.map(function(a){
+          return '<tr><td>'+esc(a.fecha)+'</td><td>'+esc(a.metodo||"—")+'</td>'+
+            '<td>'+esc(a.referencia||"—")+'</td><td class="n"><b>'+B(a.monto)+'</b></td></tr>';
+        }).join("")+'</tbody></table></div>'
+      : '')+
+    (pagada ? '<div class="nota" style="margin-top:11px"><b>Esta factura ya está saldada.</b> '+
+      'Si registras otro abono, quedará con saldo a favor.</div>' : '');
+
+  $("np-form").style.display = "block";
+  if(!pagada) $("np-monto").value = f.saldo.toFixed(2);
+  $("np-monto").focus();
+}
+
+function limpiarPago(){
+  FACTURA_ACTUAL = null;
+  $("np-factura").value=""; $("np-ficha").innerHTML="";
+  $("np-form").style.display="none";
+  ["np-monto","np-ref","np-notas"].forEach(function(i){ var e=$(i); if(e) e.value=""; });
+}
+
+
+/* ── A dónde lleva cada aviso del asistente ──────────────────────────
+   La bandeja compartida (Bandeja.html) llama a esta función con el enlace
+   del pendiente. Ya estamos DENTRO de Cobros, así que no se navega: se
+   cambia de pestaña y se deja el filtro puesto. Recargar la pantalla para
+   llegar al mismo sitio tira lo que la persona tenga a medio escribir.
+
+   Devolver false le dice a la bandeja «no supe»: entonces ella abre el
+   enlace en otra pestaña, que es mejor que no hacer nada. */
+function bandejaAbrir(enlace){
+  var f = /[?&]fac=([^&]+)/.exec(enlace);
+  if(f){
+    var num = decodeURIComponent(f[1]);
+    var caja = $("np-factura");
+    /* la pestaña Registrar solo existe para quien puede escribir; a quien
+       solo consulta se le lleva a la lista de facturas, que sí ve */
+    if(caja && DATOS && DATOS.puedeEditar){
+      verTab("registrar"); caja.value = num; buscarFactura();
+    } else {
+      verTab("facturas"); toast("Factura " + num);
+    }
+    return true;
+  }
+  var c = /[?&]cli=([^&]+)/.exec(enlace);
+  if(c){
+    var nom = decodeURIComponent(c[1]);
+    verTab("morosidad");
+    var b = $("mor-buscar");
+    if(b){ b.value = nom; pintarMorosidad(); }
+    return true;
+  }
+  return false;
+}
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+
+</script>
+</body>
+</html>

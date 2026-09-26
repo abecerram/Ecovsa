@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>Planta (pantalla anterior) · ECOVSA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="estilos-operaciones.css">
+<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script src="puente.js"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  background-image:radial-gradient(at 12% 0%,rgba(11,83,148,.09),transparent 55%);
+  background-attachment:fixed;min-height:100vh;padding-bottom:50px}
+
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(20,48,107,.28)}
+.marca{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
+.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
+  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+header .sub{font-size:9.5px;font-weight:500;opacity:.78;letter-spacing:.6px;text-transform:uppercase}
+header .salir{margin-left:auto;background:rgba(255,255,255,.16);border:none;color:#fff;
+  font-family:inherit;font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
+
+.wrap{max-width:1180px;margin:0 auto;padding:16px 18px}
+h2{font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:4px 0 10px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
+  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input{width:100%;padding:10px;font-size:15px;font-family:inherit;border:1.5px solid var(--borde);
+  border-radius:10px;background:#FBFDFC;color:var(--tinta)}
+input:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.chip{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 15px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
+.chip.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));border-color:var(--azul-osc);
+  color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 18px;
+  border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
+  box-shadow:0 3px 10px rgba(11,83,148,.28)}
+.btn.mini{padding:8px 13px;font-size:12.5px;border-radius:9px}
+.btn.sec{background:rgba(11,83,148,.10);color:var(--azul-osc);
+  box-shadow:inset 0 0 0 1.5px rgba(11,83,148,.20)}
+.btn:active{transform:translateY(1px)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:13px 15px;
+  box-shadow:var(--sombra);border-top:3px solid var(--azul)}
+.kpi.bio{border-top-color:#C0392B}.kpi.ana{border-top-color:#6C3A96}.kpi.pun{border-top-color:var(--ambar)}
+.kpi .et{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gris)}
+.kpi .val{font-size:25px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:2px}
+.kpi .sub{font-size:11.5px;color:var(--gris);line-height:1.5}
+
+.resumen{background:linear-gradient(140deg,var(--azul),var(--azul-osc));color:#fff;
+  border-radius:var(--radio);padding:17px;margin-bottom:14px;box-shadow:0 3px 14px rgba(11,83,148,.3)}
+.resumen .t{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.85}
+.resumen .v{font-size:34px;font-weight:900;line-height:1.1;margin:3px 0}
+.resumen .p{font-size:12.5px;opacity:.9;line-height:1.55}
+
+.acta{background:#fff;border:1px solid var(--borde);border-left:4px solid var(--verde);
+  border-radius:var(--radio);padding:13px 15px;margin-bottom:10px;box-shadow:var(--sombra)}
+.acta .enc{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.acta .id{font-weight:900;font-size:15px;color:var(--azul-osc)}
+.acta .fe{font-size:12px;color:var(--gris)}
+.acta .kg{margin-left:auto;font-weight:900;font-size:17px;color:var(--verde)}
+.acta .li{font-size:12.5px;color:var(--gris);margin-top:5px;line-height:1.6}
+.fila{display:flex;justify-content:space-between;gap:10px;padding:6px 0;
+  border-bottom:1px solid var(--borde);font-size:12.5px}
+.fila:last-child{border-bottom:none}
+details summary{font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;padding:7px 0 3px}
+.sub-tit{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--azul-osc);margin:10px 0 3px;padding-top:7px;border-top:1px solid var(--borde)}
+.vacio{text-align:center;color:var(--gris);font-size:13.5px;padding:34px 16px;line-height:1.6}
+
+.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(20,48,107,.14)}
+.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
+.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
+.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
+.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
+.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
+.pin-caja .btn{width:180px;margin-top:12px}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 16px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
+.tabs button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
+.vista{display:none}.vista.on{display:block}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:11px}
+.ciclo{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--verde);
+  border-radius:13px;padding:13px 15px;margin-bottom:9px;box-shadow:0 2px 9px rgba(20,48,107,.07)}
+.ciclo.sin-salida{border-left-color:var(--ambar)}
+.ciclo .enc{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ciclo .n{font-size:15px;font-weight:800}
+.ciclo .kg{margin-left:auto;font-size:17px;font-weight:900;color:var(--azul-osc)}
+.ciclo .par{font-size:12px;color:var(--gris);margin-top:6px;line-height:1.6}
+.ciclo .par b{color:var(--tinta)}
+/* ── la ficha de ciclo ── */
+.ciclo .cuando{font-size:12.5px;color:var(--gris);font-weight:600}
+.ciclo .fl{margin-left:8px;color:var(--gris);font-size:12px;transition:transform .15s}
+.ciclo.de-prueba{border-left-color:var(--azul-claro)}
+.ciclo.anulado{border-left-color:var(--gris);background:#FAFAFA}
+.ciclo.anulado .n{text-decoration:line-through;color:var(--gris)}
+/* La ficha abierta se apretujaba: con celdas de 190 px y una etiqueta fija de
+   128, al valor le quedaban 50 y «sin pesar todavía» salía en tres renglones.
+   En la tableta del operador era peor. Celdas más anchas, etiqueta que puede
+   encogerse, y en pantalla angosta la etiqueta se pone encima del valor en
+   vez de pelear con él por el ancho. */
+.det{margin-top:11px;border-top:1px dashed var(--borde);padding-top:10px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:9px 22px}
+.det .f{display:flex;gap:9px;align-items:baseline;font-size:12.5px;min-width:0}
+.det .f span{color:var(--gris);font-size:10.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.4px;flex:0 1 122px;min-width:92px}
+.det .f b{font-weight:700;min-width:0}
+@media (max-width:560px){
+  .det{grid-template-columns:1fr;gap:10px}
+  .det .f{display:block}
+  .det .f span{display:block;margin-bottom:1px}
+}
+.cta{font-size:11px;color:var(--gris);font-weight:600}
+.acc{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.chk-linea{display:flex;align-items:center;gap:9px;text-transform:none;letter-spacing:0;
+  font-size:13.5px;font-weight:700;color:var(--tinta);margin-top:7px;cursor:pointer}
+.chk-linea input{width:auto;margin:0}
+.chk-ciclo{display:flex;align-items:flex-start;gap:9px;font-size:12px;font-weight:600;
+  padding:5px 0;cursor:pointer;line-height:1.45}
+.chk-ciclo input{width:auto;margin:2px 0 0}
+.btn.mal{background:var(--rojo);color:#fff}
+/* ── la ventana de corregir y anular ── */
+.velo{display:none;position:fixed;inset:0;background:rgba(20,48,107,.5);z-index:70;
+  padding:18px;overflow-y:auto}
+.velo.abierto{display:block}
+.velo .caja{background:#fff;max-width:620px;margin:24px auto;border-radius:18px;overflow:hidden;
+  box-shadow:0 14px 50px rgba(0,0,0,.3)}
+.velo .cab{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:14px 18px;display:flex;align-items:center;gap:10px}
+.velo .cab h3{font-size:15px;font-weight:800;flex:1}
+.velo .cab button{background:rgba(255,255,255,.2);border:none;color:#fff;font-family:inherit;
+  font-size:13px;font-weight:800;padding:7px 13px;border-radius:14px;cursor:pointer}
+.velo .cuerpo{padding:17px}
+.pill-p{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;
+  text-transform:uppercase;border-radius:5px;padding:3px 8px;margin-left:6px}
+.pill-p.ok{background:var(--verde-suave);color:var(--verde)}
+.pill-p.mal{background:var(--rojo-suave);color:var(--rojo)}
+.pill-p.esp{background:#FFF3D1;color:var(--ambar-osc)}
+/* el ciclo corrió pero su peso no quedó anotado: no es un error, es un dato
+   que falta, y tiene que verse desde la lista sin abrir la ficha */
+.pill-p.avi{background:#EEF2F7;color:var(--gris);border:1px dashed var(--borde)}
+
+
+.kpi .e{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gris)}
+.kpi .s{font-size:11px;color:var(--gris);line-height:1.5;margin-top:2px}
+.nota{background:#FFF8E1;border-left:4px solid var(--ambar);border-radius:10px;
+  padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--ambar-osc);margin-bottom:12px}
+.nota.mal{background:var(--rojo-suave);border-left-color:var(--rojo);color:var(--rojo)}
+.nota code{background:#fff;border:1px solid var(--borde);border-radius:5px;padding:1px 5px;
+  font-size:11.5px;color:var(--azul-osc)}
+.tabla-caja{overflow-x:auto;border-radius:14px;box-shadow:0 2px 12px rgba(20,48,107,.10);margin-top:9px}
+.tabla-caja table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
+.tabla-caja th{background:#EEF2F7;border:1px solid var(--borde);padding:8px 9px;text-align:left;
+  font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris)}
+.tabla-caja td{border:1px solid var(--borde);padding:8px 9px;vertical-align:top}
+.tabla-caja td.n{text-align:right;white-space:nowrap}
+
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(20,48,107,.96);color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;
+  border-radius:24px;opacity:0;pointer-events:none;transition:all .25s;z-index:999;
+  max-width:88%;text-align:center;border-left:4px solid var(--ambar)}
+#toast.ver{opacity:1;transform:translateX(-50%) translateY(0)}
+
+
+/* ── Diálogo propio: el prompt del navegador muestra la URL de Google ── */
+#dlg{position:fixed;inset:0;z-index:6000;display:none;align-items:center;justify-content:center;padding:18px}
+#dlg.ver{display:flex}
+.dlg-fondo{position:absolute;inset:0;background:rgba(12,22,40,.62)}
+.dlg-caja{position:relative;background:#fff;width:100%;max-width:420px;border-radius:18px;
+  padding:24px 22px;box-shadow:0 14px 44px rgba(0,0,0,.34);animation:dlgIn .18s ease-out}
+@keyframes dlgIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.dlg-ic{width:50px;height:50px;border-radius:50%;background:var(--verde-suave);color:var(--verde);
+  font-size:24px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.dlg-tit{font-size:17px;font-weight:800;text-align:center;line-height:1.35;color:var(--azul-osc)}
+.dlg-txt{font-size:13.5px;color:var(--gris);text-align:center;line-height:1.6;margin:9px 0 14px}
+.dlg-caja label{margin-top:10px}
+.dlg-caja .btn{margin-top:12px}
+
+</style>
+</head>
+<body>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Recepción en planta</h1>
+  <div class="tag">Acceso de planta</div>
+  <p>Consulta de las entregas recibidas.<br>Escribe tu PIN para entrar.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<!-- ventana para corregir o anular un ciclo -->
+<div class="velo" id="velo">
+  <div class="caja">
+    <div class="cab"><h3 id="mod-tit">—</h3><button onclick="cerrarModal()">Cerrar</button></div>
+    <div class="cuerpo" id="mod-cuerpo"></div>
+  </div>
+</div>
+
+<div id="pantalla-app" style="display:none">
+  <header>
+    <div class="marca">
+      <div class="logo"></div>
+      <div>
+        <h1>Recepción en planta</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <button class="salir" onclick="volverInicio()" style="margin-left:auto">← Inicio</button>
+      <button class="salir" onclick="salir()" style="margin-left:8px">Salir</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+
+    <section id="v-recepcion" class="vista on">
+    <h2>Periodo a consultar</h2>
+    <div class="chips" id="chips">
+      <button class="chip" data-r="q"    onclick="rango('q')">15 días</button>
+      <button class="chip on" data-r="mes"  onclick="rango('mes')">Este mes</button>
+      <button class="chip" data-r="tri"  onclick="rango('tri')">Trimestre</button>
+      <button class="chip" data-r="ano"  onclick="rango('ano')">Año en curso</button>
+      <button class="chip" data-r="todo" onclick="rango('todo')">Todo</button>
+    </div>
+    <div class="tarjeta" style="padding:13px">
+      <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:135px"><label>Desde</label>
+          <input id="f-desde" type="date" onchange="rango('libre')"></div>
+        <div style="flex:1;min-width:135px"><label>Hasta</label>
+          <input id="f-hasta" type="date" onchange="rango('libre')"></div>
+        <button class="btn" onclick="abrirReporte()">Reporte imprimible</button>
+      </div>
+    </div>
+
+    <div id="contenido"><div class="vacio">Consultando…</div></div>
+    </section>
+
+    <section id="v-tratamiento" class="vista">
+      <!-- Su propio rango de fechas. Antes leía en silencio el filtro de la
+           pestaña de recepción, que arranca en «este mes»: desde aquí no
+           había manera de saber que estaba puesto ni de cambiarlo, y por eso
+           el histórico de ciclos no aparecía nunca. -->
+      <div class="tarjeta" style="padding:12px;margin-bottom:12px">
+        <div class="chips" id="tra-chips">
+          <button class="chip" data-r="q"    onclick="rangoTra('q')">15 días</button>
+          <button class="chip on" data-r="mes"  onclick="rangoTra('mes')">Este mes</button>
+          <button class="chip" data-r="tri"  onclick="rangoTra('tri')">Trimestre</button>
+          <button class="chip" data-r="ano"  onclick="rangoTra('ano')">Año en curso</button>
+          <button class="chip" data-r="todo" onclick="rangoTra('todo')">Todo</button>
+        </div>
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-top:11px">
+          <div style="flex:1;min-width:135px"><label>Desde</label>
+            <input id="tra-desde" type="date" onchange="rangoTra('libre')"></div>
+          <div style="flex:1;min-width:135px"><label>Hasta</label>
+            <input id="tra-hasta" type="date" onchange="rangoTra('libre')"></div>
+          <button class="btn sec" onclick="bajarCiclos()">⬇ Descargar lo filtrado</button>
+          <!-- El contador del equipo va muy por delante de lo que tiene el
+               sistema. Los que faltan están en el control de producción, en
+               papel, y meterlos uno por uno no es razonable. -->
+          <button class="btn sec" id="tra-carga" style="display:none"
+            onclick="abrirCargaCiclos()">⬆ Cargar histórico</button>
+        </div>
+      </div>
+      <div id="tra-kpis"></div>
+      <div id="tra-aviso"></div>
+      <div class="tarjeta" id="tra-form" style="display:none">
+        <h2 style="margin-top:0">Registrar un ciclo</h2>
+        <div class="rejilla">
+          <div><label>Fecha</label><input id="c-fecha" type="date"></div>
+          <!-- El número lo lleva el contador del autoclave y no se reinicia:
+               es mejor identificador que cualquiera que armemos aquí. -->
+          <div><label>N° de ciclo del equipo</label><input id="c-numero" inputmode="numeric"></div>
+          <div><label>Hora de inicio</label><input id="c-hini" type="time" onchange="calcDuracion()"></div>
+          <div><label>Hora de fin</label><input id="c-hfin" type="time" onchange="calcDuracion()"></div>
+          <div><label>Bolsas trituradas</label><input id="c-bolsas" inputmode="numeric" placeholder="0"></div>
+          <div><label>Kg que entraron</label><input id="c-kgin" inputmode="decimal" placeholder="0.00"></div>
+          <div><label>Kg que salieron</label><input id="c-kgout" inputmode="decimal" placeholder="0.00"></div>
+          <div><label>Temperatura °C</label><input id="c-temp" inputmode="decimal"></div>
+          <div><label>Minutos de esterilización</label><input id="c-min" inputmode="numeric"></div>
+          <div><label>Duración total <span style="text-transform:none;letter-spacing:0;font-weight:500">· se calcula</span></label>
+            <input id="c-dur" disabled style="background:#F1F3F6"></div>
+        </div>
+        <!-- Un ciclo de mantenimiento corre sin carga. Registrarlo es lo que
+             mantiene continuo el contador: si no, deja un hueco idéntico al
+             de un ciclo con desechos que nadie anotó. -->
+        <label class="chk-linea" style="margin-top:12px">
+          <input type="checkbox" id="c-esprueba" onchange="pintarEsPrueba()">
+          Ciclo de prueba, sin carga (mantenimiento o prueba de componentes)</label>
+        <!-- Distinto del anterior: aquí el ciclo SÍ llevó carga, pero el peso
+             no quedó anotado. Pasa con el histórico. Registrarlo con el peso
+             vacío conserva la constancia de que el ciclo corrió; no
+             registrarlo la pierde, e inventarle un peso es peor que las dos. -->
+        <label class="chk-linea">
+          <input type="checkbox" id="c-sinpeso" onchange="pintarEsPrueba()">
+          El ciclo corrió con carga pero el peso no quedó anotado</label>
+        <div id="c-prueba-caja" style="margin-top:12px"></div>
+        <label style="margin-top:11px">Observaciones</label>
+        <input id="c-obs" placeholder="Opcional">
+        <button class="btn" onclick="guardarCiclo()">Registrar el ciclo</button>
+      </div>
+      <div id="tra-lista"></div>
+    </section>
+
+    <section id="v-salidas" class="vista">
+      <!-- Mismo caso que tratamiento: sin filtro propio, el histórico de
+           despachos al relleno no se veía. -->
+      <div class="tarjeta" style="padding:12px;margin-bottom:12px">
+        <div class="chips" id="sal-chips">
+          <button class="chip" data-r="q"    onclick="rangoSal('q')">15 días</button>
+          <button class="chip on" data-r="mes"  onclick="rangoSal('mes')">Este mes</button>
+          <button class="chip" data-r="tri"  onclick="rangoSal('tri')">Trimestre</button>
+          <button class="chip" data-r="ano"  onclick="rangoSal('ano')">Año en curso</button>
+          <button class="chip" data-r="todo" onclick="rangoSal('todo')">Todo</button>
+        </div>
+        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-top:11px">
+          <div style="flex:1;min-width:135px"><label>Desde</label>
+            <input id="sal-desde" type="date" onchange="rangoSal('libre')"></div>
+          <div style="flex:1;min-width:135px"><label>Hasta</label>
+            <input id="sal-hasta" type="date" onchange="rangoSal('libre')"></div>
+        </div>
+      </div>
+      <div id="sal-kpis"></div>
+      <div class="tarjeta" id="sal-form" style="display:none">
+        <h2 style="margin-top:0">Despachar al relleno</h2>
+        <div id="sal-pendientes"></div>
+        <div class="rejilla" style="margin-top:12px">
+          <div><label>Fecha</label><input id="s-fecha" type="date"></div>
+          <div><label>Hora de salida</label><input id="s-hora" type="time"></div>
+          <div><label>Kg que salen (báscula de planta)</label>
+            <input id="s-kg" inputmode="decimal" placeholder="0.00"
+              oninput="this.dataset.tocado='1'"></div>
+          <div><label>Vehículo</label><select id="s-vehiculo"></select></div>
+          <div><label>Conductor</label><input id="s-conductor"></div>
+          <div><label>Responsable de planta</label><input id="s-responsable"></div>
+        </div>
+        <label style="margin-top:11px">Observaciones</label>
+        <input id="s-obs" placeholder="Opcional">
+        <button class="btn" onclick="guardarSalida()">Generar manifiesto de salida</button>
+      </div>
+      <div id="sal-lista"></div>
+    </section>
+
+    <section id="v-mantenimiento" class="vista">
+      <div id="mto-alertas"></div>
+      <div class="tarjeta" id="mto-form" style="display:none">
+        <h2 style="margin-top:0">Registrar mantenimiento</h2>
+        <div class="rejilla">
+          <div><label>Equipo</label><select id="m-equipo"></select></div>
+          <div><label>Tipo</label><select id="m-tipo"></select></div>
+          <div><label>Fecha</label><input id="m-fecha" type="date"></div>
+          <div><label>Próximo</label><input id="m-proximo" type="date"></div>
+          <div><label>Responsable</label><input id="m-responsable"></div>
+          <div><label>Empresa que lo hizo</label><input id="m-empresa" placeholder="Interno o externa"></div>
+          <div><label>Resultado</label><input id="m-resultado" placeholder="Conforme, con observaciones…"></div>
+          <div><label>Costo (B/.)</label><input id="m-costo" inputmode="decimal" placeholder="0.00"></div>
+        </div>
+        <label style="margin-top:11px">Observaciones</label>
+        <input id="m-obs" placeholder="Opcional">
+        <button class="btn" onclick="guardarMantenimiento()">Registrar</button>
+      </div>
+      <div id="mto-lista"></div>
+    </section>
+
+    <section id="v-consumibles" class="vista">
+      <div class="tarjeta" id="con-form" style="display:none">
+        <h2 style="margin-top:0">Registrar consumo</h2>
+        <div class="rejilla">
+          <div><label>Fecha</label><input id="k-fecha" type="date"></div>
+          <div><label>Artículo</label><select id="k-articulo"></select></div>
+          <div><label>Cantidad</label><input id="k-cantidad" inputmode="decimal" placeholder="0"></div>
+          <div><label>Unidad</label><input id="k-unidad" placeholder="unidades, galones, litros…"></div>
+        </div>
+        <button class="btn" onclick="guardarConsumo()">Registrar</button>
+      </div>
+      <div id="con-lista"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+var PIN="", USUARIO=null, DESDE="", HASTA="", DATOS=null, URL_APP="";
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function n1(v){return Number(v||0).toFixed(1);}
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function mesNom(m){
+  var p=String(m).split("-");
+  var nn=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  return (nn[Number(p[1])-1]||"")+" "+p[0];
+}
+
+function arrancar(){
+  try{ PIN = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  pedirUrl();
+  if(PIN) validar(PIN); else pedirPin("");
+}
+
+function pedirPin(msg){
+  $("pantalla-app").style.display="none";
+  $("pantalla-pin").style.display="block";
+  $("pin-err").textContent=msg||"";
+  setTimeout(function(){$("pin").focus();},120);
+}
+
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…";
+  validar(p);
+}
+
+function validar(p){
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      PIN=p; USUARIO=r.usuario;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      var rot = ROTULO[USUARIO.rol]||USUARIO.rol;
+      $("cab-usuario").textContent = USUARIO.nombre+" · "+rot;
+      $("pantalla-pin").style.display="none";
+      $("pantalla-app").style.display="block";
+      pintarTabsPlanta();
+      rango("mes");
+    })
+    .withFailureHandler(function(){ pedirPin("Sin conexión. Intenta con señal."); })
+    .api_plantaBootstrap(p);
+}
+
+function salir(){
+  try{ localStorage.removeItem("ecovsa_pin"); }catch(e){}
+  volverInicio();
+}
+
+function rango(t){
+  var h=new Date(), d1, d2;
+  if(t==="libre"){
+    DESDE=$("f-desde").value||""; HASTA=$("f-hasta").value||"";
+    var cs=document.querySelectorAll("#chips .chip");
+    for(var i=0;i<cs.length;i++) cs[i].classList.remove("on");
+    if(DESDE&&HASTA) cargar();
+    return;
+  }
+  if(t==="q"){ d2=new Date(h); d1=new Date(h); d1.setDate(d1.getDate()-14); }
+  else if(t==="mes"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
+  else if(t==="tri"){ d2=new Date(h); d1=new Date(h.getFullYear(),h.getMonth()-2,1); }
+  else if(t==="ano"){ d1=new Date(h.getFullYear(),0,1); d2=new Date(h); }
+  else { d1=new Date(2020,0,1); d2=new Date(h.getFullYear()+1,0,1); }
+
+  DESDE=iso(d1); HASTA=iso(d2);
+  $("f-desde").value=DESDE; $("f-hasta").value=HASTA;
+  var cs=document.querySelectorAll("#chips .chip");
+  for(var i=0;i<cs.length;i++) cs[i].classList.toggle("on", cs[i].getAttribute("data-r")===t);
+  cargar();
+}
+
+/* ═══ Los rangos propios de cada pestaña ═══
+   El de arriba —el de recepción— sigue siendo suyo y no se toca. Estos dos
+   son de tratamiento y de salidas, a la vista, y al moverlos recargan solo
+   lo suyo. Antes las dos pestañas leían el filtro de recepción sin
+   mostrarlo, y además se quedaban con lo que trajeron la primera vez: aunque
+   se cambiara el periodo allá, aquí seguía lo de antes hasta recargar la
+   página entera. */
+function tramo(t){
+  var h=new Date(), d1, d2;
+  if(t==="q"){ d2=new Date(h); d1=new Date(h); d1.setDate(d1.getDate()-14); }
+  else if(t==="mes"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
+  else if(t==="tri"){ d2=new Date(h); d1=new Date(h.getFullYear(),h.getMonth()-2,1); }
+  else if(t==="ano"){ d1=new Date(h.getFullYear(),0,1); d2=new Date(h); }
+  else { d1=new Date(2020,0,1); d2=new Date(h.getFullYear()+1,0,1); }
+  return [iso(d1), iso(d2)];
+}
+function marcarChips(caja, t){
+  var cs=document.querySelectorAll("#"+caja+" .chip");
+  for(var i=0;i<cs.length;i++) cs[i].classList.toggle("on", cs[i].getAttribute("data-r")===t);
+}
+function rangoTra(t){
+  if(t==="libre"){ marcarChips("tra-chips",""); }
+  else { var r=tramo(t); $("tra-desde").value=r[0]; $("tra-hasta").value=r[1]; marcarChips("tra-chips",t); }
+  if(!$("tra-desde").value || !$("tra-hasta").value) return;
+  TRA=null; cargarTratamiento();
+}
+function rangoSal(t){
+  if(t==="libre"){ marcarChips("sal-chips",""); }
+  else { var r=tramo(t); $("sal-desde").value=r[0]; $("sal-hasta").value=r[1]; marcarChips("sal-chips",t); }
+  if(!$("sal-desde").value || !$("sal-hasta").value) return;
+  SAL=null; cargarSalidas();
+}
+
+function cargar(){
+  $("contenido").innerHTML='<div class="vacio">Consultando entregas…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ $("contenido").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo consultar")+'</div>'; return; }
+      DATOS=r; pintar(r);
+    })
+    .withFailureHandler(function(){ $("contenido").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_plantaActas(PIN, DESDE, HASTA);
+}
+
+/* ── ABRIR UN DOCUMENTO ──────────────────────────────────────────────
+   Los tres papeles de este módulo —el reporte imprimible, el acta de
+   disposición final y el manifiesto de salida— viven en otra página y se
+   abren en pestaña aparte. Para armar esa dirección hace falta la URL
+   real de la app, que SOLO la sabe el servidor: dentro del iframe de
+   Apps Script, `location` es una dirección interna de Google.
+
+   Aquí estaba la falla. Dos de los tres botones armaban la dirección sin
+   comprobar que esa URL hubiera llegado. Si no había llegado —o si la
+   petición falló, que se pedía sin manejador de error y por lo tanto en
+   silencio— la dirección salía relativa, el navegador la resolvía contra
+   el sandbox de Google, y se abría una pestaña en blanco. El botón del
+   manifiesto sí lo comprobaba; los otros dos no.
+
+   Ahora los tres pasan por aquí, y si la URL todavía no está se pide de
+   nuevo y se avisa, en vez de abrir una pestaña rota. */
+function pedirUrl(cb){
+  google.script.run
+    .withSuccessHandler(function(u){ URL_APP=u||""; if(cb) cb(URL_APP); })
+    .withFailureHandler(function(){ if(cb) cb(""); })
+    .api_urlApp();
+}
+function abrirDoc(qs){
+  if(URL_APP){ window.open(URL_APP+qs, "_blank"); return; }
+  toast("Un momento, preparando el documento…");
+  pedirUrl(function(u){
+    if(u) window.open(u+qs, "_blank");
+    else  toast("No se pudo abrir. Recarga la página e intenta de nuevo.");
+  });
+}
+
+function abrirReporte(){
+  if(!DESDE||!HASTA){ toast("Elige un periodo primero."); return; }
+  abrirDoc("?p=rplanta&desde="+DESDE+"&hasta="+HASTA);
+}
+
+function pintar(r){
+  var t=r.totales, actas=r.actas||[], gens=r.generadores||[], ops=r.operadores||[], meses=r.meses||[];
+
+  if(!actas.length){
+    $("contenido").innerHTML='<div class="vacio">No se recibieron entregas entre el '+
+      esc(r.desde)+' y el '+esc(r.hasta)+'.<br>Cambia el periodo arriba.</div>';
+    return;
+  }
+
+  var html =
+  '<div class="resumen">'+
+    '<div class="t">Recibido del '+esc(r.desde)+' al '+esc(r.hasta)+'</div>'+
+    '<div class="v">'+n1(t.kgTotal)+' <span style="font-size:17px;opacity:.85">kg</span></div>'+
+    '<div class="p">'+t.actas+' acta(s) · '+t.bultos+' bulto(s) · '+gens.length+' generador(es)</div>'+
+  '</div>'+
+
+  '<div class="kpis">'+
+    '<div class="kpi bio"><div class="et">Bioinfeccioso</div><div class="val">'+n1(t.kgBio)+'</div>'+
+      '<div class="sub">kg · '+t.cantBio+' bultos</div></div>'+
+    '<div class="kpi ana"><div class="et">Anatomopatológico</div><div class="val">'+n1(t.kgAnatomo)+'</div>'+
+      '<div class="sub">kg · '+t.cantAnatomo+' bultos</div></div>'+
+    '<div class="kpi pun"><div class="et">Punzocortante</div><div class="val">'+n1(t.kgPunzo)+'</div>'+
+      '<div class="sub">kg · '+t.cantPunzo+' bultos</div></div>'+
+    '<div class="kpi"><div class="et">Entregas atendidas</div><div class="val">'+t.entregas+'</div>'+
+      '<div class="sub">visitas a generadores</div></div>'+
+  '</div>';
+
+  // ── actas recibidas ──
+  html += '<h2>Actas recibidas</h2>';
+  html += actas.map(function(a){
+    var det=a.detalle||[];
+    return '<div class="acta">'+
+      '<div class="enc"><span class="id">'+esc(a.actaId)+'</span>'+
+        '<span class="fe">'+esc(a.fecha)+(a.hora?' · '+esc(a.hora):'')+'</span>'+
+        '<span class="kg">'+n1(a.kgTotal)+' kg</span></div>'+
+      '<div class="li">Entregó <b>'+esc(a.operador||"—")+'</b>'+
+        (a.vehiculo?' · '+esc(a.vehiculo):'')+' · recibió '+esc(a.recibe||"—")+'<br>'+
+        'Periodo recolectado: '+esc(a.desde)+' al '+esc(a.hasta)+' · '+a.bultos+' bulto(s)</div>'+
+      '<details><summary>Ver detalle y generadores</summary>'+
+        '<div class="fila"><span>Bioinfeccioso</span><b>'+n1(a.kgBio)+' kg · '+a.cantBio+'</b></div>'+
+        '<div class="fila"><span>Anatomopatológico</span><b>'+n1(a.kgAnatomo)+' kg · '+a.cantAnatomo+'</b></div>'+
+        '<div class="fila"><span>Punzocortante</span><b>'+n1(a.kgPunzo)+' kg · '+a.cantPunzo+'</b></div>'+
+        (det.length?'<div class="sub-tit">Generadores de origen</div>'+
+          det.map(function(d){
+            return '<div class="fila"><span>'+esc(d.cliente)+' · '+d.visitas+' visita(s)<br>'+
+              '<span style="font-size:10.5px;color:var(--gris)">rec. '+
+              esc((d.recibos||[]).join(", ")||"—")+'</span></span>'+
+              '<b>'+n1(d.kg)+' kg</b></div>';
+          }).join(""):'')+
+        (a.observaciones?'<div class="sub-tit">Observaciones</div><div style="font-size:12.5px;line-height:1.55">'+esc(a.observaciones)+'</div>':'')+
+        '<button class="btn sec mini" style="margin-top:10px" onclick="verActa(&#39;'+esc(a.actaId)+'&#39;)">Ver acta completa</button>'+
+      '</details></div>';
+  }).join("");
+
+  // ── generadores del periodo ──
+  html += '<h2 style="margin-top:18px">Generadores de origen</h2><div class="tarjeta">'+
+    gens.map(function(g){
+      return '<div class="fila"><span>'+esc(g.generador)+' · '+g.visitas+' entrega(s)</span>'+
+        '<b>'+n1(g.kg)+' kg</b></div>';
+    }).join("")+'</div>';
+
+  // ── por operador ──
+  html += '<h2>Por operador</h2><div class="tarjeta">'+
+    ops.map(function(o){
+      return '<div class="fila"><span>'+esc(o.operador)+' · '+o.actas+' acta(s)</span>'+
+        '<b>'+n1(o.kg)+' kg · '+o.bultos+' bultos</b></div>';
+    }).join("")+'</div>';
+
+  // ── evolución ──
+  if(meses.length>1){
+    html += '<h2>Mes a mes</h2><div class="tarjeta">'+
+      meses.map(function(m){
+        return '<div class="fila"><span>'+esc(mesNom(m.mes))+' · '+m.actas+' acta(s)</span>'+
+          '<b>'+n1(m.kg)+' kg</b></div>';
+      }).join("")+'</div>';
+  }
+
+  $("contenido").innerHTML=html;
+}
+
+function verActa(id){
+  abrirDoc("?p=acta&id="+encodeURIComponent(id));
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+function volverInicio(){
+  // dentro del iframe, location.href es una URL interna de Google: da página en blanco
+  if(URL_LOBBY){ irA(URL_LOBBY); return; }
+  google.script.run
+    .withSuccessHandler(function(u){ if(u) irA(u); })
+    .withFailureHandler(function(){})
+    .api_urlApp();
+}
+
+var URL_LOBBY = "";
+(function(){
+  if(window.google && google.script && google.script.run)
+    google.script.run.withSuccessHandler(function(u){ URL_LOBBY = u || ""; }).api_urlApp();
+})();
+
+
+var ROTULO={admin:"Administración",supervisor:"Supervisión de operaciones",
+  gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta",operador:"Operador"};
+
+
+/* ═══════════════ PESTAÑAS DE PLANTA ═══════════════ */
+var TAB_P = "recepcion", TRA = null, SAL = null, MTO = null, CON = null;
+
+function pintarTabsPlanta(){
+  var t = [["recepcion","Actas recibidas"],["tratamiento","Tratamiento"],
+           ["salidas","Salidas al relleno"],["mantenimiento","Mantenimiento"],
+           ["consumibles","Consumibles"]];
+  $("tabs").innerHTML = t.map(function(z){
+    return '<button class="'+(TAB_P===z[0]?"on":"")+'" onclick="verTabP(&#39;'+z[0]+'&#39;)">'+z[1]+'</button>';
+  }).join("");
+}
+
+function verTabP(v){
+  TAB_P = v;
+  document.querySelectorAll(".vista").forEach(function(z){ z.classList.remove("on"); });
+  $("v-"+v).classList.add("on");
+  pintarTabsPlanta();
+  /* la primera vez que se entra, se le pone su rango por defecto */
+  if(v==="tratamiento" && !$("tra-desde").value){ rangoTra("mes"); return; }
+  if(v==="salidas" && !$("sal-desde").value){ rangoSal("mes"); return; }
+  if(v==="tratamiento" && !TRA) cargarTratamiento();
+  if(v==="salidas" && !SAL) cargarSalidas();
+  if(v==="mantenimiento" && !MTO) cargarMantenimiento();
+  if(v==="consumibles" && !CON) cargarConsumibles();
+}
+
+function num(v){ var n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:0; }
+function n1(v){ return Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:1,maximumFractionDigits:1}); }
+
+/* ═══ Tratamiento ═══ */
+function cargarTratamiento(){
+  $("tra-lista").innerHTML = '<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("tra-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
+      TRA = r; pintarTratamiento();
+    })
+    .withFailureHandler(function(){ $("tra-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_tratamiento(PIN, $("tra-desde").value||"", $("tra-hasta").value||"");
+}
+
+function pintarTratamiento(){
+  var t = TRA.totales, R = TRA.receta;
+  $("tra-kpis").innerHTML = '<div class="kpis">'+
+    '<div class="kpi"><div class="e">Entró a planta</div><div class="v">'+n1(t.kgEntrado)+'</div>'+
+      '<div class="s">kg en '+t.actas+' acta(s)</div></div>'+
+    '<div class="kpi ok"><div class="e">Tratado</div><div class="v">'+n1(t.kgTratado)+'</div>'+
+      '<div class="s">kg · <b>'+t.ciclos+' ciclo(s)</b> corridos</div></div>'+
+    '<div class="kpi'+(t.porTratar>0?' avi':'')+'"><div class="e">Por tratar</div>'+
+      '<div class="v">'+n1(t.porTratar)+'</div><div class="s">kg en planta'+
+      (t.ciclosPorTratar
+        ? ' · <b>~'+t.ciclosPorTratar+' ciclo(s)</b><br>a '+n1(t.cargaTipica)+' kg por ciclo'+
+          (t.cargaMedida?' (promedio del periodo)':' (referencia)')
+        : '')+'</div></div>'+
+    /* Horas de uso del autoclave. Solo horas anotadas: donde no hay hora no se
+       estima nada, y la tarjeta dice sobre cuántos ciclos está calculada. */
+    '<div class="kpi"><div class="e">Uso del autoclave</div>'+
+      '<div class="v">'+(t.ciclosConHora? n1(t.horasUso)+' h' : '—')+'</div>'+
+      '<div class="s">'+(t.ciclosConHora
+        ? 'sobre '+t.ciclosConHora+' ciclo(s) con hora anotada'+
+          (t.ciclosSinHora? '<br>'+t.ciclosSinHora+' sin hora, fuera del cálculo':'')
+        : 'ningún ciclo del periodo tiene hora anotada')+'</div></div>'+
+    '<div class="kpi"><div class="e">Merma del proceso</div>'+
+      '<div class="v">'+(t.merma===null?'—':t.merma+'%')+'</div>'+
+      '<div class="s">'+(t.merma===null
+        ? 'sin pesos medidos todavía'
+        : 'sobre '+t.ciclosConPeso+' ciclo(s) pesados')+'</div></div>'+
+    '<div class="kpi'+(t.fallidas?' mal':' ok')+'"><div class="e">Indicador químico</div>'+
+      '<div class="v">'+t.pruebas+'</div><div class="s">'+
+      (t.fallidas? t.fallidas+' con falla' : 'ciclos con cinta conforme')+'</div></div>'+
+  '</div>';
+
+  $("tra-aviso").innerHTML =
+    (t.ciclosEstimados
+      ? '<div class="nota">'+t.ciclosEstimados+' ciclo(s) sin peso de salida anotado. '+
+        'Mientras falte se usa el de entrada como referencia. El material tratado reposa en '+
+        'cuarentena y <b>se pesa en la báscula de planta al despacharlo</b>; el del relleno es '+
+        'el que prevalece para la disposición final.</div>'
+      : '')+
+    (t.deMantenimiento
+      ? '<div class="nota">'+t.deMantenimiento+' ciclo(s) de prueba sin carga en el periodo. '+
+        'No suman kilos ni entran en la merma: están para que el contador del equipo no quede '+
+        'con huecos sin explicar.</div>'
+      : '')+
+    /* La cinta va en cada ciclo. Un ciclo sin ella es un ciclo sin su
+       control más básico, y eso se avisa. */
+    (TRA.sinQuimico
+      ? '<div class="nota"><b>'+TRA.sinQuimico+' ciclo(s) de este mes sin indicador químico.</b> '+
+        'La cinta va en cada ciclo.</div>'
+      : '')+
+    /* Y la biológica es otra cosa: mensual, y todavía sin viales. */
+    (TRA.tocaBiologica
+      ? '<div class="nota"><b>Este mes todavía no tiene verificación biológica.</b> '+
+        'El protocolo la fija mensual, en el último ciclo antes del despacho, con vial Attest '+
+        'incubado — no con la cinta, que es un indicador químico y solo dice que hubo calor.</div>'
+      : '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
+        'color:var(--verde)"><b>Verificación biológica del mes hecha</b> en el ciclo '+
+        esc(TRA.bioDelMes.cicloId)+' del '+esc(TRA.bioDelMes.fecha)+
+        (TRA.bioDelMes.resultado? ' · '+esc(TRA.bioDelMes.resultado) : '')+'.</div>')+
+    (t.fallidas
+      ? '<div class="nota" style="background:var(--rojo-suave);border-left-color:var(--rojo);'+
+        'color:var(--rojo)"><b>'+t.fallidas+' prueba(s) con resultado no conforme.</b> '+
+        'Ese material debe reesterilizarse antes de despacharlo.</div>'
+      : '');
+
+  if(TRA.puedeEditar){
+    $("tra-form").style.display = "block";
+    $("tra-carga").style.display = "";
+    if(!$("c-fecha").value) $("c-fecha").value = TRA.hoy;
+    if(!$("c-numero").value) $("c-numero").value = TRA.siguienteNumero;
+    if(!$("c-temp").value) $("c-temp").value = R.temperatura;
+    if(!$("c-min").value) $("c-min").value = R.minutos;
+    pintarCajaPrueba();
+  }
+
+  pintarCiclos();
+}
+
+/* ═══ LA LISTA DE CICLOS ═══════════════════════════════════════════
+   Ficha cerrada: el número del equipo y cuándo corrió. Nada más. Lo que uno
+   busca en una lista de ciclos es encontrar UNO, y para eso sobra todo lo
+   demás. Al tocarla se abre con todo lo registrado y con qué hacerle. */
+var CICLO_ABIERTO = "";
+
+function verCiclo(id){
+  CICLO_ABIERTO = (CICLO_ABIERTO === id) ? "" : id;
+  pintarCiclos();
+}
+
+function pintarCiclos(){
+  if(!TRA){ return; }
+  var l = TRA.ciclos || [];
+  if(!l.length){
+    $("tra-lista").innerHTML='<div class="vacio">No hay ciclos registrados en este periodo.</div>';
+    return;
+  }
+  $("tra-lista").innerHTML = '<h2>Ciclos del periodo · '+l.length+'</h2>' +
+    l.map(function(c){ return fichaCiclo(c); }).join("");
+}
+
+function fichaCiclo(c){
+  var abierta = (CICLO_ABIERTO === c.cicloId);
+  var clase = 'ciclo' + (c.anulado ? ' anulado' : (c.esPrueba ? ' de-prueba' : (c.salida ? '' : ' sin-salida')));
+
+  var enc = '<div class="enc" style="cursor:pointer" onclick="verCiclo(&#39;'+esc(c.cicloId)+'&#39;)">'+
+    '<span class="n">Ciclo '+c.numero+'</span>'+
+    '<span class="cuando">'+esc(c.fecha)+
+      (c.horaInicio ? ' · '+esc(c.horaInicio)+(c.horaFinal?' a '+esc(c.horaFinal):'') : '')+'</span>'+
+    (c.anulado  ? '<span class="pill-p mal">anulado</span>' : '')+
+    (c.esPrueba ? '<span class="pill-p esp">de prueba</span>' : '')+
+    (c.sinPeso && !c.anulado ? '<span class="pill-p avi">sin peso</span>' : '')+
+    (!c.anulado && !c.esPrueba
+      ? (c.salida ? '<span class="pill-p ok">'+esc(c.salida)+'</span>'
+                  : '<span class="pill-p esp">en cuarentena</span>')
+      : '')+
+    (!c.anulado && !c.esPrueba
+      ? '<span class="kg">'+(c.sinPeso ? '— kg' : n1(c.kgEntrada)+' kg')+'</span>' : '')+
+    '<span class="fl">&#9662;</span></div>';
+
+  if(!abierta) return '<div class="'+clase+'">'+enc+'</div>';
+
+  /* Anulado: la ficha ES la justificación. El número sigue ahí, en su fecha,
+     diciendo por qué se anuló y quién lo hizo — un ciclo borrado y un ciclo
+     que nunca se anotó se ven igual desde afuera, y eso no le conviene a
+     nadie en una auditoría. */
+  if(c.anulado){
+    return '<div class="'+clase+'">'+enc+
+      '<div class="par"><b>Ciclo anulado.</b><br>'+esc(c.motivoAnulacion||"Sin motivo escrito.")+
+      '<br><span style="font-size:11px">Lo anuló '+esc(c.anuladoPor||"—")+
+      (c.fechaAnulacion? ' el '+esc(c.fechaAnulacion):'')+'</span></div></div>';
+  }
+
+  var merma = c.kgEntrada ? Math.round((c.kgEntrada-c.kgSalida)/c.kgEntrada*1000)/10 : 0;
+  var d = '<div class="det">'+
+    fila("Número del equipo", c.numero)+
+    fila("Fecha", esc(c.fecha))+
+    fila("Horario", c.horaInicio ? esc(c.horaInicio)+' a '+esc(c.horaFinal||"--:--")+
+         (c.duracionTotal? ' · '+c.duracionTotal+' min' : '') : "—")+
+    (c.esPrueba
+      ? fila("Carga", "ciclo de prueba, sin carga")
+      /* Un cero en bolsas afirma que el ciclo corrió sin ninguna, que es
+         falso: es que no se anotaron. Y las bolsas son un estimado hecho al
+         vuelo mientras se alimenta la trituradora — el dato medido es el
+         peso —, así que se dice que es aproximado. */
+      : fila("Bolsas (aprox.)", c.bolsas ? c.bolsas : '<span class="cta">no se anotaron</span>')+
+        fila("Kg que entraron", c.sinPeso
+             ? '— <span class="cta">no quedó anotado</span>' : n1(c.kgEntrada))+
+        fila("Kg que salieron", c.sinPeso
+             ? '— <span class="cta">sin peso de entrada no hay merma</span>'
+             : (c.salidaEstimada ? '— <span class="cta">sin pesar todavía</span>'
+                                 : n1(c.kgSalida)+' <span class="cta">merma '+merma+'%</span>')))+
+    fila("Receta", c.temperatura+' °C · '+c.minutos+' min')+
+    fila("Indicador químico", c.quimico ? esc(c.resultadoQuimico||"conforme") : "no se anotó")+
+    fila("Verificación biológica", c.biologico ? esc(c.resultadoBiologico||"realizada") : "—")+
+    fila("Operador", esc(c.operador||"—"))+
+    fila("Despacho", c.salida ? esc(c.salida) : "en cuarentena, sin despachar")+
+    (c.obs ? fila("Observaciones", esc(c.obs)) : "")+
+  '</div>';
+
+  var acciones = TRA.puedeEditar
+    ? '<div class="acc">'+
+      '<button class="btn mini sec" onclick="abrirEditarCiclo(&#39;'+esc(c.cicloId)+'&#39;)">Editar</button>'+
+      (c.salida
+        ? '<span class="cta">Ya despachado: no se puede anular.</span>'
+        : '<button class="btn mini mal" onclick="abrirAnularCiclo(&#39;'+esc(c.cicloId)+'&#39;)">Anular</button>')+
+      '</div>'
+    : '';
+
+  return '<div class="'+clase+'">'+enc+d+acciones+'</div>';
+}
+
+function fila(r,v){ return '<div class="f"><span>'+r+'</span><b>'+v+'</b></div>'; }
+function ciclo_(id){
+  var l=(TRA&&TRA.ciclos)||[];
+  for(var i=0;i<l.length;i++) if(l[i].cicloId===id) return l[i];
+  return null;
+}
+
+/* ═══ Corregir un ciclo mal registrado ═══ */
+function abrirEditarCiclo(id){
+  var c = ciclo_(id); if(!c) return;
+  $("mod-tit").textContent = "Corregir el ciclo "+c.numero;
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota">El número del equipo y la fecha no se cambian aquí: con ellos se arma '+
+    'el código del ciclo, y los despachos guardan ese código para saber qué llevan. Si el '+
+    'número está mal, se anula el ciclo y se registra de nuevo.</div>'+
+    '<div class="rejilla" style="margin-top:12px">'+
+      '<div><label>Hora de inicio</label><input id="e-hini" type="time" value="'+esc(c.horaInicio||"")+'"></div>'+
+      '<div><label>Hora de fin</label><input id="e-hfin" type="time" value="'+esc(c.horaFinal||"")+'"></div>'+
+      '<div><label>Bolsas</label><input id="e-bolsas" inputmode="numeric" value="'+c.bolsas+'"></div>'+
+      '<div><label>Kg que entraron</label><input id="e-kgin" inputmode="decimal" value="'+(c.kgEntrada||"")+'"></div>'+
+      '<div><label>Kg que salieron</label><input id="e-kgout" inputmode="decimal" value="'+(c.salidaEstimada?"":c.kgSalida)+'"></div>'+
+      '<div><label>Temperatura °C</label><input id="e-temp" inputmode="decimal" value="'+c.temperatura+'"></div>'+
+      '<div><label>Minutos</label><input id="e-min" inputmode="numeric" value="'+c.minutos+'"></div>'+
+      '<div><label>Operador</label><input id="e-oper" value="'+esc(c.operador||"")+'"></div>'+
+    '</div>'+
+    '<label class="chk-linea" style="margin-top:11px"><input type="checkbox" id="e-esprueba"'+
+      (c.esPrueba?' checked':'')+'> Ciclo de prueba, sin carga</label>'+
+    '<label class="chk-linea"><input type="checkbox" id="e-quim"'+(c.quimico?' checked':'')+
+      '> Se puso indicador químico (cinta 3M)</label>'+
+    '<div><label>Resultado del indicador</label>'+
+      '<input id="e-resq" value="'+esc(c.resultadoQuimico||"")+'" placeholder="Conforme / No conforme"></div>'+
+    '<label class="chk-linea" style="margin-top:9px"><input type="checkbox" id="e-bio"'+(c.biologico?' checked':'')+
+      '> Se hizo verificación biológica (vial Attest)</label>'+
+    '<div><label>Resultado biológico</label>'+
+      '<input id="e-resb" value="'+esc(c.resultadoBiologico||"")+'" placeholder="Negativo / Positivo"></div>'+
+    '<label style="margin-top:9px">Observaciones</label>'+
+    '<input id="e-obs" value="'+esc(c.obs||"")+'">'+
+    '<div id="mod-msg" class="nota" style="display:none"></div>'+
+    '<button class="btn" style="width:100%;margin-top:14px" onclick="guardarEdicion(&#39;'+esc(id)+'&#39;)">'+
+      'Guardar la corrección</button>';
+  abrirModal();
+}
+
+function guardarEdicion(id){
+  var d = { horaInicio:$("e-hini").value, horaFinal:$("e-hfin").value,
+            bolsas:num($("e-bolsas").value), kgEntrada:num($("e-kgin").value),
+            kgSalida:num($("e-kgout").value), temperatura:num($("e-temp").value),
+            minutos:num($("e-min").value), operador:$("e-oper").value,
+            observaciones:$("e-obs").value, esPrueba:$("e-esprueba").checked,
+            pruebaBiologica:$("e-quim").checked, resultadoPrueba:$("e-resq").value,
+            verifBiologica:$("e-bio").checked, resultadoBiologico:$("e-resb").value };
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ modMsg((r&&r.error)||"No se pudo guardar."); return; }
+      cerrarModal(); toast("Ciclo corregido ✓");
+      TRA=null; cargarTratamiento();
+    })
+    .withFailureHandler(function(){ modMsg("Sin conexión con el servidor."); })
+    .api_editarCiclo(PIN, id, d);
+}
+
+/* ═══ Anular ═══ */
+function abrirAnularCiclo(id){
+  var c = ciclo_(id); if(!c) return;
+  $("mod-tit").textContent = "Anular el ciclo "+c.numero;
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota" style="background:var(--rojo-suave);border-left-color:var(--rojo);color:var(--rojo)">'+
+      '<b>El ciclo no se borra.</b> Su ficha pasa a mostrar esta justificación, con tu nombre y '+
+      'la fecha. Se hace así a propósito: el número lo lleva el contador del autoclave, y un '+
+      'ciclo desaparecido deja un hueco idéntico al de un ciclo que nadie anotó.</div>'+
+    '<label style="margin-top:12px">¿Por qué se anula?</label>'+
+    '<input id="a-motivo" placeholder="Ej: se registró con el peso de otro ciclo">'+
+    '<div id="mod-msg" class="nota" style="display:none"></div>'+
+    '<button class="btn mal" style="width:100%;margin-top:14px" onclick="confirmarAnular(&#39;'+esc(id)+'&#39;)">'+
+      'Anular el ciclo</button>';
+  abrirModal();
+  setTimeout(function(){ var e=$("a-motivo"); if(e) e.focus(); }, 80);
+}
+
+function confirmarAnular(id){
+  var m = ($("a-motivo").value||"").trim();
+  if(m.length < 5){ modMsg("Escribe por qué se anula. Queda en el registro."); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ modMsg((r&&r.error)||"No se pudo anular."); return; }
+      cerrarModal(); toast("Ciclo anulado ✓");
+      TRA=null; cargarTratamiento();
+    })
+    .withFailureHandler(function(){ modMsg("Sin conexión con el servidor."); })
+    .api_anularCiclo(PIN, id, m);
+}
+
+/* ═══ Descargar lo que está filtrado ═══
+   Un texto plano, que es lo que se puede abrir en cualquier lado y adjuntar
+   a un correo sin que nadie tenga que instalar nada. Si el navegador no deja
+   descargar desde aquí dentro, se muestra para copiar. */
+function bajarCiclos(){
+  if(!TRA || !TRA.ciclos || !TRA.ciclos.length){ toast("No hay ciclos en este periodo"); return; }
+  var L = [];
+  L.push("CICLOS DE TRATAMIENTO — ECOVSA");
+  L.push("Periodo: " + (TRA.desde||"inicio") + " a " + (TRA.hasta||"hoy"));
+  L.push("Receta: " + TRA.receta.temperatura + " C · " + TRA.receta.minutos +
+         " min · capacidad " + TRA.receta.capacidadKg + " kg por ciclo");
+  L.push("Generado el " + (TRA.hoy||"") + " por " + ((TRA.usuario&&TRA.usuario.nombre)||""));
+  L.push("");
+  L.push(["CICLO","N","FECHA","INICIO","FIN","BOLSAS","KG ENTRADA","KG SALIDA",
+          "TEMP","MIN","QUIMICO","BIOLOGICO","DESPACHO","ESTADO","OPERADOR"].join("\t"));
+  TRA.ciclos.forEach(function(c){
+    L.push([c.cicloId, c.numero, c.fecha, c.horaInicio||"", c.horaFinal||"",
+            c.esPrueba?"":c.bolsas, c.esPrueba?"":c.kgEntrada,
+            c.esPrueba?"":(c.salidaEstimada?"":c.kgSalida),
+            c.temperatura, c.minutos,
+            c.quimico?(c.resultadoQuimico||"conforme"):"",
+            c.biologico?(c.resultadoBiologico||"realizada"):"",
+            c.salida||"",
+            c.anulado?("ANULADO: "+c.motivoAnulacion):(c.esPrueba?"prueba sin carga":"tratado"),
+            c.operador||""].join("\t"));
+  });
+  var t = TRA.totales;
+  L.push("");
+  L.push("Ciclos que cuentan: " + t.ciclos + " · de prueba: " + t.deMantenimiento +
+         " · anulados: " + t.anulados);
+  L.push("Kg tratados: " + t.kgTratado + " · merma: " + (t.merma===null?"sin pesos medidos":t.merma+"%"));
+  var txt = L.join("\n");
+  var nombre = "ciclos_" + (TRA.desde||"") + "_" + (TRA.hasta||"") + ".txt";
+  try{
+    var b = new Blob([txt], {type:"text/plain;charset=utf-8"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    toast("Descargando " + nombre);
+  }catch(e){
+    $("mod-tit").textContent = "Ciclos del periodo";
+    $("mod-cuerpo").innerHTML = '<div class="nota">El navegador no dejó descargar desde aquí. '+
+      'Selecciona el texto y cópialo.</div>'+
+      '<textarea readonly style="width:100%;height:320px;font-family:monospace;font-size:11px;'+
+      'margin-top:10px">'+esc(txt)+'</textarea>';
+    abrirModal();
+  }
+}
+
+/* ═══ la ventana ═══ */
+function abrirModal(){ $("velo").className = "velo abierto"; }
+function cerrarModal(){ $("velo").className = "velo"; }
+function modMsg(t){ var m=$("mod-msg"); if(!m) return;
+  m.style.display="block"; m.style.background="var(--rojo-suave)";
+  m.style.borderLeftColor="var(--rojo)"; m.style.color="var(--rojo)"; m.textContent=t; }
+
+function pintarEsPrueba(){
+  var p  = $("c-esprueba").checked;
+  var sp = $("c-sinpeso") && $("c-sinpeso").checked;
+  /* Las dos casillas dicen cosas distintas y no pueden estar marcadas a la
+     vez: «sin carga» y «con carga pero sin peso anotado» se excluyen. */
+  if(p && sp){ $("c-sinpeso").checked = false; sp = false; }
+  var bloquea = p || sp;
+  ["c-kgin","c-kgout"].forEach(function(i){
+    var e=$(i); if(!e) return;
+    e.disabled = bloquea; e.style.background = bloquea ? "#F1F3F6" : "";
+    if(bloquea) e.value = "";
+  });
+  /* Las bolsas sí se pueden anotar aunque el peso no: son dos datos
+     distintos y uno puede existir sin el otro. */
+  var b=$("c-bolsas");
+  if(b){ b.disabled = p; b.style.background = p ? "#F1F3F6" : ""; if(p) b.value=""; }
+}
+
+function pintarCajaPrueba(){
+  /* La cinta va en CADA ciclo: viene marcada por defecto porque es lo normal,
+     y desmarcarla es decir que ese ciclo corrió sin su control básico. */
+  $("c-prueba-caja").innerHTML =
+    '<label class="chk-linea"><input type="checkbox" id="c-prueba" checked '+
+      'onchange="pintarResultadoPrueba()"> Se puso indicador químico (cinta 3M)</label>'+
+    '<div id="c-res-caja"></div>'+
+    /* Y la biológica es mensual y es otra cosa. Solo se ofrece cuando el mes
+       todavía no la tiene, para que no se marque por inercia. */
+    (TRA.tocaBiologica
+      ? '<label class="chk-linea" style="margin-top:9px"><input type="checkbox" id="c-bio" '+
+        'onchange="pintarResultadoBio()"> Este ciclo lleva la verificación biológica del mes '+
+        '(vial Attest incubado)</label><div id="c-bio-caja"></div>'
+      : '');
+  pintarResultadoPrueba();
+}
+
+function pintarResultadoPrueba(){
+  $("c-res-caja").innerHTML = $("c-prueba").checked
+    ? '<label style="margin-top:8px">Resultado del indicador</label>'+
+      '<input id="c-res" placeholder="Conforme / No conforme">'
+    : '';
+}
+
+function pintarResultadoBio(){
+  var e=$("c-bio-caja"); if(!e) return;
+  e.innerHTML = $("c-bio").checked
+    ? '<label style="margin-top:8px">Resultado del vial</label>'+
+      '<input id="c-resbio" placeholder="Negativo / Positivo">'
+    : '';
+}
+
+function guardarCiclo(){
+  var d = { fecha:$("c-fecha").value, numero:$("c-numero").value,
+    horaInicio:$("c-hini").value, horaFinal:$("c-hfin").value,
+    bolsas:$("c-bolsas").value, kgEntrada:num($("c-kgin").value),
+    kgSalida:num($("c-kgout").value), temperatura:num($("c-temp").value),
+    minutos:num($("c-min").value),
+    duracionTotal: Number(($("c-dur")||{}).dataset ? $("c-dur").dataset.min : 0) || 0,
+    /* la cinta, que va en cada ciclo */
+    pruebaBiologica: $("c-prueba") && $("c-prueba").checked,
+    resultadoPrueba: $("c-res") ? $("c-res").value : "",
+    /* y el vial, que es mensual */
+    verifBiologica: $("c-bio") && $("c-bio").checked,
+    resultadoBiologico: $("c-resbio") ? $("c-resbio").value : "",
+    esPrueba: $("c-esprueba") && $("c-esprueba").checked,
+    pesoNoRegistrado: $("c-sinpeso") && $("c-sinpeso").checked,
+    observaciones:$("c-obs").value.trim() };
+  if(!(Number(d.numero)>0)){ toast("Falta el número de ciclo que marca la máquina"); return; }
+  if(!d.esPrueba && !d.pesoNoRegistrado && !(d.kgEntrada>0)){
+    toast("Falta el peso que entró. Si fue un ciclo de prueba sin carga, o si el peso no "+
+          "quedó anotado, márcalo arriba"); return; }
+  if(d.kgSalida > d.kgEntrada){ toast("Los kilos de salida no pueden ser más que los de entrada"); return; }
+  registrarCiclo(d, false);
+}
+
+/* Aparte porque puede repetirse: si el número ya está en otro ciclo, el
+   servidor avisa en vez de guardar, y quien registra confirma o corrige. */
+function registrarCiclo(d, confirmado){
+  d.numeroConfirmado = !!confirmado;
+  toast("Registrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.avisoNumero){ avisoDelNumero(r.avisoNumero, d); return; }
+      if(r && r.avisoParametros){ avisoDeParametros(r.avisoParametros, d); return; }
+      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
+      toast("Ciclo "+r.cicloId+" registrado ✓");
+      ["c-bolsas","c-kgin","c-kgout","c-hini","c-hfin","c-obs","c-dur"].forEach(function(i){
+        var e=$(i); if(e) e.value=""; });
+      $("c-numero").value = "";
+      if($("c-sinpeso")) $("c-sinpeso").checked=false;
+      if($("c-esprueba")){ $("c-esprueba").checked=false; pintarEsPrueba(); }
+      TRA=null; cargarTratamiento();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se registró"); })
+    .api_guardarCiclo(PIN, d);
+}
+
+function avisoDelNumero(a, d){
+  $("mod-tit").textContent = "El número " + a.numero + " ya está usado";
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota"><b>El ciclo número '+a.numero+'</b> ya está registrado como '+
+      esc(a.cicloId)+', del '+esc(a.fecha)+'.<br><br>'+
+      'El contador del autoclave no repite, así que casi siempre esto es un dedazo. '+
+      'Pero los ciclos viejos se numeraron corrido dentro del día, y ahí el mismo número '+
+      'aparece muchas veces: si este es el número que marca el equipo, sigue adelante.</div>'+
+    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Corregir el número</button>'+
+      '<button class="btn" style="flex:1" onclick="registrarIgual()">Es el del equipo, registrar</button>'+
+    '</div>';
+  PEND_CICLO = d;
+  abrirModal();
+}
+var PEND_CICLO = null;
+function registrarIgual(){
+  if(!PEND_CICLO) return cerrarModal();
+  var d = PEND_CICLO; PEND_CICLO = null; cerrarModal();
+  registrarCiclo(d, true);
+}
+
+/* El peso por encima de la capacidad y los parámetros fuera de la receta.
+   No traba: avisa. El sistema no puede saber más que quien estaba frente al
+   autoclave — pero tampoco puede dejar pasar en silencio un ciclo que dice
+   haber cargado 870 kg en un equipo de 800. */
+function avisoDeParametros(a, d){
+  var R = a.receta;
+  $("mod-tit").textContent = "Revisa antes de guardar";
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota">'+
+      a.avisos.map(function(x){ return '<b>'+esc(x.texto)+'</b>'; }).join('<br><br>')+
+    '</div>'+
+    '<div class="nota" style="margin-top:10px">La receta del equipo corre a '+
+      R.temperatura+' °C durante '+R.minutos+' minutos, con una capacidad de trabajo de '+
+      R.capacidadKg+' kg. Está grabada en el PLC y solo la cambia un operador registrado '+
+      'con su usuario y contraseña.<br><br>'+
+      'Si el ciclo corrió así de verdad, guárdalo: quedará anotado en las observaciones '+
+      'que se registró con parámetros fuera de la receta, y quién lo confirmó.</div>'+
+    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Corregir el dato</button>'+
+      '<button class="btn" style="flex:1" onclick="registrarAsiEsta()">Corrió así, registrar</button>'+
+    '</div>';
+  PEND_PARAM = d;
+  abrirModal();
+}
+var PEND_PARAM = null;
+function registrarAsiEsta(){
+  if(!PEND_PARAM) return cerrarModal();
+  var d = PEND_PARAM; PEND_PARAM = null; cerrarModal();
+  d.parametrosConfirmados = true;
+  registrarCiclo(d, d.numeroConfirmado);
+}
+
+/* ═══ Cargar el histórico de ciclos ═══
+   El contador del autoclave va en 552 y el sistema tiene un puñado. Los que
+   faltan están en el control de producción de Alejandro, en papel: número,
+   fecha, peso y hora. Esto es para meterlos de una vez en vez de uno por uno.
+
+   La pantalla no decide nada: pega las filas, el servidor las revisa TODAS
+   antes de escribir NADA, y aquí se muestra qué pasa con cada una. Una carga
+   a medias en un registro de esterilización es peor que una que no entró. */
+var CARGA_FILAS = null;
+
+function abrirCargaCiclos(){
+  $("mod-tit").textContent = "Cargar ciclos del control de producción";
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota">Una línea por ciclo, con los datos separados por '+
+      '<b>tabulador</b> (lo que sale al copiar de Excel) o por <b>coma</b>:<br><br>'+
+      '<code>número&nbsp;&nbsp;fecha&nbsp;&nbsp;kg&nbsp;&nbsp;hora inicio&nbsp;&nbsp;hora fin&nbsp;&nbsp;bolsas</code>'+
+      '<br><br>La fecha va como <b>2026-09-11</b>. De la hora en adelante todo es opcional. '+
+      'Si una línea fue un ciclo de prueba sin carga, escribe <b>prueba</b> en la columna de kg; '+
+      'si el ciclo corrió con carga pero el peso no quedó anotado, escribe <b>sin peso</b>.</div>'+
+    '<div class="nota" style="margin-top:10px">La temperatura y los minutos los pone el '+
+      'sistema con la receta del PLC. <b>El indicador químico queda en blanco</b>: nadie '+
+      'puede saber después si se puso la cinta en un ciclo de hace ocho meses, y un registro '+
+      'de esterilización no se rellena de memoria.</div>'+
+    '<textarea id="carga-txt" style="width:100%;height:190px;font-family:monospace;'+
+      'font-size:12px;margin-top:11px" placeholder="545   2026-08-14   786   08:10   09:20"></textarea>'+
+    '<label style="margin-top:10px">Quién corrió estos ciclos</label>'+
+    '<input id="carga-oper" placeholder="Nombre del operador de planta">'+
+    '<div id="carga-msg"></div>'+
+    '<div style="display:flex;gap:8px;margin-top:15px;flex-wrap:wrap">'+
+      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btn" style="flex:1" onclick="revisarCarga()">Revisar y cargar</button>'+
+    '</div>';
+  abrirModal();
+}
+
+/* De texto pegado a filas. Tabulador o coma; el punto y coma también, porque
+   Excel en español lo usa según cómo esté configurado el equipo. */
+function leerPegado(txt){
+  var filas = [];
+  String(txt||"").split(/\r?\n/).forEach(function(l){
+    if(!l.trim()) return;
+    var p = l.split(/\t|;|,(?![0-9]{1,2}\b)/).map(function(x){ return x.trim(); });
+    if(p.length < 2) p = l.trim().split(/\s{2,}|\s+/);
+    var kg = (p[2]||"");
+    var prueba = /^prue/i.test(kg);
+    /* «sin peso» en la columna del peso: el ciclo corrió con carga y el peso
+       no quedó anotado. Es distinto de un ciclo de prueba, que corrió vacío. */
+    var sinPeso = /^sin\s*pes/i.test(kg);
+    filas.push({ numero:p[0], fecha:p[1], kgEntrada:(prueba||sinPeso)?0:kg,
+                 esPrueba:prueba, pesoNoRegistrado:sinPeso,
+                 horaInicio:p[3]||"", horaFinal:p[4]||"",
+                 bolsas:p[5]||"", observaciones:p[6]||"" });
+  });
+  return filas;
+}
+
+function revisarCarga(){
+  var filas = leerPegado($("carga-txt").value);
+  if(!filas.length){ modMsg("No hay ninguna línea que cargar."); return; }
+  CARGA_FILAS = filas;
+  $("carga-msg").innerHTML = '<div class="nota" style="margin-top:10px">Revisando '+
+    filas.length+' línea(s)…</div>';
+  google.script.run
+    .withSuccessHandler(pintarRevisionCarga)
+    .withFailureHandler(function(){ $("carga-msg").innerHTML =
+      '<div class="nota mal" style="margin-top:10px">Sin conexión — no se cargó nada.</div>'; })
+    .api_cargarCiclos(PIN, filas, { operador: $("carga-oper").value.trim() });
+}
+
+function pintarRevisionCarga(r){
+  if(!r){ $("carga-msg").innerHTML='<div class="nota mal">No respondió.</div>'; return; }
+
+  /* Entró completa */
+  if(r.ok){
+    cerrarModal();
+    toast(r.cargados+" ciclo(s) cargados ✓");
+    TRA=null; cargarTratamiento();
+    if(r.huecos && r.huecos.length) avisoDeHuecos(r);
+    return;
+  }
+
+  if(!r.revisar){ $("carga-msg").innerHTML =
+    '<div class="nota mal" style="margin-top:10px">'+esc(r.error||"No se pudo cargar")+'</div>'; return; }
+
+  /* Hay problemas: se muestran todos, con el número de línea, y se decide.
+     Nada se escribió todavía. */
+  var h = '<div class="nota mal" style="margin-top:11px"><b>'+r.problemas.length+
+    ' línea(s) con problema</b> de '+r.total+'. Todavía no se ha escrito nada en el libro.</div>'+
+    '<div style="max-height:200px;overflow:auto;margin-top:9px;border:1px solid var(--borde);'+
+      'border-radius:10px">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    r.problemas.map(function(p){
+      return '<tr><td style="padding:6px 9px;border-bottom:1px solid var(--borde);'+
+        'white-space:nowrap;color:var(--gris)">Línea '+p.linea+'</td>'+
+        '<td style="padding:6px 9px;border-bottom:1px solid var(--borde)">'+esc(p.que)+
+        (p.dato? '<br><span style="color:var(--gris)">'+esc(p.dato)+'</span>':'')+'</td></tr>';
+    }).join('')+'</table></div>';
+
+  h += r.listas
+    ? '<div class="nota" style="margin-top:10px"><b>'+r.listas+' línea(s) están bien.</b> '+
+      'Puedes cargar solo esas y corregir las otras aparte, o cerrar, arreglar el texto y '+
+      'volver a revisar.</div>'+
+      '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'+
+        '<button class="btn sec" style="flex:1" onclick="volverACarga()">Corregir el texto</button>'+
+        '<button class="btn" style="flex:1" onclick="cargarSoloBuenas()">Cargar las '+
+          r.listas+' que están bien</button></div>'
+    : '<div class="nota" style="margin-top:10px">No quedó ninguna línea cargable.</div>'+
+      '<div style="margin-top:14px"><button class="btn sec" style="width:100%" '+
+        'onclick="volverACarga()">Corregir el texto</button></div>';
+
+  $("carga-msg").innerHTML = h;
+}
+
+function volverACarga(){ $("carga-msg").innerHTML = ""; }
+
+function cargarSoloBuenas(){
+  if(!CARGA_FILAS) return;
+  $("carga-msg").innerHTML = '<div class="nota" style="margin-top:10px">Cargando…</div>';
+  google.script.run
+    .withSuccessHandler(pintarRevisionCarga)
+    .withFailureHandler(function(){ $("carga-msg").innerHTML =
+      '<div class="nota mal" style="margin-top:10px">Sin conexión — no se cargó nada.</div>'; })
+    .api_cargarCiclos(PIN, CARGA_FILAS, { operador:($("carga-oper")?$("carga-oper").value.trim():""),
+                                          forzar:true });
+}
+
+/* Los saltos del contador. No es un error: puede estar explicado fuera del
+   sistema. Pero es lo único que dice «aquí hubo un ciclo que nadie anotó». */
+function avisoDeHuecos(r){
+  $("mod-tit").textContent = "Saltos en el contador del equipo";
+  $("mod-cuerpo").innerHTML =
+    '<div class="nota">Se cargaron <b>'+r.cargados+' ciclo(s)</b>, del '+r.desde+' al '+r.hasta+'.</div>'+
+    '<div class="nota" style="margin-top:10px">El contador del autoclave no se reinicia, '+
+      'así que estos números no están en el sistema:<br><br><b>'+
+      r.huecos.map(esc).join(' · ')+'</b><br><br>'+
+      'Cada salto es un ciclo que corrió y no está anotado, o uno de prueba que no se '+
+      'registró. Si tienes el dato, cárgalo; si no, queda constancia de que falta.</div>'+
+    '<div style="margin-top:15px"><button class="btn" style="width:100%" '+
+      'onclick="cerrarModal()">Entendido</button></div>';
+  abrirModal();
+}
+
+
+/* ═══ Salidas al relleno ═══ */
+function cargarSalidas(){
+  $("sal-lista").innerHTML = '<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("sal-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
+      SAL = r;
+      /* los ciclos pendientes vienen de tratamiento: si ya se consultó, se reusa */
+      if(TRA){ pintarSalidas(); return; }
+      google.script.run
+        .withSuccessHandler(function(t){ if(t && t.ok) TRA = t; pintarSalidas(); })
+        .withFailureHandler(function(){ pintarSalidas(); })
+        .api_tratamiento(PIN, "", "");
+    })
+    .withFailureHandler(function(){ $("sal-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_salidas(PIN, $("sal-desde").value||"", $("sal-hasta").value||"");
+}
+
+function pintarSalidas(){
+  var t = SAL.totales;
+  $("sal-kpis").innerHTML = '<div class="kpis">'+
+    '<div class="kpi"><div class="e">Despachos del periodo</div><div class="v">'+t.salidas+'</div>'+
+      '<div class="s">'+n1(t.kgPlanta)+' kg de planta</div></div>'+
+    '<div class="kpi ok"><div class="e">Pesó EMAS</div><div class="v">'+n1(t.kgEmas)+'</div>'+
+      '<div class="s">kg según su báscula</div></div>'+
+    '<div class="kpi'+(t.sinRecibo?' avi':'')+'"><div class="e">Sin recibo de EMAS</div>'+
+      '<div class="v">'+t.sinRecibo+'</div><div class="s">despacho(s) por cerrar</div></div>'+
+    '<div class="kpi"><div class="e">Diferencia habitual</div>'+
+      '<div class="v">'+(t.difPromedio>0?"+":"")+t.difPromedio+'%</div>'+
+      '<div class="s">EMAS contra planta</div></div>'+
+  '</div>';
+
+  if(SAL.puedeEditar){
+    $("sal-form").style.display = "block";
+    if(!$("s-fecha").value) $("s-fecha").value = (TRA && TRA.hoy) || "";
+    if(!$("s-vehiculo").options.length)
+      $("s-vehiculo").innerHTML = SAL.vehiculos.map(function(v){ return '<option>'+v+'</option>'; }).join("");
+    pintarPendientes();
+  }
+
+  pintarDespachos();
+}
+
+/* ═══ LOS DESPACHOS ═══════════════════════════════════════════════
+   Ficha con lo justo para reconocerlo: el número, el día y cuánto salió.
+   Al tocarla se abre el manifiesto, que ya existe y es el documento que
+   acompaña la carga. */
+function pintarDespachos(){
+  var l = (SAL && SAL.salidas) || [];
+  if(!l.length){
+    $("sal-lista").innerHTML='<div class="vacio">No hay despachos en este periodo.</div>';
+    return;
+  }
+  $("sal-lista").innerHTML = '<h2>Despachos al relleno · '+l.length+'</h2>'+
+    l.map(function(s){
+      var ciclos = String(s.ciclos||"").split(",").filter(function(z){return z.trim();}).length;
+      return '<div class="ciclo'+(s.reciboEmas?'':' sin-salida')+'">'+
+        '<div class="enc" style="cursor:pointer" onclick="verActaSalida(&#39;'+esc(s.salidaId)+'&#39;)">'+
+          '<span class="n">'+esc(s.salidaId)+'</span>'+
+          '<span class="cuando">'+esc(s.fecha)+(ciclos?' · '+ciclos+' ciclo(s)':'')+'</span>'+
+          (s.rara ? '<span class="pill-p mal">diferencia fuera de lo normal</span>' : '')+
+          (s.reciboEmas ? '<span class="pill-p ok">recibo '+esc(s.reciboEmas)+'</span>'
+                        : '<span class="pill-p esp">falta el recibo</span>')+
+          '<span class="kg">'+n1(s.kgPlanta)+' kg</span>'+
+          '<span class="fl">&#9656;</span></div>'+
+        '<div class="par">'+
+          esc(s.vehiculo||"—")+(s.conductor?' · '+esc(s.conductor):'')+
+          ' · '+esc(s.destino||"")+
+          (s.kgEmas? '<br>El relleno pesó <b>'+n1(s.kgEmas)+' kg</b>'+
+            (s.dif!==null? ' · diferencia '+(s.dif>0?"+":"")+s.dif+'%' : '') : '')+
+        '</div>'+
+        '<div class="acc">'+
+          '<button class="btn mini" onclick="verActaSalida(&#39;'+esc(s.salidaId)+'&#39;)">📄 Ver el manifiesto</button>'+
+          (!s.reciboEmas && SAL.puedeEditar
+            ? '<button class="btn mini sec" onclick="pedirRecibo(&#39;'+esc(s.salidaId)+'&#39;)">Registrar recibo del relleno</button>'
+            : '')+
+        '</div></div>';
+    }).join("");
+}
+
+/* ═══ QUÉ CICLOS VAN EN ESTE DESPACHO ═══
+   Antes se llevaba TODO lo que estuviera en cuarentena, sin preguntar. Con un
+   ciclo pendiente daba igual; con cuatro y dos camiones, no: el manifiesto
+   del primer viaje reclamaba material que se fue en el segundo. Ahora se
+   eligen, vienen todos marcados —que es el caso normal— y desmarcar uno lo
+   deja en cuarentena para el siguiente. */
+function pintarPendientes(){
+  var p = (TRA && TRA.pendientes) || [];
+  if(!p.length){
+    $("sal-pendientes").innerHTML = '<div class="nota">No hay material en cuarentena esperando despacho.</div>';
+    return;
+  }
+  $("sal-pendientes").innerHTML =
+    '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
+    'color:var(--verde)"><b>'+p.length+' ciclo(s) en cuarentena</b> · '+
+    n1(TRA.kgPorDespachar)+' kg esterilizados esperando el despacho.'+
+    '<div style="margin-top:9px">'+p.map(function(c,i){
+      return '<label class="chk-ciclo"><input type="checkbox" class="pend" checked '+
+        'data-id="'+esc(c.cicloId)+'" data-kg="'+c.kgSalida+'" onchange="sumarElegidos()"> '+
+        '<span><b>'+esc(c.cicloId)+'</b> · '+esc(c.fecha)+' · '+
+        (c.sinPeso ? 'sin peso anotado' : n1(c.kgSalida)+' kg'+(c.estimado?'*':''))+
+        '</span></label>';
+    }).join("")+'</div>'+
+    '<div id="sal-elegidos" style="font-size:11.5px;margin-top:8px;font-weight:700"></div>'+
+    (p.some(function(c){return c.estimado && !c.sinPeso;})
+      ? '<div style="font-size:11px;margin-top:7px;opacity:.85">* todavía sin pesar: se usa '+
+        'el peso de entrada como referencia. El material se pesa en la báscula de planta al '+
+        'salir de cuarentena.</div>'
+      : '')+'</div>';
+  sumarElegidos();
+}
+
+function elegidos(){
+  return [].slice.call(document.querySelectorAll('#sal-pendientes .pend'))
+    .filter(function(e){ return e.checked; });
+}
+
+function sumarElegidos(){
+  var e = elegidos();
+  var kg = e.reduce(function(s,x){ return s + (Number(x.dataset.kg)||0); }, 0);
+  var c = $("sal-elegidos");
+  if(c) c.innerHTML = e.length
+    ? e.length+' ciclo(s) elegidos · '+n1(kg)+' kg de referencia'
+    : '<span style="color:var(--rojo)">Ningún ciclo elegido: el manifiesto saldría sin '+
+      'constancia de qué se trató.</span>';
+  /* El peso sugerido sigue a lo elegido mientras nadie lo haya escrito a mano;
+     en cuanto el operador teclea el de báscula, no se lo tocamos más. */
+  var k = $("s-kg");
+  if(k && !k.dataset.tocado && kg > 0) k.value = kg.toFixed(2);
+}
+
+function guardarSalida(){
+  var marcados = elegidos();
+  var p = marcados.map(function(e){
+    return { cicloId: e.dataset.id, kgSalida: Number(e.dataset.kg) || 0 };
+  });
+  var kg = num($("s-kg").value);
+  if(!(kg>0)){
+    toast("Escribe el peso del despacho. Si aún no lo tienes, usa el de la báscula del relleno.");
+    $("s-kg").focus(); return;
+  }
+  var d = { fecha:$("s-fecha").value, horaSalida:$("s-hora").value, kgPlanta:kg,
+    vehiculo:$("s-vehiculo").value, conductor:$("s-conductor").value.trim(),
+    responsable:$("s-responsable").value.trim(),
+    ciclos:p.map(function(c){ return c.cicloId; }),
+    kgTratado: p.reduce(function(s,c){ return s+c.kgSalida; },0),
+    observaciones:$("s-obs").value.trim() };
+
+  /* Antes esto era un callejón sin salida: sin ciclos pendientes el botón
+     contestaba «No hay ciclos tratados sin despachar» y ahí terminaba
+     todo. El camión salía igual y la salida se anotaba a mano en el libro
+     —así quedaron las 18 cargadas—, sin que el sistema se enterara.
+
+     Ahora sí se puede despachar sin ciclos, pero cuesta: hay que escribir
+     por qué. Ese motivo se imprime en el manifiesto y sale en la revisión
+     de integridad, que es exactamente lo que faltaba. */
+  if(!p.length){ razonSinCiclos(d); return; }
+  enviarSalida(d);
+}
+
+function razonSinCiclos(d){
+  preguntar({
+    icono:"⚠️", titulo:"Esta salida no lleva ningún ciclo",
+    texto:"No hay ciclos tratados esperando despacho. Si el camión sale igual, "+
+          "el manifiesto se imprime diciendo <b>«sin ciclos registrados»</b>: "+
+          "sale sin constancia de qué se trató.<br><br>"+
+          "Si aun así es lo correcto, escribe por qué. Queda en el papel y en "+
+          "la revisión del libro.",
+    boton:"Despachar sin ciclos",
+    campos:[{ id:"sc-razon", etiqueta:"Por qué sale sin ciclos",
+              placeholder:"Ej.: los ciclos del lunes se registran mañana" }],
+    alAceptar:function(v){
+      var r = v["sc-razon"];
+      if(r.length < 10){
+        toast("Escribe el motivo completo — con una palabra no se entiende en un año.");
+        return false;                       // el diálogo se queda abierto
+      }
+      d.sinCiclos = true;
+      d.observaciones = (d.observaciones ? d.observaciones+" · " : "") + r;
+      enviarSalida(d);
+    }
+  });
+}
+
+function enviarSalida(d){
+  toast("Generando el manifiesto…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){
+        /* el servidor también frena la salida sin ciclos, por si la
+           pantalla llegara aquí por otro camino */
+        if(r && r.sinCiclos){ razonSinCiclos(d); return; }
+        toast((r&&r.error)||"No se pudo generar"); return;
+      }
+      toast(r.ciclos ? "Manifiesto "+r.salidaId+" generado · "+r.ciclos+" ciclo(s)"
+                     : "Manifiesto "+r.salidaId+" generado SIN ciclos");
+      ["s-kg","s-conductor","s-obs","s-hora"].forEach(function(i){ $(i).value=""; });
+      delete $("s-kg").dataset.tocado;
+      SAL=null; TRA=null; cargarSalidas();
+      setTimeout(function(){ verActaSalida(r.salidaId); }, 600);
+    })
+    .withFailureHandler(function(){ toast("Sin conexión — no se generó"); })
+    .api_guardarSalida(PIN, d);
+}
+
+/* El recibo de báscula del relleno llega después del viaje. */
+function pedirRecibo(id){
+  var s = null;
+  (SAL && SAL.salidas || []).forEach(function(z){ if(z.salidaId === id) s = z; });
+  preguntar({
+    titulo: "Recibo del relleno",
+    texto: s
+      ? "Despacho <b>"+esc(id)+"</b> del "+esc(s.fecha)+"<br>Salieron "+n1(s.kgPlanta)+
+        " kg de planta según nuestra báscula."
+      : "Despacho "+esc(id),
+    campos: [
+      { id:"r-kg", etiqueta:"Kilos que pesó el relleno", tipo:"number", placeholder:"0.00" },
+      { id:"r-num", etiqueta:"Número del recibo", placeholder:"Ej. EMAS-88214" }
+    ],
+    boton: "Registrar el recibo",
+    alAceptar: function(v){
+      if(!(num(v["r-kg"]) > 0)){ toast("Escribe el peso del recibo"); return false; }
+      toast("Registrando…");
+      google.script.run
+        .withSuccessHandler(function(r){
+          if(r && r.ok){ toast("Recibo registrado ✓"); SAL=null; cargarSalidas(); }
+          else toast((r&&r.error)||"No se pudo registrar");
+        })
+        .withFailureHandler(function(){ toast("Sin conexión"); })
+        .api_registrarReciboEmas(PIN, id, num(v["r-kg"]), v["r-num"]);
+    }
+  });
+}
+
+/* ═══ Diálogo propio ═══ */
+var dlgCb = null, dlgCampos = [];
+
+function preguntar(op){
+  $("dlg-tit").textContent = op.titulo || "";
+  $("dlg-txt").innerHTML = op.texto || "";
+  $("dlg-si").textContent = op.boton || "Guardar";
+  $("dlg-ic").textContent = op.icono || "⚖️";
+  dlgCampos = op.campos || [];
+  $("dlg-campos").innerHTML = dlgCampos.map(function(c){
+    return '<label>'+esc(c.etiqueta)+'</label>'+
+      '<input id="'+c.id+'"'+(c.tipo==="number"?' inputmode="decimal"':'')+
+      ' placeholder="'+esc(c.placeholder||"")+'" autocomplete="off">';
+  }).join("");
+  dlgCb = op.alAceptar || null;
+  $("dlg").classList.add("ver");
+  if(dlgCampos.length) setTimeout(function(){
+    var c = dlgCampos[0]; if(!c) return;      // pudo cerrarse antes del foco
+    var e = $(c.id); if(e) e.focus();
+  }, 150);
+}
+
+function dlgSi(){
+  var v = {};
+  dlgCampos.forEach(function(c){ var e=$(c.id); v[c.id] = e ? e.value.trim() : ""; });
+  var f = dlgCb;
+  if(f && f(v) === false) return;      // dato inválido: el diálogo se queda abierto
+  $("dlg").classList.remove("ver"); dlgCb = null; dlgCampos = [];
+}
+
+function dlgNo(){ $("dlg").classList.remove("ver"); dlgCb = null; dlgCampos = []; }
+
+function verActaSalida(id){
+  abrirDoc("?p=asalida&id="+encodeURIComponent(id));
+}
+
+/* ═══ Mantenimiento ═══ */
+function cargarMantenimiento(){
+  $("mto-lista").innerHTML = '<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("mto-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
+      MTO = r; pintarMantenimiento();
+    })
+    .withFailureHandler(function(){ $("mto-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_mantenimiento(PIN);
+}
+
+function pintarMantenimiento(){
+  $("mto-alertas").innerHTML = MTO.alertas.length
+    ? MTO.alertas.map(function(m){
+        var v = m.estado === "VENCIDO";
+        return '<div class="nota"'+(v?' style="background:var(--rojo-suave);'+
+          'border-left-color:var(--rojo);color:var(--rojo)"':'')+'>'+
+          '<b>'+esc(m.equipo)+' · '+esc(m.tipo)+'</b> — '+
+          (v ? 'venció hace '+Math.abs(m.diasPara)+' día(s)'
+             : 'vence en '+m.diasPara+' día(s)')+' ('+esc(m.proximo)+')</div>';
+      }).join("")
+    : '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
+      'color:var(--verde)">Todos los equipos al día.</div>';
+
+  if(MTO.puedeEditar){
+    $("mto-form").style.display = "block";
+    if(!$("m-equipo").options.length){
+      $("m-equipo").innerHTML = MTO.equipos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
+      $("m-tipo").innerHTML = MTO.tipos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
+    }
+    if(!$("m-fecha").value) $("m-fecha").value = MTO.hoy;
+  }
+
+  $("mto-lista").innerHTML = MTO.mantenimientos.length
+    ? '<h2>Historial</h2><div class="tabla-caja"><table><thead><tr>'+
+      '<th>Equipo</th><th>Tipo</th><th>Fecha</th><th>Próximo</th><th>Estado</th>'+
+      '<th>Quién</th><th>Resultado</th></tr></thead><tbody>'+
+      MTO.mantenimientos.map(function(m){
+        return '<tr><td><b>'+esc(m.equipo)+'</b></td><td>'+esc(m.tipo)+'</td>'+
+          '<td>'+esc(m.fecha)+'</td><td>'+esc(m.proximo||"—")+'</td>'+
+          '<td'+(m.estado==="VENCIDO"?' style="color:var(--rojo);font-weight:800"':'')+'>'+
+            esc(m.estado)+'</td>'+
+          '<td>'+esc(m.empresa||m.responsable||"—")+'</td>'+
+          '<td>'+esc(m.resultado||"—")+'</td></tr>';
+      }).join("")+'</tbody></table></div>'
+    : '<div class="vacio">No hay mantenimientos registrados.</div>';
+}
+
+function guardarMantenimiento(){
+  var d = { equipo:$("m-equipo").value, tipo:$("m-tipo").value, fecha:$("m-fecha").value,
+    proximo:$("m-proximo").value, responsable:$("m-responsable").value.trim(),
+    empresa:$("m-empresa").value.trim(), resultado:$("m-resultado").value.trim(),
+    costo:num($("m-costo").value), observaciones:$("m-obs").value.trim() };
+  toast("Registrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo"); return; }
+      toast("Mantenimiento registrado ✓");
+      ["m-proximo","m-empresa","m-resultado","m-costo","m-obs"].forEach(function(i){ $(i).value=""; });
+      MTO=null; cargarMantenimiento();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_guardarMantenimiento(PIN, d);
+}
+
+/* ═══ Consumibles ═══ */
+function cargarConsumibles(){
+  $("con-lista").innerHTML = '<div class="vacio">Consultando…</div>';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ $("con-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
+      CON = r; pintarConsumibles();
+    })
+    .withFailureHandler(function(){ $("con-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
+    .api_consumibles(PIN, $("f-desde").value||"", $("f-hasta").value||"");
+}
+
+function pintarConsumibles(){
+  if(CON.puedeEditar){
+    $("con-form").style.display = "block";
+    if(!$("k-articulo").options.length)
+      $("k-articulo").innerHTML = CON.articulos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
+    if(!$("k-fecha").value) $("k-fecha").value = (TRA && TRA.hoy) || "";
+  }
+  $("con-lista").innerHTML = CON.resumen.length
+    ? '<h2>Consumo del periodo</h2><div class="tabla-caja"><table><thead><tr>'+
+      '<th>Artículo</th><th>Cantidad</th><th>Unidad</th><th>Veces</th><th>Último</th>'+
+      '</tr></thead><tbody>'+
+      CON.resumen.map(function(c){
+        return '<tr><td><b>'+esc(c.articulo)+'</b></td><td class="n">'+n1(c.cantidad)+'</td>'+
+          '<td>'+esc(c.unidad||"—")+'</td><td class="n">'+c.veces+'</td>'+
+          '<td>'+esc(c.ultima)+'</td></tr>';
+      }).join("")+'</tbody></table></div>'
+    : '<div class="vacio">No hay consumos registrados en este periodo.</div>';
+}
+
+function guardarConsumo(){
+  var d = { fecha:$("k-fecha").value, articulo:$("k-articulo").value,
+    cantidad:num($("k-cantidad").value), unidad:$("k-unidad").value.trim() };
+  if(!(d.cantidad>0)){ toast("Falta la cantidad"); return; }
+  toast("Registrando…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo"); return; }
+      toast("Consumo registrado ✓");
+      $("k-cantidad").value=""; CON=null; cargarConsumibles();
+    })
+    .withFailureHandler(function(){ toast("Sin conexión"); })
+    .api_guardarConsumo(PIN, d);
+}
+
+
+/* Aviso breve al pie. Las pestañas de planta lo usan en cada guardado. */
+function toast(m){
+  var t = $("toast"); if(!t) return;
+  t.textContent = m; t.classList.add("ver");
+  clearTimeout(t._h);
+  t._h = setTimeout(function(){ t.classList.remove("ver"); }, 3400);
+}
+
+
+/* La duración total incluye prevacío, esterilización y vacío final.
+   Los minutos de esterilización son otro dato: los de la receta del equipo. */
+function calcDuracion(){
+  var a = $("c-hini").value, b = $("c-hfin").value, d = $("c-dur");
+  if(!d) return;
+  if(!a || !b){ d.value = ""; return; }
+  var p = a.split(":"), q = b.split(":");
+  var m = (Number(q[0])*60 + Number(q[1])) - (Number(p[0])*60 + Number(p[1]));
+  if(m < 0) m += 1440;              // el ciclo cruzó la medianoche
+  var h = Math.floor(m/60), r = m%60;
+  d.value = (h ? h+" h " : "") + r + " min";
+  d.dataset.min = m;
+}
+
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+
+</script>
+<div id="dlg">
+<div class="dlg-fondo" onclick="dlgNo()"></div>
+<div class="dlg-caja">
+<div class="dlg-ic" id="dlg-ic">⚖️</div>
+<div class="dlg-tit" id="dlg-tit"></div>
+<div class="dlg-txt" id="dlg-txt"></div>
+<div id="dlg-campos"></div>
+<button class="btn" id="dlg-si" onclick="dlgSi()">Guardar</button>
+<button class="btn sec" style="margin-top:8px" onclick="dlgNo()">Cancelar</button>
+</div>
+</div>
+
+<div id="toast"></div>
+</body>
+</html>

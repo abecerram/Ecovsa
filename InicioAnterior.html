@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>Dirección (pantalla anterior) · ECOVSA</title>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="estilos-operaciones.css">
+<script src="puente.js"></script>
+<style>
+
+/* ═══════════════════════════════════════════════════════════════════
+   DIRECCIÓN
+   ───────────────────────────────────────────────────────────────────
+   La pantalla a la que llega gerencia desde el lobby.
+
+   Cuatro pestañas, una por zona, y las CUATRO CON LA MISMA FORMA a
+   propósito: los números arriba —en uno o dos bloques rotulados—, las
+   gráficas, lo que espera una decisión, y abajo el detalle en secciones
+   que se abren a elección. Se aprende a leer una pantalla, no cuatro.
+
+   Lo que la separa de la pantalla de quien hace el trabajo es cómo está
+   dicho: no hay una tabla con todo por si acaso, hay preguntas que
+   gerencia hace de verdad con la respuesta ya escrita encima.
+
+   Cada pestaña trae TODO lo de su módulo en un solo viaje al servidor.
+   Ya no hay «reporte a profundidad» al que viajar: lo pesado vive aquí
+   mismo, en secciones que se abren a elección.
+   ═══════════════════════════════════════════════════════════════════ */
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+  line-height:1.5;padding-bottom:60px}
+
+/* ── el encabezado, con la salida ──
+   La salida va a la IZQUIERDA y antes del título: quien se quiere ir la
+   busca ahí, no en el pie. */
+header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
+  padding:14px 20px 16px;border-bottom:5px solid var(--ambar)}
+.barra{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.volver{display:inline-flex;align-items:center;gap:7px;color:#fff;border-radius:20px;
+  font-family:inherit;font-weight:700;cursor:pointer;white-space:nowrap;
+  background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.30);
+  padding:8px 15px 8px 12px;font-size:12.5px}
+.volver:hover{background:rgba(255,255,255,.24)}
+.volver svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.titulo h1{font-size:20px;font-weight:800;letter-spacing:.3px;line-height:1.15}
+.titulo .sub{font-size:10.5px;font-weight:600;opacity:.82;letter-spacing:.7px;
+  text-transform:uppercase;margin-top:2px}
+.salir{margin-left:auto;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.30);color:#fff;
+  font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:20px;cursor:pointer}
+
+/* ── las cuatro pestañas ── */
+.zonas-nav{background:#fff;border-bottom:1px solid var(--borde)}
+.zonas-nav .in{max-width:1320px;margin:0 auto;display:flex;gap:2px;padding:0 20px;overflow-x:auto}
+.zonas-nav button{background:none;border:none;border-bottom:3px solid transparent;
+  padding:13px 16px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--gris);
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.zonas-nav button:hover{color:var(--tinta)}
+.zonas-nav button.on{color:var(--azul-osc);border-bottom-color:var(--azul-osc)}
+.zonas-nav i{width:9px;height:9px;border-radius:50%;background:var(--borde);flex:0 0 auto}
+.zonas-nav .pend{background:var(--rojo-suave);color:#8E2A1E;border-radius:9px;
+  padding:1px 7px;font-size:11px;font-weight:800}
+
+.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 0}
+h3{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);margin:0 0 11px}
+
+/* ── el periodo ──
+   Arriba y siempre visible: sin él, «2,340 kg» no quiere decir nada. Y
+   dicho en palabras, no solo con dos fechas. */
+.periodo{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:11px 15px;margin-bottom:14px;box-shadow:var(--sombra);
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.periodo .dice{font-size:13.5px;font-weight:700}
+.periodo .dice b{color:var(--azul-osc)}
+.periodo .dice span{color:var(--gris);font-weight:500}
+.rapidos{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.rapidos button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
+  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer}
+.rapidos button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff}
+.rapidos input{padding:6px 9px;font-family:inherit;font-size:12.5px;
+  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
+
+/* ── los números ── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px 17px;box-shadow:var(--sombra);border-top:4px solid var(--azul)}
+.kpi .e{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--gris);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+/* Un número en rojo tiene que ser raro para que signifique algo. Solo
+   los que de verdad están mal lo llevan. */
+.kpi.malo{border-top-color:var(--rojo)!important}
+.kpi.malo .v{color:var(--rojo)}
+/* De dónde sale la cifra. Sin esto, la mora de siempre y lo facturado de
+   esta semana se leen igual y alguien las suma. */
+.de{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.6px;
+  text-transform:uppercase;border-radius:6px;padding:3px 8px;
+  background:var(--azul-suave);color:var(--azul-osc)}
+.de.per{background:var(--verde-suave);color:var(--verde)}
+
+/* ── LOS BLOQUES ──
+   Un rótulo separa dos preguntas distintas dentro de una misma pestaña:
+   en mercadeo, qué clientes se tienen (la cartera) y qué se está
+   negociando (el embudo). Sin el corte, doce números seguidos se leen
+   como una sola lista. */
+.bloque{display:flex;align-items:center;gap:10px;margin:4px 0 11px}
+.bloque .t{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--azul-osc);white-space:nowrap}
+.bloque .l{flex-grow:1;height:1px;background:var(--borde)}
+
+/* El filtro de la curva vive DENTRO de su tarjeta, no arriba: arriba se
+   elige el periodo del embudo y aquí la historia de la cartera. Son dos
+   ventanas distintas y juntarlas confundiría las dos. */
+.filtro{display:flex;gap:7px;flex-wrap:wrap;align-items:center;
+  margin-top:11px;padding-top:11px;border-top:1px solid var(--borde)}
+.filtro .e{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gris);margin-right:3px}
+.filtro button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
+  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);
+  cursor:pointer}
+.filtro button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
+  border-color:var(--azul-osc);color:#fff}
+.filtro .libre{display:flex;gap:6px;align-items:center;margin-left:auto}
+.filtro .libre span{font-size:11.5px;color:var(--gris)}
+.filtro input{padding:6px 9px;font-family:inherit;font-size:12.5px;
+  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
+@media (max-width:700px){.filtro .libre{margin-left:0;width:100%}}
+
+.curva svg{width:100%;height:250px;display:block}
+.reparto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:14px}
+@media (max-width:760px){.reparto{grid-template-columns:1fr;gap:16px}}
+.rep{display:flex;flex-direction:column;gap:9px}
+.rep .f{display:flex;align-items:center;gap:10px}
+.rep .n{width:112px;flex-shrink:0;font-size:12px;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* «sin región» se dice en gris, no se esconde: es un dato por completar.
+   La clase se llama .sin y no .vacio porque .vacio ya es el mensaje
+   centrado de «no hay nada que mostrar» y le metería 44px de aire. */
+.rep .n.sin{color:var(--gris)}
+.rep .b{flex-grow:1;height:16px;background:var(--fondo);border-radius:4px;overflow:hidden}
+.rep .b i{display:block;height:100%;border-radius:4px}
+.rep .c{width:26px;text-align:right;font-size:13px;font-weight:900;color:var(--azul-osc);
+  font-variant-numeric:tabular-nums}
+.rep .c.sin{color:var(--gris)}
+.kpi .v{font-size:28px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:5px;
+  font-variant-numeric:tabular-nums;word-break:break-word}
+.kpi .v small{font-size:15px;font-weight:800;color:var(--gris)}
+.kpi .s{font-size:12px;color:var(--gris);line-height:1.45;margin-top:5px}
+
+/* ── lo que espera una decisión ──
+   Va DENTRO de la zona y no en un bloque aparte que las mezcla: un
+   mantenimiento vencido es un asunto de planta, y verlo en la pestaña de
+   planta es lo que hace que alguien lo atienda. */
+.decide{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:15px 17px;box-shadow:var(--sombra);margin-bottom:16px}
+.lista-d{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.d-item{display:block;background:#F7F9FC;border-left:4px solid var(--azul);border-radius:10px;
+  padding:11px 14px;text-decoration:none;color:var(--tinta)}
+.d-item:hover{background:var(--azul-suave)}
+.d-item.urg{border-left-color:var(--rojo);background:var(--rojo-suave)}
+.d-item b{display:block;font-size:13.5px;font-weight:800;line-height:1.35}
+.d-item span{display:block;font-size:11.5px;color:var(--gris);margin-top:3px;line-height:1.5}
+
+/* ── la gráfica ── */
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  padding:17px 19px;box-shadow:var(--sombra);margin-bottom:16px}
+.tarjeta .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tarjeta .cab .lee{font-size:12px;color:var(--gris);margin-left:auto}
+.grafica{margin-top:14px}
+.grafica svg{width:100%;height:230px;display:block}
+.leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--gris)}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}
+.leyenda i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ── las preguntas ya contestadas ── */
+.preg{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
+  box-shadow:var(--sombra);margin-bottom:12px;overflow:hidden}
+.preg > button{width:100%;text-align:left;background:none;border:none;font-family:inherit;
+  padding:15px 18px;cursor:pointer;display:flex;gap:13px;align-items:flex-start}
+.preg > button:hover{background:var(--azul-suave)}
+.preg .q{font-size:15px;font-weight:800;color:var(--azul-osc);line-height:1.3}
+.preg .r{font-size:13px;color:var(--tinta);margin-top:3px;line-height:1.5}
+/* Cuánto hay dentro, dicho por fuera: así se sabe si vale la pena abrir
+   una sección sin tener que abrirla. */
+.preg .cuenta{font-size:11px;font-weight:800;color:var(--gris);background:var(--fondo);
+  border-radius:9px;padding:2px 9px;align-self:center;white-space:nowrap;flex:0 0 auto}
+.preg .fl{margin-left:auto;color:var(--gris);font-size:13px;font-weight:800;flex:0 0 auto;
+  transition:transform .15s}
+.preg.abierta .fl{transform:rotate(180deg)}
+.preg .cuerpo{display:none;padding:0 18px 17px;border-top:1px solid var(--borde)}
+.preg.abierta .cuerpo{display:block}
+.preg .cuerpo p{font-size:13.5px;line-height:1.6;margin:14px 0 0}
+.nota{background:var(--azul-suave);border-left:4px solid var(--azul);border-radius:0 9px 9px 0;
+  padding:11px 14px;font-size:12.5px;line-height:1.6;color:var(--tinta);margin-top:14px}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--gris);padding:8px 10px;border-bottom:2px solid var(--borde);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--borde);font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:none}
+td.alerta{color:var(--rojo);font-weight:800}
+td.num,th.num{text-align:right}
+tr.total td{font-weight:800;background:var(--azul-suave);border-top:2px solid var(--azul-claro)}
+.tabla-scroll{overflow-x:auto}
+.mas{background:none;border:1.5px solid var(--borde);border-radius:18px;padding:7px 15px;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;
+  margin-top:12px}
+/* Las filas de más existen siempre; en pantalla se esconden y en papel
+   salen. Una tabla cortada en el papel sin decirlo es peor que una
+   tabla larga. */
+tr.extra{display:none}
+@media print{ tr.extra{display:table-row!important} }
+
+.vacio{text-align:center;color:var(--gris);font-size:14px;padding:44px 16px;line-height:1.6}
+/* La banda de lo que duele. Se llama `malo-caja` y no `malo` porque los
+   números en rojo llevan `kpi malo`, y con el mismo nombre esta regla
+   —que va más abajo— les pintaba encima el fondo y el relleno. */
+.malo-caja{background:var(--rojo-suave);border-left:4px solid var(--rojo);
+  border-radius:0 10px 10px 0;padding:13px 16px;font-size:13px;line-height:1.6;
+  color:var(--rojo);margin-bottom:16px}
+.malo-caja b{font-weight:900}
+
+
+/* ── LA ESPERA ───────────────────────────────────────────────────────
+   Esto es lo que faltaba y por eso la pantalla salía EN BLANCO.
+
+   Al entrar, la caja del PIN y la app arrancan escondidas y solo se
+   enseña una de las dos cuando el servidor contesta. Entre medio no
+   había nada que ver: blanco puro. Y como estas cuentas leen media
+   docena de hojas, ese blanco puede durar diez o veinte segundos —
+   tiempo de sobra para que uno crea que se rompió y recargue.
+
+   Ahora hay algo desde el primer instante, y un vigilante que a los 25
+   segundos deja de girar y ofrece reintentar en vez de girar para
+   siempre. */
+#cargando{text-align:center;padding:80px 20px}
+.spin{width:38px;height:38px;border:4px solid var(--borde);border-top-color:var(--azul);
+  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 16px}
+@keyframes g{to{transform:rotate(360deg)}}
+#cargando .txt{color:var(--gris);font-size:14px;font-weight:600;line-height:1.6}
+#cargando button{margin-top:16px;background:var(--ambar);color:#4A3300;border:none;
+  padding:11px 20px;border-radius:11px;font-family:inherit;font-weight:800;cursor:pointer}
+
+/* ── la puerta ── */
+.pin-caja{max-width:360px;margin:70px auto;background:#fff;border:1px solid var(--borde);
+  border-radius:20px;padding:32px 26px;text-align:center;box-shadow:0 4px 22px rgba(20,48,107,.15)}
+.pin-caja .logo{margin:0 auto 18px;height:74px;width:116px;
+  background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat}
+.pin-caja h1{font-size:19px;color:var(--azul-osc);margin-bottom:5px}
+.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 15px;border-radius:14px;margin:9px 0}
+.pin-caja p{font-size:13px;color:var(--gris);line-height:1.55;margin-bottom:18px}
+.pin-caja input{width:170px;text-align:center;font-size:29px;font-weight:800;letter-spacing:8px;
+  padding:13px;border:1.5px solid var(--borde);border-radius:12px;font-family:inherit;color:var(--azul-osc)}
+.pin-err{color:var(--rojo);font-size:13px;font-weight:600;height:19px;margin-top:10px}
+.pin-caja button{width:185px;margin-top:12px;padding:13px;border:none;border-radius:12px;
+  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
+  font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+
+/* El membrete solo existe en papel; la hoja de impresión vive en
+   Estilos.html y es la misma para las cuatro pantallas de reporte. */
+</style>
+</head>
+<body>
+
+<div id="cargando">
+  <div class="spin"></div>
+  <div class="txt">Reuniendo los datos…</div>
+</div>
+
+<div id="pantalla-pin" class="pin-caja" style="display:none">
+  <div class="logo"></div>
+  <h1>Dirección</h1>
+  <div class="tag">Acceso de gerencia</div>
+  <p>Escribe tu PIN para entrar.</p>
+  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div class="pin-err" id="pin-err"></div>
+  <button onclick="entrar()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+  <header class="no-imprimir">
+    <div class="barra">
+      <button class="volver" onclick="volverLobby()">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Volver al inicio
+      </button>
+      <div class="titulo">
+        <h1 id="h-tit">Dirección</h1>
+        <div class="sub" id="cab-usuario">—</div>
+      </div>
+      <button class="salir" onclick="window.print()">Imprimir</button>
+      <button class="salir" onclick="salir()">Salir</button>
+    </div>
+  </header>
+
+  <nav class="zonas-nav no-imprimir"><div class="in" id="nav"></div></nav>
+
+  <div class="wrap">
+    <div class="hoja-membrete">
+      <img class="hoja-logo" alt=""
+        src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400">
+      <div>
+        <div class="hoja-razon">ECOTERMO DE PANAMA S.A. · ECOVSA</div>
+        <div class="hoja-titulo" id="m-tit">Dirección</div>
+        <div class="hoja-periodo" id="m-per"></div>
+      </div>
+    </div>
+    <div id="cuerpo"><div class="vacio">Reuniendo los datos…</div></div>
+  </div>
+</div>
+
+<script>
+var PIN="", URL_APP="", ZONA="logistica", DESDE="", HASTA="", CONTEOS={};
+/* Lo que ya se trajo del servidor, por zona y periodo. Volver a una
+   pestaña que ya se miró tiene que ser instantáneo: gerencia salta entre
+   las cuatro comparando, y si cada salto sale al servidor se siente
+   lenta una pantalla que no lo es. */
+var CACHE={};
+/* La ventana de la curva de la cartera, solo de mercadeo. Va aparte del
+   periodo de la pestaña porque son dos preguntas: arriba, qué se cerró
+   este mes; en la curva, cómo ha crecido la cartera, que solo se ve en
+   años. */
+var CURVA="12";
+
+var ZONAS=[
+  /* Ya no hay campo `va`: las cuatro zonas traen su reporte dentro de la
+     pestaña y no queda ninguna página a la que viajar. */
+  {id:'logistica', nombre:'Logística',   color:'var(--azul)',   pend:'logistica'},
+  {id:'mercadeo',  nombre:'Mercadeo',    color:'var(--lima)',   pend:'mercadeo'},
+  {id:'planta',    nombre:'Tratamiento', color:'var(--morado)', pend:'planta'},
+  {id:'cobros',    nombre:'Cartera',     color:'var(--ambar)',  pend:'cobros'}
+];
+var ROTULO={admin:"Administración",gerente:"Gerencia",supervisor:"Supervisión de operaciones",
+            mercadeo:"Mercadeo"};
+
+function $(i){return document.getElementById(i);}
+
+/* Las tres pantallas de esta página: la espera, el PIN y la app. Solo
+   una a la vez, y SIEMPRE una: que no haya ninguna es el blanco. */
+function verPantalla(cual){
+  ["cargando","pantalla-pin","app"].forEach(function(x){
+    var e=$(x); if(e) e.style.display = (x===cual) ? "block" : "none";
+  });
+}
+/* El vigilante. Si a los 25 segundos no ha contestado nadie, deja de
+   girar y ofrece reintentar: una rueda girando para siempre no dice
+   nada, y recargar a mano es lo que estaba teniendo que hacer Álvaro. */
+function vigilar(){
+  clearTimeout(window._vig);
+  window.__LISTO__=false;
+  window._vig=setTimeout(function(){
+    if(window.__LISTO__) return;
+    var c=$("cargando");
+    if(c && c.style.display!=="none")
+      c.innerHTML='<div class="txt">Esto está tardando más de lo normal.<br>'+
+        'Puede ser la conexión, o que el libro tenga muchas filas.</div>'+
+        '<button onclick="location.reload()">Reintentar</button>';
+  },25000);
+}
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function zonaDe(id){ for(var i=0;i<ZONAS.length;i++) if(ZONAS[i].id===id) return ZONAS[i];
+                     return ZONAS[0]; }
+function ir(p){ return URL_APP ? URL_APP+"?p="+p : "#"; }
+
+/* ── fechas ─────────────────────────────────────────────────────────
+   El rango por defecto es del 1 del mes a hoy. */
+function iso(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+
+                        "-"+("0"+d.getDate()).slice(-2); }
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+           "septiembre","octubre","noviembre","diciembre"];
+function enPalabras(d1,d2){
+  if(!d1||!d2) return "";
+  var a=new Date(d1+"T12:00:00"), b=new Date(d2+"T12:00:00");
+  if(isNaN(a)||isNaN(b)) return d1+" — "+d2;
+  var mismoMes = a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear();
+  if(mismoMes) return "Del "+a.getDate()+" al "+b.getDate()+" de "+MESES[b.getMonth()];
+  return "Del "+a.getDate()+" de "+MESES[a.getMonth()]+" al "+
+         b.getDate()+" de "+MESES[b.getMonth()];
+}
+function rango(clave){
+  var h=new Date(), d=new Date();
+  if(clave==="semana")        d.setDate(h.getDate()-6);
+  else if(clave==="quincena") d.setDate(h.getDate()-14);
+  else if(clave==="mes")      d=new Date(h.getFullYear(),h.getMonth(),1);
+  else if(clave==="trimestre")d.setMonth(h.getMonth()-2);
+  else if(clave==="anio")     d=new Date(h.getFullYear(),0,1);
+  return {desde:iso(d), hasta:iso(h)};
+}
+var RAPIDO="mes";
+
+/* ── entrar ── */
+function arrancar(){
+  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
+  if(window.google&&google.script&&google.script.run)
+    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
+  var r=rango(RAPIDO); DESDE=r.desde; HASTA=r.hasta;
+  if(PIN) cargar(PIN); else pedirPin("");
+}
+function pedirPin(m){
+  window.__LISTO__=true;
+  verPantalla("pantalla-pin");
+  $("pin-err").textContent=m||"";
+  setTimeout(function(){var p=$("pin"); if(p)p.focus();},130);
+}
+function entrar(){
+  var p=($("pin").value||"").trim();
+  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
+  $("pin-err").textContent="Verificando…"; cargar(p);
+}
+function salir(){ try{localStorage.removeItem("ecovsa_pin");}catch(e){} volverLobby(); }
+function volverLobby(){ irA(ir("app")); }
+
+/* Cartera entró al periodo cuando su reporte se fundió con la pestaña,
+   así que ya no es la excepción: las cuatro zonas se guardan por zona y
+   por rango. Y mercadeo lleva además la ventana de su curva, que es otra
+   pregunta con su propio control. */
+function clave(){ return ZONA+"|"+DESDE+"|"+HASTA+"|"+(ZONA==="mercadeo"?CURVA:""); }
+
+function cargar(p){
+  var k=clave();
+  if(CACHE[k]){ PIN=p; mostrar(CACHE[k]); return; }
+  /* Si la app ya está en pantalla, la espera va DENTRO y no se pierde el
+     encabezado; si es la primera vez, se enseña la pantalla de espera. */
+  if($("app").style.display==="block")
+    $("cuerpo").innerHTML='<div class="vacio">Reuniendo los datos…</div>';
+  else verPantalla("cargando");
+  vigilar();
+  google.script.run
+    .withSuccessHandler(function(r){
+      window.__LISTO__=true;
+      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
+      PIN=p;
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
+      if(r.usuario)
+        $("cab-usuario").textContent =
+          "Dirección · "+r.usuario.nombre+" · "+(ROTULO[r.usuario.rol]||r.usuario.rol);
+      CACHE[k]=r;
+      mostrar(r);
+    })
+    .withFailureHandler(function(){
+      window.__LISTO__=true;
+      pedirPin("Sin conexión. Intenta con señal.");
+    })
+    .api_dir_zona(p, ZONA, DESDE, HASTA, CURVA);
+}
+
+function mostrar(r){
+  window.__LISTO__=true;
+  verPantalla("app");
+  if(r.conteos) CONTEOS=r.conteos;
+  pintar(r);
+}
+
+function verZona(id){
+  ZONA=id;
+  /* Qué tablas se dejaron desplegadas es de la zona que se estaba
+     mirando, no de la que se abre. */
+  ABIERTAS={};
+  var k=clave();
+  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
+  window.scrollTo(0,0);
+}
+function verRango(clv){
+  RAPIDO=clv;
+  var g=rango(clv); DESDE=g.desde; HASTA=g.hasta;
+  var k=clave();
+  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
+}
+function verFechas(){
+  var a=$("f-desde").value, b=$("f-hasta").value;
+  if(!a||!b) return;
+  if(a>b){ var t=a; a=b; b=t; }
+  RAPIDO=""; DESDE=a; HASTA=b;
+  var k=clave();
+  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
+}
+
+/* ── la gráfica ──
+   Dibujada a mano en SVG y no con una librería: son seis barras. Cargar
+   90 KB de Chart.js para esto es pagar caro un dibujo que sale en veinte
+   líneas, y en el teléfono se nota. */
+
+/* El renglón del eje. Con paso de mil o más se abrevia con «k», que se
+   lee de reojo; por debajo se escribe entero con sus comas, porque
+   abreviar 800 y 1,600 los convierte a los dos en «1k». Y con paso
+   menor a uno —una merma de 4.1 %— hace falta el decimal, porque
+   redondear ahí borra justo lo que se está mirando. */
+function etiquetaEje(val, paso){
+  if(val < 0.0001) return "0";
+  if(paso >= 1000) return Math.round(val/1000)+"k";
+  if(paso >= 1)    return String(Math.round(val)).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return val.toFixed(1);
+}
+function grafica(g,color){
+  if(!g||!g.barras||!g.barras.length) return "";
+  var W=1000,H=230,ml=g.horizontal?190:54,mr=16,mt=18,mb=34,s="";
+  var max=0; g.barras.forEach(function(b){
+    if(b.v>max) max=b.v;
+    if(g.dos && b.v2>max) max=b.v2;
+  });
+  if(max<=0) return '<div class="vacio">Sin datos para graficar en el periodo.</div>';
+  max=max*1.15;
+
+  /* ── La escala ──
+     Se redondea el PASO a un número bonito y de ahí sale el tope. Sin
+     esto, un máximo de 3,035 deja el tope en 3,490 y los renglones salen
+     3k, 3k, 2k, 1k: dos iguales seguidos se leen como un error.
+     Y un porcentaje no pasa de 100: dejar la escala en 110 achica las
+     barras y hace ver todo mejor de lo que está. */
+  var paso = max/4, mag = Math.pow(10, Math.floor(Math.log(paso)/Math.LN10));
+  var cand = [1,1.5,2,2.5,3,4,5,6,8,10], u = paso/mag;
+  for (var q=0; q<cand.length; q++) if (cand[q] >= u - 1e-9) { u = cand[q]; break; }
+  paso = u*mag; max = paso*4;
+  if(g.unidad==="%" && max>100){ max=100; paso=25; }
+
+  if(g.horizontal){
+    var alto=(H-mt-mb)/g.barras.length;
+    g.barras.forEach(function(b,i){
+      var y=mt+i*alto, h=alto*0.62, w=(W-ml-mr)*(b.v/max);
+      s+='<rect x="'+ml+'" y="'+(y+(alto-h)/2)+'" width="'+Math.max(w,1)+'" height="'+h+
+         '" rx="4" fill="'+color+'"/>';
+      s+='<text x="'+(ml-10)+'" y="'+(y+alto/2+4)+'" text-anchor="end" font-size="13" fill="#5B6880">'+
+         esc(b.x)+'</text>';
+      s+='<text x="'+(ml+w+8)+'" y="'+(y+alto/2+4)+'" font-size="13" font-weight="700" fill="#141C2B">'+
+         (g.unidad==="B/."?"B/. ":"")+miles(b.v)+'</text>';
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+  }
+
+  var ancho=(W-ml-mr)/g.barras.length;
+  for(var k=0;k<=4;k++){
+    var yy=mt+(H-mt-mb)*(k/4);
+    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="#E3EAF3" stroke-width="1"/>';
+    var val=max*(1-k/4);
+    var et = etiquetaEje(val, paso);
+    s+='<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+et+'</text>';
+  }
+  g.barras.forEach(function(b,i){
+    /* Con dos series, cada mes lleva dos barras pegadas. Apiladas
+       mentirían: lo que salió no es una parte de lo que entró, son dos
+       pesajes distintos del mismo material — y una propuesta firmada no
+       es un pedazo de una propuesta enviada. */
+    var n = g.dos ? 2 : 1;
+    for(var j=0;j<n;j++){
+      var val = (j===0) ? b.v : b.v2;
+      var h=(H-mt-mb)*((Number(val)||0)/max); if(h<0) h=0;
+      var w=(ancho*0.6)/n;
+      var x=ml+i*ancho+ancho*0.2+j*w, y=H-mb-h;
+      var col = (j===0) ? color : "var(--azul-claro)";
+      s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(n===1?4:3)+'" fill="'+
+         (b.parcial?'url(#rayas)':col)+'"'+
+         (b.parcial?' stroke="'+col+'" stroke-width="1.5"':'')+'/>';
+      if(n===1 || j===0)
+        s+='<text x="'+(ml+i*ancho+ancho*0.5)+'" y="'+(y-6)+'" text-anchor="middle" '+
+           'font-size="12" font-weight="700" fill="#141C2B">'+miles(b.v)+'</text>';
+    }
+    s+='<text x="'+(ml+i*ancho+ancho*0.5)+'" y="'+(H-12)+'" text-anchor="middle" '+
+       'font-size="12" fill="#5B6880">'+esc(b.x)+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'"><defs>'+
+    '<pattern id="rayas" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'+
+    '<rect width="7" height="7" fill="#fff"/><line x1="0" y1="0" x2="0" y2="7" stroke="'+color+
+    '" stroke-width="4"/></pattern></defs>'+s+'</svg>';
+}
+function miles(v){
+  var n=Number(v)||0;
+  var s=(Math.abs(n)<1000 && n%1!==0) ? n.toFixed(1) : Math.round(n).toString();
+  var p=s.split(".");
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return p.join(".");
+}
+
+/* ── LAS TABLAS ──────────────────────────────────────────────────────
+   En pantalla se enseñan las primeras y se ofrece ver el resto: una
+   tabla de sesenta filas dentro de una sección empuja todo lo demás
+   fuera de la vista.
+
+   Pero las filas de más SE DIBUJAN IGUAL, solo escondidas. Esa es la
+   diferencia con las páginas que estamos retirando: allá se cortaban en
+   veinticinco y el botón de «ver todas» no se imprimía, así que en papel
+   salían cortadas SIN AVISAR — los ciclos del periodo, las propuestas
+   sin respuesta y las facturas vencidas. Aquí el papel las lleva todas
+   porque están en la página, solo ocultas. */
+var TOPE=25;
+var ABIERTAS={};
+function verTodas(i){ ABIERTAS[i]=true; var c=CACHE[clave()]; if(c) pintar(c); }
+
+/* La columna de alerta solo se pinta de rojo cuando de verdad lo está:
+   un «al día» en rojo entrena a la gente a ignorar el rojo. Con
+   `alertaMin` la regla es un número —90 días de mora—; sin él, que el
+   texto diga que algo está vencido o fuera. */
+function esAlerta(c, min){
+  if(min!==undefined && min!==null) return (parseFloat(String(c))||0) >= min;
+  return /VENCID|FUERA|SIN RECIBO|vencida|venció|incumplid/.test(String(c));
+}
+
+function tabla(t, idx){
+  if(!t||!t.filas) return "";
+  if(!t.filas.length) return '<p style="color:var(--gris);font-size:13px;margin-top:14px">Nada que mostrar.</p>';
+  var num=t.num||[], todas=!!ABIERTAS[idx];
+  var celdaNum=function(i){ return num.indexOf(i)>=0 ? ' class="num"' : ''; };
+  var h='<div class="tabla-scroll"><table><thead><tr>'+
+    t.cab.map(function(c,i){return '<th'+celdaNum(i)+'>'+esc(c)+'</th>';}).join('')+
+    '</tr></thead><tbody>';
+  h+=t.filas.map(function(f,fi){
+    return '<tr'+((!todas && fi>=TOPE)?' class="extra"':'')+'>'+f.map(function(c,i){
+      var cl=[];
+      if(num.indexOf(i)>=0) cl.push('num');
+      if(t.alerta===i && esAlerta(c, t.alertaMin)) cl.push('alerta');
+      return '<td'+(cl.length?' class="'+cl.join(' ')+'"':'')+'>'+esc(c)+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  if(t.total) h+='<tr class="total">'+t.total.map(function(c,i){
+    return '<td'+celdaNum(i)+'>'+esc(c)+'</td>';}).join('')+'</tr>';
+  h+='</tbody></table></div>';
+  if(!todas && t.filas.length>TOPE)
+    h+='<button class="mas no-imprimir" onclick="verTodas('+idx+')">Ver las '+
+       t.filas.length+' completas</button>';
+  return h;
+}
+
+/* ── LA CARTERA ──────────────────────────────────────────────────────
+   El embudo dice lo que viene entrando; la cartera, lo que ya se tiene.
+   Son dos preguntas distintas y por eso van en dos bloques rotulados.
+   Esto vivía en la página aparte de mercadeo; al traerla adentro, se
+   mudó entero. */
+function mesCorto(m){
+  var n=Number(String(m).slice(5,7))-1;
+  var t=MESES[n]||String(m);
+  return t.charAt(0).toUpperCase()+t.slice(1,3);
+}
+
+/* Una línea acumulada, no barras: lo que se mira aquí no es cuántos
+   entraron en marzo sino si la cartera sube, se aplana o baja. */
+function curvaSvg(c, color){
+  var p=(c&&c.puntos)||[];
+  if(!p.length) return '<div class="vacio">Todavía no hay historia que enseñar.</div>';
+  var W=1000,H=250,ml=40,mr=20,mt=22,mb=52;
+  var top=0; p.forEach(function(b){ if(b.puntos>top) top=b.puntos; });
+  var max=(top||1)*1.18;
+  var paso=max/4, mag=Math.pow(10,Math.floor(Math.log(paso)/Math.LN10));
+  var cand=[1,1.5,2,2.5,3,4,5,6,8,10], u=paso/mag;
+  for(var q=0;q<cand.length;q++) if(cand[q]>=u-1e-9){ u=cand[q]; break; }
+  paso=Math.max(1,Math.round(u*mag)); max=paso*4;
+
+  var ancho=W-ml-mr, alto=H-mt-mb, base=mt+alto;
+  var xs=function(i){ return p.length===1 ? ml+ancho/2 : ml+ancho*(i/(p.length-1)); };
+  var ys=function(v){ return mt+alto*(1-(Number(v)||0)/max); };
+  var s="";
+
+  for(var k=0;k<=4;k++){
+    var yy=mt+alto*(k/4);
+    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="'+
+       (k===4?"#D3DDEA":"#EEF2F7")+'" stroke-width="1"/>'+
+       '<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+
+       Math.round(max*(1-k/4))+'</text>';
+  }
+  /* El cambio de año, marcado: doce meses corridos cruzan diciembre y sin
+     la raya «Ene» parece venir después de «Dic» del mismo año. */
+  p.forEach(function(b,i){
+    if(!i || String(b.mes).slice(0,4)===String(p[i-1].mes).slice(0,4)) return;
+    var xx=(xs(i)+xs(i-1))/2;
+    s+='<line x1="'+xx+'" y1="'+mt+'" x2="'+xx+'" y2="'+base+
+       '" stroke="#D3DDEA" stroke-width="1" stroke-dasharray="3 3"/>'+
+       '<text x="'+xx+'" y="'+(H-8)+'" text-anchor="middle" font-size="9.5" fill="#8B96A8">'+
+       esc(String(p[i-1].mes).slice(0,4))+' | '+esc(String(b.mes).slice(0,4))+'</text>';
+  });
+
+  var pts=p.map(function(b,i){ return xs(i)+","+ys(b.puntos); });
+  s+='<path d="M'+pts.join(" L")+' L'+xs(p.length-1)+','+base+' L'+xs(0)+','+base+
+     ' Z" fill="'+color+'" fill-opacity=".13"/>'+
+     '<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+color+
+     '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+
+  var salto=Math.ceil(p.length/13);
+  p.forEach(function(b,i){
+    var x=xs(i), y=ys(b.puntos);
+    /* El mes en curso va hueco y con la raya cortada: todavía no terminó
+       y no se puede leer como una caída. */
+    s+='<circle cx="'+x+'" cy="'+y+'" r="'+(b.enCurso?4:3.5)+'" fill="#fff" stroke="'+color+
+       '" stroke-width="2"'+(b.enCurso?' stroke-dasharray="2 2"':'')+'/>';
+    if(i%salto===0 || i===p.length-1)
+      s+='<text x="'+x+'" y="'+(H-mb+22)+'" text-anchor="middle" font-size="10.5" fill="'+
+         (b.enCurso?"#8B96A8":"#5B6880")+'">'+esc(mesCorto(b.mes))+'</text>';
+    if(b.enCurso)
+      s+='<text x="'+x+'" y="'+(H-mb+35)+'" text-anchor="middle" font-size="8.5" fill="#8B96A8">'+
+         'en curso</text>';
+    /* La cifra del primero se corre a la derecha y la del último a la
+       izquierda: centradas se montan sobre el eje y sobre el borde. */
+    if(i===0 || i===p.length-1)
+      s+='<text x="'+(i?x-6:x+6)+'" y="'+(y-10)+'" text-anchor="'+(i?'end':'start')+
+         '" font-size="11" font-weight="800" fill="#141C2B">'+b.puntos+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+
+function repartoBarras(lista, color, titulo){
+  var l=lista||[];
+  if(!l.length) return '<div class="rep"></div>';
+  var top=0; l.forEach(function(r){ if(r.cuantos>top) top=r.cuantos; });
+  if(top<=0) top=1;
+  return '<div class="rep">'+
+    (titulo ? '<div class="e" style="font-size:10.5px;font-weight:800;text-transform:'+
+              'uppercase;letter-spacing:.6px;color:var(--gris)">'+esc(titulo)+'</div>' : '')+
+    l.map(function(r){
+      var pct=Math.max(3, Math.round(r.cuantos/top*100));
+      return '<div class="f"><div class="n'+(r.vacio?' sin':'')+'" title="'+esc(r.etiqueta)+'">'+
+        esc(r.etiqueta)+'</div><div class="b"><i style="width:'+pct+'%;background:'+
+        (r.vacio?'var(--azul-claro)':color)+'"></i></div><div class="c'+(r.vacio?' sin':'')+'">'+
+        r.cuantos+'</div></div>';
+    }).join('')+'</div>';
+}
+
+function filtroCurva(c){
+  return '<div class="filtro no-imprimir"><div class="e">Ver</div>'+
+    [['6','6 meses'],['12','12 meses'],['anio','Este año'],['todo','Todo']].map(function(o){
+      return '<button class="'+(c.ventana===o[0]?'on':'')+'" onclick="verCurva(\''+o[0]+'\')">'+
+             o[1]+'</button>'; }).join('')+
+    '<div class="libre"><span>de</span>'+
+    '<input type="month" id="c-desde" value="'+esc(c.desde)+'" onchange="verCurvaMeses()">'+
+    '<span>a</span>'+
+    '<input type="month" id="c-hasta" value="'+esc(c.hasta)+'" onchange="verCurvaMeses()">'+
+    '</div></div>';
+}
+/* Mover la ventana de la curva NO toca el periodo del embudo: son dos
+   preguntas distintas. Por eso la memoria guarda las dos por separado —
+   si la clave no llevara la ventana, cambiarla no refrescaría nada. */
+function verCurva(v){
+  CURVA=v;
+  var k=clave();
+  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
+}
+function verCurvaMeses(){
+  var a=$("c-desde").value, b=$("c-hasta").value;
+  if(!a||!b) return;
+  if(a>b){ var t=a; a=b; b=t; }
+  verCurva(a+".."+b);
+}
+
+function bloque(t, de){
+  return '<div class="bloque"><div class="t">'+esc(t)+'</div><div class="l"></div>'+
+         (de?'<span class="de">'+esc(de)+'</span>':'')+'</div>';
+}
+
+function carteraHtml(c){
+  var h=bloque('La cartera','de siempre');
+  h+=kpisHtml(c.kpis, 'var(--azul)');
+  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.curva.titulo)+'</h3>'+
+     '<span class="lee">'+esc(c.curva.lee)+'</span></div>'+
+     filtroCurva(c)+
+     '<div class="curva">'+curvaSvg(c.curva,'var(--azul)')+'</div>'+
+     '<div class="nota">'+(c.curva.nota||'')+'</div></div>';
+  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.reparto.titulo)+'</h3>'+
+     '<span class="lee">'+esc(c.reparto.lee)+'</span></div>'+
+     '<div class="reparto">'+
+       repartoBarras(c.reparto.region,'var(--azul)','Región')+
+       repartoBarras(c.reparto.frecuencia,'var(--lima)','Frecuencia')+
+     '</div></div>';
+  return h;
+}
+
+function kpisHtml(lista, color){
+  return '<div class="kpis">'+(lista||[]).map(function(k){
+    return '<div class="kpi'+(k.malo?' malo':'')+'" style="border-top-color:'+color+'">'+
+      /* La pastilla marca la EXCEPCIÓN a lo que dice la línea de arriba,
+         nunca la regla. En cartera la regla es «de siempre» y se marcan
+         los dos del periodo; en logística es al revés. Marcarlas todas
+         convierte la pastilla en decoración y deja de avisar de nada. */
+      '<div class="e">'+esc(k.e)+
+        (k.de==="periodo" ? '<span class="de per">del periodo</span>' :
+         k.de==="siempre" ? '<span class="de">de siempre</span>' : '')+'</div>'+
+      '<div class="v">'+(k.u==="B/."?'<small>B/. </small>':'')+esc(k.v)+
+        (k.u&&k.u!=="B/."?' <small>'+esc(k.u)+'</small>':'')+'</div>'+
+      '<div class="s">'+esc(k.s)+'</div></div>';
+  }).join("")+'</div>';
+}
+
+function pintar(r){
+  var z=zonaDe(ZONA);
+  $("h-tit").textContent=z.nombre;
+  $("m-tit").textContent="Dirección · "+z.nombre;
+
+  /* las pestañas */
+  $("nav").innerHTML=ZONAS.map(function(x){
+    var n=CONTEOS[x.pend]||0;
+    return '<button class="'+(x.id===ZONA?'on':'')+'" onclick="verZona(\''+x.id+'\')">'+
+      '<i style="'+(x.id===ZONA?'background:'+x.color:'')+'"></i>'+esc(x.nombre)+
+      (n>0?'<span class="pend">'+n+'</span>':'')+'</button>';
+  }).join("");
+
+  /* Cada zona dice de dónde salen sus cifras con sus propias palabras:
+     en cartera la mora es de siempre y lo facturado es del periodo, y
+     eso no se puede decir con una frase genérica. */
+  var dice = r.dice
+    ? r.dice
+    : '<b>'+esc(enPalabras(r.desde||DESDE, r.hasta||HASTA))+'</b>'+
+      '<span> · comparado con el periodo anterior del mismo largo</span>';
+  $("m-per").textContent =
+    enPalabras(r.desde||DESDE, r.hasta||HASTA) + " · generado el " + (r.hoy||"");
+
+  var html='<div class="periodo"><div class="dice">'+dice+'</div>'+
+    '<div class="rapidos no-imprimir">'+
+      [['semana','Semana'],['quincena','Quincena'],['mes','Mes'],
+       ['trimestre','Trimestre'],['anio','Año']].map(function(o){
+        return '<button class="'+(RAPIDO===o[0]?'on':'')+'" onclick="verRango(\''+o[0]+'\')">'+
+               o[1]+'</button>';
+      }).join('')+
+      '<input type="date" id="f-desde" value="'+esc(DESDE)+'" onchange="verFechas()">'+
+      '<input type="date" id="f-hasta" value="'+esc(HASTA)+'" onchange="verFechas()">'+
+    '</div></div>';
+
+  /* Primero quiénes son los clientes que ya se tienen, después qué se
+     está negociando. Solo mercadeo trae cartera. */
+  if(r.cartera) html+=carteraHtml(r.cartera);
+
+  /* los números de la zona · una zona puede traerlos en varios bloques
+     rotulados, como logística —la operación y la flota— o en uno solo */
+  if(r.bloques){
+    r.bloques.forEach(function(b){
+      html+=bloque(b.titulo,'')+kpisHtml(b.kpis, z.color);
+    });
+  } else {
+    if(r.cartera) html+=bloque('El embudo','');
+    html+=kpisHtml(r.kpis, z.color);
+  }
+
+  /* lo que duele, en una línea */
+  if(r.duele) html+='<div class="malo-caja">'+esc(r.duele)+'</div>';
+
+  /* lo que espera una decisión, y lo que dejó el vigía */
+  var d=(r.decisiones||[]).slice();
+  ((r.pendientes&&r.pendientes.lista)||[]).forEach(function(p){
+    d.push({urgente:p.alta, titulo:p.titulo, detalle:p.detalle, enlace:p.enlace});
+  });
+  if(d.length){
+    html+='<div class="decide"><h3>Esperando una decisión</h3><div class="lista-d">'+
+      d.map(function(x){
+        var href = x.enlace ? (URL_APP?URL_APP+x.enlace:"") : (x.ir?ir(x.ir):"");
+        /* Un pendiente cuya zona ya no tiene página a dónde ir deja de
+           ser enlace en vez de convertirse en un enlace roto. */
+        if(!href||href==="#")
+          return '<div class="d-item'+(x.urgente?' urg':'')+'">'+
+            '<b>'+esc(x.titulo)+'</b>'+(x.detalle?'<span>'+esc(x.detalle)+'</span>':'')+'</div>';
+        return '<a class="d-item'+(x.urgente?' urg':'')+'" href="'+esc(href)+'" target="_top">'+
+          '<b>'+esc(x.titulo)+'</b>'+(x.detalle?'<span>'+esc(x.detalle)+'</span>':'')+'</a>';
+      }).join("")+'</div></div>';
+  }
+
+  /* las gráficas · una zona puede traer más de una */
+  var gs = r.graficas || (r.grafica ? [r.grafica] : []);
+  gs.forEach(function(g){
+    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(g.titulo)+'</h3>'+
+      '<span class="lee">'+esc(g.lee)+'</span></div>'+
+      '<div class="grafica">'+grafica(g,z.color)+'</div>';
+    var ley=[];
+    if(g.dos && g.series){
+      ley.push('<span><i style="background:'+z.color+'"></i>'+esc(g.series[0])+'</span>');
+      ley.push('<span><i style="background:var(--azul-claro)"></i>'+esc(g.series[1])+'</span>');
+    }
+    if((g.barras||[]).some(function(b){return b.parcial;})){
+      if(!ley.length) ley.push('<span><i style="background:'+z.color+'"></i>mes cerrado</span>');
+      ley.push('<span><i style="background:#fff;border:1.5px solid '+z.color+'"></i>'+
+        'mes en curso · va a la mitad, no es una caída</span>');
+    }
+    if(ley.length) html+='<div class="leyenda">'+ley.join('')+'</div>';
+    html+='</div>';
+  });
+
+  /* un reparto suelto · el ritmo de las visitas en logística. En barras
+     y no en dona: cuatro tajadas se comparan mejor en fila que en
+     círculo, y así no hace falta bajar una librería de internet. */
+  if(r.reparto && r.reparto.lista)
+    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(r.reparto.titulo)+'</h3>'+
+      '<span class="lee">'+esc(r.reparto.lee||'')+'</span></div>'+
+      '<div style="margin-top:14px">'+
+        repartoBarras(r.reparto.lista, z.color, '')+
+      '</div></div>';
+
+  /* el detalle, cerrado y con su conteo por fuera */
+  if((r.preguntas||[]).length){
+    html+='<h3 style="margin:20px 0 11px">El detalle · se abre lo que se quiera ver</h3>'+
+      r.preguntas.map(function(p,i){
+        return '<div class="preg'+(i===0?' abierta':'')+'" id="preg'+i+'">'+
+          '<button onclick="abrir('+i+')">'+
+            '<div><div class="q">'+esc(p.q)+'</div>'+
+            '<div class="r">'+esc(p.titulo)+'</div></div>'+
+            (p.cuenta?'<span class="cuenta">'+esc(p.cuenta)+'</span>':'')+
+            '<span class="fl">▾</span></button>'+
+          '<div class="cuerpo">'+
+            (p.tabla?tabla(p.tabla,i):'')+
+            (p.texto?'<p>'+esc(p.texto)+'</p>':'')+
+            (p.nota?'<div class="nota">'+esc(p.nota)+'</div>':'')+
+          '</div></div>';
+      }).join("");
+  }
+
+  $("cuerpo").innerHTML=html;
+}
+function abrir(i){ var e=$("preg"+i); if(e) e.classList.toggle("abierta"); }
+
+/* En papel no hay clics: antes de imprimir se abren todas las preguntas
+   y después se dejan como estaban. */
+window.addEventListener("beforeprint",function(){
+  document.querySelectorAll(".preg").forEach(function(e){
+    if(!e.classList.contains("abierta")) e.classList.add("abierta","por-impresion");
+  });
+});
+window.addEventListener("afterprint",function(){
+  document.querySelectorAll(".preg.por-impresion").forEach(function(e){
+    e.classList.remove("abierta","por-impresion");
+  });
+});
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  if(!url||url==="#") return;
+  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
+  location.href=url;
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter" && $("pantalla-pin").style.display!=="none") entrar();
+});
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+</script>
+</body>
+</html>

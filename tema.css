@@ -1,0 +1,51 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ECOVSA · TEMA DEL SISTEMA (tema.css)
+   El único lugar donde se decide cómo se ve el sistema.
+   Cambiar un color aquí lo cambia en todas las pantallas que cargan el
+   tema: Mercadeo (por mercadeo-kit.css), Logística, el lobby y los módulos
+   que cargan estilos-operaciones.css (Dirección, Planta, Cobros…).
+   Documentos para el cliente (recibo, acta, certificado…) solo toman
+   colores y letra: nunca la barra ni el menú.
+   Lo que se mueve (el emblema que gira) está en tema.js.
+   ═══════════════════════════════════════════════════════════════════ */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap");
+
+:root{
+  /* ── marca ── */
+  --tm-navy:#0f2a57;          /* la barra de arriba */
+  --tm-navy2:#14306b;         /* botones principales, títulos, azul de la marca */
+  --tm-azul:#0B5394;          /* azul secundario (módulos viejos) */
+  --tm-verde-marca:#8fd46a;   /* «ECOLOGÍA · VIDA · SALUD» */
+  --tm-acento:#F5B301;        /* ámbar: botón de captura, avisos */
+  /* ── texto y fondos ── */
+  --tm-tinta:#0f2140; --tm-gris:#667489; --tm-gris2:#8a96a8;
+  --tm-linea:#e1e6ee; --tm-linea2:#eef1f5; --tm-fondo:#f3f5f8; --tm-tarjeta:#fff; --tm-hover:#f7f9fc;
+  /* ── estados (solo para decir cómo está algo) ── */
+  --tm-ok:#2f9e44;   --tm-ok-bg:#eaf6e4;
+  --tm-warn:#d99a00; --tm-warn-bg:#fff4d6; --tm-warn-tx:#8a6300;
+  --tm-bad:#d64045;  --tm-bad-bg:#fdecea;
+  --tm-info:#3b6fd4; --tm-info-bg:#e8effb;
+  /* ── colores de la marca que usan los documentos ── */
+  --tm-verde:#2F6B0A; --tm-verde-bandera:#00792F; --tm-lima:#86B62B; --tm-rojo:#C0392B; --tm-morado:#6C3A96;
+  /* ── neutros de los módulos anteriores (Dirección, Planta, Cobros, la
+     pantalla del conductor…): se dejan como estaban para que esas pantallas
+     no cambien sin querer. Al adaptar un módulo, pasa a los de arriba. ── */
+  --tm-clasico-tinta:#141C2B; --tm-clasico-gris:#5B6880; --tm-clasico-fondo:#EEF2F7; --tm-clasico-borde:#D3DDEA;
+  /* ── forma ── */
+  --tm-letra:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --tm-radio:14px;
+  --tm-barra-alto:58px;
+}
+
+/* ── El emblema en la barra azul: sin recuadro blanco, con un destello
+   detrás, gira al abrir la pantalla y cuando lo tocan (tema.js) ── */
+.tm-marca{position:relative;flex:none;width:44px!important;height:36px!important;background:none!important;box-shadow:none!important;
+  border:0!important;border-radius:0!important;padding:0!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tm-marca::before{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.55) 0,rgba(255,255,255,.2) 38%,rgba(255,255,255,0) 68%);pointer-events:none}
+.tm-marca .tm-3d{position:absolute;inset:0;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+.tm-marca img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.tm-marca .tm-fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}
+.tm-marca .tm-fl.gira{animation:tmVuelta 1.4s cubic-bezier(.25,.7,.25,1)}
+@keyframes tmVuelta{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.tm-marca .tm-fl.gira{animation:none}}

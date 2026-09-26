@@ -1,936 +1,816 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<title>ECOVSA · Panel de Dirección</title>
-<base target="_top">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="estilos-operaciones.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dirección · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
+<link rel="stylesheet" href="modulo-kit.css">
+<script src="modulo-kit.js"></script>
 <style>
-
-/* ═══════════════════════════════════════════════════════════════════
-   DIRECCIÓN
-   ───────────────────────────────────────────────────────────────────
-   La pantalla a la que llega gerencia desde el lobby.
-
-   Cuatro pestañas, una por zona, y las CUATRO CON LA MISMA FORMA a
-   propósito: los números arriba —en uno o dos bloques rotulados—, las
-   gráficas, lo que espera una decisión, y abajo el detalle en secciones
-   que se abren a elección. Se aprende a leer una pantalla, no cuatro.
-
-   Lo que la separa de la pantalla de quien hace el trabajo es cómo está
-   dicho: no hay una tabla con todo por si acaso, hay preguntas que
-   gerencia hace de verdad con la respuesta ya escrita encima.
-
-   Cada pestaña trae TODO lo de su módulo en un solo viaje al servidor.
-   Ya no hay «reporte a profundidad» al que viajar: lo pesado vive aquí
-   mismo, en secciones que se abren a elección.
-   ═══════════════════════════════════════════════════════════════════ */
-
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
-  line-height:1.5;padding-bottom:60px}
-
-/* ── el encabezado, con la salida ──
-   La salida va a la IZQUIERDA y antes del título: quien se quiere ir la
-   busca ahí, no en el pie. */
-header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
-  padding:14px 20px 16px;border-bottom:5px solid var(--ambar)}
-.barra{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
-.volver{display:inline-flex;align-items:center;gap:7px;color:#fff;border-radius:20px;
-  font-family:inherit;font-weight:700;cursor:pointer;white-space:nowrap;
-  background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.30);
-  padding:8px 15px 8px 12px;font-size:12.5px}
-.volver:hover{background:rgba(255,255,255,.24)}
-.volver svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.4;
-  stroke-linecap:round;stroke-linejoin:round}
-.titulo h1{font-size:20px;font-weight:800;letter-spacing:.3px;line-height:1.15}
-.titulo .sub{font-size:10.5px;font-weight:600;opacity:.82;letter-spacing:.7px;
-  text-transform:uppercase;margin-top:2px}
-.salir{margin-left:auto;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.30);color:#fff;
-  font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:20px;cursor:pointer}
-
-/* ── las cuatro pestañas ── */
-.zonas-nav{background:#fff;border-bottom:1px solid var(--borde)}
-.zonas-nav .in{max-width:1320px;margin:0 auto;display:flex;gap:2px;padding:0 20px;overflow-x:auto}
-.zonas-nav button{background:none;border:none;border-bottom:3px solid transparent;
-  padding:13px 16px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--gris);
-  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
-.zonas-nav button:hover{color:var(--tinta)}
-.zonas-nav button.on{color:var(--azul-osc);border-bottom-color:var(--azul-osc)}
-.zonas-nav i{width:9px;height:9px;border-radius:50%;background:var(--borde);flex:0 0 auto}
-.zonas-nav .pend{background:var(--rojo-suave);color:#8E2A1E;border-radius:9px;
-  padding:1px 7px;font-size:11px;font-weight:800}
-
-.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 0}
-h3{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--azul-osc);margin:0 0 11px}
-
-/* ── el periodo ──
-   Arriba y siempre visible: sin él, «2,340 kg» no quiere decir nada. Y
-   dicho en palabras, no solo con dos fechas. */
-.periodo{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  padding:11px 15px;margin-bottom:14px;box-shadow:var(--sombra);
-  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.periodo .dice{font-size:13.5px;font-weight:700}
-.periodo .dice b{color:var(--azul-osc)}
-.periodo .dice span{color:var(--gris);font-weight:500}
-.rapidos{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
-.rapidos button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
-  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);cursor:pointer}
-.rapidos button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
-  border-color:var(--azul-osc);color:#fff}
-.rapidos input{padding:6px 9px;font-family:inherit;font-size:12.5px;
-  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
-
-/* ── los números ── */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
-@media (max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:560px){.kpis{grid-template-columns:1fr}}
-.kpi{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  padding:15px 17px;box-shadow:var(--sombra);border-top:4px solid var(--azul)}
-.kpi .e{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--gris);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-/* Un número en rojo tiene que ser raro para que signifique algo. Solo
-   los que de verdad están mal lo llevan. */
-.kpi.malo{border-top-color:var(--rojo)!important}
-.kpi.malo .v{color:var(--rojo)}
-/* De dónde sale la cifra. Sin esto, la mora de siempre y lo facturado de
-   esta semana se leen igual y alguien las suma. */
-.de{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.6px;
-  text-transform:uppercase;border-radius:6px;padding:3px 8px;
-  background:var(--azul-suave);color:var(--azul-osc)}
-.de.per{background:var(--verde-suave);color:var(--verde)}
-
-/* ── LOS BLOQUES ──
-   Un rótulo separa dos preguntas distintas dentro de una misma pestaña:
-   en mercadeo, qué clientes se tienen (la cartera) y qué se está
-   negociando (el embudo). Sin el corte, doce números seguidos se leen
-   como una sola lista. */
-.bloque{display:flex;align-items:center;gap:10px;margin:4px 0 11px}
-.bloque .t{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--azul-osc);white-space:nowrap}
-.bloque .l{flex-grow:1;height:1px;background:var(--borde)}
-
-/* El filtro de la curva vive DENTRO de su tarjeta, no arriba: arriba se
-   elige el periodo del embudo y aquí la historia de la cartera. Son dos
-   ventanas distintas y juntarlas confundiría las dos. */
-.filtro{display:flex;gap:7px;flex-wrap:wrap;align-items:center;
-  margin-top:11px;padding-top:11px;border-top:1px solid var(--borde)}
-.filtro .e{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-  color:var(--gris);margin-right:3px}
-.filtro button{border:1.5px solid var(--borde);background:#fff;border-radius:18px;
-  padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--gris);
-  cursor:pointer}
-.filtro button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
-  border-color:var(--azul-osc);color:#fff}
-.filtro .libre{display:flex;gap:6px;align-items:center;margin-left:auto}
-.filtro .libre span{font-size:11.5px;color:var(--gris)}
-.filtro input{padding:6px 9px;font-family:inherit;font-size:12.5px;
-  border:1.5px solid var(--borde);border-radius:9px;color:var(--tinta)}
-@media (max-width:700px){.filtro .libre{margin-left:0;width:100%}}
-
-.curva svg{width:100%;height:250px;display:block}
-.reparto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:14px}
-@media (max-width:760px){.reparto{grid-template-columns:1fr;gap:16px}}
-.rep{display:flex;flex-direction:column;gap:9px}
-.rep .f{display:flex;align-items:center;gap:10px}
-.rep .n{width:112px;flex-shrink:0;font-size:12px;font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* «sin región» se dice en gris, no se esconde: es un dato por completar.
-   La clase se llama .sin y no .vacio porque .vacio ya es el mensaje
-   centrado de «no hay nada que mostrar» y le metería 44px de aire. */
-.rep .n.sin{color:var(--gris)}
-.rep .b{flex-grow:1;height:16px;background:var(--fondo);border-radius:4px;overflow:hidden}
-.rep .b i{display:block;height:100%;border-radius:4px}
-.rep .c{width:26px;text-align:right;font-size:13px;font-weight:900;color:var(--azul-osc);
-  font-variant-numeric:tabular-nums}
-.rep .c.sin{color:var(--gris)}
-.kpi .v{font-size:28px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:5px;
-  font-variant-numeric:tabular-nums;word-break:break-word}
-.kpi .v small{font-size:15px;font-weight:800;color:var(--gris)}
-.kpi .s{font-size:12px;color:var(--gris);line-height:1.45;margin-top:5px}
-
-/* ── lo que espera una decisión ──
-   Va DENTRO de la zona y no en un bloque aparte que las mezcla: un
-   mantenimiento vencido es un asunto de planta, y verlo en la pestaña de
-   planta es lo que hace que alguien lo atienda. */
-.decide{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  padding:15px 17px;box-shadow:var(--sombra);margin-bottom:16px}
-.lista-d{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
-.d-item{display:block;background:#F7F9FC;border-left:4px solid var(--azul);border-radius:10px;
-  padding:11px 14px;text-decoration:none;color:var(--tinta)}
-.d-item:hover{background:var(--azul-suave)}
-.d-item.urg{border-left-color:var(--rojo);background:var(--rojo-suave)}
-.d-item b{display:block;font-size:13.5px;font-weight:800;line-height:1.35}
-.d-item span{display:block;font-size:11.5px;color:var(--gris);margin-top:3px;line-height:1.5}
-
-/* ── la gráfica ── */
-.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  padding:17px 19px;box-shadow:var(--sombra);margin-bottom:16px}
-.tarjeta .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.tarjeta .cab .lee{font-size:12px;color:var(--gris);margin-left:auto}
-.grafica{margin-top:14px}
-.grafica svg{width:100%;height:230px;display:block}
-.leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--gris)}
-.leyenda span{display:inline-flex;align-items:center;gap:6px}
-.leyenda i{width:11px;height:11px;border-radius:3px;display:inline-block}
-
-/* ── las preguntas ya contestadas ── */
-.preg{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  box-shadow:var(--sombra);margin-bottom:12px;overflow:hidden}
-.preg > button{width:100%;text-align:left;background:none;border:none;font-family:inherit;
-  padding:15px 18px;cursor:pointer;display:flex;gap:13px;align-items:flex-start}
-.preg > button:hover{background:var(--azul-suave)}
-.preg .q{font-size:15px;font-weight:800;color:var(--azul-osc);line-height:1.3}
-.preg .r{font-size:13px;color:var(--tinta);margin-top:3px;line-height:1.5}
-/* Cuánto hay dentro, dicho por fuera: así se sabe si vale la pena abrir
-   una sección sin tener que abrirla. */
-.preg .cuenta{font-size:11px;font-weight:800;color:var(--gris);background:var(--fondo);
-  border-radius:9px;padding:2px 9px;align-self:center;white-space:nowrap;flex:0 0 auto}
-.preg .fl{margin-left:auto;color:var(--gris);font-size:13px;font-weight:800;flex:0 0 auto;
-  transition:transform .15s}
+/* ═══ Dirección · opción B, con Finanzas adentro (api 3.4) ═══ */
+:root{--z-log:#0B5394;--z-mer:#00792F;--z-pla:#6C3A96;--z-cob:#c98a00;--z-fin:#0f7a7a;--zc:var(--navy2)}
+.ph h1{display:flex;align-items:center;gap:10px}
+.ph h1::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--zc)}
+.et{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2)}
+.chipx{white-space:nowrap;display:inline-flex;align-items:center;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
+.chipx.bad{background:var(--bad-bg);color:#a8262b}.chipx.warn{background:var(--warn-bg);color:#8a6300}.chipx.gris{background:var(--line2);color:var(--muted)}.chipx.ok{background:var(--ok-bg);color:#276b33}.chipx.info{background:var(--info-bg);color:#2c56a8}
+.per{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.per input[type=date],.per input[type=month]{border:1px solid var(--line);border-radius:9px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff;color:var(--ink)}
+.dice{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}.dice b{color:var(--ink)}
+/* resumen */
+.zt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.zt article{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;border-top:4px solid var(--c);min-width:0}
+.zt article:hover{box-shadow:0 6px 18px rgba(15,33,64,.08)}
+.zt .zn{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--c)}
+.zt .zn .n{margin-left:auto;font-size:11px;background:var(--c);color:#fff;border-radius:10px;padding:1px 7px;letter-spacing:0}
+.zt .v{font-size:21px;font-weight:800;line-height:1.15;overflow-wrap:anywhere}
+.zt .s{font-size:12px;color:var(--muted)}
+.zt .cmp{font-size:11.5px;font-weight:700}.zt .cmp.bien{color:var(--ok)}.zt .cmp.mal{color:var(--bad)}.zt .cmp.igual{color:var(--muted2)}
+.zt .du{font-size:12px;color:#3d4a60;border-top:1px solid var(--line2);padding-top:7px;margin-top:auto}
+.spk{display:flex;align-items:center;gap:3px;height:34px}
+.spk i{flex:1;border-radius:3px;min-height:2px}
+.res2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+.lista .li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line2)}
+.lista .li:first-child{border-top:0}
+.lista .zc{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c)}
+.lista .tx{flex:1;min-width:0}.lista .tx b{display:block;font-size:13.5px}.lista .tx span{font-size:12.5px;color:var(--muted)}
+.lista .li.clic{cursor:pointer}.lista .li.clic:hover .tx b{color:var(--info)}
+.lista .tx .urgx,.urgx{font-size:10px;font-weight:800;color:#fff;background:var(--bad);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+.linea{font-size:14px;line-height:1.6;color:#3d4a60}.linea b{color:var(--ink)}
+/* zonas */
+.bloq{margin-bottom:14px}.bloq>.et{display:block;margin-bottom:8px}
+.kpi .de{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:5px;padding:1px 5px;margin-left:6px;background:var(--line2);color:var(--muted);vertical-align:1px}
+.kpi .de.per{background:var(--info-bg);color:#2c56a8}
+.kpi.malo b{color:var(--bad)}
+.duele{display:flex;gap:10px;align-items:flex-start;background:var(--bad-bg);border:1px solid #f3c2c4;border-radius:12px;padding:11px 14px;margin-bottom:14px;font-size:13px;color:#7a1f23}
+.duele.amb{background:var(--warn-bg);border-color:#f3dc9c;color:#6b4d00}
+.duele svg{flex:none;margin-top:1px}
+.graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+.graf.ancha{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.card h3 .lee,.lee{font-size:12px;color:var(--muted);font-weight:500}
+.svgw svg{width:100%;height:auto;display:block}
+.ley{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}.ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.rep .f{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:12.5px;padding:4px 0}
+.rep .f .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rep .f .b{height:10px;background:var(--line2);border-radius:5px;overflow:hidden}.rep .f .b i{display:block;height:100%;border-radius:5px}
+.rep .f .c{text-align:right;font-weight:700}.rep .sin{color:var(--muted2)}
+.reps{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.decide{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:14px}
+.decide .d{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:12.5px;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+.decide .d span{color:var(--muted)}.decide .d.urg{border-left:4px solid var(--bad)}
+.preg{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.preg>button{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:center;width:100%;padding:12px 14px;cursor:pointer}
+.preg>button:hover{background:var(--hover)}
+.preg .q{font-size:12.5px;color:var(--muted)}.preg .r{font-size:14px;font-weight:700}
+.preg .cuenta{margin-left:auto;font-size:11.5px;font-weight:700;background:var(--line2);border-radius:8px;padding:3px 9px;white-space:nowrap}
+.preg .fl{transition:transform .15s;color:var(--muted2)}
 .preg.abierta .fl{transform:rotate(180deg)}
-.preg .cuerpo{display:none;padding:0 18px 17px;border-top:1px solid var(--borde)}
-.preg.abierta .cuerpo{display:block}
-.preg .cuerpo p{font-size:13.5px;line-height:1.6;margin:14px 0 0}
-.nota{background:var(--azul-suave);border-left:4px solid var(--azul);border-radius:0 9px 9px 0;
-  padding:11px 14px;font-size:12.5px;line-height:1.6;color:var(--tinta);margin-top:14px}
-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
-th{text-align:left;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-  color:var(--gris);padding:8px 10px;border-bottom:2px solid var(--borde);white-space:nowrap}
-td{padding:9px 10px;border-bottom:1px solid var(--borde);font-variant-numeric:tabular-nums}
-tbody tr:last-child td{border-bottom:none}
-td.alerta{color:var(--rojo);font-weight:800}
-td.num,th.num{text-align:right}
-tr.total td{font-weight:800;background:var(--azul-suave);border-top:2px solid var(--azul-claro)}
-.tabla-scroll{overflow-x:auto}
-.mas{background:none;border:1.5px solid var(--borde);border-radius:18px;padding:7px 15px;
-  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;
-  margin-top:12px}
-/* Las filas de más existen siempre; en pantalla se esconden y en papel
-   salen. Una tabla cortada en el papel sin decirlo es peor que una
-   tabla larga. */
-tr.extra{display:none}
-@media print{ tr.extra{display:table-row!important} }
-
-.vacio{text-align:center;color:var(--gris);font-size:14px;padding:44px 16px;line-height:1.6}
-/* La banda de lo que duele. Se llama `malo-caja` y no `malo` porque los
-   números en rojo llevan `kpi malo`, y con el mismo nombre esta regla
-   —que va más abajo— les pintaba encima el fondo y el relleno. */
-.malo-caja{background:var(--rojo-suave);border-left:4px solid var(--rojo);
-  border-radius:0 10px 10px 0;padding:13px 16px;font-size:13px;line-height:1.6;
-  color:var(--rojo);margin-bottom:16px}
-.malo-caja b{font-weight:900}
-
-
-/* ── LA ESPERA ───────────────────────────────────────────────────────
-   Esto es lo que faltaba y por eso la pantalla salía EN BLANCO.
-
-   Al entrar, la caja del PIN y la app arrancan escondidas y solo se
-   enseña una de las dos cuando el servidor contesta. Entre medio no
-   había nada que ver: blanco puro. Y como estas cuentas leen media
-   docena de hojas, ese blanco puede durar diez o veinte segundos —
-   tiempo de sobra para que uno crea que se rompió y recargue.
-
-   Ahora hay algo desde el primer instante, y un vigilante que a los 25
-   segundos deja de girar y ofrece reintentar en vez de girar para
-   siempre. */
-#cargando{text-align:center;padding:80px 20px}
-.spin{width:38px;height:38px;border:4px solid var(--borde);border-top-color:var(--azul);
-  border-radius:50%;animation:g 1s linear infinite;margin:0 auto 16px}
-@keyframes g{to{transform:rotate(360deg)}}
-#cargando .txt{color:var(--gris);font-size:14px;font-weight:600;line-height:1.6}
-#cargando button{margin-top:16px;background:var(--ambar);color:#4A3300;border:none;
-  padding:11px 20px;border-radius:11px;font-family:inherit;font-weight:800;cursor:pointer}
-
-/* ── la puerta ── */
-.pin-caja{max-width:360px;margin:70px auto;background:#fff;border:1px solid var(--borde);
-  border-radius:20px;padding:32px 26px;text-align:center;box-shadow:0 4px 22px rgba(20,48,107,.15)}
-.pin-caja .logo{margin:0 auto 18px;height:74px;width:116px;
-  background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat}
-.pin-caja h1{font-size:19px;color:var(--azul-osc);margin-bottom:5px}
-.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
-  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 15px;border-radius:14px;margin:9px 0}
-.pin-caja p{font-size:13px;color:var(--gris);line-height:1.55;margin-bottom:18px}
-.pin-caja input{width:170px;text-align:center;font-size:29px;font-weight:800;letter-spacing:8px;
-  padding:13px;border:1.5px solid var(--borde);border-radius:12px;font-family:inherit;color:var(--azul-osc)}
-.pin-err{color:var(--rojo);font-size:13px;font-weight:600;height:19px;margin-top:10px}
-.pin-caja button{width:185px;margin-top:12px;padding:13px;border:none;border-radius:12px;
-  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
-  font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
-
-/* El membrete solo existe en papel; la hoja de impresión vive en
-   Estilos.html y es la misma para las cuatro pantallas de reporte. */
+.preg .cuerpo{display:none;padding:0 14px 14px}.preg.abierta .cuerpo{display:block}
+.preg td.alerta{color:var(--bad);font-weight:700}
+.preg tr.extra{display:none}
+.mas{margin-top:8px}
+/* finanzas */
+.regla-hoy{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#eef6f6;border:1px solid #cfe5e5;border-radius:12px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.regla-hoy .sp{flex:1}.regla-hoy .l{font-size:12px;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.est{white-space:nowrap;font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px}
+.est.sol{background:var(--info-bg);color:#2c56a8}.est.vb{background:var(--warn-bg);color:#8a6300}.est.pp{background:#fff4d6;color:#8a6300}.est.pag{background:var(--ok-bg);color:#276b33}.est.rec{background:var(--bad-bg);color:#a8262b}.est.anu{background:var(--line2);color:var(--muted)}
+.notag{white-space:pre-wrap;background:#fffaf0;border:1px solid #f0d9a0;border-radius:10px;padding:9px 12px;font-size:12.5px;color:#5c4400}
+.mm td.neg{color:var(--bad);font-weight:700}.mm td.pos{color:var(--ok);font-weight:700}
+.dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 14px;font-size:13px}
+.dl div span{display:block;font-size:11.5px;color:var(--muted)}.dl div b{font-weight:700}
+.pie2{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px}
+.tb td.r,.tb tr.tot td{white-space:nowrap}
+.cat-t td small{display:block;color:var(--muted);font-size:11.5px}
+@media (max-width:1180px){.zt{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:820px){.zt{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.res2,.graf,.graf.ancha,.reps{grid-template-columns:minmax(0,1fr)}.dl{grid-template-columns:minmax(0,1fr)}.rep .f{grid-template-columns:minmax(0,110px) minmax(0,1fr) 40px}}
+@media (max-width:460px){.zt{grid-template-columns:minmax(0,1fr)}}
+@media print{.per,.chips,.btn,.mas{display:none!important}.preg .cuerpo{display:block}.preg tr.extra{display:table-row}}
 </style>
 </head>
 <body>
-
-<div id="cargando">
-  <div class="spin"></div>
-  <div class="txt">Reuniendo los datos…</div>
-</div>
-
-<div id="pantalla-pin" class="pin-caja" style="display:none">
-  <div class="logo"></div>
-  <h1>Dirección</h1>
-  <div class="tag">Acceso de gerencia</div>
-  <p>Escribe tu PIN para entrar.</p>
-  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
-  <div class="pin-err" id="pin-err"></div>
-  <button onclick="entrar()">Entrar</button>
-</div>
-
-<div id="app" style="display:none">
-  <header class="no-imprimir">
-    <div class="barra">
-      <button class="volver" onclick="volverLobby()">
-        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Volver al inicio
-      </button>
-      <div class="titulo">
-        <h1 id="h-tit">Dirección</h1>
-        <div class="sub" id="cab-usuario">—</div>
-      </div>
-      <button class="salir" onclick="window.print()">Imprimir</button>
-      <button class="salir" onclick="salir()">Salir</button>
-    </div>
-  </header>
-
-  <nav class="zonas-nav no-imprimir"><div class="in" id="nav"></div></nav>
-
-  <div class="wrap">
-    <div class="hoja-membrete">
-      <img class="hoja-logo" alt=""
-        src="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400">
-      <div>
-        <div class="hoja-razon">ECOTERMO DE PANAMA S.A. · ECOVSA</div>
-        <div class="hoja-titulo" id="m-tit">Dirección</div>
-        <div class="hoja-periodo" id="m-per"></div>
-      </div>
-    </div>
-    <div id="cuerpo"><div class="vacio">Reuniendo los datos…</div></div>
-  </div>
-</div>
-
+<div id="sysbar"></div>
+<div class="mtabs" id="mtabs"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"></main></div>
 <script>
-var PIN="", URL_APP="", ZONA="logistica", DESDE="", HASTA="", CONTEOS={};
-/* Lo que ya se trajo del servidor, por zona y periodo. Volver a una
-   pestaña que ya se miró tiene que ser instantáneo: gerencia salta entre
-   las cuatro comparando, y si cada salto sale al servidor se siente
-   lenta una pantalla que no lo es. */
-var CACHE={};
-/* La ventana de la curva de la cartera, solo de mercadeo. Va aparte del
-   periodo de la pestaña porque son dos preguntas: arriba, qué se cerró
-   este mes; en la curva, cómo ha crecido la cartera, que solo se ve en
-   años. */
-var CURVA="12";
+/* ════════════════════════════════════════════════════════════════
+   DIRECCIÓN · opción B (api 3.4)
+   Resumen + las cuatro zonas (lo que calcula Direccion.gs, sin repetir
+   cálculos) + Finanzas adentro (Inicio-2.js). Gerencia fiscaliza: ve
+   todo y anota; mover estados queda según las Reglas de Configuración.
+   ════════════════════════════════════════════════════════════════ */
+var ZONAS = {
+  log: { id: 'logistica', n: 'Logística', c: 'var(--z-log)', hex: '#0B5394', i: 'camion' },
+  mer: { id: 'mercadeo', n: 'Mercadeo', c: 'var(--z-mer)', hex: '#00792F', i: 'maletin' },
+  pla: { id: 'planta', n: 'Planta', c: 'var(--z-pla)', hex: '#6C3A96', i: 'planta' },
+  cob: { id: 'cobros', n: 'Cobros', c: 'var(--z-cob)', hex: '#c98a00', i: 'moneda' }
+};
+var SEC_DE = { logistica: 'log', mercadeo: 'mer', planta: 'pla', cobros: 'cob' };
+var PER = 'mes', DESDE = '', HASTA = '', CURVA = '12';
+var ZCACHE = {}, ABIERTAS = {};
+function B() { return MK.base || {}; }
+function D(v) { return MK.dinero(v); }
+function setZc(c) { document.documentElement.style.setProperty('--zc', c); }
 
-var ZONAS=[
-  /* Ya no hay campo `va`: las cuatro zonas traen su reporte dentro de la
-     pestaña y no queda ninguna página a la que viajar. */
-  {id:'logistica', nombre:'Logística',   color:'var(--azul)',   pend:'logistica'},
-  {id:'mercadeo',  nombre:'Mercadeo',    color:'var(--lima)',   pend:'mercadeo'},
-  {id:'planta',    nombre:'Tratamiento', color:'var(--morado)', pend:'planta'},
-  {id:'cobros',    nombre:'Cartera',     color:'var(--ambar)',  pend:'cobros'}
-];
-var ROTULO={admin:"Administración",gerente:"Gerencia",supervisor:"Supervisión de operaciones",
-            mercadeo:"Mercadeo"};
-
-function $(i){return document.getElementById(i);}
-
-/* Las tres pantallas de esta página: la espera, el PIN y la app. Solo
-   una a la vez, y SIEMPRE una: que no haya ninguna es el blanco. */
-function verPantalla(cual){
-  ["cargando","pantalla-pin","app"].forEach(function(x){
-    var e=$(x); if(e) e.style.display = (x===cual) ? "block" : "none";
-  });
+/* ── periodo de las zonas y del Resumen ── */
+function rangoZ(p) {
+  var h = MK.hoy, d = h;
+  if (p === 'semana') d = MK.masDias(h, -6);
+  else if (p === 'quincena') d = MK.masDias(h, -14);
+  else if (p === 'mes') d = h.slice(0, 8) + '01';
+  else if (p === 'trimestre') d = MK.masMeses(h.slice(0, 8) + '01', -2);
+  else if (p === 'anio') d = h.slice(0, 4) + '-01-01';
+  return [d, h];
 }
-/* El vigilante. Si a los 25 segundos no ha contestado nadie, deja de
-   girar y ofrece reintentar: una rueda girando para siempre no dice
-   nada, y recargar a mano es lo que estaba teniendo que hacer Álvaro. */
-function vigilar(){
-  clearTimeout(window._vig);
-  window.__LISTO__=false;
-  window._vig=setTimeout(function(){
-    if(window.__LISTO__) return;
-    var c=$("cargando");
-    if(c && c.style.display!=="none")
-      c.innerHTML='<div class="txt">Esto está tardando más de lo normal.<br>'+
-        'Puede ser la conexión, o que el libro tenga muchas filas.</div>'+
-        '<button onclick="location.reload()">Reintentar</button>';
-  },25000);
+function fijarPer(p) { PER = p; if (p !== 'libre') { var r = rangoZ(p); DESDE = r[0]; HASTA = r[1]; } }
+function enPalabras(d1, d2) {
+  if (!d1 || !d2) return '';
+  if (d1.slice(0, 7) === d2.slice(0, 7)) return 'Del ' + Number(d1.slice(8)) + ' al ' + Number(d2.slice(8)) + ' de ' + MK.mesNombre(d2.slice(0, 7)).split(' ')[0];
+  return 'Del ' + MK.fechaCorta(d1) + ' al ' + MK.fechaCorta(d2);
+}
+function chipsPerZ(fn) {
+  return '<div class="per">' + MK.chips([['semana', 'Semana'], ['quincena', 'Quincena'], ['mes', 'Mes'], ['trimestre', 'Trimestre'], ['anio', 'Año']], PER, fn || 'cambiaPerZ') +
+    '<input type="date" id="z-d1" value="' + DESDE + '" onchange="fechasZ()"><input type="date" id="z-d2" value="' + HASTA + '" onchange="fechasZ()"></div>';
+}
+function cambiaPerZ(p) { fijarPer(p); ABIERTAS = {}; if (MK.seccion === 'res') { MK.recargar(); } else MK.repintar(); }
+function fechasZ() {
+  var a = MK.val('z-d1'), b = MK.val('z-d2'); if (!a || !b) return;
+  if (a > b) { var t = a; a = b; b = t; }
+  PER = 'libre'; DESDE = a; HASTA = b; if (MK.seccion === 'res') MK.recargar(); else MK.repintar();
 }
 
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function zonaDe(id){ for(var i=0;i<ZONAS.length;i++) if(ZONAS[i].id===id) return ZONAS[i];
-                     return ZONAS[0]; }
-function ir(p){ return URL_APP ? URL_APP+"?p="+p : "#"; }
-
-/* ── fechas ─────────────────────────────────────────────────────────
-   El rango por defecto es del 1 del mes a hoy. */
-function iso(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+
-                        "-"+("0"+d.getDate()).slice(-2); }
-var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
-           "septiembre","octubre","noviembre","diciembre"];
-function enPalabras(d1,d2){
-  if(!d1||!d2) return "";
-  var a=new Date(d1+"T12:00:00"), b=new Date(d2+"T12:00:00");
-  if(isNaN(a)||isNaN(b)) return d1+" — "+d2;
-  var mismoMes = a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear();
-  if(mismoMes) return "Del "+a.getDate()+" al "+b.getDate()+" de "+MESES[b.getMonth()];
-  return "Del "+a.getDate()+" de "+MESES[a.getMonth()]+" al "+
-         b.getDate()+" de "+MESES[b.getMonth()];
+/* ═══════════ RESUMEN ═══════════ */
+function spark(vals, color) {
+  var max = Math.max.apply(null, vals.map(function (v) { return Math.abs(v); }).concat([1]));
+  return '<div class="spk">' + vals.map(function (v) { return '<i style="height:' + Math.max(6, Math.abs(v) / max * 100) + '%;background:' + (v < 0 ? 'var(--bad)' : color) + ';opacity:.85"></i>'; }).join('') + '</div>';
 }
-function rango(clave){
-  var h=new Date(), d=new Date();
-  if(clave==="semana")        d.setDate(h.getDate()-6);
-  else if(clave==="quincena") d.setDate(h.getDate()-14);
-  else if(clave==="mes")      d=new Date(h.getFullYear(),h.getMonth(),1);
-  else if(clave==="trimestre")d.setMonth(h.getMonth()-2);
-  else if(clave==="anio")     d=new Date(h.getFullYear(),0,1);
-  return {desde:iso(d), hasta:iso(h)};
+function cmp(z) {
+  if (!z.comparable || !z.difTexto || z.dif == null) return '';
+  var d = Number(z.dif) || 0, malo = z.subirEsMalo ? d > 0 : d < 0;
+  var cls = d === 0 ? 'igual' : malo ? 'mal' : 'bien';
+  return '<span class="cmp ' + cls + '">' + (d > 0 ? '▲ ' : d < 0 ? '▼ ' : '= ') + MK.num(Math.abs(d), Math.abs(d) % 1 ? 1 : 0) + ' ' + MK.esc(z.difTexto) + '</span>';
 }
-var RAPIDO="mes";
-
-/* ── entrar ── */
-function arrancar(){
-  try{ PIN=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
-  if(window.google&&google.script&&google.script.run)
-    google.script.run.withSuccessHandler(function(u){URL_APP=u||"";}).api_urlApp();
-  var r=rango(RAPIDO); DESDE=r.desde; HASTA=r.hasta;
-  if(PIN) cargar(PIN); else pedirPin("");
-}
-function pedirPin(m){
-  window.__LISTO__=true;
-  verPantalla("pantalla-pin");
-  $("pin-err").textContent=m||"";
-  setTimeout(function(){var p=$("pin"); if(p)p.focus();},130);
-}
-function entrar(){
-  var p=($("pin").value||"").trim();
-  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
-  $("pin-err").textContent="Verificando…"; cargar(p);
-}
-function salir(){ try{localStorage.removeItem("ecovsa_pin");}catch(e){} volverLobby(); }
-function volverLobby(){ irA(ir("app")); }
-
-/* Cartera entró al periodo cuando su reporte se fundió con la pestaña,
-   así que ya no es la excepción: las cuatro zonas se guardan por zona y
-   por rango. Y mercadeo lleva además la ventana de su curva, que es otra
-   pregunta con su propio control. */
-function clave(){ return ZONA+"|"+DESDE+"|"+HASTA+"|"+(ZONA==="mercadeo"?CURVA:""); }
-
-function cargar(p){
-  var k=clave();
-  if(CACHE[k]){ PIN=p; mostrar(CACHE[k]); return; }
-  /* Si la app ya está en pantalla, la espera va DENTRO y no se pierde el
-     encabezado; si es la primera vez, se enseña la pantalla de espera. */
-  if($("app").style.display==="block")
-    $("cuerpo").innerHTML='<div class="vacio">Reuniendo los datos…</div>';
-  else verPantalla("cargando");
-  vigilar();
-  google.script.run
-    .withSuccessHandler(function(r){
-      window.__LISTO__=true;
-      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
-      PIN=p;
-      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
-      if(r.usuario)
-        $("cab-usuario").textContent =
-          "Dirección · "+r.usuario.nombre+" · "+(ROTULO[r.usuario.rol]||r.usuario.rol);
-      CACHE[k]=r;
-      mostrar(r);
-    })
-    .withFailureHandler(function(){
-      window.__LISTO__=true;
-      pedirPin("Sin conexión. Intenta con señal.");
-    })
-    .api_dir_zona(p, ZONA, DESDE, HASTA, CURVA);
-}
-
-function mostrar(r){
-  window.__LISTO__=true;
-  verPantalla("app");
-  if(r.conteos) CONTEOS=r.conteos;
-  pintar(r);
-}
-
-function verZona(id){
-  ZONA=id;
-  /* Qué tablas se dejaron desplegadas es de la zona que se estaba
-     mirando, no de la que se abre. */
-  ABIERTAS={};
-  var k=clave();
-  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
-  window.scrollTo(0,0);
-}
-function verRango(clv){
-  RAPIDO=clv;
-  var g=rango(clv); DESDE=g.desde; HASTA=g.hasta;
-  var k=clave();
-  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
-}
-function verFechas(){
-  var a=$("f-desde").value, b=$("f-hasta").value;
-  if(!a||!b) return;
-  if(a>b){ var t=a; a=b; b=t; }
-  RAPIDO=""; DESDE=a; HASTA=b;
-  var k=clave();
-  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
-}
-
-/* ── la gráfica ──
-   Dibujada a mano en SVG y no con una librería: son seis barras. Cargar
-   90 KB de Chart.js para esto es pagar caro un dibujo que sale en veinte
-   líneas, y en el teléfono se nota. */
-
-/* El renglón del eje. Con paso de mil o más se abrevia con «k», que se
-   lee de reojo; por debajo se escribe entero con sus comas, porque
-   abreviar 800 y 1,600 los convierte a los dos en «1k». Y con paso
-   menor a uno —una merma de 4.1 %— hace falta el decimal, porque
-   redondear ahí borra justo lo que se está mirando. */
-function etiquetaEje(val, paso){
-  if(val < 0.0001) return "0";
-  if(paso >= 1000) return Math.round(val/1000)+"k";
-  if(paso >= 1)    return String(Math.round(val)).replace(/\B(?=(\d{3})+(?!\d))/g,",");
-  return val.toFixed(1);
-}
-function grafica(g,color){
-  if(!g||!g.barras||!g.barras.length) return "";
-  var W=1000,H=230,ml=g.horizontal?190:54,mr=16,mt=18,mb=34,s="";
-  var max=0; g.barras.forEach(function(b){
-    if(b.v>max) max=b.v;
-    if(g.dos && b.v2>max) max=b.v2;
-  });
-  if(max<=0) return '<div class="vacio">Sin datos para graficar en el periodo.</div>';
-  max=max*1.15;
-
-  /* ── La escala ──
-     Se redondea el PASO a un número bonito y de ahí sale el tope. Sin
-     esto, un máximo de 3,035 deja el tope en 3,490 y los renglones salen
-     3k, 3k, 2k, 1k: dos iguales seguidos se leen como un error.
-     Y un porcentaje no pasa de 100: dejar la escala en 110 achica las
-     barras y hace ver todo mejor de lo que está. */
-  var paso = max/4, mag = Math.pow(10, Math.floor(Math.log(paso)/Math.LN10));
-  var cand = [1,1.5,2,2.5,3,4,5,6,8,10], u = paso/mag;
-  for (var q=0; q<cand.length; q++) if (cand[q] >= u - 1e-9) { u = cand[q]; break; }
-  paso = u*mag; max = paso*4;
-  if(g.unidad==="%" && max>100){ max=100; paso=25; }
-
-  if(g.horizontal){
-    var alto=(H-mt-mb)/g.barras.length;
-    g.barras.forEach(function(b,i){
-      var y=mt+i*alto, h=alto*0.62, w=(W-ml-mr)*(b.v/max);
-      s+='<rect x="'+ml+'" y="'+(y+(alto-h)/2)+'" width="'+Math.max(w,1)+'" height="'+h+
-         '" rx="4" fill="'+color+'"/>';
-      s+='<text x="'+(ml-10)+'" y="'+(y+alto/2+4)+'" text-anchor="end" font-size="13" fill="#5B6880">'+
-         esc(b.x)+'</text>';
-      s+='<text x="'+(ml+w+8)+'" y="'+(y+alto/2+4)+'" font-size="13" font-weight="700" fill="#141C2B">'+
-         (g.unidad==="B/."?"B/. ":"")+miles(b.v)+'</text>';
-    });
-    return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+function vResumen() {
+  var b = B(), f = b.finanzas;
+  setZc('var(--navy2)');
+  var h = MK.cabeza('Resumen', enPalabras(b.desde, b.hasta) + ' · cada tarjeta abre su zona', chipsPerZ());
+  h += '<div class="zt">' + (b.zonas || []).map(function (z) {
+    var k = SEC_DE[z.zona], Z = ZONAS[k] || {}, pend = z.pendientes && z.pendientes.total;
+    return '<article style="--c:' + Z.c + '" onclick="MK.ir(\'' + k + '\')"><div class="zn">' + MK.ic(Z.i, 15) + MK.esc(Z.n) + (pend ? '<span class="n">' + pend + '</span>' : '') + '</div>' +
+      '<div class="v num">' + MK.esc(z.texto || '—') + '</div><div class="s">' + MK.esc(z.sub || '') + '</div>' + cmp(z) +
+      (z.duele ? '<div class="du">' + MK.esc(z.duele) + '</div>' : '') + '</article>';
+  }).join('');
+  if (f && !f.error) {
+    var m = f.mes, s = f.solicitudes || {};
+    h += '<article style="--c:var(--z-fin)" onclick="MK.ir(\'fut\')"><div class="zn">' + MK.ic('billete', 15) + 'Finanzas' + (s.porPagar ? '<span class="n">' + s.porPagar + '</span>' : '') + '</div>' +
+      '<div class="v num" style="color:' + (m.utilidad < 0 ? 'var(--bad)' : 'var(--ink)') + '">' + D(m.utilidad) + '</div><div class="s">utilidad de ' + MK.mesNombre(m.mes).split(' ')[0] + ' · ingreso ' + D(m.ingreso) + ' · gasto ' + D(m.gasto) + '</div>' +
+      spark((f.serie || []).map(function (x) { return x.utilidad; }), 'var(--z-fin)') +
+      '<div class="du">' + (s.porPagar ? s.porPagar + ' solicitud(es) por pagar · ' + D(s.montoPorPagar) + (s.viejas ? ' · ' + s.viejas + ' con más de 7 días' : '') : 'Ninguna solicitud por pagar.') + '</div></article>';
   }
+  h += '</div>';
 
-  var ancho=(W-ml-mr)/g.barras.length;
-  for(var k=0;k<=4;k++){
-    var yy=mt+(H-mt-mb)*(k/4);
-    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="#E3EAF3" stroke-width="1"/>';
-    var val=max*(1-k/4);
-    var et = etiquetaEje(val, paso);
-    s+='<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+et+'</text>';
+  /* Te esperan: lo del vigía de cada zona + las solicitudes */
+  var te = [];
+  if (f && !f.error) {
+    var s2 = f.solicitudes || {};
+    if (s2.porAprobar) te.push({ c: 'var(--z-fin)', i: 'billete', t: s2.porAprobar + ' solicitud(es) esperando aprobación', d: D(s2.montoPorAprobar), ir: 'fsol', u: false, o: 90 });
+    if (s2.porPagar) te.push({ c: 'var(--z-fin)', i: 'billete', t: s2.porPagar + ' solicitud(es) por pagar', d: D(s2.montoPorPagar) + (s2.viejas ? ' · ' + s2.viejas + ' llevan más de 7 días' : '') + (s2.pasanAviso ? ' · ' + s2.pasanAviso + ' pasan del monto de aviso' : ''), ir: 'fsol', u: s2.urgentes > 0, o: s2.viejas ? 80 : 40 });
   }
-  g.barras.forEach(function(b,i){
-    /* Con dos series, cada mes lleva dos barras pegadas. Apiladas
-       mentirían: lo que salió no es una parte de lo que entró, son dos
-       pesajes distintos del mismo material — y una propuesta firmada no
-       es un pedazo de una propuesta enviada. */
-    var n = g.dos ? 2 : 1;
-    for(var j=0;j<n;j++){
-      var val = (j===0) ? b.v : b.v2;
-      var h=(H-mt-mb)*((Number(val)||0)/max); if(h<0) h=0;
-      var w=(ancho*0.6)/n;
-      var x=ml+i*ancho+ancho*0.2+j*w, y=H-mb-h;
-      var col = (j===0) ? color : "var(--azul-claro)";
-      s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(n===1?4:3)+'" fill="'+
-         (b.parcial?'url(#rayas)':col)+'"'+
-         (b.parcial?' stroke="'+col+'" stroke-width="1.5"':'')+'/>';
-      if(n===1 || j===0)
-        s+='<text x="'+(ml+i*ancho+ancho*0.5)+'" y="'+(y-6)+'" text-anchor="middle" '+
-           'font-size="12" font-weight="700" fill="#141C2B">'+miles(b.v)+'</text>';
-    }
-    s+='<text x="'+(ml+i*ancho+ancho*0.5)+'" y="'+(H-12)+'" text-anchor="middle" '+
-       'font-size="12" fill="#5B6880">'+esc(b.x)+'</text>';
+  (b.zonas || []).forEach(function (z) {
+    var k = SEC_DE[z.zona], Z = ZONAS[k] || {}, l = (z.pendientes && z.pendientes.lista) || [];
+    l.slice(0, 3).forEach(function (p) { te.push({ c: Z.c, i: Z.i, t: p.titulo, d: Z.n + ' · ' + (p.detalle || ''), ir: k, u: !!p.alta, o: p.alta ? 100 : 30 }); });
+    if (l.length > 3) te.push({ c: Z.c, i: Z.i, t: 'Y ' + (z.pendientes.total - 3) + ' más en ' + Z.n, d: 'se ven en la zona', ir: k, u: false, o: 10 });
   });
-  return '<svg viewBox="0 0 '+W+' '+H+'"><defs>'+
-    '<pattern id="rayas" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'+
-    '<rect width="7" height="7" fill="#fff"/><line x1="0" y1="0" x2="0" y2="7" stroke="'+color+
-    '" stroke-width="4"/></pattern></defs>'+s+'</svg>';
+  te.sort(function (a, b) { return b.o - a.o; });
+  h += '<div class="res2"><section class="card"><h3>Te esperan <span class="sp"></span><span class="lee">lo urgente arriba</span></h3><div class="lista">' +
+    (te.length ? te.slice(0, 12).map(function (x) {
+      return '<div class="li clic" style="--c:' + x.c + '" onclick="MK.ir(\'' + x.ir + '\')"><span class="zc">' + MK.ic(x.i, 17) + '</span><div class="tx"><b>' + MK.esc(x.t) + (x.u ? '<span class="urgx">URGENTE</span>' : '') + '</b><span>' + MK.esc(x.d) + '</span></div>' + MK.ic('flecha', 16) + '</div>';
+    }).join('') : MK.vacio('Nada esperando una decisión.')) + '</div></section>';
+  h += '<section class="card"><h3>El mes en una línea</h3><div class="lee" style="margin-bottom:10px">' + enPalabras(b.desde, b.hasta) + '</div><div class="linea">' + lineaMes() + '</div>' +
+    ((b.fallas || []).length ? '<div class="nota">No se pudo calcular: ' + MK.esc(b.fallas.join(' · ')) + '</div>' : '') + '</section></div>';
+  return h;
 }
-function miles(v){
-  var n=Number(v)||0;
-  var s=(Math.abs(n)<1000 && n%1!==0) ? n.toFixed(1) : Math.round(n).toString();
-  var p=s.split(".");
-  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
-  return p.join(".");
+function lineaMes() {
+  var b = B(), z = {}, f = b.finanzas, out = [];
+  (b.zonas || []).forEach(function (x) { z[x.zona] = x; });
+  if (f && !f.error) {
+    out.push('En <b>' + MK.mesNombre(f.mes.mes) + '</b> se facturó <b>' + D(f.mes.ingreso) + '</b> y se gastó <b>' + D(f.mes.gasto) + '</b>: la utilidad va en <b style="color:' + (f.mes.utilidad < 0 ? 'var(--bad)' : 'var(--ok)') + '">' + D(f.mes.utilidad) + '</b>.');
+    var s = f.solicitudes || {};
+    out.push('Se pagaron ' + (s.pagadasMes || 0) + ' solicitud(es) por ' + D(s.montoPagadoMes) + (s.porPagar ? ' y quedan ' + s.porPagar + ' por pagar.' : '; no queda ninguna por pagar.'));
+  }
+  if (z.logistica && !z.logistica.error) out.push('Logística: ' + MK.esc(z.logistica.texto) + ' (' + MK.esc(z.logistica.sub) + ').');
+  if (z.mercadeo && !z.mercadeo.error) out.push('Mercadeo: ' + MK.esc(z.mercadeo.texto) + '.');
+  if (z.planta && !z.planta.error) out.push('Planta: ' + MK.esc(z.planta.texto) + '.');
+  if (z.cobros && !z.cobros.error) out.push('Cobros: ' + MK.esc(z.cobros.texto) + ' (' + MK.esc(z.cobros.sub) + ').');
+  return out.join(' ');
 }
 
-/* ── LAS TABLAS ──────────────────────────────────────────────────────
-   En pantalla se enseñan las primeras y se ofrece ver el resto: una
-   tabla de sesenta filas dentro de una sección empuja todo lo demás
-   fuera de la vista.
-
-   Pero las filas de más SE DIBUJAN IGUAL, solo escondidas. Esa es la
-   diferencia con las páginas que estamos retirando: allá se cortaban en
-   veinticinco y el botón de «ver todas» no se imprimía, así que en papel
-   salían cortadas SIN AVISAR — los ciclos del periodo, las propuestas
-   sin respuesta y las facturas vencidas. Aquí el papel las lleva todas
-   porque están en la página, solo ocultas. */
-var TOPE=25;
-var ABIERTAS={};
-function verTodas(i){ ABIERTAS[i]=true; var c=CACHE[clave()]; if(c) pintar(c); }
-
-/* La columna de alerta solo se pinta de rojo cuando de verdad lo está:
-   un «al día» en rojo entrena a la gente a ignorar el rojo. Con
-   `alertaMin` la regla es un número —90 días de mora—; sin él, que el
-   texto diga que algo está vencido o fuera. */
-function esAlerta(c, min){
-  if(min!==undefined && min!==null) return (parseFloat(String(c))||0) >= min;
+/* ═══════════ LAS CUATRO ZONAS ═══════════
+   El detalle llega con las preguntas ya contestadas (api_dir_zona) y se
+   guarda por zona y periodo: saltar entre zonas es instantáneo. */
+function claveZ(k) { return ZONAS[k].id + '|' + DESDE + '|' + HASTA + '|' + (k === 'mer' ? CURVA : ''); }
+function vZona(k) {
+  var Z = ZONAS[k]; setZc(Z.c);
+  var ck = claveZ(k), r = ZCACHE[ck];
+  if (!r) {
+    if (r !== false) { ZCACHE[ck] = false;
+    MK.api('api_dir_zona', MK.pinUso(), Z.id, DESDE, HASTA, CURVA).then(function (x) {
+      if (!x || !x.ok) { delete ZCACHE[ck]; if (MK.seccion === k) document.getElementById('main').innerHTML = MK.cabeza(Z.n) + '<div class="aviso rj">' + MK.esc((x && x.error) || 'No se pudo calcular.') + '</div>'; return; }
+      ZCACHE[ck] = x; if (x.conteos) { MK.contadores.mer = x.conteos.mercadeo ? { n: x.conteos.mercadeo } : null; MK.contadores.cob = x.conteos.cobros ? { n: x.conteos.cobros } : null; MK.pintarMenu(); }
+      if (MK.seccion === k) MK.repintar();
+    }, function (e) { delete ZCACHE[ck]; if (MK.seccion === k) MK.error('main', 'Sin conexión: ' + e.message); }); }
+    return MK.cabeza(Z.n, enPalabras(DESDE, HASTA), chipsPerZ()) + '<div class="cargando">Reuniendo los datos de ' + Z.n + '…</div>';
+  }
+  var h = MK.cabeza(Z.n, enPalabras(r.desde || DESDE, r.hasta || HASTA) + ' · generado el ' + MK.dmy(r.hoy), chipsPerZ());
+  if (r.dice) h += '<div class="dice">' + r.dice + '</div>';
+  if (r.cartera) h += carteraHtml(r.cartera, Z);
+  if (r.bloques) r.bloques.forEach(function (bq) { h += '<div class="bloq"><span class="et">' + MK.esc(bq.titulo) + '</span>' + kpisZ(bq.kpis) + '</div>'; });
+  else h += '<div class="bloq">' + (r.cartera ? '<span class="et">El embudo</span>' : '') + kpisZ(r.kpis) + '</div>';
+  if (r.duele) h += '<div class="duele">' + MK.ic('alerta', 17) + '<span>' + MK.esc(r.duele) + '</span></div>';
+  var d = (r.decisiones || []).slice();
+  ((r.pendientes && r.pendientes.lista) || []).forEach(function (p) { d.push({ urgente: p.alta, titulo: p.titulo, detalle: p.detalle }); });
+  if (d.length) h += '<span class="et" style="display:block;margin-bottom:8px">Esperando una decisión · ' + d.length + '</span><div class="decide">' + d.slice(0, 12).map(function (x) { return '<div class="d' + (x.urgente ? ' urg' : '') + '"><b>' + MK.esc(x.titulo) + '</b>' + (x.detalle ? '<span>' + MK.esc(x.detalle) + '</span>' : '') + '</div>'; }).join('') + '</div>' +
+    (d.length > 12 ? '<div class="nota" style="margin:-6px 0 14px">Y ' + (d.length - 12) + ' más: se trabajan en el módulo de ' + Z.n + '.</div>' : '');
+  var gs = r.graficas || (r.grafica ? [r.grafica] : []);
+  if (gs.length) {
+    h += '<div class="graf">' + gs.map(function (g) {
+      var ley = [];
+      if (g.dos && g.series) { ley.push('<span><i style="background:' + Z.hex + '"></i>' + MK.esc(g.series[0]) + '</span>'); ley.push('<span><i style="background:#b9c7dd"></i>' + MK.esc(g.series[1]) + '</span>'); }
+      if ((g.barras || []).some(function (x) { return x.parcial; })) ley.push('<span><i style="background:#fff;border:1.5px solid ' + Z.hex + '"></i>mes en curso · va a la mitad, no es una caída</span>');
+      return '<div class="card"><h3>' + MK.esc(g.titulo) + '</h3><div class="lee">' + MK.esc(g.lee || '') + '</div><div class="svgw">' + grafica(g, Z.hex) + '</div>' + (ley.length ? '<div class="ley">' + ley.join('') + '</div>' : '') + '</div>';
+    }).join('') + (gs.length === 1 && r.reparto ? repartoCard(r.reparto, Z) : '') + '</div>';
+    if (gs.length !== 1 && r.reparto && r.reparto.lista) h += '<div class="graf" style="grid-template-columns:minmax(0,1fr)">' + repartoCard(r.reparto, Z) + '</div>';
+  } else if (r.reparto && r.reparto.lista) h += repartoCard(r.reparto, Z);
+  if ((r.preguntas || []).length) {
+    h += '<h3 style="margin:18px 0 10px">El detalle · se abre lo que se quiera ver</h3>' + r.preguntas.map(function (p, i) {
+      return '<div class="preg' + (i === 0 ? ' abierta' : '') + '" id="preg' + i + '"><button onclick="document.getElementById(\'preg' + i + '\').classList.toggle(\'abierta\')"><div><div class="q">' + MK.esc(p.q) + '</div><div class="r">' + MK.esc(p.titulo) + '</div></div>' +
+        (p.cuenta ? '<span class="cuenta">' + MK.esc(p.cuenta) + '</span>' : '') + '<span class="fl">▾</span></button><div class="cuerpo">' +
+        (p.tabla ? tablaZ(p.tabla, i) : '') + (p.texto ? '<p>' + MK.esc(p.texto) + '</p>' : '') + (p.nota ? '<div class="nota">' + MK.esc(p.nota) + '</div>' : '') + '</div></div>';
+    }).join('');
+  }
+  return h;
+}
+function kpisZ(l) {
+  l = l || [];
+  return '<div class="kpis" style="grid-template-columns:repeat(' + Math.min(4, Math.max(1, l.length)) + ',minmax(0,1fr))">' + l.map(function (k) {
+    return '<div class="kpi' + (k.malo ? ' malo' : '') + '"><span>' + MK.esc(k.e) + (k.de === 'periodo' ? '<span class="de per">del periodo</span>' : k.de === 'siempre' ? '<span class="de">de siempre</span>' : '') + '</span>' +
+      '<b class="num">' + (k.u === 'B/.' ? 'B/. ' : '') + MK.esc(k.v) + (k.u && k.u !== 'B/.' ? ' <small style="font-size:13px">' + MK.esc(k.u) + '</small>' : '') + '</b><small>' + MK.esc(k.s || '') + '</small></div>';
+  }).join('') + '</div>';
+}
+function esAlerta(c, min) {
+  if (min !== undefined && min !== null) return (parseFloat(String(c)) || 0) >= min;
   return /VENCID|FUERA|SIN RECIBO|vencida|venció|incumplid/.test(String(c));
 }
-
-function tabla(t, idx){
-  if(!t||!t.filas) return "";
-  if(!t.filas.length) return '<p style="color:var(--gris);font-size:13px;margin-top:14px">Nada que mostrar.</p>';
-  var num=t.num||[], todas=!!ABIERTAS[idx];
-  var celdaNum=function(i){ return num.indexOf(i)>=0 ? ' class="num"' : ''; };
-  var h='<div class="tabla-scroll"><table><thead><tr>'+
-    t.cab.map(function(c,i){return '<th'+celdaNum(i)+'>'+esc(c)+'</th>';}).join('')+
-    '</tr></thead><tbody>';
-  h+=t.filas.map(function(f,fi){
-    return '<tr'+((!todas && fi>=TOPE)?' class="extra"':'')+'>'+f.map(function(c,i){
-      var cl=[];
-      if(num.indexOf(i)>=0) cl.push('num');
-      if(t.alerta===i && esAlerta(c, t.alertaMin)) cl.push('alerta');
-      return '<td'+(cl.length?' class="'+cl.join(' ')+'"':'')+'>'+esc(c)+'</td>';
-    }).join('')+'</tr>';
-  }).join('');
-  if(t.total) h+='<tr class="total">'+t.total.map(function(c,i){
-    return '<td'+celdaNum(i)+'>'+esc(c)+'</td>';}).join('')+'</tr>';
-  h+='</tbody></table></div>';
-  if(!todas && t.filas.length>TOPE)
-    h+='<button class="mas no-imprimir" onclick="verTodas('+idx+')">Ver las '+
-       t.filas.length+' completas</button>';
+function tablaZ(t, idx) {
+  if (!t || !t.filas) return '';
+  if (!t.filas.length) return MK.vacio('Nada que mostrar.');
+  var num = t.num || [], todas = !!ABIERTAS[idx], TOPE = 25;
+  var h = '<div class="tbw"><table class="tb"><thead><tr>' + t.cab.map(function (c, i) { return '<th' + (num.indexOf(i) >= 0 ? ' class="r"' : '') + '>' + MK.esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    t.filas.map(function (f, fi) {
+      return '<tr' + (!todas && fi >= TOPE ? ' class="extra"' : '') + '>' + f.map(function (c, i) {
+        var cl = []; if (num.indexOf(i) >= 0) cl.push('r num'); if (t.alerta === i && esAlerta(c, t.alertaMin)) cl.push('alerta');
+        return '<td' + (cl.length ? ' class="' + cl.join(' ') + '"' : '') + '>' + MK.esc(c) + '</td>';
+      }).join('') + '</tr>';
+    }).join('') +
+    (t.total ? '<tr class="tot">' + t.total.map(function (c, i) { return '<td' + (num.indexOf(i) >= 0 ? ' class="r num"' : '') + '>' + MK.esc(c) + '</td>'; }).join('') + '</tr>' : '') + '</tbody></table></div>';
+  if (!todas && t.filas.length > TOPE) h += '<button class="btn sm mas" onclick="ABIERTAS[' + idx + ']=true;MK.repintar();setTimeout(function(){var e=document.getElementById(\'preg' + idx + '\');if(e)e.classList.add(\'abierta\')},0)">Ver las ' + t.filas.length + ' completas</button>';
   return h;
 }
-
-/* ── LA CARTERA ──────────────────────────────────────────────────────
-   El embudo dice lo que viene entrando; la cartera, lo que ya se tiene.
-   Son dos preguntas distintas y por eso van en dos bloques rotulados.
-   Esto vivía en la página aparte de mercadeo; al traerla adentro, se
-   mudó entero. */
-function mesCorto(m){
-  var n=Number(String(m).slice(5,7))-1;
-  var t=MESES[n]||String(m);
-  return t.charAt(0).toUpperCase()+t.slice(1,3);
-}
-
-/* Una línea acumulada, no barras: lo que se mira aquí no es cuántos
-   entraron en marzo sino si la cartera sube, se aplana o baja. */
-function curvaSvg(c, color){
-  var p=(c&&c.puntos)||[];
-  if(!p.length) return '<div class="vacio">Todavía no hay historia que enseñar.</div>';
-  var W=1000,H=250,ml=40,mr=20,mt=22,mb=52;
-  var top=0; p.forEach(function(b){ if(b.puntos>top) top=b.puntos; });
-  var max=(top||1)*1.18;
-  var paso=max/4, mag=Math.pow(10,Math.floor(Math.log(paso)/Math.LN10));
-  var cand=[1,1.5,2,2.5,3,4,5,6,8,10], u=paso/mag;
-  for(var q=0;q<cand.length;q++) if(cand[q]>=u-1e-9){ u=cand[q]; break; }
-  paso=Math.max(1,Math.round(u*mag)); max=paso*4;
-
-  var ancho=W-ml-mr, alto=H-mt-mb, base=mt+alto;
-  var xs=function(i){ return p.length===1 ? ml+ancho/2 : ml+ancho*(i/(p.length-1)); };
-  var ys=function(v){ return mt+alto*(1-(Number(v)||0)/max); };
-  var s="";
-
-  for(var k=0;k<=4;k++){
-    var yy=mt+alto*(k/4);
-    s+='<line x1="'+ml+'" y1="'+yy+'" x2="'+(W-mr)+'" y2="'+yy+'" stroke="'+
-       (k===4?"#D3DDEA":"#EEF2F7")+'" stroke-width="1"/>'+
-       '<text x="'+(ml-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8B96A8">'+
-       Math.round(max*(1-k/4))+'</text>';
-  }
-  /* El cambio de año, marcado: doce meses corridos cruzan diciembre y sin
-     la raya «Ene» parece venir después de «Dic» del mismo año. */
-  p.forEach(function(b,i){
-    if(!i || String(b.mes).slice(0,4)===String(p[i-1].mes).slice(0,4)) return;
-    var xx=(xs(i)+xs(i-1))/2;
-    s+='<line x1="'+xx+'" y1="'+mt+'" x2="'+xx+'" y2="'+base+
-       '" stroke="#D3DDEA" stroke-width="1" stroke-dasharray="3 3"/>'+
-       '<text x="'+xx+'" y="'+(H-8)+'" text-anchor="middle" font-size="9.5" fill="#8B96A8">'+
-       esc(String(p[i-1].mes).slice(0,4))+' | '+esc(String(b.mes).slice(0,4))+'</text>';
-  });
-
-  var pts=p.map(function(b,i){ return xs(i)+","+ys(b.puntos); });
-  s+='<path d="M'+pts.join(" L")+' L'+xs(p.length-1)+','+base+' L'+xs(0)+','+base+
-     ' Z" fill="'+color+'" fill-opacity=".13"/>'+
-     '<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+color+
-     '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-
-  var salto=Math.ceil(p.length/13);
-  p.forEach(function(b,i){
-    var x=xs(i), y=ys(b.puntos);
-    /* El mes en curso va hueco y con la raya cortada: todavía no terminó
-       y no se puede leer como una caída. */
-    s+='<circle cx="'+x+'" cy="'+y+'" r="'+(b.enCurso?4:3.5)+'" fill="#fff" stroke="'+color+
-       '" stroke-width="2"'+(b.enCurso?' stroke-dasharray="2 2"':'')+'/>';
-    if(i%salto===0 || i===p.length-1)
-      s+='<text x="'+x+'" y="'+(H-mb+22)+'" text-anchor="middle" font-size="10.5" fill="'+
-         (b.enCurso?"#8B96A8":"#5B6880")+'">'+esc(mesCorto(b.mes))+'</text>';
-    if(b.enCurso)
-      s+='<text x="'+x+'" y="'+(H-mb+35)+'" text-anchor="middle" font-size="8.5" fill="#8B96A8">'+
-         'en curso</text>';
-    /* La cifra del primero se corre a la derecha y la del último a la
-       izquierda: centradas se montan sobre el eje y sobre el borde. */
-    if(i===0 || i===p.length-1)
-      s+='<text x="'+(i?x-6:x+6)+'" y="'+(y-10)+'" text-anchor="'+(i?'end':'start')+
-         '" font-size="11" font-weight="800" fill="#141C2B">'+b.puntos+'</text>';
-  });
-  return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
-}
-
-function repartoBarras(lista, color, titulo){
-  var l=lista||[];
-  if(!l.length) return '<div class="rep"></div>';
-  var top=0; l.forEach(function(r){ if(r.cuantos>top) top=r.cuantos; });
-  if(top<=0) top=1;
-  return '<div class="rep">'+
-    (titulo ? '<div class="e" style="font-size:10.5px;font-weight:800;text-transform:'+
-              'uppercase;letter-spacing:.6px;color:var(--gris)">'+esc(titulo)+'</div>' : '')+
-    l.map(function(r){
-      var pct=Math.max(3, Math.round(r.cuantos/top*100));
-      return '<div class="f"><div class="n'+(r.vacio?' sin':'')+'" title="'+esc(r.etiqueta)+'">'+
-        esc(r.etiqueta)+'</div><div class="b"><i style="width:'+pct+'%;background:'+
-        (r.vacio?'var(--azul-claro)':color)+'"></i></div><div class="c'+(r.vacio?' sin':'')+'">'+
-        r.cuantos+'</div></div>';
-    }).join('')+'</div>';
-}
-
-function filtroCurva(c){
-  return '<div class="filtro no-imprimir"><div class="e">Ver</div>'+
-    [['6','6 meses'],['12','12 meses'],['anio','Este año'],['todo','Todo']].map(function(o){
-      return '<button class="'+(c.ventana===o[0]?'on':'')+'" onclick="verCurva(\''+o[0]+'\')">'+
-             o[1]+'</button>'; }).join('')+
-    '<div class="libre"><span>de</span>'+
-    '<input type="month" id="c-desde" value="'+esc(c.desde)+'" onchange="verCurvaMeses()">'+
-    '<span>a</span>'+
-    '<input type="month" id="c-hasta" value="'+esc(c.hasta)+'" onchange="verCurvaMeses()">'+
-    '</div></div>';
-}
-/* Mover la ventana de la curva NO toca el periodo del embudo: son dos
-   preguntas distintas. Por eso la memoria guarda las dos por separado —
-   si la clave no llevara la ventana, cambiarla no refrescaría nada. */
-function verCurva(v){
-  CURVA=v;
-  var k=clave();
-  if(CACHE[k]) pintar(CACHE[k]); else cargar(PIN);
-}
-function verCurvaMeses(){
-  var a=$("c-desde").value, b=$("c-hasta").value;
-  if(!a||!b) return;
-  if(a>b){ var t=a; a=b; b=t; }
-  verCurva(a+".."+b);
-}
-
-function bloque(t, de){
-  return '<div class="bloque"><div class="t">'+esc(t)+'</div><div class="l"></div>'+
-         (de?'<span class="de">'+esc(de)+'</span>':'')+'</div>';
-}
-
-function carteraHtml(c){
-  var h=bloque('La cartera','de siempre');
-  h+=kpisHtml(c.kpis, 'var(--azul)');
-  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.curva.titulo)+'</h3>'+
-     '<span class="lee">'+esc(c.curva.lee)+'</span></div>'+
-     filtroCurva(c)+
-     '<div class="curva">'+curvaSvg(c.curva,'var(--azul)')+'</div>'+
-     '<div class="nota">'+(c.curva.nota||'')+'</div></div>';
-  h+='<div class="tarjeta"><div class="cab"><h3>'+esc(c.reparto.titulo)+'</h3>'+
-     '<span class="lee">'+esc(c.reparto.lee)+'</span></div>'+
-     '<div class="reparto">'+
-       repartoBarras(c.reparto.region,'var(--azul)','Región')+
-       repartoBarras(c.reparto.frecuencia,'var(--lima)','Frecuencia')+
-     '</div></div>';
-  return h;
-}
-
-function kpisHtml(lista, color){
-  return '<div class="kpis">'+(lista||[]).map(function(k){
-    return '<div class="kpi'+(k.malo?' malo':'')+'" style="border-top-color:'+color+'">'+
-      /* La pastilla marca la EXCEPCIÓN a lo que dice la línea de arriba,
-         nunca la regla. En cartera la regla es «de siempre» y se marcan
-         los dos del periodo; en logística es al revés. Marcarlas todas
-         convierte la pastilla en decoración y deja de avisar de nada. */
-      '<div class="e">'+esc(k.e)+
-        (k.de==="periodo" ? '<span class="de per">del periodo</span>' :
-         k.de==="siempre" ? '<span class="de">de siempre</span>' : '')+'</div>'+
-      '<div class="v">'+(k.u==="B/."?'<small>B/. </small>':'')+esc(k.v)+
-        (k.u&&k.u!=="B/."?' <small>'+esc(k.u)+'</small>':'')+'</div>'+
-      '<div class="s">'+esc(k.s)+'</div></div>';
-  }).join("")+'</div>';
-}
-
-function pintar(r){
-  var z=zonaDe(ZONA);
-  $("h-tit").textContent=z.nombre;
-  $("m-tit").textContent="Dirección · "+z.nombre;
-
-  /* las pestañas */
-  $("nav").innerHTML=ZONAS.map(function(x){
-    var n=CONTEOS[x.pend]||0;
-    return '<button class="'+(x.id===ZONA?'on':'')+'" onclick="verZona(\''+x.id+'\')">'+
-      '<i style="'+(x.id===ZONA?'background:'+x.color:'')+'"></i>'+esc(x.nombre)+
-      (n>0?'<span class="pend">'+n+'</span>':'')+'</button>';
-  }).join("");
-
-  /* Cada zona dice de dónde salen sus cifras con sus propias palabras:
-     en cartera la mora es de siempre y lo facturado es del periodo, y
-     eso no se puede decir con una frase genérica. */
-  var dice = r.dice
-    ? r.dice
-    : '<b>'+esc(enPalabras(r.desde||DESDE, r.hasta||HASTA))+'</b>'+
-      '<span> · comparado con el periodo anterior del mismo largo</span>';
-  $("m-per").textContent =
-    enPalabras(r.desde||DESDE, r.hasta||HASTA) + " · generado el " + (r.hoy||"");
-
-  var html='<div class="periodo"><div class="dice">'+dice+'</div>'+
-    '<div class="rapidos no-imprimir">'+
-      [['semana','Semana'],['quincena','Quincena'],['mes','Mes'],
-       ['trimestre','Trimestre'],['anio','Año']].map(function(o){
-        return '<button class="'+(RAPIDO===o[0]?'on':'')+'" onclick="verRango(\''+o[0]+'\')">'+
-               o[1]+'</button>';
-      }).join('')+
-      '<input type="date" id="f-desde" value="'+esc(DESDE)+'" onchange="verFechas()">'+
-      '<input type="date" id="f-hasta" value="'+esc(HASTA)+'" onchange="verFechas()">'+
-    '</div></div>';
-
-  /* Primero quiénes son los clientes que ya se tienen, después qué se
-     está negociando. Solo mercadeo trae cartera. */
-  if(r.cartera) html+=carteraHtml(r.cartera);
-
-  /* los números de la zona · una zona puede traerlos en varios bloques
-     rotulados, como logística —la operación y la flota— o en uno solo */
-  if(r.bloques){
-    r.bloques.forEach(function(b){
-      html+=bloque(b.titulo,'')+kpisHtml(b.kpis, z.color);
+function ejeTxt(val, paso) { if (val < 0.0001) return '0'; if (paso >= 1000) return Math.round(val / 1000) + 'k'; if (paso >= 1) return MK.num(Math.round(val)); return val.toFixed(1); }
+function miles(v) { var n = Number(v) || 0; return (Math.abs(n) < 1000 && n % 1 !== 0) ? MK.num(n, 1) : MK.num(Math.round(n)); }
+/* La gráfica de barras de las zonas (misma escala «bonita» del panel anterior) */
+function grafica(g, color) {
+  if (!g || !g.barras || !g.barras.length) return '';
+  var W = 1000, H = 230, ml = g.horizontal ? 190 : 54, mr = 16, mt = 18, mb = 34, s = '';
+  var max = 0; g.barras.forEach(function (b) { if (b.v > max) max = b.v; if (g.dos && b.v2 > max) max = b.v2; });
+  if (max <= 0) return MK.vacio('Sin datos para graficar en el periodo.');
+  max = max * 1.15;
+  var paso = max / 4, mag = Math.pow(10, Math.floor(Math.log(paso) / Math.LN10)), cand = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10], u = paso / mag;
+  for (var q = 0; q < cand.length; q++) if (cand[q] >= u - 1e-9) { u = cand[q]; break; }
+  paso = u * mag; max = paso * 4;
+  if (g.unidad === '%' && max > 100) { max = 100; paso = 25; }
+  if (g.horizontal) {
+    var alto = (H - mt - mb) / g.barras.length;
+    g.barras.forEach(function (b, i) {
+      var y = mt + i * alto, hh = alto * 0.62, w = (W - ml - mr - 130) * (b.v / max);
+      s += '<rect x="' + ml + '" y="' + (y + (alto - hh) / 2) + '" width="' + Math.max(w, 1) + '" height="' + hh + '" rx="4" fill="' + color + '"/>' +
+        '<text x="' + (ml - 10) + '" y="' + (y + alto / 2 + 4) + '" text-anchor="end" font-size="13" fill="#5B6880">' + MK.esc(b.x) + '</text>' +
+        '<text x="' + (ml + w + 8) + '" y="' + (y + alto / 2 + 4) + '" font-size="13" font-weight="700" fill="#141C2B">' + (g.unidad === 'B/.' ? 'B/. ' : '') + miles(b.v) + '</text>';
     });
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '">' + s + '</svg>';
+  }
+  var ancho = (W - ml - mr) / g.barras.length;
+  for (var k = 0; k <= 4; k++) {
+    var yy = mt + (H - mt - mb) * (k / 4);
+    s += '<line x1="' + ml + '" y1="' + yy + '" x2="' + (W - mr) + '" y2="' + yy + '" stroke="#E3EAF3" stroke-width="1"/><text x="' + (ml - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#8B96A8">' + ejeTxt(max * (1 - k / 4), paso) + '</text>';
+  }
+  g.barras.forEach(function (b, i) {
+    var n = g.dos ? 2 : 1;
+    for (var j = 0; j < n; j++) {
+      var val = j === 0 ? b.v : b.v2, hh = (H - mt - mb) * ((Number(val) || 0) / max); if (hh < 0) hh = 0;
+      var w = (ancho * 0.6) / n, x = ml + i * ancho + ancho * 0.2 + j * w, y = H - mb - hh, col = j === 0 ? color : '#b9c7dd';
+      s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + hh + '" rx="' + (n === 1 ? 4 : 3) + '" fill="' + (b.parcial ? 'url(#rayas' + color.slice(1) + ')' : col) + '"' + (b.parcial ? ' stroke="' + col + '" stroke-width="1.5"' : '') + '/>';
+      if (n === 1 || j === 0) s += '<text x="' + (ml + i * ancho + ancho * 0.5) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#141C2B">' + miles(b.v) + (g.unidad === '%' ? ' %' : '') + '</text>';
+    }
+    s += '<text x="' + (ml + i * ancho + ancho * 0.5) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="12" fill="#5B6880">' + MK.esc(b.x) + '</text>';
+  });
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '"><defs><pattern id="rayas' + color.slice(1) + '" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#fff"/><line x1="0" y1="0" x2="0" y2="7" stroke="' + color + '" stroke-width="4"/></pattern></defs>' + s + '</svg>';
+}
+function repartoBarras(lista, color, titulo) {
+  var l = lista || []; if (!l.length) return '';
+  var top = Math.max.apply(null, l.map(function (r) { return r.cuantos; }).concat([1]));
+  return '<div class="rep">' + (titulo ? '<div class="et" style="margin-bottom:4px">' + MK.esc(titulo) + '</div>' : '') + l.map(function (r) {
+    return '<div class="f"><div class="n' + (r.vacio ? ' sin' : '') + '" title="' + MK.esc(r.etiqueta) + '">' + MK.esc(r.etiqueta) + '</div><div class="b"><i style="width:' + Math.max(3, Math.round(r.cuantos / top * 100)) + '%;background:' + (r.vacio ? '#c9d4e6' : color) + '"></i></div><div class="c num' + (r.vacio ? ' sin' : '') + '">' + r.cuantos + '</div></div>';
+  }).join('') + '</div>';
+}
+function repartoCard(rp, Z) { return '<div class="card"><h3>' + MK.esc(rp.titulo) + '</h3><div class="lee" style="margin-bottom:10px">' + MK.esc(rp.lee || '') + '</div>' + repartoBarras(rp.lista, Z.hex, '') + '</div>'; }
+/* Mercadeo trae además la cartera: la curva acumulada y el reparto */
+function curvaSvg(c, color) {
+  var p = (c && c.puntos) || [];
+  if (!p.length) return MK.vacio('Todavía no hay historia que enseñar.');
+  var W = 1000, H = 250, ml = 40, mr = 20, mt = 22, mb = 52, top = 0;
+  p.forEach(function (b) { if (b.puntos > top) top = b.puntos; });
+  var max = (top || 1) * 1.18, paso = max / 4, mag = Math.pow(10, Math.floor(Math.log(paso) / Math.LN10)), cand = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10], u = paso / mag;
+  for (var q = 0; q < cand.length; q++) if (cand[q] >= u - 1e-9) { u = cand[q]; break; }
+  paso = Math.max(1, Math.round(u * mag)); max = paso * 4;
+  var ancho = W - ml - mr, alto = H - mt - mb, base = mt + alto, s = '';
+  var xs = function (i) { return p.length === 1 ? ml + ancho / 2 : ml + ancho * (i / (p.length - 1)); };
+  var ys = function (v) { return mt + alto * (1 - (Number(v) || 0) / max); };
+  for (var k = 0; k <= 4; k++) { var yy = mt + alto * (k / 4); s += '<line x1="' + ml + '" y1="' + yy + '" x2="' + (W - mr) + '" y2="' + yy + '" stroke="' + (k === 4 ? '#D3DDEA' : '#EEF2F7') + '"/><text x="' + (ml - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#8B96A8">' + Math.round(max * (1 - k / 4)) + '</text>'; }
+  var pts = p.map(function (b, i) { return xs(i) + ',' + ys(b.puntos); });
+  s += '<path d="M' + pts.join(' L') + ' L' + xs(p.length - 1) + ',' + base + ' L' + xs(0) + ',' + base + ' Z" fill="' + color + '" fill-opacity=".13"/><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round"/>';
+  var salto = Math.ceil(p.length / 13);
+  p.forEach(function (b, i) {
+    var x = xs(i), y = ys(b.puntos);
+    s += '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#fff" stroke="' + color + '" stroke-width="2"' + (b.enCurso ? ' stroke-dasharray="2 2"' : '') + '/>';
+    if (i % salto === 0 || i === p.length - 1) s += '<text x="' + x + '" y="' + (H - mb + 22) + '" text-anchor="middle" font-size="10.5" fill="#5B6880">' + MK.esc(MK.mesCorto(b.mes)) + '</text>';
+    if (i === 0 || i === p.length - 1) s += '<text x="' + (i ? x - 6 : x + 6) + '" y="' + (y - 10) + '" text-anchor="' + (i ? 'end' : 'start') + '" font-size="11" font-weight="800" fill="#141C2B">' + b.puntos + '</text>';
+  });
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '">' + s + '</svg>';
+}
+function carteraHtml(c, Z) {
+  var h = '<div class="bloq"><span class="et">La cartera · de siempre</span>' + kpisZ(c.kpis) + '</div>';
+  h += '<div class="graf"><div class="card"><h3>' + MK.esc(c.curva.titulo) + '</h3><div class="lee">' + MK.esc(c.curva.lee || '') + '</div>' +
+    '<div class="per" style="margin:8px 0">' + MK.chips([['6', '6 meses'], ['12', '12 meses'], ['anio', 'Este año'], ['todo', 'Todo']], c.ventana, 'verCurva') + '</div>' +
+    '<div class="svgw">' + curvaSvg(c.curva, Z.hex) + '</div>' + (c.curva.nota ? '<div class="nota">' + c.curva.nota + '</div>' : '') + '</div>' +
+    '<div class="card"><h3>' + MK.esc(c.reparto.titulo) + '</h3><div class="lee" style="margin-bottom:10px">' + MK.esc(c.reparto.lee || '') + '</div><div class="reps">' + repartoBarras(c.reparto.region, Z.hex, 'Región') + repartoBarras(c.reparto.frecuencia, '#6aa84f', 'Frecuencia') + '</div></div></div>';
+  return h;
+}
+function verCurva(v) { CURVA = v; MK.repintar(); }
+</script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DIRECCIÓN › FINANZAS (api 3.4) — va dentro de Inicio.html al empaquetar.
+   Utilidad · Solicitudes (modo fiscalizador) · Gastos · Catálogos.
+   Las cifras salen de las mismas funciones de la pantalla anterior
+   (api_estadoResultados, api_solicitudes, api_movimientos,
+   api_catalogosFinanzas); lo nuevo es el filtro por proyecto, «Para
+   revisar» y la nota de gerencia.
+   ════════════════════════════════════════════════════════════════ */
+var MOVTOPE = 60, FPER = 'anio', FPRY = '', ER = {}, SOL = null, SOLF = 'todas', SOLQ = '', MOVS = {}, MOVQ = '', MOVSOLO = '', CAT = null, CATQ = '';
+function P() { return B().permisos || {}; }
+function verFin() { return P().finanzas && P().finanzas !== 'no'; }
+function sinFin() { return MK.cabeza('Finanzas') + '<div class="aviso rj">Finanzas no está en los módulos de tu rol. Lo decide el administrador en Configuración.</div>'; }
+function rangoF(p) {
+  var h = MK.hoy, m1 = h.slice(0, 8) + '01';
+  if (p === 'mes') return [m1, h];
+  if (p === 'mesant') { var a = MK.masMeses(m1, -1); return [a, MK.masDias(m1, -1)]; }
+  if (p === 'trim') return [MK.masMeses(m1, -2), h];
+  if (p === 'anio') return [h.slice(0, 4) + '-01-01', h];
+  return ['2020-01-01', h];
+}
+function chipsFPer() { return MK.chips([['mes', 'Mes'], ['mesant', 'Mes pasado'], ['trim', 'Trimestre'], ['anio', 'Año'], ['todo', 'Todo']], FPER, 'cambiaFPer'); }
+function cambiaFPer(p) { FPER = p; MK.repintar(); }
+function cambiaPry(p) { FPRY = p === '_' ? '' : p; MK.repintar(); }
+function nomPry(k) { return k === 'SIN PROYECTO' ? 'Sin proyecto' : k.charAt(0) + k.slice(1).toLowerCase(); }
+function chipsPry(er) {
+  var l = (er && er.proyectos) || [];
+  if (!l.length) return '';
+  return '<div class="fila" style="gap:8px;margin-bottom:14px;flex-wrap:wrap"><span class="et">Proyecto</span>' +
+    MK.chips([['_', 'Todos']].concat(l.map(function (x) { return [x.clave, nomPry(x.clave)]; })), FPRY || '_', 'cambiaPry') + '</div>';
+}
+function textoRango(r) { return r[0] === '2020-01-01' ? 'Todo el registro' : enPalabras(r[0], r[1]) + (r[0].slice(0, 4) !== r[1].slice(0, 4) ? '' : ' de ' + r[1].slice(0, 4)); }
+
+/* El estado de resultados se guarda por periodo y proyecto */
+function traerER(pry) {
+  var r = rangoF(FPER), k = r.join('|') + '|' + (pry == null ? FPRY : pry);
+  if (ER[k]) return ER[k];
+  if (ER[k] === undefined) {
+    ER[k] = null;
+    MK.api('api_estadoResultados', MK.pinUso(), r[0], r[1], pry == null ? FPRY : pry).then(function (x) {
+      if (!x || !x.ok) { ER[k] = undefined; MK.aviso((x && x.error) || 'No se pudo calcular'); return; }
+      ER[k] = x; MK.repintar();
+    }, function () { ER[k] = undefined; MK.aviso('Sin conexión'); });
+  }
+  return null;
+}
+function cargandoF(t) { return '<div class="cargando">' + MK.esc(t || 'Calculando…') + '</div>'; }
+
+/* ═══════════ UTILIDAD ═══════════ */
+function mesAMes(serie, conIngreso) {
+  if (!serie || !serie.length) return MK.vacio('Sin meses en el periodo.');
+  var W = 1000, H = 250, ml = 60, mr = 12, mt = 16, mb = 58, s = '';
+  var max = Math.max.apply(null, serie.map(function (x) { return Math.max(conIngreso ? x.ingreso : 0, x.gasto); }).concat([1])) * 1.12;
+  var ancho = (W - ml - mr) / serie.length, alto = H - mt - mb;
+  for (var k = 0; k <= 4; k++) { var yy = mt + alto * k / 4; s += '<line x1="' + ml + '" y1="' + yy + '" x2="' + (W - mr) + '" y2="' + yy + '" stroke="#E3EAF3"/><text x="' + (ml - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#8B96A8">' + (max * (1 - k / 4) >= 1000 ? Math.round(max * (1 - k / 4) / 1000) + 'k' : Math.round(max * (1 - k / 4))) + '</text>'; }
+  serie.forEach(function (x, i) {
+    var n = conIngreso ? 2 : 1, w = ancho * 0.64 / n, x0 = ml + i * ancho + ancho * 0.18;
+    if (conIngreso) { var hi = alto * x.ingreso / max; s += '<rect x="' + x0 + '" y="' + (mt + alto - hi) + '" width="' + w + '" height="' + Math.max(0, hi) + '" rx="3" fill="#2f9e44"/>'; x0 += w; }
+    var hg = alto * x.gasto / max; s += '<rect x="' + x0 + '" y="' + (mt + alto - hg) + '" width="' + w + '" height="' + Math.max(0, hg) + '" rx="3" fill="#d64045"/>';
+    var cx = ml + i * ancho + ancho / 2;
+    s += '<text x="' + cx + '" y="' + (H - mb + 18) + '" text-anchor="middle" font-size="12" fill="#5B6880">' + MK.esc(MK.mesCorto(x.mes)) + '</text>';
+    if (conIngreso) s += '<text x="' + cx + '" y="' + (H - mb + 38) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="' + (x.utilidad < 0 ? '#c0392b' : '#2f7d32') + '">' + (x.utilidad < 0 ? '−' : '') + (Math.abs(x.utilidad) >= 1000 ? MK.num(Math.abs(x.utilidad) / 1000, 1) + 'k' : MK.num(Math.abs(x.utilidad))) + '</text>';
+  });
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '">' + s + '</svg>';
+}
+function dueleUtil(er) {
+  var out = [], se = er.serie || [], mesHoy = MK.hoy.slice(0, 7);
+  var sinG = se.filter(function (x) { return x.mes < mesHoy && x.ingreso > 0 && x.gasto === 0; });
+  if (sinG.length && !FPRY) out.push('<b>' + (sinG.length === 1 ? 'En ' + MK.mesNombre(sinG[0].mes) : 'De ' + MK.mesNombre(sinG[0].mes).split(' ')[0] + ' a ' + MK.mesNombre(sinG[sinG.length - 1].mes)) + ' no hay gastos cargados.</b> La utilidad de ' + (sinG.length === 1 ? 'ese mes' : 'esos meses') + ' sale inflada hasta que se registren (planilla, combustible, tratamiento).');
+  var pr = er.proyectos || [], tot = pr.reduce(function (a, x) { return a + x.monto; }, 0);
+  if (!FPRY && pr.length > 1 && tot > 0 && pr[0].monto / tot > 0.6) out.push('El ' + MK.num(pr[0].monto / tot * 100) + ' % del gasto es del proyecto <b>' + MK.esc(nomPry(pr[0].clave)) + '</b>: para leer lo demás, filtra el proyecto.');
+  if (er.resumen.porConfirmar > 0) out.push(D(er.resumen.porConfirmar) + ' en gastos <b>por confirmar</b> no se suman hasta que se resuelvan (Gastos › Por resolver).');
+  return out.length ? '<div class="duele amb">' + MK.ic('alerta', 17) + '<span>' + out.join(' ') + '</span></div>' : '';
+}
+function vUtil() {
+  setZc('var(--z-fin)');
+  if (!verFin()) return sinFin();
+  var r = rangoF(FPER), er = traerER();
+  var h = MK.cabeza('Finanzas · Utilidad', textoRango(r) + ' · la utilidad se mide sobre lo facturado; el ITBMS no es ingreso ni gasto', chipsFPer());
+  if (!er) return h + cargandoF('Calculando el estado de resultados…');
+  var z = er.resumen, op = er.operacion || {};
+  h += chipsPry(er) + dueleUtil(er);
+  if (!FPRY) {
+    h += '<div class="bloq"><span class="et">Resultado del periodo</span>' + MK.kpis([
+      { e: 'Facturado', v: D(z.facturado), s: z.facturas + ' factura(s) · sin ITBMS' },
+      { e: 'Gasto', v: D(z.gastoTotal), s: z.movimientosHistoricos + ' movimiento(s) + ' + z.solicitudesPagadas + ' solicitud(es)' + (z.gastosFijos ? ' + fijos ' + D(z.gastosFijos) : '') },
+      { e: 'Utilidad', v: D(z.utilidad), s: 'margen ' + MK.num(z.margen, 1) + ' %', c: z.utilidad < 0 ? 'bad' : 'ok' },
+      { e: 'Cobrado en el periodo', v: D(z.cobradoPeriodo), s: D(z.porCobrarDelPeriodo) + ' de lo facturado sigue por cobrar' }]) + '</div>';
   } else {
-    if(r.cartera) html+=bloque('El embudo','');
-    html+=kpisHtml(r.kpis, z.color);
+    var tot = (er.proyectos || []).reduce(function (a, x) { return a + x.monto; }, 0), mio = ((er.proyectos || []).filter(function (x) { return x.clave === FPRY; })[0] || {}).monto || 0;
+    h += '<div class="bloq"><span class="et">Proyecto ' + MK.esc(nomPry(FPRY)) + '</span>' + MK.kpis([
+      { e: 'Gasto del proyecto', v: D(z.gastoTotal), s: z.movimientosHistoricos + ' movimiento(s) + ' + z.solicitudesPagadas + ' solicitud(es)' },
+      { e: 'Parte del gasto', v: tot ? MK.num(mio / tot * 100, 1) + ' %' : '—', s: 'de ' + D(tot) + ' operativos del periodo' },
+      { e: 'Por pagar', v: D(z.aprobadoSinPagar), s: 'solicitudes de este proyecto' },
+      { e: 'Fijos del proyecto', v: D(z.gastosFijos), s: er.gastosFijos.length + ' gasto(s) fijo(s)' }]) + '</div>' +
+      '<div class="nota" style="margin:-4px 0 14px">El ingreso no se separa por proyecto: las facturas no dicen de qué proyecto son. Aquí se lee solo el gasto.</div>';
   }
-
-  /* lo que duele, en una línea */
-  if(r.duele) html+='<div class="malo-caja">'+esc(r.duele)+'</div>';
-
-  /* lo que espera una decisión, y lo que dejó el vigía */
-  var d=(r.decisiones||[]).slice();
-  ((r.pendientes&&r.pendientes.lista)||[]).forEach(function(p){
-    d.push({urgente:p.alta, titulo:p.titulo, detalle:p.detalle, enlace:p.enlace});
-  });
-  if(d.length){
-    html+='<div class="decide"><h3>Esperando una decisión</h3><div class="lista-d">'+
-      d.map(function(x){
-        var href = x.enlace ? (URL_APP?URL_APP+x.enlace:"") : (x.ir?ir(x.ir):"");
-        /* Un pendiente cuya zona ya no tiene página a dónde ir deja de
-           ser enlace en vez de convertirse en un enlace roto. */
-        if(!href||href==="#")
-          return '<div class="d-item'+(x.urgente?' urg':'')+'">'+
-            '<b>'+esc(x.titulo)+'</b>'+(x.detalle?'<span>'+esc(x.detalle)+'</span>':'')+'</div>';
-        return '<a class="d-item'+(x.urgente?' urg':'')+'" href="'+esc(href)+'" target="_top">'+
-          '<b>'+esc(x.titulo)+'</b>'+(x.detalle?'<span>'+esc(x.detalle)+'</span>':'')+'</a>';
-      }).join("")+'</div></div>';
-  }
-
-  /* las gráficas · una zona puede traer más de una */
-  var gs = r.graficas || (r.grafica ? [r.grafica] : []);
-  gs.forEach(function(g){
-    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(g.titulo)+'</h3>'+
-      '<span class="lee">'+esc(g.lee)+'</span></div>'+
-      '<div class="grafica">'+grafica(g,z.color)+'</div>';
-    var ley=[];
-    if(g.dos && g.series){
-      ley.push('<span><i style="background:'+z.color+'"></i>'+esc(g.series[0])+'</span>');
-      ley.push('<span><i style="background:var(--azul-claro)"></i>'+esc(g.series[1])+'</span>');
-    }
-    if((g.barras||[]).some(function(b){return b.parcial;})){
-      if(!ley.length) ley.push('<span><i style="background:'+z.color+'"></i>mes cerrado</span>');
-      ley.push('<span><i style="background:#fff;border:1.5px solid '+z.color+'"></i>'+
-        'mes en curso · va a la mitad, no es una caída</span>');
-    }
-    if(ley.length) html+='<div class="leyenda">'+ley.join('')+'</div>';
-    html+='</div>';
-  });
-
-  /* un reparto suelto · el ritmo de las visitas en logística. En barras
-     y no en dona: cuatro tajadas se comparan mejor en fila que en
-     círculo, y así no hace falta bajar una librería de internet. */
-  if(r.reparto && r.reparto.lista)
-    html+='<div class="tarjeta"><div class="cab"><h3>'+esc(r.reparto.titulo)+'</h3>'+
-      '<span class="lee">'+esc(r.reparto.lee||'')+'</span></div>'+
-      '<div style="margin-top:14px">'+
-        repartoBarras(r.reparto.lista, z.color, '')+
-      '</div></div>';
-
-  /* el detalle, cerrado y con su conteo por fuera */
-  if((r.preguntas||[]).length){
-    html+='<h3 style="margin:20px 0 11px">El detalle · se abre lo que se quiera ver</h3>'+
-      r.preguntas.map(function(p,i){
-        return '<div class="preg'+(i===0?' abierta':'')+'" id="preg'+i+'">'+
-          '<button onclick="abrir('+i+')">'+
-            '<div><div class="q">'+esc(p.q)+'</div>'+
-            '<div class="r">'+esc(p.titulo)+'</div></div>'+
-            (p.cuenta?'<span class="cuenta">'+esc(p.cuenta)+'</span>':'')+
-            '<span class="fl">▾</span></button>'+
-          '<div class="cuerpo">'+
-            (p.tabla?tabla(p.tabla,i):'')+
-            (p.texto?'<p>'+esc(p.texto)+'</p>':'')+
-            (p.nota?'<div class="nota">'+esc(p.nota)+'</div>':'')+
-          '</div></div>';
-      }).join("");
-  }
-
-  $("cuerpo").innerHTML=html;
-}
-function abrir(i){ var e=$("preg"+i); if(e) e.classList.toggle("abierta"); }
-
-/* En papel no hay clics: antes de imprimir se abren todas las preguntas
-   y después se dejan como estaban. */
-window.addEventListener("beforeprint",function(){
-  document.querySelectorAll(".preg").forEach(function(e){
-    if(!e.classList.contains("abierta")) e.classList.add("abierta","por-impresion");
-  });
-});
-window.addEventListener("afterprint",function(){
-  document.querySelectorAll(".preg.por-impresion").forEach(function(e){
-    e.classList.remove("abierta","por-impresion");
-  });
-});
-
-/* Navega la ventana de arriba: dentro del iframe de Apps Script,
-   location.href solo cambia el marco interno y la pantalla queda en blanco. */
-function irA(url){
-  if(!url||url==="#") return;
-  try{ if(window.top && window.top!==window){ window.top.location.href=url; return; } }catch(e){}
-  location.href=url;
+  h += '<div class="graf ancha"><div class="card"><h3>Mes a mes</h3><div class="lee">' + (FPRY ? 'gasto del proyecto por mes' : 'ingreso contra gasto · debajo de cada mes, la utilidad') + '</div><div class="svgw">' + mesAMes(er.serie, !FPRY) + '</div>' +
+    '<div class="ley">' + (FPRY ? '' : '<span><i style="background:#2f9e44"></i>Ingreso (facturado)</span>') + '<span><i style="background:#d64045"></i>Gasto</span></div></div>';
+  if (!FPRY) h += '<div class="card"><h3>Cuánto cuesta operar</h3><div class="lee" style="margin-bottom:10px">con ' + MK.num(op.kgRecolectados) + ' kg recolectados y ' + MK.num(op.visitas) + ' visitas</div>' + MK.kpis([
+    { e: 'Costo por kg', v: D(op.costoPorKg), s: 'ingreso por kg: ' + D(op.ingresoPorKg), c: op.costoPorKg > op.ingresoPorKg ? 'bad' : '' },
+    { e: 'Costo por visita', v: D(op.costoPorVisita), s: 'ingreso por visita: ' + D(op.ingresoPorVisita), c: op.costoPorVisita > op.ingresoPorVisita ? 'bad' : '' },
+    { e: 'Costo por kg tratado', v: D(op.costoPorKgTratado), s: MK.num(op.kgTratados) + ' kg tratados' },
+    { e: 'ITBMS neto', v: D(z.itbmsNeto), s: 'cobrado menos pagado · es del fisco' }], 2) + '</div>';
+  else h += '<div class="card"><h3>A quién se le paga más</h3><div class="lee" style="margin-bottom:10px">en este proyecto</div>' + MK.hbar((er.porProveedor || []).slice(0, 8).map(function (x) { return { e: x.clave, v: x.monto }; }), { color: 'var(--z-fin)', fmt: D }) + '</div>';
+  h += '</div><div class="graf">';
+  if (!FPRY) h += '<div class="card"><h3>Quién factura más</h3><div class="lee" style="margin-bottom:10px">en el periodo</div>' + ((er.porCliente || []).length ? MK.hbar(er.porCliente.slice(0, 8).map(function (x) { return { e: x.clave, v: x.monto }; }), { color: '#2f9e44', fmt: D }) : MK.vacio('Sin facturas en el periodo.')) +
+    (er.porCliente && er.porCliente.length && z.facturado ? '<div class="nota">' + MK.esc(er.porCliente[0].clave) + ' es el ' + MK.num(er.porCliente[0].monto / z.facturado * 100) + ' % de lo facturado.</div>' : '') + '</div>';
+  h += '<div class="card"><h3>En qué se va el gasto</h3><div class="lee" style="margin-bottom:10px">por cuenta contable</div>' + ((er.porCuenta || []).length ? MK.hbar(er.porCuenta.slice(0, 9).map(function (x) { return { e: x.descripcion || (x.clave === 'SIN CUENTA' ? 'Sin cuenta' : x.clave), d: x.descripcion ? x.clave : '', v: x.monto, c: x.clave === 'SIN CUENTA' ? '#9aa7ba' : '' }; }), { color: '#d64045', fmt: D }) : MK.vacio('Sin gastos en el periodo.')) + '</div>';
+  h += '</div>';
+  if ((er.extraordinarios || []).length || (er.porResolver || []).length)
+    h += '<div class="card"><h3>Marcados</h3><div class="lee">extraordinarios (bajan la utilidad, no el costo de operar) y por confirmar (no se suman)</div>' +
+      MK.tabla(['Marca', 'Fecha', 'Proveedor', 'Concepto', '>Monto'], (er.extraordinarios || []).map(function (x) { return ['<span class="chipx warn">extraordinario</span>', MK.dmy(x.fecha), MK.esc(x.proveedor), MK.esc(x.concepto), D(x.monto)]; })
+        .concat((er.porResolver || []).map(function (x) { return ['<span class="chipx info">por confirmar</span>', MK.dmy(x.fecha), MK.esc(x.proveedor), MK.esc(x.concepto) + (x.nota ? '<small>' + MK.esc(x.nota) + '</small>' : ''), D(x.monto)]; }))) + '</div>';
+  return h;
 }
 
-document.addEventListener("keydown",function(e){
-  if(e.key==="Enter" && $("pantalla-pin").style.display!=="none") entrar();
+/* ═══════════ SOLICITUDES · modo fiscalizador ═══════════ */
+var ROLN = { admin: 'administración', gerente: 'gerencia', solicitante: 'quien la pidió' };
+function quienes(l) { return (l || []).map(function (x) { return ROLN[x] || x; }).join(' o ') || 'nadie'; }
+function traerSol() {
+  if (SOL) return SOL;
+  if (SOL === null) {
+    SOL = false;
+    MK.api('api_dirSolicitudes', MK.pinUso(), {}).then(function (x) {
+      if (!x || !x.ok) { SOL = null; MK.aviso((x && x.error) || 'No se pudo leer'); return; }
+      SOL = x; MK.repintar();
+    }, function () { SOL = null; MK.aviso('Sin conexión'); });
+  }
+  return null;
+}
+function estChip(s) {
+  var e = s.etiqueta || s.estado, c = { 'Por pagar': 'pp', 'Pagada': 'pag', 'Por aprobar': 'sol', 'Espera visto bueno': 'vb', 'Rechazada': 'rec', 'Anulada': 'anu' }[e] || 'sol';
+  return '<span class="est ' + c + '">' + MK.esc(e) + '</span>';
+}
+function reglaHoy(R) {
+  return '<div class="regla-hoy">' + MK.ic('ajustes', 17) + '<span>Regla actual: <b>' + (R.aprobacion ? 'las solicitudes necesitan aprobación en el sistema' + (R.desdeMonto > 0 ? ' desde ' + D(R.desdeMonto) : '') : 'sin aprobación en el sistema: nacen «Por pagar»') + '</b> · aviso a gerencia desde ' + D(R.aviso) + ' · el pago lo registra ' + quienes(R.registranPago) + '</span><span class="sp"></span>' +
+    (P().admin ? '<a class="l" href="Configuracion.html#reg">' + MK.ic('candado', 14) + 'Cambiar en Configuración</a>' : '<span class="l">' + MK.ic('candado', 14) + 'la cambia el administrador en Configuración</span>') + '</div>';
+}
+function vSol() {
+  setZc('var(--z-fin)');
+  if (!verFin()) return sinFin();
+  var h = MK.cabeza('Finanzas · Solicitudes de pago', 'Gerencia <b>fiscaliza</b>: ve todas las solicitudes y anota. Pedir un pago sigue siendo de todos, desde su propio módulo.', '<button class="btn" onclick="SOL=null;MK.repintar()">' + MK.ic('renovar', 15) + 'Actualizar</button>');
+  var r = traerSol();
+  if (!r) return h + cargandoF('Leyendo las solicitudes…');
+  var R = r.reglas || {}, t = r.totales || {}, L = r.solicitudes || [];
+  var vivas = L.filter(function (s) { return s.estado !== 'ANULADA' && s.estado !== 'RECHAZADA'; });
+  var pp = L.filter(function (s) { return s.porPagar; }).sort(function (a, b) { return (a.fechaSolicitud || a.fecha).localeCompare(b.fechaSolicitud || b.fecha); });
+  var vieja = pp[0];
+  h += reglaHoy(R);
+  h += '<div class="bloq">' + MK.kpis([
+    { e: 'Pedidas', v: vivas.length, s: D(vivas.reduce(function (a, s) { return a + s.total; }, 0)) + ' sin contar anuladas' },
+    { e: 'Por pagar', v: t.aprobadas || 0, s: D(t.montoPorPagar) + (vieja ? ' · desde el ' + MK.dmy(vieja.fechaSolicitud || vieja.fecha) + ' (' + MK.dias(vieja.fechaSolicitud || vieja.fecha, MK.hoy) + ' días)' : ''), c: vieja && MK.dias(vieja.fechaSolicitud || vieja.fecha, MK.hoy) > 7 ? 'bad' : '' },
+    { e: 'Pagadas', v: t.pagadas || 0, s: D(t.montoPagado) },
+    { e: 'Pasan del monto de aviso', v: t.pasanAviso || 0, s: R.aviso ? 'abiertas de ' + D(R.aviso) + ' o más' : 'sin monto de aviso', c: t.pasanAviso ? 'warn' : 'ok' }]) + '</div>';
+  if (R.aprobacion) {
+    var esp = L.filter(function (s) { return s.estado === 'SOLICITADA'; });
+    h += '<div class="card" style="margin-bottom:14px"><h3>Esperando aprobación <span class="sp"></span><span class="lee">aprueba ' + quienes(R.aprueban) + '</span></h3><div class="lista">' +
+      (esp.length ? esp.map(function (s) {
+        var vb = s.requiereVistoBueno && !s.vistoBuenoPor;
+        return '<div class="li" style="--c:var(--z-fin)"><span class="zc">' + MK.ic('billete', 17) + '</span><div class="tx"><b>' + MK.esc(s.solicitudId) + ' · ' + MK.esc(s.proveedor) + ' · ' + D(s.total) + '</b><span>' + MK.esc(s.concepto) + ' · pidió ' + MK.esc(s.solicitadoPor) + (vb ? ' · necesita visto bueno' : s.vistoBuenoPor ? ' · visto bueno de ' + MK.esc(s.vistoBuenoPor) : '') + '</span></div>' +
+          '<div class="fila" style="gap:6px">' + (vb && P().fiscaliza ? '<button class="btn sm" onclick="voBo(\'' + s.solicitudId + '\')">Visto bueno</button>' : '') + (P().aprueba && !vb ? '<button class="btn sm pri" onclick="mover(\'' + s.solicitudId + '\',\'APROBADA\')">Aprobar</button><button class="btn sm bad" onclick="conMotivo(\'' + s.solicitudId + '\',\'RECHAZADA\')">Rechazar</button>' : '') + '<button class="btn sm" onclick="verSol(\'' + s.solicitudId + '\')">Ver</button></div></div>';
+      }).join('') : MK.vacio('No hay solicitudes esperando.')) + '</div></div>';
+  }
+  var rv = r.revisar || [];
+  h += '<div class="card" style="margin-bottom:14px"><h3>Para revisar <span class="sp"></span><span class="lee">lo que un fiscalizador miraría primero · sale solo de los datos</span></h3><div class="lista">' +
+    (rv.length ? rv.map(function (x) {
+      var c = x.tipo === 'provSinCuenta' ? 'var(--info)' : 'var(--warn)';
+      var acc = x.tipo === 'provSinCuenta' ? '<button class="btn sm" onclick="MK.ir(\'fcat\')">' + MK.ic('flecha', 14) + 'Ver</button>'
+        : (P().fiscaliza ? '<button class="btn sm" onclick="anotar(\'' + x.id + '\')">' + MK.ic('nota', 14) + 'Anotar</button>' : '') + '<button class="btn sm" onclick="verSol(\'' + x.id + '\')">Ver</button>';
+      return '<div class="li" style="--c:' + c + '"><span class="zc">' + MK.ic('alerta', 17) + '</span><div class="tx"><b>' + MK.esc(x.titulo) + (x.monto ? ' · ' + D(x.monto) : '') + '</b><span>' + MK.esc(x.detalle) + '</span></div><div class="fila" style="gap:6px">' + acc + '</div></div>';
+    }).join('') : MK.vacio('Nada que revisar.')) + '</div></div>';
+  var cuenta = { todas: L.length, porpagar: pp.length, pagadas: L.filter(function (s) { return s.estado === 'PAGADA'; }).length, anuladas: L.filter(function (s) { return s.estado === 'ANULADA' || s.estado === 'RECHAZADA'; }).length, nota: L.filter(function (s) { return s.notaGerencia; }).length };
+  if (R.aprobacion) cuenta.poraprobar = L.filter(function (s) { return s.estado === 'SOLICITADA'; }).length;
+  var F = L.filter(function (s) {
+    if (SOLF === 'porpagar' && !s.porPagar) return false;
+    if (SOLF === 'pagadas' && s.estado !== 'PAGADA') return false;
+    if (SOLF === 'anuladas' && s.estado !== 'ANULADA' && s.estado !== 'RECHAZADA') return false;
+    if (SOLF === 'nota' && !s.notaGerencia) return false;
+    if (SOLF === 'poraprobar' && s.estado !== 'SOLICITADA') return false;
+    if (SOLQ) { var q = SOLQ.toUpperCase(); if ((s.solicitudId + ' ' + s.proveedor + ' ' + s.concepto + ' ' + s.solicitadoPor + ' ' + s.proyecto).toUpperCase().indexOf(q) < 0) return false; }
+    return true;
+  }).sort(function (a, b) {
+    if (a.porPagar !== b.porPagar) return a.porPagar ? -1 : 1;
+    if (a.porPagar) return (a.fechaSolicitud || a.fecha).localeCompare(b.fechaSolicitud || b.fecha);
+    return (b.fecha + b.solicitudId).localeCompare(a.fecha + a.solicitudId);
+  });
+  var ops = [['todas', 'Todas', cuenta.todas]].concat(R.aprobacion ? [['poraprobar', 'Por aprobar', cuenta.poraprobar]] : []).concat([['porpagar', 'Por pagar', cuenta.porpagar], ['pagadas', 'Pagadas', cuenta.pagadas], ['anuladas', 'Anuladas', cuenta.anuladas], ['nota', 'Con observación', cuenta.nota]]);
+  h += '<div class="card"><h3>Todas <span class="sp"></span><span class="lee">las que llevan más tiempo sin pagar van arriba</span></h3>' +
+    '<div class="fila" style="gap:8px;flex-wrap:wrap;margin:6px 0 10px">' + MK.chips(ops, SOLF, 'filtroSol') + '<input class="in" style="max-width:240px" placeholder="Buscar proveedor, SP-2026…" value="' + MK.esc(SOLQ) + '" onchange="SOLQ=this.value.trim();MK.repintar()"></div>' +
+    MK.tabla(['Solicitud', 'Fecha', 'Proveedor', 'Concepto', 'Pidió', '>Total', 'Estado', ''], F.map(function (s) {
+      return ['<b>' + MK.esc(s.solicitudId) + '</b>' + (s.urgencia === 'URGE' ? ' <span class="chipx bad">urge</span>' : ''), MK.dmy(s.fechaSolicitud || s.fecha), MK.esc(s.proveedor), MK.esc(String(s.concepto || '').slice(0, 70)) + (s.proyecto ? '<small>' + MK.esc(s.proyecto) + '</small>' : ''), MK.esc(s.solicitadoPor || '—'), D(s.total), estChip(s) + (s.notaGerencia ? ' <span class="chipx warn" title="' + MK.esc(s.notaGerencia) + '">nota</span>' : ''), '<button class="btn sm">' + MK.ic('ojo', 14) + 'Ver</button>'];
+    }), { clic: function (j) { return 'verSol(\'' + F[j].solicitudId + '\')'; }, vacio: 'Ninguna solicitud con ese filtro.', pie: F.length ? ['Total', '', '', '', '', D(F.reduce(function (a, s) { return a + s.total; }, 0)), '', ''] : null }) +
+    '<div class="nota">Gerencia ve y anota; no mueve estados. El pago lo registra ' + quienes(R.registranPago) + ' y anula ' + quienes(R.anulan) + ', según las Reglas de Configuración. «Anotar» deja una observación visible para quien la pidió.</div></div>';
+  return h;
+}
+function filtroSol(f) { SOLF = f; MK.repintar(); }
+function solDe(id) { return ((SOL && SOL.solicitudes) || []).filter(function (s) { return s.solicitudId === id; })[0]; }
+function verSol(id) {
+  if (!id) return;
+  MK.lado('<div class="cargando">Abriendo ' + MK.esc(id) + '…</div>', { ancho: true });
+  MK.api('api_verSolicitud', MK.pinUso(), id).then(function (r) {
+    if (!r || !r.ok) { MK.lado('<div class="aviso rj">' + MK.esc((r && r.error) || 'No se pudo abrir.') + '</div>'); return; }
+    var s = r.solicitud, R = (SOL && SOL.reglas) || B().reglas || {}, L = r.lineas || [], p = P();
+    var mia = String(s.solicitadoPor || '').trim().toLowerCase() === String((MK.usuario || {}).nombre || '').trim().toLowerCase();
+    var puedePagar = s.porPagar && (p.registraPago || (mia && (R.registranPago || []).indexOf('solicitante') >= 0));
+    var puedeAnular = p.anula && ['PAGADA', 'ANULADA', 'RECHAZADA'].indexOf(s.estado) < 0;
+    var h = '<span class="et">SOLICITUD DE PAGO</span><h2>' + MK.esc(s.solicitudId) + ' · ' + MK.esc(s.proveedor) + '</h2><div class="sub">' + estChip(s) + ' · ' + D(s.total) + (s.urgencia === 'URGE' ? ' · <span class="chipx bad">urge</span>' : '') + '</div>' +
+      '<div class="dl" style="margin:14px 0">' + [['Fecha', MK.dmy(s.fecha)], ['Proyecto', s.proyecto || '—'], ['Pidió', (s.solicitadoPor || '—') + (s.fechaSolicitud ? ' · ' + MK.dmy(s.fechaSolicitud) : '')], ['Pago', (s.tipoPago || '—') + ' · ' + (s.condicion || '')],
+        ['Aprobación', s.aprobadoPor ? s.aprobadoPor + ' · ' + MK.dmy(s.fechaAprobacion) : (s.estado === 'APROBADA' ? 'en otro proceso' : '—')], ['Pagada', s.fechaPago ? MK.dmy(s.fechaPago) + ' · ' + (s.pagadoPor || '') + (s.referenciaPago ? ' · ref. ' + s.referenciaPago : '') : '—']]
+        .concat(s.vistoBuenoPor ? [['Visto bueno', s.vistoBuenoPor + ' · ' + MK.dmy(s.fechaVistoBueno)]] : []).concat(s.motivoRechazo ? [['Motivo', s.motivoRechazo]] : [])
+        .map(function (x) { return '<div><span>' + x[0] + '</span><b>' + MK.esc(x[1]) + '</b></div>'; }).join('') + '</div>' +
+      '<div class="small" style="margin-bottom:10px"><b>Concepto:</b> ' + MK.esc(s.concepto) + (s.observaciones ? '<br><span class="muted">' + MK.esc(s.observaciones) + '</span>' : '') + '</div>' +
+      MK.tabla(['Cant.', 'Detalle', 'Cuenta', '>Valor'], L.map(function (l) { return [MK.num(l.cantidad, l.cantidad % 1 ? 2 : 0), MK.esc(l.concepto) + (l.exento ? ' <span class="chipx gris">exento</span>' : ''), l.cuentaCodigo ? MK.esc(l.cuentaCodigo) + '<small>' + MK.esc(l.cuentaDescripcion) + '</small>' : '<span class="chipx warn">sin cuenta</span>', D(l.valorTotal)]; }),
+        { pie: ['', 'Subtotal ' + D(s.subtotal) + ' · ITBMS ' + D(s.itbms) + (s.exentos ? ' · exento ' + D(s.exentos) : ''), 'Total', D(s.total)] }) +
+      '<h3 style="margin-top:16px">Notas de gerencia</h3>' + (s.notaGerencia ? '<div class="notag">' + MK.esc(s.notaGerencia) + '</div>' : '<div class="muted small">Sin notas. Lo que se anote aquí lo ve quien la pidió.</div>') +
+      '<div class="pie2"><button class="btn" onclick="window.open(\'index.html?p=vsolicitud&id=' + encodeURIComponent(s.solicitudId) + '\',\'_blank\')">' + MK.ic('imprimir', 15) + 'Imprimir</button>' +
+      (p.fiscaliza ? '<button class="btn" onclick="anotar(\'' + s.solicitudId + '\')">' + MK.ic('nota', 15) + 'Anotar</button>' : '') +
+      (R.aprobacion && s.estado === 'SOLICITADA' && p.fiscaliza && R.vobo && s.total > R.voboDesde && !s.vistoBuenoPor ? '<button class="btn" onclick="voBo(\'' + s.solicitudId + '\')">Visto bueno</button>' : '') +
+      (R.aprobacion && s.estado === 'SOLICITADA' && p.aprueba ? '<button class="btn bad" onclick="conMotivo(\'' + s.solicitudId + '\',\'RECHAZADA\')">Rechazar</button><button class="btn pri" onclick="mover(\'' + s.solicitudId + '\',\'APROBADA\')">Aprobar</button>' : '') +
+      (puedeAnular ? '<button class="btn bad" onclick="conMotivo(\'' + s.solicitudId + '\',\'ANULADA\')">Anular</button>' : '') +
+      (puedePagar ? '<button class="btn pri" onclick="pagar(\'' + s.solicitudId + '\')">' + MK.ic('check', 15) + 'Registrar el pago</button>' : '') + '</div>';
+    MK.lado(h, { ancho: true });
+  }, function () { MK.lado('<div class="aviso rj">Sin conexión.</div>'); });
+}
+function trasCambio(msg, id) { MK.cerrarHoja(); MK.aviso(msg); SOL = null; ER = {}; MOVS = {}; MK.recargar(); if (id && document.getElementById('mk-lado') && document.getElementById('mk-lado').classList.contains('si')) verSol(id); }
+function anotar(id) {
+  var s = solDe(id);
+  MK.hoja('<h2>Anotar ' + MK.esc(id) + '</h2><p class="muted" style="margin:6px 0 10px">' + (s ? MK.esc(s.proveedor) + ' · ' + D(s.total) + '. ' : '') + 'La nota queda en la solicitud con tu nombre y la fecha, y la ve quien la pidió. No cambia su estado.</p>' +
+    '<textarea class="in" id="an-t" rows="4" maxlength="500" autofocus placeholder="Ej.: ¿por qué sigue sin pagarse? / Falta la cuenta contable."></textarea>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="an-si">Guardar la nota</button></div>');
+  document.getElementById('an-si').onclick = function () {
+    var t = MK.val('an-t'); if (!t) { MK.aviso('Escribe la nota'); return; }
+    MK.ocupado(this, true);
+    MK.llamar('api_dirAnotarSolicitud', id, t).then(function () { trasCambio('Nota guardada', id); }, function () { MK.ocupado(document.getElementById('an-si'), false); });
+  };
+}
+function mover(id, est, datos) {
+  MK.llamar('api_estadoSolicitud', id, est, datos || {}).then(function () { trasCambio({ APROBADA: 'Aprobada', RECHAZADA: 'Rechazada', ANULADA: 'Anulada', PAGADA: 'Pago registrado' }[est] || 'Listo', id); });
+}
+function conMotivo(id, est) {
+  MK.hoja('<h2>' + (est === 'ANULADA' ? 'Anular ' : 'Rechazar ') + MK.esc(id) + '</h2><p class="muted" style="margin:6px 0 10px">No se borra: queda con el motivo, quién y cuándo.</p><label class="lb">Motivo</label><input class="in" id="mo-t" autofocus>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="mo-si">' + (est === 'ANULADA' ? 'Anular' : 'Rechazar') + '</button></div>');
+  document.getElementById('mo-si').onclick = function () { var m = MK.val('mo-t'); if (!m) { MK.aviso('Escribe el motivo'); return; } mover(id, est, { motivo: m }); };
+}
+function pagar(id) {
+  var s = solDe(id);
+  MK.hoja('<h2>Registrar el pago de ' + MK.esc(id) + '</h2><p class="muted" style="margin:6px 0 10px">' + (s ? MK.esc(s.proveedor) + ' · ' + D(s.total) + '. ' : '') + 'Con la fecha real en que salió el dinero: desde ese día cuenta como gasto.</p>' +
+    '<div class="f2"><div><label class="lb">Fecha del pago</label><input class="in" type="date" id="pg-f" value="' + MK.hoy + '"></div><div><label class="lb">Referencia</label><input class="in" id="pg-r" placeholder="n.º de transferencia"></div></div>' +
+    '<label class="lb" style="margin-top:8px">N.º de cheque (si fue cheque)</label><input class="in" id="pg-c">' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pg-si">Registrar</button></div>');
+  document.getElementById('pg-si').onclick = function () { mover(id, 'PAGADA', { fechaPago: MK.val('pg-f'), referencia: MK.val('pg-r'), numeroCheque: MK.val('pg-c') }); };
+}
+function voBo(id) { MK.llamar('api_marcarVistoBueno', id).then(function () { trasCambio('Visto bueno registrado', id); }); }
+
+/* ═══════════ GASTOS ═══════════ */
+function traerMovs() {
+  var r = rangoF(FPER), k = r.join('|') + '|' + MOVQ + '|' + MOVSOLO;
+  if (MOVS[k]) return MOVS[k];
+  if (MOVS[k] === undefined) {
+    MOVS[k] = null;
+    MK.api('api_movimientos', MK.pinUso(), r[0], r[1], { q: MOVQ, solo: MOVSOLO, limite: 400 }).then(function (x) {
+      if (!x || !x.ok) { MOVS[k] = undefined; MK.aviso((x && x.error) || 'No se pudo leer'); return; }
+      MOVS[k] = x; MK.repintar();
+    }, function () { MOVS[k] = undefined; });
+  }
+  return null;
+}
+function vGas() {
+  setZc('var(--z-fin)');
+  if (!verFin()) return sinFin();
+  var r = rangoF(FPER), er = traerER(), mv = traerMovs();
+  var h = MK.cabeza('Finanzas · Gastos', textoRango(r) + ' · cada gasto, venga de una solicitud o de la carga histórica', chipsFPer());
+  if (!er) return h + cargandoF('Calculando…');
+  h += chipsPry(er);
+  h += '<div class="graf"><div class="card"><h3>Por cuenta contable</h3><div class="lee" style="margin-bottom:10px">' + D(er.resumen.gastosVariables) + ' en movimientos' + (FPRY ? ' de ' + MK.esc(nomPry(FPRY)) : '') + '</div>' +
+    ((er.porCuenta || []).length ? MK.hbar(er.porCuenta.slice(0, 10).map(function (x) { return { e: x.descripcion || (x.clave === 'SIN CUENTA' ? 'Sin cuenta' : x.clave), d: x.descripcion ? x.clave : '', v: x.monto, c: x.clave === 'SIN CUENTA' ? '#9aa7ba' : '' }; }), { color: '#d64045', fmt: D }) : MK.vacio('Sin gastos.')) + '</div>' +
+    '<div class="card">' + (FPRY ? '' : '<h3>Por proyecto</h3><div class="lee" style="margin-bottom:10px">dónde cae cada balboa · sin extraordinarios</div>' + MK.hbar((er.porProyecto || []).map(function (x) { return { e: nomPry(x.clave), v: x.monto, c: x.clave === 'SIN PROYECTO' ? '#9aa7ba' : '', ir: x.clave === 'SIN PROYECTO' ? '' : 'cambiaPry(\'' + x.clave + '\')' }; }), { color: 'var(--z-fin)', fmt: D }) + '<div style="height:14px"></div>') +
+    '<h3>A quién se le paga más</h3><div class="lee" style="margin-bottom:10px">los primeros</div>' + MK.hbar((er.porProveedor || []).slice(0, 6).map(function (x) { return { e: x.clave, v: x.monto }; }), { color: 'var(--z-fin)', fmt: D }) + '</div></div>';
+  if ((er.gastosFijos || []).length) h += '<div class="card" style="margin-bottom:14px"><h3>Gastos fijos</h3>' + MK.tabla(['Concepto', 'Cuenta', 'Proyecto', '>Mensual', '>En el periodo'], er.gastosFijos.map(function (g) { return [MK.esc(g.concepto) + (g.proveedor ? '<small>' + MK.esc(g.proveedor) + '</small>' : ''), MK.esc(g.cuentaCodigo), MK.esc(g.proyecto || '—'), D(g.mensual), D(g.periodo)]; })) + '</div>';
+  h += '<div class="card"><h3>Uno por uno <span class="sp"></span><span class="lee">aquí se marca lo extraordinario y lo que está por confirmar</span></h3>' +
+    '<div class="fila" style="gap:8px;flex-wrap:wrap;margin:6px 0 10px">' + MK.chips([['', 'Todo'], ['confirmar', 'Por resolver'], ['extra', 'Extraordinarios'], ['solicitud', 'Solicitudes'], ['historico', 'Históricos']], MOVSOLO, 'filtroMov') +
+    '<input class="in" style="max-width:240px" placeholder="Buscar proveedor o concepto…" value="' + MK.esc(MOVQ) + '" onchange="MOVQ=this.value.trim();MK.repintar()"></div>';
+  if (!mv) return h + cargandoF('Leyendo los movimientos…') + '</div>';
+  var L = (mv.movimientos || []).filter(function (m) { return !FPRY || (String(m.proyecto || '').trim().toUpperCase() || 'SIN PROYECTO') === FPRY; });
+  var LV = L.slice(0, MOVTOPE);
+  h += MK.tabla(['Fecha', 'Proveedor', 'Concepto', 'Proyecto', '>Monto', 'Marcas', ''], LV.map(function (m) {
+    return [MK.dmy(m.fecha) + '<small>' + (m.fuente === 'historico' ? 'histórico' : 'solicitud') + ' · ' + MK.esc(m.id) + '</small>', '<b>' + MK.esc(m.proveedor || '—') + '</b>', MK.esc(String(m.concepto || '').slice(0, 80)) + (m.categoria ? '<small>' + MK.esc(m.categoria) + '</small>' : ''), MK.esc(m.proyecto || '—'), D(m.monto),
+      (m.extraordinario ? '<span class="chipx warn">extraordinario</span> ' : '') + (m.porConfirmar ? '<span class="chipx info" title="' + MK.esc(m.notaConfirmar || '') + '">por confirmar</span>' : ''),
+      mv.puedeMarcar ? '<button class="btn sm" onclick="marcar(\'' + m.fuente + '\',\'' + m.id + '\')">Marcar</button>' : ''];
+  }), { vacio: 'Sin gastos con ese filtro en el periodo.' }) +
+    (L.length > LV.length ? '<button class="btn sm" style="margin-top:8px" onclick="MOVTOPE+=100;MK.repintar()">Ver ' + Math.min(100, L.length - LV.length) + ' más (quedan ' + (L.length - LV.length) + ')</button>' : '') +
+    '<div class="nota">' + L.length + (L.length < mv.total && !FPRY ? ' de ' + mv.total : '') + ' movimiento(s) · ' + D(L.reduce(function (a, m) { return a + m.monto; }, 0)) + '. El monto va sin ITBMS: el impuesto es crédito fiscal, no costo.</div></div>';
+  return h;
+}
+function filtroMov(f) { MOVSOLO = f; MOVTOPE = 60; MK.repintar(); }
+function marcar(fuente, id) {
+  var m = null; Object.keys(MOVS).forEach(function (k) { ((MOVS[k] && MOVS[k].movimientos) || []).forEach(function (x) { if (x.fuente === fuente && x.id === id) m = x; }); });
+  if (!m) return;
+  MK.hoja('<h2>Marcar el gasto</h2><p class="muted" style="margin:6px 0 10px">' + MK.esc(m.proveedor) + ' · ' + D(m.monto) + ' · ' + MK.dmy(m.fecha) + '<br>' + MK.esc(m.concepto) + '</p>' +
+    '<label class="fila small" style="gap:8px;margin-bottom:6px"><input type="checkbox" id="mg-e" ' + (m.extraordinario ? 'checked' : '') + '> <span><b>Extraordinario</b> · es nuestro y real, pero no es operativo (una multa). Baja la utilidad, no el costo de operar.</span></label>' +
+    '<label class="fila small" style="gap:8px"><input type="checkbox" id="mg-c" ' + (m.porConfirmar ? 'checked' : '') + ' onchange="document.getElementById(\'mg-n\').hidden=!this.checked"> <span><b>Por confirmar</b> · puede que ni sea nuestro. No se suma mientras esté así.</span></label>' +
+    '<input class="in" id="mg-n" style="margin-top:8px" placeholder="Qué hay que averiguar" value="' + MK.esc(m.notaConfirmar || '') + '"' + (m.porConfirmar ? '' : ' hidden') + '>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="mg-si">Guardar</button></div>');
+  document.getElementById('mg-si').onclick = function () {
+    var conf = document.getElementById('mg-c').checked, nota = MK.val('mg-n');
+    if (conf && !nota) { MK.aviso('Escribe qué hay que averiguar'); return; }
+    MK.llamar('api_marcarGasto', fuente, id, { extraordinario: document.getElementById('mg-e').checked, porConfirmar: conf, notaConfirmar: nota }).then(function () { MK.cerrarHoja(); MK.aviso('Marca guardada'); ER = {}; MOVS = {}; MK.recargar(); });
+  };
+}
+
+/* ═══════════ CATÁLOGOS ═══════════
+   La cuenta bancaria del proveedor no sale en la lista: solo se ve al
+   abrir su ficha para corregirla. */
+function traerCat() {
+  if (CAT) return CAT;
+  if (CAT === null) {
+    CAT = false;
+    MK.api('api_catalogosFinanzas', MK.pinUso()).then(function (x) { if (!x || !x.ok) { CAT = null; MK.aviso((x && x.error) || 'No se pudo leer'); return; } CAT = x; MK.repintar(); }, function () { CAT = null; });
+  }
+  return null;
+}
+function vCat() {
+  setZc('var(--z-fin)');
+  if (!verFin()) return sinFin();
+  var c = traerCat(), ed = P().catalogos;
+  var h = MK.cabeza('Finanzas · Catálogos', 'Lo que alimenta las solicitudes: proveedores, cuentas contables y gastos fijos' + (ed ? '' : ' · solo lectura'));
+  if (!c) return h + cargandoF('Leyendo los catálogos…');
+  var desc = {}; (c.cuentas || []).forEach(function (x) { desc[x.codigo] = x.descripcion; });
+  var pv = (c.proveedores || []).filter(function (x) { return !CATQ || (x.proveedor + ' ' + x.ruc).toUpperCase().indexOf(CATQ.toUpperCase()) >= 0; });
+  var sinCta = (c.proveedores || []).filter(function (x) { return x.activo && !x.cuentaCodigo; }).length;
+  h += MK.kpis([{ e: 'Proveedores', v: c.proveedores.length, s: sinCta + ' sin cuenta contable habitual', c: sinCta ? 'warn' : '' }, { e: 'Cuentas contables', v: c.cuentas.length, s: c.cuentas.filter(function (x) { return !x.activo; }).length + ' inactivas' }, { e: 'Gastos fijos', v: c.gastosFijos.length, s: D(c.gastosFijos.filter(function (g) { return g.activo; }).reduce(function (a, g) { return a + g.monto; }, 0)) + ' al mes' }]);
+  h += '<div class="card cat-t" style="margin:14px 0"><h3>Proveedores <span class="sp"></span>' + (ed ? '<button class="btn sm pri" onclick="edProv(-1)">' + MK.ic('mas', 14) + 'Nuevo</button>' : '') + '</h3>' +
+    '<input class="in" style="max-width:280px;margin:6px 0 10px" placeholder="Buscar por nombre o RUC…" value="' + MK.esc(CATQ) + '" onchange="CATQ=this.value.trim();MK.repintar()">' +
+    MK.tabla(['Proveedor', 'RUC', 'Banco', 'Cuenta contable habitual', ''], pv.map(function (x) {
+      var i = c.proveedores.indexOf(x);
+      return ['<b' + (x.activo ? '' : ' style="opacity:.55"') + '>' + MK.esc(x.proveedor) + '</b>' + (x.contacto || x.telefono ? '<small>' + MK.esc(x.contacto + ' ' + x.telefono) + '</small>' : '') + (x.activo ? '' : ' <span class="chipx gris">inactivo</span>'), MK.esc(x.ruc) + (x.dv ? ' DV ' + MK.esc(x.dv) : ''),
+        x.banco ? MK.esc(x.banco) + '<small>' + (x.numeroCuenta ? 'cuenta registrada' : 'sin número de cuenta') + '</small>' : '<span class="muted">—</span>',
+        x.cuentaCodigo ? MK.esc(x.cuentaCodigo) + '<small>' + MK.esc(desc[x.cuentaCodigo] || '') + '</small>' : '<span class="chipx warn">sin cuenta</span>', ed ? '<button class="btn sm" onclick="edProv(' + i + ')">Editar</button>' : ''];
+    }), { vacio: 'Ningún proveedor con esa búsqueda.' }) + '</div>';
+  h += '<div class="graf"><div class="card cat-t"><h3>Cuentas contables <span class="sp"></span>' + (ed ? '<button class="btn sm pri" onclick="edCta(-1)">' + MK.ic('mas', 14) + 'Nueva</button>' : '') + '</h3>' +
+    MK.tabla(['Código', 'Descripción', 'Grupo', ''], c.cuentas.map(function (x, i) { return ['<b>' + MK.esc(x.codigo) + '</b>', MK.esc(x.descripcion) + (x.activo ? '' : ' <span class="chipx gris">inactiva</span>'), MK.esc(x.grupo), ed ? '<button class="btn sm" onclick="edCta(' + i + ')">Editar</button>' : '']; })) + '</div>' +
+    '<div class="card cat-t"><h3>Gastos fijos <span class="sp"></span>' + (ed ? '<button class="btn sm pri" onclick="edGF(-1)">' + MK.ic('mas', 14) + 'Nuevo</button>' : '') + '</h3>' +
+    MK.tabla(['Concepto', 'Cuenta', 'Proyecto', '>Mensual', ''], c.gastosFijos.map(function (x, i) { return ['<b>' + MK.esc(x.concepto) + '</b>' + (x.activo ? '' : ' <span class="chipx gris">inactivo</span>'), MK.esc(x.cuentaCodigo), MK.esc(x.proyecto || '—'), D(x.monto), ed ? '<button class="btn sm" onclick="edGF(' + i + ')">Editar</button>' : '']; }), { vacio: 'No hay gastos fijos. Alquiler, planilla y servicios van aquí: sin ellos la utilidad sale inflada.' }) + '</div></div>';
+  return h;
+}
+function dlCuentas() { return '<datalist id="dl-ctas">' + ((CAT && CAT.cuentas) || []).map(function (c) { return '<option value="' + MK.esc(c.codigo) + '">' + MK.esc(c.descripcion) + '</option>'; }).join('') + '</datalist>'; }
+function campo(id, et, v, extra) { return '<div><label class="lb">' + et + '</label><input class="in" id="' + id + '" value="' + MK.esc(v == null ? '' : v) + '"' + (extra || '') + '></div>'; }
+function edProv(i) {
+  var x = i >= 0 ? CAT.proveedores[i] : { activo: true };
+  MK.lado('<span class="et">PROVEEDOR</span><h2>' + (i >= 0 ? MK.esc(x.proveedor) : 'Proveedor nuevo') + '</h2><div class="sub">Si el nombre ya existe, se actualiza: no se duplica.</div>' +
+    '<div class="f2" style="margin-top:12px">' + campo('pv-n', 'Nombre', x.proveedor, i >= 0 ? ' readonly' : ' autofocus') + campo('pv-r', 'RUC', x.ruc) + '</div>' +
+    '<div class="f3">' + campo('pv-dv', 'DV', x.dv) + campo('pv-b', 'Banco', x.banco) + '<div><label class="lb">Tipo de cuenta</label><select class="in" id="pv-t">' + ['', 'AHORROS', 'CORRIENTE'].map(function (t) { return '<option' + (String(x.tipoCuenta || '').toUpperCase() === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
+    '<div class="f2">' + campo('pv-c', 'Número de cuenta bancaria', x.numeroCuenta, ' autocomplete="off"') + campo('pv-cc', 'Cuenta contable habitual', x.cuentaCodigo, ' list="dl-ctas"') + '</div>' + dlCuentas() +
+    '<div class="f3">' + campo('pv-co', 'Contacto', x.contacto) + campo('pv-te', 'Teléfono', x.telefono) + campo('pv-em', 'Correo', x.correo) + '</div>' +
+    campo('pv-no', 'Notas', x.notas) + '<label class="fila small" style="gap:8px;margin-top:10px"><input type="checkbox" id="pv-a" ' + (x.activo ? 'checked' : '') + '> Activo (sale en la lista al pedir un pago)</label>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="pv-si">' + MK.ic('check', 15) + 'Guardar</button></div>');
+  document.getElementById('pv-si').onclick = function () {
+    var d = { proveedor: MK.val('pv-n'), ruc: MK.val('pv-r'), dv: MK.val('pv-dv'), banco: MK.val('pv-b'), tipoCuenta: MK.val('pv-t'), numeroCuenta: MK.val('pv-c'), cuentaCodigo: MK.val('pv-cc'), contacto: MK.val('pv-co'), telefono: MK.val('pv-te'), correo: MK.val('pv-em'), notas: MK.val('pv-no'), activo: document.getElementById('pv-a').checked };
+    if (!d.proveedor) { MK.aviso('Falta el nombre'); return; }
+    MK.llamar('api_guardarProveedor', d).then(function () { MK.cerrarLado(); MK.aviso('Proveedor guardado'); CAT = null; SOL = null; MK.repintar(); });
+  };
+}
+function edCta(i) {
+  var x = i >= 0 ? CAT.cuentas[i] : { activo: true };
+  MK.hoja('<h2>' + (i >= 0 ? 'Cuenta ' + MK.esc(x.codigo) : 'Cuenta contable nueva') + '</h2><div class="f2" style="margin-top:10px">' + campo('ct-c', 'Código', x.codigo, i >= 0 ? ' readonly' : ' autofocus') + campo('ct-g', 'Grupo', x.grupo) + '</div>' + campo('ct-d', 'Descripción', x.descripcion) +
+    '<label class="fila small" style="gap:8px;margin-top:10px"><input type="checkbox" id="ct-a" ' + (x.activo ? 'checked' : '') + '> Activa</label>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ct-si">Guardar</button></div>');
+  document.getElementById('ct-si').onclick = function () {
+    var d = { codigo: MK.val('ct-c'), descripcion: MK.val('ct-d'), grupo: MK.val('ct-g'), activo: document.getElementById('ct-a').checked };
+    if (!d.codigo || !d.descripcion) { MK.aviso('Código y descripción'); return; }
+    MK.llamar('api_guardarCuenta', d).then(function () { MK.cerrarHoja(); MK.aviso('Cuenta guardada'); CAT = null; MK.repintar(); });
+  };
+}
+function edGF(i) {
+  var x = i >= 0 ? CAT.gastosFijos[i] : { activo: true };
+  var prys = (B().proyectos || []);
+  MK.hoja('<h2>' + (i >= 0 ? MK.esc(x.concepto) : 'Gasto fijo nuevo') + '</h2><p class="muted" style="margin:6px 0 10px">Se suma cada mes del periodo al gasto: alquiler, planilla, servicios.</p>' +
+    campo('gf-c', 'Concepto', x.concepto, ' autofocus') + '<div class="f2">' + campo('gf-m', 'Monto mensual (B/.)', x.monto, ' inputmode="decimal"') + campo('gf-cc', 'Cuenta contable', x.cuentaCodigo, ' list="dl-ctas"') + '</div>' + dlCuentas() +
+    '<div class="f2">' + campo('gf-p', 'Proveedor', x.proveedor) + '<div><label class="lb">Proyecto</label><select class="in" id="gf-py"><option value="">— sin proyecto —</option>' + prys.map(function (p) { return '<option' + (p === x.proyecto ? ' selected' : '') + '>' + MK.esc(p) + '</option>'; }).join('') + '</select></div></div>' +
+    '<label class="fila small" style="gap:8px;margin-top:10px"><input type="checkbox" id="gf-a" ' + (x.activo ? 'checked' : '') + '> Activo</label>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="gf-si">Guardar</button></div>');
+  document.getElementById('gf-si').onclick = function () {
+    var d = { gastoFijoId: x.gastoFijoId || '', concepto: MK.val('gf-c'), monto: Number(MK.val('gf-m').replace(/,/g, '')) || 0, cuentaCodigo: MK.val('gf-cc'), proveedor: MK.val('gf-p'), proyecto: MK.val('gf-py'), activo: document.getElementById('gf-a').checked, notas: x.notas || '' };
+    if (!d.concepto || !(d.monto > 0)) { MK.aviso('Concepto y monto mayor que cero'); return; }
+    MK.llamar('api_guardarGastoFijo', d).then(function () { MK.cerrarHoja(); MK.aviso('Gasto fijo guardado'); CAT = null; ER = {}; MK.recargar(); });
+  };
+}
+
+/* ═══════════ ARRANQUE ═══════════ */
+(function () {
+  /* enlaces viejos: ?p=finanzas, ?p=rzona&zona=…, ?p=rcartera */
+  var p = MK.param('p'), z = MK.param('zona'), dest = '';
+  if (p === 'finanzas') dest = 'fsol';
+  else if (p === 'rcartera') dest = 'cob';
+  else if (p === 'rzona' && SEC_DE[z]) dest = SEC_DE[z];
+  if (dest && !location.hash) { try { history.replaceState(null, '', location.pathname + '#' + dest); } catch (e) { location.hash = dest; } }
+})();
+function hoyLocal() { var d = new Date(Date.now() - 5 * 3600000); return d.toISOString().slice(0, 10); }
+MK.iniciar({
+  modulo: 'Dirección',
+  base: 'api_dirBase',
+  baseArgs: function () { return [DESDE, HASTA]; },
+  antes: function () { if (!MK.hoy) MK.hoy = hoyLocal(); fijarPer('mes'); },
+  inicio: 'res',
+  accion: { t: 'Solicitudes', i: 'billete', fn: function () { MK.ir('fsol'); }, quien: function (u) { return !!u._fin; } },
+  buscar: {
+    ph: 'Buscar proveedor, SP-2026…, zona',
+    fn: function (q) {
+      var Q = q.toUpperCase().trim(), out = [];
+      Object.keys(ZONAS).forEach(function (k) { if (ZONAS[k].n.toUpperCase().indexOf(Q) === 0) out.push({ t: ZONAS[k].n, d: 'Zona de Dirección', i: ZONAS[k].i, ir: function () { MK.ir(k); } }); });
+      if (!verFin()) return out;
+      var arma = function () {
+        ((SOL && SOL.solicitudes) || []).forEach(function (s) { if ((s.solicitudId + ' ' + s.proveedor).toUpperCase().indexOf(Q) >= 0) out.push({ t: s.solicitudId + ' · ' + s.proveedor, d: (s.etiqueta || s.estado) + ' · ' + D(s.total), i: 'billete', ir: function () { MK.ir('fsol'); verSol(s.solicitudId); } }); });
+        return out;
+      };
+      if (SOL) return arma();
+      return MK.api('api_dirSolicitudes', MK.pinUso(), {}).then(function (x) { if (x && x.ok) SOL = x; return arma(); });
+    }
+  },
+  paginas: [
+    { g: 'GERENCIA' }, { id: 'res', n: 'Resumen', i: 'casa' },
+    { g: 'OPERACIÓN' }, { id: 'log', n: 'Logística', i: 'camion' }, { id: 'mer', n: 'Mercadeo', i: 'maletin' }, { id: 'pla', n: 'Planta', i: 'planta' }, { id: 'cob', n: 'Cobros', i: 'moneda' },
+    { g: 'FINANZAS', quien: function (u) { return !!u._fin; } },
+    { id: 'fut', n: 'Utilidad', i: 'grafico', quien: function (u) { return !!u._fin; } },
+    { id: 'fsol', n: 'Solicitudes de pago', i: 'billete', quien: function (u) { return !!u._fin; } },
+    { id: 'fgas', n: 'Gastos', i: 'factura', quien: function (u) { return !!u._fin; } },
+    { id: 'fcat', n: 'Catálogos', i: 'libro', quien: function (u) { return !!u._fin; } },
+    { g: 'INFORMES' }, { id: 'imp', n: 'Imprimir esta vista', i: 'imprimir', ir: 'javascript:window.print()' }
+  ],
+  pieMenu: '¿Buscas las pantallas anteriores? <a href="InicioAnterior.html">Dirección</a> · <a href="FinanzasAnterior.html">Finanzas</a>',
+  alCargar: function (b) {
+    MK.usuario = MK.usuario || {};
+    MK.usuario._fin = !!(b.permisos && b.permisos.finanzas !== 'no');
+    MK.contadores = {};
+    var c = b.conteos || {};
+    if (c.mercadeo) MK.contadores.mer = { n: c.mercadeo };
+    if (c.cobros) MK.contadores.cob = { n: c.cobros };
+    var s = b.finanzas && b.finanzas.solicitudes;
+    if (s && (s.porPagar || s.porAprobar)) MK.contadores.fsol = { n: s.porAprobar || s.porPagar, t: s.viejas ? 'am' : '' };
+    MK.op.accion.t = 'Solicitudes' + (s && s.porPagar ? ' · ' + s.porPagar + ' por pagar' : '');
+    /* cambió la base: lo guardado de finanzas se vuelve a pedir */
+    SOL = null; ER = {}; MOVS = {};
+  },
+  pintar: function (id) {
+    if (!MK.base) return;
+    var V = { res: vResumen, log: function () { return vZona('log'); }, mer: function () { return vZona('mer'); }, pla: function () { return vZona('pla'); }, cob: function () { return vZona('cob'); }, fut: vUtil, fsol: vSol, fgas: vGas, fcat: vCat };
+    document.getElementById('main').innerHTML = (V[id] || vResumen)();
+  }
 });
 
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
-else arrancar();
 </script>
 </body>
 </html>

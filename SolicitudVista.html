@@ -248,7 +248,8 @@ function seguir(id){
       var e=String(r.solicitud.estado||"").toUpperCase();
       /* una solicitud sin aprobar no se imprime: si llega firmada a
          contabilidad, el control de aprobación deja de servir de algo */
-      if(["APROBADA","PAGADA"].indexOf(e)<0){
+      /* api 3.4: sin aprobación en el sistema, lo que está «por pagar» ya se imprime */
+      if(["APROBADA","PAGADA"].indexOf(e)<0 && !r.solicitud.porPagar){
         aviso("La solicitud <b>"+esc(r.solicitud.solicitudId)+"</b> está en estado <b>"+esc(e||"SOLICITADA")+
               "</b>.<br><br>Solo se imprimen las aprobadas.");
         return;

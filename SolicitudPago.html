@@ -319,7 +319,7 @@ td .cta{font-size:10.5px;color:var(--gris);margin-top:2px}
 
       <button class="btn no-imp" id="btn-guardar" style="width:100%;margin-top:18px"
               onclick="guardar()">Enviar solicitud</button>
-      <div class="nota no-imp">
+      <div class="nota no-imp" id="nota-entrada">
         Al enviarla queda en estado <b>SOLICITADA</b>. Nadie la paga hasta que
         gerencia la apruebe, y el gasto solo cuenta cuando se marca como pagada.
       </div>
@@ -394,8 +394,8 @@ td .cta{font-size:10.5px;color:var(--gris);margin-top:2px}
             🧾 Cerrar el período y pedir la reposición</button>
           <div class="nota">
             Genera el arqueo imprimible <b>F-ADM-02</b> y crea la solicitud de pago por
-            lo gastado, con este detalle adentro. Nace en estado SOLICITADA: quien
-            custodia el fondo no aprueba su propia reposición.
+            lo gastado, con este detalle adentro. <span id="nota-caja">Nace en estado SOLICITADA: quien
+            custodia el fondo no aprueba su propia reposición.</span>
           </div>
         </div>
       </div>
@@ -510,6 +510,12 @@ function validar(p){
 function montar(r){
   if(r.itbmsTasa) TASA=Number(r.itbmsTasa)||TASA;
   if(r.umbralVistoBueno) UMBRAL=Number(r.umbralVistoBueno)||UMBRAL;
+  /* api 3.4 · la regla vigente de Configuración */
+  if(r.reglas && r.reglas.aprobacion===false){
+    UMBRAL=Infinity; ET.SOLICITADA=["apr","Por pagar"]; ET.APROBADA=["apr","Por pagar"];
+    if($("nota-entrada")) $("nota-entrada").innerHTML="Al enviarla queda <b>por pagar</b>: la aprobación se hace en otro proceso. El gasto solo cuenta cuando se marca como pagada.";
+    if($("nota-caja")) $("nota-caja").textContent="Nace por pagar, según la regla vigente.";
+  }
   $("d-id").value=r.siguienteId;
   $("d-fecha").value=r.hoy;
 
@@ -711,7 +717,7 @@ function enviar(d, l, confirmado){
       if(r && r.avisoRuc){ avisoDelRuc(r.avisoRuc, d, l); return; }
       if(!r||!r.ok){ msg("mal",esc((r&&r.error)||"No se pudo guardar la solicitud.")); return; }
       msg("ok","Solicitud <b>"+esc(r.solicitudId)+"</b> enviada por "+d2(r.total)+
-        ". Queda esperando la aprobación de la dirección financiera.");
+        (r.etiqueta==="Por pagar" ? ". Queda por pagar." : ". Queda esperando la aprobación de la dirección financiera."));
       var prov = r.proveedor || {};
       limpiar();
       cargarMias();
@@ -895,9 +901,9 @@ function cargarMias(){
              aprobada: además se le registra el pago, porque quien la pidió
              es quien le da seguimiento al proveedor. */
           var acc="";
-          if(s.estado==="APROBADA"||s.estado==="PAGADA")
+          if(s.estado==="APROBADA"||s.estado==="PAGADA"||s.porPagar)
             acc+='<button class="btn sec" onclick="imprimir(\''+esc(s.solicitudId)+'\')">Imprimir</button>';
-          if(s.estado==="APROBADA")
+          if(s.porPagar||(s.porPagar===undefined&&s.estado==="APROBADA"))
             acc+=' <button class="btn sec" onclick="abrirPago(\''+esc(s.solicitudId)+'\')">Marcar pagada</button>';
           return '<tr><td><b>'+esc(s.solicitudId)+'</b><br>'+
             '<span style="font-size:11px;color:var(--gris)">'+esc(s.fecha)+'</span></td>'+
@@ -908,6 +914,7 @@ function cargarMias(){
             (s.fechaPago?'<br><span style="font-size:11px;color:var(--gris)">'+esc(s.fechaPago)+
               (s.referenciaPago?' · '+esc(s.referenciaPago):'')+'</span>':'')+
             (s.motivoRechazo?'<br><span style="font-size:11px;color:var(--rojo)">'+esc(s.motivoRechazo)+'</span>':'')+
+            (s.notaGerencia?'<br><span style="font-size:11px;color:#8a6300;white-space:pre-wrap">Nota de gerencia: '+esc(s.notaGerencia)+'</span>':'')+
             '</td>'+
             '<td style="text-align:right;white-space:nowrap">'+acc+'</td></tr>';
         }).join("")+'</tbody></table>';

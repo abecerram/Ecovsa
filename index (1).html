@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>(function(){var q=new URLSearchParams(location.search);var p=(q.get("p")||"app").toLowerCase();var R={"panel":"Inicio.html","alta":"Mercadeo.html","mercadeo":"Mercadeo.html","altaanterior":"Alta.html","acta":"Acta.html","planta":"Planta.html","rplanta":"RPlanta.html","propuesta":"Propuesta.html","contrato":"Contrato.html","asalida":"ActaSalida.html","inicio":"Inicio.html","cobros":"Cobros.html","recibo":"Recibo.html","formulario":"FormularioCliente.html","certificados":"Certificado.html","vercert":"CertificadoVista.html","finanzas":"Inicio.html","solicitud":"SolicitudPago.html","vsolicitud":"SolicitudVista.html","arqueo":"Arqueo.html","admin":"Administracion.html","vinspeccion":"InspeccionVista.html","micliente":"MiCliente.html","rcartera":"Inicio.html","rzona":"Inicio.html","campo":"Index.html"};if(p!=="app"&&R[p]){location.replace(R[p]+location.search+location.hash);}})();</script>
+<title>ECOVSA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="estilos-operaciones.css">
+<!-- api 3.0 · lobby con módulos al centro, «Lo que te espera» por rol y el fondo de la entrada -->
+<!-- api 2.9: el lobby habla con Supabase y maneja él mismo el bloqueo por inactividad -->
+<script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto', enSupabase:/^api_(?!optimizarRuta$)/, vigia:false};</script>
+<script src="puente.js"></script>
+<script src="entrada.js"></script>
+<script src="tema.js"></script>
+<style>
+/* ═══ Lobby «Mi día» (api 2.9) ═══
+   La puerta del sistema: entrada con el árbol (entrada.js) y, con el PIN,
+   el tablero de cada rol: cuatro números, lo que te espera hoy y los
+   módulos sobrios con su estado. */
+:root{--l-navy:var(--tm-navy);--l-navy2:var(--tm-navy2);--l-ink:var(--tm-tinta);--l-muted:var(--tm-gris);--l-line:var(--tm-linea);--l-line2:var(--tm-linea2);--l-bg:var(--tm-fondo);
+  --l-rojo:var(--tm-bad);--l-ambar:var(--tm-acento);--l-verde:#3fb950;--l-gris:#9aa7ba}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0;min-height:100%}
+body{background:var(--l-bg)!important;color:var(--l-ink);font-family:'Archivo',system-ui,-apple-system,sans-serif;display:block!important;padding:0!important}
+.num{font-variant-numeric:tabular-nums}
+#cargando{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#0B2A5B 0%,#14306b 58%,#0A6B4E 145%);color:#fff}
+#cargando .spin{width:38px;height:38px;border:4px solid rgba(255,255,255,.28);border-top-color:#fff;border-radius:50%;animation:lg 1s linear infinite;margin:0 auto 14px}
+@keyframes lg{to{transform:rotate(360deg)}}
+#cargando .txt{font-size:14px;font-weight:600;opacity:.85;text-align:center}
+#cargando button{background:#F5B301;color:#4A3300;border:none;padding:11px 20px;border-radius:11px;font-family:inherit;font-weight:800;cursor:pointer;margin-top:12px}
+.lb{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;padding:0 24px;padding-top:env(safe-area-inset-top,0px);height:calc(62px + env(safe-area-inset-top,0px));background:var(--l-navy);color:#fff}
+.lb .lg{width:36px;height:36px;border-radius:9px;background:#fff url(logo-ecovsa.png) center/28px no-repeat;flex:none}
+.lb .mk b{display:block;font-size:15px;letter-spacing:2px}.lb .mk span{font-size:11px;color:#a9bbd9}
+.lb .sep{width:1px;height:26px;background:#2c4a7d}.lb .sp{flex:1}
+.lb .fe{font-size:12.5px;opacity:.85}
+.lb .us{display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;border-radius:10px;padding:4px 6px}.lb .us:hover{background:rgba(255,255,255,.08)}
+.lb .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;background:#F5B301;color:#3d2a00}
+.lb .bt{font:600 12.5px Archivo,sans-serif;border-radius:8px;padding:7px 11px;background:none;border:1px solid #3a5a8f;color:#dfe7f3;cursor:pointer}
+.lw{max-width:1180px;margin:0 auto;padding:22px 24px 40px}
+.ban{position:relative;border-radius:18px;overflow:hidden;padding:22px 24px;color:#fff;isolation:isolate;background:#0f2a57}
+.ban .f{position:absolute;inset:0;z-index:-2;background:url(entrada-arbol.jpg) center 35%/cover}
+.ban::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,42,87,.94) 0%,rgba(15,42,87,.78) 55%,rgba(15,42,87,.4) 100%)}
+.ban.vivo .f{animation:kb 40s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.03)}to{transform:scale(1.12) translate(-1%,-1.5%)}}
+.ban.azul .f{background:linear-gradient(160deg,#0B2A5B 0%,#14306b 58%,#0A6B4E 145%)}.ban.azul::before{display:none}
+@media (prefers-reduced-motion:reduce){.ban.vivo .f{animation:none}}
+.ban h1{font-size:24px;font-weight:700;margin:0}.ban p{color:#cdd8ea;font-size:13.5px;margin:3px 0 0}
+.kp{display:grid;grid-template-columns:repeat(4,minmax(0,170px));gap:10px;margin-top:16px}
+.kp div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 12px}
+.kp b{display:block;font-size:20px;font-weight:700}.kp span{font-size:11.5px;color:#cdd8ea}
+.kp em{font-style:normal;font-size:11px;font-weight:700;margin-left:4px;color:#8be28b}.kp em.malo{color:#ffb4a8}
+.gr{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;margin-top:18px;align-items:start}
+.box{background:#fff;border:1px solid var(--l-line);border-radius:16px;padding:16px 18px;min-width:0}
+.box h2{font-size:12px;letter-spacing:1px;color:#5b6a80;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
+.box h2 span{letter-spacing:0;font-weight:500;font-size:12px}
+.it{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid var(--l-line2);cursor:pointer;border-radius:6px;font-size:13px}
+.it:last-child{border-bottom:0}.it:hover{background:#f8fafc}
+.it .dot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px}
+.it .tx{flex:1;min-width:0;font-weight:600;line-height:1.3}.it .tx small{display:block;color:var(--l-muted);font-size:11.5px;font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vacio{padding:12px 2px;color:var(--l-muted);font-size:13px}
+.mas{display:block;width:100%;border:0;background:none;color:#1f56b3;font:700 12.5px Archivo,sans-serif;padding:8px 0 0;cursor:pointer;text-align:left}
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.m{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid var(--l-line);border-radius:14px;padding:18px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;color:inherit;min-height:150px;width:100%;transition:border-color .15s,box-shadow .15s,transform .15s}
+.m:hover{border-color:#9db4d8;box-shadow:0 8px 22px rgba(15,33,64,.09);transform:translateY(-1px)}
+.m .top{display:flex;align-items:center;justify-content:space-between;width:100%}
+.m .ic{width:46px;height:46px;border-radius:12px;background:#eef2f8;display:grid;place-items:center;flex:none}
+.m svg{width:24px;height:24px;fill:none;stroke:var(--l-navy2);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.m .tx b{font-size:17px;font-weight:700;display:block}.m .tx small{display:block;color:var(--l-muted);font-size:12.5px;margin-top:3px;line-height:1.4}
+.m .st{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;color:#44516a;margin-top:auto}
+.m .st i{width:8px;height:8px;border-radius:50%}
+.m .ar{position:absolute;right:16px;bottom:14px;color:#9aa7ba;font-size:18px}
+.m.tuyo{grid-column:1/-1;min-height:120px;border:1.5px solid var(--l-navy2);background:linear-gradient(180deg,#f6f9ff,#fff)}
+.m.tuyo .ic{background:var(--l-navy2)}.m.tuyo .ic svg{stroke:#fff}
+.m .chip{font-size:10.5px;font-weight:800;letter-spacing:.6px;color:var(--l-navy2);background:#e7eefb;border-radius:6px;padding:3px 7px}
+.m.obra{opacity:.55;cursor:default}
+.pie{margin-top:22px;display:flex;justify-content:space-between;font-size:11.5px;color:#7a879b;flex-wrap:wrap;gap:6px}
+.aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--l-navy);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:600;max-width:90vw;z-index:20;display:none}
+@media(max-width:860px){.gr{grid-template-columns:minmax(0,1fr)}.mods{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.m{min-height:130px;padding:14px}.m .tx b{font-size:15px}.m .tx small{display:none}.kp{grid-template-columns:1fr 1fr}.lb .mk span,.lb .sep,.lb .us span,.lb .fe{display:none}.lw{padding:16px}.lb{padding:0 16px;padding-top:env(safe-area-inset-top,0px)}}
+</style>
+</head>
+<body>
+
+<div id="cargando"><div><div class="spin"></div><div class="txt">Un momento…</div></div></div>
+<div id="tablero" hidden></div>
+<div class="aviso" id="aviso"></div>
+
+<script>
+var URL_APP="", PIN_ACTUAL="", TAB=null, REFRESCO=null, ESPERA=[];
+var ICONOS={
+ brujula:'<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>',
+ ruta:'<path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+ maletin:'<rect x="2.5" y="7.5" width="19" height="13" rx="2.2"/><path d="M8.5 7.5V5.4A2 2 0 0 1 10.5 3.4h3a2 2 0 0 1 2 2v2.1"/><path d="M2.5 12.5h19"/>',
+ planta:'<rect x="2.5" y="6" width="19" height="12" rx="2.4"/><circle cx="8" cy="12" r="2.6"/><path d="M14 9.5c0 1.2 1.4 1.3 1.4 2.5S14 14.3 14 15.5M17.6 9.5c0 1.2 1.4 1.3 1.4 2.5s-1.4 1.3-1.4 2.5"/>',
+ moneda:'<circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a3 3 0 0 0-2.8-1.7c-1.6 0-2.7.9-2.7 2.1 0 2.9 5.6 1.6 5.6 4.5 0 1.3-1.2 2.2-2.9 2.2a3.1 3.1 0 0 1-2.9-1.8"/><path d="M12 6v12"/>',
+ sello:'<circle cx="12" cy="9" r="5.5"/><path d="M9 13.8 7.5 21l4.5-2.4 4.5 2.4-1.5-7.2"/><path d="M10 9l1.5 1.5L14 7.5"/>',
+ billete:'<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+ recibo:'<path d="M6 2.8h12a1 1 0 0 1 1 1v17.4l-2.6-1.6-2.6 1.6-2.6-1.6-2.6 1.6-2.6-1.6V3.8a1 1 0 0 1 1-1Z"/><path d="M9 8h6M9 12h6"/>',
+ llave:'<path d="M15.5 3.5a5 5 0 0 0-4.3 7.5L3.5 18.7a1.6 1.6 0 0 0 0 2.3l.5.5a1.6 1.6 0 0 0 2.3 0L13 13.8a5 5 0 1 0 2.5-10.3Z"/><circle cx="16.4" cy="8.1" r="2.1"/>'
+};
+var PUNTO={r:"var(--l-rojo)",a:"var(--l-ambar)",g:"var(--l-gris)",ok:"var(--l-verde)"};
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function svg(k){ return '<svg viewBox="0 0 24 24">'+(ICONOS[k]||ICONOS.brujula)+'</svg>'; }
+function pinGuardado(){ try{ return JSON.parse(localStorage.getItem("ecovsa_pin")||'""')||""; }catch(e){ return ""; } }
+
+function arrancar(){
+  setTimeout(function(){
+    if(!$("cargando").hidden && !window.__LISTO__){
+      $("cargando").innerHTML='<div class="txt">No se pudo conectar.<br><button onclick="location.reload()">Reintentar</button></div>';
+    }
+  },15000);
+  var pin=pinGuardado();
+  if(pin) cargar(pin, function(r){ if(r&&r.ok) abrirTablero(r, pin); else entrada(); });
+  else entrada();
+}
+
+/* Pide el tablero. Sirve para validar el PIN y traer todo de una vez. */
+function cargar(pin, fin){
+  google.script.run
+    .withSuccessHandler(function(r){ window.__LISTO__=true; fin(r); })
+    .withFailureHandler(function(){ window.__LISTO__=true; fin({ok:false,error:"Sin conexión. Intenta con señal."}); })
+    .api_tablero(pin);
+}
+
+function entrada(){
+  window.__LISTO__=true;
+  $("cargando").hidden=true; $("tablero").hidden=true;
+  var r0=null;
+  EntradaECOVSA.montar({
+    validar:function(p,fin){
+      cargar(p,function(r){
+        if(!r||!r.ok){ fin({ok:false,error:(r&&r.error)||"PIN no válido"}); return; }
+        r0=r; r0._pin=p;
+        fin({ok:true,nombre:r.usuario.nombre,texto:r.conductor?"Abriendo tu ruta…":"Abriendo tus módulos…"});
+      });
+    },
+    alEntrar:function(){
+      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(r0._pin)); localStorage.removeItem("eco_bloqueado"); }catch(e){}
+      abrirTablero(r0, r0._pin);
+    }
+  });
+}
+
+function abrirTablero(r, pin){
+  PIN_ACTUAL=pin; TAB=r; URL_APP=r.url||"";
+  try{ localStorage.removeItem("eco_bloqueado"); }catch(e){}
+  /* El conductor entra directo a su ruta, sin tablero y sin bloqueo. */
+  if(r.conductor){
+    var uno=r.modulos.filter(function(m){ return m.permitido && m.estado!=="construccion"; })[0];
+    if(uno){ navegar(URL_APP+"?p="+uno.id); return; }
+  }
+  EntradaECOVSA.quitar();
+  $("cargando").hidden=true;
+  pintar(r);
+  $("tablero").hidden=false;
+  EntradaECOVSA.reanudar();
+  clearInterval(REFRESCO);
+  REFRESCO=setInterval(function(){
+    if(document.hidden || $("tablero").hidden || !PIN_ACTUAL) return;
+    cargar(PIN_ACTUAL,function(x){ if(x&&x.ok){ TAB=x; pintar(x); } });
+  },5*60*1000);
+}
+
+/* Qué módulo es «el tuyo» y qué parte de «Lo que te espera» ve cada rol.
+   Gerente y admin ven Dirección: el resumen de todos, con los pagos por aprobar. */
+var TUYO={supervisor:"campo",mercadeo:"alta",planta:"planta",cobros:"cobros",gerente:"inicio",admin:"inicio"};
+function fondoElegido(){ var f=""; try{ f=localStorage.getItem("eco_fondo")||""; }catch(e){}
+  if(f!=="vivo"&&f!=="quieto"&&f!=="azul"){ try{ f=matchMedia("(prefers-reduced-motion: reduce)").matches?"quieto":"vivo"; }catch(e){ f="vivo"; } }
+  return f; }
+function pintar(r){
+  var ahora=new Date(), h=ahora.getHours();
+  var sal=h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches";
+  var fecha=ahora.toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"}); fecha=fecha.charAt(0).toUpperCase()+fecha.slice(1);
+  var nombre=String(r.usuario.nombre||"").trim(), primer=nombre.split(" ")[0]||"";
+  var ini=nombre.split(" ").filter(Boolean).map(function(x){return x[0];}).slice(0,2).join("").toUpperCase();
+  var rol=r.usuario.rol; window._US={nombre:nombre,rol:rol};
+  /* Certificados, Solicitud de pago, Finanzas y Administración ya no salen aquí
+     (zona «aparte»): las pantallas siguen existiendo y se llega a ellas desde su módulo. */
+  var mods=r.modulos.filter(function(m){ return m.permitido && (m.zona==="centro"||m.zona==="lado"); });
+  var idT=TUYO[rol]; if(!mods.some(function(m){ return m.id===idT; })) idT=mods.length?mods[0].id:"";
+  mods=mods.filter(function(m){ return m.id===idT; }).concat(mods.filter(function(m){ return m.id!==idT; }));
+  var mT=modulo(idT), nomT=mT?mT.titulo:"";
+  var todoRol=(rol==="gerente"||rol==="admin");
+  var P=(r.pendientes||[]).filter(function(p){ return todoRol || p.ir===idT; });
+  ESPERA=P;
+  var nP=todoRol?(r.totalPendientes||P.length):P.length, nU=P.filter(function(p){ return p.nivel==="r"; }).length;
+  var subt=nP ? (nP+(nP===1?" asunto de ":" asuntos de ")+nomT+(nP===1?" te espera":" te esperan")+(nU?", "+nU+(nU===1?" urgente":" urgentes"):"")) : "Todo al día en "+nomT;
+
+  $("tablero").innerHTML=
+   '<div class="lb"><div class="lg"></div><div class="mk"><b>ECOVSA</b><span>Sistema de operaciones</span></div><div class="sep"></div>'+
+   '<span class="fe num">'+esc(fecha)+' · '+ahora.toLocaleTimeString("es-PA",{hour:"numeric",minute:"2-digit"})+'</span><div class="sp"></div>'+
+   '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,window._US)"><span>'+esc(nombre)+' · '+esc(r.usuario.rotulo)+'</span><div class="av">'+esc(ini)+'</div></div><button class="bt" onclick="salir()">Salir</button></div>'+
+   '<div class="lw"><div class="ban '+fondoElegido()+'"><div class="f"></div><h1>'+sal+', '+esc(primer)+'</h1><p>'+esc(fecha)+' · '+esc(subt)+'</p>'+
+     (r.kpis&&r.kpis.length?'<div class="kp">'+r.kpis.map(function(k){ return '<div><b class="num">'+esc(k.v)+'</b><span>'+esc(k.e)+(k.d?' <em class="'+(k.malo?'malo':'')+'">'+esc(k.d)+'</em>':'')+'</span></div>'; }).join("")+'</div>':'')+
+   '</div><div class="gr">'+
+   '<div class="box"><h2>'+(mods.length>1?"MÓDULOS <span>"+mods.length+" disponibles</span>":"TU MÓDULO")+'</h2><div class="mods">'+
+     mods.map(function(m){ var e=(r.estados||{})[m.id], obra=m.estado==="construccion", tu=m.id===idT;
+       return '<button class="m'+(tu?" tuyo":"")+(obra?" obra":"")+'" onclick="'+(obra?'avisar(\'Este módulo está en construcción.\')':'abrir(\''+m.id+'\')')+'">'+
+         '<div class="top"><div class="ic">'+svg(m.icono)+'</div>'+(tu&&mods.length>1?'<span class="chip">TU MÓDULO</span>':'')+'</div>'+
+         '<div class="tx"><b>'+esc(m.titulo)+'</b><small>'+esc(m.detalle)+'</small></div>'+
+         (obra?'<span class="st">En construcción</span>':(e?'<span class="st"><i style="background:'+PUNTO[e.nivel]+'"></i>'+esc(e.texto)+'</span>':''))+'<span class="ar">›</span></button>'; }).join("")+'</div>'+
+   '</div>'+
+   '<div class="box"><h2>LO QUE TE ESPERA HOY <span>'+esc(nomT)+'</span></h2>'+
+     (P.length? P.slice(0,5).map(function(p,i){ return '<div class="it" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div></div>'; }).join("")
+       : '<div class="vacio">No hay nada esperando por ti. Buen trabajo.</div>')+
+     (idT?'<button class="mas" onclick="abrir(\''+idT+'\')">Ver todo en '+esc(nomT)+' →</button>':'')+
+   '</div></div>'+
+   '<div class="pie"><span>ECOVSA · Ecología · Vida · Salud</span><span>Sesión segura · se bloquea tras 15 minutos sin uso</span></div></div>';
+}
+function modulo(id){ return (TAB&&TAB.modulos||[]).filter(function(m){ return m.id===id; })[0]; }
+function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
+  if(m && m.permitido && m.estado!=="construccion") abrir(p.ir); else avisar("Esto lo atiende otro módulo."); }
+function avisar(t){ var a=$("aviso"); a.textContent=t; a.style.display="block"; clearTimeout(window._av); window._av=setTimeout(function(){ a.style.display="none"; },3600); }
+
+function abrir(p){ navegar(URL_APP+"?p="+p); }
+function navegar(u){ if(window.__ir) window.__ir(u); else irA(u); }
+function salir(){
+  try{ localStorage.removeItem("ecovsa_pin"); sessionStorage.removeItem("eco_rol_sesion"); }catch(e){}
+  PIN_ACTUAL=""; TAB=null; clearInterval(REFRESCO);
+  EntradaECOVSA.detener();
+  entrada();
+}
+
+/* Al desbloquear, el saludo toma el fondo que se haya elegido en la entrada. */
+window.addEventListener("eco-desbloqueo",function(){ var b=document.querySelector(".ban"); if(b) b.className="ban "+fondoElegido(); });
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
+else arrancar();
+
+/* Navega la ventana de arriba: dentro del iframe de Apps Script,
+   location.href solo cambia el marco interno y la pantalla queda en blanco. */
+function irA(url){
+  try{
+    if(window.top && window.top !== window){ window.top.location.href = url; return; }
+  }catch(e){}
+  location.href = url;
+}
+</script>
+</body>
+</html>

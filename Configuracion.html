@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración del sistema · ECOVSA</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="modulo-kit.css">
+<script src="modulo-kit.js"></script>
+<style>
+/* ── Configuración del sistema · el apartado oculto del administrador ── */
+.sysbar{background:#0b1f40}
+.candado{display:inline-flex;align-items:center;gap:6px;background:rgba(245,179,1,.16);color:var(--amber);border:1px solid rgba(245,179,1,.4);border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:800;letter-spacing:.4px}
+.ulist .u{display:grid;grid-template-columns:40px minmax(0,1.4fr) minmax(0,.8fr) minmax(0,1.3fr) 80px auto;gap:12px;align-items:center;padding:11px 4px;border-top:1px solid var(--line2)}
+.ulist .u:first-child{border-top:0}
+.ulist .u.baja{opacity:.6}
+.av2{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12.5px;color:#fff;flex:none}
+.ulist .nm b{display:block;font-size:14px}
+.ulist .nm span{font-size:12px;color:var(--muted)}
+.rol{display:inline-flex;align-items:center;font-size:12px;font-weight:700;border-radius:7px;padding:3px 8px}
+.ulist .co{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ulist .co.falta{color:#8a6300}
+.ulist .ac{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.estu{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;display:inline-block}
+.estu.si{background:var(--ok-bg);color:#276b33}.estu.no{background:var(--line2);color:var(--muted)}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pinbox{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px dashed #b9c6de;border-radius:12px;padding:12px 14px}
+.pinbox .d{font-size:26px;font-weight:800;letter-spacing:8px;font-variant-numeric:tabular-nums}
+.pinbox small{display:block;font-size:12px;color:var(--muted)}
+.pinbox.nuevo{background:#fffaf0;border:2px solid var(--amber)}
+.pinbox.nuevo .d{font-size:34px;color:var(--navy)}
+.pasa{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.pasa div{display:flex;gap:8px;align-items:flex-start}
+.pasa svg.i{width:16px;height:16px;margin-top:2px;color:var(--ok)}
+/* matriz */
+table.perm{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+.perm th{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#7a879b;padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.perm th:first-child{text-align:left}
+.perm td{padding:6px;border-bottom:1px solid var(--line2);text-align:center}
+.perm td:first-child{text-align:left;font-size:13px}
+.pv{width:100%;min-width:82px;border:1px solid var(--line);border-radius:8px;padding:6px 4px;font:700 12px Archivo,sans-serif;cursor:pointer;background:#fff}
+.pv.t{background:var(--ok-bg);border-color:#bfe3b3;color:#276b33}
+.pv.v{background:var(--info-bg);border-color:#c9d8f5;color:#1d3f86}
+.pv.n{background:#fff;color:var(--muted2)}
+.pv.r{background:#f1ecf8;border-color:#dccdf0;color:#5b3a8a}
+.pv:disabled{cursor:default;opacity:.8}
+.pv.cambio{outline:2px solid var(--amber);outline-offset:1px}
+/* reglas */
+.reg .rr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 2px;border-top:1px solid var(--line2)}
+.reg .rr:first-child{border-top:0}
+.reg .rt b{display:block;font-size:14px}.reg .rt span{font-size:12.5px;color:var(--muted)}
+.reg .sub-r{margin-left:18px;border-left:3px solid var(--line2);padding-left:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:8px 12px;font:700 12.5px Archivo,sans-serif;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--navy2);color:#fff}
+.monto{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff;font-weight:700;color:var(--muted)}
+.monto input{border:0;outline:0;width:110px;padding:8px 0;font:700 14px Archivo,sans-serif;color:var(--ink);text-align:right;background:none}
+.cks{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:600}
+.cks label{display:flex;gap:6px;align-items:center;cursor:pointer}
+/* puerta: pedir el PIN */
+.puerta{max-width:420px;margin:40px auto;text-align:center}
+.puerta .card{padding:26px 22px}
+.puerta h1{font-size:20px;margin:10px 0 4px}
+.puerta .pins{display:flex;justify-content:center;gap:10px;margin:18px 0 8px}
+.puerta .pins i{width:44px;height:52px;border-radius:10px;border:1.5px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:24px;font-weight:800;background:#fff}
+.puerta .pins i.on{border-color:var(--navy2)}
+.puerta input.oculto{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.puerta .err{color:var(--bad);font-size:13px;min-height:20px;font-weight:600}
+.teclado{display:grid;grid-template-columns:repeat(3,64px);gap:10px;justify-content:center;margin-top:12px}
+.teclado button{height:52px;border-radius:12px;border:1px solid var(--line);background:#fff;font:800 19px Archivo,sans-serif;color:var(--navy2);cursor:pointer}
+.teclado button:active{background:var(--hover)}
+.demo{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:560px}
+.demo .bar{background:var(--navy);height:52px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff;font-weight:800}
+.demo .bar .avd{margin-left:auto;width:30px;height:30px;border-radius:50%;background:#26457f;display:grid;place-items:center;font-size:12px;box-shadow:0 0 0 3px var(--amber)}
+.demo .menu2{position:absolute;right:12px;top:58px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(15,33,64,.18);width:250px;padding:6px}
+.demo .menu2 div{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:8px;font-size:13px;font-weight:600}
+.demo .menu2 div.hl{background:#fff8e6;color:#6b5400}
+.demo .cuerpo2{height:230px}
+.hisf{font-size:12px;color:var(--muted);white-space:nowrap}
+@media (max-width:820px){
+  .ulist .u{grid-template-columns:36px minmax(0,1fr) auto;row-gap:6px}
+  .ulist .u .rolc{grid-column:2/-1}
+  .ulist .u .co,.ulist .u .ul{grid-column:2/-1}
+  .ulist .u .ac{grid-column:1/-1;justify-content:flex-start}
+  .roles{grid-template-columns:1fr}
+  .reg .rr{grid-template-columns:minmax(0,1fr)}
+  .candado{display:none}
+}
+</style>
+</head>
+<body>
+<div id="sysbar"></div>
+<div class="mtabs" id="mtabs"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"></main></div>
+<script>
+/* ═══ Configuración del sistema (api 3.4) ═══ */
+var PIN = '';              // el PIN que se escribió al entrar (no el guardado)
+var MOSTRAR_PRUEBA = false, FILTRO = 'act', MAT = null, REG = null, SEGU = null, COB = null, FH = 'todo';
+var COLOR_ROL = { admin: '#0f2a57', gerente: '#6C3A96', supervisor: '#0B5394', mercadeo: '#00792F', planta: '#8a4f9e', cobros: '#c98a00', operador: '#5b6880' };
+
+function B() { return MK.base || {}; }
+function nomRol(r) { return MK.ROLES[r] || r; }
+function detRol(r) { var x = (B().roles || []).filter(function (y) { return y.id === r; })[0]; return x ? x.d : ''; }
+function tagRol(r) { var c = COLOR_ROL[r] || '#5b6880'; return '<span class="rol" style="background:color-mix(in srgb,' + c + ' 12%,#fff);color:' + c + '">' + MK.esc(nomRol(r)) + '</span>'; }
+
+/* ── la puerta: pedir el PIN otra vez ── */
+function puerta(msg) {
+  document.getElementById('main').innerHTML = '<div class="puerta"><div class="card">' +
+    '<span class="candado">' + MK.ic('candado', 14) + 'SOLO ADMINISTRADOR</span>' +
+    '<h1>Configuración del sistema</h1><p class="muted small">Escribe tu PIN otra vez para entrar. Aunque la sesión esté abierta, aquí se pide siempre.</p>' +
+    '<div class="pins" id="pp"></div><input class="oculto" id="pin-in" inputmode="numeric" autocomplete="off" maxlength="6">' +
+    '<div class="err" id="pin-err">' + MK.esc(msg || '') + '</div>' +
+    '<div class="teclado">' + ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '→'].map(function (k) { return '<button type="button" onclick="teclaPin(\'' + k + '\')">' + k + '</button>'; }).join('') + '</div>' +
+    '<p class="small muted" style="margin-top:16px"><a href="index.html">← Volver a los módulos</a></p></div></div>';
+  window._pin = ''; pintarPins();
+  var inp = document.getElementById('pin-in');
+  document.onkeydown = function (e) {
+    if (PIN) return;
+    if (/^\d$/.test(e.key)) teclaPin(e.key); else if (e.key === 'Backspace') teclaPin('⌫'); else if (e.key === 'Enter') teclaPin('→');
+  };
+}
+var LARGO = 4;
+function pintarPins() { var n = Math.max(LARGO, window._pin.length); var h = ''; for (var i = 0; i < n; i++) h += '<i class="' + (i < window._pin.length ? 'on' : '') + '">' + (i < window._pin.length ? '•' : '') + '</i>'; var e = document.getElementById('pp'); if (e) e.innerHTML = h; }
+function teclaPin(k) {
+  var e = document.getElementById('pin-err'); if (e) e.textContent = '';
+  if (k === '⌫') window._pin = window._pin.slice(0, -1);
+  else if (k === '→') { if (window._pin.length >= 4) probarPin(); return; }
+  else if (window._pin.length < 6) window._pin += k;
+  pintarPins();
+  if (window._pin.length === LARGO) setTimeout(probarPin, 120);
+}
+function probarPin() {
+  var p = window._pin; if (!p) return;
+  MK.api('api_cfgBase', p).then(function (r) {
+    if (!r || !r.ok) { window._pin = ''; pintarPins(); var e = document.getElementById('pin-err'); if (e) e.textContent = (r && r.error) || 'PIN no válido'; return; }
+    PIN = p; document.onkeydown = null; usarBase(r); MK.ir(MK.seccion || 'usu', true);
+  }, function () { var e = document.getElementById('pin-err'); if (e) e.textContent = 'Sin conexión.'; });
+}
+function usarBase(b) {
+  MK.base = b; MK.usuario = b.usuario; MK.hoy = b.hoy;
+  MAT = JSON.parse(JSON.stringify(b.matriz)); REG = JSON.parse(JSON.stringify(b.reglas)); SEGU = JSON.parse(JSON.stringify(b.seguridad)); COB = JSON.parse(JSON.stringify(b.cobros));
+  MK.pintarBarra(); MK.pintarMenu();
+  var sb = document.querySelector('#sysbar .mod'); if (sb && !document.querySelector('#sysbar .candado')) sb.insertAdjacentHTML('afterend', '<span class="candado">' + MK.ic('candado', 14) + 'SOLO ADMINISTRADOR</span>');
+}
+function recargar() {
+  return MK.api('api_cfgBase', PIN).then(function (r) { if (r && r.ok) { usarBase(r); MK.repintar(); } else MK.aviso((r && r.error) || 'No se pudo recargar'); });
+}
+
+/* ═══ USUARIOS ═══ */
+function vUsuarios() {
+  var U = (B().usuarios || []);
+  var reales = U.filter(function (u) { return !u.prueba; });
+  var act = reales.filter(function (u) { return u.activo; });
+  var admins = act.filter(function (u) { return u.rol === 'admin'; });
+  var sinCo = act.filter(function (u) { return !u.correo; });
+  var largo = SEGU.largoPin || 4;
+  var viejos = act.filter(function (u) { return (u.largoPin || 4) < largo; });
+  var lista = U.filter(function (u) { return (MOSTRAR_PRUEBA || !u.prueba) && (FILTRO === 'todos' || (FILTRO === 'act' ? u.activo : !u.activo)); });
+  var h = MK.cabeza('Usuarios', 'Quién puede entrar al sistema y a qué. Nadie se borra: al darlo de baja, su PIN deja de servir y su nombre queda en lo que hizo.',
+    '<button class="btn pri" onclick="altaUsuario()">' + MK.ic('alta', 16) + 'Dar de alta un usuario</button>');
+  h += MK.kpis([
+    { e: 'Activos', v: act.length, s: 'pueden entrar hoy' },
+    { e: 'De baja', v: reales.length - act.length, s: reales.length - act.length ? 'su historia se conserva' : 'ninguno todavía' },
+    { e: 'Administradores', v: admins.length, s: admins.length < 2 ? 'conviene tener uno de respaldo' : 'con respaldo', c: admins.length < 2 ? 'warn' : '' },
+    { e: 'Sin correo', v: sinCo.length, s: sinCo.length ? sinCo.map(function (u) { return u.nombre; }).join(' · ') : 'todos tienen', c: sinCo.length ? 'warn' : '' }
+  ]);
+  if (viejos.length) h += '<div class="aviso am" style="margin-bottom:12px">' + viejos.length + ' usuario(s) siguen con PIN de 4 números. Les sirve hasta que les generes uno nuevo de ' + largo + '.</div>';
+  h += '<div class="card"><div class="fila" style="justify-content:space-between;margin-bottom:6px">' +
+    MK.chips([['act', 'Activos', act.length], ['baja', 'De baja', reales.length - act.length], ['todos', 'Todos']], FILTRO, 'filtroU') +
+    '<label class="fila small" style="gap:8px;font-weight:600;color:var(--muted);cursor:pointer"><button class="sw' + (MOSTRAR_PRUEBA ? ' si' : '') + '" onclick="MOSTRAR_PRUEBA=!MOSTRAR_PRUEBA;MK.repintar()"></button>Mostrar usuarios de prueba</label></div>' +
+    '<div class="ulist">' + (lista.length ? lista.map(function (u) {
+      var c = COLOR_ROL[u.rol] || '#5b6880';
+      var soloAdmin = u.rol === 'admin' && u.activo && admins.length < 2 && !u.prueba;
+      var acc = u.activo
+        ? '<button class="btn sm" onclick="editarUsuario(' + u.i + ')">' + MK.ic('lapiz', 15) + 'Editar</button><button class="btn sm" onclick="nuevoPin(' + u.i + ')">' + MK.ic('llave', 15) + 'Nuevo PIN</button>' +
+          (u.yo || soloAdmin ? '' : '<button class="btn sm bad" onclick="bajaUsuario(' + u.i + ')">' + MK.ic('baja', 15) + 'Dar de baja</button>')
+        : '<button class="btn sm" onclick="reactivar(' + u.i + ')">' + MK.ic('alta', 15) + 'Reactivar</button>';
+      return '<div class="u ' + (u.activo ? '' : 'baja') + '"><span class="av2" style="background:' + c + '">' + MK.esc(MK.ini(u.nombre)) + '</span>' +
+        '<div class="nm"><b>' + MK.esc(u.nombre) + (u.prueba ? ' <span class="tag t-gris">prueba</span>' : '') + (u.yo ? ' <span class="tag t-info">tú</span>' : '') + '</b><span>' +
+        (u.activo ? MK.esc(detRol(u.rol)) : 'De baja desde ' + MK.esc(MK.dmy(u.fechaBaja) || '—') + (u.motivoBaja ? ' · ' + MK.esc(u.motivoBaja) : '')) +
+        ((u.largoPin || 4) < largo && u.activo ? ' · <b style="color:#8a6300;display:inline">PIN de ' + (u.largoPin || 4) + '</b>' : '') + '</span></div>' +
+        '<div class="rolc">' + tagRol(u.rol) + '</div>' +
+        '<div class="co ' + (u.correo ? '' : 'falta') + '">' + MK.esc(u.correo || 'Sin correo') + (u.telefono ? ' · ' + MK.esc(u.telefono) : '') + '</div>' +
+        '<div class="ul"><span class="estu ' + (u.activo ? 'si' : 'no') + '">' + (u.activo ? 'Activo' : 'De baja') + '</span></div>' +
+        '<div class="ac">' + acc + '</div></div>';
+    }).join('') : MK.vacio('Nadie en esta lista.')) + '</div>' +
+    '<div class="nota">El único administrador no puede darse de baja ni cambiarse de rol: primero hay que dar de alta otro. Los PIN nunca se ven en esta lista; se guardan cifrados.</div></div>';
+  return h;
+}
+function filtroU(f) { FILTRO = f; MK.repintar(); }
+function usu(i) { return (B().usuarios || []).filter(function (u) { return u.i === i; })[0]; }
+function rolesHtml(sel) {
+  return '<div class="roles">' + (B().roles || []).map(function (r) {
+    return '<div class="caja-sel' + (r.id === sel ? ' on' : '') + '" data-rol="' + r.id + '" onclick="elegirRol(this)"><b>' + MK.esc(r.n) + '</b><span>' + MK.esc(r.d) + '</span></div>';
+  }).join('') + '</div>';
+}
+function elegirRol(el) { [].forEach.call(el.parentNode.children, function (x) { x.classList.toggle('on', x === el); }); }
+function rolElegido() { var e = document.querySelector('#mk-lado .roles .on'); return e ? e.getAttribute('data-rol') : ''; }
+function altaUsuario() {
+  var L = SEGU.largoPin || 4;
+  MK.lado('<h2>Dar de alta un usuario</h2><div class="sub">Desde que se guarda puede entrar: el lobby le abre solo los módulos de su rol.</div>' +
+    '<label class="lb">Nombre completo</label><input class="in" id="a-nom" autofocus placeholder="Nombre y apellido"><div class="small muted" style="margin-top:4px">Así sale en recibos, rutas y solicitudes. Se guarda sin espacios de más y con mayúscula inicial.</div>' +
+    '<label class="lb">Qué va a hacer · rol</label>' + rolesHtml('') +
+    '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="a-cor" placeholder="para avisos y recibos"></div><div><label class="lb">Teléfono</label><input class="in" id="a-tel" placeholder="opcional"></div></div>' +
+    '<label class="lb">PIN de entrada</label><div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">El sistema lo genera</b><small>' + L + ' números, sin repetir ni en orden: nada de 1111 o 1234. Lo ves una sola vez al guardar, para entregárselo en persona.</small></div></div>' +
+    '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>Queda en el historial quién lo dio de alta y cuándo.</span></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="a-ok" onclick="guardarAlta(this)">' + MK.ic('check', 16) + 'Dar de alta</button></div>');
+}
+function guardarAlta(btn) {
+  var d = { nombre: MK.val('a-nom'), rol: rolElegido(), correo: MK.val('a-cor'), telefono: MK.val('a-tel') };
+  if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
+  if (!d.rol) { MK.aviso('Elige el rol.'); return; }
+  MK.ocupado(btn, true);
+  MK.api('api_cfgAltaUsuario', PIN, d).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    mostrarPin(r.nombre, r.pin, 'Quedó dado de alta como ' + nomRol(r.rol) + '.');
+    recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function mostrarPin(nombre, pin, texto) {
+  MK.lado('<h2>PIN de ' + MK.esc(nombre) + '</h2><div class="sub">' + MK.esc(texto || '') + '</div>' +
+    '<div class="pinbox nuevo"><span class="d">' + MK.esc(pin) + '</span><div><b style="font-size:13px">Se muestra una sola vez</b><small>Anótalo y entrégaselo en persona o por mensaje directo, nunca en un grupo. Al cerrar esta ventana ya no se puede volver a ver: solo generar otro.</small></div></div>' +
+    '<div class="pie2"><button class="btn pri" onclick="MK.cerrarLado()">' + MK.ic('check', 16) + 'Ya lo anoté</button></div>');
+}
+function editarUsuario(i) {
+  var u = usu(i); if (!u) return;
+  MK.lado('<h2>Editar a ' + MK.esc(u.nombre) + '</h2><div class="sub">' + MK.esc(nomRol(u.rol)) + '</div>' +
+    '<label class="lb">Nombre completo</label><input class="in" id="e-nom" value="' + MK.esc(u.nombre) + '">' +
+    '<label class="lb">Rol</label>' + rolesHtml(u.rol) +
+    '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="e-cor" value="' + MK.esc(u.correo) + '"></div><div><label class="lb">Teléfono</label><input class="in" id="e-tel" value="' + MK.esc(u.telefono) + '"></div></div>' +
+    '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>El cambio de rol le cambia los módulos en su siguiente entrada al lobby. Queda en el historial.</span></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarEdicion(' + i + ',this)">' + MK.ic('check', 16) + 'Guardar cambios</button></div>');
+}
+function guardarEdicion(i, btn) {
+  var u = usu(i);
+  var d = { i: i, nombre: u.nombre, nuevoNombre: MK.val('e-nom'), rol: rolElegido(), correo: MK.val('e-cor'), telefono: MK.val('e-tel') };
+  MK.ocupado(btn, true);
+  MK.api('api_cfgEditarUsuario', PIN, d).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.cerrarLado(); MK.aviso(r.sinCambios ? 'No había cambios' : 'Guardado'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function nuevoPin(i) {
+  var u = usu(i); if (!u) return; var L = SEGU.largoPin || 4;
+  MK.lado('<h2>Nuevo PIN para ' + MK.esc(u.nombre) + '</h2><div class="sub">Para cuando lo olvidó o lo vio otra persona. El PIN de antes deja de servir en cuanto se genera el nuevo.</div>' +
+    '<div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">' + L + ' números · se muestra una sola vez</b><small>Entrégaselo en persona o por mensaje directo, nunca en un grupo.</small></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarPin(' + i + ',this)">' + MK.ic('llave', 16) + 'Generar PIN nuevo</button></div>');
+}
+function generarPin(i, btn) {
+  var u = usu(i); MK.ocupado(btn, true, 'Generando…');
+  MK.api('api_cfgNuevoPin', PIN, { i: i, nombre: u.nombre }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    mostrarPin(r.nombre, r.pin, 'El PIN anterior ya no sirve.'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function bajaUsuario(i) {
+  var u = usu(i); if (!u) return;
+  MK.lado('<h2>Dar de baja a ' + MK.esc(u.nombre) + '</h2><div class="sub">' + MK.esc(nomRol(u.rol)) + ' · ' + MK.esc(u.correo || 'sin correo') + '</div>' +
+    '<label class="lb">Motivo</label><select class="in" id="b-mot"><option>Ya no trabaja en ECOVSA</option><option>Cambió de puesto (se le crea otro usuario)</option><option>PIN comprometido</option><option>Otro</option></select>' +
+    '<label class="lb">Desde</label><input class="in" type="date" id="b-fec" value="' + MK.hoy + '">' +
+    '<div id="b-rutas"></div>' +
+    '<div class="card" style="margin-top:14px;padding:12px 14px"><b style="font-size:13px">Qué pasa</b><div class="pasa" style="margin-top:8px">' +
+    '<div>' + MK.ic('candado') + '<span>Su PIN deja de servir al instante. Si tiene la pantalla abierta, se le cierra en su siguiente paso.</span></div>' +
+    '<div>' + MK.ic('check') + '<span>No se borra nada: sus recolecciones, recibos, solicitudes y firmas siguen con su nombre.</span></div>' +
+    '<div>' + MK.ic('alta') + '<span>Se puede reactivar después; conserva su historia.</span></div></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn bad" onclick="guardarBaja(' + i + ',this)">' + MK.ic('baja', 16) + 'Dar de baja</button></div>');
+  if (u.rol === 'operador') {
+    MK.api('api_cfgRutasDe', PIN, u.nombre).then(function (r) {
+      var e = document.getElementById('b-rutas'); if (!e || !r || !r.ok) return;
+      e.innerHTML = r.rutas.length ? '<div class="aviso am" style="margin-top:12px"><b>Tiene ' + r.rutas.length + ' ruta(s) de hoy en adelante.</b> Reasígnalas en el Planificador de Logística: ' +
+        r.rutas.slice(0, 8).map(function (x) { return MK.fecha(x.fecha); }).join(' · ') + '</div>' : '<div class="aviso vd" style="margin-top:12px">No tiene rutas planificadas de hoy en adelante.</div>';
+    });
+  }
+}
+function guardarBaja(i, btn) {
+  var u = usu(i); MK.ocupado(btn, true);
+  var mot = MK.val('b-mot');
+  MK.api('api_cfgBajaUsuario', PIN, { i: i, nombre: u.nombre, motivo: mot, fecha: MK.val('b-fec') }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.cerrarLado(); MK.aviso(u.nombre + ' quedó de baja'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function reactivar(i) {
+  var u = usu(i);
+  MK.confirmar(u.nombre + ' vuelve a entrar con el mismo PIN que tenía. Si no lo recuerda, genérale uno nuevo después.', function () {
+    MK.api('api_cfgReactivarUsuario', PIN, { i: i, nombre: u.nombre }).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+      MK.aviso('Reactivado'); recargar();
+    });
+  }, { titulo: 'Reactivar a ' + u.nombre, boton: 'Reactivar' });
+}
+
+/* ═══ MÓDULOS POR ROL ═══ */
+var TXT = { t: 'Trabaja', v: 'Ve', n: 'No entra', r: 'Solo su ruta' };
+function vModulos() {
+  var R = B().roles || [], M = B().modulos || [], orig = B().matriz;
+  var cambios = 0;
+  M.forEach(function (m) { R.forEach(function (r) { if (MAT[m.id][r.id] !== orig[m.id][r.id]) cambios++; }); });
+  return MK.cabeza('Módulos por rol', 'A qué entra cada rol y qué puede hacer adentro. Toca una casilla para cambiarla; el administrador entra siempre a todo.',
+      cambios ? '<button class="btn" onclick="MAT=JSON.parse(JSON.stringify(B().matriz));MK.repintar()">Descartar</button><button class="btn pri" onclick="guardarMatriz(this)">' + MK.ic('check', 16) + 'Guardar ' + cambios + ' cambio' + (cambios > 1 ? 's' : '') + '</button>' : '') +
+    '<div class="card"><div style="overflow-x:auto"><table class="perm"><thead><tr><th>Módulo</th>' + R.map(function (r) { return '<th>' + MK.esc(r.n) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    M.map(function (m) {
+      return '<tr><td><b>' + MK.esc(m.n) + '</b></td>' + R.map(function (r) {
+        var v = MAT[m.id][r.id], fijo = r.id === 'admin';
+        return '<td><button class="pv ' + v + (v !== orig[m.id][r.id] ? ' cambio' : '') + '"' + (fijo ? ' disabled' : ' onclick="rotar(\'' + m.id + '\',\'' + r.id + '\')"') + '>' + TXT[v] + '</button></td>';
+      }).join('') + '</tr>';
+    }).join('') +
+    '<tr><td><b>Configuración (esta)</b></td>' + R.map(function (r) { return '<td><button class="pv ' + (r.id === 'admin' ? 't' : 'n') + '" disabled>' + (r.id === 'admin' ? 'Siempre' : 'Nunca') + '</button></td>'; }).join('') + '</tr>' +
+    '</tbody></table></div>' +
+    '<div class="nota">«Trabaja» = ve y registra. «Ve» = solo mira, como fiscalizador: en Cobros, Planta y Dirección no le salen los botones de guardar y el servidor le rechaza cualquier registro. «No entra» = no le sale en el lobby. En Logística y Mercadeo, por ahora, «Ve» abre la pantalla completa: ahí manda el lobby.</div></div>';
+}
+function rotar(m, r) {
+  var ciclo = (m === 'campo' && r === 'operador') ? ['r', 'n'] : ['t', 'v', 'n'];
+  var i = ciclo.indexOf(MAT[m][r]); MAT[m][r] = ciclo[(i + 1) % ciclo.length]; MK.repintar();
+}
+function guardarMatriz(btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgGuardarMatriz', PIN, MAT).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.aviso('Guardado · cada quien lo ve en su siguiente entrada al lobby'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
+/* ═══ REGLAS DE SOLICITUDES ═══ */
+function sw(on, fn) { return '<button class="sw' + (on ? ' si' : '') + '" onclick="' + fn + '"></button>'; }
+function ck(lista, v, txt, grupo) { return '<label><input type="checkbox" ' + (lista.indexOf(v) >= 0 ? 'checked' : '') + ' onchange="marcar(\'' + grupo + '\',\'' + v + '\',this.checked)"> ' + txt + '</label>'; }
+function marcar(g, v, si) { var l = REG[g]; var i = l.indexOf(v); if (si && i < 0) l.push(v); if (!si && i >= 0) l.splice(i, 1); }
+function montoIn(campo, obj) { return '<div class="monto">B/. <input value="' + Number(obj[campo] || 0).toFixed(2) + '" onchange="' + (obj === REG ? 'REG' : 'COB') + '.' + campo + '=Number(this.value.replace(/,/g,\'\'))||0"></div>'; }
+function vReglas() {
+  return MK.cabeza('Reglas de solicitudes de pago', 'Se aplican en Compras (Mercadeo), en «Pedir un pago» y en Dirección › Finanzas. Dirección solo muestra la regla vigente.') +
+    '<div class="card reg">' +
+    '<div class="rr"><div class="rt"><b>¿Las solicitudes necesitan aprobación dentro del sistema?</b><span>' + (REG.aprobacion ? 'Sí: quedan «Por aprobar» hasta que alguien con permiso las apruebe.' : 'No: se aprueban en otro proceso. Nacen «Por pagar» y gerencia solo fiscaliza.') + '</span></div>' +
+    '<div class="seg"><button class="' + (!REG.aprobacion ? 'on' : '') + '" onclick="REG.aprobacion=false;MK.repintar()">No, otro proceso</button><button class="' + (REG.aprobacion ? 'on' : '') + '" onclick="REG.aprobacion=true;MK.repintar()">Sí</button></div></div>' +
+    (REG.aprobacion ? '<div class="sub-r">' +
+      '<div class="rr"><div class="rt"><b>A partir de qué monto</b><span>Por debajo, nacen «Por pagar». B/. 0.00 = todas.</span></div>' + montoIn('desdeMonto', REG) + '</div>' +
+      '<div class="rr"><div class="rt"><b>Quién aprueba</b><span>Nadie aprueba lo que pidió él mismo.</span></div><div class="cks">' + ck(REG.aprueban, 'gerente', 'Gerente', 'aprueban') + ck(REG.aprueban, 'admin', 'Administrador', 'aprueban') + '</div></div>' +
+      '<div class="rr"><div class="rt"><b>Visto bueno adicional</b><span>Quien da el visto bueno no puede aprobar la misma.</span></div><div class="fila">' + sw(REG.vistoBueno, 'REG.vistoBueno=!REG.vistoBueno;MK.repintar()') + (REG.vistoBueno ? 'desde ' + montoIn('vistoBuenoDesde', REG) : '') + '</div></div></div>' : '') +
+    '<div class="rr"><div class="rt"><b>Avisar a gerencia cuando una solicitud pase de</b><span>Fiscalización: le llega a gerencia sin frenar la solicitud.</span></div>' + montoIn('avisoGerencia', REG) + '</div>' +
+    '<div class="rr"><div class="rt"><b>Quién registra el pago</b><span>Con la fecha real en que salió el dinero.</span></div><div class="cks">' + ck(REG.registranPago, 'solicitante', 'Quien la pidió', 'registranPago') + ck(REG.registranPago, 'admin', 'Administrador', 'registranPago') + ck(REG.registranPago, 'gerente', 'Gerente', 'registranPago') + '</div></div>' +
+    '<div class="rr"><div class="rt"><b>Quién anula</b><span>Siempre con motivo escrito; nada se borra.</span></div><div class="cks">' + ck(REG.anulan, 'admin', 'Administrador', 'anulan') + ck(REG.anulan, 'gerente', 'Gerente', 'anulan') + '</div></div>' +
+    '</div><div class="fila" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="REG=JSON.parse(JSON.stringify(B().reglas));MK.repintar()">Descartar</button><button class="btn pri" onclick="guardarReglas(this)">' + MK.ic('check', 16) + 'Guardar reglas</button></div>';
+}
+function guardarReglas(btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgGuardarReglas', PIN, REG).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.aviso(r.sinCambios ? 'No había cambios' : 'Reglas guardadas'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
+/* ═══ ESCALERA DE COBRO ═══ */
+function vCobros() {
+  var t = COB.tramos;
+  var fila = function (b, s, campo, i, suf) { return '<div class="rr"><div class="rt"><b>' + b + '</b><span>' + s + '</span></div><div class="monto"><input style="width:70px" value="' + (i != null ? t[i] : COB[campo]) + '" onchange="' + (i != null ? 'COB.tramos[' + i + ']' : 'COB.' + campo) + '=Number(this.value)"> ' + (suf || 'días') + '</div></div>'; };
+  return MK.cabeza('Escalera de cobro', 'Los tramos que usa Cobros › Cómo cobramos. Cada cuenta sube un escalón según los días de mora de su factura más vieja.') +
+    '<div class="card reg">' +
+    fila('Aviso antes de vencer', 'Días antes del vencimiento (en negativo). Hoy: ' + t[0] + '.', '', 0) +
+    fila('Recordatorio amable hasta', 'Del día 1 hasta este día de mora.', '', 1) +
+    fila('Pide fecha de pago hasta', 'Desde el día siguiente al anterior hasta este.', '', 2) +
+    fila('Ofrece arreglo hasta', 'Después de este día: «Último aviso».', '', 3) +
+    '<div class="rr"><div class="rt"><b>Cuenta grande</b><span>Desde este saldo, a partir de «Ofrece arreglo» se llama en vez de escribir.</span></div>' + montoIn('cuentaGrande', COB) + '</div>' +
+    fila('Sin respuesta', 'Si no contesta en estos días, sube de canal (WhatsApp → llamada).', 'diasSinRespuesta') +
+    fila('Plan roto', 'Días de atraso de una cuota para dar el plan por roto.', 'diasPlanRoto') +
+    fila('Candidata a incobrable', 'Días de mora de la factura.', 'incobrableDias') +
+    fila('…o sin pagos', 'Días sin ningún pago de la cuenta.', 'incobrableSinPago') +
+    '<div class="rr"><div class="rt"><b>Avisar a gerencia al declarar incobrable desde</b><span>Por cuenta.</span></div>' + montoIn('avisoIncobrable', COB) + '</div>' +
+    '</div><div class="fila" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="COB=JSON.parse(JSON.stringify(B().cobros));MK.repintar()">Descartar</button><button class="btn pri" onclick="guardarCob(this)">' + MK.ic('check', 16) + 'Guardar</button></div>';
+}
+function guardarCob(btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgGuardarCobros', PIN, COB).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.aviso(r.sinCambios ? 'No había cambios' : 'Guardado'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
+/* ═══ SEGURIDAD ═══ */
+function vSeguridad() {
+  var sd = SEGU.sesionDesde ? new Date(SEGU.sesionDesde) : null;
+  return MK.cabeza('Seguridad de la entrada', 'Cómo se protege el PIN y la sesión.') +
+    '<div class="card reg">' +
+    '<div class="rr"><div class="rt"><b>La sesión se bloquea tras</b><span>Sin uso; se desbloquea con el mismo PIN. El conductor no se bloquea.</span></div><div class="monto"><input style="width:70px" value="' + SEGU.minInactivo + '" onchange="SEGU.minInactivo=Number(this.value)"> min</div></div>' +
+    '<div class="rr"><div class="rt"><b>Intentos de PIN equivocado antes de esperar</b><span>Después de esos intentos, ese equipo espera antes de volver a probar.</span></div><div class="fila"><div class="monto"><input style="width:60px" value="' + SEGU.intentos + '" onchange="SEGU.intentos=Number(this.value)"> intentos</div><div class="monto"><input style="width:60px" value="' + SEGU.esperaMin + '" onchange="SEGU.esperaMin=Number(this.value)"> min</div></div></div>' +
+    '<div class="rr"><div class="rt"><b>Largo del PIN</b><span>Si pasas a 6: los PIN nuevos y los que regeneres salen de 6, y los de 4 siguen sirviendo hasta que les des uno nuevo (en Usuarios se marca quién sigue con PIN de 4).</span></div><div class="seg"><button class="' + (SEGU.largoPin !== 6 ? 'on' : '') + '" onclick="SEGU.largoPin=4;MK.repintar()">4 números</button><button class="' + (SEGU.largoPin === 6 ? 'on' : '') + '" onclick="SEGU.largoPin=6;MK.repintar()">6 números</button></div></div>' +
+    '<div class="rr"><div class="rt"><b>Al llegar al último número, entrar solo</b><span>Entra al escribir el último número, sin tocar «Entrar». El emblema da su vuelta completa repartida entre los números del PIN.</span></div>' + sw(SEGU.alUltimo, 'SEGU.alUltimo=!SEGU.alUltimo;MK.repintar()') + '</div>' +
+    '<div class="rr"><div class="rt"><b>Pedir el PIN otra vez para entrar aquí</b><span>Aunque la sesión esté abierta: si alguien deja la computadora encendida, no llega a Configuración.</span></div>' + sw(SEGU.pedirPinConfig, 'SEGU.pedirPinConfig=!SEGU.pedirPinConfig;MK.repintar()') + '</div>' +
+    '<div class="rr"><div class="rt"><b>Cerrar la sesión de todos</b><span>Para después de un cambio grande o si se sospecha que un PIN se filtró. Cada quien vuelve a escribir su PIN.' + (sd ? ' Última vez: ' + sd.toLocaleString('es-PA') + '.' : '') + '</span></div><button class="btn bad" onclick="cerrarTodas()">' + MK.ic('puerta', 16) + 'Cerrar todas</button></div>' +
+    '</div><div class="fila" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="SEGU=JSON.parse(JSON.stringify(B().seguridad));MK.repintar()">Descartar</button><button class="btn pri" onclick="guardarSeg(this)">' + MK.ic('check', 16) + 'Guardar</button></div>';
+}
+function guardarSeg(btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgGuardarSeguridad', PIN, SEGU).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    try { localStorage.removeItem('eco_ajustes'); } catch (e) {}
+    MK.aviso(r.sinCambios ? 'No había cambios' : 'Guardado'); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function cerrarTodas() {
+  MK.confirmar('Todas las pantallas abiertas, en cualquier equipo, van a pedir el PIN otra vez (la tuya también).', function () {
+    MK.api('api_cfgCerrarSesiones', PIN).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+      try { localStorage.removeItem('eco_ajustes'); } catch (e) {}
+      MK.aviso('Listo: cada quien vuelve a entrar con su PIN'); recargar();
+    });
+  }, { titulo: 'Cerrar la sesión de todos', boton: 'Cerrar todas', peligro: true });
+}
+
+/* ═══ HISTORIAL ═══ */
+function vHistorial() {
+  var H = B().historial || [];
+  var l = H.filter(function (h) { return FH === 'todo' || h.seccion === FH; });
+  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros'];
+  return MK.cabeza('Historial', 'Todo lo que se hace en Configuración, con quién y cuándo. No se puede borrar.') +
+    '<div class="card"><div style="margin-bottom:10px">' + MK.chips([['todo', 'Todo', H.length]].concat(secs.map(function (s) { return [s, s, H.filter(function (h) { return h.seccion === s; }).length]; })), FH, 'filtroH') + '</div>' +
+    MK.tabla(['Fecha', 'Quién', 'Qué'], l.map(function (h) { return ['<span class="hisf">' + MK.esc(MK.dmy(h.fecha.slice(0, 10)) + ' ' + h.fecha.slice(11)) + '</span>', MK.esc(h.quien), '<b style="font-weight:600">' + MK.esc(h.accion) + '</b>' + (h.detalle ? '<small>' + MK.esc(h.detalle) + '</small>' : '')]; }), { vacio: 'Todavía no hay nada: el historial empezó con esta versión.' }) + '</div>';
+}
+function filtroH(f) { FH = f; MK.repintar(); }
+
+/* ═══ CÓMO SE ENTRA ═══ */
+function vEntrada() {
+  return MK.cabeza('Cómo se entra', 'El apartado oculto: no aparece en el lobby ni en el menú de nadie más.') +
+    '<div class="g2m"><div class="demo"><div class="bar"><span>ECOVSA</span><span style="font-weight:500;color:#b9c6de">· cualquier módulo</span><span class="avd">' + MK.esc(MK.ini(MK.usuario.nombre)) + '</span></div>' +
+    '<div class="menu2"><div>' + MK.ic('persona', 16) + MK.esc(MK.usuario.nombre) + ' · Administrador</div><div class="hl">' + MK.ic('ajustes', 16) + 'Configuración del sistema</div><div>' + MK.ic('candado', 16) + 'Bloquear pantalla</div><div>' + MK.ic('puerta', 16) + 'Salir</div></div><div class="cuerpo2"></div></div>' +
+    '<div class="card"><h3>Tres candados</h3><div class="pasa" style="margin-top:10px">' +
+    '<div>' + MK.ic('persona') + '<span><b>Solo se ve si eres administrador.</b> Se abre tocando tu nombre, arriba a la derecha, en cualquier módulo. Nadie más ve esa línea.</span></div>' +
+    '<div>' + MK.ic('llave') + '<span><b>Pide tu PIN otra vez</b> al entrar, aunque ya estés adentro.</span></div>' +
+    '<div>' + MK.ic('candado') + '<span><b>El servidor lo revisa.</b> Si alguien escribe la dirección a mano sin ser administrador, no ve nada: cada acción se rechaza en el servidor.</span></div></div>' +
+    '<div class="nota">Se llama «Configuración» para no confundirlo con el módulo Administración (inventario, activos, equipos y vehículos). Si pierdes tu PIN, nadie más entra aquí: conviene dar de alta un segundo administrador cuando se pueda.</div></div></div>';
+}
+
+MK.iniciar({
+  modulo: 'Configuración',
+  base: 'api_cfgBase',
+  inicio: 'usu',
+  pin: function () { return PIN; },
+  paginas: [
+    { g: 'CONFIGURACIÓN' },
+    { id: 'usu', n: 'Usuarios', i: 'personas' },
+    { id: 'perm', n: 'Módulos por rol', i: 'tabla' },
+    { id: 'reg', n: 'Reglas de solicitudes', i: 'reglas' },
+    { id: 'cob', n: 'Escalera de cobro', i: 'escalera' },
+    { id: 'seg', n: 'Seguridad', i: 'candado' },
+    { id: 'his', n: 'Historial', i: 'historial' },
+    { g: 'AYUDA' },
+    { id: 'ent', n: 'Cómo se entra', i: 'puerta' }
+  ],
+  pieMenu: '<a href="index.html">← Volver a los módulos</a>',
+  /* antes de pedir nada: la puerta del PIN (si Seguridad lo pide) */
+  antes: function () {
+    var aj = null; try { aj = JSON.parse(localStorage.getItem('eco_ajustes') || 'null'); } catch (e) {}
+    if (aj && aj.largoPin) LARGO = aj.largoPin;
+    if (aj && aj.pedirPinConfig === false) { PIN = MK.pin; return true; }
+    puerta(); return false;
+  },
+  alCargar: function (b) { usarBase(b); },
+  pintar: function (id) {
+    var main = document.getElementById('main');
+    if (!PIN || !MK.base || !MK.base.usuarios) return;
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, seg: vSeguridad, his: vHistorial, ent: vEntrada };
+    main.innerHTML = (V[id] || vUsuarios)();
+  }
+});
+</script>
+</body>
+</html>

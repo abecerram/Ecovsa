@@ -38,6 +38,10 @@
 (function () {
   var K_PIN = 'ecovsa_pin';
   var MK = window.MK = { pin: '', base: null, usuario: null, hoy: '' };
+  /* api 3.3: el tema del sistema (emblema de la barra) lo pone tema.js */
+  if (!window.TemaECOVSA && !document.getElementById('tema-js')) {
+    var tj = document.createElement('script'); tj.id = 'tema-js'; tj.src = 'tema.js'; (document.head || document.documentElement).appendChild(tj);
+  }
 
   var PAGINAS = [
     { g: 'COMERCIAL' },
@@ -244,7 +248,7 @@
         '<div class="lg"></div><div class="mk"><b>ECOVSA</b><span>Sistema de operaciones</span></div><div class="sep"></div><span class="mod">Mercadeo</span>' +
         '<div class="sp"></div><div class="srch">' + MK.ic('buscar', 15) + '<input id="mk-q" placeholder="Buscar cliente, oportunidad, RUC…" autocomplete="off"><div class="res" id="mk-res" hidden></div></div>' +
         (u.rol === 'gerente' ? '' : '<button class="cap" onclick="MK.captura()" title="Captura rápida (tecla N)">') + (u.rol === 'gerente' ? '' : MK.ic('mas', 15) + '<span class="tx">Captura</span></button>') +
-        '<div class="us"><span>' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>' +
+        '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,MK.usuario)"><span>' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>' +
         '<button class="bt" onclick="location.href=\'index.html\'">Módulos</button>';
       var q = document.getElementById('mk-q'); q.oninput = buscar; q.onkeydown = teclasBusqueda;
       q.onfocus = function () { if (q.value.trim().length >= 2) buscar(); };

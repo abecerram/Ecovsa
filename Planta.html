@@ -1,1749 +1,591 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<title>Planta · Recepción ECOVSA</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<base target="_top">
 <meta charset="UTF-8">
-<link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planta · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
+<link rel="stylesheet" href="modulo-kit.css">
+<script src="modulo-kit.js"></script>
 <style>
-
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
-  background-image:radial-gradient(at 12% 0%,rgba(11,83,148,.09),transparent 55%);
-  background-attachment:fixed;min-height:100vh;padding-bottom:50px}
-
-header{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
-  padding:13px 18px;border-bottom:3px solid var(--ambar);box-shadow:0 2px 14px rgba(20,48,107,.28)}
-.marca{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
-.logo{height:50px;width:78px;background:#fff url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400) center/contain no-repeat;
-  border-radius:9px;padding:4px 7px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.22)}
-header h1{font-size:16px;font-weight:800;letter-spacing:.3px;line-height:1.15}
-header .sub{font-size:9.5px;font-weight:500;opacity:.78;letter-spacing:.6px;text-transform:uppercase}
-header .salir{margin-left:auto;background:rgba(255,255,255,.16);border:none;color:#fff;
-  font-family:inherit;font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:16px;cursor:pointer}
-
-.wrap{max-width:1180px;margin:0 auto;padding:16px 18px}
-h2{font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--azul-osc);margin:4px 0 10px}
-.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);
-  padding:15px;margin-bottom:13px;box-shadow:var(--sombra)}
-label{display:block;font-size:10.5px;font-weight:700;color:var(--gris);
-  margin:0 0 4px;text-transform:uppercase;letter-spacing:.4px}
-input{width:100%;padding:10px;font-size:15px;font-family:inherit;border:1.5px solid var(--borde);
-  border-radius:10px;background:#FBFDFC;color:var(--tinta)}
-input:focus{outline:2px solid var(--azul);border-color:var(--azul)}
-
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
-.chip{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 15px;
-  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
-.chip.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));border-color:var(--azul-osc);
-  color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 18px;
-  border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;
-  background:linear-gradient(160deg,var(--azul),var(--azul-osc));color:#fff;
-  box-shadow:0 3px 10px rgba(11,83,148,.28)}
-.btn.mini{padding:8px 13px;font-size:12.5px;border-radius:9px}
-.btn.sec{background:rgba(11,83,148,.10);color:var(--azul-osc);
-  box-shadow:inset 0 0 0 1.5px rgba(11,83,148,.20)}
-.btn:active{transform:translateY(1px)}
-
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
-.kpi{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:13px 15px;
-  box-shadow:var(--sombra);border-top:3px solid var(--azul)}
-.kpi.bio{border-top-color:#C0392B}.kpi.ana{border-top-color:#6C3A96}.kpi.pun{border-top-color:var(--ambar)}
-.kpi .et{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gris)}
-.kpi .val{font-size:25px;font-weight:900;color:var(--azul-osc);line-height:1.15;margin-top:2px}
-.kpi .sub{font-size:11.5px;color:var(--gris);line-height:1.5}
-
-.resumen{background:linear-gradient(140deg,var(--azul),var(--azul-osc));color:#fff;
-  border-radius:var(--radio);padding:17px;margin-bottom:14px;box-shadow:0 3px 14px rgba(11,83,148,.3)}
-.resumen .t{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.85}
-.resumen .v{font-size:34px;font-weight:900;line-height:1.1;margin:3px 0}
-.resumen .p{font-size:12.5px;opacity:.9;line-height:1.55}
-
-.acta{background:#fff;border:1px solid var(--borde);border-left:4px solid var(--verde);
-  border-radius:var(--radio);padding:13px 15px;margin-bottom:10px;box-shadow:var(--sombra)}
-.acta .enc{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.acta .id{font-weight:900;font-size:15px;color:var(--azul-osc)}
-.acta .fe{font-size:12px;color:var(--gris)}
-.acta .kg{margin-left:auto;font-weight:900;font-size:17px;color:var(--verde)}
-.acta .li{font-size:12.5px;color:var(--gris);margin-top:5px;line-height:1.6}
-.fila{display:flex;justify-content:space-between;gap:10px;padding:6px 0;
-  border-bottom:1px solid var(--borde);font-size:12.5px}
-.fila:last-child{border-bottom:none}
-details summary{font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;padding:7px 0 3px}
-.sub-tit{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-  color:var(--azul-osc);margin:10px 0 3px;padding-top:7px;border-top:1px solid var(--borde)}
-.vacio{text-align:center;color:var(--gris);font-size:13.5px;padding:34px 16px;line-height:1.6}
-
-.pin-caja{max-width:350px;margin:60px auto;background:#fff;border:1px solid var(--borde);
-  border-radius:18px;padding:30px 24px;text-align:center;box-shadow:0 4px 20px rgba(20,48,107,.14)}
-.pin-caja .logo{margin:0 auto 16px;height:70px;width:110px}
-.pin-caja h1{font-size:18px;color:var(--azul-osc);margin-bottom:5px}
-.pin-caja .tag{display:inline-block;background:var(--ambar);color:#4A3300;font-size:10px;
-  font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:14px;margin:8px 0}
-.pin-caja p{font-size:12.5px;color:var(--gris);line-height:1.55;margin-bottom:16px}
-.pin-caja input{width:165px;text-align:center;font-size:28px;font-weight:800;letter-spacing:8px}
-.pin-err{color:var(--rojo);font-size:12.5px;font-weight:600;height:18px;margin-top:9px}
-.pin-caja .btn{width:180px;margin-top:12px}
-
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:20px;padding:9px 16px;
-  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gris);cursor:pointer}
-.tabs button.on{background:linear-gradient(160deg,var(--azul),var(--azul-osc));
-  border-color:var(--azul-osc);color:#fff;box-shadow:0 2px 7px rgba(11,83,148,.3)}
-.vista{display:none}.vista.on{display:block}
-.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:11px}
-.ciclo{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--verde);
-  border-radius:13px;padding:13px 15px;margin-bottom:9px;box-shadow:0 2px 9px rgba(20,48,107,.07)}
-.ciclo.sin-salida{border-left-color:var(--ambar)}
-.ciclo .enc{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.ciclo .n{font-size:15px;font-weight:800}
-.ciclo .kg{margin-left:auto;font-size:17px;font-weight:900;color:var(--azul-osc)}
-.ciclo .par{font-size:12px;color:var(--gris);margin-top:6px;line-height:1.6}
-.ciclo .par b{color:var(--tinta)}
-/* ── la ficha de ciclo ── */
-.ciclo .cuando{font-size:12.5px;color:var(--gris);font-weight:600}
-.ciclo .fl{margin-left:8px;color:var(--gris);font-size:12px;transition:transform .15s}
-.ciclo.de-prueba{border-left-color:var(--azul-claro)}
-.ciclo.anulado{border-left-color:var(--gris);background:#FAFAFA}
-.ciclo.anulado .n{text-decoration:line-through;color:var(--gris)}
-/* La ficha abierta se apretujaba: con celdas de 190 px y una etiqueta fija de
-   128, al valor le quedaban 50 y «sin pesar todavía» salía en tres renglones.
-   En la tableta del operador era peor. Celdas más anchas, etiqueta que puede
-   encogerse, y en pantalla angosta la etiqueta se pone encima del valor en
-   vez de pelear con él por el ancho. */
-.det{margin-top:11px;border-top:1px dashed var(--borde);padding-top:10px;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:9px 22px}
-.det .f{display:flex;gap:9px;align-items:baseline;font-size:12.5px;min-width:0}
-.det .f span{color:var(--gris);font-size:10.5px;font-weight:800;text-transform:uppercase;
-  letter-spacing:.4px;flex:0 1 122px;min-width:92px}
-.det .f b{font-weight:700;min-width:0}
-@media (max-width:560px){
-  .det{grid-template-columns:1fr;gap:10px}
-  .det .f{display:block}
-  .det .f span{display:block;margin-bottom:1px}
-}
-.cta{font-size:11px;color:var(--gris);font-weight:600}
-.acc{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
-.chk-linea{display:flex;align-items:center;gap:9px;text-transform:none;letter-spacing:0;
-  font-size:13.5px;font-weight:700;color:var(--tinta);margin-top:7px;cursor:pointer}
-.chk-linea input{width:auto;margin:0}
-.chk-ciclo{display:flex;align-items:flex-start;gap:9px;font-size:12px;font-weight:600;
-  padding:5px 0;cursor:pointer;line-height:1.45}
-.chk-ciclo input{width:auto;margin:2px 0 0}
-.btn.mal{background:var(--rojo);color:#fff}
-/* ── la ventana de corregir y anular ── */
-.velo{display:none;position:fixed;inset:0;background:rgba(20,48,107,.5);z-index:70;
-  padding:18px;overflow-y:auto}
-.velo.abierto{display:block}
-.velo .caja{background:#fff;max-width:620px;margin:24px auto;border-radius:18px;overflow:hidden;
-  box-shadow:0 14px 50px rgba(0,0,0,.3)}
-.velo .cab{background:linear-gradient(135deg,var(--azul-osc),var(--azul));color:#fff;
-  padding:14px 18px;display:flex;align-items:center;gap:10px}
-.velo .cab h3{font-size:15px;font-weight:800;flex:1}
-.velo .cab button{background:rgba(255,255,255,.2);border:none;color:#fff;font-family:inherit;
-  font-size:13px;font-weight:800;padding:7px 13px;border-radius:14px;cursor:pointer}
-.velo .cuerpo{padding:17px}
-.pill-p{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;
-  text-transform:uppercase;border-radius:5px;padding:3px 8px;margin-left:6px}
-.pill-p.ok{background:var(--verde-suave);color:var(--verde)}
-.pill-p.mal{background:var(--rojo-suave);color:var(--rojo)}
-.pill-p.esp{background:#FFF3D1;color:var(--ambar-osc)}
-/* el ciclo corrió pero su peso no quedó anotado: no es un error, es un dato
-   que falta, y tiene que verse desde la lista sin abrir la ficha */
-.pill-p.avi{background:#EEF2F7;color:var(--gris);border:1px dashed var(--borde)}
-
-
-.kpi .e{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gris)}
-.kpi .s{font-size:11px;color:var(--gris);line-height:1.5;margin-top:2px}
-.nota{background:#FFF8E1;border-left:4px solid var(--ambar);border-radius:10px;
-  padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--ambar-osc);margin-bottom:12px}
-.nota.mal{background:var(--rojo-suave);border-left-color:var(--rojo);color:var(--rojo)}
-.nota code{background:#fff;border:1px solid var(--borde);border-radius:5px;padding:1px 5px;
-  font-size:11.5px;color:var(--azul-osc)}
-.tabla-caja{overflow-x:auto;border-radius:14px;box-shadow:0 2px 12px rgba(20,48,107,.10);margin-top:9px}
-.tabla-caja table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
-.tabla-caja th{background:#EEF2F7;border:1px solid var(--borde);padding:8px 9px;text-align:left;
-  font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris)}
-.tabla-caja td{border:1px solid var(--borde);padding:8px 9px;vertical-align:top}
-.tabla-caja td.n{text-align:right;white-space:nowrap}
-
-
-#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:rgba(20,48,107,.96);color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;
-  border-radius:24px;opacity:0;pointer-events:none;transition:all .25s;z-index:999;
-  max-width:88%;text-align:center;border-left:4px solid var(--ambar)}
-#toast.ver{opacity:1;transform:translateX(-50%) translateY(0)}
-
-
-/* ── Diálogo propio: el prompt del navegador muestra la URL de Google ── */
-#dlg{position:fixed;inset:0;z-index:6000;display:none;align-items:center;justify-content:center;padding:18px}
-#dlg.ver{display:flex}
-.dlg-fondo{position:absolute;inset:0;background:rgba(12,22,40,.62)}
-.dlg-caja{position:relative;background:#fff;width:100%;max-width:420px;border-radius:18px;
-  padding:24px 22px;box-shadow:0 14px 44px rgba(0,0,0,.34);animation:dlgIn .18s ease-out}
-@keyframes dlgIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-.dlg-ic{width:50px;height:50px;border-radius:50%;background:var(--verde-suave);color:var(--verde);
-  font-size:24px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.dlg-tit{font-size:17px;font-weight:800;text-align:center;line-height:1.35;color:var(--azul-osc)}
-.dlg-txt{font-size:13.5px;color:var(--gris);text-align:center;line-height:1.6;margin:9px 0 14px}
-.dlg-caja label{margin-top:10px}
-.dlg-caja .btn{margin-top:12px}
-
+/* ═══ Planta · opción A (api 3.4) ═══ */
+:root{--pl:#6C3A96;--pl2:#c9b3e0}
+.ph h1{display:flex;align-items:center;gap:10px}
+.ph h1::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--pl)}
+.receta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#f5f0fa;border:1px solid #e3d7f0;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+.receta b{color:var(--pl)}
+.receta .p{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid #e3d7f0;border-radius:8px;padding:4px 10px;font-weight:700}
+.flujo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.et4{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;position:relative}
+.et4:hover{box-shadow:0 6px 18px rgba(15,33,64,.08)}
+.et4 .pa{font-size:12px;font-weight:700;color:var(--muted);display:flex;gap:6px;align-items:center}
+.et4 .pa .n{width:20px;height:20px;border-radius:50%;background:var(--pl);color:#fff;display:grid;place-items:center;font-size:11px}
+.et4 b{font-size:26px;font-weight:800}.et4 b small{font-size:13px;color:var(--muted);margin-left:4px}
+.et4 .s{font-size:12px;color:var(--muted)}
+.et4 .al{font-size:11.5px;font-weight:700;color:var(--bad)}.et4 .ok{font-size:11.5px;font-weight:700;color:var(--ok)}
+.lista .li{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line2)}
+.lista .li:first-child{border-top:0}
+.lista .zc{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c)}
+.lista .tx{flex:1;min-width:0}.lista .tx b{display:block;font-size:13.5px}.lista .tx span{font-size:12.5px;color:var(--muted)}
+.ley{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px;flex-wrap:wrap}.ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.b3{display:flex;align-items:flex-end;gap:10px;height:170px;padding:16px 4px 22px}
+.b3 .m{flex:1;display:flex;align-items:flex-end;gap:3px;height:100%;position:relative}
+.b3 .m i{flex:1;border-radius:4px 4px 0 0;min-height:1px}
+.b3 .m span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted2)}
+.acta{padding:14px}
+.acta .top{display:flex;justify-content:space-between;gap:10px}
+.acta .meta{font-size:12px;color:var(--muted)}
+.acta .kg{font-weight:800;font-size:16px}
+.tipos{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.tipos span{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;background:#f5f0fa;color:var(--pl)}
+.eqs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.eq{padding:14px;display:flex;flex-direction:column;gap:8px}
+.eq .h{display:flex;gap:10px;align-items:center}.eq .h b{font-size:15px}
+.eq .ic2{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#f5f0fa;color:var(--pl)}
+.eq .tar{font-size:12.5px;color:#3d4a60;display:flex;flex-direction:column;gap:3px}
+.arts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.art{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;gap:6px}
+.art span{color:var(--muted);font-weight:700}
+.meses{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
+.meses div{border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:12px;font-weight:700}
+.meses div small{display:block;font-size:10.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.meses .ok{background:var(--ok-bg);border-color:#bfe3b3}.meses .bad{background:var(--bad-bg);border-color:#f3c2c4}.meses .toca{background:var(--warn-bg);border-color:#f3dc9c}.meses .pend{background:var(--info-bg)}.meses .fut{opacity:.45}
+.pasosv{display:flex;flex-direction:column;gap:10px;counter-reset:p}
+.pasosv div{display:flex;gap:10px;font-size:13px}
+.pasosv div::before{counter-increment:p;content:counter(p);width:22px;height:22px;border-radius:50%;background:var(--pl);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.pasosv b{display:block}
+.sem{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.sem .s{display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.sem .s .d{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;grid-row:span 2}
+.sem .s b{font-size:13.5px}.sem .s span{font-size:12px;color:var(--muted)}
+.cadena{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cadena div{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column}
+.cadena .t1{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2)}.cadena b{font-size:20px}.cadena span{font-size:12px;color:var(--muted)}
+.pasos4{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.pasos4 span{font-size:12px;font-weight:700;border-radius:20px;padding:5px 12px;background:var(--line2);color:var(--muted);cursor:pointer}
+.pasos4 span.on{background:var(--pl);color:#fff}.pasos4 span.hecho{background:#f0e8f7;color:var(--pl)}
+.grande{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grande label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.grande input{width:100%;font:800 28px Archivo,sans-serif;border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--ink)}
+.ayuda{font-size:12px;color:var(--muted);margin-top:4px}
+.chk{display:flex;flex-direction:column;gap:8px}
+.chk label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer;font-size:13px}
+.chk label b{display:block}
+.chk label.on{border-color:var(--pl);background:#f5f0fa}
+.chipx{white-space:nowrap;display:inline-flex;align-items:center;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
+.chipx.bad{background:var(--bad-bg);color:#a8262b}.chipx.warn{background:var(--warn-bg);color:#8a6300}.chipx.gris{background:var(--line2);color:var(--muted)}.chipx.ok{background:var(--ok-bg);color:#276b33}.chipx.info{background:var(--info-bg);color:#2c56a8}.chipx.pl{background:#f5f0fa;color:var(--pl)}
+.tb td.r{white-space:nowrap}
+.dtab tbody tr{cursor:pointer}
+@media (max-width:1100px){.flujo,.eqs{grid-template-columns:repeat(2,minmax(0,1fr))}.sem{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.meses{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media (max-width:820px){.flujo,.eqs,.sem,.cadena,.grande{grid-template-columns:minmax(0,1fr)}.b3{gap:5px}}
 </style>
 </head>
 <body>
-
-<div id="pantalla-pin" class="pin-caja" style="display:none">
-  <div class="logo"></div>
-  <h1>Recepción en planta</h1>
-  <div class="tag">Acceso de planta</div>
-  <p>Consulta de las entregas recibidas.<br>Escribe tu PIN para entrar.</p>
-  <input id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
-  <div class="pin-err" id="pin-err"></div>
-  <button class="btn" onclick="entrar()">Entrar</button>
-</div>
-
-<!-- ventana para corregir o anular un ciclo -->
-<div class="velo" id="velo">
-  <div class="caja">
-    <div class="cab"><h3 id="mod-tit">—</h3><button onclick="cerrarModal()">Cerrar</button></div>
-    <div class="cuerpo" id="mod-cuerpo"></div>
-  </div>
-</div>
-
-<div id="pantalla-app" style="display:none">
-  <header>
-    <div class="marca">
-      <div class="logo"></div>
-      <div>
-        <h1>Recepción en planta</h1>
-        <div class="sub" id="cab-usuario">—</div>
-      </div>
-      <button class="salir" onclick="volverInicio()" style="margin-left:auto">← Inicio</button>
-      <button class="salir" onclick="salir()" style="margin-left:8px">Salir</button>
-    </div>
-  </header>
-
-  <div class="wrap">
-    <div class="tabs" id="tabs"></div>
-
-    <section id="v-recepcion" class="vista on">
-    <h2>Periodo a consultar</h2>
-    <div class="chips" id="chips">
-      <button class="chip" data-r="q"    onclick="rango('q')">15 días</button>
-      <button class="chip on" data-r="mes"  onclick="rango('mes')">Este mes</button>
-      <button class="chip" data-r="tri"  onclick="rango('tri')">Trimestre</button>
-      <button class="chip" data-r="ano"  onclick="rango('ano')">Año en curso</button>
-      <button class="chip" data-r="todo" onclick="rango('todo')">Todo</button>
-    </div>
-    <div class="tarjeta" style="padding:13px">
-      <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
-        <div style="flex:1;min-width:135px"><label>Desde</label>
-          <input id="f-desde" type="date" onchange="rango('libre')"></div>
-        <div style="flex:1;min-width:135px"><label>Hasta</label>
-          <input id="f-hasta" type="date" onchange="rango('libre')"></div>
-        <button class="btn" onclick="abrirReporte()">Reporte imprimible</button>
-      </div>
-    </div>
-
-    <div id="contenido"><div class="vacio">Consultando…</div></div>
-    </section>
-
-    <section id="v-tratamiento" class="vista">
-      <!-- Su propio rango de fechas. Antes leía en silencio el filtro de la
-           pestaña de recepción, que arranca en «este mes»: desde aquí no
-           había manera de saber que estaba puesto ni de cambiarlo, y por eso
-           el histórico de ciclos no aparecía nunca. -->
-      <div class="tarjeta" style="padding:12px;margin-bottom:12px">
-        <div class="chips" id="tra-chips">
-          <button class="chip" data-r="q"    onclick="rangoTra('q')">15 días</button>
-          <button class="chip on" data-r="mes"  onclick="rangoTra('mes')">Este mes</button>
-          <button class="chip" data-r="tri"  onclick="rangoTra('tri')">Trimestre</button>
-          <button class="chip" data-r="ano"  onclick="rangoTra('ano')">Año en curso</button>
-          <button class="chip" data-r="todo" onclick="rangoTra('todo')">Todo</button>
-        </div>
-        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-top:11px">
-          <div style="flex:1;min-width:135px"><label>Desde</label>
-            <input id="tra-desde" type="date" onchange="rangoTra('libre')"></div>
-          <div style="flex:1;min-width:135px"><label>Hasta</label>
-            <input id="tra-hasta" type="date" onchange="rangoTra('libre')"></div>
-          <button class="btn sec" onclick="bajarCiclos()">⬇ Descargar lo filtrado</button>
-          <!-- El contador del equipo va muy por delante de lo que tiene el
-               sistema. Los que faltan están en el control de producción, en
-               papel, y meterlos uno por uno no es razonable. -->
-          <button class="btn sec" id="tra-carga" style="display:none"
-            onclick="abrirCargaCiclos()">⬆ Cargar histórico</button>
-        </div>
-      </div>
-      <div id="tra-kpis"></div>
-      <div id="tra-aviso"></div>
-      <div class="tarjeta" id="tra-form" style="display:none">
-        <h2 style="margin-top:0">Registrar un ciclo</h2>
-        <div class="rejilla">
-          <div><label>Fecha</label><input id="c-fecha" type="date"></div>
-          <!-- El número lo lleva el contador del autoclave y no se reinicia:
-               es mejor identificador que cualquiera que armemos aquí. -->
-          <div><label>N° de ciclo del equipo</label><input id="c-numero" inputmode="numeric"></div>
-          <div><label>Hora de inicio</label><input id="c-hini" type="time" onchange="calcDuracion()"></div>
-          <div><label>Hora de fin</label><input id="c-hfin" type="time" onchange="calcDuracion()"></div>
-          <div><label>Bolsas trituradas</label><input id="c-bolsas" inputmode="numeric" placeholder="0"></div>
-          <div><label>Kg que entraron</label><input id="c-kgin" inputmode="decimal" placeholder="0.00"></div>
-          <div><label>Kg que salieron</label><input id="c-kgout" inputmode="decimal" placeholder="0.00"></div>
-          <div><label>Temperatura °C</label><input id="c-temp" inputmode="decimal"></div>
-          <div><label>Minutos de esterilización</label><input id="c-min" inputmode="numeric"></div>
-          <div><label>Duración total <span style="text-transform:none;letter-spacing:0;font-weight:500">· se calcula</span></label>
-            <input id="c-dur" disabled style="background:#F1F3F6"></div>
-        </div>
-        <!-- Un ciclo de mantenimiento corre sin carga. Registrarlo es lo que
-             mantiene continuo el contador: si no, deja un hueco idéntico al
-             de un ciclo con desechos que nadie anotó. -->
-        <label class="chk-linea" style="margin-top:12px">
-          <input type="checkbox" id="c-esprueba" onchange="pintarEsPrueba()">
-          Ciclo de prueba, sin carga (mantenimiento o prueba de componentes)</label>
-        <!-- Distinto del anterior: aquí el ciclo SÍ llevó carga, pero el peso
-             no quedó anotado. Pasa con el histórico. Registrarlo con el peso
-             vacío conserva la constancia de que el ciclo corrió; no
-             registrarlo la pierde, e inventarle un peso es peor que las dos. -->
-        <label class="chk-linea">
-          <input type="checkbox" id="c-sinpeso" onchange="pintarEsPrueba()">
-          El ciclo corrió con carga pero el peso no quedó anotado</label>
-        <div id="c-prueba-caja" style="margin-top:12px"></div>
-        <label style="margin-top:11px">Observaciones</label>
-        <input id="c-obs" placeholder="Opcional">
-        <button class="btn" onclick="guardarCiclo()">Registrar el ciclo</button>
-      </div>
-      <div id="tra-lista"></div>
-    </section>
-
-    <section id="v-salidas" class="vista">
-      <!-- Mismo caso que tratamiento: sin filtro propio, el histórico de
-           despachos al relleno no se veía. -->
-      <div class="tarjeta" style="padding:12px;margin-bottom:12px">
-        <div class="chips" id="sal-chips">
-          <button class="chip" data-r="q"    onclick="rangoSal('q')">15 días</button>
-          <button class="chip on" data-r="mes"  onclick="rangoSal('mes')">Este mes</button>
-          <button class="chip" data-r="tri"  onclick="rangoSal('tri')">Trimestre</button>
-          <button class="chip" data-r="ano"  onclick="rangoSal('ano')">Año en curso</button>
-          <button class="chip" data-r="todo" onclick="rangoSal('todo')">Todo</button>
-        </div>
-        <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-top:11px">
-          <div style="flex:1;min-width:135px"><label>Desde</label>
-            <input id="sal-desde" type="date" onchange="rangoSal('libre')"></div>
-          <div style="flex:1;min-width:135px"><label>Hasta</label>
-            <input id="sal-hasta" type="date" onchange="rangoSal('libre')"></div>
-        </div>
-      </div>
-      <div id="sal-kpis"></div>
-      <div class="tarjeta" id="sal-form" style="display:none">
-        <h2 style="margin-top:0">Despachar al relleno</h2>
-        <div id="sal-pendientes"></div>
-        <div class="rejilla" style="margin-top:12px">
-          <div><label>Fecha</label><input id="s-fecha" type="date"></div>
-          <div><label>Hora de salida</label><input id="s-hora" type="time"></div>
-          <div><label>Kg que salen (báscula de planta)</label>
-            <input id="s-kg" inputmode="decimal" placeholder="0.00"
-              oninput="this.dataset.tocado='1'"></div>
-          <div><label>Vehículo</label><select id="s-vehiculo"></select></div>
-          <div><label>Conductor</label><input id="s-conductor"></div>
-          <div><label>Responsable de planta</label><input id="s-responsable"></div>
-        </div>
-        <label style="margin-top:11px">Observaciones</label>
-        <input id="s-obs" placeholder="Opcional">
-        <button class="btn" onclick="guardarSalida()">Generar manifiesto de salida</button>
-      </div>
-      <div id="sal-lista"></div>
-    </section>
-
-    <section id="v-mantenimiento" class="vista">
-      <div id="mto-alertas"></div>
-      <div class="tarjeta" id="mto-form" style="display:none">
-        <h2 style="margin-top:0">Registrar mantenimiento</h2>
-        <div class="rejilla">
-          <div><label>Equipo</label><select id="m-equipo"></select></div>
-          <div><label>Tipo</label><select id="m-tipo"></select></div>
-          <div><label>Fecha</label><input id="m-fecha" type="date"></div>
-          <div><label>Próximo</label><input id="m-proximo" type="date"></div>
-          <div><label>Responsable</label><input id="m-responsable"></div>
-          <div><label>Empresa que lo hizo</label><input id="m-empresa" placeholder="Interno o externa"></div>
-          <div><label>Resultado</label><input id="m-resultado" placeholder="Conforme, con observaciones…"></div>
-          <div><label>Costo (B/.)</label><input id="m-costo" inputmode="decimal" placeholder="0.00"></div>
-        </div>
-        <label style="margin-top:11px">Observaciones</label>
-        <input id="m-obs" placeholder="Opcional">
-        <button class="btn" onclick="guardarMantenimiento()">Registrar</button>
-      </div>
-      <div id="mto-lista"></div>
-    </section>
-
-    <section id="v-consumibles" class="vista">
-      <div class="tarjeta" id="con-form" style="display:none">
-        <h2 style="margin-top:0">Registrar consumo</h2>
-        <div class="rejilla">
-          <div><label>Fecha</label><input id="k-fecha" type="date"></div>
-          <div><label>Artículo</label><select id="k-articulo"></select></div>
-          <div><label>Cantidad</label><input id="k-cantidad" inputmode="decimal" placeholder="0"></div>
-          <div><label>Unidad</label><input id="k-unidad" placeholder="unidades, galones, litros…"></div>
-        </div>
-        <button class="btn" onclick="guardarConsumo()">Registrar</button>
-      </div>
-      <div id="con-lista"></div>
-    </section>
-  </div>
-</div>
-
+<div id="sysbar"></div>
+<div class="mtabs" id="mtabs"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"></main></div>
 <script>
-var PIN="", USUARIO=null, DESDE="", HASTA="", DATOS=null, URL_APP="";
-
-function $(i){return document.getElementById(i);}
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function n1(v){return Number(v||0).toFixed(1);}
-function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
-function mesNom(m){
-  var p=String(m).split("-");
-  var nn=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-  return (nn[Number(p[1])-1]||"")+" "+p[0];
+/* ════════════════════════════════════════════════════════════════
+   PLANTA · opción A (api 3.4). Todo sale de api_plaBase; los guardados
+   usan las funciones de siempre (api_guardarCiclo, api_guardarSalida…),
+   que mantienen sus revisiones: receta, margen de carga, ciclos que ya
+   salieron, número del contador repetido.
+   ════════════════════════════════════════════════════════════════ */
+var PER = 'anio', MES_REP = '';
+function B() { return MK.base || {}; }
+function D(v) { return MK.dinero(v); }
+function kg(v, d) { return MK.num(v, d == null ? 0 : d) + ' kg'; }
+function fdm(iso) { return MK.dmy(iso); }
+function rango(p) {
+  var h = MK.hoy, y = h.slice(0, 4), m = Number(h.slice(5, 7));
+  if (p === 'mes') return [h.slice(0, 8) + '01', h];
+  if (p === 'trim') { var mi = Math.floor((m - 1) / 3) * 3 + 1; return [y + '-' + ('0' + mi).slice(-2) + '-01', h]; }
+  if (p === 'anio') return [y + '-01-01', h];
+  return ['', h];
 }
-
-function arrancar(){
-  try{ PIN = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ PIN=""; }
-  pedirUrl();
-  if(PIN) validar(PIN); else pedirPin("");
+function enRango(f, p) { var r = rango(p || PER); return f && (!r[0] || f >= r[0]) && f <= r[1]; }
+function chipsPer() { return MK.chips([['mes', 'Mes'], ['trim', 'Trimestre'], ['anio', 'Año'], ['todo', 'Todo']], PER, 'cambiaPer'); }
+function cambiaPer(p) { PER = p; MK.repintar(); }
+function nomPer() { return { mes: MK.mesNombre(MK.hoy.slice(0, 7)), trim: 'el trimestre', anio: 'el año ' + MK.hoy.slice(0, 4), todo: 'todo el registro' }[PER]; }
+function receta() {
+  var r = B().receta, t = B().tratamiento || {};
+  return '<div class="receta"><span>Receta del equipo</span><span class="p">' + MK.ic('termometro', 15) + r.temperatura + ' °C</span><span class="p">' + MK.ic('reloj', 15) + r.minutos + ' min</span><span class="p">' + MK.ic('balanza', 15) + 'hasta ' + r.capacidadKg + ' kg ±' + B().margen + '</span><span class="sp"></span><span>Siguiente n.º del contador: <b>' + B().siguienteNumero + '</b></span></div>';
 }
+function abrirDoc(qs) { window.open('index.html' + qs, '_blank'); }
 
-function pedirPin(msg){
-  $("pantalla-app").style.display="none";
-  $("pantalla-pin").style.display="block";
-  $("pin-err").textContent=msg||"";
-  setTimeout(function(){$("pin").focus();},120);
-}
-
-function entrar(){
-  var p=($("pin").value||"").trim();
-  if(!p){ $("pin-err").textContent="Escribe tu PIN"; return; }
-  $("pin-err").textContent="Verificando…";
-  validar(p);
-}
-
-function validar(p){
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){ PIN=""; pedirPin((r&&r.error)||"PIN no válido"); return; }
-      PIN=p; USUARIO=r.usuario;
-      try{ localStorage.setItem("ecovsa_pin",JSON.stringify(p)); }catch(e){}
-      var rot = ROTULO[USUARIO.rol]||USUARIO.rol;
-      $("cab-usuario").textContent = USUARIO.nombre+" · "+rot;
-      $("pantalla-pin").style.display="none";
-      $("pantalla-app").style.display="block";
-      pintarTabsPlanta();
-      rango("mes");
-    })
-    .withFailureHandler(function(){ pedirPin("Sin conexión. Intenta con señal."); })
-    .api_plantaBootstrap(p);
-}
-
-function salir(){
-  try{ localStorage.removeItem("ecovsa_pin"); }catch(e){}
-  volverInicio();
-}
-
-function rango(t){
-  var h=new Date(), d1, d2;
-  if(t==="libre"){
-    DESDE=$("f-desde").value||""; HASTA=$("f-hasta").value||"";
-    var cs=document.querySelectorAll("#chips .chip");
-    for(var i=0;i<cs.length;i++) cs[i].classList.remove("on");
-    if(DESDE&&HASTA) cargar();
-    return;
-  }
-  if(t==="q"){ d2=new Date(h); d1=new Date(h); d1.setDate(d1.getDate()-14); }
-  else if(t==="mes"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
-  else if(t==="tri"){ d2=new Date(h); d1=new Date(h.getFullYear(),h.getMonth()-2,1); }
-  else if(t==="ano"){ d1=new Date(h.getFullYear(),0,1); d2=new Date(h); }
-  else { d1=new Date(2020,0,1); d2=new Date(h.getFullYear()+1,0,1); }
-
-  DESDE=iso(d1); HASTA=iso(d2);
-  $("f-desde").value=DESDE; $("f-hasta").value=HASTA;
-  var cs=document.querySelectorAll("#chips .chip");
-  for(var i=0;i<cs.length;i++) cs[i].classList.toggle("on", cs[i].getAttribute("data-r")===t);
-  cargar();
-}
-
-/* ═══ Los rangos propios de cada pestaña ═══
-   El de arriba —el de recepción— sigue siendo suyo y no se toca. Estos dos
-   son de tratamiento y de salidas, a la vista, y al moverlos recargan solo
-   lo suyo. Antes las dos pestañas leían el filtro de recepción sin
-   mostrarlo, y además se quedaban con lo que trajeron la primera vez: aunque
-   se cambiara el periodo allá, aquí seguía lo de antes hasta recargar la
-   página entera. */
-function tramo(t){
-  var h=new Date(), d1, d2;
-  if(t==="q"){ d2=new Date(h); d1=new Date(h); d1.setDate(d1.getDate()-14); }
-  else if(t==="mes"){ d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
-  else if(t==="tri"){ d2=new Date(h); d1=new Date(h.getFullYear(),h.getMonth()-2,1); }
-  else if(t==="ano"){ d1=new Date(h.getFullYear(),0,1); d2=new Date(h); }
-  else { d1=new Date(2020,0,1); d2=new Date(h.getFullYear()+1,0,1); }
-  return [iso(d1), iso(d2)];
-}
-function marcarChips(caja, t){
-  var cs=document.querySelectorAll("#"+caja+" .chip");
-  for(var i=0;i<cs.length;i++) cs[i].classList.toggle("on", cs[i].getAttribute("data-r")===t);
-}
-function rangoTra(t){
-  if(t==="libre"){ marcarChips("tra-chips",""); }
-  else { var r=tramo(t); $("tra-desde").value=r[0]; $("tra-hasta").value=r[1]; marcarChips("tra-chips",t); }
-  if(!$("tra-desde").value || !$("tra-hasta").value) return;
-  TRA=null; cargarTratamiento();
-}
-function rangoSal(t){
-  if(t==="libre"){ marcarChips("sal-chips",""); }
-  else { var r=tramo(t); $("sal-desde").value=r[0]; $("sal-hasta").value=r[1]; marcarChips("sal-chips",t); }
-  if(!$("sal-desde").value || !$("sal-hasta").value) return;
-  SAL=null; cargarSalidas();
-}
-
-function cargar(){
-  $("contenido").innerHTML='<div class="vacio">Consultando entregas…</div>';
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){ $("contenido").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo consultar")+'</div>'; return; }
-      DATOS=r; pintar(r);
-    })
-    .withFailureHandler(function(){ $("contenido").innerHTML='<div class="vacio">Sin conexión.</div>'; })
-    .api_plantaActas(PIN, DESDE, HASTA);
-}
-
-/* ── ABRIR UN DOCUMENTO ──────────────────────────────────────────────
-   Los tres papeles de este módulo —el reporte imprimible, el acta de
-   disposición final y el manifiesto de salida— viven en otra página y se
-   abren en pestaña aparte. Para armar esa dirección hace falta la URL
-   real de la app, que SOLO la sabe el servidor: dentro del iframe de
-   Apps Script, `location` es una dirección interna de Google.
-
-   Aquí estaba la falla. Dos de los tres botones armaban la dirección sin
-   comprobar que esa URL hubiera llegado. Si no había llegado —o si la
-   petición falló, que se pedía sin manejador de error y por lo tanto en
-   silencio— la dirección salía relativa, el navegador la resolvía contra
-   el sandbox de Google, y se abría una pestaña en blanco. El botón del
-   manifiesto sí lo comprobaba; los otros dos no.
-
-   Ahora los tres pasan por aquí, y si la URL todavía no está se pide de
-   nuevo y se avisa, en vez de abrir una pestaña rota. */
-function pedirUrl(cb){
-  google.script.run
-    .withSuccessHandler(function(u){ URL_APP=u||""; if(cb) cb(URL_APP); })
-    .withFailureHandler(function(){ if(cb) cb(""); })
-    .api_urlApp();
-}
-function abrirDoc(qs){
-  if(URL_APP){ window.open(URL_APP+qs, "_blank"); return; }
-  toast("Un momento, preparando el documento…");
-  pedirUrl(function(u){
-    if(u) window.open(u+qs, "_blank");
-    else  toast("No se pudo abrir. Recarga la página e intenta de nuevo.");
+/* ═══════════ INICIO ═══════════ */
+function vInicio() {
+  var b = B(), t = b.tratamiento, s = b.salidas, hoy = MK.hoy, mes = hoy.slice(0, 7);
+  var bal = b.balance || [], bm = bal.filter(function (x) { return x.mes === mes; })[0] || { recibido: 0, tratado: 0, despachado: 0, actas: 0, ciclos: 0, despachos: 0 };
+  var C = (t ? t.ciclos : []).filter(function (c) { return !c.anulado && !c.esPrueba; });
+  var ult = C[0];
+  var diasSin = ult ? MK.dias(ult.fecha, hoy) : null;
+  var carga = t ? t.totales.cargaTipica : 700;
+  var cuar = t ? t.kgPorDespachar : 0;
+  var anio = hoy.slice(0, 4);
+  var desp = (s ? s.salidas : []).filter(function (x) { return x.fecha.slice(0, 4) === anio; });
+  var kgDesp = desp.reduce(function (a, x) { return a + x.kgPlanta; }, 0);
+  var sinRec = desp.filter(function (x) { return !x.reciboEmas; }).length;
+  var porTratarMes = Math.max(0, bm.recibido - bm.tratado);
+  var h = MK.cabeza('Planta', MK.mesNombre(mes).replace(/^./, function (x) { return x.toUpperCase(); }) + ' · el material recorre cuatro pasos; cada tarjeta abre su parte');
+  h += receta();
+  h += '<div class="flujo">' +
+    '<div class="et4" onclick="MK.ir(\'rec\')"><span class="pa"><span class="n">1</span>Recibido · zona sucia</span><b class="num">' + MK.num(bm.recibido) + '<small>kg</small></b><span class="s">' + bm.actas + ' acta' + (bm.actas === 1 ? '' : 's') + ' este mes' + (porTratarMes > 0 ? ' · ≈ ' + Math.ceil(porTratarMes / carga) + ' ciclos por correr' : '') + '</span>' + (b.sinActa.recolecciones ? '<span class="al">+ ' + kg(b.sinActa.kg) + ' recogidos sin acta</span>' : '') + '</div>' +
+    '<div class="et4" onclick="MK.ir(\'tra\')"><span class="pa"><span class="n">2</span>Tratado · autoclave</span><b class="num">' + bm.ciclos + '<small>ciclos</small></b><span class="s">' + (ult ? 'último: n.º ' + ult.numero + ', el ' + MK.fechaLarga(ult.fecha).replace(/^[a-zé]+, /, '').replace(/ de \d{4}$/, '') : 'sin ciclos registrados') + '</span>' + (diasSin != null && diasSin > 7 ? '<span class="al">' + diasSin + ' días sin ciclo</span>' : '') + '</div>' +
+    '<div class="et4" onclick="MK.ir(\'cua\')"><span class="pa"><span class="n">3</span>Cuarentena · zona limpia</span><b class="num">' + MK.num(cuar) + '<small>kg</small></b><span class="s">' + (t ? t.pendientes.length : 0) + ' ciclo(s) esterilizados esperando despacho</span></div>' +
+    '<div class="et4" onclick="MK.ir(\'cua\')"><span class="pa"><span class="n">4</span>Despachado · relleno</span><b class="num">' + MK.num(bm.despachado) + '<small>kg</small></b><span class="s">en el año: ' + kg(kgDesp) + ' en ' + desp.length + ' viajes</span>' + (sinRec ? '<span class="al">' + sinRec + ' sin recibo EMAS</span>' : desp.length ? '<span class="ok">Todos con recibo EMAS</span>' : '') + '</div></div>';
+  /* lo que toca */
+  var toca = [];
+  if (porTratarMes > 0 || (diasSin != null && diasSin > 7)) toca.push(['var(--bad)', 'fuego', 'Correr ciclos' + (porTratarMes > 0 ? ': ' + kg(porTratarMes) + ' en zona sucia este mes' : ''), '≈ ' + Math.max(1, Math.ceil(porTratarMes / carga)) + ' ciclos de ' + MK.num(carga) + ' kg (la carga típica medida).' + (diasSin != null ? ' Último ciclo hace ' + diasSin + ' días.' : ''), MK.si('<button class="btn pri sm" onclick="nuevoCiclo()">' + MK.ic('mas', 15) + 'Registrar ciclo</button>')]);
+  (b.spEquipos || []).filter(function (x) { return !x.servicio && /autoclave|caldera|calibra|hermetic/i.test(x.concepto); }).forEach(function (x) {
+    toca.push(['var(--amber)', 'llaveInglesa', 'Servicio sin anotar: ' + x.solicitudId, x.proveedor + ' · ' + D(x.total) + ' · ' + x.concepto + '. Mantenimiento no lo tiene.', MK.si('<button class="btn sm" onclick="servicio(\'\',\'' + x.solicitudId + '\')">' + MK.ic('flecha', 15) + 'Anotar</button>')]);
   });
+  var bioMes = (b.bio || []).filter(function (x) { return x.mes === mes; })[0];
+  if (mes >= b.bioDesde && (!bioMes || bioMes.resultado === 'PENDIENTE')) toca.push(['var(--amber)', 'matraz', 'Verificación biológica de ' + MK.mesNombre(mes), bioMes ? 'Vial en incubación: anotar el resultado.' : 'En el último ciclo antes del despacho, con vial Attest incubado.', '<button class="btn sm" onclick="MK.ir(\'bio\')">' + MK.ic('flecha', 15) + 'Ver</button>']);
+  if (t && t.sinQuimico) toca.push(['var(--amber)', 'alerta', t.sinQuimico + ' ciclo(s) de este mes sin cinta anotada', 'El indicador químico va en cada ciclo.', '<button class="btn sm" onclick="MK.ir(\'tra\')">' + MK.ic('flecha', 15) + 'Ver</button>']);
+  if (t && t.totales.porTratar < -100) toca.push(['var(--info)', 'balanza', 'El balance no cuadra', MK.num(-t.totales.porTratar) + ' kg más tratados que recibidos: faltan actas o ciclos por cargar.', '<button class="btn sm" onclick="MK.ir(\'rep\')">' + MK.ic('flecha', 15) + 'Revisar</button>']);
+  if ((b.mantenimiento && b.mantenimiento.alertas || []).length) b.mantenimiento.alertas.forEach(function (a) { toca.push(['var(--bad)', 'llaveInglesa', a.equipo + ': ' + a.tipo + ' ' + a.estado.toLowerCase(), 'Próximo: ' + fdm(a.proximo), '<button class="btn sm" onclick="MK.ir(\'mto\')">Ver</button>']); });
+  h += '<div class="g2m"><section class="card"><h3>Lo que te toca</h3><div class="lista">' + (toca.length ? toca.map(function (x) { return '<div class="li" style="--c:' + x[0] + '"><span class="zc">' + MK.ic(x[1], 17) + '</span><div class="tx"><b>' + MK.esc(x[2]) + '</b><span>' + MK.esc(x[3]) + '</span></div>' + x[4] + '</div>'; }).join('') : MK.vacio('Todo al día.')) + '</div></section>';
+  var ult6 = bal.slice(-6);
+  var max = Math.max.apply(null, ult6.map(function (x) { return Math.max(x.recibido, x.tratado, x.despachado); }).concat([1]));
+  h += '<section class="card"><h3>Mes a mes</h3><div class="small muted">kg recibidos, tratados y despachados</div><div class="b3">' + ult6.map(function (x) {
+    return '<div class="m" title="' + MK.mesNombre(x.mes) + ': recibido ' + MK.num(x.recibido) + ' · tratado ' + MK.num(x.tratado) + ' · despachado ' + MK.num(x.despachado) + '"><i style="height:' + (x.recibido / max * 100) + '%;background:var(--pl2)"></i><i style="height:' + (x.tratado / max * 100) + '%;background:var(--pl)"></i><i style="height:' + (x.despachado / max * 100) + '%;background:var(--ok)"></i><span>' + MK.mesCorto(x.mes) + '</span></div>';
+  }).join('') + '</div><div class="ley"><span><i style="background:var(--pl2)"></i>Recibido</span><span><i style="background:var(--pl)"></i>Tratado</span><span><i style="background:var(--ok)"></i>Despachado</span></div>' +
+    MK.tabla(['Mes', '>Recibido', '>Tratado', '>Despachado'], ult6.slice().reverse().map(function (x) { return [MK.mesNombre(x.mes), MK.num(x.recibido), MK.num(x.tratado) + (x.ciclos ? '<small>' + x.ciclos + ' ciclos</small>' : ''), MK.num(x.despachado)]; })) + '</section></div>';
+  return h;
 }
 
-function abrirReporte(){
-  if(!DESDE||!HASTA){ toast("Elige un periodo primero."); return; }
-  abrirDoc("?p=rplanta&desde="+DESDE+"&hasta="+HASTA);
+/* ═══════════ RECEPCIÓN ═══════════ */
+function vRecepcion() {
+  var b = B(), A = ((b.actas || {}).actas || []).filter(function (a) { return enRango(a.fecha); });
+  var t = { kg: 0, bio: 0, punzo: 0, anat: 0, cb: 0, cp: 0, ca: 0, entregas: 0 };
+  var gen = {};
+  A.forEach(function (a) { t.kg += a.kgTotal; t.bio += a.kgBio; t.punzo += a.kgPunzo; t.anat += a.kgAnatomo; t.cb += a.cantBio; t.cp += a.cantPunzo; t.ca += a.cantAnatomo;
+    (a.detalle || []).forEach(function (d) { var g = d.cliente || '—'; gen[g] = (gen[g] || 0) + (Number(d.kg) || 0); t.entregas += Number(d.visitas) || 0; }); });
+  var G = Object.keys(gen).map(function (k) { return { e: k, v: gen[k] }; }).sort(function (x, y) { return y.v - x.v; });
+  var h = MK.cabeza('Recepción · actas', 'Lo que entra a la zona sucia en ' + nomPer() + '. Cada acta la genera Logística al entregar.', chipsPer() + '<button class="btn" onclick="reporteRecepcion()">' + MK.ic('imprimir', 16) + 'Reporte imprimible</button>');
+  h += MK.kpis([{ e: 'Recibido', v: kg(t.kg, 2), s: A.length + ' actas · ' + t.entregas + ' entregas de generadores' }, { e: 'Bioinfeccioso', v: kg(t.bio, 2), s: MK.num(t.cb) + ' bultos' }, { e: 'Punzocortante', v: kg(t.punzo, 2), s: MK.num(t.cp) + ' bultos' }, { e: 'Anatomopatológico', v: kg(t.anat, 2), s: MK.num(t.ca) + ' bultos' }]);
+  if (b.sinActa.recolecciones) h += '<div class="aviso am" style="margin-bottom:14px"><b>Por llegar desde Logística: ' + kg(b.sinActa.kg) + ' en ' + b.sinActa.recolecciones + ' recolecciones sin acta</b> — la más vieja lleva ' + b.sinActa.dias + ' días. Es material recogido que todavía no aparece entregado a planta.</div>';
+  h += '<div class="g2m"><div class="pila">' + (A.length ? A.map(function (a) {
+    return '<div class="card acta"><div class="top"><div><b>' + MK.esc(a.actaId) + '</b> <span class="meta">' + fdm(a.fecha) + ' · ' + MK.esc(a.hora) + '</span></div><span class="kg num">' + kg(a.kgTotal, 2) + '</span></div>' +
+      '<div class="meta">Entregó ' + MK.esc(a.operador) + ' · ' + MK.esc(a.vehiculo) + ' · recibió ' + MK.esc(a.recibe || '—') + (a.desde ? ' · recolectado del ' + fdm(a.desde) + ' al ' + fdm(a.hasta) : '') + ' · ' + (a.detalle || []).length + ' generadores</div>' +
+      '<div class="tipos"><span>Bio ' + kg(a.kgBio, 2) + ' · ' + a.cantBio + ' b.</span>' + (a.kgPunzo ? '<span>Punzo ' + kg(a.kgPunzo, 2) + ' · ' + a.cantPunzo + ' b.</span>' : '') + (a.kgAnatomo ? '<span>Anatomo ' + kg(a.kgAnatomo, 2) + '</span>' : '') + '<span>' + a.bultos + ' bultos</span></div>' +
+      '<div class="fila" style="justify-content:space-between;margin-top:8px"><span class="chipx ok">Recibida en planta</span><a href="#" onclick="abrirDoc(\'?p=acta&id=' + encodeURIComponent(a.actaId) + '\');return false">Ver el acta</a></div></div>';
+  }).join('') : '<div class="card">' + MK.vacio('Ninguna acta en ' + nomPer() + '.') + '</div>') + '</div>' +
+    '<div class="card"><h3>Quién genera más</h3><div class="small muted" style="margin-bottom:6px">' + G.length + ' generadores en ' + nomPer() + '</div>' + MK.hbar(G.slice(0, 6).concat(G.length > 6 ? [{ e: 'Los otros ' + (G.length - 6), v: G.slice(6).reduce(function (s, x) { return s + x.v; }, 0), c: 'var(--pl2)' }] : []), { color: 'var(--pl)', fmt: function (v) { return kg(v, 1); } }) + '</div></div>';
+  return h;
+}
+function reporteRecepcion() { var r = rango(); if (!r[0]) r[0] = '2020-01-01'; abrirDoc('?p=rplanta&desde=' + r[0] + '&hasta=' + r[1]); }
+
+/* ═══════════ TRATAMIENTO ═══════════ */
+function vTratamiento() {
+  var t = B().tratamiento;
+  if (!t) return MK.cabeza('Tratamiento · ciclos') + '<div class="aviso rj">No se pudieron leer los ciclos.</div>';
+  var C = t.ciclos.filter(function (c) { return enRango(c.fecha); });
+  var cu = C.filter(function (c) { return !c.anulado && !c.esPrueba; });
+  var kgE = 0, kgS = 0, conP = 0, bol = 0;
+  cu.forEach(function (c) { if (c.sinPeso) return; kgE += c.kgEntrada; if (!c.salidaEstimada) { kgS += c.kgSalida; conP++; } bol += c.bolsas; });
+  var mermaE = 0; cu.forEach(function (c) { if (!c.sinPeso && !c.salidaEstimada) mermaE += c.kgEntrada; });
+  var h = MK.cabeza('Tratamiento · ciclos', 'Cada ciclo lleva el número del contador del autoclave, que no se reinicia. ' + nomPer().replace(/^./, function (x) { return x.toUpperCase(); }) + '.',
+    chipsPer() + '<button class="btn" onclick="descargarCiclos()">' + MK.ic('bajar', 16) + 'Descargar</button>' + MK.si('<button class="btn pri" onclick="nuevoCiclo()">' + MK.ic('mas', 16) + 'Registrar ciclo</button>'));
+  h += receta();
+  h += MK.kpis([{ e: 'Ciclos', v: cu.length, s: C.filter(function (c) { return c.esPrueba; }).length + ' de prueba · ' + C.filter(function (c) { return c.anulado; }).length + ' anulados' },
+    { e: 'Kg tratados', v: kg(kgE), s: cu.length ? 'carga típica ' + MK.num(kgE / Math.max(1, cu.filter(function (c) { return !c.sinPeso; }).length)) + ' kg' : '' },
+    { e: 'Merma', v: mermaE ? MK.num((mermaE - kgS) / mermaE * 100, 1) + ' %' : '—', s: conP ? MK.num(kgS) + ' kg salieron de ' + conP + ' ciclos pesados' : 'sin pesos de salida' },
+    { e: 'Cinta 3M', v: cu.filter(function (c) { return c.quimico; }).length + ' de ' + cu.length, s: 'ciclos con indicador químico anotado', c: cu.some(function (c) { return !c.quimico; }) ? 'warn' : '' }]);
+  var L = C.slice(0, 200);
+  h += '<div class="card dtab"><h3>Ciclos <span class="sp"></span><span class="l muted">toca uno para ver su ficha, corregirlo o anularlo</span></h3>' +
+    MK.tabla(['N.º', 'Fecha', 'Hora', 'Bolsas', '>Kg entrada', '>Kg salida', 'Merma', 'Receta', 'Químico', 'Biológico', 'Despacho'], L.map(function (c) {
+      var merma = !c.sinPeso && !c.salidaEstimada && c.kgEntrada ? MK.num((c.kgEntrada - c.kgSalida) / c.kgEntrada * 100, 1) + ' %' : '—';
+      var rec = c.temperatura === B().receta.temperatura && c.minutos === B().receta.minutos;
+      return ['<b>' + c.numero + '</b>' + (c.anulado ? ' <span class="chipx gris">anulado</span>' : c.esPrueba ? ' <span class="chipx info">prueba</span>' : ''), fdm(c.fecha), (c.horaInicio || '—') + (c.horaFinal ? '–' + c.horaFinal : ''), c.bolsas || '—',
+        c.sinPeso ? '<span class="chipx warn">sin peso</span>' : MK.num(c.kgEntrada, 1), c.salidaEstimada ? '<span class="muted">' + MK.num(c.kgSalida, 1) + '*</span>' : MK.num(c.kgSalida, 1), merma,
+        '<span class="chipx ' + (rec ? 'ok' : 'warn') + '">' + c.temperatura + '° · ' + c.minutos + '</span>',
+        c.quimico ? '<span class="chipx ' + (/^NO/i.test(c.resultadoQuimico) ? 'bad' : 'ok') + '">' + MK.esc(c.resultadoQuimico || 'sí') + '</span>' : '<span class="chipx gris">sin anotar</span>',
+        c.biologico ? '<span class="chipx pl">' + MK.esc(c.resultadoBiologico || 'vial') + '</span>' : '—', c.salida ? MK.esc(c.salida) : '<span class="chipx info">en cuarentena</span>'];
+    }), { clic: function (j) { return 'fichaCiclo(\'' + L[j].cicloId + '\')'; }, vacio: 'Ningún ciclo en ' + nomPer() + '.' }) +
+    '<div class="nota">«Sin anotar»: los ciclos cargados del control de producción no dicen si llevaron cinta; queda vacío a propósito. Los nuevos lo piden en el paso 3. * = peso de salida estimado (no se pesó).</div></div>';
+  return h;
+}
+function descargarCiclos() {
+  var C = (B().tratamiento || {}).ciclos || [];
+  var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var f = [['cicloId', 'numero', 'fecha', 'horaInicio', 'horaFinal', 'bolsas', 'kgEntrada', 'kgSalida', 'temperatura', 'minutos', 'cinta', 'resultadoCinta', 'vial', 'resultadoVial', 'despacho', 'prueba', 'anulado']].concat(C.map(function (c) {
+    return [c.cicloId, c.numero, c.fecha, c.horaInicio, c.horaFinal, c.bolsas, c.sinPeso ? '' : c.kgEntrada, c.salidaEstimada ? '' : c.kgSalida, c.temperatura, c.minutos, c.quimico ? 'SI' : '', c.resultadoQuimico, c.biologico ? 'SI' : '', c.resultadoBiologico, c.salida, c.esPrueba ? 'SI' : '', c.anulado ? 'SI' : ''];
+  }));
+  var blob = new Blob(['﻿' + f.map(function (r) { return r.map(q).join(','); }).join('\n')], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ciclos_autoclave_' + MK.hoy + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+function ciclo(id) { return ((B().tratamiento || {}).ciclos || []).filter(function (c) { return c.cicloId === id; })[0]; }
+function fichaCiclo(id) {
+  var c = ciclo(id); if (!c) return;
+  MK.lado('<span class="et" style="font-size:11px;font-weight:700;color:var(--muted2)">CICLO</span><h2>N.º ' + c.numero + ' · ' + fdm(c.fecha) + '</h2><div class="sub">' + MK.esc(c.cicloId) + (c.operador ? ' · ' + MK.esc(c.operador) : '') + '</div>' +
+    (c.anulado ? '<div class="aviso rj">Anulado el ' + fdm(c.fechaAnulacion) + ' por ' + MK.esc(c.anuladoPor) + ': ' + MK.esc(c.motivoAnulacion) + '</div>' : '') +
+    MK.kpis([{ e: 'Entró', v: c.sinPeso ? '—' : kg(c.kgEntrada, 1) }, { e: 'Salió', v: kg(c.kgSalida, 1), s: c.salidaEstimada ? 'estimado' : '' }, { e: 'Receta', v: c.temperatura + '° · ' + c.minutos + '′' }], 3) +
+    '<div class="lst"><div class="it"><div class="tx"><b>Hora</b><small>' + (c.horaInicio || '—') + ' a ' + (c.horaFinal || '—') + '</small></div></div>' +
+    '<div class="it"><div class="tx"><b>Indicador químico (cinta 3M)</b><small>' + (c.quimico ? MK.esc(c.resultadoQuimico || 'Sí') : 'Sin anotar') + '</small></div></div>' +
+    '<div class="it"><div class="tx"><b>Verificación biológica (vial)</b><small>' + (c.biologico ? MK.esc(c.resultadoBiologico || 'Sí') : 'No') + '</small></div></div>' +
+    '<div class="it"><div class="tx"><b>Despacho</b><small>' + (c.salida ? MK.esc(c.salida) : 'En cuarentena') + '</small></div>' + (c.salida ? '<a href="#" onclick="abrirDoc(\'?p=asalida&id=' + encodeURIComponent(c.salida) + '\');return false">Manifiesto</a>' : '') + '</div>' +
+    (c.obs ? '<div class="it"><div class="tx"><b>Observaciones</b><small>' + MK.esc(c.obs) + '</small></div></div>' : '') + '</div>' +
+    (c.anulado || MK.soloVer ? '' : '<h3 style="margin-top:16px">Corregir</h3><div class="f3"><div><label class="lb">Kg entrada</label><input class="in" id="ec-kge" value="' + (c.sinPeso ? '' : c.kgEntrada) + '"></div><div><label class="lb">Kg salida</label><input class="in" id="ec-kgs" value="' + (c.salidaEstimada ? '' : c.kgSalida) + '"></div><div><label class="lb">Bolsas</label><input class="in" id="ec-bol" value="' + (c.bolsas || '') + '"></div></div>' +
+      '<div class="f2"><div><label class="lb">Hora de inicio</label><input class="in" type="time" id="ec-hi" value="' + (c.horaInicio || '') + '"></div><div><label class="lb">Hora de fin</label><input class="in" type="time" id="ec-hf" value="' + (c.horaFinal || '') + '"></div></div>' +
+      '<label class="fila small" style="margin-top:10px"><input type="checkbox" id="ec-cin" ' + (c.quimico ? 'checked' : '') + '> Llevó cinta 3M</label><select class="in" id="ec-rcin" style="margin-top:6px"><option' + (/^conforme/i.test(c.resultadoQuimico) ? ' selected' : '') + '>Conforme</option><option' + (/^NO/i.test(c.resultadoQuimico) ? ' selected' : '') + '>NO conforme</option></select>' +
+      '<div class="pie2">' + (c.salida ? '' : '<button class="btn bad" onclick="anularCiclo(\'' + c.cicloId + '\')">Anular</button>') + '<button class="btn" onclick="MK.cerrarLado()">Cerrar</button><button class="btn pri" onclick="corregirCiclo(\'' + c.cicloId + '\',this)">' + MK.ic('check', 16) + 'Guardar corrección</button></div>'));
+}
+function corregirCiclo(id, btn) {
+  var d = { horaInicio: MK.val('ec-hi'), horaFinal: MK.val('ec-hf'), pruebaBiologica: document.getElementById('ec-cin').checked, resultadoPrueba: document.getElementById('ec-cin').checked ? MK.val('ec-rcin') : '' };
+  if (MK.val('ec-kge')) d.kgEntrada = Number(MK.val('ec-kge')); if (MK.val('ec-kgs')) d.kgSalida = Number(MK.val('ec-kgs')); if (MK.val('ec-bol')) d.bolsas = Number(MK.val('ec-bol'));
+  MK.ocupado(btn, true);
+  MK.llamar('api_editarCiclo', id, d).then(function () { MK.cerrarLado(); MK.aviso('Ciclo corregido'); MK.recargar(); }, function () { MK.ocupado(btn, false); });
+}
+function anularCiclo(id) {
+  MK.hoja('<h2>Anular el ciclo</h2><p class="muted">No se borra: queda con el motivo, quién y cuándo. El número del contador no desaparece.</p><label class="lb">Motivo</label><input class="in" id="an-mot" autofocus>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="an-si">Anular</button></div>');
+  document.getElementById('an-si').onclick = function () { MK.llamar('api_anularCiclo', id, MK.val('an-mot')).then(function () { MK.cerrarHoja(); MK.cerrarLado(); MK.aviso('Ciclo anulado'); MK.recargar(); }); };
+}
+</script>
+<script>
+/* ═══ Planta (api 3.4) · segunda parte ═══ */
+
+/* ═══════════ REGISTRAR CICLO (4 pasos) ═══════════ */
+var RC = null;
+function nuevoCiclo() {
+  var r = B().receta;
+  RC = { paso: 1, kgEntrada: '', bolsas: '', fecha: MK.hoy, numero: B().siguienteNumero, horaInicio: '', horaFinal: '', temperatura: r.temperatura, minutos: r.minutos,
+    cinta: true, resCinta: 'Conforme', vial: false, kgSalida: '', esPrueba: false, sinPeso: false, obs: '' };
+  pintarCiclo();
+}
+function leerPaso() {
+  var g = function (id) { var e = document.getElementById(id); return e ? e.value : null; };
+  var ck = function (id) { var e = document.getElementById(id); return e ? e.checked : null; };
+  if (RC.paso === 1) { RC.kgEntrada = g('rc-kg'); RC.bolsas = g('rc-bol'); RC.esPrueba = ck('rc-pru'); RC.sinPeso = ck('rc-sp'); }
+  if (RC.paso === 2) { RC.fecha = g('rc-fec'); RC.numero = g('rc-num'); RC.horaInicio = g('rc-hi'); RC.horaFinal = g('rc-hf'); RC.temperatura = g('rc-tem'); RC.minutos = g('rc-min'); }
+  if (RC.paso === 3) { RC.cinta = ck('rc-cin'); RC.resCinta = g('rc-rcin'); RC.vial = ck('rc-vial'); }
+  if (RC.paso === 4) { RC.kgSalida = g('rc-kgs'); RC.obs = g('rc-obs'); }
+}
+function irPaso(n) { leerPaso(); RC.paso = n; pintarCiclo(); }
+function pintarCiclo() {
+  var r = B().receta, m = B().margen, P = [['Pesar', 'kg en la báscula'], ['Cocinar', 'fecha, n.º y horas'], ['Indicadores', 'cinta y vial'], ['Salida', 'peso tras enfriar']];
+  var kgE = Number(RC.kgEntrada) || 0, kgS = Number(RC.kgSalida) || 0;
+  var cuerpo = {
+    1: '<div class="grande"><div><label>Kg del big bag (antes de triturar)</label><input id="rc-kg" inputmode="decimal" value="' + MK.esc(RC.kgEntrada) + '" autofocus><div class="ayuda">Objetivo ' + r.capacidadKg + ', margen ±' + m + '. Avisa desde ' + (r.capacidadKg + m + 1) + '.</div></div>' +
+       '<div><label>Bolsas (aprox.)</label><input id="rc-bol" inputmode="numeric" value="' + MK.esc(RC.bolsas) + '"><div class="ayuda">Estimado al vuelo.</div></div></div>' +
+       '<div class="chk" style="margin-top:12px"><label><input type="checkbox" id="rc-pru" ' + (RC.esPrueba ? 'checked' : '') + '><span><b>Ciclo de prueba, sin carga</b>mantenimiento o prueba de componentes: mantiene continuo el contador</span></label>' +
+       '<label><input type="checkbox" id="rc-sp" ' + (RC.sinPeso ? 'checked' : '') + '><span><b>El peso no quedó anotado</b>el ciclo corrió con carga, pero el peso se perdió: se guarda sin inventarlo</span></label></div>',
+    2: '<div class="f2"><div><label class="lb">Fecha</label><input class="in" type="date" id="rc-fec" value="' + MK.esc(RC.fecha) + '" max="' + MK.hoy + '"></div><div><label class="lb">N.º del contador del equipo</label><input class="in" id="rc-num" inputmode="numeric" value="' + MK.esc(RC.numero) + '"></div>' +
+       '<div><label class="lb">Hora de inicio</label><input class="in" type="time" id="rc-hi" value="' + MK.esc(RC.horaInicio) + '"></div><div><label class="lb">Hora de fin</label><input class="in" type="time" id="rc-hf" value="' + MK.esc(RC.horaFinal) + '"></div>' +
+       '<div><label class="lb">Temperatura (°C)</label><input class="in" id="rc-tem" value="' + MK.esc(RC.temperatura) + '"></div><div><label class="lb">Minutos a temperatura</label><input class="in" id="rc-min" value="' + MK.esc(RC.minutos) + '"></div></div>' +
+       '<div class="aviso vd" style="margin-top:10px">Receta del equipo: ' + r.temperatura + ' °C · ' + r.minutos + ' min. Si anotas otra cosa, el sistema te pide confirmarlo y queda escrito en el ciclo.</div>',
+    3: '<div class="chk"><label class="' + (RC.cinta ? 'on' : '') + '"><input type="checkbox" id="rc-cin" ' + (RC.cinta ? 'checked' : '') + ' onchange="irPaso(3)"><span><b>Se puso cinta 3M (indicador químico)</b>va en cada ciclo</span></label>' +
+       (RC.cinta ? '<select class="in" id="rc-rcin"><option' + (RC.resCinta === 'Conforme' ? ' selected' : '') + '>Conforme</option><option' + (RC.resCinta !== 'Conforme' ? ' selected' : '') + '>NO conforme</option></select>' : '') +
+       '<label class="' + (RC.vial ? 'on' : '') + '"><input type="checkbox" id="rc-vial" ' + (RC.vial ? 'checked' : '') + ' onchange="irPaso(3)"><span><b>Es el ciclo de la verificación biológica del mes</b>lleva vial Attest; el resultado se anota en «Verificación biológica» al leer la incubación</span></label></div>',
+    4: '<div class="grande"><div><label>Kg al salir (después de enfriar)</label><input id="rc-kgs" inputmode="decimal" value="' + MK.esc(RC.kgSalida) + '"><div class="ayuda">' + (kgE && kgS ? 'Merma ' + MK.num((kgE - kgS) / kgE * 100, 1) + ' %' : 'Si no se pesa, se toma el de entrada como estimado.') + '</div></div><div><label>Pasa a</label><input value="Cuarentena" readonly></div></div>' +
+       '<label class="lb">Observaciones</label><textarea class="in" id="rc-obs">' + MK.esc(RC.obs) + '</textarea>' +
+       '<div class="ap" style="margin-top:12px"><div class="l"><span>Ciclo n.º</span><b>' + MK.esc(RC.numero) + ' · ' + fdm(RC.fecha) + '</b></div><div class="l"><span>Carga</span><b>' + (RC.esPrueba ? 'prueba sin carga' : RC.sinPeso ? 'peso no anotado' : MK.num(kgE, 1) + ' kg') + '</b></div><div class="l"><span>Cinta · vial</span><b>' + (RC.cinta ? RC.resCinta : 'sin cinta') + ' · ' + (RC.vial ? 'con vial' : 'sin vial') + '</b></div></div>'
+  }[RC.paso];
+  MK.lado('<h2>Registrar el ciclo n.º ' + MK.esc(RC.numero) + '</h2><div class="sub">Por pasos, en el orden en que se hace frente al autoclave.</div>' +
+    '<div class="pasos4">' + P.map(function (p, i) { return '<span class="' + (i + 1 === RC.paso ? 'on' : i + 1 < RC.paso ? 'hecho' : '') + '" onclick="irPaso(' + (i + 1) + ')">' + (i + 1) + ' · ' + p[0] + '</span>'; }).join('') + '</div>' + cuerpo +
+    '<div id="rc-avisos"></div>' +
+    '<div class="pie2">' + (RC.paso > 1 ? '<button class="btn" onclick="irPaso(' + (RC.paso - 1) + ')">Atrás</button>' : '<button class="btn" onclick="MK.cerrarLado()">Cancelar</button>') +
+    (RC.paso < 4 ? '<button class="btn pri" onclick="irPaso(' + (RC.paso + 1) + ')">Siguiente ' + MK.ic('flecha', 15) + '</button>' : '<button class="btn pri" onclick="guardarCiclo(this)">' + MK.ic('check', 16) + 'Registrar el ciclo</button>') + '</div>');
+}
+function guardarCiclo(btn, conf) {
+  leerPaso();
+  var d = { fecha: RC.fecha, numero: Number(RC.numero) || 0, kgEntrada: Number(RC.kgEntrada) || 0, bolsas: Number(RC.bolsas) || 0, kgSalida: Number(RC.kgSalida) || 0,
+    horaInicio: RC.horaInicio, horaFinal: RC.horaFinal, temperatura: Number(RC.temperatura) || 0, minutos: Number(RC.minutos) || 0,
+    pruebaBiologica: RC.cinta, resultadoPrueba: RC.cinta ? RC.resCinta : '', verifBiologica: RC.vial, resultadoBiologico: RC.vial ? 'En incubación' : '',
+    esPrueba: RC.esPrueba, pesoNoRegistrado: RC.sinPeso, observaciones: RC.obs };
+  if (conf) Object.assign(d, conf);
+  MK.ocupado(btn, true);
+  MK.api('api_guardarCiclo', MK.pin, d).then(function (r) {
+    MK.ocupado(btn, false);
+    if (r && r.ok) { MK.cerrarLado(); MK.aviso('Ciclo ' + r.cicloId + ' registrado · pasa a cuarentena'); MK.recargar(); return; }
+    var av = document.getElementById('rc-avisos');
+    if (r && r.avisoNumero) { av.innerHTML = '<div class="aviso am" style="margin-top:12px">El número ' + r.avisoNumero.numero + ' ya lo tiene el ciclo ' + MK.esc(r.avisoNumero.cicloId) + ' del ' + fdm(r.avisoNumero.fecha) + '. ¿Seguro que es ese el número del contador? <button class="btn sm" onclick="guardarCiclo(this,{numeroConfirmado:true})">Sí, guardar así</button></div>'; return; }
+    if (r && r.avisoParametros) { av.innerHTML = '<div class="aviso am" style="margin-top:12px">' + r.avisoParametros.avisos.map(function (a) { return MK.esc(a.texto); }).join('<br>') + '<br><button class="btn sm" onclick="guardarCiclo(this,{parametrosConfirmados:true,numeroConfirmado:true})">Está bien así, guardar</button></div>'; return; }
+    MK.aviso((r && r.error) || 'No se pudo guardar');
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
 
-function pintar(r){
-  var t=r.totales, actas=r.actas||[], gens=r.generadores||[], ops=r.operadores||[], meses=r.meses||[];
-
-  if(!actas.length){
-    $("contenido").innerHTML='<div class="vacio">No se recibieron entregas entre el '+
-      esc(r.desde)+' y el '+esc(r.hasta)+'.<br>Cambia el periodo arriba.</div>';
-    return;
-  }
-
-  var html =
-  '<div class="resumen">'+
-    '<div class="t">Recibido del '+esc(r.desde)+' al '+esc(r.hasta)+'</div>'+
-    '<div class="v">'+n1(t.kgTotal)+' <span style="font-size:17px;opacity:.85">kg</span></div>'+
-    '<div class="p">'+t.actas+' acta(s) · '+t.bultos+' bulto(s) · '+gens.length+' generador(es)</div>'+
-  '</div>'+
-
-  '<div class="kpis">'+
-    '<div class="kpi bio"><div class="et">Bioinfeccioso</div><div class="val">'+n1(t.kgBio)+'</div>'+
-      '<div class="sub">kg · '+t.cantBio+' bultos</div></div>'+
-    '<div class="kpi ana"><div class="et">Anatomopatológico</div><div class="val">'+n1(t.kgAnatomo)+'</div>'+
-      '<div class="sub">kg · '+t.cantAnatomo+' bultos</div></div>'+
-    '<div class="kpi pun"><div class="et">Punzocortante</div><div class="val">'+n1(t.kgPunzo)+'</div>'+
-      '<div class="sub">kg · '+t.cantPunzo+' bultos</div></div>'+
-    '<div class="kpi"><div class="et">Entregas atendidas</div><div class="val">'+t.entregas+'</div>'+
-      '<div class="sub">visitas a generadores</div></div>'+
-  '</div>';
-
-  // ── actas recibidas ──
-  html += '<h2>Actas recibidas</h2>';
-  html += actas.map(function(a){
-    var det=a.detalle||[];
-    return '<div class="acta">'+
-      '<div class="enc"><span class="id">'+esc(a.actaId)+'</span>'+
-        '<span class="fe">'+esc(a.fecha)+(a.hora?' · '+esc(a.hora):'')+'</span>'+
-        '<span class="kg">'+n1(a.kgTotal)+' kg</span></div>'+
-      '<div class="li">Entregó <b>'+esc(a.operador||"—")+'</b>'+
-        (a.vehiculo?' · '+esc(a.vehiculo):'')+' · recibió '+esc(a.recibe||"—")+'<br>'+
-        'Periodo recolectado: '+esc(a.desde)+' al '+esc(a.hasta)+' · '+a.bultos+' bulto(s)</div>'+
-      '<details><summary>Ver detalle y generadores</summary>'+
-        '<div class="fila"><span>Bioinfeccioso</span><b>'+n1(a.kgBio)+' kg · '+a.cantBio+'</b></div>'+
-        '<div class="fila"><span>Anatomopatológico</span><b>'+n1(a.kgAnatomo)+' kg · '+a.cantAnatomo+'</b></div>'+
-        '<div class="fila"><span>Punzocortante</span><b>'+n1(a.kgPunzo)+' kg · '+a.cantPunzo+'</b></div>'+
-        (det.length?'<div class="sub-tit">Generadores de origen</div>'+
-          det.map(function(d){
-            return '<div class="fila"><span>'+esc(d.cliente)+' · '+d.visitas+' visita(s)<br>'+
-              '<span style="font-size:10.5px;color:var(--gris)">rec. '+
-              esc((d.recibos||[]).join(", ")||"—")+'</span></span>'+
-              '<b>'+n1(d.kg)+' kg</b></div>';
-          }).join(""):'')+
-        (a.observaciones?'<div class="sub-tit">Observaciones</div><div style="font-size:12.5px;line-height:1.55">'+esc(a.observaciones)+'</div>':'')+
-        '<button class="btn sec mini" style="margin-top:10px" onclick="verActa(&#39;'+esc(a.actaId)+'&#39;)">Ver acta completa</button>'+
-      '</details></div>';
-  }).join("");
-
-  // ── generadores del periodo ──
-  html += '<h2 style="margin-top:18px">Generadores de origen</h2><div class="tarjeta">'+
-    gens.map(function(g){
-      return '<div class="fila"><span>'+esc(g.generador)+' · '+g.visitas+' entrega(s)</span>'+
-        '<b>'+n1(g.kg)+' kg</b></div>';
-    }).join("")+'</div>';
-
-  // ── por operador ──
-  html += '<h2>Por operador</h2><div class="tarjeta">'+
-    ops.map(function(o){
-      return '<div class="fila"><span>'+esc(o.operador)+' · '+o.actas+' acta(s)</span>'+
-        '<b>'+n1(o.kg)+' kg · '+o.bultos+' bultos</b></div>';
-    }).join("")+'</div>';
-
-  // ── evolución ──
-  if(meses.length>1){
-    html += '<h2>Mes a mes</h2><div class="tarjeta">'+
-      meses.map(function(m){
-        return '<div class="fila"><span>'+esc(mesNom(m.mes))+' · '+m.actas+' acta(s)</span>'+
-          '<b>'+n1(m.kg)+' kg</b></div>';
-      }).join("")+'</div>';
-  }
-
-  $("contenido").innerHTML=html;
+/* ═══════════ CUARENTENA Y DESPACHO ═══════════ */
+function vCuarentena() {
+  var b = B(), t = b.tratamiento || { pendientes: [] }, S = (b.salidas || { salidas: [] }).salidas;
+  var anio = MK.hoy.slice(0, 4), sa = S.filter(function (s) { return enRango(s.fecha); });
+  var tot = sa.reduce(function (a, s) { return a + s.kgPlanta; }, 0), emas = sa.reduce(function (a, s) { return a + s.kgEmas; }, 0);
+  var h = MK.cabeza('Cuarentena y despacho', 'Lo esterilizado reposa en zona limpia, se pesa después de enfriar y sale al relleno con su manifiesto.', chipsPer());
+  h += '<div class="g2m"><div class="card"><h3>En cuarentena ahora <span class="sp"></span><span class="l muted">' + MK.num(t.kgPorDespachar) + ' kg</span></h3>' +
+    (t.pendientes.length ? MK.tabla(['Ciclo', 'Fecha', 'Bolsas', '>Kg'], t.pendientes.map(function (c) { return ['<b>' + c.numero + '</b>', fdm(c.fecha), c.bolsas || '—', c.sinPeso ? '<span class="chipx warn">sin peso</span>' : MK.num(c.kgSalida, 1) + (c.estimado ? '*' : '')]; })) : MK.vacio('No hay material en cuarentena. Al registrar un ciclo, pasa aquí solo.')) +
+    MK.si('<button class="btn pri" style="margin-top:12px" onclick="despacho()"' + (t.pendientes.length ? '' : ' disabled') + '>' + MK.ic('camion', 16) + 'Preparar despacho</button>') + '</div>' +
+    '<div class="card"><h3>Despachos de ' + nomPer() + '</h3>' + MK.kpis([{ e: 'Viajes', v: sa.length, s: 'Relleno El Diamante · La Chorrera' }, { e: 'Kg despachados', v: kg(tot), s: 'pesó planta' },
+      { e: 'Sin recibo EMAS', v: sa.filter(function (s) { return !s.reciboEmas; }).length, c: sa.some(function (s) { return !s.reciboEmas; }) ? 'bad' : 'ok' }, { e: 'Diferencia', v: tot ? MK.num((emas - tot) / tot * 100, 1) + ' %' : '—', s: 'EMAS contra planta' }], 2) + '</div></div>';
+  h += '<div class="card" style="margin-top:14px">' + MK.tabla(['Despacho', 'Salida', 'Ciclos', '>Pesó planta', '>Pesó EMAS', 'Recibo', 'Vehículo', ''], sa.map(function (s) {
+    var nC = s.ciclos ? s.ciclos.split(',').filter(String).length : 0;
+    return ['<b>' + MK.esc(s.salidaId) + '</b>', fdm(s.fecha) + ' ' + MK.esc(s.horaSalida || ''), nC || '<span class="chipx warn">sin ciclos</span>', kg(s.kgPlanta), s.kgEmas ? kg(s.kgEmas) : '—',
+      s.reciboEmas ? MK.esc(s.reciboEmas) : MK.si('<button class="btn sm" onclick="event.stopPropagation();reciboEmas(\'' + s.salidaId + '\')">Anotar recibo</button>') || '<span class="chipx bad">falta</span>',
+      MK.esc(s.vehiculo) + (s.conductor ? '<small>' + MK.esc(s.conductor) + '</small>' : ''), '<button class="btn sm" onclick="event.stopPropagation();abrirDoc(\'?p=asalida&id=' + encodeURIComponent(s.salidaId) + '\')">' + MK.ic('documento', 14) + 'Manifiesto</button>'];
+  }), { vacio: 'Ningún despacho en ' + nomPer() + '.' }) + '<div class="nota">El manifiesto conserva su formato registrado (ECOVSA-FR-SAL-01). Si el ciclo y el despacho no coinciden en sus dos lados, el papel lo dice.</div></div>';
+  return h;
+}
+function despacho() {
+  var t = B().tratamiento, s = B().salidas;
+  var tot = t.pendientes.reduce(function (a, c) { return a + (c.sinPeso ? 0 : c.kgSalida); }, 0);
+  MK.lado('<h2>Preparar despacho · ' + MK.esc(s.siguienteId) + '</h2><div class="sub">Elige los ciclos que salen. Al guardar se genera el manifiesto; el recibo del relleno se anota cuando vuelve el camión.</div>' +
+    '<div class="card" style="padding:6px 12px">' + t.pendientes.map(function (c) { return '<label class="rep" style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;padding:6px 0;border-top:1px solid var(--line2)"><input type="checkbox" class="dp-ck" value="' + c.cicloId + '" data-kg="' + (c.sinPeso ? 0 : c.kgSalida) + '" checked onchange="sumaDesp()"><span>Ciclo <b>' + c.numero + '</b> · ' + fdm(c.fecha) + '</span><span class="num">' + (c.sinPeso ? 'sin peso' : kg(c.kgSalida, 1)) + '</span></label>'; }).join('') + '</div>' +
+    '<div class="small muted" id="dp-suma" style="margin-top:6px">Suma de los ciclos: ' + kg(tot, 1) + '</div>' +
+    '<div class="f2"><div><label class="lb">Kg que salen (báscula de planta)</label><input class="in" id="dp-kg" value="' + Math.round(tot) + '"></div><div><label class="lb">Fecha y hora de salida</label><div class="fila" style="flex-wrap:nowrap"><input class="in" type="date" id="dp-fec" value="' + MK.hoy + '"><input class="in" type="time" id="dp-hor"></div></div>' +
+    '<div><label class="lb">Vehículo</label><select class="in" id="dp-veh">' + (s.vehiculos || []).map(function (v) { return '<option>' + MK.esc(v) + '</option>'; }).join('') + '</select></div><div><label class="lb">Conductor</label><input class="in" id="dp-con"></div></div>' +
+    '<label class="lb">Destino</label><select class="in" id="dp-des">' + (s.destinos || []).map(function (v) { return '<option>' + MK.esc(v) + '</option>'; }).join('') + '</select>' +
+    '<label class="lb">Observaciones</label><input class="in" id="dp-obs">' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarDespacho(this)">' + MK.ic('documento', 16) + 'Generar manifiesto</button></div>');
+}
+function sumaDesp() { var s = 0; [].forEach.call(document.querySelectorAll('.dp-ck:checked'), function (e) { s += Number(e.getAttribute('data-kg')) || 0; }); document.getElementById('dp-suma').textContent = 'Suma de los ciclos: ' + kg(s, 1); }
+function guardarDespacho(btn) {
+  var ciclos = [].map.call(document.querySelectorAll('.dp-ck:checked'), function (e) { return e.value; });
+  var tr = [].reduce.call(document.querySelectorAll('.dp-ck:checked'), function (a, e) { return a + (Number(e.getAttribute('data-kg')) || 0); }, 0);
+  MK.ocupado(btn, true);
+  MK.llamar('api_guardarSalida', { salidaId: B().salidas.siguienteId, fecha: MK.val('dp-fec'), horaSalida: MK.val('dp-hor'), kgPlanta: Number(MK.val('dp-kg')) || 0, kgTratado: tr,
+    vehiculo: MK.val('dp-veh'), conductor: MK.val('dp-con'), destino: MK.val('dp-des'), ciclos: ciclos, observaciones: MK.val('dp-obs') })
+    .then(function (r) { MK.cerrarLado(); MK.aviso('Despacho ' + r.salidaId + ' guardado'); abrirDoc('?p=asalida&id=' + encodeURIComponent(r.salidaId)); MK.recargar(); }, function () { MK.ocupado(btn, false); });
+}
+function reciboEmas(id) {
+  MK.hoja('<h2>Recibo del relleno · ' + MK.esc(id) + '</h2><div class="f2"><div><label class="lb">N.º de recibo EMAS</label><input class="in" id="re-num" autofocus></div><div><label class="lb">Kg que pesó EMAS</label><input class="in" id="re-kg"></div></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="re-si">Guardar</button></div>');
+  document.getElementById('re-si').onclick = function () { MK.llamar('api_registrarReciboEmas', id, Number(MK.val('re-kg')) || 0, MK.val('re-num')).then(function () { MK.cerrarHoja(); MK.aviso('Recibo anotado'); MK.recargar(); }); };
 }
 
-function verActa(id){
-  abrirDoc("?p=acta&id="+encodeURIComponent(id));
-}
-
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
-else arrancar();
-
-function volverInicio(){
-  // dentro del iframe, location.href es una URL interna de Google: da página en blanco
-  if(URL_LOBBY){ irA(URL_LOBBY); return; }
-  google.script.run
-    .withSuccessHandler(function(u){ if(u) irA(u); })
-    .withFailureHandler(function(){})
-    .api_urlApp();
-}
-
-var URL_LOBBY = "";
-(function(){
-  if(window.google && google.script && google.script.run)
-    google.script.run.withSuccessHandler(function(u){ URL_LOBBY = u || ""; }).api_urlApp();
-})();
-
-
-var ROTULO={admin:"Administración",supervisor:"Supervisión de operaciones",
-  gerente:"Gerencia",mercadeo:"Mercadeo",planta:"Supervisor de planta",operador:"Operador"};
-
-
-/* ═══════════════ PESTAÑAS DE PLANTA ═══════════════ */
-var TAB_P = "recepcion", TRA = null, SAL = null, MTO = null, CON = null;
-
-function pintarTabsPlanta(){
-  var t = [["recepcion","Actas recibidas"],["tratamiento","Tratamiento"],
-           ["salidas","Salidas al relleno"],["mantenimiento","Mantenimiento"],
-           ["consumibles","Consumibles"]];
-  $("tabs").innerHTML = t.map(function(z){
-    return '<button class="'+(TAB_P===z[0]?"on":"")+'" onclick="verTabP(&#39;'+z[0]+'&#39;)">'+z[1]+'</button>';
-  }).join("");
-}
-
-function verTabP(v){
-  TAB_P = v;
-  document.querySelectorAll(".vista").forEach(function(z){ z.classList.remove("on"); });
-  $("v-"+v).classList.add("on");
-  pintarTabsPlanta();
-  /* la primera vez que se entra, se le pone su rango por defecto */
-  if(v==="tratamiento" && !$("tra-desde").value){ rangoTra("mes"); return; }
-  if(v==="salidas" && !$("sal-desde").value){ rangoSal("mes"); return; }
-  if(v==="tratamiento" && !TRA) cargarTratamiento();
-  if(v==="salidas" && !SAL) cargarSalidas();
-  if(v==="mantenimiento" && !MTO) cargarMantenimiento();
-  if(v==="consumibles" && !CON) cargarConsumibles();
-}
-
-function num(v){ var n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:0; }
-function n1(v){ return Number(v||0).toLocaleString("es-PA",{minimumFractionDigits:1,maximumFractionDigits:1}); }
-
-/* ═══ Tratamiento ═══ */
-function cargarTratamiento(){
-  $("tra-lista").innerHTML = '<div class="vacio">Consultando…</div>';
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ $("tra-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo cargar")+'</div>'; return; }
-      TRA = r; pintarTratamiento();
-    })
-    .withFailureHandler(function(){ $("tra-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
-    .api_tratamiento(PIN, $("tra-desde").value||"", $("tra-hasta").value||"");
-}
-
-function pintarTratamiento(){
-  var t = TRA.totales, R = TRA.receta;
-  $("tra-kpis").innerHTML = '<div class="kpis">'+
-    '<div class="kpi"><div class="e">Entró a planta</div><div class="v">'+n1(t.kgEntrado)+'</div>'+
-      '<div class="s">kg en '+t.actas+' acta(s)</div></div>'+
-    '<div class="kpi ok"><div class="e">Tratado</div><div class="v">'+n1(t.kgTratado)+'</div>'+
-      '<div class="s">kg · <b>'+t.ciclos+' ciclo(s)</b> corridos</div></div>'+
-    '<div class="kpi'+(t.porTratar>0?' avi':'')+'"><div class="e">Por tratar</div>'+
-      '<div class="v">'+n1(t.porTratar)+'</div><div class="s">kg en planta'+
-      (t.ciclosPorTratar
-        ? ' · <b>~'+t.ciclosPorTratar+' ciclo(s)</b><br>a '+n1(t.cargaTipica)+' kg por ciclo'+
-          (t.cargaMedida?' (promedio del periodo)':' (referencia)')
-        : '')+'</div></div>'+
-    /* Horas de uso del autoclave. Solo horas anotadas: donde no hay hora no se
-       estima nada, y la tarjeta dice sobre cuántos ciclos está calculada. */
-    '<div class="kpi"><div class="e">Uso del autoclave</div>'+
-      '<div class="v">'+(t.ciclosConHora? n1(t.horasUso)+' h' : '—')+'</div>'+
-      '<div class="s">'+(t.ciclosConHora
-        ? 'sobre '+t.ciclosConHora+' ciclo(s) con hora anotada'+
-          (t.ciclosSinHora? '<br>'+t.ciclosSinHora+' sin hora, fuera del cálculo':'')
-        : 'ningún ciclo del periodo tiene hora anotada')+'</div></div>'+
-    '<div class="kpi"><div class="e">Merma del proceso</div>'+
-      '<div class="v">'+(t.merma===null?'—':t.merma+'%')+'</div>'+
-      '<div class="s">'+(t.merma===null
-        ? 'sin pesos medidos todavía'
-        : 'sobre '+t.ciclosConPeso+' ciclo(s) pesados')+'</div></div>'+
-    '<div class="kpi'+(t.fallidas?' mal':' ok')+'"><div class="e">Indicador químico</div>'+
-      '<div class="v">'+t.pruebas+'</div><div class="s">'+
-      (t.fallidas? t.fallidas+' con falla' : 'ciclos con cinta conforme')+'</div></div>'+
-  '</div>';
-
-  $("tra-aviso").innerHTML =
-    (t.ciclosEstimados
-      ? '<div class="nota">'+t.ciclosEstimados+' ciclo(s) sin peso de salida anotado. '+
-        'Mientras falte se usa el de entrada como referencia. El material tratado reposa en '+
-        'cuarentena y <b>se pesa en la báscula de planta al despacharlo</b>; el del relleno es '+
-        'el que prevalece para la disposición final.</div>'
-      : '')+
-    (t.deMantenimiento
-      ? '<div class="nota">'+t.deMantenimiento+' ciclo(s) de prueba sin carga en el periodo. '+
-        'No suman kilos ni entran en la merma: están para que el contador del equipo no quede '+
-        'con huecos sin explicar.</div>'
-      : '')+
-    /* La cinta va en cada ciclo. Un ciclo sin ella es un ciclo sin su
-       control más básico, y eso se avisa. */
-    (TRA.sinQuimico
-      ? '<div class="nota"><b>'+TRA.sinQuimico+' ciclo(s) de este mes sin indicador químico.</b> '+
-        'La cinta va en cada ciclo.</div>'
-      : '')+
-    /* Y la biológica es otra cosa: mensual, y todavía sin viales. */
-    (TRA.tocaBiologica
-      ? '<div class="nota"><b>Este mes todavía no tiene verificación biológica.</b> '+
-        'El protocolo la fija mensual, en el último ciclo antes del despacho, con vial Attest '+
-        'incubado — no con la cinta, que es un indicador químico y solo dice que hubo calor.</div>'
-      : '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
-        'color:var(--verde)"><b>Verificación biológica del mes hecha</b> en el ciclo '+
-        esc(TRA.bioDelMes.cicloId)+' del '+esc(TRA.bioDelMes.fecha)+
-        (TRA.bioDelMes.resultado? ' · '+esc(TRA.bioDelMes.resultado) : '')+'.</div>')+
-    (t.fallidas
-      ? '<div class="nota" style="background:var(--rojo-suave);border-left-color:var(--rojo);'+
-        'color:var(--rojo)"><b>'+t.fallidas+' prueba(s) con resultado no conforme.</b> '+
-        'Ese material debe reesterilizarse antes de despacharlo.</div>'
-      : '');
-
-  if(TRA.puedeEditar){
-    $("tra-form").style.display = "block";
-    $("tra-carga").style.display = "";
-    if(!$("c-fecha").value) $("c-fecha").value = TRA.hoy;
-    if(!$("c-numero").value) $("c-numero").value = TRA.siguienteNumero;
-    if(!$("c-temp").value) $("c-temp").value = R.temperatura;
-    if(!$("c-min").value) $("c-min").value = R.minutos;
-    pintarCajaPrueba();
-  }
-
-  pintarCiclos();
-}
-
-/* ═══ LA LISTA DE CICLOS ═══════════════════════════════════════════
-   Ficha cerrada: el número del equipo y cuándo corrió. Nada más. Lo que uno
-   busca en una lista de ciclos es encontrar UNO, y para eso sobra todo lo
-   demás. Al tocarla se abre con todo lo registrado y con qué hacerle. */
-var CICLO_ABIERTO = "";
-
-function verCiclo(id){
-  CICLO_ABIERTO = (CICLO_ABIERTO === id) ? "" : id;
-  pintarCiclos();
-}
-
-function pintarCiclos(){
-  if(!TRA){ return; }
-  var l = TRA.ciclos || [];
-  if(!l.length){
-    $("tra-lista").innerHTML='<div class="vacio">No hay ciclos registrados en este periodo.</div>';
-    return;
-  }
-  $("tra-lista").innerHTML = '<h2>Ciclos del periodo · '+l.length+'</h2>' +
-    l.map(function(c){ return fichaCiclo(c); }).join("");
-}
-
-function fichaCiclo(c){
-  var abierta = (CICLO_ABIERTO === c.cicloId);
-  var clase = 'ciclo' + (c.anulado ? ' anulado' : (c.esPrueba ? ' de-prueba' : (c.salida ? '' : ' sin-salida')));
-
-  var enc = '<div class="enc" style="cursor:pointer" onclick="verCiclo(&#39;'+esc(c.cicloId)+'&#39;)">'+
-    '<span class="n">Ciclo '+c.numero+'</span>'+
-    '<span class="cuando">'+esc(c.fecha)+
-      (c.horaInicio ? ' · '+esc(c.horaInicio)+(c.horaFinal?' a '+esc(c.horaFinal):'') : '')+'</span>'+
-    (c.anulado  ? '<span class="pill-p mal">anulado</span>' : '')+
-    (c.esPrueba ? '<span class="pill-p esp">de prueba</span>' : '')+
-    (c.sinPeso && !c.anulado ? '<span class="pill-p avi">sin peso</span>' : '')+
-    (!c.anulado && !c.esPrueba
-      ? (c.salida ? '<span class="pill-p ok">'+esc(c.salida)+'</span>'
-                  : '<span class="pill-p esp">en cuarentena</span>')
-      : '')+
-    (!c.anulado && !c.esPrueba
-      ? '<span class="kg">'+(c.sinPeso ? '— kg' : n1(c.kgEntrada)+' kg')+'</span>' : '')+
-    '<span class="fl">&#9662;</span></div>';
-
-  if(!abierta) return '<div class="'+clase+'">'+enc+'</div>';
-
-  /* Anulado: la ficha ES la justificación. El número sigue ahí, en su fecha,
-     diciendo por qué se anuló y quién lo hizo — un ciclo borrado y un ciclo
-     que nunca se anotó se ven igual desde afuera, y eso no le conviene a
-     nadie en una auditoría. */
-  if(c.anulado){
-    return '<div class="'+clase+'">'+enc+
-      '<div class="par"><b>Ciclo anulado.</b><br>'+esc(c.motivoAnulacion||"Sin motivo escrito.")+
-      '<br><span style="font-size:11px">Lo anuló '+esc(c.anuladoPor||"—")+
-      (c.fechaAnulacion? ' el '+esc(c.fechaAnulacion):'')+'</span></div></div>';
-  }
-
-  var merma = c.kgEntrada ? Math.round((c.kgEntrada-c.kgSalida)/c.kgEntrada*1000)/10 : 0;
-  var d = '<div class="det">'+
-    fila("Número del equipo", c.numero)+
-    fila("Fecha", esc(c.fecha))+
-    fila("Horario", c.horaInicio ? esc(c.horaInicio)+' a '+esc(c.horaFinal||"--:--")+
-         (c.duracionTotal? ' · '+c.duracionTotal+' min' : '') : "—")+
-    (c.esPrueba
-      ? fila("Carga", "ciclo de prueba, sin carga")
-      /* Un cero en bolsas afirma que el ciclo corrió sin ninguna, que es
-         falso: es que no se anotaron. Y las bolsas son un estimado hecho al
-         vuelo mientras se alimenta la trituradora — el dato medido es el
-         peso —, así que se dice que es aproximado. */
-      : fila("Bolsas (aprox.)", c.bolsas ? c.bolsas : '<span class="cta">no se anotaron</span>')+
-        fila("Kg que entraron", c.sinPeso
-             ? '— <span class="cta">no quedó anotado</span>' : n1(c.kgEntrada))+
-        fila("Kg que salieron", c.sinPeso
-             ? '— <span class="cta">sin peso de entrada no hay merma</span>'
-             : (c.salidaEstimada ? '— <span class="cta">sin pesar todavía</span>'
-                                 : n1(c.kgSalida)+' <span class="cta">merma '+merma+'%</span>')))+
-    fila("Receta", c.temperatura+' °C · '+c.minutos+' min')+
-    fila("Indicador químico", c.quimico ? esc(c.resultadoQuimico||"conforme") : "no se anotó")+
-    fila("Verificación biológica", c.biologico ? esc(c.resultadoBiologico||"realizada") : "—")+
-    fila("Operador", esc(c.operador||"—"))+
-    fila("Despacho", c.salida ? esc(c.salida) : "en cuarentena, sin despachar")+
-    (c.obs ? fila("Observaciones", esc(c.obs)) : "")+
-  '</div>';
-
-  var acciones = TRA.puedeEditar
-    ? '<div class="acc">'+
-      '<button class="btn mini sec" onclick="abrirEditarCiclo(&#39;'+esc(c.cicloId)+'&#39;)">Editar</button>'+
-      (c.salida
-        ? '<span class="cta">Ya despachado: no se puede anular.</span>'
-        : '<button class="btn mini mal" onclick="abrirAnularCiclo(&#39;'+esc(c.cicloId)+'&#39;)">Anular</button>')+
-      '</div>'
-    : '';
-
-  return '<div class="'+clase+'">'+enc+d+acciones+'</div>';
-}
-
-function fila(r,v){ return '<div class="f"><span>'+r+'</span><b>'+v+'</b></div>'; }
-function ciclo_(id){
-  var l=(TRA&&TRA.ciclos)||[];
-  for(var i=0;i<l.length;i++) if(l[i].cicloId===id) return l[i];
-  return null;
-}
-
-/* ═══ Corregir un ciclo mal registrado ═══ */
-function abrirEditarCiclo(id){
-  var c = ciclo_(id); if(!c) return;
-  $("mod-tit").textContent = "Corregir el ciclo "+c.numero;
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota">El número del equipo y la fecha no se cambian aquí: con ellos se arma '+
-    'el código del ciclo, y los despachos guardan ese código para saber qué llevan. Si el '+
-    'número está mal, se anula el ciclo y se registra de nuevo.</div>'+
-    '<div class="rejilla" style="margin-top:12px">'+
-      '<div><label>Hora de inicio</label><input id="e-hini" type="time" value="'+esc(c.horaInicio||"")+'"></div>'+
-      '<div><label>Hora de fin</label><input id="e-hfin" type="time" value="'+esc(c.horaFinal||"")+'"></div>'+
-      '<div><label>Bolsas</label><input id="e-bolsas" inputmode="numeric" value="'+c.bolsas+'"></div>'+
-      '<div><label>Kg que entraron</label><input id="e-kgin" inputmode="decimal" value="'+(c.kgEntrada||"")+'"></div>'+
-      '<div><label>Kg que salieron</label><input id="e-kgout" inputmode="decimal" value="'+(c.salidaEstimada?"":c.kgSalida)+'"></div>'+
-      '<div><label>Temperatura °C</label><input id="e-temp" inputmode="decimal" value="'+c.temperatura+'"></div>'+
-      '<div><label>Minutos</label><input id="e-min" inputmode="numeric" value="'+c.minutos+'"></div>'+
-      '<div><label>Operador</label><input id="e-oper" value="'+esc(c.operador||"")+'"></div>'+
-    '</div>'+
-    '<label class="chk-linea" style="margin-top:11px"><input type="checkbox" id="e-esprueba"'+
-      (c.esPrueba?' checked':'')+'> Ciclo de prueba, sin carga</label>'+
-    '<label class="chk-linea"><input type="checkbox" id="e-quim"'+(c.quimico?' checked':'')+
-      '> Se puso indicador químico (cinta 3M)</label>'+
-    '<div><label>Resultado del indicador</label>'+
-      '<input id="e-resq" value="'+esc(c.resultadoQuimico||"")+'" placeholder="Conforme / No conforme"></div>'+
-    '<label class="chk-linea" style="margin-top:9px"><input type="checkbox" id="e-bio"'+(c.biologico?' checked':'')+
-      '> Se hizo verificación biológica (vial Attest)</label>'+
-    '<div><label>Resultado biológico</label>'+
-      '<input id="e-resb" value="'+esc(c.resultadoBiologico||"")+'" placeholder="Negativo / Positivo"></div>'+
-    '<label style="margin-top:9px">Observaciones</label>'+
-    '<input id="e-obs" value="'+esc(c.obs||"")+'">'+
-    '<div id="mod-msg" class="nota" style="display:none"></div>'+
-    '<button class="btn" style="width:100%;margin-top:14px" onclick="guardarEdicion(&#39;'+esc(id)+'&#39;)">'+
-      'Guardar la corrección</button>';
-  abrirModal();
-}
-
-function guardarEdicion(id){
-  var d = { horaInicio:$("e-hini").value, horaFinal:$("e-hfin").value,
-            bolsas:num($("e-bolsas").value), kgEntrada:num($("e-kgin").value),
-            kgSalida:num($("e-kgout").value), temperatura:num($("e-temp").value),
-            minutos:num($("e-min").value), operador:$("e-oper").value,
-            observaciones:$("e-obs").value, esPrueba:$("e-esprueba").checked,
-            pruebaBiologica:$("e-quim").checked, resultadoPrueba:$("e-resq").value,
-            verifBiologica:$("e-bio").checked, resultadoBiologico:$("e-resb").value };
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){ modMsg((r&&r.error)||"No se pudo guardar."); return; }
-      cerrarModal(); toast("Ciclo corregido ✓");
-      TRA=null; cargarTratamiento();
-    })
-    .withFailureHandler(function(){ modMsg("Sin conexión con el servidor."); })
-    .api_editarCiclo(PIN, id, d);
-}
-
-/* ═══ Anular ═══ */
-function abrirAnularCiclo(id){
-  var c = ciclo_(id); if(!c) return;
-  $("mod-tit").textContent = "Anular el ciclo "+c.numero;
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota" style="background:var(--rojo-suave);border-left-color:var(--rojo);color:var(--rojo)">'+
-      '<b>El ciclo no se borra.</b> Su ficha pasa a mostrar esta justificación, con tu nombre y '+
-      'la fecha. Se hace así a propósito: el número lo lleva el contador del autoclave, y un '+
-      'ciclo desaparecido deja un hueco idéntico al de un ciclo que nadie anotó.</div>'+
-    '<label style="margin-top:12px">¿Por qué se anula?</label>'+
-    '<input id="a-motivo" placeholder="Ej: se registró con el peso de otro ciclo">'+
-    '<div id="mod-msg" class="nota" style="display:none"></div>'+
-    '<button class="btn mal" style="width:100%;margin-top:14px" onclick="confirmarAnular(&#39;'+esc(id)+'&#39;)">'+
-      'Anular el ciclo</button>';
-  abrirModal();
-  setTimeout(function(){ var e=$("a-motivo"); if(e) e.focus(); }, 80);
-}
-
-function confirmarAnular(id){
-  var m = ($("a-motivo").value||"").trim();
-  if(m.length < 5){ modMsg("Escribe por qué se anula. Queda en el registro."); return; }
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){ modMsg((r&&r.error)||"No se pudo anular."); return; }
-      cerrarModal(); toast("Ciclo anulado ✓");
-      TRA=null; cargarTratamiento();
-    })
-    .withFailureHandler(function(){ modMsg("Sin conexión con el servidor."); })
-    .api_anularCiclo(PIN, id, m);
-}
-
-/* ═══ Descargar lo que está filtrado ═══
-   Un texto plano, que es lo que se puede abrir en cualquier lado y adjuntar
-   a un correo sin que nadie tenga que instalar nada. Si el navegador no deja
-   descargar desde aquí dentro, se muestra para copiar. */
-function bajarCiclos(){
-  if(!TRA || !TRA.ciclos || !TRA.ciclos.length){ toast("No hay ciclos en este periodo"); return; }
-  var L = [];
-  L.push("CICLOS DE TRATAMIENTO — ECOVSA");
-  L.push("Periodo: " + (TRA.desde||"inicio") + " a " + (TRA.hasta||"hoy"));
-  L.push("Receta: " + TRA.receta.temperatura + " C · " + TRA.receta.minutos +
-         " min · capacidad " + TRA.receta.capacidadKg + " kg por ciclo");
-  L.push("Generado el " + (TRA.hoy||"") + " por " + ((TRA.usuario&&TRA.usuario.nombre)||""));
-  L.push("");
-  L.push(["CICLO","N","FECHA","INICIO","FIN","BOLSAS","KG ENTRADA","KG SALIDA",
-          "TEMP","MIN","QUIMICO","BIOLOGICO","DESPACHO","ESTADO","OPERADOR"].join("\t"));
-  TRA.ciclos.forEach(function(c){
-    L.push([c.cicloId, c.numero, c.fecha, c.horaInicio||"", c.horaFinal||"",
-            c.esPrueba?"":c.bolsas, c.esPrueba?"":c.kgEntrada,
-            c.esPrueba?"":(c.salidaEstimada?"":c.kgSalida),
-            c.temperatura, c.minutos,
-            c.quimico?(c.resultadoQuimico||"conforme"):"",
-            c.biologico?(c.resultadoBiologico||"realizada"):"",
-            c.salida||"",
-            c.anulado?("ANULADO: "+c.motivoAnulacion):(c.esPrueba?"prueba sin carga":"tratado"),
-            c.operador||""].join("\t"));
+/* ═══════════ MANTENIMIENTO DE EQUIPOS ═══════════ */
+function vMantenimiento() {
+  var b = B(), M = b.mantenimiento || { servicios: [], equiposBase: [] }, E = b.equipos || [];
+  var base = (M.equiposBase || []).filter(function (x) { return x !== 'Otro'; });
+  var tarjetas = base.map(function (nom) {
+    var a = E.filter(function (x) { return x.nombre.toUpperCase() === nom.toUpperCase(); })[0];
+    var serv = M.servicios.filter(function (s) { return s.equipo.toUpperCase() === nom.toUpperCase(); });
+    return { nom: nom, a: a, serv: serv };
   });
-  var t = TRA.totales;
-  L.push("");
-  L.push("Ciclos que cuentan: " + t.ciclos + " · de prueba: " + t.deMantenimiento +
-         " · anulados: " + t.anulados);
-  L.push("Kg tratados: " + t.kgTratado + " · merma: " + (t.merma===null?"sin pesos medidos":t.merma+"%"));
-  var txt = L.join("\n");
-  var nombre = "ciclos_" + (TRA.desde||"") + "_" + (TRA.hasta||"") + ".txt";
-  try{
-    var b = new Blob([txt], {type:"text/plain;charset=utf-8"});
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(b); a.download = nombre;
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-    toast("Descargando " + nombre);
-  }catch(e){
-    $("mod-tit").textContent = "Ciclos del periodo";
-    $("mod-cuerpo").innerHTML = '<div class="nota">El navegador no dejó descargar desde aquí. '+
-      'Selecciona el texto y cópialo.</div>'+
-      '<textarea readonly style="width:100%;height:320px;font-family:monospace;font-size:11px;'+
-      'margin-top:10px">'+esc(txt)+'</textarea>';
-    abrirModal();
-  }
+  E.forEach(function (a) { if (!base.some(function (n) { return n.toUpperCase() === a.nombre.toUpperCase(); })) tarjetas.push({ nom: a.nombre, a: a, serv: M.servicios.filter(function (s) { return s.equipo.toUpperCase() === a.nombre.toUpperCase(); }) }); });
+  var sp = (b.spEquipos || []).filter(function (x) { return !x.servicio; });
+  var h = MK.cabeza('Mantenimiento de equipos', 'Igual que el de la flota: cada equipo con su plan y su historial. Los mismos equipos que ve Administración.');
+  if (!E.length && !M.servicios.length) h += '<div class="aviso am" style="margin-bottom:14px"><b>Ningún equipo de planta tiene plan ni historial.</b>' + (sp.length ? ' Y hay ' + sp.length + ' solicitud(es) de pago de servicios de equipos que no están anotadas aquí.' : '') + '</div>';
+  var ic = { Autoclave: 'fuego', Caldera: 'fuego', 'Báscula': 'balanza' };
+  h += '<div class="eqs">' + tarjetas.map(function (t) {
+    var a = t.a, tareas = a ? a.tareas : [];
+    var est = a ? a.estado2 : 'sin plan', tono = est === 'VENCIDO' ? 'bad' : est === 'POR VENCER' ? 'warn' : a ? 'ok' : 'warn';
+    var ult = t.serv[0];
+    return '<div class="card eq"><div class="h"><span class="ic2">' + MK.ic(ic[t.nom] || 'llaveInglesa', 17) + '</span><b>' + MK.esc(t.nom) + '</b><span class="sp"></span><span class="chipx ' + tono + '">' + (a ? (est === 'al día' ? (tareas.length ? 'al día' : 'sin tareas') : est.toLowerCase()) : 'sin plan') + '</span></div>' +
+      '<div class="tar">' + (tareas.length ? tareas.map(function (x) { return '<span>' + MK.esc(x.tarea) + ' · ' + (x.vence ? (x.faltanDias < 0 ? '<b style="color:var(--bad)">venció ' + fdm(x.vence) + '</b>' : 'vence ' + fdm(x.vence)) : 'sin fecha de partida') + '</span>'; }).join('') : '<span>' + (a ? 'Tiene ficha pero ninguna tarea' : 'Sin plan') + '</span>') +
+      '<span>' + (ult ? 'Último servicio: ' + MK.esc(ult.tipo) + ' el ' + fdm(ult.fecha) + (ult.empresa ? ' · ' + MK.esc(ult.empresa) : '') : 'Sin historial') + '</span></div>' +
+      '<div class="fila" style="gap:6px;margin-top:auto">' + MK.si('<button class="btn sm pri" onclick="servicio(\'' + MK.esc(t.nom) + '\')">' + MK.ic('mas', 14) + 'Registrar servicio</button>') +
+      (!a && b.puedeActivos ? '<button class="btn sm" onclick="crearEquipo(\'' + MK.esc(t.nom) + '\',' + (t.nom === 'Autoclave') + ')">' + (t.nom === 'Autoclave' ? 'Crear con el plan sugerido' : 'Crear ficha') + '</button>' : '') +
+      (a && b.puedeActivos ? '<a class="btn sm" href="Administracion.html">Editar plan</a>' : '') + '</div></div>';
+  }).join('') + '</div>';
+  if (sp.length) h += '<div class="card" style="margin-top:14px"><h3>Solicitudes de pago de equipos sin anotar como servicio</h3>' + MK.tabla(['Solicitud', 'Fecha', 'Proveedor', 'Concepto', '>Total', ''], sp.map(function (x) { return ['<b>' + MK.esc(x.solicitudId) + '</b>', fdm(x.fecha), MK.esc(x.proveedor), MK.esc(x.concepto), D(x.total), MK.si('<button class="btn sm" onclick="servicio(\'\',\'' + x.solicitudId + '\')">Anotar el servicio</button>')]; })) + '<div class="nota">Salen por palabras del concepto (autoclave, caldera, calibración, báscula…). Si alguna no es de planta, no hace falta hacer nada.</div></div>';
+  h += '<div class="card" style="margin-top:14px"><h3>Plan sugerido para el autoclave</h3><div class="small muted" style="margin-bottom:8px">se ajusta con Alejandro y el manual del equipo</div>' +
+    MK.tabla(['Tarea', 'Cada', 'Nota'], (b.planSugerido || []).map(function (t) { return [MK.esc(t.tarea), t.cadaDias + ' días', MK.esc(t.notas)]; })) + '</div>';
+  h += '<div class="card" style="margin-top:14px"><h3>Historial</h3>' + MK.tabla(['Fecha', 'Equipo', 'Tipo', 'Empresa', 'Resultado', '>Costo'], M.servicios.map(function (s) { return [fdm(s.fecha), MK.esc(s.equipo), MK.esc(s.tipo), MK.esc(s.empresa), MK.esc(s.resultado), s.costo ? D(s.costo) : '—']; }), { vacio: 'Sin servicios anotados todavía.' }) + '</div>';
+  return h;
+}
+function servicio(equipo, spId) {
+  var b = B(), sp = (b.spEquipos || []).filter(function (x) { return x.solicitudId === spId; })[0];
+  if (!equipo && sp) { var m = /(autoclave|caldera|triturador|b[aá]scula|hidrolavadora|planta el[eé]ctrica)/i.exec(sp.concepto); equipo = m ? ({ autoclave: 'Autoclave', caldera: 'Caldera', triturador: 'Triturador', 'báscula': 'Báscula', bascula: 'Báscula', hidrolavadora: 'Hidrolavadora' }[m[1].toLowerCase()] || 'Planta eléctrica') : 'Autoclave'; }
+  var a = (b.equipos || []).filter(function (x) { return x.nombre.toUpperCase() === String(equipo).toUpperCase(); })[0];
+  var tipos = (b.mantenimiento || {}).tipos || ['Preventivo', 'Correctivo', 'Calibración', 'Inspección'];
+  var tipoSug = sp && /calibra/i.test(sp.concepto) ? 'Calibración' : sp && /hermetic/i.test(sp.concepto) ? 'Prueba de hermeticidad' : 'Preventivo';
+  MK.lado('<h2>Registrar servicio · ' + MK.esc(equipo) + '</h2><div class="sub">Queda en el historial del equipo' + (a && a.tareas.length ? ' y reinicia el reloj de las tareas que marques' : '') + '.</div>' +
+    '<div class="f2"><div><label class="lb">Equipo</label><select class="in" id="sv-eq">' + ((b.mantenimiento || {}).equiposBase || []).map(function (x) { return '<option' + (x === equipo ? ' selected' : '') + '>' + MK.esc(x) + '</option>'; }).join('') + '</select></div>' +
+    '<div><label class="lb">Tipo</label><select class="in" id="sv-tip">' + tipos.map(function (x) { return '<option' + (x === tipoSug ? ' selected' : '') + '>' + MK.esc(x) + '</option>'; }).join('') + '</select></div>' +
+    '<div><label class="lb">Fecha</label><input class="in" type="date" id="sv-fec" value="' + (sp ? sp.fecha : MK.hoy) + '" max="' + MK.hoy + '"></div><div><label class="lb">Próximo</label><input class="in" type="date" id="sv-pro"></div>' +
+    '<div><label class="lb">Empresa</label><input class="in" id="sv-emp" value="' + MK.esc(sp ? sp.proveedor : '') + '"></div><div><label class="lb">Costo</label><input class="in" id="sv-cos" value="' + (sp ? sp.total : '') + '"></div></div>' +
+    '<label class="lb">Solicitud de pago</label><select class="in" id="sv-sp"><option value="">— ninguna —</option>' + (b.spEquipos || []).map(function (x) { return '<option value="' + x.solicitudId + '"' + (x.solicitudId === spId ? ' selected' : '') + '>' + MK.esc(x.solicitudId + ' · ' + x.proveedor + ' · ' + D(x.total)) + '</option>'; }).join('') + '</select>' +
+    (a && a.tareas.length ? '<label class="lb">Tareas del plan que cumple</label><div class="chk">' + a.tareas.map(function (t) { return '<label><input type="checkbox" class="sv-t" value="' + t.planId + '"><span><b>' + MK.esc(t.tarea) + '</b>' + (t.vence ? 'vence ' + fdm(t.vence) : '') + '</span></label>'; }).join('') + '</div>' : '') +
+    '<label class="lb">Resultado</label><input class="in" id="sv-res" placeholder="Conforme, con observaciones…"><label class="lb">Observaciones</label><textarea class="in" id="sv-obs">' + MK.esc(sp ? sp.concepto : '') + '</textarea>' +
+    '<div class="small muted" style="margin-top:6px">El certificado del servicio (PDF o foto) se podrá adjuntar cuando esté el almacenamiento de archivos.</div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarServicio(this,\'' + (a ? a.activoId : '') + '\')">' + MK.ic('check', 16) + 'Guardar servicio</button></div>');
+}
+function guardarServicio(btn, activoId) {
+  var d = { activoId: activoId, equipo: MK.val('sv-eq'), tipo: MK.val('sv-tip'), fecha: MK.val('sv-fec'), proximo: MK.val('sv-pro'), empresa: MK.val('sv-emp'), costo: Number(MK.val('sv-cos').replace(/[^0-9.]/g, '')) || 0,
+    solicitudId: MK.val('sv-sp'), resultado: MK.val('sv-res'), observaciones: MK.val('sv-obs'), planIds: [].map.call(document.querySelectorAll('.sv-t:checked'), function (e) { return e.value; }) };
+  var a = (B().equipos || []).filter(function (x) { return x.activoId === activoId; })[0];
+  if (a && a.nombre.toUpperCase() !== d.equipo.toUpperCase()) d.activoId = '';
+  MK.ocupado(btn, true);
+  MK.llamar('api_plaServicio', d).then(function () { MK.cerrarLado(); MK.aviso('Servicio anotado'); MK.recargar(); }, function () { MK.ocupado(btn, false); });
+}
+function crearEquipo(nom, conPlan) {
+  MK.confirmar(conPlan ? 'Se crea la ficha del autoclave en Administración con las 4 tareas del plan sugerido (hermeticidad, calibración, inspección de empaques y contador). Las fechas arrancan cuando se anote el primer servicio de cada una.' : 'Se crea la ficha de ' + nom + ' en Administración, sin tareas.', function () {
+    MK.llamar('api_plaCrearEquipo', nom, !!conPlan).then(function (r) { MK.aviso('Listo' + (r.tareas ? ' · ' + r.tareas + ' tareas' : '')); MK.recargar(); });
+  }, { titulo: 'Crear ' + nom, boton: 'Crear' });
 }
 
-/* ═══ la ventana ═══ */
-function abrirModal(){ $("velo").className = "velo abierto"; }
-function cerrarModal(){ $("velo").className = "velo"; }
-function modMsg(t){ var m=$("mod-msg"); if(!m) return;
-  m.style.display="block"; m.style.background="var(--rojo-suave)";
-  m.style.borderLeftColor="var(--rojo)"; m.style.color="var(--rojo)"; m.textContent=t; }
-
-function pintarEsPrueba(){
-  var p  = $("c-esprueba").checked;
-  var sp = $("c-sinpeso") && $("c-sinpeso").checked;
-  /* Las dos casillas dicen cosas distintas y no pueden estar marcadas a la
-     vez: «sin carga» y «con carga pero sin peso anotado» se excluyen. */
-  if(p && sp){ $("c-sinpeso").checked = false; sp = false; }
-  var bloquea = p || sp;
-  ["c-kgin","c-kgout"].forEach(function(i){
-    var e=$(i); if(!e) return;
-    e.disabled = bloquea; e.style.background = bloquea ? "#F1F3F6" : "";
-    if(bloquea) e.value = "";
-  });
-  /* Las bolsas sí se pueden anotar aunque el peso no: son dos datos
-     distintos y uno puede existir sin el otro. */
-  var b=$("c-bolsas");
-  if(b){ b.disabled = p; b.style.background = p ? "#F1F3F6" : ""; if(p) b.value=""; }
+/* ═══════════ CONSUMIBLES ═══════════ */
+function vConsumibles() {
+  var b = B(), K = b.consumibles || { consumos: [], articulos: [] };
+  var cs = K.consumos.filter(function (c) { return enRango(c.fecha); });
+  var por = {};
+  cs.forEach(function (c) { var k = c.articulo.toUpperCase(); por[k] = por[k] || { c: 0, u: c.unidad }; por[k].c += c.cantidad; });
+  var ciclosPer = ((b.tratamiento || {}).ciclos || []).filter(function (c) { return enRango(c.fecha) && !c.anulado && !c.esPrueba; });
+  var cintas = (por['CINTA 3M'] || { c: 0 }).c, acpm = (por['ACPM'] || { c: 0 }).c;
+  var horas = 0; ciclosPer.forEach(function (c) { var m = function (s) { var x = /^(\d{1,2}):(\d{2})/.exec(s || ''); return x ? Number(x[1]) * 60 + Number(x[2]) : null; }; var a = m(c.horaInicio), z = m(c.horaFinal); if (a != null && z != null) { var d = z - a; if (d < 0) d += 1440; if (d > 0 && d < 720) horas += d / 60; } });
+  var h = MK.cabeza('Consumibles', 'Lo que se gasta en planta: EPP, químicos y combustible. ' + nomPer().replace(/^./, function (x) { return x.toUpperCase(); }) + '.', chipsPer());
+  h += MK.si('<div class="card" style="margin-bottom:14px"><h3>Anotar un consumo</h3><div class="f3" style="grid-template-columns:1.3fr 1fr 1fr 1fr auto;align-items:end">' +
+    '<div><label class="lb">Artículo</label><select class="in" id="cs-art">' + K.articulos.map(function (a) { return '<option>' + MK.esc(a) + '</option>'; }).join('') + '</select></div>' +
+    '<div><label class="lb">Cantidad</label><input class="in" id="cs-can" inputmode="decimal"></div><div><label class="lb">Unidad</label><input class="in" id="cs-uni" placeholder="unidades, galones…"></div>' +
+    '<div><label class="lb">Fecha</label><input class="in" type="date" id="cs-fec" value="' + MK.hoy + '"></div><button class="btn pri" onclick="guardarConsumo(this)">' + MK.ic('check', 16) + 'Anotar</button></div></div>');
+  h += '<div class="card" style="margin-bottom:14px"><h3>' + MK.esc(nomPer()) + '</h3><div class="arts">' + K.articulos.filter(function (a) { return a !== 'OTRO'; }).map(function (a) { var x = por[a.toUpperCase()]; return '<div class="art">' + MK.esc(a.charAt(0) + a.slice(1).toLowerCase()) + '<span>' + (x ? MK.num(x.c, 1) + ' ' + MK.esc(x.u || '') : '—') + '</span></div>'; }).join('') + '</div>' +
+    (cs.length ? '' : '<div class="nota">Ningún consumo anotado en ' + nomPer() + '.</div>') + '</div>';
+  h += '<div class="card"><h3>Cruces</h3><div class="lista">' +
+    '<div class="li" style="--c:' + (ciclosPer.length && cintas < ciclosPer.length ? 'var(--amber)' : 'var(--ok)') + '"><span class="zc">' + MK.ic('fuego', 17) + '</span><div class="tx"><b>Cinta 3M contra ciclos: ' + MK.num(cintas) + ' cintas · ' + ciclosPer.length + ' ciclos</b><span>Debería salir una por ciclo. ' + (ciclosPer.length > cintas ? 'Faltan ' + (ciclosPer.length - cintas) + ': o no se anotó el consumo, o hay ciclos sin indicador químico.' : 'Cuadra.') + '</span></div></div>' +
+    '<div class="li" style="--c:var(--info)"><span class="zc">' + MK.ic('fuego', 17) + '</span><div class="tx"><b>ACPM contra horas de uso: ' + MK.num(acpm, 1) + ' · ' + MK.num(horas, 1) + ' h</b><span>' + (horas && acpm ? MK.num(acpm / horas, 2) + ' por hora de autoclave. Si sube sin que suban los ciclos, revisar la caldera.' : 'Hace falta anotar el ACPM y las horas de los ciclos para compararlos.') + '</span></div></div>' +
+    '<div class="li" style="--c:var(--info)"><span class="zc">' + MK.ic('personas', 17) + '</span><div class="tx"><b>EPP del periodo</b><span>' + ['OVEROLES', 'MASCARILLAS', 'GUANTES QUIRÚRGICOS', 'GUANTES DE RECOLECCIÓN'].map(function (k) { var x = por[k]; return k.charAt(0) + k.slice(1).toLowerCase() + ': ' + (x ? MK.num(x.c) : '0'); }).join(' · ') + '. Para pedirle a Mercadeo las compras antes de que se acaben.</span></div></div></div></div>';
+  h += '<div class="card" style="margin-top:14px"><h3>Anotados</h3>' + MK.tabla(['Fecha', 'Artículo', '>Cantidad', 'Unidad'], cs.map(function (c) { return [fdm(c.fecha), MK.esc(c.articulo), MK.num(c.cantidad, 2), MK.esc(c.unidad)]; }), { vacio: 'Nada anotado.' }) + '</div>';
+  return h;
+}
+function guardarConsumo(btn) {
+  if (!(Number(MK.val('cs-can')) > 0)) { MK.aviso('Escribe la cantidad.'); return; }
+  MK.ocupado(btn, true);
+  MK.llamar('api_guardarConsumo', { articulo: MK.val('cs-art'), cantidad: Number(MK.val('cs-can')), unidad: MK.val('cs-uni'), fecha: MK.val('cs-fec'), periodo: MK.val('cs-fec').slice(0, 7) })
+    .then(function () { MK.aviso('Consumo anotado'); MK.recargar(); }, function () { MK.ocupado(btn, false); });
 }
 
-function pintarCajaPrueba(){
-  /* La cinta va en CADA ciclo: viene marcada por defecto porque es lo normal,
-     y desmarcarla es decir que ese ciclo corrió sin su control básico. */
-  $("c-prueba-caja").innerHTML =
-    '<label class="chk-linea"><input type="checkbox" id="c-prueba" checked '+
-      'onchange="pintarResultadoPrueba()"> Se puso indicador químico (cinta 3M)</label>'+
-    '<div id="c-res-caja"></div>'+
-    /* Y la biológica es mensual y es otra cosa. Solo se ofrece cuando el mes
-       todavía no la tiene, para que no se marque por inercia. */
-    (TRA.tocaBiologica
-      ? '<label class="chk-linea" style="margin-top:9px"><input type="checkbox" id="c-bio" '+
-        'onchange="pintarResultadoBio()"> Este ciclo lleva la verificación biológica del mes '+
-        '(vial Attest incubado)</label><div id="c-bio-caja"></div>'
-      : '');
-  pintarResultadoPrueba();
+/* ═══════════ VERIFICACIÓN BIOLÓGICA ═══════════ */
+function vBio() {
+  var b = B(), y = MK.hoy.slice(0, 4), mesHoy = MK.hoy.slice(0, 7);
+  var BIO = b.bio || [];
+  var meses = []; for (var i = 1; i <= 12; i++) meses.push(y + '-' + ('0' + i).slice(-2));
+  var C = ((b.tratamiento || {}).ciclos || []).filter(function (c) { return !c.anulado && !c.esPrueba; });
+  var h = MK.cabeza('Verificación biológica', 'Protocolo ECOVSA-PR-PLA-01: una vez al mes, en el último ciclo antes del despacho, con vial Attest incubado. La cinta 3M es indicador químico y va en cada ciclo.');
+  h += '<div class="card" style="margin-bottom:14px"><h3>' + y + ', mes por mes</h3><div class="meses">' + meses.map(function (m) {
+    var x = BIO.filter(function (z) { return z.mes === m; })[0];
+    var cl = '', t = '';
+    if (m > mesHoy) { cl = 'fut'; t = '—'; }
+    else if (x) { cl = x.resultado === 'CONFORME' ? 'ok' : x.resultado === 'NO CONFORME' ? 'bad' : 'pend'; t = x.resultado === 'PENDIENTE' ? 'incubando' : x.resultado.toLowerCase(); }
+    else if (m < b.bioDesde) { t = 'solo cinta'; }
+    else if (m === mesHoy) { cl = 'toca'; t = 'toca'; }
+    else { cl = 'bad'; t = 'no hecha'; }
+    return '<div class="' + cl + '">' + MK.MESES[Number(m.slice(5)) - 1] + '<small>' + t + '</small></div>';
+  }).join('') + '</div><div class="nota">El protocolo rige desde ' + MK.mesNombre(b.bioDesde) + ': antes se usaba solo cinta, que es indicador químico. EMAS espera este resultado.</div></div>';
+  var bm = BIO.filter(function (z) { return z.mes === mesHoy; })[0];
+  var cand = C.filter(function (c) { return c.fecha.slice(0, 7) === mesHoy; });
+  var sug = cand.filter(function (c) { return c.biologico; })[0] || cand[0];
+  h += '<div class="g2m"><div class="card"><h3>Cómo se hace</h3><div class="pasosv">' +
+    '<div><span><b>Elegir el ciclo</b>el último antes del despacho del mes.</span></div><div><span><b>Poner el vial en la carga</b>en el punto más difícil de alcanzar para el calor.</span></div>' +
+    '<div><span><b>Incubar</b>junto con un vial sin esterilizar como control.</span></div><div><span><b>Anotar el resultado</b>sin crecimiento = conforme. Si crece, el despacho de ese material se detiene.</span></div></div></div>' +
+    '<div class="card"><h3>' + (bm ? 'Verificación de ' : 'Anotar la verificación de ') + MK.mesNombre(mesHoy) + '</h3>' + (MK.soloVer ? (bm ? '<p>' + MK.esc(bm.resultado) + ' · ciclo ' + MK.esc(bm.cicloId) + ' · lote ' + MK.esc(bm.lote) + '</p>' : MK.vacio('Todavía no se ha hecho.')) :
+    (cand.length ? '<div class="f2"><div><label class="lb">Ciclo</label><select class="in" id="bi-cic">' + cand.map(function (c) { return '<option value="' + c.cicloId + '"' + ((bm ? bm.cicloId === c.cicloId : sug && sug.cicloId === c.cicloId) ? ' selected' : '') + '>n.º ' + c.numero + ' · ' + fdm(c.fecha) + (c.salida ? ' · ' + c.salida : '') + '</option>'; }).join('') + '</select></div>' +
+      '<div><label class="lb">Lote del vial</label><input class="in" id="bi-lot" value="' + MK.esc(bm ? bm.lote : '') + '" placeholder="del empaque"></div>' +
+      '<div><label class="lb">Inicio de incubación</label><input class="in" type="datetime-local" id="bi-inc" value="' + MK.esc(bm ? String(bm.inicioIncubacion).replace(' ', 'T') : '') + '"></div>' +
+      '<div><label class="lb">Resultado</label><select class="in" id="bi-res">' + [['PENDIENTE', 'En incubación'], ['CONFORME', 'Sin crecimiento · conforme'], ['NO CONFORME', 'Con crecimiento · no conforme']].map(function (o) { return '<option value="' + o[0] + '"' + (bm && bm.resultado === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>' +
+      '<label class="fila small" style="margin-top:10px"><input type="checkbox" id="bi-con" ' + (bm && bm.control ? 'checked' : '') + '> El vial de control creció (la prueba es válida)</label>' +
+      '<label class="lb">Observaciones</label><input class="in" id="bi-obs" value="' + MK.esc(bm ? bm.observaciones : '') + '">' +
+      '<button class="btn pri" style="margin-top:12px" onclick="guardarBio(this)">' + MK.ic('check', 16) + 'Guardar</button>'
+      : MK.vacio('Todavía no hay ciclos este mes: la verificación se hace en el último ciclo antes del despacho.'))) + '</div></div>';
+  if (BIO.length) h += '<div class="card" style="margin-top:14px"><h3>Registro</h3>' + MK.tabla(['Mes', 'Ciclo', 'Lote', 'Incubación', 'Resultado', 'Control', 'Quién'], BIO.slice().reverse().map(function (x) { return [MK.mesNombre(x.mes), MK.esc(x.cicloId), MK.esc(x.lote), MK.esc(x.inicioIncubacion), '<span class="chipx ' + (x.resultado === 'CONFORME' ? 'ok' : x.resultado === 'NO CONFORME' ? 'bad' : 'info') + '">' + MK.esc(x.resultado.toLowerCase()) + '</span>', MK.esc(x.control || '—'), MK.esc(x.registradoPor)]; })) + '</div>';
+  return h;
+}
+function guardarBio(btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_plaGuardarBio', { cicloId: MK.val('bi-cic'), lote: MK.val('bi-lot'), inicioIncubacion: MK.val('bi-inc').replace('T', ' '), resultado: MK.val('bi-res'), controlValido: document.getElementById('bi-con').checked, observaciones: MK.val('bi-obs') })
+    .then(function (r) { MK.aviso(r.noConforme ? 'Guardado: NO CONFORME. Detén el despacho de ese material.' : 'Guardado', r.noConforme ? 8000 : 3200); MK.recargar(); }, function () { MK.ocupado(btn, false); });
 }
 
-function pintarResultadoPrueba(){
-  $("c-res-caja").innerHTML = $("c-prueba").checked
-    ? '<label style="margin-top:8px">Resultado del indicador</label>'+
-      '<input id="c-res" placeholder="Conforme / No conforme">'
-    : '';
+/* ═══════════ REPORTE MENSUAL (libro de control) ═══════════ */
+function vReporte() {
+  var b = B(), r = b.receta, m = b.margen;
+  if (!MES_REP) { var ult = ((b.tratamiento || {}).ciclos || []).filter(function (c) { return !c.anulado; })[0]; MES_REP = ult ? ult.fecha.slice(0, 7) : MK.hoy.slice(0, 7); }
+  var meses = (b.balance || []).map(function (x) { return x.mes; }).slice(-6);
+  if (meses.indexOf(MES_REP) < 0) meses.push(MES_REP);
+  var C = ((b.tratamiento || {}).ciclos || []).filter(function (c) { return c.fecha.slice(0, 7) === MES_REP && !c.anulado && !c.esPrueba; }).sort(function (x, y) { return x.numero - y.numero; });
+  var A = ((b.actas || {}).actas || []).filter(function (a) { return a.fecha.slice(0, 7) === MES_REP; });
+  var S = ((b.salidas || {}).salidas || []).filter(function (s) { return s.fecha.slice(0, 7) === MES_REP; });
+  var bio = (b.bio || []).filter(function (x) { return x.mes === MES_REP; })[0];
+  var todosC = ((b.tratamiento || {}).ciclos || []).filter(function (c) { return !c.anulado; }).map(function (c) { return c.numero; }).sort(function (x, y) { return x - y; });
+  var nums = C.map(function (c) { return c.numero; }), saltos = [];
+  for (var i = 1; i < nums.length; i++) if (nums[i] - nums[i - 1] > 1) saltos.push((nums[i - 1] + 1) + (nums[i] - nums[i - 1] > 2 ? '–' + (nums[i] - 1) : ''));
+  var receta = C.filter(function (c) { return c.temperatura === r.temperatura && c.minutos === r.minutos; }).length;
+  var fuera = C.filter(function (c) { return !c.sinPeso && c.kgEntrada > r.capacidadKg + m; });
+  var cinta = C.filter(function (c) { return c.quimico; }).length, cintaMal = C.filter(function (c) { return c.quimico && /^NO/i.test(c.resultadoQuimico); }).length;
+  var conSal = C.filter(function (c) { return c.salida; });
+  var sinRec = S.filter(function (s) { return !s.reciboEmas; });
+  var dif = S.filter(function (s) { return s.kgEmas && s.kgPlanta; });
+  var difMax = dif.reduce(function (mx, s) { return Math.max(mx, Math.abs((s.kgEmas - s.kgPlanta) / s.kgPlanta * 100)); }, 0);
+  var mtoMes = ((b.mantenimiento || {}).servicios || []).filter(function (s) { return s.fecha.slice(0, 7) === MES_REP; });
+  var sem = [
+    [C.length ? (receta === C.length ? 'ok' : 'bad') : 'gris', 'Receta cumplida', C.length ? receta + ' de ' + C.length + ' ciclos a ' + r.temperatura + ' °C y ' + r.minutos + ' min' : 'sin ciclos en el mes'],
+    [C.length ? (fuera.length ? 'bad' : 'ok') : 'gris', 'Carga dentro del margen', C.length ? (fuera.length ? fuera.length + ' ciclo(s) pasan de ' + (r.capacidadKg + m) + ' kg' : 'todos hasta ' + (r.capacidadKg + m) + ' kg') : '—'],
+    [C.length ? (cinta === C.length && !cintaMal ? 'ok' : 'bad') : 'gris', 'Indicador químico', C.length ? (cinta === C.length ? (cintaMal ? cintaMal + ' no conforme(s)' : 'conforme en todos') : 'sin anotar en ' + (C.length - cinta) + ' de ' + C.length + ' ciclos') : '—'],
+    [MES_REP < b.bioDesde ? 'gris' : bio ? (bio.resultado === 'CONFORME' ? 'ok' : bio.resultado === 'PENDIENTE' ? 'warn' : 'bad') : 'bad', 'Verificación biológica', MES_REP < b.bioDesde ? 'antes del protocolo (solo cinta)' : bio ? bio.resultado.toLowerCase() + ' · ciclo ' + bio.cicloId : 'no hecha'],
+    [C.length ? (conSal.length === C.length ? 'ok' : 'warn') : 'gris', 'Cuarentena antes del despacho', C.length ? conSal.length + ' de ' + C.length + ' ciclos despachados' + (conSal.length ? ' → ' + Array.from(new Set(conSal.map(function (c) { return c.salida; }))).join(', ') : '') : '—'],
+    [S.length ? (sinRec.length ? 'bad' : 'ok') : 'gris', 'Recibo del relleno', S.length ? (sinRec.length ? sinRec.length + ' despacho(s) sin recibo' : S.map(function (s) { return 'EMAS ' + s.reciboEmas; }).join(' · ')) : 'sin despachos en el mes'],
+    [dif.length ? (difMax > 5 ? 'warn' : 'ok') : 'gris', 'Peso de salida contra relleno', dif.length ? 'diferencia máxima ' + MK.num(difMax, 1) + ' %' : '—'],
+    [nums.length ? (saltos.length ? 'warn' : 'ok') : 'gris', 'Contador sin saltos', nums.length ? (saltos.length ? 'faltan: ' + saltos.join(', ') : nums[0] + (nums.length > 1 ? ' → ' + nums[nums.length - 1] : '')) : '—'],
+    [mtoMes.length ? 'ok' : 'warn', 'Mantenimiento', mtoMes.length ? mtoMes.length + ' servicio(s): ' + mtoMes.map(function (x) { return x.equipo + ' · ' + x.tipo; }).join(', ') : 'sin registros en el mes']
+  ];
+  var col = { ok: 'var(--ok)', bad: 'var(--bad)', warn: 'var(--amber)', gris: 'var(--gris)' }, ico = { ok: 'check', bad: 'x', warn: 'alerta', gris: 'circulo' };
+  var rec = A.reduce(function (s, a) { return s + a.kgTotal; }, 0), tra = C.reduce(function (s, c) { return s + (c.sinPeso ? 0 : c.kgEntrada); }, 0), des = S.reduce(function (s, x) { return s + x.kgPlanta; }, 0);
+  var t = (b.tratamiento || {}).totales || {};
+  var h = MK.cabeza('Reporte mensual · ' + MK.mesNombre(MES_REP), 'El libro de control: cada punto del protocolo con los registros del mes. Sale del sistema, no se escribe a mano.',
+    MK.chips(meses.map(function (x) { return [x, MK.mesNombre(x).split(' ')[0].replace(/^./, function (z) { return z.toUpperCase(); })]; }), MES_REP, 'mesRep') + '<button class="btn pri noimp" onclick="window.print()">' + MK.ic('imprimir', 16) + 'PDF del mes</button>');
+  h += '<div class="sem">' + sem.map(function (s) { return '<div class="s"><span class="d" style="background:' + col[s[0]] + '">' + MK.ic(ico[s[0]], 15) + '</span><b>' + MK.esc(s[1]) + '</b><span>' + MK.esc(s[2]) + '</span></div>'; }).join('') + '</div>';
+  h += '<div class="card" style="margin-bottom:14px"><h3>Cadena de custodia</h3><div class="cadena"><div><span class="t1">Recibido</span><b class="num">' + kg(rec) + '</b><span>' + A.length + ' actas</span></div>' +
+    '<div><span class="t1">Tratado</span><b class="num">' + kg(tra) + '</b><span>' + (nums.length ? 'ciclos ' + nums[0] + '–' + nums[nums.length - 1] : 'sin ciclos') + '</span></div>' +
+    '<div><span class="t1">Despachado</span><b class="num">' + kg(des) + '</b><span>' + (S.length ? S.map(function (s) { return s.salidaId + (s.reciboEmas ? ' · recibo ' + s.reciboEmas : ''); }).join(' · ') : 'sin despachos') + '</span></div></div></div>';
+  h += '<div class="card"><h3>El balance general</h3><div class="small muted" style="margin-bottom:8px">desde que hay registros</div>' + MK.kpis([
+    { e: 'Recibido en actas', v: kg(t.kgEntrado), s: t.actas + ' actas' }, { e: 'Tratado en ciclos', v: kg(t.kgTratado), s: t.ciclos + ' ciclos' },
+    { e: 'Diferencia', v: kg(t.porTratar), s: t.porTratar < 0 ? 'más tratado que recibido' : 'por tratar', c: t.porTratar < -100 ? 'bad' : '' },
+    { e: 'Despachado', v: kg(((b.salidas || {}).totales || {}).kgPlanta), s: ((b.salidas || {}).totales || {}).salidas + ' viajes' }]) +
+    (t.porTratar < -100 ? '<div class="nota">Para que cuadre faltan registros de entrada (actas de meses anteriores o la cuarentena acumulada que se desalojó). Hasta cargarlos, este número se muestra pero no se usa para alertas.</div>' : '') + '</div>';
+  return h;
+}
+function mesRep(m) { MES_REP = m; MK.repintar(); }
+
+/* ═══════════ PEDIR UN PAGO ═══════════ */
+function vPago() {
+  return MK.cabeza('Pedir un pago', 'La puerta que Planta perdió en el lobby vuelve aquí.') +
+    '<div class="card" style="max-width:680px"><h3>Pedir un pago a la dirección financiera</h3><p class="muted small">Abre el mismo formulario de siempre (proveedor, renglones, ITBMS).</p>' +
+    '<div class="pasosv" style="margin:12px 0"><div><span><b>Llenar la solicitud</b>proveedor, concepto y los renglones; el proyecto es el de planta.</span></div><div><span><b>Enlazar al servicio</b>un pago de mantenimiento se une a su registro con «Registrar servicio» › Solicitud de pago.</span></div></div>' +
+    '<a class="btn pri escribe" href="index.html?p=solicitud" target="_blank">' + MK.ic('billete', 16) + 'Abrir el formulario</a></div>' +
+    ((B().spEquipos || []).length ? '<div class="card" style="margin-top:14px;max-width:680px"><h3>Solicitudes de equipos de planta</h3>' + MK.tabla(['Solicitud', 'Fecha', 'Proveedor', '>Total', 'Estado', 'Servicio'], B().spEquipos.map(function (x) { return [MK.esc(x.solicitudId), fdm(x.fecha), MK.esc(x.proveedor), D(x.total), MK.esc(x.estado.toLowerCase()), x.servicio ? '<span class="chipx ok">anotado</span>' : '<span class="chipx warn">sin anotar</span>']; })) + '</div>' : '');
 }
 
-function pintarResultadoBio(){
-  var e=$("c-bio-caja"); if(!e) return;
-  e.innerHTML = $("c-bio").checked
-    ? '<label style="margin-top:8px">Resultado del vial</label>'+
-      '<input id="c-resbio" placeholder="Negativo / Positivo">'
-    : '';
-}
-
-function guardarCiclo(){
-  var d = { fecha:$("c-fecha").value, numero:$("c-numero").value,
-    horaInicio:$("c-hini").value, horaFinal:$("c-hfin").value,
-    bolsas:$("c-bolsas").value, kgEntrada:num($("c-kgin").value),
-    kgSalida:num($("c-kgout").value), temperatura:num($("c-temp").value),
-    minutos:num($("c-min").value),
-    duracionTotal: Number(($("c-dur")||{}).dataset ? $("c-dur").dataset.min : 0) || 0,
-    /* la cinta, que va en cada ciclo */
-    pruebaBiologica: $("c-prueba") && $("c-prueba").checked,
-    resultadoPrueba: $("c-res") ? $("c-res").value : "",
-    /* y el vial, que es mensual */
-    verifBiologica: $("c-bio") && $("c-bio").checked,
-    resultadoBiologico: $("c-resbio") ? $("c-resbio").value : "",
-    esPrueba: $("c-esprueba") && $("c-esprueba").checked,
-    pesoNoRegistrado: $("c-sinpeso") && $("c-sinpeso").checked,
-    observaciones:$("c-obs").value.trim() };
-  if(!(Number(d.numero)>0)){ toast("Falta el número de ciclo que marca la máquina"); return; }
-  if(!d.esPrueba && !d.pesoNoRegistrado && !(d.kgEntrada>0)){
-    toast("Falta el peso que entró. Si fue un ciclo de prueba sin carga, o si el peso no "+
-          "quedó anotado, márcalo arriba"); return; }
-  if(d.kgSalida > d.kgEntrada){ toast("Los kilos de salida no pueden ser más que los de entrada"); return; }
-  registrarCiclo(d, false);
-}
-
-/* Aparte porque puede repetirse: si el número ya está en otro ciclo, el
-   servidor avisa en vez de guardar, y quien registra confirma o corrige. */
-function registrarCiclo(d, confirmado){
-  d.numeroConfirmado = !!confirmado;
-  toast("Registrando…");
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(r && r.avisoNumero){ avisoDelNumero(r.avisoNumero, d); return; }
-      if(r && r.avisoParametros){ avisoDeParametros(r.avisoParametros, d); return; }
-      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo registrar"); return; }
-      toast("Ciclo "+r.cicloId+" registrado ✓");
-      ["c-bolsas","c-kgin","c-kgout","c-hini","c-hfin","c-obs","c-dur"].forEach(function(i){
-        var e=$(i); if(e) e.value=""; });
-      $("c-numero").value = "";
-      if($("c-sinpeso")) $("c-sinpeso").checked=false;
-      if($("c-esprueba")){ $("c-esprueba").checked=false; pintarEsPrueba(); }
-      TRA=null; cargarTratamiento();
-    })
-    .withFailureHandler(function(){ toast("Sin conexión — no se registró"); })
-    .api_guardarCiclo(PIN, d);
-}
-
-function avisoDelNumero(a, d){
-  $("mod-tit").textContent = "El número " + a.numero + " ya está usado";
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota"><b>El ciclo número '+a.numero+'</b> ya está registrado como '+
-      esc(a.cicloId)+', del '+esc(a.fecha)+'.<br><br>'+
-      'El contador del autoclave no repite, así que casi siempre esto es un dedazo. '+
-      'Pero los ciclos viejos se numeraron corrido dentro del día, y ahí el mismo número '+
-      'aparece muchas veces: si este es el número que marca el equipo, sigue adelante.</div>'+
-    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
-      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Corregir el número</button>'+
-      '<button class="btn" style="flex:1" onclick="registrarIgual()">Es el del equipo, registrar</button>'+
-    '</div>';
-  PEND_CICLO = d;
-  abrirModal();
-}
-var PEND_CICLO = null;
-function registrarIgual(){
-  if(!PEND_CICLO) return cerrarModal();
-  var d = PEND_CICLO; PEND_CICLO = null; cerrarModal();
-  registrarCiclo(d, true);
-}
-
-/* El peso por encima de la capacidad y los parámetros fuera de la receta.
-   No traba: avisa. El sistema no puede saber más que quien estaba frente al
-   autoclave — pero tampoco puede dejar pasar en silencio un ciclo que dice
-   haber cargado 870 kg en un equipo de 800. */
-function avisoDeParametros(a, d){
-  var R = a.receta;
-  $("mod-tit").textContent = "Revisa antes de guardar";
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota">'+
-      a.avisos.map(function(x){ return '<b>'+esc(x.texto)+'</b>'; }).join('<br><br>')+
-    '</div>'+
-    '<div class="nota" style="margin-top:10px">La receta del equipo corre a '+
-      R.temperatura+' °C durante '+R.minutos+' minutos, con una capacidad de trabajo de '+
-      R.capacidadKg+' kg. Está grabada en el PLC y solo la cambia un operador registrado '+
-      'con su usuario y contraseña.<br><br>'+
-      'Si el ciclo corrió así de verdad, guárdalo: quedará anotado en las observaciones '+
-      'que se registró con parámetros fuera de la receta, y quién lo confirmó.</div>'+
-    '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'+
-      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Corregir el dato</button>'+
-      '<button class="btn" style="flex:1" onclick="registrarAsiEsta()">Corrió así, registrar</button>'+
-    '</div>';
-  PEND_PARAM = d;
-  abrirModal();
-}
-var PEND_PARAM = null;
-function registrarAsiEsta(){
-  if(!PEND_PARAM) return cerrarModal();
-  var d = PEND_PARAM; PEND_PARAM = null; cerrarModal();
-  d.parametrosConfirmados = true;
-  registrarCiclo(d, d.numeroConfirmado);
-}
-
-/* ═══ Cargar el histórico de ciclos ═══
-   El contador del autoclave va en 552 y el sistema tiene un puñado. Los que
-   faltan están en el control de producción de Alejandro, en papel: número,
-   fecha, peso y hora. Esto es para meterlos de una vez en vez de uno por uno.
-
-   La pantalla no decide nada: pega las filas, el servidor las revisa TODAS
-   antes de escribir NADA, y aquí se muestra qué pasa con cada una. Una carga
-   a medias en un registro de esterilización es peor que una que no entró. */
-var CARGA_FILAS = null;
-
-function abrirCargaCiclos(){
-  $("mod-tit").textContent = "Cargar ciclos del control de producción";
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota">Una línea por ciclo, con los datos separados por '+
-      '<b>tabulador</b> (lo que sale al copiar de Excel) o por <b>coma</b>:<br><br>'+
-      '<code>número&nbsp;&nbsp;fecha&nbsp;&nbsp;kg&nbsp;&nbsp;hora inicio&nbsp;&nbsp;hora fin&nbsp;&nbsp;bolsas</code>'+
-      '<br><br>La fecha va como <b>2026-09-11</b>. De la hora en adelante todo es opcional. '+
-      'Si una línea fue un ciclo de prueba sin carga, escribe <b>prueba</b> en la columna de kg; '+
-      'si el ciclo corrió con carga pero el peso no quedó anotado, escribe <b>sin peso</b>.</div>'+
-    '<div class="nota" style="margin-top:10px">La temperatura y los minutos los pone el '+
-      'sistema con la receta del PLC. <b>El indicador químico queda en blanco</b>: nadie '+
-      'puede saber después si se puso la cinta en un ciclo de hace ocho meses, y un registro '+
-      'de esterilización no se rellena de memoria.</div>'+
-    '<textarea id="carga-txt" style="width:100%;height:190px;font-family:monospace;'+
-      'font-size:12px;margin-top:11px" placeholder="545   2026-08-14   786   08:10   09:20"></textarea>'+
-    '<label style="margin-top:10px">Quién corrió estos ciclos</label>'+
-    '<input id="carga-oper" placeholder="Nombre del operador de planta">'+
-    '<div id="carga-msg"></div>'+
-    '<div style="display:flex;gap:8px;margin-top:15px;flex-wrap:wrap">'+
-      '<button class="btn sec" style="flex:1" onclick="cerrarModal()">Cancelar</button>'+
-      '<button class="btn" style="flex:1" onclick="revisarCarga()">Revisar y cargar</button>'+
-    '</div>';
-  abrirModal();
-}
-
-/* De texto pegado a filas. Tabulador o coma; el punto y coma también, porque
-   Excel en español lo usa según cómo esté configurado el equipo. */
-function leerPegado(txt){
-  var filas = [];
-  String(txt||"").split(/\r?\n/).forEach(function(l){
-    if(!l.trim()) return;
-    var p = l.split(/\t|;|,(?![0-9]{1,2}\b)/).map(function(x){ return x.trim(); });
-    if(p.length < 2) p = l.trim().split(/\s{2,}|\s+/);
-    var kg = (p[2]||"");
-    var prueba = /^prue/i.test(kg);
-    /* «sin peso» en la columna del peso: el ciclo corrió con carga y el peso
-       no quedó anotado. Es distinto de un ciclo de prueba, que corrió vacío. */
-    var sinPeso = /^sin\s*pes/i.test(kg);
-    filas.push({ numero:p[0], fecha:p[1], kgEntrada:(prueba||sinPeso)?0:kg,
-                 esPrueba:prueba, pesoNoRegistrado:sinPeso,
-                 horaInicio:p[3]||"", horaFinal:p[4]||"",
-                 bolsas:p[5]||"", observaciones:p[6]||"" });
-  });
-  return filas;
-}
-
-function revisarCarga(){
-  var filas = leerPegado($("carga-txt").value);
-  if(!filas.length){ modMsg("No hay ninguna línea que cargar."); return; }
-  CARGA_FILAS = filas;
-  $("carga-msg").innerHTML = '<div class="nota" style="margin-top:10px">Revisando '+
-    filas.length+' línea(s)…</div>';
-  google.script.run
-    .withSuccessHandler(pintarRevisionCarga)
-    .withFailureHandler(function(){ $("carga-msg").innerHTML =
-      '<div class="nota mal" style="margin-top:10px">Sin conexión — no se cargó nada.</div>'; })
-    .api_cargarCiclos(PIN, filas, { operador: $("carga-oper").value.trim() });
-}
-
-function pintarRevisionCarga(r){
-  if(!r){ $("carga-msg").innerHTML='<div class="nota mal">No respondió.</div>'; return; }
-
-  /* Entró completa */
-  if(r.ok){
-    cerrarModal();
-    toast(r.cargados+" ciclo(s) cargados ✓");
-    TRA=null; cargarTratamiento();
-    if(r.huecos && r.huecos.length) avisoDeHuecos(r);
-    return;
-  }
-
-  if(!r.revisar){ $("carga-msg").innerHTML =
-    '<div class="nota mal" style="margin-top:10px">'+esc(r.error||"No se pudo cargar")+'</div>'; return; }
-
-  /* Hay problemas: se muestran todos, con el número de línea, y se decide.
-     Nada se escribió todavía. */
-  var h = '<div class="nota mal" style="margin-top:11px"><b>'+r.problemas.length+
-    ' línea(s) con problema</b> de '+r.total+'. Todavía no se ha escrito nada en el libro.</div>'+
-    '<div style="max-height:200px;overflow:auto;margin-top:9px;border:1px solid var(--borde);'+
-      'border-radius:10px">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
-    r.problemas.map(function(p){
-      return '<tr><td style="padding:6px 9px;border-bottom:1px solid var(--borde);'+
-        'white-space:nowrap;color:var(--gris)">Línea '+p.linea+'</td>'+
-        '<td style="padding:6px 9px;border-bottom:1px solid var(--borde)">'+esc(p.que)+
-        (p.dato? '<br><span style="color:var(--gris)">'+esc(p.dato)+'</span>':'')+'</td></tr>';
-    }).join('')+'</table></div>';
-
-  h += r.listas
-    ? '<div class="nota" style="margin-top:10px"><b>'+r.listas+' línea(s) están bien.</b> '+
-      'Puedes cargar solo esas y corregir las otras aparte, o cerrar, arreglar el texto y '+
-      'volver a revisar.</div>'+
-      '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'+
-        '<button class="btn sec" style="flex:1" onclick="volverACarga()">Corregir el texto</button>'+
-        '<button class="btn" style="flex:1" onclick="cargarSoloBuenas()">Cargar las '+
-          r.listas+' que están bien</button></div>'
-    : '<div class="nota" style="margin-top:10px">No quedó ninguna línea cargable.</div>'+
-      '<div style="margin-top:14px"><button class="btn sec" style="width:100%" '+
-        'onclick="volverACarga()">Corregir el texto</button></div>';
-
-  $("carga-msg").innerHTML = h;
-}
-
-function volverACarga(){ $("carga-msg").innerHTML = ""; }
-
-function cargarSoloBuenas(){
-  if(!CARGA_FILAS) return;
-  $("carga-msg").innerHTML = '<div class="nota" style="margin-top:10px">Cargando…</div>';
-  google.script.run
-    .withSuccessHandler(pintarRevisionCarga)
-    .withFailureHandler(function(){ $("carga-msg").innerHTML =
-      '<div class="nota mal" style="margin-top:10px">Sin conexión — no se cargó nada.</div>'; })
-    .api_cargarCiclos(PIN, CARGA_FILAS, { operador:($("carga-oper")?$("carga-oper").value.trim():""),
-                                          forzar:true });
-}
-
-/* Los saltos del contador. No es un error: puede estar explicado fuera del
-   sistema. Pero es lo único que dice «aquí hubo un ciclo que nadie anotó». */
-function avisoDeHuecos(r){
-  $("mod-tit").textContent = "Saltos en el contador del equipo";
-  $("mod-cuerpo").innerHTML =
-    '<div class="nota">Se cargaron <b>'+r.cargados+' ciclo(s)</b>, del '+r.desde+' al '+r.hasta+'.</div>'+
-    '<div class="nota" style="margin-top:10px">El contador del autoclave no se reinicia, '+
-      'así que estos números no están en el sistema:<br><br><b>'+
-      r.huecos.map(esc).join(' · ')+'</b><br><br>'+
-      'Cada salto es un ciclo que corrió y no está anotado, o uno de prueba que no se '+
-      'registró. Si tienes el dato, cárgalo; si no, queda constancia de que falta.</div>'+
-    '<div style="margin-top:15px"><button class="btn" style="width:100%" '+
-      'onclick="cerrarModal()">Entendido</button></div>';
-  abrirModal();
-}
-
-
-/* ═══ Salidas al relleno ═══ */
-function cargarSalidas(){
-  $("sal-lista").innerHTML = '<div class="vacio">Consultando…</div>';
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ $("sal-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
-      SAL = r;
-      /* los ciclos pendientes vienen de tratamiento: si ya se consultó, se reusa */
-      if(TRA){ pintarSalidas(); return; }
-      google.script.run
-        .withSuccessHandler(function(t){ if(t && t.ok) TRA = t; pintarSalidas(); })
-        .withFailureHandler(function(){ pintarSalidas(); })
-        .api_tratamiento(PIN, "", "");
-    })
-    .withFailureHandler(function(){ $("sal-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
-    .api_salidas(PIN, $("sal-desde").value||"", $("sal-hasta").value||"");
-}
-
-function pintarSalidas(){
-  var t = SAL.totales;
-  $("sal-kpis").innerHTML = '<div class="kpis">'+
-    '<div class="kpi"><div class="e">Despachos del periodo</div><div class="v">'+t.salidas+'</div>'+
-      '<div class="s">'+n1(t.kgPlanta)+' kg de planta</div></div>'+
-    '<div class="kpi ok"><div class="e">Pesó EMAS</div><div class="v">'+n1(t.kgEmas)+'</div>'+
-      '<div class="s">kg según su báscula</div></div>'+
-    '<div class="kpi'+(t.sinRecibo?' avi':'')+'"><div class="e">Sin recibo de EMAS</div>'+
-      '<div class="v">'+t.sinRecibo+'</div><div class="s">despacho(s) por cerrar</div></div>'+
-    '<div class="kpi"><div class="e">Diferencia habitual</div>'+
-      '<div class="v">'+(t.difPromedio>0?"+":"")+t.difPromedio+'%</div>'+
-      '<div class="s">EMAS contra planta</div></div>'+
-  '</div>';
-
-  if(SAL.puedeEditar){
-    $("sal-form").style.display = "block";
-    if(!$("s-fecha").value) $("s-fecha").value = (TRA && TRA.hoy) || "";
-    if(!$("s-vehiculo").options.length)
-      $("s-vehiculo").innerHTML = SAL.vehiculos.map(function(v){ return '<option>'+v+'</option>'; }).join("");
-    pintarPendientes();
-  }
-
-  pintarDespachos();
-}
-
-/* ═══ LOS DESPACHOS ═══════════════════════════════════════════════
-   Ficha con lo justo para reconocerlo: el número, el día y cuánto salió.
-   Al tocarla se abre el manifiesto, que ya existe y es el documento que
-   acompaña la carga. */
-function pintarDespachos(){
-  var l = (SAL && SAL.salidas) || [];
-  if(!l.length){
-    $("sal-lista").innerHTML='<div class="vacio">No hay despachos en este periodo.</div>';
-    return;
-  }
-  $("sal-lista").innerHTML = '<h2>Despachos al relleno · '+l.length+'</h2>'+
-    l.map(function(s){
-      var ciclos = String(s.ciclos||"").split(",").filter(function(z){return z.trim();}).length;
-      return '<div class="ciclo'+(s.reciboEmas?'':' sin-salida')+'">'+
-        '<div class="enc" style="cursor:pointer" onclick="verActaSalida(&#39;'+esc(s.salidaId)+'&#39;)">'+
-          '<span class="n">'+esc(s.salidaId)+'</span>'+
-          '<span class="cuando">'+esc(s.fecha)+(ciclos?' · '+ciclos+' ciclo(s)':'')+'</span>'+
-          (s.rara ? '<span class="pill-p mal">diferencia fuera de lo normal</span>' : '')+
-          (s.reciboEmas ? '<span class="pill-p ok">recibo '+esc(s.reciboEmas)+'</span>'
-                        : '<span class="pill-p esp">falta el recibo</span>')+
-          '<span class="kg">'+n1(s.kgPlanta)+' kg</span>'+
-          '<span class="fl">&#9656;</span></div>'+
-        '<div class="par">'+
-          esc(s.vehiculo||"—")+(s.conductor?' · '+esc(s.conductor):'')+
-          ' · '+esc(s.destino||"")+
-          (s.kgEmas? '<br>El relleno pesó <b>'+n1(s.kgEmas)+' kg</b>'+
-            (s.dif!==null? ' · diferencia '+(s.dif>0?"+":"")+s.dif+'%' : '') : '')+
-        '</div>'+
-        '<div class="acc">'+
-          '<button class="btn mini" onclick="verActaSalida(&#39;'+esc(s.salidaId)+'&#39;)">📄 Ver el manifiesto</button>'+
-          (!s.reciboEmas && SAL.puedeEditar
-            ? '<button class="btn mini sec" onclick="pedirRecibo(&#39;'+esc(s.salidaId)+'&#39;)">Registrar recibo del relleno</button>'
-            : '')+
-        '</div></div>';
-    }).join("");
-}
-
-/* ═══ QUÉ CICLOS VAN EN ESTE DESPACHO ═══
-   Antes se llevaba TODO lo que estuviera en cuarentena, sin preguntar. Con un
-   ciclo pendiente daba igual; con cuatro y dos camiones, no: el manifiesto
-   del primer viaje reclamaba material que se fue en el segundo. Ahora se
-   eligen, vienen todos marcados —que es el caso normal— y desmarcar uno lo
-   deja en cuarentena para el siguiente. */
-function pintarPendientes(){
-  var p = (TRA && TRA.pendientes) || [];
-  if(!p.length){
-    $("sal-pendientes").innerHTML = '<div class="nota">No hay material en cuarentena esperando despacho.</div>';
-    return;
-  }
-  $("sal-pendientes").innerHTML =
-    '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
-    'color:var(--verde)"><b>'+p.length+' ciclo(s) en cuarentena</b> · '+
-    n1(TRA.kgPorDespachar)+' kg esterilizados esperando el despacho.'+
-    '<div style="margin-top:9px">'+p.map(function(c,i){
-      return '<label class="chk-ciclo"><input type="checkbox" class="pend" checked '+
-        'data-id="'+esc(c.cicloId)+'" data-kg="'+c.kgSalida+'" onchange="sumarElegidos()"> '+
-        '<span><b>'+esc(c.cicloId)+'</b> · '+esc(c.fecha)+' · '+
-        (c.sinPeso ? 'sin peso anotado' : n1(c.kgSalida)+' kg'+(c.estimado?'*':''))+
-        '</span></label>';
-    }).join("")+'</div>'+
-    '<div id="sal-elegidos" style="font-size:11.5px;margin-top:8px;font-weight:700"></div>'+
-    (p.some(function(c){return c.estimado && !c.sinPeso;})
-      ? '<div style="font-size:11px;margin-top:7px;opacity:.85">* todavía sin pesar: se usa '+
-        'el peso de entrada como referencia. El material se pesa en la báscula de planta al '+
-        'salir de cuarentena.</div>'
-      : '')+'</div>';
-  sumarElegidos();
-}
-
-function elegidos(){
-  return [].slice.call(document.querySelectorAll('#sal-pendientes .pend'))
-    .filter(function(e){ return e.checked; });
-}
-
-function sumarElegidos(){
-  var e = elegidos();
-  var kg = e.reduce(function(s,x){ return s + (Number(x.dataset.kg)||0); }, 0);
-  var c = $("sal-elegidos");
-  if(c) c.innerHTML = e.length
-    ? e.length+' ciclo(s) elegidos · '+n1(kg)+' kg de referencia'
-    : '<span style="color:var(--rojo)">Ningún ciclo elegido: el manifiesto saldría sin '+
-      'constancia de qué se trató.</span>';
-  /* El peso sugerido sigue a lo elegido mientras nadie lo haya escrito a mano;
-     en cuanto el operador teclea el de báscula, no se lo tocamos más. */
-  var k = $("s-kg");
-  if(k && !k.dataset.tocado && kg > 0) k.value = kg.toFixed(2);
-}
-
-function guardarSalida(){
-  var marcados = elegidos();
-  var p = marcados.map(function(e){
-    return { cicloId: e.dataset.id, kgSalida: Number(e.dataset.kg) || 0 };
-  });
-  var kg = num($("s-kg").value);
-  if(!(kg>0)){
-    toast("Escribe el peso del despacho. Si aún no lo tienes, usa el de la báscula del relleno.");
-    $("s-kg").focus(); return;
-  }
-  var d = { fecha:$("s-fecha").value, horaSalida:$("s-hora").value, kgPlanta:kg,
-    vehiculo:$("s-vehiculo").value, conductor:$("s-conductor").value.trim(),
-    responsable:$("s-responsable").value.trim(),
-    ciclos:p.map(function(c){ return c.cicloId; }),
-    kgTratado: p.reduce(function(s,c){ return s+c.kgSalida; },0),
-    observaciones:$("s-obs").value.trim() };
-
-  /* Antes esto era un callejón sin salida: sin ciclos pendientes el botón
-     contestaba «No hay ciclos tratados sin despachar» y ahí terminaba
-     todo. El camión salía igual y la salida se anotaba a mano en el libro
-     —así quedaron las 18 cargadas—, sin que el sistema se enterara.
-
-     Ahora sí se puede despachar sin ciclos, pero cuesta: hay que escribir
-     por qué. Ese motivo se imprime en el manifiesto y sale en la revisión
-     de integridad, que es exactamente lo que faltaba. */
-  if(!p.length){ razonSinCiclos(d); return; }
-  enviarSalida(d);
-}
-
-function razonSinCiclos(d){
-  preguntar({
-    icono:"⚠️", titulo:"Esta salida no lleva ningún ciclo",
-    texto:"No hay ciclos tratados esperando despacho. Si el camión sale igual, "+
-          "el manifiesto se imprime diciendo <b>«sin ciclos registrados»</b>: "+
-          "sale sin constancia de qué se trató.<br><br>"+
-          "Si aun así es lo correcto, escribe por qué. Queda en el papel y en "+
-          "la revisión del libro.",
-    boton:"Despachar sin ciclos",
-    campos:[{ id:"sc-razon", etiqueta:"Por qué sale sin ciclos",
-              placeholder:"Ej.: los ciclos del lunes se registran mañana" }],
-    alAceptar:function(v){
-      var r = v["sc-razon"];
-      if(r.length < 10){
-        toast("Escribe el motivo completo — con una palabra no se entiende en un año.");
-        return false;                       // el diálogo se queda abierto
-      }
-      d.sinCiclos = true;
-      d.observaciones = (d.observaciones ? d.observaciones+" · " : "") + r;
-      enviarSalida(d);
+/* ═══════════ ARRANQUE ═══════════ */
+MK.iniciar({
+  modulo: 'Planta',
+  base: 'api_plaBase',
+  inicio: 'ini',
+  accion: { t: 'Registrar ciclo', i: 'mas', fn: function () { nuevoCiclo(); } },
+  buscar: {
+    ph: 'Buscar ciclo, acta o despacho…',
+    fn: function (q) {
+      var Q = q.toUpperCase().trim(), out = [];
+      ((B().tratamiento || {}).ciclos || []).forEach(function (c) { if (String(c.numero) === Q || c.cicloId.indexOf(Q) >= 0) out.push({ t: 'Ciclo n.º ' + c.numero, d: fdm(c.fecha) + ' · ' + kg(c.kgEntrada, 1), i: 'fuego', ir: function () { fichaCiclo(c.cicloId); } }); });
+      ((B().actas || {}).actas || []).forEach(function (a) { if (a.actaId.toUpperCase().indexOf(Q) >= 0) out.push({ t: a.actaId, d: 'Acta · ' + fdm(a.fecha) + ' · ' + kg(a.kgTotal, 1), i: 'documento', ir: function () { abrirDoc('?p=acta&id=' + encodeURIComponent(a.actaId)); } }); });
+      ((B().salidas || {}).salidas || []).forEach(function (s) { if (s.salidaId.toUpperCase().indexOf(Q) >= 0 || s.reciboEmas.indexOf(Q) >= 0) out.push({ t: s.salidaId, d: 'Despacho · ' + fdm(s.fecha) + ' · ' + kg(s.kgPlanta), i: 'camion', ir: function () { abrirDoc('?p=asalida&id=' + encodeURIComponent(s.salidaId)); } }); });
+      return out;
     }
-  });
-}
-
-function enviarSalida(d){
-  toast("Generando el manifiesto…");
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){
-        /* el servidor también frena la salida sin ciclos, por si la
-           pantalla llegara aquí por otro camino */
-        if(r && r.sinCiclos){ razonSinCiclos(d); return; }
-        toast((r&&r.error)||"No se pudo generar"); return;
-      }
-      toast(r.ciclos ? "Manifiesto "+r.salidaId+" generado · "+r.ciclos+" ciclo(s)"
-                     : "Manifiesto "+r.salidaId+" generado SIN ciclos");
-      ["s-kg","s-conductor","s-obs","s-hora"].forEach(function(i){ $(i).value=""; });
-      delete $("s-kg").dataset.tocado;
-      SAL=null; TRA=null; cargarSalidas();
-      setTimeout(function(){ verActaSalida(r.salidaId); }, 600);
-    })
-    .withFailureHandler(function(){ toast("Sin conexión — no se generó"); })
-    .api_guardarSalida(PIN, d);
-}
-
-/* El recibo de báscula del relleno llega después del viaje. */
-function pedirRecibo(id){
-  var s = null;
-  (SAL && SAL.salidas || []).forEach(function(z){ if(z.salidaId === id) s = z; });
-  preguntar({
-    titulo: "Recibo del relleno",
-    texto: s
-      ? "Despacho <b>"+esc(id)+"</b> del "+esc(s.fecha)+"<br>Salieron "+n1(s.kgPlanta)+
-        " kg de planta según nuestra báscula."
-      : "Despacho "+esc(id),
-    campos: [
-      { id:"r-kg", etiqueta:"Kilos que pesó el relleno", tipo:"number", placeholder:"0.00" },
-      { id:"r-num", etiqueta:"Número del recibo", placeholder:"Ej. EMAS-88214" }
-    ],
-    boton: "Registrar el recibo",
-    alAceptar: function(v){
-      if(!(num(v["r-kg"]) > 0)){ toast("Escribe el peso del recibo"); return false; }
-      toast("Registrando…");
-      google.script.run
-        .withSuccessHandler(function(r){
-          if(r && r.ok){ toast("Recibo registrado ✓"); SAL=null; cargarSalidas(); }
-          else toast((r&&r.error)||"No se pudo registrar");
-        })
-        .withFailureHandler(function(){ toast("Sin conexión"); })
-        .api_registrarReciboEmas(PIN, id, num(v["r-kg"]), v["r-num"]);
-    }
-  });
-}
-
-/* ═══ Diálogo propio ═══ */
-var dlgCb = null, dlgCampos = [];
-
-function preguntar(op){
-  $("dlg-tit").textContent = op.titulo || "";
-  $("dlg-txt").innerHTML = op.texto || "";
-  $("dlg-si").textContent = op.boton || "Guardar";
-  $("dlg-ic").textContent = op.icono || "⚖️";
-  dlgCampos = op.campos || [];
-  $("dlg-campos").innerHTML = dlgCampos.map(function(c){
-    return '<label>'+esc(c.etiqueta)+'</label>'+
-      '<input id="'+c.id+'"'+(c.tipo==="number"?' inputmode="decimal"':'')+
-      ' placeholder="'+esc(c.placeholder||"")+'" autocomplete="off">';
-  }).join("");
-  dlgCb = op.alAceptar || null;
-  $("dlg").classList.add("ver");
-  if(dlgCampos.length) setTimeout(function(){
-    var c = dlgCampos[0]; if(!c) return;      // pudo cerrarse antes del foco
-    var e = $(c.id); if(e) e.focus();
-  }, 150);
-}
-
-function dlgSi(){
-  var v = {};
-  dlgCampos.forEach(function(c){ var e=$(c.id); v[c.id] = e ? e.value.trim() : ""; });
-  var f = dlgCb;
-  if(f && f(v) === false) return;      // dato inválido: el diálogo se queda abierto
-  $("dlg").classList.remove("ver"); dlgCb = null; dlgCampos = [];
-}
-
-function dlgNo(){ $("dlg").classList.remove("ver"); dlgCb = null; dlgCampos = []; }
-
-function verActaSalida(id){
-  abrirDoc("?p=asalida&id="+encodeURIComponent(id));
-}
-
-/* ═══ Mantenimiento ═══ */
-function cargarMantenimiento(){
-  $("mto-lista").innerHTML = '<div class="vacio">Consultando…</div>';
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ $("mto-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
-      MTO = r; pintarMantenimiento();
-    })
-    .withFailureHandler(function(){ $("mto-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
-    .api_mantenimiento(PIN);
-}
-
-function pintarMantenimiento(){
-  $("mto-alertas").innerHTML = MTO.alertas.length
-    ? MTO.alertas.map(function(m){
-        var v = m.estado === "VENCIDO";
-        return '<div class="nota"'+(v?' style="background:var(--rojo-suave);'+
-          'border-left-color:var(--rojo);color:var(--rojo)"':'')+'>'+
-          '<b>'+esc(m.equipo)+' · '+esc(m.tipo)+'</b> — '+
-          (v ? 'venció hace '+Math.abs(m.diasPara)+' día(s)'
-             : 'vence en '+m.diasPara+' día(s)')+' ('+esc(m.proximo)+')</div>';
-      }).join("")
-    : '<div class="nota" style="background:var(--verde-suave);border-left-color:var(--verde);'+
-      'color:var(--verde)">Todos los equipos al día.</div>';
-
-  if(MTO.puedeEditar){
-    $("mto-form").style.display = "block";
-    if(!$("m-equipo").options.length){
-      $("m-equipo").innerHTML = MTO.equipos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
-      $("m-tipo").innerHTML = MTO.tipos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
-    }
-    if(!$("m-fecha").value) $("m-fecha").value = MTO.hoy;
+  },
+  paginas: [
+    { g: 'PLANTA' }, { id: 'ini', n: 'Inicio', i: 'casa' },
+    { g: 'PROCESO' }, { id: 'rec', n: 'Recepción · actas', i: 'bajar' }, { id: 'tra', n: 'Tratamiento · ciclos', i: 'fuego' }, { id: 'cua', n: 'Cuarentena y despacho', i: 'camion' },
+    { g: 'SOPORTE' }, { id: 'mto', n: 'Mantenimiento de equipos', i: 'llaveInglesa' }, { id: 'con', n: 'Consumibles', i: 'caja' }, { id: 'bio', n: 'Verificación biológica', i: 'matraz' },
+    { g: 'INFORMES' }, { id: 'rep', n: 'Reporte mensual', i: 'libro' }, { id: 'pago', n: 'Pedir un pago', i: 'billete' }
+  ],
+  pieMenu: '¿Buscas la pantalla anterior? <a href="PlantaAnterior.html">Abrir</a>',
+  alCargar: function (b) {
+    MK.contadores = {};
+    var sp = (b.spEquipos || []).filter(function (x) { return !x.servicio && /autoclave|caldera|calibra|hermetic/i.test(x.concepto); }).length + ((b.mantenimiento || {}).alertas || []).length;
+    MK.contadores.mto = sp ? { n: sp, t: '' } : null;
+    var mes = b.hoy.slice(0, 7), bm = (b.bio || []).filter(function (x) { return x.mes === mes; })[0];
+    MK.contadores.bio = mes >= b.bioDesde && (!bm || bm.resultado === 'PENDIENTE') ? { n: '!', t: 'am' } : null;
+    var p = (b.tratamiento || {}).pendientes || [];
+    MK.contadores.cua = p.length ? { n: p.length, t: 'g' } : null;
+  },
+  pintar: function (id) {
+    var V = { ini: vInicio, rec: vRecepcion, tra: vTratamiento, cua: vCuarentena, mto: vMantenimiento, con: vConsumibles, bio: vBio, rep: vReporte, pago: vPago };
+    if (!MK.base) return;
+    document.getElementById('main').innerHTML = (V[id] || vInicio)();
   }
-
-  $("mto-lista").innerHTML = MTO.mantenimientos.length
-    ? '<h2>Historial</h2><div class="tabla-caja"><table><thead><tr>'+
-      '<th>Equipo</th><th>Tipo</th><th>Fecha</th><th>Próximo</th><th>Estado</th>'+
-      '<th>Quién</th><th>Resultado</th></tr></thead><tbody>'+
-      MTO.mantenimientos.map(function(m){
-        return '<tr><td><b>'+esc(m.equipo)+'</b></td><td>'+esc(m.tipo)+'</td>'+
-          '<td>'+esc(m.fecha)+'</td><td>'+esc(m.proximo||"—")+'</td>'+
-          '<td'+(m.estado==="VENCIDO"?' style="color:var(--rojo);font-weight:800"':'')+'>'+
-            esc(m.estado)+'</td>'+
-          '<td>'+esc(m.empresa||m.responsable||"—")+'</td>'+
-          '<td>'+esc(m.resultado||"—")+'</td></tr>';
-      }).join("")+'</tbody></table></div>'
-    : '<div class="vacio">No hay mantenimientos registrados.</div>';
-}
-
-function guardarMantenimiento(){
-  var d = { equipo:$("m-equipo").value, tipo:$("m-tipo").value, fecha:$("m-fecha").value,
-    proximo:$("m-proximo").value, responsable:$("m-responsable").value.trim(),
-    empresa:$("m-empresa").value.trim(), resultado:$("m-resultado").value.trim(),
-    costo:num($("m-costo").value), observaciones:$("m-obs").value.trim() };
-  toast("Registrando…");
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo"); return; }
-      toast("Mantenimiento registrado ✓");
-      ["m-proximo","m-empresa","m-resultado","m-costo","m-obs"].forEach(function(i){ $(i).value=""; });
-      MTO=null; cargarMantenimiento();
-    })
-    .withFailureHandler(function(){ toast("Sin conexión"); })
-    .api_guardarMantenimiento(PIN, d);
-}
-
-/* ═══ Consumibles ═══ */
-function cargarConsumibles(){
-  $("con-lista").innerHTML = '<div class="vacio">Consultando…</div>';
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ $("con-lista").innerHTML='<div class="vacio">'+esc((r&&r.error)||"No se pudo")+'</div>'; return; }
-      CON = r; pintarConsumibles();
-    })
-    .withFailureHandler(function(){ $("con-lista").innerHTML='<div class="vacio">Sin conexión.</div>'; })
-    .api_consumibles(PIN, $("f-desde").value||"", $("f-hasta").value||"");
-}
-
-function pintarConsumibles(){
-  if(CON.puedeEditar){
-    $("con-form").style.display = "block";
-    if(!$("k-articulo").options.length)
-      $("k-articulo").innerHTML = CON.articulos.map(function(z){ return '<option>'+z+'</option>'; }).join("");
-    if(!$("k-fecha").value) $("k-fecha").value = (TRA && TRA.hoy) || "";
-  }
-  $("con-lista").innerHTML = CON.resumen.length
-    ? '<h2>Consumo del periodo</h2><div class="tabla-caja"><table><thead><tr>'+
-      '<th>Artículo</th><th>Cantidad</th><th>Unidad</th><th>Veces</th><th>Último</th>'+
-      '</tr></thead><tbody>'+
-      CON.resumen.map(function(c){
-        return '<tr><td><b>'+esc(c.articulo)+'</b></td><td class="n">'+n1(c.cantidad)+'</td>'+
-          '<td>'+esc(c.unidad||"—")+'</td><td class="n">'+c.veces+'</td>'+
-          '<td>'+esc(c.ultima)+'</td></tr>';
-      }).join("")+'</tbody></table></div>'
-    : '<div class="vacio">No hay consumos registrados en este periodo.</div>';
-}
-
-function guardarConsumo(){
-  var d = { fecha:$("k-fecha").value, articulo:$("k-articulo").value,
-    cantidad:num($("k-cantidad").value), unidad:$("k-unidad").value.trim() };
-  if(!(d.cantidad>0)){ toast("Falta la cantidad"); return; }
-  toast("Registrando…");
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r || !r.ok){ toast((r&&r.error)||"No se pudo"); return; }
-      toast("Consumo registrado ✓");
-      $("k-cantidad").value=""; CON=null; cargarConsumibles();
-    })
-    .withFailureHandler(function(){ toast("Sin conexión"); })
-    .api_guardarConsumo(PIN, d);
-}
-
-
-/* Aviso breve al pie. Las pestañas de planta lo usan en cada guardado. */
-function toast(m){
-  var t = $("toast"); if(!t) return;
-  t.textContent = m; t.classList.add("ver");
-  clearTimeout(t._h);
-  t._h = setTimeout(function(){ t.classList.remove("ver"); }, 3400);
-}
-
-
-/* La duración total incluye prevacío, esterilización y vacío final.
-   Los minutos de esterilización son otro dato: los de la receta del equipo. */
-function calcDuracion(){
-  var a = $("c-hini").value, b = $("c-hfin").value, d = $("c-dur");
-  if(!d) return;
-  if(!a || !b){ d.value = ""; return; }
-  var p = a.split(":"), q = b.split(":");
-  var m = (Number(q[0])*60 + Number(q[1])) - (Number(p[0])*60 + Number(p[1]));
-  if(m < 0) m += 1440;              // el ciclo cruzó la medianoche
-  var h = Math.floor(m/60), r = m%60;
-  d.value = (h ? h+" h " : "") + r + " min";
-  d.dataset.min = m;
-}
-
-
-/* Navega la ventana de arriba: dentro del iframe de Apps Script,
-   location.href solo cambia el marco interno y la pantalla queda en blanco. */
-function irA(url){
-  try{
-    if(window.top && window.top !== window){ window.top.location.href = url; return; }
-  }catch(e){}
-  location.href = url;
-}
+});
 
 </script>
-<div id="dlg">
-<div class="dlg-fondo" onclick="dlgNo()"></div>
-<div class="dlg-caja">
-<div class="dlg-ic" id="dlg-ic">⚖️</div>
-<div class="dlg-tit" id="dlg-tit"></div>
-<div class="dlg-txt" id="dlg-txt"></div>
-<div id="dlg-campos"></div>
-<button class="btn" id="dlg-si" onclick="dlgSi()">Guardar</button>
-<button class="btn sec" style="margin-top:8px" onclick="dlgNo()">Cancelar</button>
-</div>
-</div>
-
-<div id="toast"></div>
 </body>
 </html>
