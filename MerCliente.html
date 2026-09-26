@@ -31,6 +31,19 @@
 .alerta.am{border-left-color:var(--amber)}.alerta.rj{border-left-color:var(--bad)}
 .alerta .tx{flex:1;min-width:0;font-size:13px}.alerta .tx b{display:block;font-size:14px}
 .alerta .ac{display:flex;gap:6px;flex-wrap:wrap}
+/* api 3.5 · la solicitud de suspensión que manda Cobros */
+.susp{border:1px solid #f1c4c6;border-left:4px solid var(--bad);background:#fff;border-radius:12px;padding:14px 16px;margin:14px 0 0}
+.susp.pz{border-color:#f0dcaa;border-left-color:var(--amber)}
+.susp .h{display:flex;gap:10px;align-items:flex-start}.susp .h .tx{flex:1;min-width:0}
+.susp .h b{display:block;font-size:15px}.susp .h small{font-size:12.5px;color:var(--muted)}
+.susp .mo{font-size:13px;background:var(--line2);border-radius:8px;padding:8px 11px;margin:10px 0}
+.susp .ck{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;margin:6px 0 4px}
+.susp .ck div{display:flex;gap:7px;align-items:flex-start;font-size:12.5px}
+.susp .ck svg.i{width:15px;height:15px;flex:none;margin-top:2px}
+.susp .ck .ck-si svg{color:var(--ok)}.susp .ck .ck-no svg{color:var(--bad)}.susp .ck .ck-av svg{color:var(--amber)}
+.susp .nums{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px}.susp .nums b{color:var(--ink);font-size:14px}
+.susp .ac{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+@media(max-width:560px){.susp .ck{grid-template-columns:1fr}}
 .a-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:16px 0 14px;overflow-x:auto}
 .a-tabs button{border:0;background:none;padding:10px 14px;font:700 13.5px Archivo,sans-serif;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
 .a-tabs button.on{color:var(--navy2);border-bottom-color:var(--navy2)}
@@ -128,7 +141,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   var NIV = { sano: ['Sano', 'ok'], atencion: ['Atención', 'warn'], riesgo: ['En riesgo', 'bad'], crecer: ['Puede crecer', 'info'] };
   var SIT = { activo: ['Activo', 'ok'], mora: ['Suspendido por mora', 'bad'], pausa: ['En pausa', 'warn'], cierre: ['De baja · cerró', 'gris'], retiro: ['De baja · se retiró', 'gris'] };
   var SIT_TEXTO = {
-    mora: ['Suspender por mora', 'Deja de aparecer en las rutas mientras no pague. Vuelve cuando pague, y la reactivación la autoriza supervisión o gerencia.', 'Por qué (n.º de factura, monto pendiente, con quién se habló)'],
+    mora: ['Suspender por mora', 'Deja de aparecer en las rutas mientras no pague. Lo usual es que Cobros lo pida primero; esta decisión es de Mercadeo y gerencia ve el aviso. Cuando pague, se reactiva desde aquí.', 'Por qué (n.º de factura, monto pendiente, con quién se habló)'],
     pausa: ['Pausa a solicitud del cliente', 'Deja de aparecer en las rutas mientras dure. El contrato sigue vivo.', 'Por qué (quién lo pidió y hasta cuándo)'],
     cierre: ['Dar de baja · cerró', 'Baja definitiva: cerró el establecimiento. Sale de las rutas y su historial se conserva completo.', 'Por qué (cerró, cambió de dueño…)'],
     retiro: ['Dar de baja · se retiró', 'Baja definitiva: se retiró o se fue con otro proveedor. Sale de las rutas y su historial se conserva completo.', 'Por qué (se fue con otro proveedor, lo hará por su cuenta…)'],
@@ -190,7 +203,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var ra = c.planKg ? c.kgMes / c.planKg : 0;
     return '<div class="a-head"><div class="row" style="align-items:flex-start;gap:14px;flex-wrap:wrap"><span class="bigav">' + E(MK.ini(c.nombre)) + '</span><div style="flex:1;min-width:200px"><div class="hname">' + E(c.nombre) + '</div>' +
       '<div class="meta">' + E(meta.join(' · ')) + '</div>' +
-      '<div class="row w" style="margin-top:8px;gap:6px">' + tagSit() + tagSal() + (c.estado ? '<span class="tag t-gris">' + E(c.estado) + '</span>' : '') + (c.cuenta ? '<span class="tag t-info">Cuenta ' + E(c.cuenta) + '</span>' : '') + '</div></div></div>' +
+      '<div class="row w" style="margin-top:8px;gap:6px">' + tagSit() + tagSal() + (c.estado ? '<span class="tag t-gris">' + E(c.estado) + '</span>' : '') + (c.cuenta ? '<span class="tag t-info">Cuenta ' + E(c.cuenta) + '</span>' : '') + tagTarde() + '</div></div></div>' +
       '<div class="qa">' +
         (tel ? '<a class="btn sm" id="q-tel" href="tel:' + E(tel.replace(/[^\d+]/g, '')) + '">' + IC('telefono', 15) + 'Llamar</a><button class="btn wa sm" id="q-wa">' + IC('whatsapp', 15) + 'WhatsApp</button>' : '') +
         '<button class="btn sm" id="q-mail">' + IC('correo', 15) + 'Correo</button>' +
@@ -229,6 +242,65 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     return 'Renovar con el mismo plan y el ajuste anual';
   }
 
+  /* ── api 3.5 · Cobros pide suspender: Mercadeo decide ── */
+  function tagTarde() { var p = R.cobros && R.cobros.puntualidad; return p && p.pagaTarde ? '<span class="tag t-warn" title="De ' + p.pagadas + ' facturas pagadas en el último año, ' + p.tarde + ' llegaron después de vencer">Paga tarde</span>' : ''; }
+  function bannerSusp() {
+    var s = R.suspension; if (!s) return '';
+    var c = s.cuenta || {}, pz = s.estado === 'PLAZO';
+    var ck = (s.checklist || []).map(function (x) { var cl = x.aviso ? 'ck-av' : x.ok ? 'ck-si' : 'ck-no'; return '<div class="' + cl + '">' + IC(x.aviso ? 'alerta' : x.ok ? 'check' : 'x', 15) + '<span>' + E(x.t) + '</span></div>'; }).join('');
+    var tit = pz ? 'Diste plazo hasta el ' + MK.fechaLarga(s.plazoHasta) + ' · Cobros pidió suspender' : (s.plazoVencido ? 'Venció el plazo (' + MK.fechaCorta(s.plazoHasta) + '): Cobros sigue pidiendo suspender' : 'Cobros pide suspender el servicio');
+    return '<div class="susp' + (pz ? ' pz' : '') + '"><div class="h">' + IC('candado', 22) + '<div class="tx"><b>' + E(tit) + '</b><small>Lo pidió ' + E(s.pidio) + ' el ' + E(MK.fechaLarga(s.fecha)) + (pz && s.motivoDecision ? ' · tu nota: ' + E(s.motivoDecision) : '') + ' · la decisión es de Mercadeo</small></div></div>' +
+      '<div class="mo">«' + E(s.motivo) + '»</div>' +
+      '<div class="nums"><span>Vencido <b>' + D(c.vencido) + '</b></span><span>Facturas vencidas <b>' + (c.vencidas || 0) + '</b></span><span>La más vieja <b>' + (c.moraMax || 0) + ' días</b></span><span>Último pago <b>' + (c.ultimoPago ? E(MK.fechaCorta(c.ultimoPago)) : 'nunca') + '</b></span>' + (c.pagaTarde ? '<span><b style="color:#8a6300">Suele pagar tarde</b></span>' : '') + '</div>' +
+      '<div class="ck" style="margin-top:10px">' + ck + '</div>' +
+      (s.puedeDecidir ? '<div class="ac"><button class="btn sm bad" id="sp-susp">' + IC('candado', 14) + 'Suspender el servicio</button><button class="btn sm" id="sp-plazo">' + IC('calendario', 14) + (pz ? 'Cambiar el plazo' : 'Dar plazo') + '</button><button class="btn sm" id="sp-seguir">' + IC('moneda', 14) + 'Seguir cobrando</button></div>'
+        : '<div class="small muted" style="margin-top:10px">La decide Mercadeo.</div>') + '</div>';
+  }
+  function decidir(dec) {
+    var s = R.suspension, c = s.cuenta || {};
+    var pts = (c.puntos || []).length;
+    var html = dec === 'suspender'
+      ? '<h2>Suspender el servicio</h2><p class="muted small" style="margin-top:4px"><b>' + E(s.cliente) + '</b> sale de las rutas en ' + (pts > 1 ? 'sus ' + pts + ' puntos' : 'su punto') + ' (situación «mora»). Logística deja de programarlo, gerencia ve el aviso y, cuando pague, se reactiva desde esta ficha.</p>' +
+        '<label class="lb">MOTIVO <span style="color:var(--bad)">*</span></label><textarea class="in" id="dc-m" autofocus placeholder="lo que queda escrito para gerencia y para el cliente"></textarea>' +
+        '<label class="row" style="gap:8px;margin-top:10px;font-size:13px;cursor:pointer"><input type="checkbox" id="dc-carta" checked> Generar la carta de suspensión para mandársela al cliente</label>' +
+        '<label class="lb">CONFIRMA CON TU PIN</label><input class="in" id="dc-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" style="max-width:160px">'
+      : dec === 'plazo'
+      ? '<h2>Dar plazo</h2><p class="muted small" style="margin-top:4px">El servicio sigue. Si al llegar la fecha no ha pagado ni acordado un plan, la solicitud vuelve sola a Mercadeo.</p>' +
+        '<label class="lb">HASTA</label><input class="in" id="dc-f" type="date" min="' + MK.masDias(MK.hoy, 1) + '" value="' + (s.plazoHasta && s.plazoHasta > MK.hoy ? s.plazoHasta : MK.masDias(MK.hoy, 7)) + '" style="max-width:190px">' +
+        '<label class="lb">NOTA</label><textarea class="in" id="dc-m" placeholder="p. ej. habló con el gerente, abona el viernes"></textarea>'
+      : '<h2>Seguir cobrando</h2><p class="muted small" style="margin-top:4px">No se suspende: la solicitud se cierra y Cobros sigue con la escalera. Queda escrito por qué.</p>' +
+        '<label class="lb">POR QUÉ NO SE SUSPENDE <span style="color:var(--bad)">*</span></label><textarea class="in" id="dc-m" autofocus placeholder="p. ej. cliente estratégico, está en renovación de contrato"></textarea>';
+    MK.hoja(html + '<div id="dc-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ' + (dec === 'suspender' ? 'bad' : 'pri') + '" id="dc-ok">' + (dec === 'suspender' ? 'Suspender' : dec === 'plazo' ? 'Dar plazo' : 'Seguir cobrando') + '</button></div>');
+    document.getElementById('dc-ok').onclick = function () {
+      var b = this, msg = document.getElementById('dc-msg'), q = function (i) { var e = document.getElementById(i); return e ? (e.type === 'checkbox' ? e.checked : String(e.value || '').trim()) : ''; };
+      var d = { motivo: q('dc-m'), hasta: q('dc-f'), pin2: q('dc-pin'), carta: q('dc-carta') };
+      if (dec !== 'plazo' && !d.motivo) { msg.textContent = 'Escribe el motivo.'; return; }
+      if (dec === 'suspender' && !d.pin2) { msg.textContent = 'Confirma con tu PIN.'; return; }
+      MK.ocupado(b, true);
+      MK.api('api_merDecidirSuspension', MK.pin, s.id, dec, d).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        MK.cerrarHoja();
+        MK.api('api_crmGuardarActividad', MK.pin, ctx({ tipo: 'nota', texto: (dec === 'suspender' ? 'Suspendido por falta de pago: ' : dec === 'plazo' ? 'Plazo hasta el ' + MK.fechaCorta(d.hasta) + ' antes de suspender: ' : 'No se suspende, sigue el cobro: ') + (d.motivo || '') })).catch(function () {});
+        if (r.carta) mostrarCarta(r.carta, 'Servicio suspendido · ' + (r.puntos || 0) + ' punto(s) fuera de ruta');
+        else MK.aviso(dec === 'plazo' ? 'Plazo guardado · Cobros lo ve' : 'Listo · Cobros sigue con el cobro');
+        MK.cambio({ tipo: 'situacion' });
+      }, function (e) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: no se guardó. ' + e.message; });
+    };
+  }
+  function urlCarta(t) { return location.href.replace(/[?#].*$/, '').replace(/[^\/]*$/, '') + 'Carta.html?carta=' + t; }
+  function mostrarCarta(k, titulo) {
+    var u = urlCarta(k.token), tel = telDe(), cor = correoDe(), c = R.cliente;
+    var tx = 'Estimados ' + (c.razon || c.nombre) + ':\n\n' + (k.tipo === 'reactivacion' ? 'Les confirmamos la reactivación del servicio de recolección. Gracias por ponerse al día.' : 'Les compartimos la notificación sobre su servicio de recolección con ECOVSA.') + '\n\nPueden ver y guardar la carta aquí:\n' + u + '\n\nQuedamos a la orden.\nECOVSA';
+    MK.hoja('<h2>' + E(titulo) + '</h2><p class="muted small" style="margin-top:4px">La carta «' + E(k.titulo) + '» quedó lista. Mándasela al cliente y toca «Ya la envié».</p>' +
+      '<label class="lb">ENLACE</label><div class="row" style="gap:6px"><input class="in" id="mc-u" readonly value="' + E(u) + '" onclick="this.select()" style="flex:1"><a class="btn sm" href="' + E(u) + '" target="_blank" rel="noopener">' + IC('ojo', 14) + 'Ver</a></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Luego</button>' + (tel ? '<button class="btn wa" id="mc-wa">' + IC('whatsapp', 15) + 'WhatsApp</button>' : '') + (cor ? '<button class="btn" id="mc-co">' + IC('correo', 15) + 'Correo</button>' : '') + '<button class="btn pri" id="mc-ok">' + IC('check', 15) + 'Ya la envié</button></div>');
+    var canal = '';
+    if (document.getElementById('mc-wa')) document.getElementById('mc-wa').onclick = function () { canal = 'whatsapp'; window.open('https://wa.me/' + MK.telWa(tel) + '?text=' + encodeURIComponent(tx), '_blank'); };
+    if (document.getElementById('mc-co')) document.getElementById('mc-co').onclick = function () { canal = 'correo'; location.href = 'mailto:' + encodeURIComponent(cor) + '?subject=' + encodeURIComponent('ECOVSA · ' + k.titulo) + '&body=' + encodeURIComponent(tx); };
+    document.getElementById('mc-ok').onclick = function () { MK.api('api_cobCartaEnviada', MK.pin, k.cartaId, canal || 'correo').then(function () { MK.cerrarHoja(); MK.aviso('Carta anotada'); }, function () { MK.cerrarHoja(); }); };
+  }
+
   /* ── pintar ── */
   function pintar() {
     var c = R.cliente;
@@ -238,7 +310,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var m = document.getElementById('main');
     var y = window.scrollY;
     m.innerHTML = '<div class="crumb"><a href="MerClientes.html">Clientes</a>' + (c.cuenta ? ' › ' + E(c.cuenta) : '') + ' › ' + E(c.nombre) + '</div>' +
-      cabecera() + alerta() +
+      cabecera() + bannerSusp() + alerta() +
       '<div class="a-tabs" id="tabs">' + tabs.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (TAB === t[0] ? 'on' : '') + '">' + t[1] + (t[2] ? '<span class="' + (t[3] || '') + '">' + t[2] + '</span>' : '') + '</button>'; }).join('') + '</div>' +
       '<div id="panel"></div>';
     [].forEach.call(m.querySelectorAll('#tabs button'), function (b) { b.onclick = function () { irA(b.getAttribute('data-t'), false); }; });
@@ -260,6 +332,9 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     q('q-act').onclick = function () { MK.actividad(ctx({})); };
     q('q-tar').onclick = function () { MK.tarea(ctx({})); };
     if (q('q-edit')) q('q-edit').onclick = editarFicha;
+    if (q('sp-susp')) q('sp-susp').onclick = function () { decidir('suspender'); };
+    if (q('sp-plazo')) q('sp-plazo').onclick = function () { decidir('plazo'); };
+    if (q('sp-seguir')) q('sp-seguir').onclick = function () { decidir('seguir'); };
     if (q('al-tarea')) q('al-tarea').onclick = function () { var s = c.salud || {}; MK.tarea(ctx({ titulo: (s.accion || 'Revisar') + ': ' + ((s.motivos || [])[0] || c.nombre), tipo: 'llamada', fecha: MK.hoy })); };
     [].forEach.call(document.querySelectorAll('[data-ir]'), function (b) { b.onclick = function () { irA(b.getAttribute('data-ir')); }; });
   }
@@ -394,6 +469,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var k = R.cobros, F = k.facturas || [], P = k.pagos || [], nv = F.filter(function (f) { return f.vencida; }).length, up = P[0];
     return '<div class="grid g4 rj-kpi" style="margin-bottom:14px"><div class="kpi"><b class="num">' + D(k.saldo) + '</b><span>Saldo</span></div><div class="kpi"><b class="num"' + (k.vencido > 0 ? ' style="color:var(--bad)"' : '') + '>' + D(k.vencido) + '</b><span>Vencido</span></div>' +
       '<div class="kpi"><b class="num"' + (nv ? ' style="color:var(--bad)"' : '') + '>' + nv + '</b><span>Facturas vencidas</span></div><div class="kpi"><b class="num">' + (up ? D(up.monto) : '—') + '</b><span>Último pago' + (up ? ' · ' + E(MK.fechaCorta(up.fecha)) : '') + '</span></div></div>' +
+      (k.puntualidad && k.puntualidad.pagadas ? '<div class="alerta' + (k.puntualidad.pagaTarde ? ' am' : '') + '" style="margin:0 0 14px">' + IC('reloj', 20) + '<div class="tx"><b>' + (k.puntualidad.pagaTarde ? 'Suele pagar tarde' : 'Paga a tiempo') + '</b>De ' + k.puntualidad.pagadas + ' facturas pagadas en el último año, ' + (k.puntualidad.pagadas - k.puntualidad.tarde) + ' se pagaron a tiempo' + (k.puntualidad.tarde ? ' y ' + k.puntualidad.tarde + ' tarde (' + k.puntualidad.diasTarde + ' días en promedio)' : '') + '. Lo calcula Cobros con la cuenta completa.</div></div>' : '') +
       '<div class="a-g"><div class="col">' + card('Facturas', 'documento', F.length ? '<div class="tbw"><table class="tb"><thead><tr><th>FACTURA</th><th>FECHA</th><th>VENCE</th><th class="r">TOTAL</th><th class="r">SALDO</th><th>ESTADO</th></tr></thead><tbody>' +
         F.map(function (f) { return '<tr><td class="num">' + E(f.factura) + '</td><td>' + E(MK.fechaCorta(f.fecha)) + '</td><td>' + E(f.vencimiento ? MK.fechaCorta(f.vencimiento) : '—') + '</td><td class="r num">' + D(f.neto || f.total) + '</td><td class="r num">' + (f.saldo > 0.009 ? '<b>' + D(f.saldo) + '</b>' : '—') + '</td><td>' + (f.saldo <= 0.009 ? '<span class="tag t-ok">Pagada</span>' : f.vencida ? '<span class="tag t-bad">Vencida · ' + MK.dias(f.vencimiento, MK.hoy) + ' d</span>' : '<span class="tag t-info">Pendiente</span>') + '</td></tr>'; }).join('') + '</tbody></table></div>' : MK.vacio('Sin facturas registradas.')) + '</div>' +
       '<div class="col">' + card('Pagos recibidos', 'moneda', P.length ? '<div class="tbw"><table class="tb"><thead><tr><th>FECHA</th><th>FACTURA</th><th class="r">MONTO</th></tr></thead><tbody>' + P.map(function (x) { return '<tr><td>' + E(MK.fechaCorta(x.fecha)) + '</td><td class="num">' + E(x.factura) + '</td><td class="r num">' + D(x.monto) + '</td></tr>'; }).join('') + '</tbody></table></div>' : MK.vacio('Sin pagos registrados.')) +
@@ -430,8 +506,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var d = R.datos, s = sit(), st = SIT[s] || [titulo(s), 'gris'];
     var botones = '';
     if (fuera()) {
-      if (s === 'mora' && ROL === 'mercadeo') botones = '<div class="small muted">Este cliente salió de servicio por falta de pago: la reactivación la autoriza supervisión o gerencia.</div>';
-      else botones = '<button class="btn sm ok" data-sit="activo">' + IC('renovar', 14) + 'Reactivar el servicio</button>' + (s === 'mora' || s === 'pausa' ? '<button class="btn sm bad" data-sit="cierre">Dar de baja</button>' : '');
+      botones = '<button class="btn sm ok" data-sit="activo">' + IC('renovar', 14) + 'Reactivar el servicio</button>' + (s === 'mora' || s === 'pausa' ? '<button class="btn sm bad" data-sit="cierre">Dar de baja</button>' : '');
     } else botones = '<button class="btn sm" data-sit="mora">Suspender por mora</button><button class="btn sm" data-sit="pausa">Pausa a solicitud</button><button class="btn sm bad" data-sit="cierre">Dar de baja · cerró</button><button class="btn sm bad" data-sit="retiro">Dar de baja · se retiró</button>';
     return '<div class="row w"><span class="tag t-' + st[1] + '" style="font-size:13px;padding:4px 10px">' + E(st[0]) + '</span><span class="small muted">Estado operativo (lo calcula el sistema cada noche): <b style="color:var(--ink)">' + E(R.cliente.estado || '—') + '</b></span></div>' +
       (fuera() ? '<div class="kv" style="margin-top:10px"><span>Desde</span><b>' + E(d['fecha baja'] ? MK.fechaLarga(d['fecha baja']) : '—') + '</b><span>Motivo</span><b>' + E(d['motivo baja'] || '—') + '</b></div>' : '') +
@@ -595,7 +670,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
 
   /* ── situación comercial (igual que en Alta: motivo obligatorio) ── */
   function cambiarSituacion(s) {
-    var t = SIT_TEXTO[s], act = s === 'activo';
+    var t = SIT_TEXTO[s], act = s === 'activo', eraMora = sit() === 'mora';
     MK.hoja('<h2>' + E(t[0]) + '</h2><p class="muted small" style="margin-top:4px"><b>' + E(R.cliente.nombre) + '</b><br>' + E(t[1]) + '</p>' +
       '<label class="lb" for="st-m">' + (act ? 'NOTA (OPCIONAL)' : 'MOTIVO <span class="req" style="color:var(--bad)">*</span>') + '</label><textarea class="in" id="st-m" autofocus placeholder="' + E(t[2]) + '"></textarea>' +
       '<div id="st-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
@@ -608,6 +683,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
         MK.ocupado(b, false);
         if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo cambiar.'; return; }
         MK.cerrarHoja(); MK.aviso(act ? 'Cliente reactivado' : 'Fuera de servicio · quedó registrado');
+        if (act && eraMora && R.cobrosClave) MK.api('api_cobCrearCarta', MK.pin, R.cobrosClave, 'reactivacion', {}).then(function (k) { if (k && k.ok) mostrarCarta(k, 'Servicio reactivado'); }).catch(function () {});
         if (!act) MK.api('api_crmGuardarActividad', MK.pin, ctx({ tipo: 'nota', texto: t[0] + ': ' + m })).catch(function () {});
         MK.cambio({ tipo: 'situacion' });
       }, function (e) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: no se guardó. ' + e.message; });

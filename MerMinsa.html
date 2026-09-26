@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe al MINSA · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ── api 3.5 · Informe trimestral al MINSA (lo maneja Mercadeo) ── */
+.sysbar .srch{min-width:0}
+.sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sel select{font:600 13.5px Archivo,sans-serif;border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;color:var(--ink)}
+.kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+.kp>div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kp span{display:block;font-size:11.5px;font-weight:700;color:var(--muted)}.kp b{display:block;font-size:22px;margin-top:2px}
+.kp small{font-size:12px;color:var(--muted)}
+.enc{display:none}
+.tbm td,.tbm th{white-space:nowrap}
+.tbm td.est{white-space:normal;min-width:150px}
+.tbm td:nth-child(-n+2){white-space:normal;min-width:150px;max-width:240px}
+.tbm tr.fuera td{background:#fff8f7}
+.tbm tfoot td{font-weight:800;border-top:2px solid var(--navy2)}
+.nt{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+@media(max-width:820px){.kp{grid-template-columns:1fr 1fr}}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  .sysbar,.mnav,.ph .sp,.ph button,.sel,.no-imp{display:none!important}
+  .shell{display:block}.main{padding:0!important}
+  .enc{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #0f2a57;padding-bottom:8px;margin-bottom:10px;font-size:11px}
+  .enc b{font-size:14px;display:block}
+  .kp{margin:8px 0}.kp>div{padding:6px 10px}.kp b{font-size:16px}
+  .card{border:0!important;box-shadow:none!important;padding:0!important}
+  .tbw{overflow:visible!important}.tbm{font-size:10px}.tbm td,.tbm th{padding:4px 5px!important}
+  .tbm tr.fuera td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  var E = MK.esc, N = MK.num, R = null, ANIO = 0, TRI = 0;
+  var MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  function nomMes(ym) { return MES[Number(ym.slice(5, 7)) - 1]; }
+  function kg(v) { return v ? N(v, 1).replace(/\.0$/, '') : '—'; }
+
+  function esqueleto() {
+    var y = Number(MK.hoy.slice(0, 4)), anios = [y, y - 1, y - 2];
+    document.getElementById('main').innerHTML =
+      '<div class="ph"><div><h1>Informe trimestral al MINSA</h1><p>Establecimientos atendidos, kilos por mes, visitas y frecuencia del trimestre. Sale de los recibos de recolección y de la situación de cada cliente.</p></div><div class="sp"></div>' +
+      '<div class="sel"><select id="m-a">' + anios.map(function (a) { return '<option' + (a === ANIO ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select>' +
+      '<select id="m-t">' + [1, 2, 3, 4].map(function (t) { return '<option value="' + t + '"' + (t === TRI ? ' selected' : '') + '>' + t + '.º trimestre</option>'; }).join('') + '</select>' +
+      '<button class="btn sm" id="m-csv">' + MK.ic('bajar', 15) + 'Excel (CSV)</button><button class="btn sm pri" id="m-imp">' + MK.ic('imprimir', 15) + 'Imprimir</button></div></div>' +
+      '<div id="m-cuerpo"><div class="cargando">Armando el informe…</div></div>';
+    document.getElementById('m-a').onchange = function () { ANIO = Number(this.value); cargar(); };
+    document.getElementById('m-t').onchange = function () { TRI = Number(this.value); cargar(); };
+    document.getElementById('m-imp').onclick = function () { window.print(); };
+    document.getElementById('m-csv').onclick = csv;
+  }
+  function cargar() {
+    MK.cargando('m-cuerpo', 'Armando el informe…');
+    MK.api('api_merInformeMinsa', MK.pin, ANIO, TRI).then(function (r) {
+      if (!r || !r.ok) { MK.error('m-cuerpo', (r && r.error) || 'No se pudo armar.'); return; }
+      R = r; pintar();
+    }, function (e) { MK.error('m-cuerpo', 'Sin conexión: ' + e.message); });
+  }
+  function pintar() {
+    var F = R.filas, T = R.totales, em = R.empresa || {}, fuera = F.filter(function (f) { return f.fuera; }).length;
+    var h = '<div class="enc"><div><b>' + E(em.razonSocial || 'ECOVSA') + '</b>RUC ' + E(em.ruc || '') + (em.dv ? ' DV ' + E(em.dv) : '') + ' · ' + E(em.resolucion || '') + '</div>' +
+      '<div style="text-align:right"><b>Informe del ' + R.trimestre + '.º trimestre de ' + R.anio + '</b>' + E(MK.fechaCorta(R.desde)) + ' al ' + E(MK.fechaCorta(R.hasta)) + '</div></div>';
+    h += '<div class="kp"><div><span>Establecimientos</span><b class="num">' + T.establecimientos + '</b><small>' + (fuera ? fuera + ' salieron de servicio en el trimestre' : 'todos en servicio') + '</small></div>' +
+      '<div><span>Kilos recolectados</span><b class="num">' + N(T.kg) + '</b><small>' + R.meses.map(function (m, i) { return nomMes(m) + ' ' + N(F.reduce(function (a, f) { return a + f.kg[i]; }, 0)); }).join(' · ') + '</small></div>' +
+      '<div><span>Visitas</span><b class="num">' + N(T.visitas) + '</b><small>recibos de recolección</small></div>' +
+      '<div><span>Trimestre</span><b>' + R.trimestre + '.º · ' + R.anio + '</b><small>' + E(MK.fechaCorta(R.desde)) + ' al ' + E(MK.fechaCorta(R.hasta)) + '</small></div></div>';
+    h += '<div class="card"><div class="tbw"><table class="tb tbm"><thead><tr><th>Establecimiento</th><th>Razón social</th><th>RUC</th><th>Frecuencia</th>' +
+      R.meses.map(function (m) { return '<th class="r">' + E(nomMes(m).slice(0, 3)) + ' kg</th>'; }).join('') + '<th class="r">Total kg</th><th class="r">Visitas</th><th>Estado</th></tr></thead><tbody>' +
+      (F.length ? F.map(function (f) {
+        return '<tr' + (f.fuera ? ' class="fuera"' : '') + '><td><b>' + E(f.establecimiento) + '</b></td><td>' + E(f.razon || '—') + '</td><td>' + E(f.ruc || '—') + '</td><td>' + E(f.frecuencia || '—') + '</td>' +
+          f.kg.map(function (v) { return '<td class="r num">' + kg(v) + '</td>'; }).join('') + '<td class="r num"><b>' + kg(f.total) + '</b></td><td class="r num">' + f.visitas + '</td><td class="est">' + (f.fuera ? '<span class="tag t-bad">' + E(f.estado) + '</span>' : E(f.estado)) + '</td></tr>';
+      }).join('') : '<tr><td colspan="11">' + MK.vacio('Sin recolecciones en el trimestre.') + '</td></tr>') +
+      '</tbody><tfoot><tr><td colspan="4">Total · ' + T.establecimientos + ' establecimientos</td>' + R.meses.map(function (m, i) { return '<td class="r num">' + N(F.reduce(function (a, f) { return a + f.kg[i]; }, 0)) + '</td>'; }).join('') +
+      '<td class="r num">' + N(T.kg) + '</td><td class="r num">' + N(T.visitas) + '</td><td></td></tr></tfoot></table></div>' +
+      '<div class="nt no-imp">Antes de enviarlo, compáralo con el formato oficial que pide el MINSA: aquí están los datos, el formato de entrega puede ser otro. Los establecimientos suspendidos o de baja aparecen con la fecha en que salieron, para que desde esa fecha no figuren como atendidos. El CSV se abre en Excel.</div></div>';
+    document.getElementById('m-cuerpo').innerHTML = h;
+  }
+  function csv() {
+    if (!R) return;
+    var q = function (v) { v = String(v == null ? '' : v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var cab = ['Establecimiento', 'Razón social', 'RUC', 'Dirección', 'Frecuencia'].concat(R.meses.map(function (m) { return 'Kg ' + nomMes(m); })).concat(['Total kg', 'Visitas', 'Última visita', 'Estado']);
+    var filas = R.filas.map(function (f) { return [f.establecimiento, f.razon, f.ruc, f.direccion, f.frecuencia].concat(f.kg.map(function (v) { return String(v).replace('.', ','); })).concat([String(f.total).replace('.', ','), f.visitas, f.ultima, f.estado]); });
+    var txt = '﻿' + [cab].concat(filas).map(function (r) { return r.map(q).join(';'); }).join('\r\n');
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));
+      a.href = url; a.download = 'MINSA_' + R.anio + '_T' + R.trimestre + '.csv'; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 800);
+    } catch (e) { MK.aviso('No se pudo descargar: ' + e.message); }
+  }
+  MK.iniciar('minsa', function () {
+    var m = Number(MK.hoy.slice(5, 7));
+    ANIO = Number(MK.hoy.slice(0, 4)); TRI = Math.ceil(m / 3);
+    /* en el primer mes de un trimestre se suele entregar el anterior */
+    if (m % 3 === 1) { TRI--; if (!TRI) { TRI = 4; ANIO--; } }
+    esqueleto(); cargar();
+  });
+})();
+</script>
+</body>
+</html>

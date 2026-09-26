@@ -210,6 +210,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       '<div class="card"><h3>Próximos días <span class="sp"></span><a href="MerAgenda.html">Ver agenda completa</a></h3><div id="i-sem"><div class="cargando">Cargando…</div></div></div>' +
       '</div>' +
       '<div class="a-col">' +
+      '<div id="i-susp"></div>' +
       '<div class="card"><h3>Lo que te espera <span class="sp"></span><span class="l muted" id="i-alcount"></span></h3><div id="i-alertas"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Embudo <span class="sp"></span><a href="MerOportunidades.html">Abrir oportunidades</a></h3><div id="i-emb"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Mis solicitudes de compra <span class="sp"></span><a href="MerCompras.html">Ver todas</a></h3><div id="i-compras"><div class="cargando">Cargando…</div></div></div>' +
@@ -252,7 +253,27 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     claves.forEach(function (k) { CONOCIDAS[k] = 1; });
   }
 
+  /* api 3.5 · Suspensiones que Cobros pidió: las decide Mercadeo en la ficha */
+  function cargarSusp() {
+    var n = (MK.base && MK.base.contadores && MK.base.contadores.suspensiones) || 0;
+    var el = $('i-susp'); if (!el) return;
+    if (!n && !el.innerHTML) return;
+    MK.api('api_merSuspensiones', MK.pin).then(function (r) {
+      var L = (r && r.ok && r.suspensiones) || [];
+      if (!L.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div class="card" style="border-left:4px solid var(--bad)"><h3>' + MK.ic('candado', 16) + ' Cobros pide suspender <span class="sp"></span><span class="l muted">' + L.length + ' por decidir</span></h3>' +
+        L.map(function (x) {
+          var c = x.cuenta || {}, id = (x.clienteIds || [])[0];
+          return '<div style="padding:10px 0;border-top:1px solid var(--line2)"><div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><b>' + esc(x.cliente) + '</b>' +
+            (x.estado === 'PLAZO' ? ' <span class="tag t-warn">plazo hasta ' + esc(MK.fechaCorta(x.plazoHasta)) + '</span>' : x.plazoVencido ? ' <span class="tag t-bad">venció el plazo</span>' : '') +
+            '<div class="small muted">' + MK.dinero(c.vencido) + ' vencido · ' + (c.moraMax || 0) + ' días · pidió ' + esc(x.pidio) + ' el ' + esc(MK.fechaCorta(x.fecha)) + '</div>' +
+            '<div class="small" style="margin-top:3px">«' + esc(x.motivo) + '»</div></div>' +
+            (id ? '<a class="btn sm" href="MerCliente.html?id=' + encodeURIComponent(id) + '">Decidir</a>' : '') + '</div></div>';
+        }).join('') + '<div class="small muted" style="margin-top:6px">Suspender, dar plazo o seguir cobrando: se decide en la ficha del cliente, con lo que Cobros ya hizo.</div></div>';
+    }, function () {});
+  }
   function pintar() {
+    cargarSusp();
     pintarKpis(); pintarAgenda(); pintarSemana(); pintarAlertas(); pintarEmbudo(); pintarCompras(); pintarFeed();
   }
 

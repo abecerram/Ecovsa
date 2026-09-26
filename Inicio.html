@@ -190,6 +190,15 @@ function vResumen() {
     }).join('') : MK.vacio('Nada esperando una decisión.')) + '</div></section>';
   h += '<section class="card"><h3>El mes en una línea</h3><div class="lee" style="margin-bottom:10px">' + enPalabras(b.desde, b.hasta) + '</div><div class="linea">' + lineaMes() + '</div>' +
     ((b.fallas || []).length ? '<div class="nota">No se pudo calcular: ' + MK.esc(b.fallas.join(' · ')) + '</div>' : '') + '</section></div>';
+  /* api 3.5 · Avisos: lo que Cobros y Mercadeo hicieron y gerencia debe saber. Solo informan. */
+  var AV = b.avisos || [];
+  if (AV.length) {
+    var icA = { incobrable: 'archivo', suspension: 'candado', reactivacion: 'renovar' }, cA = { incobrable: 'var(--z-cob, #c98a00)', suspension: 'var(--bad)', reactivacion: 'var(--ok)' };
+    h += '<section class="card" style="margin-top:14px"><h3>Avisos de Cobros y Mercadeo <span class="sp"></span><span class="lee">últimos 15 días · solo informan</span></h3><div class="lista">' +
+      AV.slice(0, 10).map(function (a) {
+        return '<div class="li" style="--c:' + (cA[a.tipo] || 'var(--navy2)') + '"><span class="zc">' + MK.ic(icA[a.tipo] || 'alerta', 17) + '</span><div class="tx"><b>' + MK.esc(a.titulo) + '</b><span>' + MK.esc(a.detalle) + ' · ' + MK.esc(MK.dmy(a.fecha)) + (a.hora ? ' ' + MK.esc(a.hora) : '') + '</span></div></div>';
+      }).join('') + (AV.length > 10 ? '<div class="nota">Y ' + (AV.length - 10) + ' más en estos 15 días.</div>' : '') + '</div></section>';
+  }
   return h;
 }
 function lineaMes() {

@@ -45,7 +45,7 @@
 
   var PAGINAS = [
     { g: 'COMERCIAL' },
-    { id: 'inicio', n: 'Mi día comercial', i: 'casa', f: 'Mercadeo.html' },
+    { id: 'inicio', n: 'Mi día comercial', i: 'casa', f: 'Mercadeo.html', b: 'suspensiones' },
     { id: 'oportunidades', n: 'Oportunidades', i: 'embudo', f: 'MerOportunidades.html', b: 'oportunidades', bg: true },
     { id: 'oportunidad', n: 'Ficha de oportunidad', i: 'documento', f: 'MerOportunidad.html', oculto: true },
     { id: 'nueva', n: 'Nueva oportunidad', i: 'mas', accion: 'captura' },
@@ -59,6 +59,7 @@
     { id: 'compras', n: 'Solicitudes de compra', i: 'carrito', f: 'MerCompras.html', b: 'compras', bg: true },
     { g: 'ANÁLISIS' },
     { id: 'reportes', n: 'Reportes', i: 'grafico', f: 'MerReportes.html' },
+    { id: 'minsa', n: 'Informe al MINSA', i: 'documento', f: 'MerMinsa.html' },
     { id: 'ajustes', n: 'Plantillas y ajustes', i: 'ajustes', f: 'MerAjustes.html' }
   ];
   MK.PAGINAS = PAGINAS;
@@ -99,6 +100,7 @@
     atras: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
     reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     alerta: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+    candado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
     estrella: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
     ruta: '<path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
     camion: '<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
@@ -228,6 +230,7 @@
     if (p.b === 'oportunidades') return c.excedidas ? '<span class="n">' + c.excedidas + '</span>' : (c.oportunidades ? '<span class="n g">' + c.oportunidades + '</span>' : '');
     if (p.b === 'agenda') { var n = (c.tareasHoy || 0) + (c.atrasadas || 0); return n ? '<span class="n' + (c.atrasadas ? '' : ' g') + '">' + n + '</span>' : ''; }
     if (p.b === 'compras') return c.compras ? '<span class="n g">' + c.compras + '</span>' : '';
+    if (p.b === 'suspensiones') return c.suspensiones ? '<span class="n" title="Suspensiones que pidió Cobros">' + c.suspensiones + '</span>' : '';
     return '';
   }
   function menuHtml(pag) {
