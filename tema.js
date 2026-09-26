@@ -4,6 +4,8 @@
    barra azul de cada pantalla: da una vuelta al abrir y otra si lo tocan.
    Dónde: Mercadeo (.sysbar .lg), el lobby (.lb .lg) y Logística solo para
    supervisión (body.es-sup header .logo-img-header). El conductor no cambia.
+   api 3.4.1: tocar el emblema lleva al lobby (los módulos) desde cualquier
+   página; en el lobby solo gira. Si hay algo a medio llenar, pregunta antes.
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
   if (window.TemaECOVSA) return;
@@ -12,12 +14,62 @@
   function marca(el) {
     if (!el || el.classList.contains('tm-marca')) return;
     el.classList.add('tm-marca');
-    el.setAttribute('title', 'ECOVSA');
+    el.setAttribute('title', esLobby(el) ? 'ECOVSA' : 'Volver a los módulos');
+    el.setAttribute('role', 'button');
     el.innerHTML = '<div class="tm-3d"><img src="entrada-globo.png" alt=""><img src="entrada-bio.png" alt="">' +
       '<div class="tm-fl"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div>';
-    el.addEventListener('click', function () { girar(el); });
+    el.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); tocar(el); });
     /* una vuelta al abrir la pantalla; los repintados no vuelven a girar */
     if (!girado) { girado = true; setTimeout(function () { girar(el); }, 250); }
+  }
+  /* ── volver al lobby ── */
+  function esLobby(el) { return !!(el.closest && el.closest('.lb')); }
+  var tocados = [];
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.type !== 'search' && !(t.closest && t.closest('.srch,.bus,#tm-menu-us'))) {
+      if (tocados.indexOf(t) < 0) tocados.push(t);
+    }
+  }, true);
+  function visible(el) { return !!(el && el.isConnected && (el.offsetWidth || el.offsetHeight || el.getClientRects().length)); }
+  /* ¿hay algo escrito sin guardar? Un campo que se tocó y sigue a la vista
+     dentro de un cajón, una hoja o un formulario abierto. */
+  function aMedias() {
+    tocados = tocados.filter(function (t) { return t.isConnected; });
+    return tocados.some(function (t) {
+      if (!visible(t) || t.disabled || t.readOnly) return false;
+      var v = t.type === 'checkbox' || t.type === 'radio' ? t.checked !== t.defaultChecked : String(t.value || '') !== String(t.defaultValue || '');
+      return v;
+    });
+  }
+  function irLobby() { location.href = 'index.html'; }
+  function tocar(el) {
+    girar(el);
+    if (esLobby(el)) return;
+    if (aMedias()) { preguntar(); return; }
+    setTimeout(irLobby, 420);
+  }
+  function preguntar() {
+    if (document.getElementById('tm-salir')) return;
+    var d = document.createElement('div'); d.id = 'tm-salir';
+    d.innerHTML = '<div class="c" role="dialog" aria-modal="true"><b>¿Salir sin guardar?</b><p>Tienes algo escrito que todavía no se ha guardado. Si vuelves a los módulos, se pierde.</p>' +
+      '<div class="p"><button type="button" data-a="no">Seguir aquí</button><button type="button" data-a="si" class="si">Salir a los módulos</button></div></div>';
+    if (!document.getElementById('tm-salir-css')) {
+      var st = document.createElement('style'); st.id = 'tm-salir-css';
+      st.textContent = '#tm-salir{position:fixed;inset:0;z-index:2147483000;background:rgba(10,25,50,.45);display:flex;align-items:center;justify-content:center;padding:18px;font-family:var(--tm-letra,Archivo,system-ui,sans-serif)}' +
+        '#tm-salir .c{background:#fff;color:var(--tm-tinta,#0f2140);border-radius:16px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3)}' +
+        '#tm-salir b{font-size:17px}#tm-salir p{margin:6px 0 16px;font-size:13.5px;color:var(--tm-gris,#667489);line-height:1.45}' +
+        '#tm-salir .p{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}' +
+        '#tm-salir button{font:700 13px var(--tm-letra,Archivo,sans-serif);border-radius:9px;padding:9px 14px;border:1px solid var(--tm-linea,#e1e6ee);background:#fff;color:inherit;cursor:pointer}' +
+        '#tm-salir button.si{background:var(--tm-navy2,#14306b);border-color:var(--tm-navy2,#14306b);color:#fff}';
+      document.head.appendChild(st);
+    }
+    document.body.appendChild(d);
+    d.addEventListener('click', function (e) {
+      var a = e.target.getAttribute && e.target.getAttribute('data-a');
+      if (e.target === d || a === 'no') { d.parentNode.removeChild(d); return; }
+      if (a === 'si') irLobby();
+    });
   }
   function girar(el) {
     var f = el.querySelector('.tm-fl'); if (!f) return;
@@ -74,6 +126,6 @@
     function fuera(e) { if (!m.contains(e.target) && !ancla.contains(e.target)) cerrar(); }
     setTimeout(function () { document.addEventListener('pointerdown', fuera, true); }, 0);
   }
-  window.TemaECOVSA = { marca: marca, girar: girar, revisar: revisar, menuUsuario: menuUsuario, roles: ROLES };
+  window.TemaECOVSA = { marca: marca, girar: girar, revisar: revisar, menuUsuario: menuUsuario, roles: ROLES, irLobby: irLobby, aMedias: aMedias };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
 })();

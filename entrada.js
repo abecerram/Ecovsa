@@ -69,13 +69,13 @@
   '#ent .e-reloj{font-size:clamp(46px,11vw,78px);font-weight:900;line-height:1;text-shadow:0 2px 14px rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.5);font-variant-numeric:tabular-nums}' +
   '#ent .e-reloj i{font-style:normal;animation:eTic 1s steps(1) infinite}@keyframes eTic{50%{opacity:.25}}' +
   '#ent .e-fecha{font-size:15px;font-weight:700;margin-top:6px;text-shadow:0 2px 10px rgba(0,0,0,.6)}' +
-  '#ent .e-esc{position:relative;width:min(46vw,190px);aspect-ratio:720/590;margin:26px 0 8px;transition:transform .6s cubic-bezier(.3,1,.4,1);cursor:grab}' +
-  '#ent .e-disco{position:absolute;left:-2.625%;top:-14.49%;width:104%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.34),rgba(255,255,255,.12) 70%);-webkit-backdrop-filter:blur(3px) saturate(1.3);backdrop-filter:blur(3px) saturate(1.3);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),0 10px 30px rgba(0,0,0,.25)}' +
-  '#ent .e-capa{position:absolute;inset:0;width:100%;height:100%;transform-origin:49.375% 48.98%;filter:drop-shadow(0 0 1.2px rgba(255,255,255,.95)) drop-shadow(0 6px 14px rgba(0,0,0,.45));pointer-events:none}' +
+  '#ent .e-esc{position:relative;width:min(54vw,206px);aspect-ratio:720/590;margin:26px 0 8px;transition:transform .6s cubic-bezier(.3,1,.4,1);cursor:grab}' +
+  '#ent .e-disco{position:absolute;left:-2.625%;top:-14.49%;width:104%;aspect-ratio:1;border-radius:50%;background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 0 0 8px rgba(255,255,255,.08),0 14px 40px rgba(0,0,0,.4)}' +
+  '#ent .e-capa{position:absolute;inset:0;width:100%;height:100%;transform-origin:49.375% 48.98%;pointer-events:none}' +
   '#ent .e-gira{position:absolute;inset:0;transform-origin:49.375% 48.98%}' +
   '#ent .e-bio{pointer-events:auto;cursor:pointer}' +
-  '#ent .e-marca{display:flex;gap:10px;font-weight:900;font-size:26px;letter-spacing:2px;margin-top:6px;text-shadow:0 2px 14px rgba(0,0,0,.55)}' +
-  '#ent .e-marca span{display:inline-block;animation:eCae .5s cubic-bezier(.3,1.5,.5,1) both}' +
+  '#ent .e-marca{display:flex;justify-content:center;margin-top:18px}' +
+  '#ent .e-marca img{display:block;width:108px;height:auto;filter:drop-shadow(0 2px 10px rgba(0,0,0,.45));animation:eCae .6s 1.9s cubic-bezier(.3,1.5,.5,1) both;-webkit-user-drag:none;user-select:none}' +
   '#ent .e-lema{font-size:12.5px;letter-spacing:2.5px;margin-top:4px;text-shadow:0 2px 10px rgba(0,0,0,.6);animation:eAp .6s 2.6s both}' +
   '#ent .e-toca{margin-top:28px;font-weight:800;font-size:15px;padding:13px 26px;border-radius:30px;background:rgba(10,30,60,.38);border:1px solid rgba(255,255,255,.3);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);animation:eResp 2.4s ease-in-out infinite;cursor:pointer;text-align:center}' +
   '#ent .e-toca b{color:#F5B301}#ent .e-toca small{display:block;font-weight:600;font-size:12px;opacity:.85;margin-top:3px}' +
@@ -89,7 +89,7 @@
   '#ent.ancho .e-pan{justify-content:flex-end;padding-bottom:calc(34px + env(safe-area-inset-bottom,0px))}' +
   '#ent.ancho .e-reloj{position:absolute;top:64px;left:0;right:0;text-align:center}' +
   '#ent.ancho .e-fecha{position:absolute;top:calc(64px + clamp(46px,11vw,78px) + 6px);left:0;right:0;text-align:center}' +
-  '#ent.ancho .e-esc{width:min(30vw,120px);margin:0 0 4px}#ent.ancho .e-disco{display:none}#ent.ancho .e-marca{font-size:20px}#ent.ancho .e-toca{margin-top:16px}' +
+  '#ent.ancho .e-esc{width:min(30vw,150px);margin:0 0 4px}#ent.ancho .e-marca{margin-top:14px}#ent.ancho .e-marca img{width:92px}#ent.ancho .e-toca{margin-top:16px}' +
   /* teclado */
   '#ent .e-tec{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:440px;background:rgba(11,31,69,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:26px 26px 0 0;padding:18px 22px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .45s cubic-bezier(.3,1,.4,1);box-shadow:0 -10px 40px rgba(0,0,0,.4);touch-action:manipulation}' +
   '#ent.abierto .e-tec{transform:none}' +
@@ -120,9 +120,9 @@
   '#ent.quieto .e-foto,#ent.quieto .e-copa{animation:none!important;transform:scale(1.03)}#ent.quieto .e-copa,#ent.quieto canvas,#ent.quieto .e-rayos{display:none}' +
   '#ent.quieto .e-halo,#ent.quieto .e-toca{animation:none}#ent.quieto .e-fondo{transform:none!important}' +
   '#ent.azul{background:linear-gradient(160deg,#0B2A5B 0%,#14306b 58%,#0A6B4E 145%)}#ent.azul .e-fondo,#ent.azul canvas{display:none}' +
-  '#ent.azul .e-disco{display:block!important;background:radial-gradient(circle at 40% 35%,#fff 0%,#f3f7fb 60%,#dfe8f2 100%)!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 0 8px rgba(255,255,255,.08)}' +
+  '#ent.azul .e-disco{display:block!important}' +
   '#ent.azul .e-capa{filter:none}#ent.azul .e-pan{justify-content:center!important}#ent.azul .e-reloj,#ent.azul .e-fecha{position:static!important}' +
-  '#ent.azul .e-esc{width:min(58vw,220px)!important;margin:26px 0 8px!important}#ent.azul .e-marca{font-size:26px!important}' +
+  '#ent.azul .e-esc{width:min(56vw,212px)!important;margin:26px 0 8px!important}' +
   /* aviso de inactividad */
   '#ent-aviso{position:fixed;inset:0;z-index:2147483001;background:rgba(6,20,44,.8);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Archivo,system-ui,sans-serif}' +
   '#ent-aviso .av{background:#fff;color:#14306b;border-radius:22px;padding:24px 22px;max-width:340px;width:100%;text-align:center}' +
@@ -145,9 +145,10 @@
   '#ent .e-pc-av img{width:70px;height:70px;object-fit:contain}' +
   /* el emblema sin círculo blanco: en relieve, con un destello blanco detrás para que se lea
      sobre el árbol oscuro. Da una vuelta al abrir, avanza con cada número del PIN y gira si lo tocan. */
-  '#ent .e-pc-emb{position:relative;width:136px;height:111px;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
-  '#ent .e-pc-3d{position:absolute;inset:0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45)) drop-shadow(0 2px 3px rgba(0,0,0,.35))}' +
-  '#ent .e-pc-emb::before{content:"";position:absolute;left:50%;top:50%;width:190px;height:190px;margin:-95px 0 0 -95px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.72) 0,rgba(255,255,255,.34) 34%,rgba(255,255,255,.1) 55%,rgba(255,255,255,0) 70%);pointer-events:none}' +
+  '#ent .e-pc-emb{position:relative;width:168px;height:168px;border-radius:50%;background:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.08),0 14px 40px rgba(0,0,0,.4);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+  '#ent .e-pc-3d{position:absolute;left:8%;right:8%;top:16%;bottom:16%}' +
+  '#ent .e-pc-wm{display:block;width:112px;height:auto;margin-top:10px;filter:drop-shadow(0 2px 10px rgba(0,0,0,.45));-webkit-user-drag:none;user-select:none}' +
+  '#ent .e-pc-so{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.85;margin-top:-4px}' +
   '#ent .e-pc-emb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}' +
   '#ent .e-pc-fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}' +
   '#ent .e-pc-av.ini{background:#14306b;color:#fff;font-size:34px;font-weight:700;text-shadow:none}' +
@@ -203,7 +204,7 @@
           '<img class="e-capa e-bio in-bi" src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
           '<div class="e-gira"><img class="e-capa in-fa" src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img class="e-capa in-fb" src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div>' +
         '</div>' +
-        '<div class="e-marca">' + 'ECOVSA'.split('').map(function (c, i) { return '<span style="animation-delay:' + (1.9 + i * 0.09).toFixed(2) + 's">' + c + '</span>'; }).join('') + '</div>' +
+        '<div class="e-marca"><img src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"></div>' +
         '<div class="e-lema">ECOLOGÍA · VIDA · SALUD</div>' +
         '<div class="e-toca" role="button" tabindex="0">' + (op.bloqueo ? 'Sesión bloqueada · <b>PIN</b><small>' + esc(op.nombre || '') + '</small>' : 'Toca para entrar · <b>PIN</b>') + '</div>' +
       '</div>' +
@@ -312,7 +313,7 @@
       y.innerHTML = '<div class="e-pc-emb" title="ECOVSA"><div class="e-pc-3d">' +
           '<img src="' + BASE + 'entrada-globo.png" alt="" draggable="false"><img src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
           '<div class="e-pc-fl"><img src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div></div></div>' +
-        '<div class="e-pc-nom">Rutas ECOVSA</div>' +
+        '<img class="e-pc-wm" src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"><div class="e-pc-so">Sistema de operaciones</div>' +
         '<div class="e-pc-sub">' + sal + ' · escribe tu PIN</div>';
       pcGiro(0);
       if (!E.pcVuelta) {                     /* una sola vuelta al abrir; luego quieto */
