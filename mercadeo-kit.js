@@ -230,7 +230,7 @@
     if (p.b === 'oportunidades') return c.excedidas ? '<span class="n">' + c.excedidas + '</span>' : (c.oportunidades ? '<span class="n g">' + c.oportunidades + '</span>' : '');
     if (p.b === 'agenda') { var n = (c.tareasHoy || 0) + (c.atrasadas || 0); return n ? '<span class="n' + (c.atrasadas ? '' : ' g') + '">' + n + '</span>' : ''; }
     if (p.b === 'compras') return c.compras ? '<span class="n g">' + c.compras + '</span>' : '';
-    if (p.b === 'suspensiones') return c.suspensiones ? '<span class="n" title="Suspensiones que pidió Cobros">' + c.suspensiones + '</span>' : '';
+    if (p.b === 'suspensiones') { var t = (c.suspensiones || 0) + (c.docsPorRevisar || 0); return t ? '<span class="n" title="Suspensiones que pidió Cobros y documentos que subieron los clientes">' + t + '</span>' : ''; }
     return '';
   }
   function menuHtml(pag) {

@@ -86,9 +86,11 @@ tr.tot td{font-weight:800;border-bottom:0;border-top:1.5px solid var(--navy);fon
   .pie{margin-top:14px}
 }
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
-<div class="barra"><b>ECOVSA</b><span id="b-tit">Carta de cobro</span><div class="sp"></div><a class="btn wa" id="b-wa" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>Escribirnos</a><button class="btn cl" id="b-pdf" onclick="window.print()" hidden><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>Guardar en PDF</button></div>
+<div class="barra doc-barra no-imprimir"><span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span><div class="ti" id="b-tit">Carta de cobro</div><a class="db-b db-wa" id="b-wa" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>Escribirnos</span></a><button class="db-pdf" id="b-pdf" onclick="window.print()" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button></div>
 <div id="app"><div class="estado"><div class="gira"></div><p style="margin-top:14px">Abriendo la carta…</p></div></div>
 <script>
 function $(i){ return document.getElementById(i); }
@@ -131,8 +133,7 @@ function pintar(k, em){
     F.map(function(f){ return '<tr><td>'+E(f.factura)+'</td><td class="cf">'+fC(f.fecha)+'</td><td>'+fC(f.vence)+'</td><td>'+(f.dias>0?'<span class="dias v">'+f.dias+' días vencida</span>':'<span class="dias">por vencer</span>')+'</td><td class="r num">'+D(f.saldo)+'</td></tr>'; }).join('')+
     '<tr class="tot"><td colspan="3" class="tc">Total pendiente'+(vencido&&vencido<total?' · vencido '+D(vencido):'')+'</td><td class="cf"></td><td class="r num">'+D(total)+'</td></tr></tbody></table></div>':'';
   var h='<div class="hoja">'+
-    '<div class="mem"><div class="lg" role="img" aria-label="ECOVSA"></div><div class="dt"><b>'+E(em.razonSocial||"ECOVSA")+'</b><span>'+E(em.comercial||"ECOVSA")+' · Recolección, transporte y tratamiento de desechos hospitalarios</span><span>RUC '+E(em.ruc||"")+(em.dv?' DV '+E(em.dv):'')+' · '+E(em.direccion||"")+'</span></div>'+
-      (em.resolucion?'<div class="res">Empresa registrada ante el Ministerio de Salud<br><i>'+E(em.resolucion)+'</i></div>':'')+'</div>'+
+    DOCE.membrete({ empresa: em, modo: 'legal', codigo: 'Carta ' + k.id })+
     '<div class="meta"><div class="para">Señores<b>'+E(d.destinatario||d.nombre)+'</b>'+(d.ruc?'RUC '+E(d.ruc)+'<br>':'')+(d.nombre&&d.destinatario&&d.nombre!==d.destinatario?E(d.nombre)+'<br>':'')+(d.contacto&&!/^n\/?a$/i.test(d.contacto)?'Atención: '+E(d.contacto):'')+'</div>'+
       '<div class="fe">Panamá, '+E(fL(k.fecha))+'<br>Carta '+E(k.id)+'</div></div>'+
     '<div class="tit"><small>'+(t==="reactivacion"?"Aviso":"Aviso de cobro")+'</small>'+E(k.titulo)+'</div>'+

@@ -145,6 +145,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
 <script>
@@ -210,7 +211,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       '<div class="card"><h3>Próximos días <span class="sp"></span><a href="MerAgenda.html">Ver agenda completa</a></h3><div id="i-sem"><div class="cargando">Cargando…</div></div></div>' +
       '</div>' +
       '<div class="a-col">' +
-      '<div id="i-susp"></div>' +
+      '<div id="i-susp"></div><div id="i-docs"></div>' +
       '<div class="card"><h3>Lo que te espera <span class="sp"></span><span class="l muted" id="i-alcount"></span></h3><div id="i-alertas"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Embudo <span class="sp"></span><a href="MerOportunidades.html">Abrir oportunidades</a></h3><div id="i-emb"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Mis solicitudes de compra <span class="sp"></span><a href="MerCompras.html">Ver todas</a></h3><div id="i-compras"><div class="cargando">Cargando…</div></div></div>' +
@@ -272,8 +273,27 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
         }).join('') + '<div class="small muted" style="margin-top:6px">Suspender, dar plazo o seguir cobrando: se decide en la ficha del cliente, con lo que Cobros ya hizo.</div></div>';
     }, function () {});
   }
+  /* api 3.5.1 · Documentos que subieron los clientes y el espacio de archivos */
+  function cargarDocs() {
+    var el = $('i-docs'); if (!el) return;
+    MK.api('api_docsPorRevisar', MK.pin).then(function (r) {
+      if (!r || !r.ok) return;
+      var L = r.porRevisar || [], e = r.espacio || {}, h = '';
+      if (e.aviso) h += '<div class="card" style="border-left:4px solid var(--amber)"><h3>' + MK.ic('clip', 16) + ' Espacio de archivos</h3><div class="small">' + (e.clientes >= e.clientesAviso ? 'Ya son ' + e.clientes + ' clientes' : 'Va en ' + MK.num(e.pct, 1) + ' % del espacio') + ': es momento de pasar Supabase al plan Pro. <a href="MerAjustes.html#espacio">Ver el medidor</a></div></div>';
+      if (L.length) {
+        var porCod = {}; L.forEach(function (x) { (porCod[x.cod] = porCod[x.cod] || { cod: x.cod, empresa: x.empresa, docs: [] }).docs.push(x); });
+        h += '<div class="card" style="border-left:4px solid var(--navy2)"><h3>' + MK.ic('subir', 16) + ' Documentos por revisar <span class="sp"></span><span class="l muted">' + L.length + '</span></h3>' +
+          Object.keys(porCod).map(function (k) {
+            var o = porCod[k];
+            return '<div style="padding:9px 0;border-top:1px solid var(--line2)" class="row"><div style="flex:1;min-width:0"><b>' + esc(o.empresa || o.cod) + '</b><div class="small muted">' + o.docs.map(function (d) { return esc(d.n); }).join(' · ') + ' · los subió el cliente</div></div>' +
+              '<a class="btn sm" href="MerOportunidad.html?id=' + encodeURIComponent(o.cod) + '#documentos">Revisar</a></div>';
+          }).join('') + '</div>';
+      }
+      el.innerHTML = h;
+    }, function () {});
+  }
   function pintar() {
-    cargarSusp();
+    cargarSusp(); cargarDocs();
     pintarKpis(); pintarAgenda(); pintarSemana(); pintarAlertas(); pintarEmbudo(); pintarCompras(); pintarFeed();
   }
 

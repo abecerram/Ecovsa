@@ -11,6 +11,7 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
+<script src="archivos.js"></script>
 <style>
 /* ── Ficha del cliente · opción A «Encabezado y pestañas» ── */
 .sysbar .srch{min-width:0}
@@ -131,6 +132,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
 <script>
@@ -620,6 +622,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     MK.ocupado(btn, true, '…');
     MK.api('api_crmArchivo', MK.pin, d.archivoId).then(function (r) {
       MK.ocupado(btn, false);
+      if (r && r.ok && (r.url || r.almacenError)) { if (!r.url) { if (w) w.close(); MK.aviso(r.almacenError); return; } if (w) w.location.href = r.url; else location.href = r.url; return; }
       if (!r || !r.ok || !r.datos) { if (w) w.close(); MK.aviso((r && r.error) || 'No se pudo abrir el archivo.'); return; }
       var m = /^data:([^;]+);base64,(.*)$/.exec(r.datos); if (!m) { if (w) w.close(); MK.aviso('El archivo no se pudo leer.'); return; }
       var bin = atob(m[2]), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -635,7 +638,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       '<label class="lb" for="dc-e">O ENLACE <span class="muted">(si está en Drive u otro lugar)</span></label><input class="in" id="dc-e" placeholder="https://…">' +
       '<label class="lb" for="dc-s">ESTADO</label><select class="sel" id="dc-s"><option value="firmada">Firmado</option><option value="borrador">Borrador</option><option value="enviada">Enviado</option><option value="aceptada">Aceptado</option><option value="vencida">Vencido</option></select>' +
       '<label class="lb" for="dc-no">NOTAS</label><input class="in" id="dc-no">' +
-      '<div id="dc-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div id="dc-sub"></div><div id="dc-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="dc-ok">Guardar</button></div>');
     var fi = document.getElementById('dc-f'), nm = document.getElementById('dc-n');
     fi.onchange = function () { if (fi.files[0] && !nm.value.trim()) nm.value = fi.files[0].name.replace(/\.[^.]+$/, ''); };
@@ -645,21 +648,27 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       if (!f && !enl) { msg.textContent = 'Elige un archivo o pega un enlace.'; return; }
       if (f && f.size > 3 * 1024 * 1024 * 0.74) { msg.textContent = 'El archivo pesa más de lo permitido (unos 2.2 MB). Redúcelo o guarda el enlace de donde está.'; return; }
       if (!d.nombre) d.nombre = f ? f.name : 'Documento';
-      MK.ocupado(b, true, 'Subiendo…');
+      MK.ocupado(b, true, 'Subiendo…'); msg.textContent = '';
+      /* api 3.5.2: la tarjeta de espera (emblema, pasos) */
+      var T = f && window.ARCH && ARCH.tarjeta ? ARCH.tarjeta(document.getElementById('dc-sub'), { nombre: f.name, detalle: ARCH.kb(f.size), reemplazar: true }) : null;
+      if (T) T.paso(0);
       var guardar = function (archivoId) {
         if (archivoId) d.archivoId = archivoId;
+        if (T) T.paso(2);
         return MK.api('api_crmGuardarDocumento', MK.pin, d).then(function (r) {
           MK.ocupado(b, false);
-          if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
-          MK.cerrarHoja(); MK.aviso('Documento guardado'); MK.cambio({ tipo: 'documento' });
+          if (!r || !r.ok) { if (T) T.error((r && r.error) || 'No se pudo guardar.'); else msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+          if (T) T.listo('Guardado');
+          setTimeout(function () { MK.cerrarHoja(); MK.aviso('Documento guardado'); MK.cambio({ tipo: 'documento' }); }, T ? 650 : 0);
         });
       };
-      var fallo = function (e) { MK.ocupado(b, false); msg.textContent = e.message || 'Sin conexión'; };
+      var fallo = function (e) { MK.ocupado(b, false); if (T) T.error(e.message || 'Sin conexión'); else msg.textContent = e.message || 'Sin conexión'; };
       if (!f) { guardar('').catch(fallo); return; }
       var rd = new FileReader();
       rd.onload = function () {
+        if (T) T.paso(1);
         MK.api('api_crmSubirArchivo', MK.pin, { nombre: f.name, tipo: f.type, datos: rd.result }).then(function (r) {
-          if (!r || !r.ok) { MK.ocupado(b, false); msg.textContent = (r && r.error) || 'No se pudo subir el archivo.'; return; }
+          if (!r || !r.ok) { fallo(new Error((r && r.error) || 'No se pudo subir el archivo.')); return; }
           return guardar(r.archivo.id);
         }).catch(fallo);
       };

@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 /* El reporte de inspección es INTERNO — Álvaro lo dijo. Por eso puede
@@ -104,16 +104,19 @@ tr.tot td{background:var(--verde-suave);font-weight:900}
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando la inspección…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">INSPECCIÓN TÉCNICA · <span id="ti-num"></span></div>
-    <button onclick="window.print()">Imprimir</button>
-    <button class="sec" onclick="window.close()">Cerrar</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Inspección técnica <span class="fo" id="ti-num"></span></div>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
+    <button class="sec" onclick="window.close()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Cerrar</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
@@ -161,6 +164,8 @@ function lista(txt){
     : '<span class="nada">Nada anotado.</span>';
 }
 function campo(e,v,cls){
+  /* api 3.5.1: una fecha que llegó cruda («Tue Sep 01 2026 …») se muestra como fecha */
+  if(typeof v==="string" && /^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{1,2} \d{4}/.test(v)) v = DOCE.fecha(v);
   return '<div class="campo'+(cls?" "+cls:"")+'"><div class="e">'+esc(e)+'</div>'+
          '<div class="v">'+(v?esc(v):"—")+'</div></div>';
 }
@@ -193,7 +198,7 @@ function pintar(r){
     if(isFinite(v)) medido+=v; } });
   var decl=Number(String(i.declaradoCotizacion||"").replace(/[^0-9.,]/g,"").replace(",","."));
   var ojo = (decl>0 && medido>0 && medido>=decl*1.3)
-    ? '<div class="ojo"><b>El cliente declaró '+esc(i.declaradoCotizacion)+
+    ? '<div class="ojo"><b>El cliente declaró '+esc(/^[A-Z][a-z]{2} [A-Z][a-z]{2} /.test(String(i.declaradoCotizacion))?DOCE.fecha(i.declaradoCotizacion):i.declaradoCotizacion)+
       ' y en sitio se midieron '+medido+' kg.</b> La cotización debe hacerse sobre lo medido.</div>'
     : "";
 
@@ -205,16 +210,8 @@ function pintar(r){
     : "";
 
   $("hoja").innerHTML =
-  '<div class="membrete">'+
-    '<div class="m"><div class="n">'+esc(E.comercial||"ECOVSA")+'</div>'+
-      '<div class="r">'+esc(E.razonSocial||"")+' · RUC '+esc(E.ruc||"")+
-        ' DV '+esc(E.dv||"")+'<br>'+esc(E.direccion||"")+' · Tel. '+esc(E.telefono||"")+'</div></div>'+
-    '<div class="num"><div class="e">Inspección N°</div>'+
-      '<div class="v">'+esc(i.inspeccionId||"")+'</div>'+
-      '<div class="e" style="margin-top:4px">Visita</div>'+
-      '<div class="v" style="font-size:12px">'+esc(i.fechaVisita||"—")+'</div></div>'+
-  '</div>'+
-  '<div class="franja"></div>'+
+  DOCE.membrete({ empresa: E, codigo: 'Documento interno · previo a la cotización',
+    derecha: '<small>Inspección N°</small><b>'+esc(i.inspeccionId||"")+'</b><span>Visita: '+esc(i.fechaVisita?DOCE.fecha(i.fechaVisita):"—")+'</span>' })+
   '<h1>INFORME DE INSPECCIÓN TÉCNICA</h1>'+
   '<div class="sub">DOCUMENTO INTERNO · PREVIO A LA COTIZACIÓN · NO SE ENTREGA AL CLIENTE</div>'+
 

@@ -122,6 +122,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
 <script>
@@ -134,7 +135,8 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     ['metas', 'Metas y alertas', 'tendencia'],
     ['plantillas', 'Plantillas', 'plantilla'],
     ['avisos', 'Notificaciones', 'campana'],
-    ['firma', 'Firma, tono y agenda', 'lapiz']
+    ['firma', 'Firma, tono y agenda', 'lapiz'],
+    ['espacio', 'Espacio de archivos', 'clip']
   ];
   var ABIERTAS = ['Registrado', 'Formulario enviado', 'Formulario recibido', 'Propuesta enviada', 'En negociación', 'Contrato en proceso', 'Stand-by'];
   var ESCALARES = ['metaMensual', 'diasRenovacion', 'diasSinContacto', 'tono', 'firma', 'horaInicio', 'horaFin'];
@@ -287,7 +289,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function ir(s) { SEC = s; try { history.replaceState(null, '', '#' + s); } catch (e) {} pintarMenu(); pintarSeccion(); if (innerWidth < 900) { var c = document.getElementById('ajCuerpo'); if (c) c.scrollIntoView({ block: 'start' }); } }
   function pintarSeccion() {
     var el = document.getElementById('ajCuerpo'); if (!el) return;
-    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, avisos: secAvisos, firma: secFirma }[SEC] || secEtapas)(el); }
+    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, avisos: secAvisos, firma: secFirma, espacio: secEspacio }[SEC] || secEtapas)(el); }
     catch (e) { console.error(e); el.innerHTML = '<div class="aviso rj">No se pudo mostrar esta sección: ' + MK.esc(e.message) + '</div>'; }
   }
 
@@ -430,7 +432,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function valores() {
     var o = muestra() || {}, t = o.proximaTarea || null;
     return { empresa: o.empresa || '', contacto: o.contacto || '', asesor: (MK.usuario || {}).nombre || '', fecha: MK.fechaLarga(MK.hoy), hora: t && t.hora ? t.hora : '',
-      propuesta: o.codigoPropuesta || '', enlace: o.codigoPropuesta && URL_APP ? URL_APP + '?p=formulario&token=' + encodeURIComponent(o.codigoPropuesta) : '', firma: ED.firma || '', saludo: saludo() };
+      propuesta: o.codigoPropuesta || '', enlace: o.codigoPropuesta && URL_APP ? URL_APP + '?p=formulario&token=' + encodeURIComponent(o.codigoPropuesta) + (o.formClave ? '&k=' + o.formClave : '') : '', firma: ED.firma || '', saludo: saludo() };
   }
   function pintarTexto(txt, v, wa) {
     var h = MK.esc(txt || '');
@@ -616,6 +618,37 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   }
 
   /* ═══ 6 · Firma, tono y agenda ═══ */
+  /* ═══ api 3.5.1 · Espacio de archivos ═══
+     Documentos de clientes y camiones en Supabase Storage (plan gratis: 1 GB).
+     Al pasar de ~200 clientes o del 70 % del espacio, conviene el plan Pro. */
+  function secEspacio(el) {
+    el.innerHTML = '<div class="cargando">Midiendo el espacio…</div>';
+    MK.api('api_arcEspacio', MK.pin).then(function (r) {
+      if (!r || !r.ok) { el.innerHTML = '<div class="aviso rj">' + MK.esc((r && r.error) || 'No se pudo medir.') + '</div>'; return; }
+      var e = r.espacio, pc = Math.min(100, e.pct), col = pc >= 85 ? 'var(--bad)' : pc >= 70 ? 'var(--amber)' : 'var(--ok)';
+      var adm = MK.usuario && MK.usuario.rol === 'admin';
+      el.innerHTML = '<div class="card"><h3>Espacio de archivos</h3>' +
+        (e.listo ? '' : '<div class="aviso am">El espacio de archivos todavía no está conectado.</div>') +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 8px"><b style="font-size:28px" class="num">' + MK.num(e.usadoMB, 1) + ' MB</b><span class="muted">de ' + MK.num(e.limiteMB) + ' MB · ' + MK.num(e.pct, 1) + ' %</span></div>' +
+        '<div style="height:12px;border-radius:7px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:' + Math.max(pc, 0.6) + '%;background:' + col + '"></i></div>' +
+        '<div class="grid g2" style="margin-top:14px;gap:12px"><div class="kpi"><b class="num">' + e.clientes + '</b><span>clientes en servicio · aviso a los ' + e.clientesAviso + '</span></div>' +
+        '<div class="kpi"><b class="num">~' + Math.max(0, Math.floor((e.limiteMB - e.usadoMB) / 3)) + '</b><span>clientes más caben (unos 3 MB por cliente)</span></div></div>' +
+        (e.aviso ? '<div class="aviso am" style="margin-top:12px">Es momento de pasar Supabase al plan Pro (25 dólares al mes: 100 GB de archivos y 8 GB de base de datos).</div>' : '<p class="small muted" style="margin-top:12px">Plan gratis de Supabase: 1 GB para archivos. Las fotos se achican solas antes de subir (unos 0.4 MB por documento). Cuando pase de 200 clientes o del 70 % del espacio, aquí y en Mi día sale el aviso para pasar al plan Pro.</p>') +
+        (e.adjuntosViejos ? '<div class="aviso az" style="margin-top:12px">Hay ' + e.adjuntosViejos + ' adjunto(s) de antes guardados dentro de la base de datos (' + MK.num(e.adjuntosViejosMB, 1) + ' MB). ' +
+          (adm ? 'Pásalos al espacio de archivos para aligerar la base.<div style="margin-top:8px"><button class="btn sm pri" id="es-mudar">' + MK.ic('subir', 14) + ' Pasarlos ahora</button></div>' : 'El administrador los pasa al espacio de archivos desde aquí.') + '</div>' : '') + '</div>';
+      var b = document.getElementById('es-mudar');
+      if (b) b.onclick = function () {
+        MK.ocupado(b, true, 'Pasando…');
+        (function tanda() {
+          MK.api('api_arcMudarAdjuntos', MK.pin).then(function (x) {
+            if (!x || !x.ok) { MK.ocupado(b, false); MK.aviso((x && x.error) || 'No se pudo.'); return; }
+            if (x.almacenError) { MK.ocupado(b, false); MK.aviso(x.almacenError); return; }
+            if (x.quedan > 0) { b.textContent = 'Quedan ' + x.quedan + '…'; tanda(); } else { MK.aviso('Listo: todos los adjuntos están en el espacio de archivos'); secEspacio(el); }
+          }, function (err) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + err.message); });
+        })();
+      };
+    }, function (err) { el.innerHTML = '<div class="aviso rj">Sin conexión: ' + MK.esc(err.message) + '</div>'; });
+  }
   function secFirma(el) {
     el.innerHTML = '<div class="sec-h"><div><h2>Firma, tono y agenda</h2><p>Cómo cierran tus mensajes, con qué saludo empiezan y qué horas muestra la Agenda.</p></div></div>' +
       '<div class="card">' +

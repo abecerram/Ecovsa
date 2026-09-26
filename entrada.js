@@ -151,6 +151,8 @@
   '#ent .e-pc-so{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.85;margin-top:-4px}' +
   '#ent .e-pc-emb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}' +
   '#ent .e-pc-fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}' +
+  '#ent .e-pc-emb img{transform-origin:49.375% 48.98%}#ent .in-wm{animation:eCae .6s 1.9s cubic-bezier(.3,1.5,.5,1) both}' +
+  '@media (prefers-reduced-motion:reduce){#ent .in-gl,#ent .in-bi,#ent .in-fa,#ent .in-fb,#ent .in-wm{animation:none}}' +
   '#ent .e-pc-av.ini{background:#14306b;color:#fff;font-size:34px;font-weight:700;text-shadow:none}' +
   '#ent .e-pc-nom{font-size:20px;font-weight:700;text-align:center}#ent .e-pc-sub{font-size:13px;opacity:.92;text-align:center;margin-top:-6px}' +
   '#ent .e-pc-otro{background:none;border:0;color:#fff;font:600 13px Archivo,system-ui,sans-serif;text-decoration:underline;cursor:pointer;opacity:.9;margin-top:-4px}' +
@@ -310,16 +312,18 @@
         '<button type="button" class="e-pc-otro">¿No eres ' + esc(p[0]) + '? Entrar con otro PIN</button>';
     } else {
       y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
+      /* api 3.5.2: en la computadora el emblema también se arma al abrir, como en el celular */
+      var ar = !E.pcVuelta, c1 = ar ? ' class="in-gl"' : '', c2 = ar ? ' class="in-bi"' : '', c3 = ar ? ' class="in-fa"' : '', c4 = ar ? ' class="in-fb"' : '';
       y.innerHTML = '<div class="e-pc-emb" title="ECOVSA"><div class="e-pc-3d">' +
-          '<img src="' + BASE + 'entrada-globo.png" alt="" draggable="false"><img src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
-          '<div class="e-pc-fl"><img src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div></div></div>' +
-        '<img class="e-pc-wm" src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"><div class="e-pc-so">Sistema de operaciones</div>' +
+          '<img' + c1 + ' src="' + BASE + 'entrada-globo.png" alt="" draggable="false"><img' + c2 + ' src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
+          '<div class="e-pc-fl"><img' + c3 + ' src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img' + c4 + ' src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div></div></div>' +
+        '<img class="e-pc-wm' + (ar ? ' in-wm' : '') + '" src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"><div class="e-pc-so' + (ar ? ' in-wm' : '') + '">Sistema de operaciones</div>' +
         '<div class="e-pc-sub">' + sal + ' · escribe tu PIN</div>';
       pcGiro(0);
       if (!E.pcVuelta) {                     /* una sola vuelta al abrir; luego quieto */
         E.pcVuelta = true;
         var quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
-        if (!quieto) setTimeout(function () { if (E) { E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.8); } }, 350);
+        if (!quieto) setTimeout(function () { if (E) { E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.8); } }, 2100);
       }
     }
   }

@@ -6,6 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -70,21 +71,24 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 }
 @page{margin:14mm}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando el reporte…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">REPORTE DE RECEPCIÓN EN PLANTA</div>
-    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Reporte de recepción en planta</div>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var LOGO="logo-ecovsa.png";
 var DESDE="", HASTA="";
 
 function $(i){return document.getElementById(i);}
@@ -174,17 +178,12 @@ function pintar(r){
     : "";
 
   var html =
-  "<div class='enc'>"+
-    "<img src='"+LOGO+"' alt='ECOVSA'>"+
-    "<div><div class='ti'>ECOVSA</div>"+
-      "<div class='su'>Ecología · Vida · Salud</div></div>"+
-    "<div class='cod'>ECOVSA-FR-DF-02 · Rev. 01<br>Recepción en planta de tratamiento<br>República de Panamá</div>"+
-  "</div>"+
+  DOCE.membrete({ codigo: 'ECOVSA-FR-DF-02 · Rev. 01 · Recepción en planta de tratamiento' })+
 
   "<div class='tit'>"+
     "<div><span class='et'>Reporte de desechos recolectados</span>"+
-      "<b>"+esc(r.desde)+" al "+esc(r.hasta)+"</b></div>"+
-    "<div class='der'>Emitido el "+esc(hoy)+(quien?"<br>por "+esc(quien):"")+"</div>"+
+      "<b>"+esc(DOCE.fecha(r.desde))+" al "+esc(DOCE.fecha(r.hasta))+"</b></div>"+
+    "<div class='der'>Emitido el "+esc(DOCE.fecha(hoy))+(quien?"<br>por "+esc(quien):"")+"</div>"+
   "</div>"+
 
   "<div class='sec'>1 · Resumen del periodo</div>"+

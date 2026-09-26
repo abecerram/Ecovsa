@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -81,6 +81,8 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 }
 @page{margin:14mm}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
@@ -95,9 +97,10 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 <div id="pantalla-aviso" class="aviso" style="display:none"></div>
 
 <div id="pantalla-acta" style="display:none">
-  <div class="barra">
-    <div class="ti">ACTA DE DISPOSICIÓN FINAL</div>
-    <button onclick="window.print()" class="pri">Imprimir / Guardar PDF</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Acta de disposición final</div>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
@@ -194,16 +197,11 @@ function pintar(a){
   var visitas = det.reduce(function(s,d){return s+d.visitas;},0);
 
   var html =
-  "<div class='enc'>"+
-    "<img src='"+LOGO+"' alt='ECOVSA'>"+
-    "<div><div class='ti'>ECOVSA</div>"+
-      "<div class='su'>Ecología · Vida · Salud</div></div>"+
-    "<div class='cod'>ECOVSA-FR-DF-01 · Rev. 01<br>Gestión de desechos peligrosos<br>República de Panamá</div>"+
-  "</div>"+
+  DOCE.membrete({ codigo: 'ECOVSA-FR-DF-01 · Rev. 01 · Gestión de desechos peligrosos' })+
 
   "<div class='num'>"+
     "<div><span class='et'>Acta de disposición final</span><b>"+esc(a.actaId)+"</b></div>"+
-    "<div class='der'>Emitida el "+esc(a.fecha)+"<br>a las "+esc(a.hora||"—")+"</div>"+
+    "<div class='der'>Emitida el "+esc(DOCE.fecha(a.fecha))+"<br>a las "+esc(a.hora||"—")+"</div>"+
   "</div>"+
 
   "<div class='sec'>1 · Datos de la entrega</div>"+
@@ -212,7 +210,9 @@ function pintar(a){
     "<div class='campo'><span>Vehículo</span><b>"+esc(a.vehiculo||"—")+"</b></div>"+
     "<div class='campo'><span>Lugar de disposición final</span><b>"+esc(a.destino||"—")+"</b></div>"+
     "<div class='campo'><span>Recibido por</span><b>"+esc(a.recibe||"—")+"</b></div>"+
-    "<div class='campo'><span>Periodo cubierto</span><b>"+esc(a.desde)+" al "+esc(a.hasta)+"</b></div>"+     ((a.llegada||a.salida) ? "<div class='campo'><span>Llegada · salida de planta</span><b>"+esc(a.llegada||"—")+" · "+esc(a.salida||"—")+"</b></div>" : "")+     ((a.entregadoPor && a.entregadoPor!==a.operador) ? "<div class='campo'><span>Registró el acta</span><b>"+esc(a.entregadoPor)+"</b></div>" : "")+
+    "<div class='campo'><span>Periodo cubierto</span><b>"+esc(a.desde)+" al "+esc(a.hasta)+"</b></div>"+
+    ((a.llegada||a.salida) ? "<div class='campo'><span>Llegada · salida de planta</span><b>"+esc(a.llegada||"—")+" · "+esc(a.salida||"—")+"</b></div>" : "")+
+    ((a.entregadoPor && a.entregadoPor!==a.operador) ? "<div class='campo'><span>Registró el acta</span><b>"+esc(a.entregadoPor)+"</b></div>" : "")+
     "<div class='campo'><span>Generadores / bultos</span><b>"+det.length+" generador(es) · "+a.bultos+" bulto(s)</b></div>"+
   "</div>"+
 

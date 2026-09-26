@@ -5,448 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base target="_top">
 <meta charset="UTF-8">
-<link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<!-- api 3.5.1 · El arqueo de caja menuda (F-ADM-02). Antes este archivo era una
+     copia de la propuesta y nunca mostró el arqueo; ahora lo arma con
+     api_arqueo, igual que Mercadeo › Solicitudes de compra. -->
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
-
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:40px}
-
-.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
-  padding:11px 14px;background:linear-gradient(135deg,var(--azul-osc),var(--azul));
-  box-shadow:0 2px 12px rgba(11,60,110,.3)}
-.barra .ti{color:#fff;font-size:13px;font-weight:800;letter-spacing:.4px;margin-right:auto}
-.barra button{border:none;font-family:inherit;font-size:13.5px;font-weight:700;
-  padding:10px 15px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.16);color:#fff}
-.barra button.pri{background:var(--ambar);color:#4A3300}
-.barra button.wa{background:#25D366;color:#08351C}
-.barra button:active{transform:translateY(1px)}
-
-/* El paso previo a enviar. Vive DENTRO de la barra a propósito: así el
-   display:none de @media print lo tapa junto con ella y no hay forma de
-   que un aviso interno termine impreso en la propuesta del cliente. */
-.pre{flex-basis:100%;background:#fff;border-radius:10px;padding:14px 16px;
-  font-size:13px;color:#333;line-height:1.6}
-.pre h5{margin:0 0 7px;font-size:13.5px;color:var(--azul-osc)}
-/* El documento pone un ✓ delante de cada <li>. Aquí los pasos van
-   numerados, y número más palomita a la vez se lee como si el paso ya
-   estuviera hecho — justo lo contrario de lo que dice el aviso. */
-.pre ol{margin:0 0 11px;padding-left:19px;list-style:decimal}
-.pre li{margin-bottom:3px;position:static}
-.pre li:before{content:none}
-.pre .bs{display:flex;gap:9px;flex-wrap:wrap}
-.pre button{font-size:13px;padding:9px 14px}
-.pre button.ok{background:var(--azul);color:#fff}
-.pre button.no{background:#eceff3;color:#555}
-
-.aviso{max-width:820px;margin:22px auto;background:#fff;border:1px solid var(--borde);
-  border-radius:12px;padding:26px;text-align:center;font-size:14px;color:var(--gris);line-height:1.6}
-
-.hoja{max-width:820px;margin:18px auto 0;background:#fff;color:#1a1a1a;padding:34px 40px;
-  border:1px solid var(--borde);border-radius:8px;font-size:12.5px;line-height:1.62;
-  box-shadow:0 3px 16px rgba(11,60,110,.10)}
-
-.enc{display:flex;gap:16px;align-items:flex-start;padding-bottom:14px}
-.enc img{height:74px;width:auto}
-.enc .emp{font-size:19px;font-weight:900;color:var(--verde);letter-spacing:.5px;line-height:1.1}
-.enc .lem{font-size:10.5px;color:var(--azul);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
-.enc .con{font-size:10px;color:#666;margin-top:5px;line-height:1.5}
-.enc .der{margin-left:auto;text-align:right}
-.enc .der .et{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:#777}
-.enc .der .num{font-size:16px;font-weight:900;color:var(--azul-osc);letter-spacing:.6px}
-.enc .der .fe{font-size:10.5px;color:#666;margin-top:4px}
-.franja{height:4px;background:linear-gradient(90deg,var(--azul-osc) 0%,var(--azul) 34%,
-  var(--verde-bandera) 67%,var(--lima) 100%);border-radius:2px;margin-bottom:20px}
-
-.dest{margin-bottom:16px}
-.dest .se{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#777}
-.dest .nom{font-size:15px;font-weight:800;color:var(--azul-osc);line-height:1.25}
-.dest .li{font-size:11.5px;color:#555;margin-top:2px}
-
-.sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;
-  color:var(--azul);margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--lima)}
-p{margin-bottom:9px;text-align:justify}
-ul{list-style:none}
-li{padding-left:20px;position:relative;margin-bottom:5px}
-li:before{content:"✓";position:absolute;left:0;color:var(--verde-bandera);font-weight:900}
-.notas li:before{content:"•";color:var(--azul);font-size:15px;line-height:1}
-
-table{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:12px}
-th{background:var(--azul-osc);color:#fff;padding:9px 10px;text-align:left;
-  font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
-td{border:1px solid #d6d6d6;padding:9px 10px}
-td.n{text-align:right;white-space:nowrap}
-tr.tot td{background:#EEF5E4;font-weight:800;font-size:13.5px;color:var(--verde)}
-.pie-tabla{font-size:10.5px;color:#666;line-height:1.55;font-style:italic}
-
-.firma{margin-top:20px}
-.firma .lin{border-top:1.5px solid #333;width:230px;padding-top:6px;margin-top:26px;font-size:11.5px}
-.firma .lin b{display:block;font-size:12.5px}
-.pie{margin-top:16px;padding-top:9px;border-top:1px solid #ddd;font-size:9.5px;
-  color:#777;text-align:center;line-height:1.6}
-
-@media print{
-  body{background:#fff;padding:0}
-  .barra{display:none}
-  .hoja{max-width:none;margin:0;border:none;border-radius:0;padding:0;box-shadow:none;font-size:10.5pt}
-  table{page-break-inside:avoid} .firma{page-break-inside:avoid}
-}
-@page{size:letter;margin:12mm}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;background:#e9edf3;color:#0f2140;padding-bottom:30px}
+.hoja{max-width:860px;margin:18px auto 0;background:#fff;border-radius:6px;box-shadow:0 10px 30px rgba(15,33,64,.12);padding:40px 48px}
+.estado{max-width:520px;margin:60px auto;background:#fff;border-radius:14px;padding:26px 24px;text-align:center;color:#5d6a80;box-shadow:0 8px 24px rgba(15,33,64,.1)}
+.estado b{display:block;font-size:18px;color:#0f2a57;margin-bottom:6px}
+h5{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;margin:18px 0 6px;color:#14306b}
+table{width:100%;border-collapse:collapse}
+td,th{border:1px solid #c9d0db;padding:6px 8px;text-align:left;font-size:12px;vertical-align:top}
+th{background:#eef1f5;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:#3d4a60}
+td.r,th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.nw{white-space:nowrap}
+tr.tt td{font-weight:800;background:#f5f6f8}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fir{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
+.fir div{border-top:1px solid #111;padding-top:5px;text-align:center;font-size:10.5px}
+.fir div b{display:block;font-size:11.5px}
+.ln-b{display:inline-block;min-width:120px;border-bottom:1px solid #111}
+.parcial{display:inline-block;background:#fff4d6;color:#8a6100;font-weight:700;font-size:10.5px;border-radius:5px;padding:2px 7px;margin-top:4px}
+.pie{margin-top:22px;border-top:1px solid #dfe4ec;padding-top:8px;font-size:9.5px;color:#5d6a80;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:680px){.hoja{margin:0;border-radius:0;box-shadow:none;padding:22px 14px}.dos,.fir{grid-template-columns:1fr}.fir{gap:34px}.tw{overflow-x:auto}}
+@page{size:A4;margin:12mm 14mm}
+@media print{.hoja{box-shadow:none;margin:0;padding:0;max-width:none}th,tr.tt td,.parcial{-webkit-print-color-adjust:exact;print-color-adjust:exact}tr{break-inside:avoid}}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
-
-<div id="aviso" class="aviso">Cargando la propuesta…</div>
-
-<div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">PROPUESTA COMERCIAL</div>
-    <span id="envios"></span>
-    <button onclick="window.print()" class="pri">Imprimir / Guardar PDF</button>
-    <div class="pre" id="pre" style="display:none"></div>
-  </div>
-  <div class="hoja" id="hoja"></div>
+<div class="barra doc-barra no-imprimir">
+  <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+  <div class="ti">Arqueo de caja menuda <span class="fo" id="ti-folio"></span></div>
+  <button class="sec" onclick="history.length > 1 ? history.back() : window.close()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>Volver</span></button>
+  <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
 </div>
-
+<div id="app"><div class="estado">Abriendo el arqueo…</div></div>
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
-var COD="", DATOS=null;
-
-function $(i){return document.getElementById(i);}
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-/* Con separador de miles: esto lo lee un cliente. "3240.00" y "3,240.00"
-   se leen distinto en voz alta, y en una propuesta eso importa. */
-function n2(v){return (Number(v||0)).toLocaleString("en-US",
-  {minimumFractionDigits:2,maximumFractionDigits:2});}
-
-/* Los datos de la empresa vienen del servidor (constante EMPRESA en
-   Codigo.gs), no escritos aquí. Cambiar la dirección es cambiar una línea
-   allá, no acordarse de cuatro pantallas. El respaldo es por si una versión
-   vieja del servidor no los manda todavía. */
-var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
-  ruc:"1074020-1-552789",dv:"50",lema:"Ecología · Vida · Salud",
-  /* A propósito vacía: si algún día el servidor no manda los datos, es mejor
-     que el documento salga sin dirección — y se note — a que salga con una
-     dirección vieja en un contrato o un certificado. */
-  direccion:"",
-  ciudad:"Panamá",telefono:"310-2268",whatsapp:"6264-1647",
-  correo:"info@ecovsa.com",instagram:"@ecovsapanama",
-  resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
-  resolucionCorta:"Resolución Sanitaria N° 1519",
-  decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
-function emp(){ return (typeof DATOS_EMP==="object" && DATOS_EMP) ? DATOS_EMP : EMP_RESP; }
-var DATOS_EMP=null;
-/* La dirección ya nombra la ciudad; anteponerla daba "Panamá, Distrito Panamá". */
-function conCiudad(dir,ciudad){
-  var d=String(dir||"").trim(), c=String(ciudad||"").trim();
-  if(!d) return c;
-  if(!c || d.toUpperCase().indexOf(c.toUpperCase())>=0) return d;
-  return c+", "+d;
+var esc = function (s) { return DOCE.esc(s); };
+function n2(v) { return (Number(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function porCuenta(gastos) {
+  var o = {}; (gastos || []).forEach(function (g) { var k = g.cuentaCodigo || '—'; if (!o[k]) o[k] = { d: g.cuentaDescripcion, m: 0 }; o[k].m = Math.round((o[k].m + (Number(g.monto) || 0)) * 100) / 100; });
+  return Object.keys(o).sort().map(function (k) { return { c: k, d: o[k].d, m: o[k].m }; });
 }
-function pieEmpresa(){
-  var e=emp();
-  return conCiudad(e.direccion, e.ciudad)+
-         " · Tel. "+e.telefono+" · "+e.correo;
+function pintar(a, e) {
+  var abierta = a.estado !== 'CERRADA';
+  document.title = 'Arqueo ' + a.cajaId + ' · ECOVSA';
+  document.getElementById('ti-folio').textContent = a.cajaId;
+  document.getElementById('app').innerHTML = '<div class="hoja">' +
+    DOCE.membrete({ empresa: e, modo: 'legal', codigo: e.formulario || 'F-ADM-02',
+      derecha: '<small>Arqueo de caja menuda</small><b>' + esc(a.cajaId) + '</b>' + (abierta ? '<span class="parcial">Período abierto · arqueo parcial</span>' : '<span>Período cerrado</span>') }) +
+    '<h5>Datos del período</h5><div class="tw"><table><tr><th>Período</th><td style="text-transform:capitalize">' + esc(a.periodoTexto || a.periodo) + '</td><th>Custodia del fondo</th><td>' + esc(a.custodio) + '</td></tr>' +
+      '<tr><th>Apertura</th><td>' + esc(DOCE.fecha(a.apertura) || '—') + '</td><th>Cierre</th><td>' + esc(a.cierre ? DOCE.fecha(a.cierre) : '—') + '</td></tr>' +
+      '<tr><th>Estado</th><td>' + esc(a.estado) + '</td><th>Solicitud de reposición</th><td>' + esc(a.solicitudId || '—') + '</td></tr></table></div>' +
+    '<h5>Detalle de gastos</h5><div class="tw"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Cuenta</th><th>Comprobante</th><th class="r">Monto B/.</th></tr></thead><tbody>' +
+      ((a.gastos || []).length ? a.gastos.map(function (g) { return '<tr><td class="nw">' + esc(DOCE.fecha(g.fecha, true)) + '</td><td>' + esc(g.concepto) + '</td><td>' + esc(g.cuentaCodigo) + (g.cuentaDescripcion ? ' · ' + esc(g.cuentaDescripcion) : '') + '</td><td>' + (g.sinComprobante ? '<i>sin comprobante</i>' : esc(g.comprobante)) + '</td><td class="r">' + n2(g.monto) + '</td></tr>'; }).join('') : '<tr><td colspan="5">Sin gastos anotados.</td></tr>') +
+      '<tr class="tt"><td colspan="4">TOTAL GASTADO</td><td class="r">' + n2(a.total) + '</td></tr></tbody></table></div>' +
+    '<div class="dos"><div><h5>Resumen</h5><table><tr><td>Fondo asignado</td><td class="r">' + n2(a.fondoAsignado) + '</td></tr><tr><td>Total gastado (' + a.cuantos + ' gasto' + (a.cuantos === 1 ? '' : 's') + ')</td><td class="r">' + n2(a.total) + '</td></tr>' +
+        '<tr class="tt"><td>Efectivo que debe haber en caja</td><td class="r">' + n2(a.disponible) + '</td></tr><tr><td>Gastos sin comprobante</td><td class="r">' + a.sinComprobante + ' · ' + n2(a.montoSinComprobante) + '</td></tr>' +
+        '<tr><td>Efectivo contado</td><td class="r"><span class="ln-b">&nbsp;</span></td></tr><tr><td>Diferencia</td><td class="r"><span class="ln-b">&nbsp;</span></td></tr></table></div>' +
+      '<div><h5>Por cuenta contable</h5><table>' + (porCuenta(a.gastos).map(function (x) { return '<tr><td>' + esc(x.c) + (x.d ? ' · ' + esc(x.d) : '') + '</td><td class="r">' + n2(x.m) + '</td></tr>'; }).join('') || '<tr><td>—</td><td class="r">0.00</td></tr>') + '</table></div></div>' +
+    '<div class="fir"><div><b>' + esc(a.custodio) + '</b>Custodia del fondo</div><div><b>&nbsp;</b>Revisado por</div><div><b>&nbsp;</b>Aprobado · Dirección financiera</div></div>' +
+    '<div class="pie"><span>' + esc(e.razonSocial || '') + ' · RUC ' + esc(e.ruc || '') + (e.dv ? ' DV ' + esc(e.dv) : '') + '</span><span>' + esc(e.formulario || 'F-ADM-02') + ' · Documento generado por el sistema de operaciones de ECOVSA</span></div></div>';
 }
-
-function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
-
-var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
-           "septiembre","octubre","noviembre","diciembre"];
-function larga(iso){
-  if(!iso) return "";
-  var d=new Date(iso+"T12:00:00");
-  if(isNaN(d.getTime())) return iso;
-  return d.getDate()+" de "+MESES[d.getMonth()]+" de "+d.getFullYear();
-}
-function sumarDias(iso,n){
-  var d=new Date((iso||"")+"T12:00:00");
-  if(isNaN(d.getTime())) d=new Date();
-  d.setDate(d.getDate()+Number(n||30));
-  return d.toISOString().slice(0,10);
-}
-
-function arrancar(){
-  if(window.google && google.script && google.script.url){
-    google.script.url.getLocation(function(loc){
-      var p=(loc&&loc.parameter)||{};
-      seguir(p.cod||"");
-    });
-  } else {
-    var m=(location.search||"").match(/[?&]cod=([^&]+)/);
-    seguir(m?decodeURIComponent(m[1]):"");
-  }
-}
-
-function seguir(cod){
-  COD=cod;
-  if(!COD){ aviso("Falta el código de propuesta en el enlace.<br><br>Ábrela desde la ficha del prospecto."); return; }
-  var pin="";
-  try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
-  if(!pin){ aviso("Entra primero en la página de mercadeo y vuelve a abrir la propuesta."); return; }
-
-  google.script.run
-    .withSuccessHandler(function(r){
-      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar la propuesta.")); return; }
-      DATOS=r; pintar(r.prospecto);
-      $("aviso").style.display="none"; $("app").style.display="block";
-    })
-    .withFailureHandler(function(){ aviso("Sin conexión. La propuesta necesita señal."); })
-    .api_propuesta(pin, COD);
-}
-
-function pintar(p){
-  if(DATOS && DATOS.empresa) DATOS_EMP=DATOS.empresa;
-  var costo=Number(p["costo visita"])||0;
-  var itbms=Number(p.itbms);
-  if(!isFinite(itbms)||itbms<=0) itbms=0.07;          // 7% por defecto
-  var imp=Math.round(costo*itbms*100)/100;
-  var total=Math.round((costo+imp)*100)/100;
-  var kg=Number(p["kg plan"])||0;
-  var fProp=p["fecha propuesta"]||p["fecha contacto"]||DATOS.hoy;
-  var vence=sumarDias(fProp, p["validez propuesta"]||30);
-
-  var atencion = p.contacto ? (p.contacto + (p.cargo ? " · "+p.cargo : "")) : "";
-
-  /* Una recolección de una sola vez no es un servicio recurrente, y la
-     propuesta no debe leerse como si lo fuera: no hay frecuencia, no hay kg
-     incluidos en un plan, y "total por visita" no significa nada cuando la
-     visita es una. El servidor ya dice cuál de las dos es. */
-  var UNICA = !!p.visitaUnica;
-
-  var html =
-  '<div class="enc">'+
-    '<img src="'+LOGO+'" alt="ECOVSA">'+
-    '<div><div class="emp">ECOVSA</div>'+
-      '<div class="lem">Ecología · Vida · Salud</div>'+
-      '<div class="con">Tel. '+esc(emp().telefono)+' · WhatsApp '+esc(emp().whatsapp)+
-        '<br>'+esc(emp().correo)+'</div></div>'+
-    '<div class="der"><div class="et">Propuesta N°</div>'+
-      '<div class="num">'+esc(p.codigoPropuesta)+'</div>'+
-      '<div class="fe">Panamá, '+esc(larga(fProp))+'</div></div>'+
-  '</div>'+
-  '<div class="franja"></div>'+
-
-  '<div class="dest">'+
-    '<div class="se">Señores</div>'+
-    '<div class="nom">'+esc(p.empresa||"")+'</div>'+
-    '<div class="li">E. S. D.'+(atencion?' · Atención: '+esc(atencion):'')+'</div>'+
-  '</div>'+
-
-  '<p>Cordial saludo:</p>'+
-  '<p>En ECOVSA contamos con más de 5 años de experiencia y personal altamente calificado en el '+
-  'manejo integral de desechos hospitalarios peligrosos. Le garantizamos confiabilidad, regularidad '+
-  'y puntualidad, con total cumplimiento de la normativa sanitaria y ambiental vigente en Panamá, '+
-  'respaldando a su institución ante cualquier fiscalización. Para nosotros sería muy importante '+
-  'poder contar con ustedes como nuestros usuarios.</p>'+
-
-  '<div class="sec">Propuesta operativa</div>'+
-  (UNICA
-    ? '<p>Recolección, transporte, tratamiento y disposición final del material descrito a '+
-      'continuación, en una sola jornada coordinada con ustedes, con camión especializado y '+
-      'personal certificado.</p>'+
-      (p.descripcionTrabajo
-        ? '<p><b>Trabajo a realizar:</b> '+esc(p.descripcionTrabajo)+'</p>' : '')+
-      (p.cantidadEstimada
-        ? '<p><b>Cantidad estimada:</b> '+esc(p.cantidadEstimada)+'</p>' : '')+
-      (p.fechaTentativa
-        ? '<p><b>Fecha tentativa:</b> '+esc(larga(p.fechaTentativa))+'</p>' : '')
-    : '<p>Servicio integral de recolección, transporte, tratamiento, trituración y disposición final de '+
-      'desechos punzocortantes, patológicos y biológico-infecciosos, con camión especializado y personal '+
-      'certificado.</p>')+
-
-  '<div class="sec">Nuestro servicio incluye</div>'+
-  '<ul>'+
-    (UNICA
-      ? '<li>Recolección en la fecha coordinada, con camión y personal certificado.</li>'
-      : '<li>Recolección programada según la frecuencia acordada, con puntualidad garantizada.</li>'+
-        '<li>Suministro de recipientes punzocortantes, para la correcta segregación de los desechos.</li>')+
-    '<li>Manifiesto de transporte en cada recolección, para la trazabilidad de sus residuos.</li>'+
-    '<li>Certificado de tratamiento y disposición final, válido ante las autoridades sanitarias.</li>'+
-    '<li>Tratamiento con tecnología verde que reduce el volumen y el impacto ambiental del residuo.</li>'+
-    '<li>Cumplimiento de las normas oficiales de bioseguridad y manejo de desechos peligrosos.</li>'+
-  '</ul>'+
-
-  '<div class="sec">Propuesta económica</div>'+
-  '<p>De acuerdo con el volumen de desechos a entregar, nuestra propuesta económica es la siguiente:</p>'+
-  (UNICA
-    ? '<table><thead><tr><th>Concepto</th><th>Cantidad estimada</th><th>Precio</th>'+
-        '<th>ITBMS</th><th>Total</th></tr></thead><tbody>'+
-        '<tr><td>'+esc(p.descripcionTrabajo||"Recolección única")+'</td>'+
-          '<td class="n">'+esc(p.cantidadEstimada||"—")+'</td>'+
-          '<td class="n">B/. '+n2(costo)+'</td><td class="n">B/. '+n2(imp)+'</td>'+
-          '<td class="n"><b>B/. '+n2(total)+'</b></td></tr>'+
-        '<tr class="tot"><td colspan="4">TOTAL DEL SERVICIO</td>'+
-          '<td class="n">B/. '+n2(total)+'</td></tr>'+
-      '</tbody></table>'+
-      '<div class="pie-tabla">El precio cubre únicamente el trabajo aquí descrito. '+
-      'Precios en balboas (B/.), ITBMS incluido.</div>'
-    : '<table><thead><tr><th>Frecuencia</th><th>Kg incluidos</th><th>Precio por visita</th>'+
-        '<th>ITBMS</th><th>Total</th></tr></thead><tbody>'+
-        '<tr><td>'+esc(p.frecuencia||"—")+'</td><td class="n">'+(kg||"—")+'</td>'+
-          '<td class="n">B/. '+n2(costo)+'</td><td class="n">B/. '+n2(imp)+'</td>'+
-          '<td class="n"><b>B/. '+n2(total)+'</b></td></tr>'+
-        '<tr class="tot"><td colspan="4">TOTAL POR VISITA</td><td class="n">B/. '+n2(total)+'</td></tr>'+
-      '</tbody></table>'+
-      '<div class="pie-tabla">El precio por visita incluye la recolección de hasta los kilogramos '+
-      'indicados; el excedente se factura según la tarifa de kilogramo adicional. Precios en balboas '+
-      '(B/.), ITBMS incluido.</div>')+
-
-  /* Las notas las arma el servidor según el tipo de servicio, y si Katherine
-     las editó para este cliente, manda lo que ella guardó. Antes vivían aquí
-     escritas a mano y afirmaban un contrato a 12 meses incluso en las
-     recolecciones de una sola visita. */
-  '<div class="sec">Nota importante</div>'+
-  '<ul class="notas">'+
-    '<li>Propuesta vigente hasta '+esc(larga(vence))+'.</li>'+
-    (p.notas_lista||[]).map(function(t){ return '<li>'+esc(t)+'</li>'; }).join('')+
-  '</ul>'+
-
-  '<div class="sec">Próximos pasos</div>'+
-  (UNICA
-    ? '<p>Para programar el servicio solo necesitamos su confirmación y copia de su Aviso de '+
-      'Operación. La fecha se coordina con un mínimo de 48 horas de anticipación. Contáctenos al '+
-      '6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.</p>'
-    : '<p>Para iniciar el servicio solo necesitamos copia de su Aviso de Operación y los datos generales '+
-      'de su institución. Con gusto coordinamos una visita o su primera recolección. Contáctenos al '+
-      '6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.</p>')+
-
-  '<div class="firma"><p>Atentamente,</p>'+
-    '<div class="lin"><b>'+esc(p.asesor||DATOS.usuario.nombre||"")+'</b>Coord. Comercial · ECOVSA</div>'+
-  '</div>'+
-
-  '<div class="pie">'+esc(pieEmpresa())+' · '+esc(emp().instagram)+
-    (emp().formulario?'<br>'+esc(emp().formulario):'')+'</div>';
-
-  $("hoja").innerHTML=html;
-  document.title="Propuesta "+p.codigoPropuesta+" · "+(p.empresa||"");
-  pintarEnvios(p);
-}
-
-/* ═══ ENVIAR LA PROPUESTA ═══════════════════════════════════════════
-   Dos caminos, y ninguno manda nada solo: los dos abren la ventana con
-   el mensaje ya escrito para que la persona lo lea y le dé enviar.
-
-   Ninguno de los dos puede adjuntar un archivo —ni Outlook por enlace ni
-   WhatsApp— y la propuesta no tiene enlace que el cliente pueda abrir:
-   esta página pide PIN. Así que el PDF lo adjunta quien envía, y por eso
-   antes de abrir sale el aviso. Sin él, el correo promete un adjunto que
-   no está y el cliente se queda esperando.
-
-   Nada de esto sale impreso: la barra tiene display:none en @media print,
-   así que el papel de la propuesta queda exactamente igual.            */
-
-/* ¿Este número sirve para WhatsApp?
-
-   En Panamá el celular tiene OCHO dígitos y empieza en 6; el fijo tiene
-   SIETE. Un fijo no tiene WhatsApp, y mandarlo igual abre wa.me/3021188
-   —un chat que no existe— sin decir por qué. Por eso aquí no se acepta
-   cualquier cosa: o es un celular panameño, o ya viene con el 507 y sus
-   ocho dígitos detrás, o no hay botón. Un botón que no funciona es peor
-   que no tenerlo, porque el que lo aprieta cree que mandó algo.         */
-function waNumero_(v){
-  var n=String(v||"").replace(/[^0-9]/g,"");
-  if(/^6\d{7}$/.test(n))      return "507"+n;   // celular, como lo escribe mercadeo
-  if(/^5076\d{7}$/.test(n))   return n;         // ya trae el país
-  return "";
-}
-
-/* Se prueba el celular y, si no sirve, el teléfono: a veces el celular
-   se escribe en la casilla equivocada. Gana el primero que sea válido. */
-function telProspecto_(p){
-  return waNumero_(p.celular) || waNumero_(p.telefono) || "";
-}
-
-/* 50767123456 no se lee: se cuenta con el dedo. En el botón va como lo
-   escribe cualquiera —6712-3456— y en el enlace va el largo. */
-function telBonito_(n){
-  var s=String(n||"").replace(/^507/,"");
-  return s.length===8 ? s.slice(0,4)+"-"+s.slice(4) : s;
-}
-
-function pintarEnvios(p){
-  var E=$("envios"); if(!E) return;
-  var tel=telProspecto_(p), correo=String(p.correo||"").trim();
-
-  /* Un botón que abre una ventana en blanco es peor que no tenerlo: el
-     que falta se dice, con el dato que falta y dónde se agrega. */
-  if(!correo && !tel){
-    E.innerHTML='<button onclick="pasoPrevio(\'nada\')">Sin correo ni celular</button>';
-    return;
-  }
-  E.innerHTML =
-    (correo ? '<button onclick="pasoPrevio(\'outlook\')">✉️ Outlook · '+esc(correo)+'</button>' : '')+
-    (tel    ? '<button class="wa" onclick="pasoPrevio(\'whatsapp\')">📱 WhatsApp · '+esc(telBonito_(tel))+'</button>' : '');
-}
-
-function cerrarPaso(){ var P=$("pre"); if(P){ P.style.display="none"; P.innerHTML=""; } }
-
-function pasoPrevio(canal){
-  var P=$("pre"); if(!P) return;
-  if(canal==="nada"){
-    P.innerHTML='<h5>Este prospecto no tiene por dónde recibirla</h5>'+
-      '<p style="margin:0 0 11px">No tiene correo ni celular en su ficha. '+
-      'Agrégaselo en mercadeo y vuelve a abrir la propuesta. '+
-      'Mientras tanto puedes imprimirla o guardarla en PDF.</p>'+
-      '<div class="bs"><button class="no" onclick="cerrarPaso()">Entendido</button></div>';
-    P.style.display="block";
-    return;
-  }
-  var esWa = canal==="whatsapp";
-  P.innerHTML='<h5>Antes de abrir '+(esWa?"WhatsApp":"Outlook")+'</h5>'+
-    '<ol><li>Guarda la propuesta con <b>Imprimir / Guardar PDF</b>.</li>'+
-    '<li>Aquí se abre '+(esWa?"el chat":"el correo")+' con el mensaje ya escrito.</li>'+
-    '<li><b>Adjunta el PDF</b>, revisa el texto y envía.</li></ol>'+
-    '<p style="margin:0 0 11px;color:#8A5A00"><b>El archivo lo adjuntas tú.</b> '+
-    'El mensaje dice que la propuesta va adjunta, y eso solo es cierto si la pones.</p>'+
-    '<div class="bs">'+
-      '<button class="ok" onclick="enviarPor(\''+canal+'\')">Ya la tengo · abrir '+
-        (esWa?"WhatsApp":"Outlook")+'</button>'+
-      '<button class="no" onclick="cerrarPaso()">Cancelar</button>'+
-    '</div>';
-  P.style.display="block";
-}
-
-/* Al correo se le escribe distinto que al WhatsApp. El mismo párrafo
-   formal en un chat se lee como un copiar y pegar. */
-function textoCorreo(p){
-  return "Estimados señores "+(p.empresa||"")+":\n\n"+
-    "Adjunto encontrará nuestra propuesta de servicio para el manejo integral de desechos "+
-    "hospitalarios peligrosos.\n\nQuedamos atentos a sus comentarios.\n\n"+
-    (p.asesor||"")+"\nCoord. Comercial · ECOVSA\nTel. 310-2268 · info@ecovsa.com";
-}
-function textoWhatsapp(p){
-  return "Buen día"+(p.contacto ? " "+p.contacto : "")+", le saludamos de ECOVSA.\n\n"+
-    "Le comparto nuestra propuesta de servicio "+(p.codigoPropuesta||"")+
-    " para el manejo de desechos hospitalarios peligrosos de "+(p.empresa||"su institución")+
-    ". Se la envío en este mismo chat.\n\n"+
-    "Quedo atenta a sus comentarios.\n\n"+
-    (p.asesor||"")+" · ECOVSA\nTel. 310-2268";
-}
-
-function enviarPor(canal){
-  var p=DATOS.prospecto;
-  cerrarPaso();
-
-  if(canal==="whatsapp"){
-    window.open("https://wa.me/"+telProspecto_(p)+
-      "?text="+encodeURIComponent(textoWhatsapp(p)),"_blank");
-    return;
-  }
-
-  /* Outlook.com por enlace directo, no mailto: mailto abre el cliente de
-     correo que cada máquina tenga por defecto, y por eso a unos les abría
-     Outlook y a otros no. Esto abre siempre el mismo. */
-  window.open("https://outlook.live.com/mail/0/deeplink/compose"+
-    "?to="+encodeURIComponent(String(p.correo||"").trim())+
-    "&subject="+encodeURIComponent("Propuesta de servicio "+p.codigoPropuesta+" · ECOVSA")+
-    "&body="+encodeURIComponent(textoCorreo(p)),"_blank");
-}
-
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);
-else arrancar();
+(function () {
+  var q = location.search || '', m = q.match(/[?&](?:caja|cod|id)=([^&]+)/);
+  var falla = function (t) { document.getElementById('app').innerHTML = '<div class="estado"><b>No se pudo abrir el arqueo</b>' + esc(t) + '</div>'; };
+  if (!m) { falla('El enlace no trae el número de la caja.'); return; }
+  google.script.run.withSuccessHandler(function (r) {
+    if (!r || !r.ok) { falla((r && r.error) || 'No encontré ese arqueo.'); return; }
+    pintar(r.arqueo, r.empresa || {});
+  }).withFailureHandler(function () { falla('Sin conexión. Intente de nuevo.'); }).api_arqueo(decodeURIComponent(m[1]));
+})();
 </script>
 </body>
 </html>

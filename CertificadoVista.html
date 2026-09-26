@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./, enSupabase:/^api_(?!optimizarRuta$)/};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./, enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -33,7 +33,7 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:va
 .franja-seguridad-lat{position:absolute;top:0;left:0;bottom:0;width:16px;background:linear-gradient(180deg, var(--azul-osc), var(--verde));}
 
 .marca-agua{position:absolute;top:55%;left:50%;transform:translate(-50%,-50%);width:480px;height:480px;
-  background:url(https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w600) center/contain no-repeat;
+  background:url(logo-ecovsa.png) center/contain no-repeat;
   opacity:0.035;pointer-events:none;z-index:0;}
 
 .contenido-carta{position:relative;z-index:1;}
@@ -87,21 +87,27 @@ tr.tot td{background:#EEF2F7;font-weight:800;color:var(--azul-osc);border-top:1.
   margin: 0mm;
 }
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando datos del certificado…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">CERTIFICADO DE PRESTACIÓN DE SERVICIOS · <span id="ti-folio"></span></div>
-    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Certificado de prestación de servicios <span class="fo" id="ti-folio"></span></div>
+    <button class="db-wa" onclick="compartirDoc()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+/* api 3.5.1: mandar el enlace de este documento por WhatsApp */
+function compartirDoc(){ var t = document.title + '\n' + location.href; window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank'); }
+var LOGO="logo-ecovsa.png";
 
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){

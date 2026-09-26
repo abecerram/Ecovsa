@@ -3,6 +3,8 @@
 <head>
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,vigia:false};</script>
 <script src="puente.js"></script>
+<script src="cargador.js" data-solo></script>
+<script src="archivos.js"></script>
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -42,6 +44,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .lg{width:44px;height:44px;border-radius:11px;background:#fff url(logo-ecovsa.png) center/34px no-repeat;flex:none}
 .top b{display:block;font-size:15px;letter-spacing:2px}
 .top span{font-size:12px;color:#b8c7e0}
+.top .wmk{display:block;width:96px;height:auto;margin:1px 0 4px}
 .trust{background:#fff;border-bottom:1px solid var(--line)}
 .trust .in{max-width:680px;margin:0 auto;padding:9px 18px;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--txt)}
 .trust span{display:inline-flex;align-items:center;gap:6px}
@@ -172,6 +175,21 @@ details.info .x b{color:var(--ink)}
 
 /* final y avisos */
 .fin{max-width:600px;margin:0 auto;padding:22px 18px 30px}
+/* documentos (api 3.5.1) */
+.dprog{display:flex;align-items:center;gap:10px;margin:4px 0 14px;font-size:13px;color:var(--muted);font-weight:600}
+.dprog div{flex:1;height:8px;border-radius:5px;background:var(--line2);overflow:hidden}.dprog i{display:block;height:100%;background:var(--ok);border-radius:5px}
+.dlis{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.dit{display:flex;gap:12px;align-items:center;padding:14px}
+.dit+.dit{border-top:1px solid var(--line2)}
+.dsub{padding:0 14px 12px}.dsub .arc-t{margin:0}
+.dic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--line2);color:var(--muted);flex:none}
+.dit.ok .dic{background:var(--ok-bg);color:var(--ok)}.dit.r .dic{background:var(--bad-bg);color:var(--bad)}.dit.am .dic{background:var(--warn-bg);color:var(--warn)}
+.dtx{flex:1;min-width:0}.dtx b{display:block;font-size:15px}.dtx small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}.dtx .mot{display:inline;font-size:12.5px;color:#8f2a2e}
+.dch{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;margin-top:4px;background:var(--line2);color:var(--muted)}
+.dch.ok{background:var(--ok-bg);color:#1f7a3a}.dch.r{background:var(--bad-bg);color:#a8262b}.dch.am{background:var(--warn-bg);color:var(--warn)}
+.dbtn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #c9d5e8;background:#fff;color:var(--navy2);border-radius:10px;padding:9px 12px;font:700 13.5px Archivo,sans-serif;cursor:pointer;flex:none;white-space:nowrap}
+.dbtn svg.i{width:17px;height:17px}.dbtn:disabled{opacity:.6}
+@media(max-width:520px){.dit{flex-wrap:wrap}.dtx{flex:1 1 calc(100% - 60px)}.dbtn{margin-left:50px}}
 .okc{width:66px;height:66px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:6px auto 14px}
 .okc svg.i{width:34px;height:34px;stroke-width:2.6}
 .okc.am{background:var(--warn-bg);color:var(--warn)}
@@ -223,7 +241,7 @@ details.info .x b{color:var(--ink)}
    en un iframe y su location no trae los parámetros: se piden al
    contenedor con google.script.url.getLocation (puente.js lo imita).
    ════════════════════════════════════════════════════════════════════ */
-var TOKEN = '', R = null, D = null, PASOS = [], i = 0, desdeResumen = false;
+var TOKEN = '', K = '', DOCS = null, R = null, D = null, PASOS = [], i = 0, desdeResumen = false;
 var TEL = '310-2268', TEL_LINK = 'tel:+5073102268', WA = '6264-1647', WA_LINK = 'https://wa.me/50762641647', CORREO = 'info@ecovsa.com';
 
 var IC = {
@@ -249,7 +267,9 @@ var IC = {
   lapiz:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
   telefono:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
   whatsapp:'<path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c.5 2 2.3 4 4.5 4.8l1.2-1.2 2 1-.5 1.5c-3.5.3-7.7-3.6-7.6-7.2l1.4-.6 1 2z"/>',
-  correo:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
+  correo:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  subir:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>'
 };
 function ic(n){ return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || '') + '</svg>'; }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -284,10 +304,12 @@ function unica(){ return /UNICA|ÚNICA/i.test(txt(R && R.tipoServicio)); }
 
 /* ═══ arranque ═══ */
 function arrancar(){
-  if (window.google && google.script && google.script.url) {
-    google.script.url.getLocation(function (loc) { seguir((((loc || {}).parameter) || {}).token || ''); });
+  if (window.google && google.script && google.script.url && !window.PUENTE_CONFIG) {
+    google.script.url.getLocation(function (loc) { K = (((loc || {}).parameter) || {}).k || ''; seguir((((loc || {}).parameter) || {}).token || ''); });
   } else {
-    seguir(new URLSearchParams(location.search).get('token') || '');
+    var q = new URLSearchParams(location.search);
+    K = q.get('k') || '';
+    seguir(q.get('token') || '');
   }
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
@@ -301,7 +323,11 @@ function seguir(tok){
   google.script.run
     .withSuccessHandler(function (r) {
       $('cargando').hidden = true;
+      DOCS = (r && r.documentos) || null;
       if (!r || !r.ok) {
+        /* api 3.5.1: los datos ya llegaron, pero faltan documentos: el enlace sigue abierto para eso */
+        if (r && r.cerrado && DOCS && !DOCS.completo) { enviado = true; return pantallaDocs({ yaEnvio: true, empresa: r.empresa }); }
+        if (r && r.cerrado && DOCS && DOCS.completo) return pantallaAviso('Todo recibido', 'Recibimos sus datos y todos sus documentos' + (r.empresa ? ' de <b>' + esc(r.empresa) + '</b>' : '') + '. Este enlace ya quedó cerrado.<br>Gracias. Si necesita algo, llámenos al <a href="' + TEL_LINK + '">' + TEL + '</a>.', { bueno: true, html: true });
         if (r && r.cerrado) return pantallaCerrada(r);
         return pantallaAviso('No se pudo abrir el formulario', (r && r.error) || 'Intente más tarde o llámenos al ' + TEL + '.');
       }
@@ -317,7 +343,7 @@ function seguir(tok){
       $('cargando').hidden = true;
       pantallaAviso('Sin conexión', 'No pudimos cargar el formulario. Revise su señal e intente de nuevo.', { reintentar: true });
     })
-    .api_crmFormulario(TOKEN);
+    .api_crmFormulario(TOKEN, K);
 }
 
 /* ═══ datos: del servidor (nombres de la hoja) al estado de la pantalla y de vuelta ═══ */
@@ -437,12 +463,13 @@ function pintarHola(){
       '<b>¿Para qué es cada dato?</b> El tipo y la cantidad de desechos, para darle un precio justo, sin cobrarle kilos que no genera. La dirección, para incluirlo en la ruta. El RUC y la razón social, para la factura y el contrato.<br><br>' +
       'No compartimos sus datos con nadie fuera de ECOVSA.</div></details>' +
     '</main>' +
-    '<footer class="bf"><div class="in"><button class="btn" data-a="empezar">Empezar' + ic('flecha') + '</button>' + pie() + '</div></footer></div>';
+    '<footer class="bf"><div class="in"><button class="btn" data-a="empezar">Empezar' + ic('flecha') + '</button>' +
+      (DOCS ? '<button class="btn sec" style="margin-top:8px" data-a="docs">' + ic('documento') + 'Ya tengo documentos: subirlos</button>' : '') + pie() + '</div></footer></div>';
   window.scrollTo(0, 0);
   var h2 = document.querySelector('#app h2'); if (h2) h2.focus({ preventScroll: true });
 }
 function marca(){
-  return '<header class="top"><div class="in"><span class="lg" role="img" aria-label="ECOVSA"></span><div><b>ECOVSA</b><span>Recolección y tratamiento de desechos hospitalarios</span></div></div></header>' +
+  return '<header class="top"><div class="in"><span class="lg" role="img" aria-label="ECOVSA"></span><div><img class="wmk" src="ecovsa-letras.png" alt="ECOVSA"><span>Recolección y tratamiento de desechos hospitalarios</span></div></div></header>' +
     '<div class="trust"><div class="in"><span>' + ic('sello') + 'Autorizados por el MINSA · Resolución Sanitaria N.° 1519</span><span>' + ic('candado') + 'Sus datos se usan solo para su propuesta</span></div></div>';
 }
 function pie(){ return '<div class="pie">ECOVSA · Tel. <a href="' + TEL_LINK + '">' + TEL + '</a> · <a href="mailto:' + CORREO + '">' + CORREO + '</a></div>'; }
@@ -649,6 +676,9 @@ document.addEventListener('click', function (ev) {
   var b = ev.target.closest('button,[data-a]'); if (!b) return;
   var a = b.getAttribute('data-a');
   if (a === 'reintentar') { $('app').innerHTML = ''; return seguir(TOKEN); }
+  if (a === 'docs') return pantallaDocs({ yaEnvio: enviado });
+  if (a === 'volverForm') { if (enviado) return listo(); return pintar(); }
+  if (a === 'subirDoc') return elegirDoc(b.getAttribute('data-doc'));
   if (!D || enviado) return;
   if (a === 'empezar') { guardar(PASOS[1]); return ir(1); }
   if (a === 'atras') {
@@ -815,6 +845,8 @@ function listo(){
       (u ? '<div><b>Si la acepta</b><small>Coordinamos con usted el día y la hora de la recolección.</small></div>'
          : '<div><b>Si la acepta</b><small>Firmamos el contrato y programamos la primera recolección. En esa visita le dejamos su distintivo con código QR.</small></div>') +
     '</div>' +
+    (DOCS && !DOCS.completo ? '<h4>Documentos para el contrato</h4><div class="notita">' + ic('documento') + '<span>Si ya los tiene a mano (aviso de operación, cédula del representante, Registro Público y datos bancarios), puede subirlos ahora o más tarde con este mismo enlace. No son obligatorios para recibir la propuesta.</span></div>' +
+      '<button class="btn sec" style="margin-top:10px" data-a="docs">' + ic('subir') + 'Subir documentos</button>' : '') +
     '<h4>¿Dudas? Le atiende</h4>' +
     '<div class="ase"><div class="av" aria-hidden="true">' + esc(ini || 'E') + '</div><div style="flex:1;min-width:0"><b>' + esc(nom) + '</b><small>' + esc(cargo) + '</small></div></div>' +
     '<div class="acc"><a class="btn wa" href="' + wa + '" target="_blank" rel="noopener">' + ic('whatsapp') + 'WhatsApp</a>' +
@@ -824,6 +856,79 @@ function listo(){
     '<div class="pie">ECOVSA · Resolución Sanitaria N.° 1519</div></main>';
   window.scrollTo(0, 0);
   document.querySelector('.fin h2').focus({ preventScroll: true });
+}
+
+/* ═══ api 3.5.1 · Documentos para el contrato ═══
+   Se suben desde el mismo enlace, cuando el cliente quiera. Cada uno queda
+   «en revisión» hasta que ECOVSA lo acepta; si se rechaza, se ve el motivo
+   y se puede volver a subir. Con todos aceptados, el enlace se cierra. */
+var DOC_OP = {};
+function pantallaDocs(o){
+  o = o || {};
+  $('cargando').hidden = true;
+  var L = (DOCS && DOCS.docs) || [], hechos = L.filter(function (d) { return d.estado === 'aceptado'; }).length;
+  var EST = { falta: ['Falta', 'g'], 'por revisar': ['En revisión', 'am'], aceptado: ['Recibido', 'ok'], rechazado: ['Hay que volver a subirlo', 'r'] };
+  $('app').innerHTML = marca() +
+    '<main class="bc" style="padding-top:18px"><h2 tabindex="-1">Documentos para el contrato</h2>' +
+    '<p class="ex">' + (o.yaEnvio ? 'Ya recibimos sus datos' + (o.empresa ? ' de <b>' + esc(o.empresa) + '</b>' : '') + '. ' : '') + 'Suba cada documento en PDF o como foto; las fotos se achican solas. ECOVSA los revisa y aquí verá si quedaron recibidos.</p>' +
+    '<div class="dprog"><div><i style="width:' + Math.round(hechos / Math.max(1, L.length) * 100) + '%"></i></div><span>' + hechos + ' de ' + L.length + ' recibidos</span></div>' +
+    '<div class="dlis">' + L.map(function (d) {
+      var e = EST[d.estado] || [d.estado, 'g'], su = SUBIDAS[d.doc] && SUBIDAS[d.doc].tarjeta(), op = su && su.estado === 'trabajando' ? 'Subiendo…' : DOC_OP[d.doc];
+      var btn = d.estado === 'aceptado' ? '' : '<button class="dbtn" data-a="subirDoc" data-doc="' + esc(d.doc) + '"' + (op ? ' disabled' : '') + '>' + ic('subir') + (op ? esc(op) : d.estado === 'falta' ? 'Subir' : d.estado === 'rechazado' ? 'Volver a subir' : 'Cambiar archivo') + '</button>';
+      return '<div class="dit ' + e[1] + '"><div class="dic">' + ic(d.estado === 'aceptado' ? 'check' : d.estado === 'rechazado' ? 'alerta' : 'documento') + '</div><div class="dtx"><b>' + esc(d.n) + '</b>' +
+        '<span class="dch ' + e[1] + '">' + esc(e[0]) + '</span>' +
+        '<small>' + (d.estado === 'rechazado' ? '<b class="mot">Motivo: ' + esc(d.motivo) + '</b>' : d.estado === 'por revisar' ? 'Recibimos ' + esc(d.nombre || 'el archivo') + '. Lo revisamos pronto.' : d.estado === 'aceptado' ? 'Listo, gracias.' : esc(d.ayuda)) + '</small></div>' + btn + '</div>' +
+        (SUBIDAS[d.doc] ? '<div class="dsub" data-sub="' + esc(d.doc) + '"></div>' : '');
+    }).join('') + '</div>' +
+    '<input type="file" id="dfile" accept="' + ((window.ARCH && ARCH.acepta) || '.pdf,image/*') + '" hidden>' +
+    '<div id="derr"></div>' +
+    '<div class="notita" style="margin-top:14px">' + ic('candado') + '<span>Sus documentos se guardan en un espacio privado de ECOVSA. Solo los ve el equipo que prepara su contrato.</span></div>' +
+    '<button class="btn sec" style="margin-top:16px" data-a="volverForm">' + ic('atras') + (o.yaEnvio ? 'Volver' : 'Volver al formulario') + '</button>' +
+    pie() + '</main>';
+  var inp = $('dfile'); inp.onchange = function () { var f = inp.files[0]; var dd = inp.getAttribute('data-doc'); inp.value = ''; if (f && dd) subirDoc(dd, f); };
+  ponerSubidas();
+  var h = document.querySelector('.bc h2'); if (h) h.focus({ preventScroll: true });
+}
+function elegirDoc(doc){ var inp = $('dfile'); if (!inp) return; inp.setAttribute('data-doc', doc); inp.click(); }
+function errDoc(t){ var e = $('derr'); if (e) e.innerHTML = '<div class="notita mal">' + ic('alerta') + '<span>' + esc(t) + '</span></div>'; }
+/* api 3.5.2: cada subida con su tarjeta (emblema, porcentaje, pasos, Reintentar).
+   La tarjeta vive aparte de la pantalla: al repintar la lista se vuelve a poner. */
+var SUBIDAS = {};
+function ponerSubidas(){
+  Object.keys(SUBIDAS).forEach(function (k) { var t = SUBIDAS[k].tarjeta(), slot = document.querySelector('[data-sub="' + k + '"]'); if (t && slot && t.el.parentNode !== slot) slot.appendChild(t.el); });
+}
+function subirDoc(doc, f){
+  var ya = SUBIDAS[doc] && SUBIDAS[doc].tarjeta();
+  if (ya && ya.estado === 'trabajando') return;
+  var e = $('derr'); if (e) e.innerHTML = '';
+  var llamar = function (fn, args, msgSinRed) {
+    return new Promise(function (ok, mal) {
+      var r = google.script.run.withSuccessHandler(ok).withFailureHandler(function () { mal(new Error(msgSinRed)); });
+      r[fn].apply(r, args);
+    });
+  };
+  SUBIDAS[doc] = ARCH.flujo({ host: document.createElement('div'), file: f, textoListo: 'Recibido. Lo revisamos pronto.',
+    pedir: function (meta) {
+      return llamar('api_docsClientePedirSubida', [TOKEN, K, doc, meta], 'Sin conexión. Intente de nuevo.').then(function (r) {
+        if (r && r.ok && !r.subida) r.almacenError = 'Nuestro espacio de archivos no respondió. Intente en un rato o mándelo por WhatsApp al ' + WA + '.';
+        return r;
+      });
+    },
+    registrar: function (id) {
+      return llamar('api_docsClienteListo', [TOKEN, K, id], 'El archivo subió pero no pudimos avisar. Intente de nuevo.').then(function (r) {
+        if (r && r.ok) DOCS = { docs: r.docs, completo: r.completo };
+        return r;
+      });
+    },
+    alListo: function () {
+      toast('Recibido. Lo revisamos pronto.');
+      pantallaDocs({ yaEnvio: enviado }); ponerSubidas();
+      setTimeout(function () { var t = SUBIDAS[doc] && SUBIDAS[doc].tarjeta(); if (t && t.estado === 'listo') { delete SUBIDAS[doc]; pantallaDocs({ yaEnvio: enviado }); ponerSubidas(); } }, 2500);
+    },
+    alError: function () { pantallaDocs({ yaEnvio: enviado }); ponerSubidas(); },
+    alCancelar: function () { delete SUBIDAS[doc]; pantallaDocs({ yaEnvio: enviado }); ponerSubidas(); }
+  });
+  pantallaDocs({ yaEnvio: enviado }); ponerSubidas();
 }
 
 /* ═══ pantallas de aviso: enlace cerrado, inválido o sin señal ═══ */

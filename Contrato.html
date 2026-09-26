@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -70,21 +70,27 @@ li{margin-bottom:6px}
 }
 @page{margin:18mm}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando el contrato…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">CONTRATO DE SERVICIO</div>
-    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Contrato de servicio</div>
+    <button class="db-wa" onclick="compartirDoc()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+/* api 3.5.1: mandar el enlace de este documento por WhatsApp */
+function compartirDoc(){ var t = document.title + '\n' + location.href; window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank'); }
+var LOGO="logo-ecovsa.png";
 var COD="";
 
 function $(i){return document.getElementById(i);}
@@ -219,10 +225,7 @@ function pintar(p){
   var firma=p["fecha contrato"]||"";
 
   var html=
-  '<div class="enc"><img src="'+LOGO+'" alt="ECOVSA">'+
-    '<div><div class="emp">ECOVSA</div><div class="lem">Ecología · Vida · Salud</div></div>'+
-    '<div class="der">'+esc(emp().razonSocial)+'<br>RUC '+esc(emp().ruc)+
-      ' DV '+esc(emp().dv)+'<br>'+esc(emp().resolucionCorta)+'</div></div>'+
+  DOCE.membrete({ empresa: emp(), modo: 'legal' })+
 
   '<h1>Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1>'+
   '<div class="numc">N.° '+esc(p["n contrato"])+'</div>'+

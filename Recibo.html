@@ -13,7 +13,7 @@
 <title>Recibo de Visita y Recolección · ECOVSA</title>
 
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 :root{--eco-azul-osc:#0F3B66;--eco-azul-med:#0072BC;--eco-verde-osc:#1E8238;--eco-verde-claro:#49A32B;--eco-ambar:#F5B301;--eco-rojo:#E1251B}
@@ -196,14 +196,15 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
 @media print{.hj,#rec-aviso{display:none!important}}
 </style>
 
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 
 <body>
 
-<div class="barra-accion" id="barra-accion">
-
-  <div class="tit">COMPROBANTE OFICIAL DE RECOLECCIÓN</div>
-
+<div class="barra-accion barra doc-barra no-imprimir" id="barra-accion">
+  <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+  <div class="ti">Comprobante oficial de recolección</div>
 </div>
 
 <div class="hoja-recibo" id="cuerpo-recibo">
@@ -340,44 +341,9 @@ function renderizarRecibo(r){
 
   var html =
 
-  '<div class="enc">' +
-
-    '<div class="enc-izq">' +
-
-      '<div class="logo-img"></div>' +
-
-      '<div class="enc-datos">' +
-
-        /* Decía «ECOVSA / ECOVSA», el nombre repetido. Álvaro decidió el 6 sep
-           que aquí va una sola vez: el recibo es el comprobante operativo de la
-           visita, no un documento legal, y el cliente conoce a ECOVSA por ese
-           nombre. La razón social sigue en el contrato y en la factura. */
-        '<b>' + esc(EMPRESA_R.comercial || "ECOVSA") + '</b>' +
-
-        '<span>Recolección, transporte y disposición final de desechos hospitalarios<br>' +
-
-        (EMPRESA_R.ruc ? 'RUC: ' + esc(EMPRESA_R.ruc) +
-          (EMPRESA_R.dv ? ' DV ' + esc(EMPRESA_R.dv) : '') + ' · ' : '') +
-        (EMPRESA_R.telefono ? 'Tel. ' + esc(EMPRESA_R.telefono) + ' · ' : '') +
-        esc(EMPRESA_R.correo || '') + '<br>' +
-        esc(EMPRESA_R.formulario || '') + '</span>' +
-
-      '</div>' +
-
-    '</div>' +
-
-    '<div class="rec-folio-box">' +
-
-      '<div class="subt">COMPROBANTE OFICIAL</div>' +
-
-      '<div class="folio-tit">Recibo de Visita</div>' +
-
-      '<div class="rec-folio-tag">' + esc(d.recibo) + '</div>' +
-
-    '</div>' +
-
-  '</div>' +
-
+  /* api 3.5.1: el membrete común de los documentos (modo comercial: ECOVSA una sola vez) */
+  DOCE.membrete({ empresa: EMPRESA_R, codigo: EMPRESA_R.formulario || '',
+    derecha: '<small>Comprobante oficial</small><small>Recibo de visita N°</small><b>' + esc(d.recibo) + '</b>' + (d.fecha ? '<span>' + esc(DOCE.fecha(d.fecha)) + '</span>' : '') }) +
   '<div class="barra-norma">' +
 
     'DESECHOS HOSPITALARIOS PELIGROSOS · DECRETO EJECUTIVO 111 DE 1999 · RESOLUCIÓN 1010 DE 2022' +
@@ -540,22 +506,18 @@ function pintarBarra(){
   var b = $("barra-accion"); if(!b || !DATOS_RECIBO) return;
   if(SOLO_VER){
     b.style.display = "";
-    b.innerHTML = '<div class="tit">RECIBO ' + esc(DATOS_RECIBO.recibo) + ' · ' + esc(DATOS_RECIBO.cliente) + '</div>' +
-      '<div class="acc"><button class="rb wa" onclick="bajarPdf()">⬇ Descargar PDF</button></div>';
+    b.innerHTML = '<span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>' + '<div class="ti">Recibo de visita <span class="fo">' + esc(DATOS_RECIBO.recibo) + ' · ' + esc(DATOS_RECIBO.cliente) + '</span></div>' +
+      '<button class="db-pdf" onclick="bajarPdf()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg><span>Descargar PDF</span></button>';
     if(BAJAR_AL_ABRIR){ BAJAR_AL_ABRIR = false; setTimeout(bajarPdf, 400); }
     return;
   }
   var d = DATOS_RECIBO, sup = ROL_REC === "admin" || ROL_REC === "supervisor";
-  b.innerHTML =
-    '<div class="tit">RECIBO ' + esc(d.recibo) + ' · ' + esc(d.cliente) + '</div>' +
-    '<div class="acc">' +
-      '<button class="rb wa" onclick="abrirEnvio(\'whatsapp\')">💬 WhatsApp</button>' +
-      '<button class="rb co" onclick="abrirEnvio(\'correo\')">✉ Correo</button>' +
-      '<button class="rb gr" onclick="bajarPdf()" title="Descargar el PDF" aria-label="Descargar el PDF">⬇</button>' +
-      (ES_CONDUCTOR ? '' : '<button class="rb gr" onclick="window.print()" title="Imprimir" aria-label="Imprimir">🖨</button>') +
-      (sup ? '<button class="rb gr" onclick="reabrirEste()" title="Reabrir el recibo" aria-label="Reabrir">🔓</button>' : '') +
-    '</div>' +
-    (d.enviado ? '<div class="env">Enviado: ' + esc(d.enviado) + '</div>' : '');
+  b.innerHTML = '<span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>' + 
+    '<div class="ti">Recibo de visita <span class="fo">' + esc(d.recibo) + ' · ' + esc(d.cliente) + (d.enviado ? ' · enviado ' + esc(d.enviado) : '') + '</span></div>' +
+      '<button class="db-wa" onclick="abrirEnvio(\'whatsapp\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>' +
+      '<button onclick="abrirEnvio(\'correo\')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Correo</span></button>' +
+      (sup ? '<button onclick="reabrirEste()" title="Reabrir el recibo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><span class="db-tx-l">Reabrir</span></button>' : '') +
+      '<button class="db-pdf" onclick="bajarPdf()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg><span>Descargar PDF</span></button>';
 }
 
 /* ── El PDF ── */

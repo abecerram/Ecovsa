@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -161,21 +161,24 @@ tr.tot td{background:#EEF5E4;font-weight:800;font-size:12.5px;color:var(--verde)
 }
 @page{size:letter portrait;margin:13mm}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando el manifiesto…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">MANIFIESTO DE SALIDA A DISPOSICIÓN FINAL</div>
-    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Manifiesto de salida a disposición final</div>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var LOGO="logo-ecovsa.png";
 
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
@@ -237,20 +240,8 @@ function pintar(r){
   var merma = t.kgEntrada ? Math.round((t.kgEntrada - t.kgSalida)/t.kgEntrada*1000)/10 : 0;
 
   var html =
-  '<div class="enc">'+
-    '<img src="'+LOGO+'" alt="ECOVSA">'+
-    '<div><div class="emp">'+esc(e.comercial||"ECOVSA")+'</div>'+
-      '<div class="lem">'+esc(e.lema||"")+'</div>'+
-      '<div class="con">'+esc(e.razonSocial||"")+
-        (e.ruc?' · RUC '+esc(e.ruc)+(e.dv?' DV '+esc(e.dv):''):'')+'<br>'+
-        (e.resolucionCorta?esc(e.resolucionCorta):'')+
-        (e.telefono?' · Tel. '+esc(e.telefono):'')+'<br>'+
-        esc(e.formulario||"")+'</div></div>'+
-    '<div class="der"><div class="et">Manifiesto N°</div>'+
-      '<div class="num">'+esc(s.salidaId)+'</div>'+
-      '<div class="fe">'+esc(larga(s.fecha))+(s.horaSalida?' · '+esc(s.horaSalida):'')+'</div></div>'+
-  '</div>'+
-  '<div class="franja"></div>'+
+  DOCE.membrete({ empresa: e, codigo: e.formulario || '',
+    derecha: '<small>Manifiesto N°</small><b>'+esc(s.salidaId)+'</b><span>'+esc(larga(s.fecha))+(s.horaSalida?' · '+esc(s.horaSalida):'')+'</span>' })+
 
   '<h1>Manifiesto de salida de desechos tratados<br>hacia disposición final</h1>'+
 

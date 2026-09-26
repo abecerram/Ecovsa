@@ -6,7 +6,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="estilos-operaciones.css">
-<script>window.PUENTE_CONFIG={sinCopia:/./};</script>
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <style>
 
@@ -94,23 +94,26 @@ tr.tot td{background:#EEF5E4;font-weight:800;font-size:13.5px;color:var(--verde)
 }
 @page{size:letter;margin:12mm}
 </style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
 </head>
 <body>
 
 <div id="aviso" class="aviso">Cargando la propuesta…</div>
 
 <div id="app" style="display:none">
-  <div class="barra">
-    <div class="ti">PROPUESTA COMERCIAL</div>
+<div class="barra doc-barra no-imprimir">
+    <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+    <div class="ti">Propuesta comercial</div>
     <span id="envios"></span>
-    <button onclick="window.print()" class="pri">Imprimir / Guardar PDF</button>
+    <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
     <div class="pre" id="pre" style="display:none"></div>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-var LOGO="https://drive.google.com/thumbnail?id=1htPaiaNzB-jsx4kBOolbNDn4VPkYuo5j&sz=w400";
+var LOGO="logo-ecovsa.png";
 var COD="", DATOS=null;
 
 function $(i){return document.getElementById(i);}
@@ -217,17 +220,8 @@ function pintar(p){
   var UNICA = !!p.visitaUnica;
 
   var html =
-  '<div class="enc">'+
-    '<img src="'+LOGO+'" alt="ECOVSA">'+
-    '<div><div class="emp">ECOVSA</div>'+
-      '<div class="lem">Ecología · Vida · Salud</div>'+
-      '<div class="con">Tel. '+esc(emp().telefono)+' · WhatsApp '+esc(emp().whatsapp)+
-        '<br>'+esc(emp().correo)+'</div></div>'+
-    '<div class="der"><div class="et">Propuesta N°</div>'+
-      '<div class="num">'+esc(p.codigoPropuesta)+'</div>'+
-      '<div class="fe">Panamá, '+esc(larga(fProp))+'</div></div>'+
-  '</div>'+
-  '<div class="franja"></div>'+
+  DOCE.membrete({ empresa: emp(),
+    derecha: '<small>Propuesta N°</small><b>'+esc(p.codigoPropuesta)+'</b><span>Panamá, '+esc(larga(fProp))+'</span>' })+
 
   '<div class="dest">'+
     '<div class="se">Señores</div>'+

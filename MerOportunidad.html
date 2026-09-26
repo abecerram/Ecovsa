@@ -11,6 +11,7 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
+<script src="archivos.js"></script>
 <style>
 /* ═══ Ficha de oportunidad · opción B «Pestañas con tarjeta fija» ═══ */
 .main{padding-bottom:110px}
@@ -148,6 +149,10 @@
 .dcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .dcard{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:8px;min-width:0}
 .dcard.falta{border-style:dashed;background:#fcfdfe}
+.dcard.rev{border:1.5px solid #f0c24b;border-style:solid;background:#fffcf2}
+.cli-rev{background:#fff7df;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.cli-rev b{display:flex;gap:5px;align-items:center;color:#7a5600}.cli-rev span{color:var(--muted);overflow-wrap:anywhere}
+.cli-link{margin-bottom:14px;border-left:4px solid var(--navy2)}
 .dcard .fn{font-size:12px;color:var(--muted);display:flex;gap:5px;align-items:center;overflow-wrap:anywhere;min-width:0}
 .dcard .fn span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dcard .row .chk{font-size:12.5px;font-weight:600}
@@ -239,6 +244,7 @@
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando la oportunidad…</div></main></div>
 <div class="fija no-imp" id="fija"></div>
@@ -255,7 +261,7 @@
   var D = null, OP = null;            // respuesta del servidor y la oportunidad
   var CAMBIOS = {};                   // columna → valor sin guardar
   var NOTAS = [], NOTAS_EDIT = false, NOTAS_CAMBIO = false, NOTAS_AVISO = '';
-  var TAB = 'resumen', TL_FILTRO = 'todo', REABIERTA = false, URL_APP = '', PLANTILLAS = null;
+  var TAB = /^#(documentos|contrato|propuesta|actividad)$/.test(location.hash || '') ? location.hash.slice(1) : 'resumen', TL_FILTRO = 'todo', REABIERTA = false, URL_APP = '', PLANTILLAS = null;
   var GLOW = [], ENVIANDO = {};
   var ROL = '', SUP = false, GER = false;
 
@@ -307,7 +313,7 @@
   }
   function enlaceFormulario() {
     var base = URL_APP || new URL('index.html', location.href).href.replace(/index\.html$/, '');
-    return base + '?p=formulario&token=' + encodeURIComponent(COD);
+    return base + '?p=formulario&token=' + encodeURIComponent(COD) + (OP && OP.formClave ? '&k=' + OP.formClave : '');
   }
   function mesesMas(iso, meses) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '') || !(meses > 0)) return '';
@@ -790,20 +796,81 @@
     var ld = listaDocs(), bloqCasilla = ro();
     var cards = ld.map(function (d, i) {
       var si = v(d[0]).toUpperCase() === 'SI', doc = docDeCasilla(d[0], d[1]), paraContrato = DOCS_CONTRATO.indexOf(d[0]) >= 0;
-      return '<div class="dcard' + (si ? '' : ' falta') + '"><div class="row" style="gap:8px"><span class="dot ' + (si ? 'd-ok' : paraContrato ? 'd-warn' : 'd-gris') + '"></span><b style="font-size:13px;flex:1">' + E(d[1]) + '</b></div>' +
+      var dc = docCli(d[0]);
+      return '<div class="dcard' + (si ? '' : ' falta') + (dc && dc.estado === 'por revisar' ? ' rev' : '') + '"><div class="row" style="gap:8px"><span class="dot ' + (si ? 'd-ok' : paraContrato ? 'd-warn' : 'd-gris') + '"></span><b style="font-size:13px;flex:1">' + E(d[1]) + '</b></div>' +
         (paraContrato ? '<div class="small muted" style="margin-top:-4px">Lo pide el contrato</div>' : '') +
+        bloqueCli(d[0], si) +
         '<label class="chk"><input type="checkbox" data-c="' + E(d[0]) + '"' + (si ? ' checked' : '') + (bloqCasilla ? ' disabled' : '') + '> Recibido</label>' +
         (doc && doc.archivoId ? '<div class="fn">' + IC('clip', 13) + '<span>' + E(doc.nombre) + ' · v' + doc.version + '</span></div><div class="row" style="gap:6px"><button class="btn sm" data-a="ver-archivo" data-id="' + E(doc.archivoId) + '">' + IC('ojo', 14) + ' Ver</button>' +
             (GER ? '' : '<button class="btn sm gh" data-a="nueva-version" data-doc="' + E(doc.id) + '">' + IC('subir', 14) + ' Nueva versión</button>') + '</div>'
           : (GER ? '<div class="small muted">Sin archivo</div>' : '<button class="zona" data-a="subir" data-col="' + E(d[0]) + '">' + IC('subir', 18) + 'Subir el archivo</button>')) + '</div>';
     }).join('');
     var todos = (D.documentos || []).slice().sort(function (a, b) { return String(b.creadoEn).localeCompare(String(a.creadoEn)); });
-    return card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
+    return tarjetaEnlaceDocs() + card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
         (bloqCasilla && !GER ? '<p class="small muted" style="margin-top:10px">La ficha está firmada: las casillas solo las cambia supervisión.</p>' : ''),
         '<span class="l muted">' + docsSi() + ' de ' + ld.length + ' · los 5 primeros los pide el contrato</span>') +
       '<div style="margin-top:14px">' + card('Archivos y envíos', (todos.length ? '<div style="overflow-x:auto"><table class="vt">' + todos.map(function (d) { return filaDoc(d, false); }).join('') + '</table></div>'
         : MK.vacio('Todavía no hay archivos. Súbelos aquí o desde el checklist.')) +
         (GER ? '' : '<button class="btn sm" style="margin-top:10px" data-a="subir">' + IC('subir', 14) + ' Subir otro archivo</button>'), '<span class="l muted">' + todos.length + '</span>') + '</div>';
+  }
+  /* ── api 3.5.1 · lo que el cliente sube desde su enlace ── */
+  function docCli(col) { var L = (D.docsCliente && D.docsCliente.docs) || []; return L.filter(function (x) { return x.doc === col; })[0] || null; }
+  function archCli(col) { return ((D.docsCliente && D.docsCliente.archivos) || []).filter(function (a) { return a.doc === col && a.estado === 'POR_REVISAR'; })[0] || null; }
+  function bloqueCli(col, si) {
+    var dc = docCli(col); if (!dc || si) return '';
+    if (dc.estado === 'por revisar') {
+      var a = archCli(col); if (!a) return '';
+      return '<div class="cli-rev"><b>' + IC('subir', 13) + ' El cliente lo subió</b><span>' + E(a.nombre) + ' · ' + E(ARCH.kb(a.tamano)) + ' · ' + E(fh(a.subidoEn)) + '</span>' +
+        '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="ver-cli" data-id="' + E(a.archivoId) + '">' + IC('ojo', 14) + ' Ver</button>' +
+        (GER ? '' : '<button class="btn sm ok" data-a="aceptar-cli" data-id="' + E(a.archivoId) + '">' + IC('check', 14) + ' Aceptar</button><button class="btn sm gh" data-a="rechazar-cli" data-id="' + E(a.archivoId) + '" data-n="' + E(dc.n) + '">Rechazar</button>') + '</div></div>';
+    }
+    if (dc.estado === 'rechazado') return '<div class="small" style="color:var(--bad)">Rechazado: ' + E(dc.motivo) + ' · el cliente lo ve en su enlace</div>';
+    return '';
+  }
+  function tarjetaEnlaceDocs() {
+    var dc = D.docsCliente; if (!dc || unica()) return '';
+    var n = dc.porRevisar || 0, falt = (dc.docs || []).filter(function (x) { return x.estado !== 'aceptado'; }).length;
+    return '<div class="card cli-link"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>' + IC('enlace', 15) + ' El cliente sube sus documentos desde su enlace</b>' +
+      '<div class="small muted" style="margin-top:3px">' + (dc.completo ? 'Todos aceptados: el enlace ya quedó cerrado para el cliente.' : (n ? n + ' esperando tu revisión · ' : '') + falt + ' por completar. Es el mismo enlace del formulario; con todos aceptados se cierra solo.') + '</div></div>' +
+      (dc.completo || GER ? '' : '<div class="row" style="gap:6px"><button class="btn sm" data-a="copiar-enlace">' + IC('enlace', 14) + ' Copiar enlace</button>' + (waNumero(OP.celular) || waNumero(OP.telefono) ? '<button class="btn sm wa" data-a="wa-docs">' + IC('whatsapp', 14) + ' Pedírselos</button>' : '') + '</div>') + '</div></div>';
+  }
+  function verCli(id) {
+    var w = window.open('', '_blank');
+    if (w) { try { w.document.write('<title>Abriendo…</title><p style="font:14px Archivo,sans-serif;color:#667489;padding:24px">Abriendo el archivo…</p>'); } catch (e) {} }
+    MK.api('api_arcVer', MK.pin, id).then(function (r) {
+      if (!r || !r.ok || !r.url) { if (w) w.close(); MK.aviso((r && (r.error || r.almacenError)) || 'No se pudo abrir.'); return; }
+      if (w) w.location.href = r.url; else location.href = r.url;
+    }, function (e) { if (w) w.close(); MK.aviso('Sin conexión: ' + e.message); });
+  }
+  function aceptarCli(id, b) {
+    MK.ocupado(b, true, 'Aceptando…');
+    MK.api('api_docsRevisar', MK.pin, id, 'aceptar', '').then(function (r) {
+      if (!r || !r.ok) { MK.ocupado(b, false); MK.aviso((r && r.error) || 'No se pudo.'); return; }
+      MK.aviso(r.completo ? 'Aceptado. Ya están todos: el enlace del cliente se cerró.' : 'Aceptado · la casilla quedó marcada');
+      MK.cambio({ tipo: 'documento' });
+    }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+  function rechazarCli(id, nombre) {
+    MK.hoja('<h2>Rechazar · ' + E(nombre) + '</h2><p class="small muted">El cliente ve el motivo en su enlace y puede volver a subirlo. El archivo rechazado se borra.</p>' +
+      '<label class="lb" for="rc-m">MOTIVO</label><input class="in" id="rc-m" autofocus placeholder="Ej.: no se lee la fecha; falta la otra cara de la cédula">' +
+      '<div id="rc-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="rc-ok">Rechazar</button></div>');
+    $('rc-ok').onclick = function () {
+      var m = $('rc-m').value.trim(), b = this; if (!m) { $('rc-msg').textContent = 'Escribe el motivo: lo lee el cliente.'; return; }
+      MK.ocupado(b, true);
+      MK.api('api_docsRevisar', MK.pin, id, 'rechazar', m).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { $('rc-msg').textContent = (r && r.error) || 'No se pudo.'; return; }
+        var tel = waNumero(OP.celular) || waNumero(OP.telefono);
+        MK.hoja('<h2>Rechazado</h2><p class="small muted">¿Le avisas al cliente? Se abre WhatsApp con el mensaje y su enlace.</p><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Luego</button>' +
+          (tel ? '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + (OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '') + ', le escribimos de ECOVSA. Revisamos su ' + nombre.toLowerCase() + ' y necesitamos que lo vuelva a subir: ' + m + '.\n\nLo puede subir aquí mismo:\n' + enlaceFormulario()) + '" onclick="MK.cerrarHoja()">' + IC('whatsapp', 15) + ' Avisar por WhatsApp</a>' : '') + '</div>');
+        MK.cambio({ tipo: 'documento' });
+      }, function (e) { MK.ocupado(b, false); $('rc-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  function waDocs() {
+    var tel = waNumero(OP.celular) || waNumero(OP.telefono); if (!tel) return;
+    var falt = ((D.docsCliente && D.docsCliente.docs) || []).filter(function (x) { return x.estado !== 'aceptado'; }).map(function (x) { return '• ' + x.n; }).join('\n');
+    window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + (OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '') + ', le escribimos de ECOVSA. Para preparar el contrato de ' + (OP.empresa || 'su establecimiento') + ' necesitamos estos documentos:\n' + falt + '\n\nLos puede subir en PDF o como foto desde este enlace, cuando los tenga:\n' + enlaceFormulario()), '_blank');
   }
   var EST_DOC = { borrador: ['Borrador', 't-gris'], enviada: ['Enviada', 't-info'], aceptada: ['Aceptada', 't-ok'], firmada: ['Firmada', 't-ok'], rechazada: ['Rechazada', 't-bad'], vencida: ['Vencida', 't-warn'], anulada: ['Anulada', 't-gris'] };
   function tagDoc(d) {
@@ -958,6 +1025,10 @@
       case 'subir': hojaSubir({ col: el.getAttribute('data-col') || '' }); break;
       case 'nueva-version': hojaSubir({ docId: el.getAttribute('data-doc') }); break;
       case 'ver-archivo': verArchivo(id); break;
+      case 'ver-cli': verCli(id); break;
+      case 'aceptar-cli': aceptarCli(id, el); break;
+      case 'rechazar-cli': rechazarCli(id, el.getAttribute('data-n') || 'el documento'); break;
+      case 'wa-docs': waDocs(); break;
       case 'envio-doc': hojaEnvioDoc(docPor(el.getAttribute('data-doc'))); break;
       case 'contrato': revisarContrato(); break;
       case 'cartera': hojaCartera(); break;
@@ -1279,6 +1350,11 @@
 
   /* ═════════ documentos y archivos ═════════ */
   function leerArchivo(f) {
+    /* api 3.5.1: las fotos se achican antes de subir */
+    if (window.ARCH && /^image\//.test(f.type || '')) return ARCH.preparar(f).then(function (p) {
+      if (p.meta.tamano > 3 * 1024 * 1024) throw new Error('La foto sigue pesando más de 3 MB.');
+      return new Promise(function (ok, mal) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { mal(new Error('No se pudo leer la foto.')); }; r.readAsDataURL(p.blob); });
+    });
     return new Promise(function (ok, mal) {
       if (f.size > 3 * 1024 * 1024) { mal(new Error('El archivo pesa más de 3 MB. Redúcelo (o toma la foto con menos calidad) y vuelve a subirlo.')); return; }
       var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { mal(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(f);
@@ -1297,18 +1373,23 @@
         (pre.col ? '' : '<div class="grid g2" style="gap:0 12px"><div><label class="lb" for="sb-t">TIPO</label><select class="sel" id="sb-t"><option value="documento">Documento</option><option value="propuesta">Propuesta</option><option value="contrato">Contrato</option></select></div>' +
           '<div><label class="lb" for="sb-e">ESTADO</label><select class="sel" id="sb-e"><option value="borrador">Borrador</option><option value="enviada">Enviada</option><option value="aceptada">Aceptada / recibida</option><option value="firmada">Firmada</option></select></div></div>')) +
       '<label class="lb" for="sb-no">NOTAS <span class="muted">(opcional)</span></label><input class="in" id="sb-no">' +
-      '<div id="sb-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="sb-ok">' + IC('subir', 15) + ' Subir</button></div>');
+      '<div id="sb-sub"></div><div id="sb-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="sb-ok">' + IC('subir', 15) + ' Subir</button></div>');
     $('sb-f').onchange = function () { var f = this.files[0]; $('sb-fn').textContent = f ? f.name + ' · ' + Math.max(1, Math.round(f.size / 1024)) + ' KB' : 'Elegir archivo'; };
     $('sb-ok').onclick = function () {
       var f = $('sb-f').files[0], msg = $('sb-msg'), b = this;
       if (!f) { msg.textContent = 'Elige el archivo.'; return; }
       var nombre = doc ? doc.nombre : ($('sb-n').value.trim() || f.name);
       var t = doc ? doc.tipo : ($('sb-t') ? $('sb-t').value : tipo), e = $('sb-e') ? $('sb-e').value : est, notas = $('sb-no').value.trim();
-      MK.ocupado(b, true, 'Subiendo…');
+      MK.ocupado(b, true, 'Subiendo…'); msg.textContent = '';
+      /* api 3.5.2: la tarjeta de espera (emblema, pasos) */
+      var T = window.ARCH && ARCH.tarjeta ? ARCH.tarjeta($('sb-sub'), { nombre: f.name, detalle: ARCH.kb(f.size), reemplazar: true }) : null;
+      if (T) T.paso(0);
       leerArchivo(f).then(function (datos) {
+        if (T) T.paso(1);
         return MK.api('api_crmSubirArchivo', MK.pin, { nombre: f.name, tipo: f.type || '', datos: datos });
       }).then(function (r) {
         if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo subir el archivo.');
+        if (T) T.paso(2);
         var a = r.archivo;
         var d = doc ? { id: doc.id, archivoId: a.id, nuevaVersion: true, notas: notas || undefined, evento: 'Nueva versión · ' + f.name }
           : { tipo: t, ref: COD, refTipo: 'op', cuenta: OP.empresa, nombre: nombre, estado: e, archivoId: a.id, notas: notas, evento: 'Subió ' + f.name };
@@ -1320,6 +1401,9 @@
         var dato = {}; if (casilla) dato[pre.col] = 'SI';
         return casilla ? guardarParcial(dato).then(function () { delete CAMBIOS[pre.col]; }) : null;
       }).then(function () {
+        if (T) T.listo('Guardado');
+        return new Promise(function (ok) { setTimeout(ok, T ? 650 : 0); });
+      }).then(function () {
         MK.ocupado(b, false); MK.cerrarHoja(); MK.aviso(doc ? 'Nueva versión guardada' : 'Archivo guardado ✓');
         MK.cambio({ tipo: 'documento' });
         var firmado = (pre.col === 'doc contrato firmado' && !unica()) || (pre.col === 'doc propuesta firmada' && unica());
@@ -1327,7 +1411,7 @@
         if (firmado && iA >= 0 && iA < 6) setTimeout(function () {
           MK.confirmar('Subiste el ' + (unica() ? 'documento' : 'contrato') + ' firmado. ¿La pasamos a «Firmado»? La ficha se cierra a la edición y el botón pasa a «Pasar a cartera».', function () { mover('Firmado'); }, { titulo: '¿Ya firmó?', boton: 'Sí, pasar a Firmado' });
         }, 500);
-      }).catch(function (e) { MK.ocupado(b, false); msg.textContent = e.message; });
+      }).catch(function (e) { MK.ocupado(b, false); if (T) T.error(e.message); else msg.textContent = e.message; });
     };
   }
   function aBlob(datos, tipo) {
@@ -1341,6 +1425,7 @@
     if (w) { try { w.document.write('<title>Abriendo…</title><p style="font:14px Archivo,sans-serif;color:#667489;padding:24px">Abriendo el archivo…</p>'); } catch (e) {} }
     MK.api('api_crmArchivo', MK.pin, id).then(function (r) {
       if (!r || !r.ok) { if (w) w.close(); MK.aviso((r && r.error) || 'No se pudo abrir el archivo.'); return; }
+      if (r.url || r.almacenError) { if (!r.url) { if (w) w.close(); MK.aviso(r.almacenError); return; } if (w) w.location.href = r.url; else location.href = r.url; return; }
       var url = URL.createObjectURL(aBlob(r.datos, r.tipo));
       if (w) w.location.href = url; else { var a = document.createElement('a'); a.href = url; a.download = r.nombre || 'archivo'; document.body.appendChild(a); a.click(); a.remove(); }
       setTimeout(function () { URL.revokeObjectURL(url); }, 120000);

@@ -17,6 +17,7 @@
 <script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto', enSupabase:/^api_(?!optimizarRuta$)/};</script>
 <script src="puente.js"></script>
 <script src="tema.js"></script>
+<script src="archivos.js"></script>
 <style>
 :root{--eco-azul-osc:#14306B;--eco-azul:#0B5394;--eco-verde:#2F6B0A;--eco-verde-claro:#4ADE80;--eco-ambar:#F5B301;--eco-rojo:#C0392B;--tarjeta:#FFFFFF}
 
@@ -232,6 +233,95 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 3
 .pr-ficha .rej span{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--gris)}
 
 .pr-falta{margin-top:10px;background:#FFF9E8;border:1px solid #F0DDA6;border-radius:9px;padding:9px 11px;font-size:11.5px;line-height:1.5}
+
+/* SOLICITUDES (api 3.5.2): clientes nuevos, inspecciones y recolecciones extra en una bandeja */
+
+.sol.ext{border-left-color:var(--eco-azul)}
+
+.sq-tipo{font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:0;padding:0;background:none}
+
+.sq-tipo .mki{width:13px;height:13px}
+
+.sq-tipo.ti-ext{color:var(--eco-azul)}.sq-tipo.ti-cli{color:var(--ambar-osc)}.sq-tipo.ti-ins{color:#6D3FC4}
+
+.sq-tipo small{font-size:10px;font-weight:700;color:#98A3B3;letter-spacing:.3px}
+
+.pill-az{font-size:9.5px;font-weight:900;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;background:#E3EEF9;color:var(--eco-azul)}
+
+.pill-ok{font-size:9.5px;font-weight:900;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;background:var(--verde-suave);color:var(--verde)}
+
+.sq-seg{display:inline-flex;max-width:100%;overflow-x:auto;margin:0 0 12px;gap:2px;background:#E9EDF3;border-radius:9px;padding:3px}
+
+.sq-seg button{font-family:inherit;font-size:11.5px;font-weight:900;color:#5E6B7E;padding:6px 12px;border-radius:7px;border:0;background:none;cursor:pointer;white-space:nowrap}
+
+.sq-seg button.on{background:#fff;color:#14306B}
+
+.sq-seg button em{font-style:normal;opacity:.7;margin-left:4px}
+
+.sq-acc{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+.sq-acc .btn-wa{width:auto;flex:none}
+
+.sq-lbl{font-size:10.5px;font-weight:900;color:#98A3B3;letter-spacing:.7px;text-transform:uppercase;margin:16px 0 8px}
+
+.sq-lbl:first-child{margin-top:0}
+
+.sq-dias{background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden}
+
+.sq-dia{display:grid;grid-template-columns:92px minmax(0,1fr) 110px 120px;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--borde);font-size:12.5px;cursor:pointer}
+
+.sq-dia:first-child{border-top:0}
+
+.sq-dia:hover{background:#F7F9FC}
+
+.sq-dia.on{background:#EEF4FC;box-shadow:inset 3px 0 0 var(--eco-azul)}
+
+.sq-dia.no{cursor:default;opacity:.55}
+
+.sq-dia b{font-weight:900;color:#14306B}
+
+.sq-dia .g{color:var(--gris);font-weight:600}
+
+.sq-dia .e{font-weight:900;text-align:right}
+
+.sq-dia .mini{height:6px;border-radius:4px;background:#EEF1F5;overflow:hidden}
+
+.sq-dia .mini i{display:block;height:100%;background:#14306B;border-radius:4px}
+
+.sq-dia .tag{display:inline-block;font-size:10px;font-weight:900;border-radius:999px;padding:1px 7px;margin-left:4px;background:var(--verde-suave);color:var(--verde)}
+
+.sq-dia .tag.a{background:#FFF1D6;color:#8A6300}
+
+.sq-conf{margin-top:10px}
+
+.sq-rows{background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden}
+
+.sq-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--borde);font-size:12.5px}
+
+.sq-row:first-child{border-top:0}
+
+.sq-row b{font-weight:900;color:#14306B}
+
+.sq-row .n{display:block;font-weight:900;color:#14306B}
+
+.sq-row .g{color:var(--gris);font-weight:600}
+
+.sq-prog{margin-top:10px;background:var(--verde-suave);border:1px solid #C3DCA6;border-left:4px solid var(--verde);border-radius:11px;padding:10px 13px;font-size:12.5px;line-height:1.55}
+
+.sq-prog b{color:var(--verde)}
+
+.sq-ins-f{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+@media(max-width:700px){
+  .sq-dia{display:flex;flex-wrap:wrap;gap:2px 10px}
+  .sq-dia .e{margin-left:auto}
+  .sq-dia .g{order:3;flex:1 1 100%}
+  .sq-dia .mini{display:none}
+  .sq-row{grid-template-columns:78px minmax(0,1fr)}
+  .sq-row>:last-child{grid-column:2}
+  .sq-ins-f{grid-template-columns:1fr}
+  .pr-ficha .rej{grid-template-columns:1fr}
+}
 
 .mosaico-top{display:flex;justify-content:space-between;align-items:flex-start}
 
@@ -1372,6 +1462,7 @@ body.es-sup #pantalla-plan{max-width:1320px}
 .pl-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
 .pl-dot.recurrentes{background:var(--ini-verde)}.pl-dot.arrastre,.pl-dot.pendientes{background:var(--ini-azul)}.pl-dot.tocan{background:var(--ini-ambar)}
 .pl-dot.atrasados{background:var(--ini-rojo)}.pl-dot.nuevos{background:var(--ini-morado)}.pl-dot.busca{background:#B6C0CD}
+.pl-dot.extra{background:var(--ini-azul);box-shadow:0 0 0 2px #CFE0F5}
 .pl-rtabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0}
 .pl-rtabs button{font-family:inherit;font-size:12px;font-weight:800;border:1.5px solid var(--ini-linea);border-radius:10px;padding:6px 10px;background:#fff;color:var(--ini-navy);cursor:pointer}
 .pl-rtabs button.on{border-color:var(--ini-azul);background:#EEF4FB}
@@ -1514,6 +1605,17 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 .fl-fr i.ok{background:var(--ini-verde)}.fl-fr i.falla{background:var(--ini-ambar)}.fl-fr i.bloq{background:var(--ini-rojo)}
 .fl-lab{font-size:10.5px;font-weight:900;color:#98A3B3;letter-spacing:.6px;text-transform:uppercase;margin-top:8px}
 .fl-chip{align-self:flex-start;font-size:10.5px;font-weight:900;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.fd-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.fd-k>div{background:#fff;border:1px solid var(--ini-linea);border-radius:12px;padding:10px 12px}.fd-k b{display:block;font-size:22px;font-weight:900;color:var(--ini-navy)}.fd-k b.r{color:var(--ini-rojo)}.fd-k b.a{color:#8A6300}.fd-k span{font-size:11.5px;font-weight:700;color:var(--ini-gris)}
+.fd-tb{width:100%;border-collapse:collapse;font-size:12.5px}.fd-tb th{text-align:left;font-size:10.5px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--ini-gris);padding:10px 12px;border-bottom:1px solid var(--ini-linea);white-space:nowrap}
+.fd-tb td{padding:10px 12px;border-top:1px solid #F1F4F8;vertical-align:top}.fd-tb td b{color:var(--ini-navy);font-weight:900}.fd-tb small{display:block;font-size:11px;color:var(--ini-gris);font-weight:600;margin-top:3px;white-space:nowrap}.fd-tb td.cl{cursor:pointer}.fd-tb td.cl:hover{background:#F6F8FB}
+.fd-it{display:flex;gap:12px;padding:12px 0;border-top:1px solid #F1F4F8}.fd-it:first-child{border-top:0}.fd-it.na{opacity:.7}
+.fd-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;flex:none;background:#EEF2F7;color:var(--ini-gris)}.fd-ic.r{background:var(--ini-rojo-l);color:var(--ini-rojo)}.fd-ic.a{background:var(--ini-ambar-l);color:#8A6300}.fd-ic.v{background:var(--ini-verde-l);color:var(--ini-verde)}
+.fd-tx{flex:1;min-width:0}.fd-tx b{display:block;font-size:13.5px;font-weight:900;color:var(--ini-navy)}.fd-tx small{display:block;font-size:12px;color:var(--ini-gris);font-weight:600;margin-top:3px}.fd-tx .fd-sin{color:#8A6300}
+.fd-pill{display:inline-block;margin-top:6px;font-size:12px;font-weight:800;color:var(--ini-azul);background:#EEF4FC;border-radius:8px;padding:4px 9px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-hi{margin-top:6px;font-size:11.5px;color:var(--ini-gris);font-weight:600}.fd-hi summary{cursor:pointer;font-weight:800}.fd-hi div{padding:3px 0}.fd-hi a{color:var(--ini-azul);cursor:pointer}
+.fd-zona{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px dashed #C9D5E8;border-radius:12px;padding:16px 12px;margin-top:12px;text-align:center;cursor:pointer;font-size:13px;font-weight:800;color:var(--ini-navy)}.fd-zona small{font-size:11px;color:var(--ini-gris);font-weight:600}.fd-zona.on{border-style:solid;border-color:var(--ini-verde);background:var(--ini-verde-l)}
+@media(max-width:600px){.fd-k{grid-template-columns:1fr 1fr 1fr}.fd-k b{font-size:18px}}
 .fl-chip.r{background:var(--ini-rojo-l);color:var(--ini-rojo)}.fl-chip.a{background:var(--ini-ambar-l);color:#8A6300}.fl-chip.v{background:var(--ini-verde-l);color:var(--ini-verde)}.fl-chip.p{background:#EEF2F7;color:var(--ini-gris)}
 .fl-fic{background:#fff;border:1px solid var(--ini-linea);border-radius:14px;padding:16px 18px;position:sticky;top:0}
 .fl-fic h2{font-size:18px;font-weight:900;color:var(--ini-navy);margin:0}.fl-fic .ps{font-size:12px;color:var(--ini-gris);font-weight:600;margin:3px 0 8px}
@@ -1749,95 +1851,9 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 
 <body>
 
-<div id="cargando">
-
-<div class="contenedor-camion">
-
-<svg width="180" height="110" viewBox="0 0 180 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-<defs>
-
-<clipPath id="cargoBoxClip">
-
-<rect x="14" y="24" width="92" height="52" rx="4" />
-
-</clipPath>
-
-<linearGradient id="redFill" x1="0" y1="1" x2="0" y2="0">
-
-<stop offset="0%" stop-color="#991B1B" />
-
-<stop offset="100%" stop-color="#EF4444" />
-
-</linearGradient>
-
-</defs>
-
-<ellipse cx="90" cy="98" rx="80" ry="6" fill="#CBD5E1" opacity="0.6" />
-
-<rect x="34" y="15" width="44" height="10" rx="3" fill="#E2E8F0" stroke="#0F3B66" stroke-width="2" />
-
-<line x1="42" y1="20" x2="70" y2="20" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" />
-
-<rect x="12" y="22" width="96" height="56" rx="5" fill="#FFFFFF" stroke="#0F3B66" stroke-width="2.5" />
-
-<g clip-path="url(#cargoBoxClip)">
-
-<rect class="truck-liquid" x="14" y="24" width="92" height="52" fill="url(#redFill)" />
-
-</g>
-
-<rect x="12" y="22" width="96" height="56" rx="5" fill="none" stroke="#0F3B66" stroke-width="2.5" />
-
-<line x1="60" y1="22" x2="60" y2="78" stroke="#0F3B66" stroke-width="1.5" opacity="0.3" />
-
-<path d="M108 34 H136 L154 52 V78 H108 V34 Z" fill="#FFFFFF" stroke="#0F3B66" stroke-width="2.5" stroke-linejoin="round" />
-
-<path d="M134 38 L148 52 H114 V38 H134 Z" fill="#0072BC" opacity="0.8" />
-
-<rect x="150" y="70" width="12" height="8" rx="2" fill="#64748B" stroke="#0F3B66" stroke-width="1.5" />
-
-<path d="M152 58 H156 V64 H152 Z" fill="#F59E0B" />
-
-<rect x="20" y="78" width="134" height="6" fill="#334155" />
-
-<g>
-
-<circle cx="36" cy="85" r="14" fill="#1E293B" stroke="#0F3B66" stroke-width="2" />
-
-<circle cx="36" cy="85" r="7" fill="#CBD5E1" />
-
-<circle cx="36" cy="85" r="2.5" fill="#1E293B" />
-
-</g>
-
-<g>
-
-<circle cx="68" cy="85" r="14" fill="#1E293B" stroke="#0F3B66" stroke-width="2" />
-
-<circle cx="68" cy="85" r="7" fill="#CBD5E1" />
-
-<circle cx="68" cy="85" r="2.5" fill="#1E293B" />
-
-</g>
-
-<g>
-
-<circle cx="134" cy="85" r="14" fill="#1E293B" stroke="#0F3B66" stroke-width="2" />
-
-<circle cx="134" cy="85" r="7" fill="#CBD5E1" />
-
-<circle cx="134" cy="85" r="2.5" fill="#1E293B" />
-
-</g>
-
-</svg>
-
-</div>
-
-<div class="texto-carga">Sincronizando operaciones ECOVSA...</div>
-
-</div>
+<!-- api 3.5.2: el camión rojo se fue. La espera es la cortina con el emblema que se arma (cargador.js). -->
+<script src="cargador.js" data-modulo="Logística" data-manual></script>
+<div id="cargando" style="display:none"></div>
 
 <!-- LOGIN -->
 
@@ -2552,6 +2568,22 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 </section>
 
+<!-- ══ SOLICITUDES (api 3.5.2) ═══════════════════════════════════════
+     Clientes nuevos, inspecciones y recolecciones extra que pide el
+     cliente por su QR: todo lo que espera a Logística, en una bandeja. -->
+<section id="pantalla-solicitudes" class="pantalla">
+
+<div class="barra-navegacion-top">
+<h2>🔔 Solicitudes</h2>
+<button class="btn-volver-hub" onclick="mostrarTab('hub')">☰ Menú</button>
+</div>
+
+<div id="sq-aviso"></div>
+<div id="sq-filtros"></div>
+<div id="sq-lista"><div class="vacio">Consultando…</div></div>
+
+</section>
+
 <section id="pantalla-inspeccion" class="pantalla">
 
 <div class="barra-navegacion-top">
@@ -3054,13 +3086,15 @@ pintarCabecera(); pintarSync();
 
 if(!PIN){ pedirPin(); return; }
 
-if(CLIENTES.length){ $("cargando").style.display="none"; renderTodo(); }
+if(CLIENTES.length){ cargaLista_(); renderTodo(); }
 
 google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api_bootstrap(PIN,hoyISO());
 
 }
 
-function pedirPin(){ $("cargando").style.display="none"; $("login").style.display="flex"; setTimeout(function(){$("pin-input").focus();},120); }
+function cargaLista_(yaMismo){ if(window.ECOCARGA) ECOCARGA.listo(yaMismo); }
+function cargaCortina_(){ if(window.ECOCARGA) ECOCARGA.cortina({ modulo: "Logística" }); }
+function pedirPin(){ cargaLista_(true); $("login").style.display="flex"; setTimeout(function(){$("pin-input").focus();},120); }
 
 function entrarConPin(){
 
@@ -3072,7 +3106,7 @@ if(r&&r.ok){
 
 PIN=p; guardarLocal(K_PIN,PIN); USUARIO=r.usuario; guardarLocal(K_USR,USUARIO);
 
-$("login").style.display="none"; $("cargando").style.display="flex"; pintarCabecera();
+$("login").style.display="none"; cargaCortina_(); pintarCabecera();
 
 google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api_bootstrap(PIN,hoyISO());
 
@@ -3084,11 +3118,13 @@ google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api
 
 function alCargar(d){
 
-$("cargando").style.display="none";
-
 if(!d||!d.ok) return errCargar();
 
 USUARIO=d.usuario; guardarLocal(K_USR,USUARIO); CLIENTES=d.clientes; guardarLocal(K_CLI,CLIENTES);
+
+/* supervisión: la cortina se levanta cuando llega el inicio (ya pintado); el conductor, ya */
+if(!esSupervisor()) cargaLista_();
+setTimeout(function(){ cargaLista_(); }, 9000);
 
 var mia=(d.rutas||[])[0];
 if(!esSupervisor()) RUTAS_HOY = d.rutas || [];
@@ -3121,7 +3157,7 @@ if(esSupervisor()) avisoFallasHub_(true);
 
 }
 
-function errCargar(){ $("cargando").style.display="none"; enLinea=false; pintarSync(); renderTodo(); }
+function errCargar(){ cargaLista_(); enLinea=false; pintarSync(); renderTodo(); }
 
 function pintarCabecera(){
 
@@ -4603,7 +4639,7 @@ var MENU_SUP = [
   ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"], ["mapa","🗺️","Mapa"],
   ["recibos","🧾","Recibos"], ["dfin","🏭","Disposición final"],
   ["Por revisar"],
-  ["porrevisar","🔔","Clientes nuevos","porRevisar"], ["inspecciones","🔎","Inspecciones","inspecciones"],
+  ["solicitudes","🔔","Solicitudes","solicitudes"],
   ["Administración"],
   ["flota","🚚","Flota","flota"], ["mto","🔧","Mantenimiento","mto"], ["@admin","📦","Inventario"], ["@inicio","📈","Indicadores"]
 ];
@@ -4663,7 +4699,7 @@ function cargarInicio_(){
   if(!INI){ var c = $("ini-sup"); if(c) c.innerHTML = '<div class="ini-hola">' + saludoIni_() + '<span>Consultando la operación…</span></div>'; }
   google.script.run
     .withSuccessHandler(function(r){
-      INI_VUELO = false;
+      INI_VUELO = false; cargaLista_();
       if(!r || !r.ok){ if(!INI){ var c = $("ini-sup"); if(c) c.innerHTML = '<div class="vacio">' + esc((r && r.error) || "No se pudo consultar") + '</div>'; } return; }
       var antes = (INI_DET && INI_DET.tipo === "aten" && INI) ? INI.atencion[INI_DET.k] : null;
       INI = r;
@@ -4673,7 +4709,7 @@ function cargarInicio_(){
       if(INI_DET && INI_DET.tipo === "ruta" && !r.vivo[INI_DET.k]) INI_DET = null;
       pintarInicio_(); pintarMenuSup_();
     })
-    .withFailureHandler(function(){ INI_VUELO = false; if(!INI){ var c = $("ini-sup"); if(c) c.innerHTML = '<div class="vacio">Sin conexión. <button class="ini-lnk" onclick="cargarInicio_()">Reintentar</button></div>'; } })
+    .withFailureHandler(function(){ INI_VUELO = false; cargaLista_(); if(!INI){ var c = $("ini-sup"); if(c) c.innerHTML = '<div class="vacio">Sin conexión. <button class="ini-lnk" onclick="cargarInicio_()">Reintentar</button></div>'; } })
     .api_inicioLogistica(PIN, INI_PER);
   programarIni_();
 }
@@ -4838,6 +4874,7 @@ function htmlSemanaIni_(){
 /* ── abrir cosas ── */
 function tocarAtencionIni_(i){
   var a = INI.atencion[i]; if(!a) return;
+  if(a.tipo === "solicitudes"){ SQ_F = "todas"; mostrarTab("solicitudes"); return; }
   if(a.tipo === "porrevisar"){ mostrarTab("porrevisar"); return; }
   if(a.tipo === "inspecciones"){ mostrarTab("inspecciones"); return; }
   if(a.tipo === "diaSinRuta"){ abrirEditorCon_(a.datos.fecha, [], true); return; }
@@ -5553,7 +5590,7 @@ function plPintar_(){
     h += '<div class="pl-ban"><span style="font-size:18px">↪</span><div><b>' + arr.length + (arr.length === 1 ? ' parada del ' : ' paradas del ') + esc(nombreDia_(dd)) + (arr.length === 1 ? ' pasó' : ' pasaron') + ' a este día</b> porque no se atendieron' + (g && g.motivo.indexOf("terminó") >= 0 ? ' (' + esc(g.motivo.split(" · ").slice(1).join(" · ")) + ')' : '') + '. Ya están en la ruta.</div></div>'; }
   if(rec.length) h += '<div class="pl-ban m"><span style="font-size:18px">🔁</span><div><b>' + rec.length + (rec.length === 1 ? ' recurrente del ' : ' recurrentes del ') + plDiaTxt_(f) + (rec.length === 1 ? ' se cargó solo.' : ' se cargaron solos.') + '</b> Quita uno solo por hoy desde su ⋯ sin tocar su recurrencia.</div><span class="sp"></span><button onclick="plRecurrentes_()">Ver los ' + PL.recurrentes + ' recurrentes</button></div>';
   var pc = (PL.porConfirmar || []).filter(function(a){ return !ED.paradas.some(function(p){ return p.clienteId === a.clienteId; }); });
-  if(pc.length) h += '<div class="pl-ban a"><span style="font-size:18px">⚠</span><div><b>' + pc.length + (pc.length === 1 ? ' cliente no se cargó solo' : ' clientes no se cargaron solos') + '</b> porque la ruta de este día ya está publicada: ' + pc.slice(0, 3).map(function(a){ return esc(plC_(a.clienteId).nombre) + ' (' + (a.origen === "recurrente" ? "recurrente" : "no atendido") + ')'; }).join(", ") + (pc.length > 3 ? '…' : '') + '</div><span class="sp"></span><button onclick="plAgregarPorConfirmar_()">Agregarlos</button></div>';
+  if(pc.length) h += '<div class="pl-ban a"><span style="font-size:18px">⚠</span><div><b>' + pc.length + (pc.length === 1 ? ' cliente no se cargó solo' : ' clientes no se cargaron solos') + '</b> porque la ruta de este día ya está publicada: ' + pc.slice(0, 3).map(function(a){ return esc(plC_(a.clienteId).nombre) + ' (' + (a.origen === "recurrente" ? "recurrente" : (/^extra:/.test(a.origen) ? "recolección extra" : "no atendido")) + ')'; }).join(", ") + (pc.length > 3 ? '…' : '') + '</div><span class="sp"></span><button onclick="plAgregarPorConfirmar_()">Agregarlos</button></div>';
   if(PL.pasado) h += '<div class="pl-ban g"><span style="font-size:18px">🕘</span><div>Este día ya pasó. Lo que cambies queda solo como registro.</div></div>';
   var ncand = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }).length;
   h += '<div class="pl-seg"><button class="' + (PL_M === "toca" ? "on" : "") + '" onclick="plModo_(\'toca\')">Le toca · ' + ncand + '</button><button class="' + (PL_M === "ruta" ? "on" : "") + '" onclick="plModo_(\'ruta\')">La ruta · ' + ED.paradas.length + '</button></div>';
@@ -5566,7 +5603,7 @@ function plPintar_(){
 function plModo_(m){ PL_M = m; plPintar_(); }
 
 /* ── candidatos ── */
-var PL_GR = [["recurrentes","🔁 Recurrentes del "], ["arrastre","↪ No se atendieron · pasan a este día"], ["tocan","Les toca por frecuencia"], ["atrasados","Atrasados"], ["pendientes","Pendientes de días anteriores"], ["nuevos","Nuevos, sin visitas"]];
+var PL_GR = [["extra","Recolección extra · la pidió el cliente"], ["recurrentes","🔁 Recurrentes del "], ["arrastre","↪ No se atendieron · pasan a este día"], ["tocan","Les toca por frecuencia"], ["atrasados","Atrasados"], ["pendientes","Pendientes de días anteriores"], ["nuevos","Nuevos, sin visitas"]];
 function plEnED_(id){ return ED && ED.paradas.some(function(p){ return p.clienteId === Number(id); }); }
 function plCandidatos_(){ var o = []; if(!PL) return o; PL_GR.forEach(function(g){ (PL.grupos[g[0]] || []).forEach(function(x){ o.push({ id: x.id, g: g[0], x: x }); }); }); return o; }
 function plPintarCands_(){
@@ -5609,7 +5646,8 @@ function plAgregar_(ids, silencio){
     var pc = (PL.porConfirmar || []).find(function(a){ return a.clienteId === id; });
     var ar = (PL.grupos.arrastre || []).find(function(a){ return a.id === id; });
     var rc = (PL.grupos.recurrentes || []).find(function(a){ return a.id === id; });
-    ED.paradas.push({ clienteId: id, origen: pc ? pc.origen : (ar ? "arrastre:" + ar.desde : (rc ? "recurrente" : "")) }); PL_SEL[id] = false; n++; });
+    var ex = (PL.grupos.extra || []).find(function(a){ return a.id === id; });
+    ED.paradas.push({ clienteId: id, origen: pc ? pc.origen : (ex ? "extra:" + ex.folio : (ar ? "arrastre:" + ar.desde : (rc ? "recurrente" : ""))) }); PL_SEL[id] = false; n++; });
   if(n){ ED.sucio = true; PL_KMG = null; }
   if(!silencio){ plPintar_(); if(n) toast(n === 1 ? "Agregado a la ruta" : n + " agregados a la ruta"); }
   return n;
@@ -5655,6 +5693,7 @@ function plPintarRuta_(){
     if(p.origen === "recurrente") chips += '<span class="pl-chip v">🔁 recurrente</span>';
     if(/^arrastre/.test(p.origen)) chips += '<span class="pl-chip m">↪ del ' + esc(nombreDia_(p.origen.split(":")[1])) + '</span>';
     if(/^movida/.test(p.origen)) chips += '<span class="pl-chip b">movida</span>';
+    if(/^extra:/.test(p.origen)) chips += '<span class="pl-chip b">📦 extra · ' + esc(p.origen.slice(6)) + '</span>';
     if(c.hTipo) chips += '<span class="pl-chip ' + (e.ok === false ? (c.hTipo === "estricto" ? "r" : "e") : "v") + '">🕘 ' + (c.hTipo === "estricto" ? "" : "pref. ") + esc(c.hDesde) + '–' + esc(c.hHasta) + (e.ok === false ? ' ✕' : ' ✓') + '</span>';
     if(c.fijo) chips += '<span class="pl-chip p">día fijo</span>';
     return '<div class="pl-st' + (e.ok === false && e.estricto ? ' mal' : '') + '" draggable="true" data-i="' + i + '" ondragstart="plDragIni_(event,' + i + ')" ondragover="plDragSobre_(event,' + i + ')" ondragleave="this.classList.remove(\'sobre\')" ondrop="plDragSoltar_(event,' + i + ')" ondragend="plDragFin_()">' +
@@ -6168,10 +6207,11 @@ function flPintar_(){
   var M = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   var bl = FL.camiones.filter(function(c){ return c.estado === "bloqueado"; }).length;
   $("fl-sub").textContent = FL.camiones.length + " camiones · " + (bl ? bl + " no puede salir · " : "") + FL.fallas.length + (FL.fallas.length === 1 ? " falla abierta · " : " fallas abiertas · ") + M[Number(FL.hoy.slice(5, 7)) - 1];
-  var h = '<div class="cr-tabs">' + [["cam","Camiones"],["fal","Fallas · " + FL.fallas.length],["com","Combustible"],["lis","Lista de revisión"]].map(function(t){ return '<button class="' + (FL_TAB === t[0] ? "on" : "") + '" onclick="FL_TAB=\'' + t[0] + '\';flPintar_()">' + t[1] + '</button>'; }).join("") + '</div>';
+  var h = '<div class="cr-tabs">' + [["cam","Camiones"],["fal","Fallas · " + FL.fallas.length],["com","Combustible"],["doc","Documentos"],["lis","Lista de revisión"]].map(function(t){ return '<button class="' + (FL_TAB === t[0] ? "on" : "") + '" onclick="FL_TAB=\'' + t[0] + '\';flPintar_()">' + t[1] + '</button>'; }).join("") + '</div>';
   if(FL_TAB === "cam") h += esEscritorio_() ? '<div class="fl-grid"><div>' + flCamiones_() + '</div><div id="fl-ficha">' + flHtmlFicha_() + '</div></div>' : flCamiones_();
   else if(FL_TAB === "fal") h += flFallas_(true);
   else if(FL_TAB === "com") h += flCombustible_();
+  else if(FL_TAB === "doc") h += flDocsTabla_();
   else h += flLista_();
   $("fl-cuerpo").innerHTML = h;
 }
@@ -6249,6 +6289,143 @@ function flConfirmar_(){
     .api_decidirFalla(PIN, f.fallaId, s, nota, s === "taller" ? { taller: ($("fl-tn") || {}).value || "", fecha: ($("fl-tf") || {}).value || "" } : null);
 }
 
+/* ═══════════ api 3.5.1 · DOCUMENTOS DE LA FLOTA ═══════════
+   Viven en Flota: la tabla de toda la flota (pestaña Documentos) y los de
+   cada camión (pestaña Documentos de su ficha). Cada documento guarda el
+   archivo original (PDF o foto), número, emisor y vencimiento; renovar
+   deja el anterior en el historial. Avisa en ámbar 30 días antes y en
+   rojo al vencer. */
+var FL_DOCS = null, FL_DC = null, FL_DCV = false, FL_DR = null;
+function flDocsCargar_(){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo consultar"); return; }
+    FL_DOCS = r; if(FL_TAB === "doc") flPintar_();
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_docsFlota(PIN);
+}
+function flDocEst_(d){
+  if(d.noAplica) return ["p", "no aplica"];
+  if(!d.vence) return ["r", "sin fecha"];
+  if(d.estado === "VENCIDO") return ["r", "vencido"];
+  if(d.estado === "POR VENCER") return ["a", d.faltanDias === 0 ? "vence hoy" : "vence en " + d.faltanDias + (d.faltanDias === 1 ? " día" : " días")];
+  return ["v", "al día"];
+}
+function flDocsTabla_(){
+  if(!FL_DOCS){ flDocsCargar_(); return '<div class="pl-vacio">Consultando los documentos…</div>'; }
+  var D = FL_DOCS, cols = D.documentos;
+  var venc = 0, pronto = 0, sinArch = 0;
+  D.camiones.forEach(function(c){ c.docs.forEach(function(d){ var e = flDocEst_(d)[0]; if(d.noAplica) return; if(e === "r") venc++; else if(e === "a") pronto++; if(!d.archivo) sinArch++; }); });
+  var h = '<div class="fd-k"><div><b class="' + (venc ? "r" : "") + '">' + venc + '</b><span>vencidos o sin fecha</span></div><div><b class="' + (pronto ? "a" : "") + '">' + pronto + '</b><span>vencen en 30 días</span></div><div><b>' + sinArch + '</b><span>sin el archivo original</span></div></div>';
+  if(!cols.length) return h + '<div class="cr-card"><div class="c2-vacio">Todavía no hay documentos. Abre un camión › Documentos › «Agregar documento» (seguro, revisado vehicular, permiso de carga…).</div></div>';
+  h += '<div class="cr-card" style="padding:0;overflow-x:auto"><table class="fd-tb"><thead><tr><th>Camión</th>' + cols.map(function(n){ return '<th>' + esc(n) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    D.camiones.map(function(c){
+      return '<tr><td><b>' + esc(c.placa) + '</b><small>' + esc(c.marca || "") + '</small></td>' + cols.map(function(n){
+        var d = c.docs.find(function(x){ return x.tarea === n; });
+        if(!d) return '<td class="cl" onclick="flIrDocs_(\'' + esc(c.placa) + '\')"><span class="fl-chip p">no está</span></td>';
+        var e = flDocEst_(d);
+        return '<td class="cl" onclick="flIrDocs_(\'' + esc(c.placa) + '\')"><span class="fl-chip ' + e[0] + '">' + esc(e[1]) + '</span><small>' + (d.vence && !d.noAplica ? esc(mtF_(d.vence)) : "") + (d.archivo ? ' · 📎' : (d.noAplica ? '' : ' · sin archivo')) + '</small></td>';
+      }).join("") + '</tr>';
+    }).join("") + '</tbody></table></div>' +
+    '<div class="c2-ob b"><b>Avisos</b>30 días antes del vencimiento pasa a ámbar y sale en «Requiere tu atención» de Mantenimiento; al vencer, a rojo. Toca un camión para ver sus documentos, renovarlos o subir el original.</div>';
+  return h;
+}
+function flIrDocs_(placa){
+  FL_TAB = "cam"; FL_FT = "Documentos"; FL_DC = null;
+  if(INI_TAB !== "flota"){ FL_SEL = placa; mostrarTab("flota"); if(!esEscritorio_()) setTimeout(function(){ flFicha_(placa); }, 400); return; }
+  flFicha_(placa);
+}
+function flEditarPlan_(placa){
+  mostrarTab("mto");
+  var n = 0; (function esp(){ if(typeof MT !== "undefined" && MT && !MT_VUELO) mtPlan_(placa); else if(n++ < 40) setTimeout(esp, 250); })();
+}
+function flDocsCamion_(placa, forzar){
+  if(FL_DCV) return; if(FL_DC && FL_DC.camion && FL_DC.placa === placa && !forzar) return;
+  FL_DCV = true;
+  google.script.run.withSuccessHandler(function(r){
+    FL_DCV = false;
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    r.placa = placa; FL_DC = r; if(FL_SEL === placa && FL_FT === "Documentos") flRepFicha_();
+  }).withFailureHandler(function(){ FL_DCV = false; toast("Sin señal"); }).api_docsCamion(PIN, placa);
+}
+function flHtmlDocs_(placa){
+  if(!FL_DC || FL_DC.placa !== placa){ flDocsCamion_(placa); return '<div class="c2-vacio">Abriendo los documentos…</div>'; }
+  var C = FL_DC.camion, ed = FL_DC.puedeEditar;
+  var h = C.docs.length ? C.docs.map(function(d, i){
+    var e = flDocEst_(d);
+    var sub = d.noAplica ? "Este camión no lo necesita" : [d.numero, d.emisor, d.vence ? "vence el " + mtF_(d.vence) + (d.faltanDias !== null && d.faltanDias !== undefined && d.faltanDias >= 0 ? " (" + d.faltanDias + (d.faltanDias === 1 ? " día)" : " días)") : "") : "falta la fecha de vencimiento"].filter(Boolean).join(" · ");
+    var acc = [];
+    if(d.archivo && d.archivo.hayArchivo) acc.push('<button class="c2-btn b" onclick="flDocVer_(\'' + esc(d.archivo.archivoId) + '\')">Ver</button>');
+    if(ed && !d.noAplica) acc.push('<button class="c2-btn ' + (e[0] !== "v" ? "a" : "") + '" onclick="flDocRenovar_(' + i + ')">' + (d.vence && d.archivo ? "Renovar" : (d.vence ? "Subir archivo" : "Agregar fecha y archivo")) + '</button>');
+    if(ed) acc.push('<button class="c2-btn b" onclick="flDocNoAplica_(' + i + ',' + (d.noAplica ? "false" : "true") + ')">' + (d.noAplica ? "Sí aplica" : "No aplica") + '</button>');
+    return '<div class="fd-it' + (d.noAplica ? ' na' : '') + '"><div class="fd-ic ' + e[0] + '">' + (e[0] === "v" ? "✓" : e[0] === "p" ? "–" : "!") + '</div><div class="fd-tx"><b>' + esc(d.tarea) + ' <span class="fl-chip ' + e[0] + '">' + esc(e[1]) + '</span></b>' +
+      '<small>' + esc(sub) + '</small>' +
+      (d.archivo && d.archivo.hayArchivo ? '<a class="fd-pill" onclick="flDocVer_(\'' + esc(d.archivo.archivoId) + '\')">📎 ' + esc(d.archivo.nombre) + ' · ' + esc(ARCH.kb(d.archivo.tamano)) + '</a>' : (!d.noAplica && d.vence ? '<small class="fd-sin">Sin el documento original</small>' : '')) +
+      (d.historial.length ? '<details class="fd-hi"><summary>Historial · ' + d.historial.length + '</summary>' + d.historial.map(function(x){ return '<div>' + (x.hayArchivo ? '<a onclick="flDocVer_(\'' + esc(x.archivoId) + '\')">' + esc(x.nombre) + '</a>' : 'sin archivo') + (x.vence ? ' · vencía el ' + esc(mtF_(x.vence)) : '') + (x.numero ? ' · ' + esc(x.numero) : '') + '</div>'; }).join("") + '</details>' : '') +
+      '<div class="c2-act" style="margin-top:8px">' + acc.join("") + '</div></div></div>';
+  }).join("") : '<div class="c2-vacio">Este camión todavía no tiene documentos en su plan.</div>';
+  if(ed) h += '<div class="c2-act"><button class="c2-btn v" onclick="flDocRenovar_(-1)">+ Agregar documento</button></div>';
+  return h + '<div class="c2-ob b" style="margin-top:12px"><b>Avisos</b>30 días antes del vencimiento pasa a ámbar y sale en «Requiere tu atención» de Mantenimiento; al vencer pasa a rojo. Al renovar, el documento anterior queda en el historial.</div>';
+}
+function flDocVer_(id){
+  var w = window.open("", "_blank");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok || !r.url){ if(w) w.close(); toast((r && (r.error || r.almacenError)) || "No se pudo abrir"); return; }
+    if(w) w.location.href = r.url; else location.href = r.url;
+  }).withFailureHandler(function(){ if(w) w.close(); toast("Sin señal"); }).api_arcVer(PIN, id);
+}
+function flDocNoAplica_(i, si){
+  var d = FL_DC.camion.docs[i];
+  google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast(si ? d.tarea + ": no aplica" : d.tarea + " vuelve a contar"); flDocsListo_(); })
+    .withFailureHandler(function(){ toast("Sin señal"); }).api_docCamionNoAplica(PIN, d.planId, si);
+}
+function flDocsListo_(){ FL_DOCS = null; if(typeof MT !== "undefined") MT = null; flDocsCamion_(FL_SEL, true); }
+function flDocRenovar_(i){
+  var d = i >= 0 ? FL_DC.camion.docs[i] : null, nuevo = !d, ren = d && d.vence && d.archivo;
+  FL_DR = { i: i, d: d, file: null };
+  var sug = (FL_DC.sugeridos || []).filter(function(n){ return !FL_DC.camion.docs.some(function(x){ return x.tarea === n; }); });
+  abrirHojaIni_('<div class="ini-pt">' + (nuevo ? 'Agregar documento' : (ren ? 'Renovar · ' : '') + esc(d.tarea)) + ' · ' + esc(FL_SEL) + '</div>' +
+    '<div class="ini-ps">' + (ren ? 'El documento vigente pasa al historial con su archivo.' : 'Sube el original (PDF o foto): las fotos se achican solas antes de subir.') + '</div>' +
+    (nuevo ? '<label class="c2-f">Documento</label><select class="c2-in" id="fd-t" onchange="$(\'fd-to\').style.display=this.value===\'otro\'?\'block\':\'none\'">' + sug.map(function(n){ return '<option>' + esc(n) + '</option>'; }).join("") + '<option value="otro">Otro…</option></select><input class="c2-in" id="fd-to" placeholder="Nombre del documento (ej.: Póliza de responsabilidad ambiental)" style="display:' + (sug.length ? 'none' : 'block') + '">' : '') +
+    '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Número</label><input class="c2-in" id="fd-n" value="' + esc(ren || nuevo ? "" : d.numero) + '" placeholder="póliza, placa…"></div><div style="flex:1"><label class="c2-f">Emitido por</label><input class="c2-in" id="fd-e" value="' + esc(d ? d.emisor : "") + '"></div></div>' +
+    '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Emitido el</label><input type="date" class="c2-in" id="fd-em" value="' + (ren ? hoyISO() : esc(d && d.emitido || "")) + '"></div><div style="flex:1"><label class="c2-f">Vence el</label><input type="date" class="c2-in" id="fd-v" value="' + (ren ? "" : esc(d && d.vence || "")) + '"></div></div>' +
+    (nuevo ? '<label class="c2-f">Se renueva cada (días)</label><input type="number" class="c2-in" id="fd-c" value="365">' : '') +
+    '<label class="fd-zona" id="fd-z"><input type="file" id="fd-f" accept="' + ARCH.acepta + '" hidden onchange="flDocArchivo_(this)"><span id="fd-zt">⬆ Toca para elegir el PDF o la foto del documento</span><small>Las fotos se achican solas antes de subir · hasta 10 MB</small></label>' +
+    '<div id="fd-sub"></div><div id="fd-msg" style="color:var(--ini-rojo);font-size:12px;font-weight:700;margin-top:6px"></div>' +
+    '<button class="ini-ok" id="fd-ok" onclick="flDocGuardar_()">Guardar</button><button class="ini-ok sec" onclick="cerrarHojaIni_()">Cancelar</button>' +
+    (d && d.historial.length ? '<div class="c2-lab">Historial</div>' + d.historial.map(function(x){ return '<div class="fl-dt"><b>' + (x.nombre ? esc(x.nombre) : 'sin archivo') + '</b><span>' + (x.vence ? 'vencía el ' + esc(mtF_(x.vence)) : '') + '</span></div>'; }).join("") : ''));
+}
+function flDocArchivo_(inp){ var f = inp.files[0]; FL_DR.file = f || null; $("fd-zt").textContent = f ? "📎 " + f.name + " · " + ARCH.kb(f.size) : "⬆ Toca para elegir el PDF o la foto del documento"; $("fd-z").classList.toggle("on", !!f); }
+function flDocGuardar_(){
+  var R = FL_DR, d = R.d, b = $("fd-ok"), msg = $("fd-msg");
+  var v = $("fd-v").value;
+  if(!v){ msg.textContent = "Pon la fecha de vencimiento."; return; }
+  var dat = { planId: d ? d.planId : "", numero: $("fd-n").value.trim(), emisor: $("fd-e").value.trim(), emitido: $("fd-em").value, vence: v, renovar: !!(d && d.vence && d.archivo) };
+  if(!d){ var t = $("fd-t").value; dat.tarea = t === "otro" ? $("fd-to").value.trim() : t; dat.cadaDias = $("fd-c").value; if(!dat.tarea){ msg.textContent = "Escribe el nombre del documento."; return; } }
+  if(d && d.vence && d.archivo && !R.file){ msg.textContent = "Para renovar, sube el documento nuevo."; return; }
+  b.disabled = true; msg.textContent = "";
+  var guardar = function(archivoId){
+    if(archivoId) dat.archivoId = archivoId;
+    b.textContent = "Guardando…";
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ b.disabled = false; b.textContent = "Guardar"; msg.textContent = (r && r.error) || "No se pudo"; return; }
+      cerrarHojaIni_(); toast("Documento guardado ✓"); flDocsListo_();
+    }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Guardar"; msg.textContent = "Sin señal: no se guardó."; }).api_docCamionGuardar(PIN, FL_SEL, dat);
+  };
+  if(!R.file) return guardar("");
+  /* api 3.5.2: la subida con su tarjeta (emblema, porcentaje, pasos). Si se cierra la
+     hoja, sigue subiendo y se ve en la píldora de abajo. */
+  b.textContent = "Subiendo…";
+  var placa = FL_SEL;
+  ARCH.flujo({ host: $("fd-sub"), reemplazar: true, file: R.file, textoListo: "Documento guardado",
+    pedir: function(meta){ return new Promise(function(ok, mal){
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function(){ mal(new Error("Sin señal: no se pudo preparar la subida.")); }).api_docCamionPedirSubida(PIN, placa, meta); }); },
+    registrar: function(archivoId){ dat.archivoId = archivoId; return new Promise(function(ok, mal){
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function(){ mal(new Error("El archivo subió pero no se guardó el registro. Reintenta.")); }).api_docCamionGuardar(PIN, placa, dat); }); },
+    alListo: function(){ toast("Documento guardado ✓"); setTimeout(function(){ if($("fd-sub")) cerrarHojaIni_(); flDocsListo_(); }, 900); },
+    alError: function(){ b.disabled = false; b.textContent = "Guardar"; },
+    alCancelar: function(){ b.disabled = false; b.textContent = "Guardar"; }
+  });
+}
+
 /* ficha del camión */
 function flFicha_(placa, silencio){
   FL_SEL = placa; if(!silencio) FL_FT = FL_FT || "Combustible";
@@ -6264,7 +6441,7 @@ function flHtmlFicha_(){
   if(!FL_SEL) return '<div class="fl-fic"><div class="c2-vacio">Toca un camión para ver su ficha: combustible, plan de mantenimiento, fallas y revisiones.</div></div>';
   var c = FL.camiones.find(function(x){ return x.placa === FL_SEL; }) || {}, F = FL_FI;
   var h = '<div class="fl-fic"><div style="display:flex;justify-content:space-between;gap:8px"><div><h2>' + esc(c.placa) + (c.marca ? ' · ' + esc(c.marca) : '') + '</h2><div class="ps">' + esc(c.conductor || "—") + (c.odometro ? ' · ' + nIni_(c.odometro) + ' km (' + esc(nombreDia_(c.odometroFecha)) + ')' : '') + ' · tope ' + c.tope + ' paradas</div></div>' + flEstChip_(c.estado) + '</div>' +
-    '<div class="c2-tabs">' + ["Plan","Fallas","Revisiones","Combustible","Ficha"].map(function(t){ return '<button class="' + (FL_FT === t ? "on" : "") + '" onclick="FL_FT=\'' + t + '\';flRepFicha_()">' + t + '</button>'; }).join("") + '</div>';
+    '<div class="c2-tabs">' + ["Plan","Documentos","Fallas","Revisiones","Combustible","Ficha"].map(function(t){ return '<button class="' + (FL_FT === t ? "on" : "") + '" onclick="FL_FT=\'' + t + '\';flRepFicha_()">' + t + '</button>'; }).join("") + '</div>';
   if(!F) return h + '<div class="c2-vacio">Abriendo…</div></div>';
   if(FL_FT === "Combustible"){
     var C = F.combustible, d = C.kmL !== null && C.kmLAnt !== null ? Math.round((C.kmL - C.kmLAnt) * 10) / 10 : null;
@@ -6286,8 +6463,10 @@ function flHtmlFicha_(){
         return '<div class="fl-dt" style="display:block"><div style="display:flex;justify-content:space-between"><b>' + esc(t.tarea) + '</b><span class="' + (t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "a" : "v")) + '">' + esc(t.estado.toLowerCase()) + '</span></div>' +
           '<div style="font-size:11px;color:var(--ini-gris);font-weight:600;margin-top:2px">' + (t.cadaKm ? 'cada ' + nIni_(t.cadaKm) + ' km' + (t.faltanKm !== null ? (t.faltanKm < 0 ? ' · pasado ' + nIni_(-t.faltanKm) + ' km' : ' · faltan ' + nIni_(t.faltanKm) + ' km') : '') : '') + (t.cadaKm && (t.cadaDias || t.vence) ? ' · ' : '') + (t.vence ? 'vence ' + esc(nombreDia_(t.vence)) : '') + '</div>' +
           '<div class="pl-bar ' + (t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "am" : "")) + '" style="margin-top:6px"><i style="width:' + pct + '%"></i></div></div>'; }).join("") : '<div class="c2-vacio">Sin tareas en su plan.</div>';
-      h += '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=admin\'); })">Editar plan ↗</button></div>';
+      h += '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="flEditarPlan_(\'' + esc(c.placa) + '\')">Editar plan ↗</button></div>';
     }
+  } else if(FL_FT === "Documentos"){
+    h += flHtmlDocs_(c.placa);
   } else if(FL_FT === "Fallas"){
     var ab = F.fallas.filter(function(f){ return ["resuelta","anulada"].indexOf(f.estado) < 0; }), ce = F.fallas.filter(function(f){ return ["resuelta","anulada"].indexOf(f.estado) >= 0; });
     h += '<div class="c2-lab">Abiertas · ' + ab.length + '</div>' + (ab.length ? ab.map(function(f){ return '<div class="fl-dt"><b>' + esc(f.punto) + '</b><span>' + esc(f.estado) + ' · ' + esc(nombreDia_(f.fecha)) + ' <button class="cr-ed" onclick="flDecidir_(\'' + esc(f.fallaId) + '\')">' + (f.bloquea ? 'Decidir' : 'Acciones') + '</button></span></div>'; }).join("") : '<div class="c2-vacio" style="padding:8px">Ninguna ✓</div>') +
@@ -6300,7 +6479,7 @@ function flHtmlFicha_(){
     var A2 = F.activo || {};
     h += '<div class="fl-dt"><b>Placa</b><span>' + esc(c.placa) + '</span></div><div class="fl-dt"><b>Marca</b><span>' + esc(A2.marca || c.marca || "—") + '</span></div><div class="fl-dt"><b>Año</b><span>' + esc(A2.anio || "—") + '</span></div><div class="fl-dt"><b>Responsable</b><span>' + esc(A2.responsable || "—") + '</span></div>' +
       '<div class="fl-dt"><b>Tope de paradas</b><span>' + F.tope + ' <button class="cr-ed" onclick="flTope_(\'' + esc(c.placa) + '\',' + F.tope + ')">✎</button></span></div><div class="fl-dt"><b>En Mantenimiento</b><span>' + (A2.activoId ? esc(A2.activoId) : 'no registrado') + '</span></div>' +
-      '<div class="c2-act"><button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=admin\'); })">Documentos y datos ↗</button></div>';
+      '<div class="c2-act"><button class="c2-btn a" onclick="FL_FT=\'Documentos\';flRepFicha_()">Documentos</button><button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=admin\'); })">Editar datos ↗</button></div>';
   }
   return h + '</div>';
 }
@@ -9019,6 +9198,8 @@ if(tab==="monitor" && esSupervisor()) tab = "cierre";
 if(tab==="jornada" && esSupervisor()) tab = "flota";
 if(tab==="disposicion") tab = esSupervisor() ? "dfin" : "entrega";
 if(tab==="avisos" && esSupervisor()) tab = "plan";
+/* api 3.5.2: clientes nuevos e inspecciones viven dentro de Solicitudes */
+if((tab==="porrevisar" || tab==="inspecciones") && esSupervisor()){ SQ_F = tab==="porrevisar" ? "cli" : "todas"; tab = "solicitudes"; }
 if(tab!=="entrega" && typeof enFirmaCerrar_==="function") enFirmaCerrar_();
 if(typeof cfCerrar_==="function") cfCerrar_();
 /* salir del catálogo por cualquier otro lado limpia la marca: si no, el
@@ -9066,6 +9247,7 @@ if(tab==="recibos") verHistorialRecibos();
 if(tab==="monitor") renderMonitor();
 
 if(tab==="porrevisar" && esSupervisor()) cargarPorRevisar(false);
+if(tab==="solicitudes" && esSupervisor()) cargarSolicitudes(false);
 
 if(tab==="inspecciones" && esSupervisor()) cargarInspecciones(false);
 
@@ -9399,6 +9581,7 @@ var PR = null, prMapa = null, prMarca = null, prEnVuelo = "";
 
 function cargarPorRevisar(silencioso){
   if(!esSupervisor()) return;
+  if(INI_TAB === "solicitudes"){ SQ_AB = ""; cargarSolicitudes(!!silencioso); return; }
   google.script.run
     .withSuccessHandler(function(r){
       PR = (r && r.ok) ? r : null;
@@ -9637,6 +9820,7 @@ var INS = null, INSP = null, inEnVuelo = false;
 
 function cargarInspecciones(silencioso){
   if(!esSupervisor()) return;
+  if(INI_TAB === "solicitudes" || INI_TAB === "inspeccion"){ cargarSolicitudes(true); return; }
   google.script.run
     .withSuccessHandler(function(r){
       INS = (r && r.ok) ? r : null;
@@ -9707,6 +9891,355 @@ function renderInspecciones(){
   }).join("");
 }
 
+
+/* ═══════ SOLICITUDES (api 3.5.2) ═════════════════════════════════════
+   Todo lo que llega de afuera y espera a Logística, en una sola bandeja:
+   · clientes nuevos que manda Mercadeo (se revisan y aprueban aquí mismo,
+     con el mismo formulario y el mismo mapa de antes);
+   · inspecciones que pide Mercadeo (se programa la visita o se hace);
+   · recolecciones extra que el cliente pide desde su QR (se meten en una
+     ruta y se le avisa por WhatsApp).
+   Cada tarjeta se abre para revisarla a fondo antes de decidir. */
+var SQ = null, SQ_F = "todas", SQ_AB = "", SQ_SEL = {}, SQ_VUELO = false;
+
+function cargarSolicitudes(silencioso){
+  if(!esSupervisor()) return;
+  if(!silencioso && !SQ) $("sq-lista").innerHTML = sqEsqueleto_();
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.ok){ if(!silencioso){ $("sq-aviso").innerHTML = ""; $("sq-lista").innerHTML = '<div class="vacio">' + esc((r && r.error) || "No se pudo consultar.") + '</div>'; } return; }
+      SQ = r;
+      /* las funciones de siempre (aprobar, devolver, hacer la inspección) leen PR e INS */
+      PR = r.nuevos && r.nuevos.ok ? r.nuevos : null;
+      INS = r.insp && r.insp.ok ? r.insp : null;
+      if($("pr-lista")) $("pr-lista").innerHTML = "";
+      if($("in-lista")) $("in-lista").innerHTML = "";
+      if(INI && INI.menu){ INI.menu.solicitudes = r.porAtender; pintarMenuSup_(); }
+      if(!silencioso || INI_TAB === "solicitudes") renderSolicitudes();
+    })
+    .withFailureHandler(function(){
+      if(!silencioso){ $("sq-aviso").innerHTML = ""; $("sq-lista").innerHTML = '<div class="vacio">Sin conexión. Intenta de nuevo.</div>'; }
+    })
+    .api_solLogistica(PIN);
+}
+
+function sqEsqueleto_(){
+  var b = function(h, w){ return '<div class="eco-sk" style="height:' + h + 'px;width:' + (w || 100) + '%;margin-bottom:10px"></div>'; };
+  return b(40) + b(34, 55) + b(150) + b(150) + b(150);
+}
+
+/* ── qué va en cada filtro ── */
+function sqListas_(){
+  var r = SQ || {}, ex = r.extras || [], nu = (r.nuevos && r.nuevos.pendientes) || [], ins = (r.insp && r.insp.pendientes) || [];
+  var exPor = ex.filter(function(x){ return !x.programada; }), exProg = ex.filter(function(x){ return x.programada; });
+  var insPor = ins.filter(function(s){ return !s.visitaProgramada; }), insProg = ins.filter(function(s){ return s.visitaProgramada; });
+  var todas = [];
+  exPor.forEach(function(x){ todas.push({ t: "ext", o: x, urge: x.prioridad === "alta", d: x.diasEsperando }); });
+  nu.forEach(function(s){ todas.push({ t: "cli", o: s, urge: false, d: s.diasEsperando || 0 }); });
+  insPor.forEach(function(s){ todas.push({ t: "ins", o: s, urge: false, d: s.diasEsperando || 0 }); });
+  todas.sort(function(a, b){ return (b.urge ? 1 : 0) - (a.urge ? 1 : 0) || b.d - a.d; });
+  var prog = [];
+  exProg.forEach(function(x){ prog.push({ t: "ext", o: x, f: x.programada.fecha }); });
+  insProg.forEach(function(s){ prog.push({ t: "ins", o: s, f: s.visitaProgramada }); });
+  prog.sort(function(a, b){ return String(a.f).localeCompare(String(b.f)); });
+  return { todas: todas, ext: exPor, cli: nu, ins: insPor, prog: prog, aten: r.atendidas || [] };
+}
+
+function renderSolicitudes(){
+  if(!SQ){ return; }
+  var L = sqListas_();
+  var n = L.todas.length;
+  var partes = [];
+  if(L.ext.length) partes.push(L.ext.length + (L.ext.length === 1 ? " recolección extra" : " recolecciones extra"));
+  if(L.cli.length) partes.push(L.cli.length + (L.cli.length === 1 ? " cliente nuevo" : " clientes nuevos"));
+  if(L.ins.length) partes.push(L.ins.length + (L.ins.length === 1 ? " inspección" : " inspecciones"));
+  var viejo = L.todas.reduce(function(m, x){ return Math.max(m, x.d || 0); }, 0);
+  var urge = L.ext.some(function(x){ return x.prioridad === "alta"; });
+  $("sq-aviso").innerHTML = n
+    ? '<div class="pr-aviso"><b>' + n + (n === 1 ? " solicitud esperando" : " solicitudes esperando") + ' a Logística:</b> ' + esc(partes.join(", ")) + '. ' +
+      (urge ? 'Van primero las que el cliente pidió para lo antes posible. ' : '') +
+      (viejo > 1 ? 'La más vieja lleva <b>' + viejo + ' días</b>.' : '') + '</div>'
+    : '<div class="in-aviso ver" style="margin:0 0 12px"><b>Todo al día.</b> Lo que manden Mercadeo o los clientes aparece aquí.' +
+      (L.prog.length ? ' Hay ' + L.prog.length + ' programada' + (L.prog.length === 1 ? '' : 's') + ' por hacer.' : '') + '</div>';
+  var F = [["todas", "Todas", n], ["ext", "Recolección extra", L.ext.length], ["cli", "Clientes nuevos", L.cli.length],
+           ["ins", "Inspecciones", L.ins.length], ["prog", "Programadas", L.prog.length], ["aten", "Atendidas", L.aten.length]];
+  $("sq-filtros").innerHTML = '<div class="sq-seg">' + F.map(function(f){
+    return '<button class="' + (SQ_F === f[0] ? "on" : "") + '" onclick="SQ_F=\'' + f[0] + '\';SQ_AB=\'\';renderSolicitudes()">' + f[1] + (f[2] ? '<em>' + f[2] + '</em>' : '') + '</button>'; }).join("") + '</div>';
+
+  var h = "";
+  if(SQ_F === "aten"){
+    h = L.aten.length ? '<div class="sq-rows">' + L.aten.map(function(a){
+      var ic = a.tipo === "extra" ? "📦" : (a.tipo === "nuevo" ? "🏥" : "🔎");
+      return '<div class="sq-row"><b>' + esc(nombreDia_(a.fecha)) + '</b><div><span class="n">' + ic + ' ' + esc(a.nombre) + '</span><span class="g">' + esc(a.que) + '</span></div>' +
+             '<span class="g" style="font-size:11.5px">' + esc(a.por || "") + '</span></div>'; }).join("") + '</div>'
+      : '<div class="vacio">Nada atendido en los últimos 14 días.</div>';
+  } else if(SQ_F === "prog"){
+    h = L.prog.length ? L.prog.map(function(x){ return x.t === "ext" ? sqTarjetaExtra_(x.o) : sqTarjetaIns_(x.o); }).join("")
+      : '<div class="vacio">Nada programado. Cuando metas una recolección extra en un día o agendes una inspección, queda aquí hasta que se haga.</div>';
+  } else {
+    var l = SQ_F === "todas" ? L.todas : L[SQ_F].map(function(o){ return { t: SQ_F, o: o }; });
+    h = l.length ? l.map(function(x){ return x.t === "ext" ? sqTarjetaExtra_(x.o) : (x.t === "cli" ? sqTarjetaNuevo_(x.o) : sqTarjetaIns_(x.o)); }).join("")
+      : '<div class="vacio">' + ({ todas: "Ninguna solicitud esperando.", ext: "Ninguna recolección extra pedida.", cli: "Ningún cliente nuevo esperando. Cuando Mercadeo mande uno firmado, aparece aquí.", ins: "Ninguna inspección por programar." }[SQ_F]) + '</div>';
+  }
+  $("sq-lista").innerHTML = h;
+  if(typeof mkIconos_ === "function"){ mkIconos_($("sq-lista")); mkIconos_($("sq-filtros")); }
+  /* la revisión del cliente nuevo usa el mapa: se vuelve a montar si estaba abierta */
+  if(SQ_AB && SQ_AB.indexOf("cli:") === 0){ var id = SQ_AB.slice(4); SQ_AB = ""; abrirRevisionPR(id); SQ_AB = "cli:" + id; }
+}
+
+function sqTipo_(t, txt, extra){
+  var ic = t === "ext" ? "📦" : (t === "cli" ? "🏥" : "🔎");
+  return '<div class="sq-tipo ti-' + t + '">' + ic + ' ' + esc(txt) + (extra ? ' <small>· ' + esc(extra) + '</small>' : '') + '</div>';
+}
+function sqDias_(d){ return d ? d + (d === 1 ? " día" : " días") : "hoy"; }
+function sqTel_(txt){
+  var m = String(txt || "").replace(/[^\d ]/g, " ").match(/\d[\d ]{6,}\d/g) || [];
+  for(var i = 0; i < m.length; i++){ var n = m[i].replace(/\D/g, ""); if(n.length === 8 || n.length === 7) return n; if(n.length === 11 && n.indexOf("507") === 0) return n.slice(3); }
+  return "";
+}
+function sqWa_(tel){ tel = String(tel || "").replace(/\D/g, ""); return tel.length === 8 || tel.length === 7 ? "507" + tel : tel; }
+
+/* ── Recolección extra ── */
+function sqTarjetaExtra_(x){
+  var ab = SQ_AB === "ext:" + x.pendienteId;
+  var tel = sqTel_(x.contacto) || sqTel_(x.telefonoFicha);
+  var pill = x.programada ? '<span class="pill-ok">va el ' + esc(nombreDia_(x.programada.fecha)) + '</span>'
+           : (x.prioridad === "alta" ? '<span class="pill-esp tarde">' + esc(x.cuando || "lo antes posible") + '</span>'
+           : '<span class="pill-az">' + esc(x.cuando || "sin día") + '</span>');
+  var prox = x.proxima ? (x.proxima < (SQ.hoy || hoyISO()) ? 'la normal está <b>vencida desde el ' + esc(nombreDia_(x.proxima)) + '</b>' : 'la próxima normal es el <b>' + esc(nombreDia_(x.proxima)) + '</b>') : 'sin próxima visita calculada';
+  var h = '<div class="sol ext" id="sq-ext-' + esc(x.pendienteId) + '">' +
+    sqTipo_("ext", "Recolección extra", "la pidió el cliente por su QR · " + x.folio) +
+    '<div class="enc"><div class="nom">' + esc(x.nombre) + '</div>' + pill + '</div>' +
+    '<div class="det">' + esc(x.direccion || "Sin dirección") + (x.zona ? ' · ' + esc(x.zona) : '') + '<br>' +
+      (x.frecuencia ? esc(String(x.frecuencia).toUpperCase()) + ' · ' : '') + prox + '<br>' +
+      '<b>' + esc(x.cantidad || "Cantidad sin decir") + '</b>' + (x.motivo && x.motivo !== "Sin motivo" ? ' · <i>«' + esc(x.motivo) + '»</i>' : '') + '<br>' +
+      esc(x.contacto || "") + '<br>' +
+      '<span style="font-size:11px">Pedida ' + (x.diasEsperando ? 'hace ' + sqDias_(x.diasEsperando) + ' (' + esc(nombreDia_(x.pedida)) + ')' : 'hoy') + '</span>' +
+      (x.enRuta && !x.programada ? '<br><b style="color:var(--verde)">Ya está en la ruta del ' + esc(nombreDia_(x.enRuta.fecha)) + ' · ' + esc(String(x.enRuta.conductor).split(" ")[0]) + '</b>' : '') +
+    '</div>';
+  if(x.programada){
+    var pr = x.programada;
+    h += '<div class="sq-prog"><b>Va el ' + esc(nombreDia_(pr.fecha)) + '.</b> ' +
+      (pr.rutaId ? 'Ruta de ' + esc(pr.conductor || "—") + ' · ' + esc(pr.vehiculo || "") + (pr.yaEstaba ? ' (ya le tocaba ese día)' : ' · entró como parada extra') + '.'
+                 : 'Ese día todavía no tiene ruta: se carga sola al planificarlo.') +
+      ' El cliente ve «Va el ' + esc(nombreDia_(pr.fecha)) + '» en su página del QR. Se cierra sola cuando llegue su recibo.</div>' +
+      '<div class="sq-acc"><button class="btn mini" onclick="sqAbrirPlan_(\'' + pr.fecha + '\')">🛠️ Abrir el ' + esc(nombreDia_(pr.fecha)) + ' en el planificador</button>' +
+      (tel ? '<button class="btn-wa" onclick="sqAvisar_(\'' + esc(x.pendienteId) + '\')">💬 Avisar al cliente</button>' : '') +
+      (tel ? '<a class="btn sec mini" style="text-decoration:none" href="tel:' + tel + '">📞 Llamar</a>' : '') +
+      '<button class="btn rojo mini" onclick="sqDeshacer_(\'' + esc(x.pendienteId) + '\')">Quitar del día</button></div></div>';
+    return h;
+  }
+  h += '<div class="sq-acc">' +
+    '<button class="btn mini" onclick="sqAbrir_(\'ext:' + esc(x.pendienteId) + '\')">' + (ab ? 'Cerrar la revisión' : 'Revisar y meter en una ruta') + '</button>' +
+    (tel ? '<a class="btn sec mini" style="text-decoration:none" href="tel:' + tel + '">📞 Llamar</a>' +
+           '<a class="btn sec mini" style="text-decoration:none" target="_blank" href="https://wa.me/' + sqWa_(tel) + '">💬 WhatsApp</a>' : '') +
+    '<button class="btn rojo mini" onclick="sqNoProcede_(\'' + esc(x.pendienteId) + '\')">No procede</button></div>';
+  if(ab) h += '<div class="pr-rev">' + sqRevisionExtra_(x) + '</div>';
+  return h + '</div>';
+}
+
+function sqRevisionExtra_(x){
+  var fila = function(k, v, cls){ return v || v === 0 ? '<div><span>' + esc(k) + '</span>' + (cls ? '<b style="color:' + cls + '">' + esc(v) + '</b>' : esc(v)) + '</div>' : ''; };
+  var h = '<div class="pr-ficha" style="margin-top:0"><h4>Lo que pidió</h4><div class="rej">' +
+    fila("Cuándo", x.cuando) + fila("Cantidad", x.cantidad) + fila("Motivo", x.motivo) + fila("Coordinar con", x.contacto) +
+    fila("Pedida el", nombreDia_(x.pedida)) + fila("Folio", x.folio) +
+    fila("Pedidos anteriores desde el QR", x.anteriores ? String(x.anteriores) : "ninguno") + '</div></div>';
+  var avisos = [];
+  if(!x.activo) avisos.push('En la cartera figura como <b>' + esc(x.situacion || "inactivo") + '</b>. Revisa con Mercadeo o Cobros antes de mandar el camión.');
+  if(!x.conUbicacion) avisos.push('<b>No tiene ubicación en el mapa.</b> El conductor va a necesitar la dirección exacta.');
+  h += '<div class="pr-ficha"><h4>El cliente</h4><div class="rej">' +
+    fila("Razón social", x.razonSocial) + fila("Dirección", x.direccion) + fila("Zona", x.zona) +
+    fila("Frecuencia", x.frecuencia ? String(x.frecuencia).toUpperCase() + (x.diasFijos ? " · días fijos " + x.diasFijos : "") : "") +
+    fila("Horario", x.horario) + fila("Contacto en la ficha", [x.contactoFicha, x.telefonoFicha && x.telefonoFicha !== "." ? x.telefonoFicha : ""].filter(Boolean).join(" · ")) +
+    fila("Próxima visita normal", x.proxima ? nombreDia_(x.proxima) : "sin calcular") +
+    fila("Última recolección", x.ultima ? nombreDia_(x.ultima.fecha) + (x.ultima.recibo ? " · recibo " + x.ultima.recibo : "") + (x.ultima.kg ? " · " + x.ultima.kg + " kg" : "") : "sin recolecciones") +
+    fila("Promedio por visita", x.kgPromedio ? x.kgPromedio + " kg" : "") + '</div>' +
+    (avisos.length ? '<div class="pr-falta">' + avisos.join("<br>") + '</div>' : '') + '</div>';
+
+  /* ── los días ── */
+  var sel = SQ_SEL[x.pendienteId] || null;
+  var fijos = String(x.diasFijos || "").split(/[^0-9]+/).filter(String);
+  var toca = function(f){ var d = new Date(f + "T12:00:00").getDay(); return x.proxima === f || fijos.indexOf(String(d === 0 ? 7 : d)) >= 0; };
+  var filas = [];
+  (SQ.dias || []).forEach(function(d){
+    var marca = toca(d.fecha) ? '<span class="tag a">ya le toca</span>' : '';
+    if(d.rutas.length) d.rutas.forEach(function(r){
+      var esta = r.clientes.indexOf(x.clienteId) >= 0;
+      var w = r.tope ? Math.min(100, Math.round(r.paradas / r.tope * 100)) : 0;
+      var on = sel && sel.fecha === d.fecha && sel.rutaId === r.rutaId;
+      filas.push('<div class="sq-dia' + (on ? " on" : "") + '" onclick="sqElegir_(\'' + esc(x.pendienteId) + '\',\'' + d.fecha + '\',\'' + esc(r.rutaId) + '\')">' +
+        '<b>' + (d.hoy ? "hoy · " : "") + esc(nombreDia_(d.fecha)) + '</b>' +
+        '<span class="g">' + esc(String(r.conductor).split(" ")[0]) + ' · ' + r.paradas + ' paradas · ' + esc(r.vehiculo) + (r.borrador ? ' · borrador' : '') + marca +
+          (esta ? '<span class="tag">ya está en esta ruta</span>' : '') + '</span>' +
+        '<div class="mini"><i style="width:' + w + '%"></i></div>' +
+        (r.caben ? '<span class="e" style="color:#8A6300">caben ' + r.caben + ' más</span>' : '<span class="e" style="color:var(--rojo)">llena</span>') + '</div>');
+    });
+    else {
+      var on2 = sel && sel.fecha === d.fecha && !sel.rutaId;
+      filas.push('<div class="sq-dia' + (on2 ? " on" : "") + '" onclick="sqElegir_(\'' + esc(x.pendienteId) + '\',\'' + d.fecha + '\',\'\')">' +
+        '<b>' + esc(nombreDia_(d.fecha)) + '</b><span class="g">sin ruta todavía' + marca + '</span><div class="mini"><i style="width:0"></i></div>' +
+        '<span class="e" style="color:var(--gris)">se carga sola</span></div>');
+    }
+  });
+  h += '<div class="sq-lbl" style="margin-top:16px">¿En qué día la metemos?</div><div class="sq-dias">' + filas.join("") + '</div>';
+  if(sel){
+    var d = (SQ.dias || []).find(function(z){ return z.fecha === sel.fecha; }) || { rutas: [] };
+    var r = d.rutas.find(function(z){ return z.rutaId === sel.rutaId; });
+    h += '<div class="in-aviso ver sq-conf"><b>' + esc(nombreDia_(sel.fecha)) + (r ? ' · ruta de ' + esc(r.conductor) : '') + '.</b> ' +
+      (r ? (r.clientes.indexOf(x.clienteId) >= 0 ? 'Ya está en esa ruta: solo se anota la solicitud.' : 'Entra como parada extra al final de la ruta' + (r.borrador ? '' : ' (ya publicada: el conductor la ve al actualizar)') + '. Ordénala en el planificador si hace falta.')
+         : 'Ese día no tiene ruta. Queda anotada y se carga sola cuando abras ese día en el planificador.') +
+      ' El cliente ve «Va el ' + esc(nombreDia_(sel.fecha)) + '» en su página del QR.</div>' +
+      '<div class="sq-acc"><button class="btn mini" id="sq-btn-' + esc(x.pendienteId) + '" onclick="sqProgramar_(\'' + esc(x.pendienteId) + '\')">✓ Programar para el ' + esc(nombreDia_(sel.fecha)) + '</button>' +
+      '<button class="btn sec mini" onclick="sqAbrirPlan_(\'' + sel.fecha + '\')">🛠️ Ver ese día en el planificador</button></div>';
+  }
+  return h;
+}
+
+function sqAbrir_(k){
+  if(SQ_AB === k){ SQ_AB = ""; renderSolicitudes(); return; }
+  SQ_AB = k; renderSolicitudes();
+  var el = $("sq-" + k.replace(":", "-")); if(el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function sqElegir_(id, fecha, rutaId){ SQ_SEL[id] = { fecha: fecha, rutaId: rutaId }; renderSolicitudes(); }
+function sqExtra_(id){ return ((SQ && SQ.extras) || []).find(function(x){ return x.pendienteId === id; }); }
+
+function sqProgramar_(id){
+  var sel = SQ_SEL[id]; if(!sel || SQ_VUELO) return;
+  SQ_VUELO = true; var b = $("sq-btn-" + id); if(b){ b.disabled = true; b.textContent = "Programando…"; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      SQ_VUELO = false;
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo programar"); if(b){ b.disabled = false; b.textContent = "Reintentar"; } return; }
+      toast(r.ruta ? (r.yaEstaba ? "Anotada: ya estaba en la ruta" : "Agregada a la ruta de " + String(r.ruta.conductor).split(" ")[0]) : "Anotada para el " + nombreDia_(r.fecha));
+      var x = sqExtra_(id);
+      delete SQ_SEL[id]; SQ_AB = "";
+      if(x){ x.programada = { fecha: r.fecha, rutaId: r.ruta ? r.ruta.rutaId : "", conductor: r.ruta ? r.ruta.conductor : "", vehiculo: r.ruta ? r.ruta.vehiculo : "", yaEstaba: r.yaEstaba }; }
+      renderSolicitudes();
+      if(x && (sqTel_(x.contacto) || sqTel_(x.telefonoFicha))){
+        preguntar({ titulo: "¿Le avisamos al cliente?", icono: "💬", boton: "Abrir WhatsApp",
+          texto: "Se abre WhatsApp con el mensaje listo para <b>" + esc(x.nombre) + "</b>:<br><br><i>" + esc(sqMsg_(x)).replace(/\n/g, "<br>") + "</i>",
+          alAceptar: function(){ sqAvisar_(id); } });
+      }
+      cargarSolicitudes(true);
+    })
+    .withFailureHandler(function(){ SQ_VUELO = false; toast("Sin conexión"); if(b){ b.disabled = false; b.textContent = "Reintentar"; } })
+    .api_solProgramarExtra(PIN, id, sel.fecha, sel.rutaId || "");
+}
+
+function sqMsg_(x){
+  var f = x.programada ? x.programada.fecha : "";
+  var d = f ? new Date(f + "T12:00:00") : null;
+  var D = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"], M = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var dia = d ? D[d.getDay()] + " " + d.getDate() + " de " + M[d.getMonth()] : "";
+  return "Buenos días, le escribimos de ECOVSA por la recolección extra que pidió (" + x.folio + ").\n" +
+    (dia ? "La tenemos programada para el " + dia + ", en la ruta de ese día." : "") +
+    "\nSi necesita cambiar algo, respóndanos por aquí.\nGracias.";
+}
+function sqAvisar_(id){
+  var x = sqExtra_(id); if(!x) return;
+  var tel = sqTel_(x.contacto) || sqTel_(x.telefonoFicha);
+  if(!tel){ toast("Esta solicitud no trae teléfono"); return; }
+  window.open("https://wa.me/" + sqWa_(tel) + "?text=" + encodeURIComponent(sqMsg_(x)), "_blank");
+}
+function sqAbrirPlan_(f){ PL_F = f; mostrarTab("plan"); }
+
+function sqDeshacer_(id){
+  var x = sqExtra_(id); if(!x) return;
+  preguntar({ titulo: "Quitarla del " + nombreDia_(x.programada.fecha), icono: "↩", boton: "Quitar",
+    texto: "La solicitud de <b>" + esc(x.nombre) + "</b> vuelve a «por atender»." +
+      (x.programada.rutaId && !x.programada.yaEstaba ? " La parada extra se quita de la ruta de " + esc(x.programada.conductor) + "." : "") +
+      " Si ya le avisaste al cliente, avísale del cambio.",
+    alAceptar: function(){
+      google.script.run.withSuccessHandler(function(r){
+        if(r && r.ok){ toast(r.quitada ? "Quitada de la ruta" : "Vuelve a por atender"); delete x.programada; renderSolicitudes(); cargarSolicitudes(true); }
+        else toast((r && r.error) || "No se pudo");
+      }).withFailureHandler(function(){ toast("Sin conexión"); }).api_solDeshacerExtra(PIN, id);
+    } });
+}
+
+function sqNoProcede_(id){
+  var x = sqExtra_(id); if(!x) return;
+  preguntar({ titulo: "No procede", icono: "×", peligro: true, boton: "Cerrar la solicitud",
+    texto: "Escribe por qué no se hace la recolección extra de <b>" + esc(x.nombre) + "</b>. <b>El cliente lee este motivo</b> en su página del QR.",
+    escribirLibre: "Ej.: la recogemos en su visita normal del jueves",
+    alAceptar: function(){
+      var m = ($("dlg-input").value || "").trim();
+      if(m.length < 6){ toast("Escribe el motivo: el cliente lo va a leer"); return; }
+      google.script.run.withSuccessHandler(function(r){
+        if(r && r.ok){ toast("Solicitud cerrada"); cargarSolicitudes(false); }
+        else toast((r && r.error) || "No se pudo cerrar");
+      }).withFailureHandler(function(){ toast("Sin conexión"); }).api_solNoProcede(PIN, id, m);
+    } });
+}
+
+/* ── Cliente nuevo: la misma tarjeta y la misma revisión de siempre ── */
+function sqTarjetaNuevo_(s){
+  var tarde = s.diasEsperando >= 3, ab = SQ_AB === "cli:" + s.solicitudId;
+  return '<div class="sol' + (s.plusCode ? " ubicado" : "") + '" id="sq-cli-' + esc(s.solicitudId) + '">' +
+    sqTipo_("cli", "Cliente nuevo", "lo mandó " + (s.registradoPor || "Mercadeo")) +
+    '<div class="enc"><div class="nom">' + esc(s.empresa) + '</div><span class="pill-esp' + (tarde ? " tarde" : "") + '">' + sqDias_(s.diasEsperando) + '</span></div>' +
+    '<div class="det">' + esc(s.direccion || "Sin dirección") + '<br>' +
+      '<b>' + esc(s.frecuencia || "—") + '</b> · ' + esc(s.zona || "—") + (s.kgMax ? " · ~" + s.kgMax + " kg" : "") + '<br>' +
+      esc(s.contacto || "") + (s.celular ? " · " + esc(s.celular) : "") + '<br>' +
+      (s.plusCode ? '<b style="color:var(--verde-bandera)">Plus Code: ' + esc(s.plusCode) + '</b>' : '<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>') +
+      (s.notas ? '<br><i>' + esc(s.notas) + '</i>' : '') +
+      '<br><span style="font-size:11px">Enviado por ' + esc(s.registradoPor) + ' el ' + esc(s.fechaSolicitud) + '</span></div>' +
+    '<div class="sq-acc"><button class="btn mini" onclick="sqRevisarNuevo_(\'' + esc(s.solicitudId) + '\')">' + (ab ? "Cerrar la revisión" : "Revisar y aprobar") + '</button>' +
+      (s.celular || s.telefono ? '<a class="btn sec mini" style="text-decoration:none" href="tel:' + esc(String(s.celular || s.telefono).replace(/[^0-9+]/g, "")) + '">📞 Llamar</a>' : '') +
+      '<button class="btn rojo mini" onclick="devolverPR(\'' + esc(s.solicitudId) + '\')">Devolver</button></div>' +
+    '<div id="pr-rev-' + esc(s.solicitudId) + '" class="pr-rev" style="display:none"></div></div>';
+}
+function sqRevisarNuevo_(id){
+  if(SQ_AB === "cli:" + id){ SQ_AB = ""; renderSolicitudes(); return; }
+  SQ_AB = "cli:" + id; renderSolicitudes();
+  var el = $("sq-cli-" + id); if(el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ── Inspección ── */
+function sqTarjetaIns_(s){
+  var tarde = s.diasEsperando >= 3, ab = SQ_AB === "ins:" + s.inspeccionId;
+  var tel = s.celular || s.telefono || "";
+  var h = '<div class="ins" id="sq-ins-' + esc(s.inspeccionId) + '">' +
+    sqTipo_("ins", "Inspección", "la pidió Mercadeo antes de cotizar · " + (s.codigoPropuesta || "")) +
+    '<div class="enc"><div class="nom">' + esc(s.empresa) + '</div>' +
+      (s.visitaProgramada ? '<span class="pill-ok">visita el ' + esc(nombreDia_(s.visitaProgramada)) + '</span>'
+                          : '<span class="pill-mor' + (tarde ? " tarde" : "") + '">' + sqDias_(s.diasEsperando) + '</span>') + '</div>' +
+    '<div class="det">' + esc(s.direccion || "Sin dirección") + (s.zona ? " · " + esc(s.zona) : "") + '<br>' +
+      (s.contacto ? esc(s.contacto) : "") + (tel ? " · " + esc(tel) : "") + (s.contacto || tel ? '<br>' : '') +
+      '<i>«' + esc(s.motivo) + '»</i><br>' +
+      '<span style="font-size:11px">Pedida por ' + esc(s.pedidaPor) + ' el ' + esc(s.pedidaEn) +
+      (s.estado === "EN PROCESO" ? ' · <b style="color:var(--morado)">empezada</b>' : '') + '</span></div>';
+  if(s.visitaProgramada) h += '<div class="sq-prog"><b>Visita el ' + esc(nombreDia_(s.visitaProgramada)) + '</b>' + (s.inspector ? ' · ' + esc(s.inspector) : '') + '. El formulario arranca con esa fecha.</div>';
+  h += '<div class="sq-acc">' +
+    '<button class="btn mini" onclick="abrirInspeccion(\'' + esc(s.inspeccionId) + '\')">' + (s.estado === "EN PROCESO" ? "Seguir la inspección" : "Hacer la inspección") + '</button>' +
+    (s.estado === "PEDIDA" ? '<button class="btn sec mini" onclick="sqAbrir_(\'ins:' + esc(s.inspeccionId) + '\')">' + (ab ? "Cerrar" : (s.visitaProgramada ? "Cambiar la visita" : "Programar la visita")) + '</button>' : '') +
+    (tel ? '<a class="btn sec mini" style="text-decoration:none" href="tel:' + esc(tel.replace(/[^0-9+]/g, "")) + '">📞 Llamar</a>' : '') + '</div>';
+  if(ab){
+    var fila = function(k, v){ return v ? '<div><span>' + esc(k) + '</span>' + esc(v) + '</div>' : ''; };
+    var ins = (SQ && SQ.inspectores) || [];
+    h += '<div class="pr-rev"><div class="pr-ficha" style="margin-top:0"><h4>Lo que se sabe del prospecto</h4><div class="rej">' +
+      fila("Actividad", s.actividad) + fila("Tipo de residuo", s.tipoResiduo) + fila("Provincia", s.provincia) +
+      fila("Declaró al cotizar", /GMT|\d{4} \d\d:/.test(String(s.declarado)) ? "" : String(s.declarado || "").trim()) + fila("Propuesta", s.codigoPropuesta) +
+      '</div></div>' +
+      '<div class="sq-lbl" style="margin-top:16px">Programar la visita</div><div class="sq-ins-f">' +
+      '<div><label>Día</label><input type="date" id="sq-if-' + esc(s.inspeccionId) + '" min="' + esc(SQ.hoy || hoyISO()) + '" value="' + esc(s.visitaProgramada || "") + '"></div>' +
+      '<div><label>Quién la hace</label><select id="sq-ii-' + esc(s.inspeccionId) + '">' +
+        ins.map(function(n){ return '<option' + ((s.inspector || USUARIO.nombre) === n ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select></div></div>' +
+      '<div class="sq-acc"><button class="btn mini" onclick="sqProgIns_(\'' + esc(s.inspeccionId) + '\')">✓ Guardar la visita</button>' +
+      (s.visitaProgramada ? '<button class="btn rojo mini" onclick="sqProgIns_(\'' + esc(s.inspeccionId) + '\', true)">Quitar la fecha</button>' : '') + '</div></div>';
+  }
+  return h + '</div>';
+}
+function sqProgIns_(id, quitar){
+  var f = quitar ? "" : ($("sq-if-" + id).value || "");
+  if(!quitar && !f){ toast("Elige el día"); return; }
+  var q = quitar ? "" : ($("sq-ii-" + id).value || "");
+  google.script.run.withSuccessHandler(function(r){
+    if(r && r.ok){ toast(r.fecha ? "Visita el " + nombreDia_(r.fecha) : "Fecha quitada"); SQ_AB = ""; cargarSolicitudes(false); }
+    else toast((r && r.error) || "No se pudo guardar");
+  }).withFailureHandler(function(){ toast("Sin conexión"); }).api_solProgramarInspeccion(PIN, id, f, q);
+}
+
 /* ── El formulario ─────────────────────────────────────────────────── */
 function abrirInspeccion(id){
   var s = (INS && INS.pendientes || []).find(function(x){ return x.inspeccionId===id; });
@@ -9716,6 +10249,8 @@ function abrirInspeccion(id){
       if(!r || !r.ok){ toast((r&&r.error)||"No se pudo abrir"); return; }
       INSP = r.inspeccion;
       INSP.__cab = s;
+      /* api 3.5.2: la fecha programada es para agendar; la visita se hace hoy */
+      if(s.estado === "PEDIDA") INSP.fechaVisita = hoyISO();
       if(!INSP.generacionLista || !INSP.generacionLista.length) INSP.generacionLista = [];
       mostrarTab("inspeccion");
       $("in-titulo").textContent = "🔎 " + s.empresa;
@@ -10950,22 +11485,15 @@ function mtPintar_(){
       return '<tr class="cl" onclick="mtServicio_(\'' + esc(p.placa) + '\',\'' + esc(p.planId) + '\')"><td style="width:92px"><b>' + esc(p.placa) + '</b></td><td>' + esc(p.tarea) + '<div class="mt-sub">' + esc(txt) + '</div></td><td class="oc" style="width:150px"><div class="mt-bar"><i class="' + e + '" style="width:' + p.pct + '%"></i></div></td><td class="r"><button class="mt-b" onclick="event.stopPropagation();mtServicio_(\'' + esc(p.placa) + '\',\'' + esc(p.planId) + '\')">Registrar</button></td></tr>'; }).join("") + '</tbody></table>'
       : '<div class="mt-vacio">Todavía no hay tareas con punto de partida. Crea el plan de cada camión y anota su último servicio.</div>') +
     '<div class="mt-acc" style="margin-top:10px">' + MT.camiones.map(function(c){ return '<button class="mt-b gh" onclick="mtPlan_(\'' + esc(c.placa) + '\')">Plan de ' + esc(c.placa) + '</button>'; }).join("") + '</div></div>';
-  /* documentos */
-  var orden = MT.planBase.filter(function(b){ return b.doc; }).map(function(b){ return b.tarea; });
-  var docs = MT.docs.slice().sort(function(a, b){ var i = orden.indexOf(a), j = orden.indexOf(b); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
-  h += '<div class="mt-card"><h3>Documentos y vencimientos</h3>' + (docs.length ? '<div style="overflow-x:auto"><table class="mt-tb"><thead><tr><th>Camión</th>' + docs.map(function(d){ return '<th>' + esc(d) + '</th>'; }).join("") + '</tr></thead><tbody>' +
-    MT.camiones.map(function(c){ return '<tr class="cl" onclick="mtPlan_(\'' + esc(c.placa) + '\')"><td><b>' + esc(c.placa) + '</b></td>' + docs.map(function(d){
-      var t = c.documentos.find(function(x){ return x.tarea === d; });
-      if(!t) return '<td>' + mtTag_("g", "no aplica") + '</td>';
-      return '<td>' + mtTag_(mtEst_(t), t.vence ? mtF_(t.vence) : "sin fecha") + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div>'
-    : '<div class="mt-vacio">Sin documentos en el plan. Agrégalos desde el plan de cada camión (seguro, revisado, permiso de carga).</div>') + '</div>';
+  /* api 3.5.1: los documentos viven en Flota (pestaña Documentos). Sus vencimientos siguen avisando abajo. */
+  h += '<div class="mt-card"><h3>Documentos de los camiones</h3><div class="mt-vacio" style="text-align:left;padding:4px 0">Seguro, revisado, permisos: con su archivo original, número y vencimiento, en Flota › Documentos.</div><div class="mt-acc"><button class="mt-b p" onclick="FL_TAB=\'doc\';mostrarTab(\'flota\')">Ver documentos</button></div></div>';
   h += '</div>';
   /* requiere tu atención */
   h += '<div class="mt-card mt-at"><h3>Requiere tu atención<span class="sp"></span><small>' + at.length + '</small></h3>' + (at.length ? at.map(function(a, i){
       var b = [];
       if(a.tipo === "falla") b.push(['<button class="mt-b p" onclick="mtDecidir_(\'' + esc(a.fallaId) + '\')">Decidir</button>'], ['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>']);
       else if(a.tipo === "servicio") b.push(['<button class="mt-b p" onclick="mtServicio_(\'' + esc(a.placa) + '\',\'' + esc(a.planId) + '\')">Registrar servicio</button>'], ['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Ver plan</button>']);
-      else if(a.tipo === "doc") b.push(['<button class="mt-b p" onclick="mtPlan_(\'' + esc(a.placa) + '\')">' + (a.texto.indexOf("Falta") === 0 ? "Agregar fecha" : "Actualizar fecha") + '</button>']);
+      else if(a.tipo === "doc") b.push(['<button class="mt-b p" onclick="flIrDocs_(\'' + esc(a.placa) + '\')">' + (a.texto.indexOf("Falta") === 0 ? "Agregar fecha y archivo" : "Ver documento") + '</button>']);
       else if(a.tipo === "sinrev" || a.tipo === "semanal") b.push(['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>'], ['<button class="mt-b gh" onclick="mtMarcarVisto_(\'' + esc(a.clave) + '\')">Ya lo hablé</button>']);
       else if(a.tipo === "sinplan") b.push(['<button class="mt-b p" onclick="mtPlan_(\'' + esc(a.placa) + '\', true)">Crear plan</button>']);
       else if(a.tipo === "sinpartida") b.push(['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Anotar último servicio</button>']);

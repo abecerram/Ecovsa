@@ -172,6 +172,7 @@ body.solo-ver [data-tarea]{cursor:default}
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
 <script>
@@ -807,7 +808,8 @@ body.solo-ver [data-tarea]{cursor:default}
   /* ── enviar el formulario al cliente (mismo enlace que Alta) ── */
   function enlaceFormulario(cod) {
     var base = URL_APP || (location.origin + location.pathname.replace(/[^\/]*$/, ''));
-    return base + '?p=formulario&token=' + encodeURIComponent(cod);
+    var o = (OPS || []).filter(function (x) { return x.codigoPropuesta === cod; })[0];
+    return base + '?p=formulario&token=' + encodeURIComponent(cod) + (o && o.formClave ? '&k=' + o.formClave : '');
   }
   function enviarFormulario(o) {
     if (!o) return;

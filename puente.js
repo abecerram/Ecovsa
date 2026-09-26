@@ -377,7 +377,8 @@
       el.style.display = (modo === 'oculto' || (modo === 'discreto' && !problema)) ? 'none' : '';
       try {
         document.dispatchEvent(new CustomEvent('puente:estado', { detail: {
-          estado: estado, cola: cola, hora: horaDatos, error: ultimoError, enLinea: navigator.onLine !== false } }));
+          estado: estado, cola: cola, hora: horaDatos, error: ultimoError, enLinea: navigator.onLine !== false,
+          pendientes: pendientes } }));
       } catch (e) {}
       el.title = estado === 'error' ? ('Último error: ' + ultimoError + '\nToca para ver el detalle') : 'Toca para ver el detalle';
     }

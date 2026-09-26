@@ -11,6 +11,7 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
+<script src="archivos.js"></script>
 <style>
 /* ═══ Propuestas y contratos · opción A «Biblioteca con vista previa» ═══ */
 .ico-d{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:#eef2f8;color:var(--navy2);flex:none}
@@ -125,6 +126,7 @@ body.solo-ver #bt-nuevo,body.solo-ver [data-r="msg"],body.solo-ver [data-r="tare
 </style>
 </head>
 <body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
 <div id="sysbar"></div>
 <div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
 <script>
@@ -395,6 +397,8 @@ body.solo-ver #bt-nuevo,body.solo-ver [data-r="msg"],body.solo-ver [data-r="tare
     if (BLOBS[id]) return Promise.resolve(BLOBS[id]);
     return MK.api('api_crmArchivo', MK.pin, id).then(function (r) {
       if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo abrir el archivo.');
+      /* api 3.5.1: el archivo vive en el espacio de archivos; llega un enlace firmado de 5 minutos */
+      if (r.url || r.almacenError) { if (!r.url) throw new Error(r.almacenError); return { url: r.url, tipo: r.tipo || '', nombre: r.nombre || 'archivo' }; }
       var m = /^data:([^;]+);base64,(.*)$/.exec(String(r.datos || '').replace(/^'/, ''));
       if (!m) throw new Error('El archivo guardado no se puede mostrar.');
       var bin = atob(m[2]), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -548,21 +552,26 @@ body.solo-ver #bt-nuevo,body.solo-ver [data-r="msg"],body.solo-ver [data-r="tare
     MK.hoja('<h2>Subir ' + (C ? 'el contrato firmado' : d.tipo === 'propuesta' ? 'la propuesta firmada' : 'la versión firmada') + '</h2><p class="muted small">' + esc(titulo(d)) + ' · ' + esc(d.cuenta || '') + '. Queda guardado con el documento' + (d.refTipo === 'op' && d.tipo !== 'documento' ? ' y se marca en la lista de documentos de la oportunidad' : '') + '.</p>' +
       zonaArchivo('hf-f', 'Elige el PDF o la foto firmada') +
       '<label class="lb" for="hf-n">NOTA <span class="muted">(opcional)</span></label><input class="in" id="hf-n" placeholder="Quién lo firmó, cómo llegó…">' +
-      '<div class="msgerr" id="hf-msg"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="hf-ok" disabled>' + MK.ic('subir', 15) + ' Guardar firmada</button></div>');
+      '<div id="hf-sub"></div><div class="msgerr" id="hf-msg"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="hf-ok" disabled>' + MK.ic('subir', 15) + ' Guardar firmada</button></div>');
     activarZona('hf-f', function (f) { file = f; $('hf-ok').disabled = !f; });
     $('hf-ok').onclick = function () {
       var b = this, msg = $('hf-msg'); if (!file) return; MK.ocupado(b, true, 'Subiendo…'); msg.textContent = '';
+      /* api 3.5.2: la tarjeta de espera (emblema, pasos) */
+      var T = window.ARCH && ARCH.tarjeta ? ARCH.tarjeta($('hf-sub'), { nombre: file.name, detalle: ARCH.kb(file.size), reemplazar: true }) : null;
+      if (T) T.paso(1);
       subir(file).then(function (a) {
+        if (T) T.paso(2);
         var c = { estado: 'firmada', archivoId: a.id, evento: 'Subió la versión firmada (' + a.nombre + ')' };
         var n = $('hf-n').value.trim(); if (n) c.notas = (d.notas ? d.notas + ' · ' : '') + n;
         return guardar(d, c, (C ? 'Contrato firmado' : 'Versión firmada') + ' guardado').then(function () {
+          if (T) T.listo('Guardado');
           MK.cerrarHoja();
           if (!d.deducido && d.refTipo === 'op' && (d.tipo === 'contrato' || d.tipo === 'propuesta')) {
             var k = {}; k[d.tipo === 'contrato' ? 'doc contrato firmado' : 'doc propuesta firmada'] = 'SI';
             MK.api('api_crmGuardarOportunidad', MK.pin, d.ref, k).catch(function () {});
           }
         });
-      }).catch(function (e) { MK.ocupado(b, false); msg.textContent = e.message || 'No se pudo guardar.'; });
+      }).catch(function (e) { MK.ocupado(b, false); if (T) T.error(e.message || 'No se pudo guardar.'); else msg.textContent = e.message || 'No se pudo guardar.'; });
     };
   }
   function hojaVersion(d) {
