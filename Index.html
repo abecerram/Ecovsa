@@ -2346,6 +2346,10 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 <div id="pl-cuerpo"></div>
 </section>
 
+<section id="pantalla-mapadia" class="pantalla">
+<div id="md-cuerpo"></div>
+</section>
+
 <section id="pantalla-cierre" class="pantalla">
 <div class="cr-tt"><div><h1>Cierre de rutas</h1><div class="sub" id="cr-sub"></div></div><span class="sp"></span>
 <div class="ini-seg" id="cr-seg"></div>
@@ -3152,7 +3156,10 @@ if(mia){
 var previas={};
 if(RUTA && RUTA.rutaId===mia.rutaId) (RUTA.paradas||[]).forEach(function(p){ previas[p.clienteId]=p; });
 RUTA={fecha:mia.fecha,vehiculo:mia.vehiculo,conductor:mia.conductor,rutaId:mia.rutaId,
-paradas:mia.paradas.map(function(p){return previas[p.clienteId] || {clienteId:p.clienteId,estadoParada:"pendiente",kgBolsas:"",cantBolsas:"",kgPunzo:"",cantPunzo:"",kgAnatomo:"",cantAnatomo:"",recibo:"",manifiesto:"",obs:"",contacto:"",cargo:"",gps:"",firma:""};})};
+paradas:mia.paradas.map(function(p){return previas[p.clienteId] || {clienteId:p.clienteId,estadoParada:"pendiente",kgBolsas:"",cantBolsas:"",kgPunzo:"",cantPunzo:"",kgAnatomo:"",cantAnatomo:"",recibo:"",manifiesto:"",obs:"",contacto:"",cargo:"",gps:"",firma:""};}),
+/* api 3.6: tipo de ruta, destino, trazo y base; lo que ya se sabía del viaje a planta no se pierde */
+info:rutaInfo_(mia), plantaHecha:!!(RUTA && RUTA.rutaId===mia.rutaId && RUTA.plantaHecha), cambio:(RUTA && RUTA.rutaId===mia.rutaId) ? RUTA.cambio : null};
+mia.paradas.forEach(function(p){ var q = RUTA.paradas.find(function(x){ return x.clienteId === p.clienteId; }); if(q) q.horaPlan = p.horaPlan || ""; });
 if(mia.estadoRuta) RUTA.cierre={motivo:mia.motivoCierre||"", hora:mia.cerradaEn||"", por:mia.cerradaPor||""};
 guardarLocal(K_PAR,RUTA);
 }
@@ -3407,6 +3414,7 @@ function chipHorario_(c){
 function pintarTablero(){
   var tb = $("hub-operador"); if(!tb || esSupervisor()) return;
   var P = RUTA.paradas || [];
+  if(!P.length && RUTA.info && RUTA.info.tipo === "planta" && RUTA.info.destino){ tb.innerHTML = cdTableroPlanta_(); tb.onclick = function(){ mostrarTab("mapa"); }; return; }
   if(!P.length){
     var hay = (RUTAS_HOY||[]).filter(function(r){ return (r.paradas||[]).length; });
     tb.innerHTML = '<div class="tb-et">Mi ruta de hoy</div>' +
@@ -3989,8 +3997,14 @@ function aplicarRutaServidor_(rs, fecha){
   var r = rs.filter(function(x){ return x.rutaId === RUTA.rutaId; })[0] || rs[0];
   if(!r || !r.paradas) return;
   var antes = (RUTA.paradas || []).map(function(p){ return p.clienteId; }).join(",");
+  if($("pantalla-mapa") && $("pantalla-mapa").classList.contains("activa")) setTimeout(function(){ if($("pantalla-mapa").classList.contains("activa")) cdPintar_(); }, 50);
   var ahora = r.paradas.map(function(p){ return p.clienteId; }).join(",");
   var cierre = r.estadoRuta ? { motivo: r.motivoCierre || "", hora: r.cerradaEn || "", por: r.cerradaPor || "" } : null;
+  /* api 3.6: el tipo de ruta, el destino y el trazo pueden cambiar sin que cambien las paradas */
+  var infoN = rutaInfo_(r), infoCambio = JSON.stringify(infoN) !== JSON.stringify(RUTA.info || null);
+  if(infoCambio){ var pAntes = RUTA.info ? RUTA.info.plantaPos : null; RUTA.info = infoN; if(infoN.tipo === "planta" && pAntes !== infoN.plantaPos && antes === ahora) RUTA.cambio = { mas: [], menos: [], planta: true, hora: hhmm_(ahoraMin_()) }; }
+  r.paradas.forEach(function(p){ var q = (RUTA.paradas || []).find(function(x){ return x.clienteId === p.clienteId; }); if(q) q.horaPlan = p.horaPlan || q.horaPlan || ""; });
+  if(infoCambio){ guardarLocal(K_PAR, RUTA); if($("pantalla-mapa").classList.contains("activa")) cdPintar_(); }
   if(antes === ahora && r.rutaId === RUTA.rutaId && (!!cierre === !!RUTA.cierre)) return;
   var previas = {}; (RUTA.paradas || []).forEach(function(p){ previas[p.clienteId] = p; });
   var nuevas = r.paradas.filter(function(p){ return !previas[p.clienteId]; }).length;
@@ -4000,7 +4014,16 @@ function aplicarRutaServidor_(rs, fecha){
     if(p.estadoParada === "completada" && !P.some(function(q){ return q.clienteId === p.clienteId; })) P.push(p);
   });
   var quitadas = (RUTA.paradas || []).length + nuevas - P.length;
+  /* api 3.6: qué cambió, para el aviso del mapa del conductor */
+  if(r.rutaId === RUTA.rutaId && antes){
+    var ya = {}; (RUTA.paradas || []).forEach(function(p){ ya[p.clienteId] = 1; }); var hoyAhora = {}; r.paradas.forEach(function(p){ hoyAhora[p.clienteId] = 1; });
+    var nm = function(id){ var c = cli(id); return c ? c.nombre : "Cliente " + id; };
+    RUTA.cambio = { mas: r.paradas.filter(function(p){ return !ya[p.clienteId]; }).map(function(p){ return nm(p.clienteId); }),
+                    menos: (RUTA.paradas || []).filter(function(p){ return !hoyAhora[p.clienteId] && p.estadoParada !== "completada"; }).map(function(p){ return nm(p.clienteId); }),
+                    hora: hhmm_(ahoraMin_()) };
+  }
   RUTA.rutaId = r.rutaId; RUTA.vehiculo = r.vehiculo || RUTA.vehiculo; RUTA.paradas = P;
+  var hpN = {}; r.paradas.forEach(function(p){ hpN[p.clienteId] = p.horaPlan || ""; }); P.forEach(function(p){ if(hpN[p.clienteId]) p.horaPlan = hpN[p.clienteId]; });
   if(cierre && !RUTA.cierre) RUTA.cierre = cierre;
   guardarLocal(K_PAR, RUTA);
   var faltaCliente = P.some(function(p){ return !cli(p.clienteId); });
@@ -4657,7 +4680,7 @@ try{ INI_PER = localStorage.getItem("eco_ini_per") || "semana"; }catch(e){}
 
 var MENU_SUP = [
   ["Operación"],
-  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["agenda","🗓️","Calendario"],
+  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["mapadia","🗺️","Mapa del día"], ["agenda","🗓️","Calendario"],
   ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"],
   ["recibos","🧾","Recibos"], ["dfin","🏭","Disposición final"],
   ["Por revisar"],
@@ -5524,7 +5547,7 @@ var PL_DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sába
 function plHabilDespues_(f){ var d = new Date(f + "T12:00:00"); do { d.setDate(d.getDate() + 1); } while(d.getDay() === 0 || d.getDay() === 6); return plIso_(d); }
 function plIso_(d){ return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
 function plDiaTxt_(f){ var d = new Date(f + "T12:00:00"); return PL_DIAS[d.getDay()]; }
-function plC_(id){ id = Number(id); var c = PL && PL.clientes.find(function(x){ return x.id === id; }); if(c) return c;
+function plC_(id){ if(id === "P") return plPlanta_(); id = Number(id); var c = PL && PL.clientes.find(function(x){ return x.id === id; }); if(c) return c;
   var k = (typeof cli === "function") ? cli(id) : null;
   return k ? { id: id, nombre: k.nombre, zona: k.region, lat: k.lat, lng: k.lng, kg: k.kg, min: null, hTipo: k.horarioTipo, hDesde: k.horarioDesde, hHasta: k.horarioHasta, frec: k.frecuencia, tel: k.telefono, rec: "" }
            : { id: id, nombre: "Cliente " + id, zona: "" }; }
@@ -5555,15 +5578,17 @@ function plElegirRuta_(rutaId){
   PL_KMG = null;
   if(r) ED = { rutaId: r.rutaId, fecha: PL.fecha, conductor: r.conductor, vehiculo: r.vehiculo, horaSalida: r.horaSalida || "", estadoPlan: r.estadoPlan,
                publicadaPor: r.publicadaPor, estadoRuta: r.estadoRuta, sucio: false,
-               paradas: r.paradas.map(function(p){ return { clienteId: p.clienteId, origen: p.origen || "" }; }) };
+               paradas: r.paradas.map(function(p){ return { clienteId: p.clienteId, origen: p.origen || "" }; }),
+               /* api 3.6 */ tipo: r.tipo === "planta" ? "planta" : "recoleccion", destinoId: r.destinoId || "", trazo: r.trazo || null };
   else plNuevaRuta_(true);
+  if(r && ED.tipo === "planta"){ ED.destino = plDestino_(ED.destinoId); var pp = r.plantaPos === null || r.plantaPos === undefined ? ED.paradas.length : Math.min(ED.paradas.length, r.plantaPos); ED.paradas.splice(pp, 0, { clienteId: "P", origen: "planta" }); }
 }
 function plNuevaRuta_(silencio){
   if(!silencio && ED && ED.sucio && !confirm("Tienes cambios sin guardar. ¿Descartarlos?")) return;
   var usados = PL.rutas.map(function(r){ return r.conductor; }), vusados = PL.rutas.map(function(r){ return r.vehiculo; });
   var cond = (PL.operadores || []).find(function(o){ return usados.indexOf(o) < 0; }) || (PL.operadores || [])[0] || "";
   var veh = PL.vehiculos.find(function(v){ return !v.bloqueo && vusados.indexOf(v.placa) < 0; }) || PL.vehiculos.find(function(v){ return !v.bloqueo; }) || PL.vehiculos[0] || {};
-  ED = { rutaId: "", fecha: PL.fecha, conductor: cond, vehiculo: veh.placa || "", horaSalida: "", estadoPlan: "borrador", sucio: false, paradas: [] };
+  ED = { rutaId: "", fecha: PL.fecha, conductor: cond, vehiculo: veh.placa || "", horaSalida: "", estadoPlan: "borrador", sucio: false, paradas: [], tipo: "recoleccion", destinoId: "", trazo: null };
   PL_KMG = null;
   if(!silencio) plPintar_();
 }
@@ -5578,9 +5603,12 @@ function plHH_(m){ m = Math.round(m); return ("0" + Math.floor(m / 60) % 24).sli
 function plCalc_(paradas){
   var cfg = PL.config, base = (cfg.baseLat && cfg.baseLng) ? [cfg.baseLat, cfg.baseLng] : null;
   var t = plMin_(ED.horaSalida || cfg.salida) || 470, prev = base, km = 0, kg = 0, out = [];
+  /* api 3.6: si hay trazo por carretera de este mismo orden, se usan sus tiempos */
+  var TZ = !paradas && base ? plTrazoVigente_() : null, k = 0;
   (paradas || ED.paradas).forEach(function(p, i){
     var c = plC_(p.clienteId), ll = (c.lat && c.lng) ? [c.lat, c.lng] : null, tray = 20;
-    if(prev && ll){ var d = plKm_(prev, ll); km += d; tray = Math.max(4, Math.round(d / 27 * 60)); }
+    if(TZ && ll && TZ.tramos[k]){ km += TZ.tramos[k].km; tray = Math.max(1, TZ.tramos[k].min); k++; }
+    else if(prev && ll){ var d = plKm_(prev, ll); km += d; tray = Math.max(4, Math.round(d / 27 * 60)); }
     else if(!prev && i === 0) tray = 20;
     var lleg = t + tray, esp = 0;
     var hd = plMin_(c.hDesde), hh = plMin_(c.hHasta);
@@ -5591,8 +5619,10 @@ function plCalc_(paradas){
     out.push({ llegada: lleg, eta: plHH_(lleg), ok: ok, estricto: c.hTipo === "estricto", espera: esp, sitio: sitio });
     t = lleg + sitio; if(ll) prev = ll; kg += Number(c.kg) || 0;
   });
-  var vuelta = 20; if(base && prev && prev !== base){ var d2 = plKm_(prev, base); km += d2; vuelta = Math.max(4, Math.round(d2 / 27 * 60)); }
-  return { paradas: out, km: Math.round(km), kg: Math.round(kg), salida: plHH_(plMin_(ED.horaSalida || cfg.salida) || 470), regreso: plHH_(t + vuelta) };
+  var vuelta = 20;
+  if(TZ && TZ.tramos[k]){ km += TZ.tramos[k].km; vuelta = Math.max(1, TZ.tramos[k].min); }
+  else if(base && prev && prev !== base){ var d2 = plKm_(prev, base); km += d2; vuelta = Math.max(4, Math.round(d2 / 27 * 60)); }
+  return { paradas: out, km: Math.round(km), kg: Math.round(kg), salida: plHH_(plMin_(ED.horaSalida || cfg.salida) || 470), regreso: plHH_(t + vuelta), carretera: !!TZ };
 }
 
 /* ── pintar ── */
@@ -5617,7 +5647,7 @@ function plPintar_(){
   var ncand = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }).length;
   h += '<div class="pl-seg"><button class="' + (PL_M === "toca" ? "on" : "") + '" onclick="plModo_(\'toca\')">Le toca · ' + ncand + '</button><button class="' + (PL_M === "ruta" ? "on" : "") + '" onclick="plModo_(\'ruta\')">La ruta · ' + ED.paradas.length + '</button></div>';
   h += '<div class="pl-grid"><div class="pl-card pl-col-toca" id="pl-toca"></div><div class="pl-card pl-col-ruta" id="pl-ruta"></div></div>';
-  h += '<div class="pl-fix"><button class="pl-btn" onclick="plOptimizar_()">🛣️ Optimizar</button><button class="pl-btn a" onclick="plGuardar_(\'borrador\')" id="pl-fx-g">Guardar</button><button class="pl-btn v" onclick="plGuardar_(\'publicada\')">✓ Publicar</button></div>';
+  h += '<div class="pl-fix"><button class="pl-btn" onclick="plOptimizar_()">🕘 Optimizar</button><button class="pl-btn a" onclick="plGuardar_(\'borrador\')" id="pl-fx-g">Guardar</button><button class="pl-btn v" onclick="plGuardar_(\'publicada\')">✓ Publicar</button></div>';
   $("pl-cuerpo").innerHTML = h;
   $("pantalla-plan").classList.toggle("m-toca", PL_M === "toca"); $("pantalla-plan").classList.toggle("m-ruta", PL_M !== "toca");
   plPintarCands_(); plPintarRuta_();
@@ -5626,7 +5656,7 @@ function plModo_(m){ PL_M = m; plPintar_(); }
 
 /* ── candidatos ── */
 var PL_GR = [["extra","Recolección extra · la pidió el cliente"], ["recurrentes","🔁 Recurrentes del "], ["arrastre","↪ No se atendieron · pasan a este día"], ["tocan","Les toca por frecuencia"], ["atrasados","Atrasados"], ["pendientes","Pendientes de días anteriores"], ["nuevos","Nuevos, sin visitas"]];
-function plEnED_(id){ return ED && ED.paradas.some(function(p){ return p.clienteId === Number(id); }); }
+function plEnED_(id){ return !!ED && ED.paradas.some(function(p){ return String(p.clienteId) === String(id); }); }
 function plCandidatos_(){ var o = []; if(!PL) return o; PL_GR.forEach(function(g){ (PL.grupos[g[0]] || []).forEach(function(x){ o.push({ id: x.id, g: g[0], x: x }); }); }); return o; }
 function plPintarCands_(){
   var box = $("pl-toca"); if(!box || !PL) return;
@@ -5669,7 +5699,10 @@ function plAgregar_(ids, silencio){
     var ar = (PL.grupos.arrastre || []).find(function(a){ return a.id === id; });
     var rc = (PL.grupos.recurrentes || []).find(function(a){ return a.id === id; });
     var ex = (PL.grupos.extra || []).find(function(a){ return a.id === id; });
-    ED.paradas.push({ clienteId: id, origen: pc ? pc.origen : (ex ? "extra:" + ex.folio : (ar ? "arrastre:" + ar.desde : (rc ? "recurrente" : ""))) }); PL_SEL[id] = false; n++; });
+    var nueva = { clienteId: id, origen: pc ? pc.origen : (ex ? "extra:" + ex.folio : (ar ? "arrastre:" + ar.desde : (rc ? "recurrente" : ""))) };
+    var donde = ED.tipo === "planta" ? plDondeMenos_(id) : null;
+    if(donde) ED.paradas.splice(donde.i, 0, nueva); else ED.paradas.push(nueva);
+    PL_SEL[id] = false; n++; });
   if(n){ ED.sucio = true; PL_KMG = null; }
   if(!silencio){ plPintar_(); if(n) toast(n === 1 ? "Agregado a la ruta" : n + " agregados a la ruta"); }
   return n;
@@ -5681,24 +5714,24 @@ function plAgregarPorConfirmar_(){ plAgregar_((PL.porConfirmar || []).map(functi
 function plPintarRuta_(){
   var box = $("pl-ruta"); if(!box || !PL || !ED) return;
   var C = plCalc_(), v = PL.vehiculos.find(function(x){ return x.placa === ED.vehiculo; }) || { tope: 14 };
-  var n = ED.paradas.length, pct = Math.min(100, Math.round(n / (v.tope || 14) * 100));
+  var n = ED.paradas.filter(function(p){ return p.clienteId !== "P"; }).length, pct = Math.min(100, Math.round(n / (v.tope || 14) * 100));
   var nombreC = String(ED.conductor || "").split(" ")[0] || "el conductor";
   var est = !ED.rutaId ? '<span class="pl-est bor">nueva · sin guardar</span>' : (ED.estadoPlan === "borrador" ? '<span class="pl-est bor">borrador · sin publicar</span>' : '<span class="pl-est pub">publicada</span>') + (ED.sucio ? ' <span class="pl-est suc">cambios sin guardar</span>' : '');
   var h = '';
   if(PL.rutas.length > 1 || ED.rutaId === "" && PL.rutas.length){
-    h += '<div class="pl-rtabs">' + PL.rutas.map(function(r){ return '<button class="' + (r.rutaId === ED.rutaId ? "on" : "") + '" onclick="plCambiarRuta_(\'' + r.rutaId + '\')">' + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + ' · ' + r.paradas.length + (r.estadoPlan === "borrador" ? ' · borrador' : '') + '</button>'; }).join("") +
+    h += '<div class="pl-rtabs">' + PL.rutas.map(function(r){ return '<button class="' + (r.rutaId === ED.rutaId ? "on" : "") + '" onclick="plCambiarRuta_(\'' + r.rutaId + '\')">' + (r.tipo === "planta" ? '🏭 ' : '') + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + ' · ' + r.paradas.length + (r.estadoPlan === "borrador" ? ' · borrador' : '') + '</button>'; }).join("") +
       (ED.rutaId === "" ? '<button class="on">Nueva ruta</button>' : '') + '</div>';
   }
   h += '<div class="pl-ch"><h3>Ruta del ' + esc(plDiaTxt_(PL.fecha)) + ' ' + Number(PL.fecha.slice(8)) + '</h3><div style="display:flex;gap:12px">' +
     (ED.rutaId ? '<button class="x" onclick="abrirAvisos(\'' + PL.fecha + '\')">Avisar a los clientes 📱</button>' : '') +
-    (PL.rutas.length && ED.rutaId !== "" ? '<button class="x" onclick="plNuevaRuta_()">＋ Otra ruta</button>' : '') + '</div></div>';
+    (PL.rutas.length && ED.rutaId !== "" ? '<button class="x" onclick="plNuevaRuta_()">＋ Otra ruta</button>' : '') + '</div></div>' + plTipoHtml_();
   h += '<div class="pl-cfg"><div><small>Conductor</small><select onchange="ED.conductor=this.value;plSucio_()">' + (PL.operadores || []).concat(ED.conductor && (PL.operadores || []).indexOf(ED.conductor) < 0 ? [ED.conductor] : []).map(function(o){ return '<option' + (o === ED.conductor ? " selected" : "") + '>' + esc(o) + '</option>'; }).join("") + '</select></div>' +
     '<div><small>Camión</small><select class="' + (v.bloqueo ? "bq" : "") + '" onchange="ED.vehiculo=this.value;plSucio_()">' + PL.vehiculos.map(function(x){ return '<option value="' + esc(x.placa) + '"' + (x.placa === ED.vehiculo ? " selected" : "") + '>' + esc(x.placa) + (x.bloqueo ? ' ⛔ no puede salir' : (x.revisionHoy ? ' ✓ revisado' : '')) + '</option>'; }).join("") + '</select></div>' +
     '<div><small>Salida</small><input type="time" value="' + esc(ED.horaSalida || PL.config.salida) + '" onchange="ED.horaSalida=this.value;plSucio_()"></div>' +
     '<div><small>Estado</small>' + est + '</div></div>';
   if(v.bloqueo) h += '<div class="pl-avis" style="background:var(--ini-rojo-l);color:#8E2A20;border-color:#F2C4BE">⛔ <b>' + esc(ED.vehiculo) + '</b> está bloqueado: ' + esc(v.bloqueo) + '. Cambia el camión o decide sobre la falla en el Inicio.</div>';
   h += '<div class="pl-cap"><div class="row"><div><b>' + n + ' / ' + (v.tope || 14) + ' <button title="Cambiar el tope de este camión" onclick="plTope_()">✎</button></b><span>paradas</span></div>' +
-    '<div><b>≈ ' + C.kg + ' kg</b><span>según su historial</span></div><div><b>' + (PL_KMG ? PL_KMG + ' km' : '≈ ' + C.km + ' km') + '</b><span>' + (PL_KMG ? 'Google' : 'en línea recta ×1.35') + '</span></div>' +
+    '<div><b>≈ ' + C.kg + ' kg</b><span>según su historial</span></div><div><b>' + (C.carretera ? C.km + ' km' : '≈ ' + C.km + ' km') + '</b><span>' + (C.carretera ? 'por carretera' : (PL_TZ_VUELO ? 'calculando por carretera…' : 'en línea recta ×1.35')) + '</span></div>' +
     '<div><b>' + C.salida + ' → ' + (n ? C.regreso : '—') + '</b><span>salida y regreso' + (PL.config.baseLat ? '' : ' · <button onclick="plConfig_()">fijar base</button>') + '</span></div></div>' +
     '<div class="pl-bar ' + (pct > 100 ? "r" : (pct > 85 ? "am" : "")) + '"><i style="width:' + pct + '%"></i></div></div>';
   /* horarios que no cuadran */
@@ -5706,12 +5739,16 @@ function plPintarRuta_(){
   ED.paradas.forEach(function(p, i){ var e = C.paradas[i]; if(e.ok === false && e.estricto) malos.push(i); });
   malos.slice(0, 3).forEach(function(i){
     var c = plC_(ED.paradas[i].clienteId), e = C.paradas[i], sube = plDondeCabe_(i);
+    if(c.planta){ h += '<div class="pl-avis">🏭 <b>' + esc(c.nombre) + '</b> recibe de ' + esc(c.hDesde) + ' a ' + esc(c.hHasta) + ' y el camión llegaría ' + e.eta + '. ' +
+      (sube >= 0 ? '<button onclick="plMoverA_(' + i + ',' + sube + ')">Subir la planta a la ' + (sube + 1) + '.ª</button> · ' : '') + '<button onclick="plOptimizar_()">Optimizar con horarios</button></div>'; return; }
     h += '<div class="pl-avis">🕘 <b>' + esc(c.nombre) + '</b> solo recibe de ' + esc(c.hDesde) + ' a ' + esc(c.hHasta) + ' y llegaría ' + e.eta + '. ' +
       (sube >= 0 ? '<button onclick="plMoverA_(' + i + ',' + sube + ')">Subirla a la ' + (sube + 1) + '.ª</button> · ' : '') + '<button onclick="plMenuMover_(' + i + ')">Pasarla a otro día</button></div>';
   });
-  if(!n) h += '<div class="pl-vacio">Sin paradas todavía.<br>Márcalas a la izquierda o búscalas por nombre.</div>';
+  if(ED.tipo === "planta") h += plAcopioHtml_();
+  if(!ED.paradas.length) h += '<div class="pl-vacio">Sin paradas todavía.<br>Márcalas a la izquierda o búscalas por nombre.</div>';
   else h += '<div id="pl-lista">' + ED.paradas.map(function(p, i){
     var c = plC_(p.clienteId), e = C.paradas[i], chips = "";
+    if(p.clienteId === "P") return plFilaPlanta_(i, c, e);
     if(p.origen === "recurrente") chips += '<span class="pl-chip v">🔁 recurrente</span>';
     if(/^arrastre/.test(p.origen)) chips += '<span class="pl-chip m">↪ del ' + esc(nombreDia_(p.origen.split(":")[1])) + '</span>';
     if(/^movida/.test(p.origen)) chips += '<span class="pl-chip b">movida</span>';
@@ -5724,13 +5761,15 @@ function plPintarRuta_(){
       chips + '<button class="mas" onclick="plMenu_(' + i + ')">⋯</button></div>';
   }).join("") + '<div class="pl-fin">Regreso a la base ≈ ' + C.regreso + '</div></div>';
   var pub = ED.estadoPlan === "publicada" && ED.rutaId;
-  h += '<div class="pl-pie"><button class="pl-btn" onclick="plOptimizar_()" ' + (n < 2 ? "disabled" : "") + '>🛣️ Optimizar orden</button><button class="pl-btn" onclick="plCercania_()" ' + (n < 2 ? "disabled" : "") + '>📍 Por cercanía</button><span style="flex:1"></span>' +
+  var nOpt = ED.paradas.length;
+  h += '<div class="pl-pie"><button class="pl-btn" onclick="plOptimizar_()" ' + (nOpt < 2 ? "disabled" : "") + '>🕘 Optimizar con horarios</button><button class="pl-btn" onclick="plCercania_()" ' + (nOpt < 2 ? "disabled" : "") + '>📍 Por cercanía</button><span style="flex:1"></span>' +
     (ED.sucio ? '<button class="pl-btn" onclick="plDescartar_()">Descartar</button>' : '') +
     (ED.rutaId ? '<button class="pl-btn r" onclick="plBorrar_()" title="Borrar la ruta">🗑</button>' : '') +
     (pub ? '<button class="pl-btn v" onclick="plGuardar_(\'publicada\')" ' + (ED.sucio ? '' : 'disabled') + '>✓ Actualizar la ruta de ' + esc(nombreC) + '</button>'
-         : '<button class="pl-btn a" onclick="plGuardar_(\'borrador\')" ' + (n ? '' : 'disabled') + '>Guardar borrador</button><button class="pl-btn v" onclick="plGuardar_(\'publicada\')" ' + (n ? '' : 'disabled') + '>✓ Publicar a ' + esc(nombreC) + '</button>') + '</div>';
+         : '<button class="pl-btn a" onclick="plGuardar_(\'borrador\')" ' + (nOpt ? '' : 'disabled') + '>Guardar borrador</button><button class="pl-btn v" onclick="plGuardar_(\'publicada\')" ' + (nOpt ? '' : 'disabled') + '>✓ Publicar a ' + esc(nombreC) + '</button>') + '</div>';
   box.innerHTML = h;
   var fx = $("pl-fx-g"); if(fx) fx.textContent = pub ? "Guardar" : "Borrador";
+  if(typeof plTrasPintarRuta_ === "function") plTrasPintarRuta_();
 }
 function plCambiarRuta_(id){ if(ED && ED.sucio && !confirm("Tienes cambios sin guardar. ¿Descartarlos?")) return; plElegirRuta_(id); plPintar_(); }
 
@@ -5753,6 +5792,7 @@ function plDragFin_(){ PL_DRAG = -1; document.querySelectorAll(".pl-st").forEach
 
 /* ── menú de cada parada ── */
 function plMenu_(i){
+  if(ED.paradas[i] && ED.paradas[i].clienteId === "P") return plMenuPlanta_(i);
   var p = ED.paradas[i], c = plC_(p.clienteId), auto = p.origen === "recurrente" || /^arrastre/.test(p.origen);
   var tel = String(c.tel || "").replace(/[^0-9]/g, ""); if(tel.length === 8) tel = "507" + tel;
   abrirHojaIni_('<div class="ini-pt">' + esc(c.nombre) + '</div><div class="ini-ps">' + esc(c.zona || "") + (c.recTxt ? ' · 🔁 ' + esc(c.recTxt) : '') + '</div><div class="pl-menu">' +
@@ -5817,23 +5857,7 @@ function plGuardarPausa_(id, i){
 }
 
 /* ── ordenar ── */
-function plOptimizar_(){
-  var con = ED.paradas.filter(function(p){ var c = plC_(p.clienteId); return c.lat && c.lng; });
-  if(con.length < 2){ toast("Hacen falta al menos 2 paradas con ubicación"); return; }
-  var cfg = PL.config, base = cfg.baseLat ? { lat: cfg.baseLat, lng: cfg.baseLng } : null;
-  var puntos = con.map(function(p){ var c = plC_(p.clienteId); return { id: p.clienteId, lat: c.lat, lng: c.lng }; });
-  if(base) puntos.push({ id: "BASE", lat: base.lat, lng: base.lng });
-  if(puntos.length > 23){ toast("Google calcula hasta 23 paradas: divide la ruta"); return; }
-  toast("Optimizando con Google…");
-  google.script.run.withSuccessHandler(function(r){
-    if(!r || !r.ok){ toast((r && r.error) || "No se pudo optimizar"); return; }
-    var por = {}; ED.paradas.forEach(function(p){ por[p.clienteId] = p; });
-    var nuevas = []; r.orden.forEach(function(id){ if(por[id]){ nuevas.push(por[id]); delete por[id]; } });
-    ED.paradas.forEach(function(p){ if(por[p.clienteId]) nuevas.push(p); });
-    ED.paradas = nuevas; ED.sucio = true; PL_KMG = r.km; plPintarRuta_();
-    toast("Ruta optimizada · " + r.km + " km" + (plCalc_().paradas.some(function(e){ return e.ok === false && e.estricto; }) ? " · revisa los horarios" : ""));
-  }).withFailureHandler(function(){ toast("Sin señal"); }).api_optimizarRuta(PIN, puntos, base);
-}
+/* api 3.6: «Optimizar» ya no va a Google Apps Script: ahora es «Optimizar con horarios» (más abajo, en el bloque del mapa). */
 function plCercania_(){
   var cfg = PL.config, rest = ED.paradas.slice(), sin = [], orden = [];
   rest = rest.filter(function(p){ var c = plC_(p.clienteId); if(!(c.lat && c.lng)){ sin.push(p); return false; } return true; });
@@ -5844,14 +5868,20 @@ function plCercania_(){
 }
 
 /* ── guardar / publicar / borrar ── */
-function plGuardar_(estado){
+function plGuardar_(estado, yaConTrazo){
   if(!ED.paradas.length){ toast("La ruta no tiene paradas"); return; }
+  /* api 3.6: con Google conectado, el trazo por carretera se calcula antes de guardar (el conductor lo ve sin gastar) */
+  if(!yaConTrazo && PL.google && PL.google.rutas && !plTrazoVigente_() && plPuntos_().length > 2){
+    toast("Calculando el camino por carretera…"); plPedirTrazo_(function(){ plGuardar_(estado, true); }); return; }
   var v = PL.vehiculos.find(function(x){ return x.placa === ED.vehiculo; }) || {};
   if(estado === "publicada" && v.bloqueo && !confirm(ED.vehiculo + " está bloqueado (" + v.bloqueo + "). ¿Publicar igual?")) return;
-  if(estado === "publicada" && ED.paradas.length > (v.tope || 14) && !confirm("La ruta pasa el tope del camión (" + ED.paradas.length + " de " + v.tope + "). ¿Publicar igual?")) return;
+  var nCli = ED.paradas.filter(function(p){ return p.clienteId !== "P"; }).length;
+  if(estado === "publicada" && nCli > (v.tope || 14) && !confirm("La ruta pasa el tope del camión (" + nCli + " de " + v.tope + "). ¿Publicar igual?")) return;
   var C = plCalc_();
+  var tzv = plTrazoVigente_(), ipl = ED.paradas.findIndex(function(p){ return p.clienteId === "P"; });
   var d = { rutaId: ED.rutaId, fecha: PL.fecha, conductor: ED.conductor, vehiculo: ED.vehiculo, horaSalida: ED.horaSalida || PL.config.salida, estadoPlan: estado,
-            paradas: ED.paradas.map(function(p, i){ return { clienteId: p.clienteId, origen: p.origen || "", horaPlan: C.paradas[i].eta }; }) };
+            paradas: ED.paradas.map(function(p, i){ return { clienteId: p.clienteId, origen: p.origen || "", horaPlan: C.paradas[i].eta }; }).filter(function(p){ return p.clienteId !== "P"; }),
+            tipo: ED.tipo || "recoleccion", destinoId: ED.destinoId || "", plantaPos: ipl, trazo: tzv };
   toast(estado === "publicada" ? "Publicando…" : "Guardando…");
   google.script.run.withSuccessHandler(function(r){
     if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
@@ -5880,7 +5910,9 @@ function plConfig_(){
     '<label class="c2-f">Hora de salida habitual</label><input type="time" class="c2-in" id="pl-cf-s" value="' + esc(c.salida) + '">' +
     '<label class="c2-f">Base (enlace de Google Maps o «lat, lng»)</label><input class="c2-in" id="pl-cf-b" value="' + (c.baseLat ? c.baseLat + ", " + c.baseLng : "") + '" placeholder="https://maps.google.com/…@8.98,-79.52">' +
     '<label class="c2-f">Nombre de la base</label><input class="c2-in" id="pl-cf-n" value="' + esc(c.baseNombre || "") + '" placeholder="Planta ECOVSA">' +
-    '<button class="ini-ok" style="margin-top:12px" onclick="plGuardarBase_()">Guardar</button>');
+    '<button class="ini-ok" style="margin-top:12px" onclick="plGuardarBase_()">Guardar</button>' +
+    /* api 3.6 */ '<button class="ini-ok sec" style="margin-top:8px" onclick="plDestinos_()">🏭 Destinos de entrega · ' + ((PL.destinos || []).length || 'ninguno todavía') + '</button>' +
+    plGoogleTxt_());
 }
 function plGuardarBase_(){
   var t = $("pl-cf-b").value, m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
@@ -6911,6 +6943,7 @@ function enGenerar_(){
     var q = EN.data.grupos.filter(function(g){ return !EN.sel[g.clave] && !g.viejo; });
     EN.res = r; EN.res.recibe = EN.recibe; EN.res.vehiculo = EN.vehiculo; EN.res.quedan = enTot_(q); EN.res.quedanDias = q.length;
     EN.paso = 4; enFirmaCerrar_(); enPintar_(); window.scrollTo(0, 0);
+    if(RUTA && RUTA.info && RUTA.info.tipo === "planta"){ RUTA.plantaHecha = true; guardarLocal(K_PAR, RUTA); }
     EN.recibe = ""; EN.obs = ""; EN.llegada = "";
   }).withFailureHandler(function(){ if(b){ b.disabled = false; b.textContent = "Generar acta ➤"; } toast("Sin señal: el acta necesita conexión. Intenta de nuevo."); })
     .api_generarActaDias(PIN, { grupos: S.map(function(g){ return g.clave; }), recibe: EN.recibe, destino: EN.destino, vehiculo: EN.vehiculo,
@@ -9225,7 +9258,7 @@ if(tab==="jornada" && esSupervisor()) tab = "flota";
 if(tab==="disposicion") tab = esSupervisor() ? "dfin" : "entrega";
 if(tab==="avisos" && esSupervisor()) tab = "plan";
 /* api 3.5.3: el mapa del conductor no es del supervisor (el Mapa del día llega con el paquete del mapa) */
-if(tab==="mapa" && esSupervisor()) tab = "plan";
+if(tab==="mapa" && esSupervisor()) tab = "mapadia";
 /* api 3.5.2: clientes nuevos e inspecciones viven dentro de Solicitudes */
 if((tab==="porrevisar" || tab==="inspecciones") && esSupervisor()){ SQ_F = tab==="porrevisar" ? "cli" : "todas"; tab = "solicitudes"; }
 if(tab!=="entrega" && typeof enFirmaCerrar_==="function") enFirmaCerrar_();
@@ -9279,6 +9312,8 @@ if(tab==="solicitudes" && esSupervisor()) cargarSolicitudes(false);
 /* api 3.5.3: Inventario y Requisiciones dentro de Logística */
 if(tab==="inv" && esSupervisor()) ivCargar_();
 if(tab==="req" && esSupervisor()) rqCargar_();
+/* api 3.6: Mapa del día */
+if(tab==="mapadia" && esSupervisor()) mdCargar_();
 
 if(tab==="inspecciones" && esSupervisor()) cargarInspecciones(false);
 
@@ -9344,12 +9379,13 @@ function cargarRutaParaTrabajar(fecha){
   google.script.run
     .withSuccessHandler(function(rs){
       var r=(rs||[])[0];
-      if(!r||!r.paradas||!r.paradas.length){ toast("Esa fecha no tiene ruta asignada"); return; }
+      if(!r||!r.paradas||(!r.paradas.length && r.tipo!=="planta")){ toast("Esa fecha no tiene ruta asignada"); return; }
       // lo que ya estuviera trabajado en esa fecha no se pierde
       var previas={};
       (RUTA.paradas||[]).forEach(function(p){ previas[p.clienteId]=p; });
       RUTA={rutaId:r.rutaId, fecha:fecha, vehiculo:r.vehiculo||"", conductor:r.conductor||"",
-            paradas:r.paradas.map(function(p){ return previas[p.clienteId]||nuevaParada(p.clienteId); })};
+            paradas:r.paradas.map(function(p){ var q = previas[p.clienteId]||nuevaParada(p.clienteId); q.horaPlan = p.horaPlan || q.horaPlan || ""; return q; }),
+            info:rutaInfo_(r)};
       if(r.estadoRuta) RUTA.cierre={motivo:r.motivoCierre||"", hora:r.cerradaEn||"", por:r.cerradaPor||""};
       try{ localStorage.removeItem(K_BAJADA); }catch(e){}
       guardarLocal(K_PAR,RUTA);
@@ -12568,6 +12604,1009 @@ function rqRecibida_(id){ llamar353_("api_reqRecibida", PIN, id).then(function()
 function rqVerAdjunto_(id){ llamar353_("api_reqVerAdjunto", PIN, id).then(function(r){ if(window.VR && VR.pestana) VR.pestana(r.url); else window.open(r.url, "_blank"); }); }
 </script>
 
+<!-- ═══ api 3.6 · el mapa, optimizar con horarios y viaje a planta ═══ -->
+<style id="estilo-36">
+/* ═══ api 3.6 · el mapa ═══ */
+.mp-tg{display:inline-flex;gap:3px;background:#E9EEF4;border-radius:10px;padding:3px;flex:none}
+.mp-tg button{border:0;background:none;border-radius:8px;padding:5px 11px;font:900 11.5px Archivo,sans-serif;color:var(--ini-gris);cursor:pointer;white-space:nowrap}
+.mp-tg button.on{background:#fff;color:var(--ini-navy);box-shadow:0 1px 2px rgba(10,30,60,.12)}
+.mp-tg.flot{box-shadow:0 1px 4px rgba(0,0,0,.25);background:#fff}
+.mp-tg.flot button.on{background:var(--ini-navy,#16305c);color:#fff}
+.mp-map{height:600px;z-index:0}
+.mp-hint{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--ini-linea);font-size:12px;color:var(--ini-gris);font-weight:700}
+.mp-hint .sp{flex:1}.mp-hint b{color:var(--ini-navy)}
+.mp-leg{display:flex;gap:10px;flex-wrap:wrap}.mp-leg span{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--ini-gris)}
+.mp-leg i{width:10px;height:10px;border-radius:50%;display:block;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.mp-n{width:26px;height:26px;border-radius:50%;background:var(--ini-navy,#16305c);color:#fff;display:grid;place-items:center;font:900 12px Archivo,sans-serif;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(10,30,60,.35)}
+.mp-n.sel{background:var(--ini-azul,#1f6fb2);box-shadow:0 0 0 4px rgba(31,111,178,.3),0 2px 6px rgba(10,30,60,.35);transform:scale(1.12)}
+.mp-n.nuevo{background:var(--ini-verde,#2f8a3b)}.mp-n.viejo{background:#fff;color:#98A3B3;border:2px dashed #98A3B3;box-shadow:none}
+.mp-n.hecha{background:var(--ini-verde,#2f8a3b)}.mp-n.tarde{background:#fff;color:#8A6300;border:2.5px solid var(--ini-ambar,#e0a100)}
+.mp-n.pend{background:#fff;color:var(--ini-navy,#16305c);border:2.5px solid var(--ini-navy,#16305c)}
+.mp-pl{height:26px;padding:0 9px;border-radius:9px;background:#14306B;color:#fff;display:grid;place-items:center;font:900 10.5px Archivo,sans-serif;letter-spacing:.5px;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(10,30,60,.4);white-space:nowrap}
+.mp-pl.sel{box-shadow:0 0 0 5px rgba(31,111,178,.35),0 2px 6px rgba(10,30,60,.4)}
+.mp-c{width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(10,30,60,.4)}
+.mp-base{width:28px;height:28px;border-radius:8px;background:#fff;border:2.5px solid var(--ini-navy,#16305c);display:grid;place-items:center;font-size:14px;box-shadow:0 2px 6px rgba(10,30,60,.3)}
+.mp-pop{font-family:Archivo,sans-serif;min-width:210px}.mp-pop b{display:block;font-size:13px;color:var(--ini-navy,#16305c);font-weight:900}
+.mp-pop span{display:block;font-size:11.5px;color:#6b7a90;font-weight:600;margin-top:2px;line-height:1.45}
+.mp-pop .pz{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:800;color:var(--ini-navy,#16305c)}
+.mp-pop .pz button,.mp-pop .ac{border:1px solid #d9e1ea;background:#fff;border-radius:8px;padding:4px 9px;font:900 12px Archivo,sans-serif;color:#16305c;cursor:pointer}
+.mp-pop .pz em{font-style:normal;background:#EEF4FB;border-radius:8px;padding:4px 10px}
+.mp-pop .ac{display:block;width:100%;margin-top:6px;text-align:left}.mp-pop .ac.p{background:var(--ini-azul,#1f6fb2);border-color:var(--ini-azul,#1f6fb2);color:#fff}
+.mp-pop .ac.r{color:var(--ini-rojo,#c0392b)}.mp-pop .ac small{display:block;font-weight:600;font-size:11px;opacity:.85}
+.leaflet-popup-content{margin:12px 14px}.leaflet-popup-content-wrapper{border-radius:12px}
+.mp-ban{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#EAF6EC;border-bottom:1px solid #CFE8D3;font-size:12.5px;font-weight:800;color:#1f5f29}
+.mp-ban .sp{flex:1}.mp-ban button{border:0;border-radius:9px;padding:6px 11px;font:900 12px Archivo,sans-serif;cursor:pointer;background:#fff;color:#1f5f29}
+.mp-ban button.v{background:var(--ini-verde,#2f8a3b);color:#fff}
+.mp-gsin{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;background:#FFF1D6;color:#8A6300;white-space:nowrap}
+.mp-gok{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;background:#E7F3DD;color:#2F6B0A;white-space:nowrap}
+.pl-st.mp-sel{background:#EEF4FB;box-shadow:inset 3px 0 0 var(--ini-azul,#1f6fb2)}
+.pl-st.mp-nv .n{background:var(--ini-verde,#2f8a3b)}.pl-st.mp-vj .n{background:#fff;color:#98A3B3;border:2px dashed #98A3B3}
+.mp-dif{font-size:11px;font-weight:900;color:var(--ini-verde,#2f8a3b);margin-left:4px}
+#pantalla-plan.con-mapa .pl-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+@media (max-width:999px){ .mp-map{height:430px} #pantalla-plan.con-mapa .pl-grid{grid-template-columns:minmax(0,1fr)} }
+/* viaje a planta */
+.vj-tipo-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px 0}
+.vj-tipo-f small{font-size:11px;font-weight:900;letter-spacing:.6px;color:var(--ini-gris);text-transform:uppercase}
+.vj-tipo-f select{flex:1;min-width:210px;border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 9px;font:800 13px Archivo,sans-serif;color:var(--ini-navy);background:#fff}
+.vj-aco{background:#FFF6DA;border:1px solid #F3D98A;border-radius:12px;padding:9px 12px;margin:10px 14px 0;font-size:12.5px;font-weight:700;color:#6B4E00;line-height:1.5}
+.vj-sp{display:flex;align-items:center;gap:9px;padding:8px 14px;border-top:1px solid #F1F4F8;font-size:12.5px}
+.vj-sp .nm{flex:1;min-width:0}.vj-sp .nm b{display:block;font-weight:900;color:var(--ini-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vj-sp .nm span{font-size:11px;color:var(--ini-gris);font-weight:600}
+.vj-dv{font-size:11px;font-weight:900;border-radius:999px;padding:2px 8px;background:#E7F3DD;color:#2F6B0A;white-space:nowrap}.vj-dv.m{background:#FFF1D6;color:#8A6300}
+.vj-sp .add{font-size:16px;font-weight:900;color:var(--ini-azul);background:none;border:0;cursor:pointer;padding:0 4px}
+.vj-et{display:inline-flex;gap:5px;align-items:center;font-size:10.5px;font-weight:900;border-radius:999px;padding:2px 8px;background:#14306B;color:#fff}
+.pl-st.vj-pl{background:#F3F7FC;box-shadow:inset 4px 0 0 #14306B}.pl-st.vj-pl .n{background:#14306B;border-radius:8px}
+.ds-card{border:1.5px solid var(--ini-linea);border-radius:12px;padding:10px 12px;margin-top:10px}
+.ds-card .f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ds-card .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ds-card .c2-f{margin-top:6px}
+/* optimizar */
+.op-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+.op-k div{background:#F5F8FC;border:1px solid var(--ini-linea);border-radius:12px;padding:9px 11px}.op-k b{display:block;font-size:17px;color:var(--ini-navy);font-weight:900}
+.op-k span{font-size:11.5px;color:var(--ini-gris);font-weight:700}
+.op-ls{max-height:380px;overflow:auto;border:1px solid var(--ini-linea);border-radius:12px;padding:2px 10px}
+.op-f{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid #F1F4F8;font-size:12.5px}.op-f:first-child{border-top:0}
+.op-f .n{width:22px;height:22px;border-radius:50%;background:var(--ini-navy);color:#fff;display:grid;place-items:center;font-size:10.5px;font-weight:900;flex:none}
+.op-f .n.p{border-radius:7px;background:#14306B}
+.op-f .h{font-weight:900;color:var(--ini-navy);width:42px;flex:none}.op-f .nm{flex:1;min-width:0}.op-f .nm b{display:block;font-weight:900;color:var(--ini-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.op-f .nm span{font-size:11px;color:var(--ini-gris);font-weight:600}
+.op-ok{background:#EAF6EC;border:1px solid #CFE8D3;color:#1f5f29;border-radius:12px;padding:9px 12px;font-size:12.5px;font-weight:800;margin:0 0 8px}
+.op-src{font-size:11.5px;color:var(--ini-gris);font-weight:700;margin:4px 0 0}
+/* Mapa del día */
+.md-map{height:620px;border-radius:14px;z-index:0}
+.md-rt{border:1px solid var(--ini-linea);border-radius:12px;padding:11px 12px;margin-top:10px;cursor:pointer}
+.md-rt:first-of-type{margin-top:0}.md-rt.on{border-color:var(--ini-azul);box-shadow:0 0 0 3px rgba(31,111,178,.12)}
+.md-rt .t{display:flex;align-items:center;gap:8px}.md-rt .t i{width:12px;height:12px;border-radius:4px;display:block;flex:none}
+.md-rt .t b{font-size:13.5px;font-weight:900;color:var(--ini-navy)}.md-rt .t .sp{flex:1}
+.md-rt small{display:block;color:var(--ini-gris);font-size:12px;font-weight:600;margin-top:4px;line-height:1.45}
+.md-st{display:flex;gap:8px;align-items:center;font-size:12px;padding:5px 0;border-top:1px solid var(--tm-linea2,#EEF2F6)}
+.md-st:first-child{border-top:0}.md-st .n{width:20px!important;height:20px!important;font-size:10px!important;border-width:2px!important;flex:none}
+.md-st .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800;color:var(--ini-navy)}
+.md-st .h{font-weight:800;color:var(--ini-gris);font-size:11.5px;white-space:nowrap}
+.md-nota{font-size:11.5px;color:var(--ini-gris);font-weight:600;margin-top:10px;line-height:1.5}
+.md-cnt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;font-size:12.5px;font-weight:700;color:var(--ini-navy)}
+.md-cnt span{display:flex;align-items:center;gap:7px}.md-cnt span i{width:10px;height:10px;border-radius:50%;display:block}
+.md-cnt b{text-align:right}
+.md-sin{display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--tm-linea2,#EEF2F6);font-size:12.5px}
+.md-sin b{flex:1;min-width:0;font-weight:800;color:var(--ini-navy)}
+.md-mini{height:230px;border-radius:12px;margin:8px 0;z-index:0}
+.md-fil{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px}
+/* mapa del conductor */
+#pantalla-mapa .mc-top{display:flex;align-items:center;gap:8px;margin:-2px 0 10px;font-size:12.5px;font-weight:800;color:var(--eco-azul-osc)}
+#pantalla-mapa .mc-top .bar{flex:1;height:8px;border-radius:8px;background:#E3E9F1;overflow:hidden}#pantalla-mapa .mc-top .bar i{display:block;height:100%;background:var(--eco-verde)}
+.mc-map{height:318px;border-radius:14px;border:1px solid #DCE3EC;z-index:0;position:relative}
+.mc-yo-btn{width:40px;height:40px;border-radius:12px;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.3);font-size:18px;cursor:pointer}
+.mc-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:900 12px Archivo,sans-serif;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);background:#fff;color:var(--eco-azul-osc)}
+.mc-n.h{background:var(--eco-verde);color:#fff;width:20px;height:20px;font-size:10px}
+.mc-n.p{border-color:var(--eco-azul-osc)}
+.mc-n.s{width:38px;height:38px;font-size:16px;background:var(--eco-ambar);color:#14306B;border:3px solid #fff;box-shadow:0 0 0 6px rgba(245,179,1,.35),0 2px 8px rgba(0,0,0,.4)}
+.mc-yo{width:18px;height:18px;border-radius:50%;background:#1A73E8;border:3px solid #fff;box-shadow:0 0 0 8px rgba(26,115,232,.22)}
+.mc-base{width:26px;height:26px;border-radius:8px;background:#fff;border:2.5px solid var(--eco-azul-osc);display:grid;place-items:center;font-size:13px}
+.mc-sig{background:#fff;border:1px solid #DCE3EC;border-left:5px solid var(--eco-ambar);border-radius:14px;padding:13px 14px;margin-top:12px;box-shadow:0 2px 8px rgba(20,48,107,.08)}
+.mc-sig.pl{border-left-color:#14306B}
+.mc-sig .et{font-size:11px;font-weight:900;letter-spacing:.8px;color:#8A6300;text-transform:uppercase}.mc-sig.pl .et{color:#14306B}
+.mc-sig .n{font-size:18px;font-weight:900;color:var(--eco-azul-osc);margin:3px 0 2px;line-height:1.2}
+.mc-sig .z{font-size:12.5px;color:#5B6A80;font-weight:700;line-height:1.5}
+.mc-sig .ok{color:var(--eco-verde);font-weight:900}.mc-sig .ma{color:#C0392B;font-weight:900}
+.mc-nota{background:#FFF6DA;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:12.5px;font-weight:700;color:#6B4E00}
+.mc-nota.az{background:#E8F0FA;color:#14306B}
+.mc-acc{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px;margin-top:12px}
+.mc-acc.dos{grid-template-columns:1.4fr 1fr}
+.mc-acc button,.mc-acc a{border:0;border-radius:12px;padding:13px 6px;font-family:inherit;font-weight:900;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;cursor:pointer}
+.mc-acc .nav{background:#1A73E8;color:#fff}.mc-acc .tel{background:#E9EEF4;color:var(--eco-azul-osc)}.mc-acc .ok{background:var(--eco-verde);color:#fff}
+.mc-acc .tel.off{opacity:.45;pointer-events:none}
+.mc-acc small{font-size:10.5px;font-weight:700;opacity:.85}
+.mc-mal{display:block;margin:10px auto 0;background:none;border:0;color:#5B6A80;font:800 12.5px inherit;font-family:inherit;text-decoration:underline;cursor:pointer}
+.mc-lis{background:#fff;border:1px solid #DCE3EC;border-radius:14px;padding:4px 12px;margin-top:12px}
+.mc-lis .t{font-size:11px;font-weight:900;letter-spacing:.8px;color:#8B97A8;text-transform:uppercase;padding:9px 0 4px}
+.mc-it{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #EEF2F6;font-size:13px}
+.mc-it b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--eco-azul-osc);font-weight:900}
+.mc-it span{font-weight:800;color:#5B6A80;font-size:12px}
+.mc-ban{display:flex;gap:10px;align-items:center;background:#14306B;color:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13px;font-weight:700;line-height:1.4}
+.mc-ban button{border:0;border-radius:9px;padding:7px 10px;font:900 12.5px inherit;font-family:inherit;background:#F5B301;color:#14306B;white-space:nowrap;cursor:pointer}
+.mc-velo{position:fixed;inset:0;background:rgba(10,25,50,.5);z-index:9000;display:flex;align-items:flex-end;justify-content:center}
+.mc-hoja{background:#fff;width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:16px 16px 22px;box-shadow:0 -4px 20px rgba(0,0,0,.2);max-height:92vh;overflow:auto}
+.mc-hoja .asa{width:44px;height:5px;border-radius:5px;background:#D5DCE5;margin:0 auto 12px}
+.mc-hoja h3{margin:0 0 4px;font-size:17px;font-weight:900;color:var(--eco-azul-osc)}.mc-hoja p{margin:0 0 12px;font-size:13px;color:#5B6A80;font-weight:600;line-height:1.5}
+.mc-op{display:flex;align-items:center;gap:12px;width:100%;border:1.5px solid #DCE3EC;background:#fff;border-radius:14px;padding:13px;margin-top:8px;font-family:inherit;text-align:left;cursor:pointer}
+.mc-op .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex:none}
+.mc-op b{display:block;font-size:15px;color:var(--eco-azul-osc);font-weight:900}.mc-op small{display:block;font-size:12px;color:#5B6A80;font-weight:600}
+.mc-mini{height:190px;border-radius:12px;margin:4px 0 10px;z-index:0}
+.mc-ck{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;color:#5B6A80;margin-top:12px}
+.mc-lnk{background:none;border:0;color:#5B6A80;font:800 12px inherit;font-family:inherit;text-decoration:underline;cursor:pointer;padding:6px 0 0}
+</style>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.6 · EL MAPA
+   · fondo satélite con nombres de calles (o mapa de calles), el mismo en
+     todas las pantallas; la elección se recuerda en cada teléfono;
+   · el trazo por carretera sale de Google (Routes API) y se guarda con la
+     ruta; si no hay Google, línea recta punteada;
+   · optimizar con horarios: Google Route Optimization; sin Google, aquí
+     mismo en línea recta.
+   ═══════════════════════════════════════════════════════════════════ */
+function m36Fondo_(){ try{ return localStorage.getItem("eco_fondo") || "sat"; }catch(e){ return "sat"; } }
+function m36Capas_(m, fondo){
+  fondo = fondo || m36Fondo_();
+  if(m._m36capas) m._m36capas.forEach(function(c){ m.removeLayer(c); });
+  var c = [];
+  if(fondo === "sat"){
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Imágenes © Esri" }));
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, opacity: .75 }));
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }));
+  } else c.push(L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }));
+  c.forEach(function(x){ x.addTo(m); x.bringToBack && x.bringToBack(); });
+  m._m36capas = c;
+}
+/* botón Mapa | Satélite dentro del mapa */
+function m36Toggle_(m){
+  var ctl = L.control({ position: "topright" });
+  ctl.onAdd = function(){
+    var d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d);
+    var pint = function(){ var f = m36Fondo_(); d.innerHTML = '<div class="mp-tg flot"><button class="' + (f === "calle" ? "on" : "") + '" data-f="calle">Mapa</button><button class="' + (f === "sat" ? "on" : "") + '" data-f="sat">Satélite</button></div>'; };
+    pint();
+    d.addEventListener("click", function(e){ var b = e.target.closest("button"); if(!b) return; try{ localStorage.setItem("eco_fondo", b.getAttribute("data-f")); }catch(x){} m36Capas_(m); pint(); });
+    return d;
+  };
+  ctl.addTo(m);
+}
+function m36Mapa_(id, op){
+  var m = L.map(id, Object.assign({ zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }, op || {}));
+  m36Capas_(m); m36Toggle_(m); return m;
+}
+/* polilínea codificada de Google → [[lat,lng]] */
+function m36Dec_(s){
+  var out = [], i = 0, la = 0, ln = 0; s = String(s || "");
+  while(i < s.length){
+    var b, sh = 0, r = 0; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while(b >= 32 && i < s.length);
+    la += (r & 1) ? ~(r >> 1) : (r >> 1);
+    sh = 0; r = 0; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while(b >= 32 && i < s.length);
+    ln += (r & 1) ? ~(r >> 1) : (r >> 1);
+    out.push([la / 1e5, ln / 1e5]);
+  }
+  return out;
+}
+function m36LL_(la, ln){ la = Number(la); ln = Number(ln); return isFinite(la) && isFinite(ln) && la > 7 && la < 10 && ln > -83.5 && ln < -77; }
+function m36Firma_(pts){ return pts.map(function(p){ return Number(p[0]).toFixed(4) + "," + Number(p[1]).toFixed(4); }).join(";"); }
+function m36Ic_(html, w, h){ return L.divIcon({ className: "", html: html, iconSize: [w, h || w], iconAnchor: [w / 2, (h || w) / 2] }); }
+/* el trazo guardado de una ruta, si sirve para este orden de puntos */
+function m36TrazoOk_(tz, pts){ return !!(tz && tz.legs && pts.length > 2 && tz.legs.length === pts.length - 1 && tz.firma === m36Firma_(pts)); }
+function m36Km_(a, b){ return plKm_(a, b); }
+
+/* ═══════════ PLANIFICADOR ═══════════ */
+var PL_VISTA = "lista", PL_MAP = null, PL_MAPV = null, PL_NUM = null, PL_SELM = null, PL_TZ_VUELO = false, PL_TZ_T = null, PL_TZ_FALLO = "", PL_OPT = null, PL_CAM_F = "cerca";
+function plDestino_(id){ return ((PL && PL.destinos) || []).find(function(d){ return d.id === id; }) || null; }
+function plPlanta_(){
+  var d = (ED && (ED.destino || plDestino_(ED.destinoId))) || {};
+  return { id: "P", planta: true, nombre: d.nombre || "Planta", zona: "ENTREGA EN PLANTA", lat: d.lat, lng: d.lng, kg: 0, min: d.minutos || 30, minFijo: true,
+           hTipo: d.desde ? "estricto" : "", hDesde: d.desde || "", hHasta: d.hasta || "", frec: "", tel: "", activo: true, direccion: d.direccion || "" };
+}
+function plBase_(){ var c = PL && PL.config; return c && c.baseLat && c.baseLng ? [c.baseLat, c.baseLng] : null; }
+function plPuntos_(){
+  var b = plBase_(); if(!b || !ED) return [];
+  var pts = [b]; ED.paradas.forEach(function(p){ var c = plC_(p.clienteId); if(m36LL_(c.lat, c.lng)) pts.push([c.lat, c.lng]); });
+  pts.push(b); return pts;
+}
+function plTrazoVigente_(){ var t = ED && ED.trazo; return m36TrazoOk_(t, plPuntos_()) ? t : null; }
+function plPedirTrazo_(despues){
+  var pts = plPuntos_(); if(pts.length < 3){ if(despues) despues(); return; }
+  var firma = m36Firma_(pts); PL_TZ_VUELO = true;
+  google.script.run.withSuccessHandler(function(r){
+    PL_TZ_VUELO = false;
+    if(r && r.google) PL.google = r.google;
+    if(r && r.ok && r.trazo && r.trazo.legs){ var t = r.trazo; t.firma = firma; if(ED && m36Firma_(plPuntos_()) === firma){ ED.trazo = t; plGuardarTrazoSolo_(); } }
+    else { PL_TZ_FALLO = firma; if(r && (r.googleError || r.aviso || r.error)) toast(r.googleError || r.aviso || r.error); }
+    if(despues) despues(); else { plPintarRuta_(); if(PL_VISTA === "mapa") plMapa_(); }
+  }).withFailureHandler(function(){ PL_TZ_VUELO = false; PL_TZ_FALLO = firma; if(despues) despues(); }).api_mapaTrazo(PIN, { puntos: pts.map(function(p){ return { lat: p[0], lng: p[1] }; }) });
+}
+/* una ruta ya guardada que no cambió: su trazo se guarda para el conductor */
+function plGuardarTrazoSolo_(){ if(ED && ED.rutaId && !ED.sucio && ED.trazo) google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).api_guardarTrazo(PIN, ED.rutaId, ED.trazo); }
+/* dónde meter un punto para que desvíe menos (en línea recta ×1.35) */
+function plKmOrden_(ids){
+  var b = plBase_(), prev = b, km = 0;
+  ids.forEach(function(id){ var c = plC_(id); if(m36LL_(c.lat, c.lng)){ if(prev) km += plKm_(prev, [c.lat, c.lng]); prev = [c.lat, c.lng]; } });
+  if(b && prev) km += plKm_(prev, b); return km;
+}
+function plDondeMenos_(id){
+  if(!ED) return null; var c = plC_(id); if(!m36LL_(c.lat, c.lng)) return null;
+  var ids = ED.paradas.map(function(p){ return p.clienteId; }), base = plKmOrden_(ids), mejor = null;
+  for(var i = 0; i <= ids.length; i++){ var x = ids.slice(); x.splice(i, 0, id); var d = plKmOrden_(x) - base; if(!mejor || d < mejor.d - 0.001) mejor = { i: i, d: d }; }
+  return mejor;
+}
+
+/* ── tipo de ruta: recolección o viaje a planta ── */
+function plTipoHtml_(){
+  var ds = (PL && PL.destinos) || [];
+  var op = '<option value="">🚚 Ruta de recolección</option>' + ds.map(function(d){ return '<option value="' + esc(d.id) + '"' + (ED.tipo === "planta" && ED.destinoId === d.id ? " selected" : "") + '>🏭 Viaje a planta · ' + esc(d.nombre) + '</option>'; }).join("");
+  return '<div class="vj-tipo-f"><small>Tipo</small><select onchange="plCambiarTipo_(this.value)">' + op + '</select>' +
+    (ds.length ? '' : '<button class="x" onclick="plDestinos_()">＋ Destinos de entrega</button>') + '</div>';
+}
+function plCambiarTipo_(v){
+  var i = ED.paradas.findIndex(function(p){ return p.clienteId === "P"; });
+  if(!v){ if(i >= 0) ED.paradas.splice(i, 1); ED.tipo = "recoleccion"; ED.destinoId = ""; ED.destino = null; }
+  else {
+    ED.tipo = "planta"; ED.destinoId = v; ED.destino = plDestino_(v);
+    if(i >= 0) ED.paradas.splice(i, 1);
+    var dm = plDondeMenos_("P"); ED.paradas.splice(dm ? dm.i : ED.paradas.length, 0, { clienteId: "P", origen: "planta" });
+  }
+  plSucio_(); plPintar_();
+}
+function plAcopioHtml_(){
+  var a = PL.acopio || {};
+  return '<div class="vj-aco">📦 <b>En acopio: ' + (a.kg || 0) + ' kg · ' + (a.recibos || 0) + ' recibos' + (a.desde ? ' · desde el ' + esc(nombreDia_(a.desde)) : '') + '</b><br>' +
+    'Lo que no se ha entregado. Al llegar a planta, el conductor hace el acta con esos días y lo que recoja hoy.</div>';
+}
+function plFilaPlanta_(i, c, e){
+  var a = PL.acopio || {};
+  var chip = c.hTipo ? '<span class="pl-chip ' + (e.ok === false ? "r" : "v") + '">🕘 ' + esc(c.hDesde) + '–' + esc(c.hHasta) + (e.ok === false ? ' ✕' : ' ✓') + '</span>' : '';
+  return '<div class="pl-st vj-pl' + (e.ok === false ? ' mal' : '') + '" draggable="true" data-i="' + i + '" ondragstart="plDragIni_(event,' + i + ')" ondragover="plDragSobre_(event,' + i + ')" ondragleave="this.classList.remove(\'sobre\')" ondrop="plDragSoltar_(event,' + i + ')" ondragend="plDragFin_()">' +
+    '<span class="h">⠿</span><span class="n">P</span><span class="eta">' + e.eta + '</span>' +
+    '<div class="nm"><b>' + esc(c.nombre) + '</b><span><span class="vj-et">ENTREGA EN PLANTA</span> · ' + e.sitio + ' min' + (e.espera ? ' · espera ' + e.espera + ' min' : '') + (a.kg ? ' · lleva ~' + a.kg + ' kg de acopio' : '') + '</span></div>' +
+    chip + '<button class="mas" onclick="plMenu_(' + i + ')">⋯</button></div>';
+}
+function plMenuPlanta_(i){
+  var c = plPlanta_();
+  abrirHojaIni_('<div class="ini-pt">🏭 ' + esc(c.nombre) + '</div><div class="ini-ps">Entrega en planta · recibe ' + esc(c.hDesde) + '–' + esc(c.hHasta) + ' · ' + c.min + ' min de entrega. Los clientes antes de la planta van a la ida; los de después, a la vuelta.</div><div class="pl-menu">' +
+    '<button onclick="cerrarHojaIni_();plMoverA_(' + i + ',' + Math.max(0, i - 1) + ')" ' + (i ? '' : 'disabled') + '>▲ Subir</button><button onclick="cerrarHojaIni_();plMoverA_(' + i + ',' + Math.min(ED.paradas.length - 1, i + 1) + ')">▼ Bajar</button>' +
+    '<hr><button onclick="cerrarHojaIni_();plCambiarTipo_(\'\')">🚚 Volverla ruta de recolección<small>quita la planta de esta ruta</small></button>' +
+    '<button onclick="cerrarHojaIni_();plDestinos_()">⚙ Destinos de entrega<small>ubicación, horario y minutos de cada planta</small></button></div>');
+}
+
+/* ── el cuadro izquierdo: Lista | Mapa ── */
+function plTgHtml_(){ return '<div class="mp-tg"><button class="' + (PL_VISTA === "lista" ? "on" : "") + '" onclick="plVista_(\'lista\')">☰ Lista</button><button class="' + (PL_VISTA === "mapa" ? "on" : "") + '" onclick="plVista_(\'mapa\')">🗺 Mapa</button></div>'; }
+function plVista_(v){ PL_VISTA = v; PL_NUM = null; if(v === "lista") PL_SELM = null; if(PL_M !== "toca" && !esEscritorio_() && v === "mapa") PL_M = "toca"; plPintar_(); }
+var plPintarCandsBase_ = plPintarCands_;
+plPintarCands_ = function(){
+  var box = $("pl-toca"); if(!box || !PL || !ED) return;
+  $("pantalla-plan").classList.toggle("con-mapa", PL_VISTA === "mapa");
+  if(PL_VISTA === "mapa") return plMapa_();
+  if(PL_MAP){ try{ PL_MAP.remove(); }catch(e){} PL_MAP = null; }
+  if(ED.tipo === "planta" && !PL_Q) return plCamino_();
+  plPintarCandsBase_();
+  var h = box.querySelector(".pl-ch"); if(h) h.insertAdjacentHTML("beforeend", plTgHtml_());
+};
+function plTrasPintarRuta_(){
+  document.querySelectorAll("#pl-lista .pl-st").forEach(function(f, i){
+    var id = ED.paradas[i] && ED.paradas[i].clienteId;
+    f.classList.toggle("mp-sel", !PL_NUM && PL_VISTA === "mapa" && String(id) === String(PL_SELM));
+    f.classList.toggle("mp-nv", !!PL_NUM && PL_NUM.indexOf(id) >= 0);
+    f.classList.toggle("mp-vj", !!PL_NUM && PL_NUM.indexOf(id) < 0);
+    if(PL_NUM && PL_NUM.indexOf(id) >= 0){ var n = f.querySelector(".n"); if(n) n.textContent = PL_NUM.indexOf(id) + 1; }
+  });
+}
+
+/* ── De camino a la planta: los que le toca, ordenados por lo que desvían ── */
+function plCamino_(){
+  var box = $("pl-toca"), d = plDestino_(ED.destinoId), B = plBase_();
+  var h = '<div class="pl-ch"><h3>De camino a la planta</h3>' + plTgHtml_() + '</div>' +
+    '<input class="pl-busca" id="pl-q" placeholder="🔍 Buscar en los ' + PL.clientes.filter(function(c){ return c.activo; }).length + ' clientes…" value="' + esc(PL_Q) + '" oninput="PL_Q=this.value;plPintarCands_();var e=$(\'pl-q\');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}">';
+  if(!d || !B){ box.innerHTML = h + '<div class="pl-vacio">' + (!B ? 'Falta fijar la base en ⚙: de ahí sale el viaje.' : 'Elige el destino arriba, en «Tipo».') + '</div>'; return; }
+  var P = [d.lat, d.lng], dir = plKm_(B, P), gr = {};
+  plCandidatos_().forEach(function(x){ if(!gr[x.id]) gr[x.id] = x; });
+  var lim = new Date(PL.fecha + "T12:00:00"); lim.setDate(lim.getDate() + 7); lim = plIso_(lim);
+  var otraRuta = {}; (PL.rutas || []).forEach(function(r){ if(r.rutaId !== ED.rutaId) r.paradas.forEach(function(p){ otraRuta[p.clienteId] = 1; }); });
+  var L0 = PL.clientes.filter(function(c){ return c.activo && m36LL_(c.lat, c.lng) && !plEnED_(c.id) && !otraRuta[c.id]; }).map(function(c){
+    var ll = [c.lat, c.lng], ida = plKm_(B, ll) + plKm_(ll, P) - dir, vta = plKm_(P, ll) + plKm_(ll, B) - dir, g = gr[c.id];
+    return { c: c, dv: Math.max(0, Math.min(ida, vta)), lado: ida <= vta ? "ida" : "vuelta", g: g ? g.g : (c.proxima && c.proxima <= lim ? "pronto" : ""), motivo: g ? g.x.motivo : (c.proxima ? "le toca el " + nombreDia_(c.proxima) : "") };
+  }).filter(function(x){ return x.g; });
+  var F = { cerca: function(x){ return x.dv < 7; }, ida: function(x){ return x.lado === "ida" && x.dv < 12; }, vuelta: function(x){ return x.lado === "vuelta" && x.dv < 12; }, todos: function(){ return true; } };
+  var L1 = L0.filter(F[PL_CAM_F] || F.cerca).sort(function(a, b){ return a.dv - b.dv; });
+  var por = { atrasados: "atrasado", arrastre: "no se atendió", tocan: "le toca", nuevos: "nuevo", recurrentes: "recurrente", extra: "recolección extra", pendientes: "pendiente", pronto: "le toca esta semana" };
+  h += '<div class="mp-hint"><span>Base → <b>' + esc(d.nombre) + '</b> · recibe ' + esc(d.desde) + '–' + esc(d.hasta) + '. Los que le toca, ordenados por lo que desvían del trayecto (en línea recta, aproximado).</span></div>' +
+    '<div class="pl-fil" style="padding:8px 14px">' + [["cerca", "Hasta 7 km de desvío"], ["ida", "A la ida"], ["vuelta", "A la vuelta"], ["todos", "Todos los que le toca"]].map(function(f){ return '<button class="' + (PL_CAM_F === f[0] ? "on" : "") + '" onclick="PL_CAM_F=\'' + f[0] + '\';plPintarCands_()">' + f[1] + '</button>'; }).join("") + '</div>';
+  h += L1.length ? L1.slice(0, 40).map(function(x){
+    return '<div class="vj-sp"><span class="nm"><b>' + esc(x.c.nombre) + '</b><span>' + esc((x.c.zona || "").toLowerCase()) + ' · ' + esc(por[x.g] || x.motivo || "") + (Math.round(x.c.kg) > 0 ? ' · ~' + Math.round(x.c.kg) + ' kg' : '') + (x.c.hTipo ? ' · 🕘 ' + esc(x.c.hDesde) + '–' + esc(x.c.hHasta) : '') + '</span></span>' +
+      '<span class="vj-dv' + (x.dv > 3.5 ? ' m' : '') + '">+' + x.dv.toFixed(1) + ' km · ' + x.lado + '</span><button class="add" title="Agregar" onclick="plAgregar_([' + x.c.id + '])">＋</button></div>';
+  }).join("") : '<div class="pl-vacio">Nadie a quien le toque queda de camino con este filtro.<br>Prueba «Todos los que le toca» o busca por nombre.</div>';
+  box.innerHTML = h;
+}
+
+/* ── el mapa de la ruta que se está armando ── */
+var PL_COL = { atrasados: "#d64545", arrastre: "#c2410c", tocan: "#e0a100", nuevos: "#7b4fd0", recurrentes: "#0e7490", extra: "#9d174d", pendientes: "#64748b" };
+function plMapa_(){
+  var box = $("pl-toca"); if(!box || !PL || !ED) return;
+  var B = plBase_(), g = PL.google || {}, C = plCalc_(), tz = plTrazoVigente_();
+  var sinLL = ED.paradas.filter(function(p){ var c = plC_(p.clienteId); return !m36LL_(c.lat, c.lng); }).length;
+  var head = '<div class="pl-ch"><h3>' + (ED.tipo === "planta" ? 'El viaje en el mapa' : 'La ruta en el mapa') + '</h3>' + plTgHtml_() + '</div>';
+  var ban;
+  if(PL_NUM) ban = '<div class="mp-ban">✎ Numerando: toca las paradas en el orden en que se van a hacer · ' + PL_NUM.length + ' de ' + ED.paradas.filter(function(p){ var c = plC_(p.clienteId); return m36LL_(c.lat, c.lng); }).length +
+    '<span class="sp"></span><button onclick="plNumDeshacer_()">↶ Deshacer</button><button onclick="plNumerar_(false)">Cancelar</button><button class="v" onclick="plNumListo_()">Listo</button></div>';
+  else ban = '<div class="mp-hint"><span>' + (tz ? '<b>Por carretera: ' + tz.km + ' km</b> · ' : (PL_TZ_VUELO ? '<b>Calculando por carretera…</b> · ' : '<b>≈ ' + C.km + ' km en línea recta</b> · ')) +
+      'toca un número para moverlo o un punto de color para agregarlo.</span><span class="sp"></span>' +
+      (g.rutas ? '' : '<span class="mp-gsin" title="Con los secretos de Google en Supabase, el camino sale por carretera">sin Google · línea recta</span>') +
+      '<button class="pl-btn" style="padding:6px 10px;font-size:12px" onclick="plOptimizar_()" ' + (ED.paradas.length < 2 ? "disabled" : "") + '>🕘 Optimizar con horarios</button>' +
+      '<button class="pl-btn" style="padding:6px 10px;font-size:12px" onclick="plNumerar_(true)" ' + (ED.paradas.length < 2 ? "disabled" : "") + '>✎ Numerar en el mapa</button></div>';
+  box.innerHTML = head + ban + '<div id="pl-mapa" class="mp-map"></div>' +
+    '<div class="mp-hint" style="border-top:1px solid var(--ini-linea);border-bottom:0"><div class="mp-leg">' +
+    '<span><i style="background:#16305c"></i>en la ruta</span><span><i style="background:' + PL_COL.atrasados + '"></i>atrasado</span>' +
+    '<span><i style="background:' + PL_COL.arrastre + '"></i>no se atendió</span><span><i style="background:' + PL_COL.tocan + '"></i>le toca</span>' +
+    '<span><i style="background:' + PL_COL.nuevos + '"></i>nuevo</span><span><i style="background:#1aa39a"></i>otra ruta del día</span></div>' +
+    (sinLL ? '<span class="sp"></span><span style="color:var(--ini-rojo)">' + sinLL + (sinLL === 1 ? ' parada sin ubicación: no sale' : ' paradas sin ubicación: no salen') + ' en el mapa</span>' : '') + '</div>';
+  if(PL_MAP){ try{ PL_MAP.remove(); }catch(e){} PL_MAP = null; }
+  PL_MAP = m36Mapa_("pl-mapa", { zoomControl: true });
+  var pts = B ? [B] : [];
+  /* las otras rutas del día, tenues */
+  (PL.rutas || []).forEach(function(r){
+    if(r.rutaId === ED.rutaId) return;
+    var ll = r.paradas.map(function(p){ var c = plC_(p.clienteId); return m36LL_(c.lat, c.lng) ? [c.lat, c.lng, c.nombre] : null; }).filter(Boolean);
+    if(B && ll.length) L.polyline([B].concat(ll.map(function(x){ return [x[0], x[1]]; })).concat([B]), { color: "#1aa39a", weight: 3, opacity: .45, dashArray: "2 6" }).addTo(PL_MAP);
+    ll.forEach(function(x){ L.marker([x[0], x[1]], { icon: m36Ic_('<div class="mp-c" style="background:#1aa39a;opacity:.75"></div>', 14) }).addTo(PL_MAP).bindTooltip(esc(x[2]) + ' · ruta de ' + esc(String(r.conductor).split(" ")[0])); });
+  });
+  /* los que le toca */
+  var enOtra = {}; (PL.rutas || []).forEach(function(r){ if(r.rutaId !== ED.rutaId) r.paradas.forEach(function(p){ enOtra[p.clienteId] = 1; }); });
+  if(!PL_NUM) plCandidatos_().forEach(function(x){
+    if(plEnED_(x.id) || enOtra[x.id]) return; var c = plC_(x.id); if(!m36LL_(c.lat, c.lng)) return;
+    L.marker([c.lat, c.lng], { icon: m36Ic_('<div class="mp-c" style="background:' + (PL_COL[x.g] || "#98A3B3") + '"></div>', 14) }).addTo(PL_MAP).on("click", function(){ plPopCand_(x); });
+  });
+  /* la línea de la ruta */
+  var ll = B ? [B] : [];
+  ED.paradas.forEach(function(p){ var c = plC_(p.clienteId); if(m36LL_(c.lat, c.lng)) ll.push([c.lat, c.lng]); });
+  if(B) ll.push(B);
+  if(PL_NUM){ if(PL_NUM.length) L.polyline((B ? [B] : []).concat(PL_NUM.map(function(id){ var c = plC_(id); return [c.lat, c.lng]; })), { color: "#2f8a3b", weight: 4, opacity: .9 }).addTo(PL_MAP); }
+  else if(tz){ var geo = []; tz.legs.forEach(function(l){ geo = geo.concat(m36Dec_(l)); }); L.polyline(geo, { color: "#ffffff", weight: 8, opacity: .85 }).addTo(PL_MAP); L.polyline(geo, { color: "#1f6fb2", weight: 4.5, opacity: 1 }).addTo(PL_MAP); }
+  else if(ll.length > 1) L.polyline(ll, { color: "#16305c", weight: 3.5, opacity: .8, dashArray: "6 7" }).addTo(PL_MAP);
+  if(B) L.marker(B, { icon: m36Ic_('<div class="mp-base">🏠</div>', 28) }).addTo(PL_MAP).bindTooltip(esc(PL.config.baseNombre || "Base") + ' · salida ' + C.salida + (ED.paradas.length ? ' · regreso ≈ ' + C.regreso : ''));
+  var nNum = 0;
+  ED.paradas.forEach(function(p, i){
+    var c = plC_(p.clienteId); if(!m36LL_(c.lat, c.lng)) return; pts.push([c.lat, c.lng]);
+    var k = PL_NUM ? PL_NUM.indexOf(p.clienteId) : -1, esP = p.clienteId === "P";
+    var cls = PL_NUM ? (k >= 0 ? "nuevo" : "viejo") : (String(PL_SELM) === String(p.clienteId) ? "sel" : "");
+    var txt = PL_NUM ? (k >= 0 ? k + 1 : "·") : i + 1;
+    var html = esP ? '<div class="mp-pl' + (cls === "sel" ? " sel" : "") + '">' + (PL_NUM && k >= 0 ? k + 1 + ' · ' : '') + 'PLANTA</div>' : '<div class="mp-n ' + cls + '">' + txt + '</div>';
+    L.marker([c.lat, c.lng], { zIndexOffset: 1000 + (cls === "sel" ? 500 : 0), icon: esP ? L.divIcon({ className: "", html: html, iconSize: [74, 26], iconAnchor: [37, 13] }) : m36Ic_(html, 26) })
+      .addTo(PL_MAP).on("click", function(){ if(PL_NUM) plNumTocar_(p.clienteId); else plPopParada_(p.clienteId); });
+  });
+  var clave = PL.fecha + "|" + (ED.rutaId || "nueva");
+  if(PL_MAPV && PL_MAPV.clave === clave) PL_MAP.setView(PL_MAPV.c, PL_MAPV.z, { animate: false });
+  else if(pts.length > 1) PL_MAP.fitBounds(pts, { padding: [28, 28] });
+  else PL_MAP.setView(B || [8.99, -79.52], 11);
+  PL_MAP.on("moveend", function(){ PL_MAPV = { clave: clave, c: PL_MAP.getCenter(), z: PL_MAP.getZoom() }; });
+  setTimeout(function(){ if(PL_MAP) PL_MAP.invalidateSize(); }, 60);
+  plTrasPintarRuta_();
+  /* con Google conectado, el camino por carretera se pide solo (una vez por orden) */
+  if(!PL_NUM && g.rutas && !tz && !PL_TZ_VUELO && ll.length > 2 && PL_TZ_FALLO !== m36Firma_(plPuntos_())){
+    clearTimeout(PL_TZ_T); PL_TZ_T = setTimeout(function(){ if(PL_VISTA === "mapa" && !plTrazoVigente_() && !PL_TZ_VUELO) plPedirTrazo_(); }, 900);
+  }
+}
+var PL_NUMKM = 0;
+function plPopParada_(id){
+  PL_SELM = id; var i = ED.paradas.findIndex(function(p){ return String(p.clienteId) === String(id); }); if(i < 0) return;
+  var c = plC_(id), r = plCalc_().paradas[i];
+  plMapa_();
+  var hor = c.hDesde ? ' · ' + (c.planta ? 'recibe ' : (c.hTipo === "estricto" ? 'recibe solo ' : 'prefiere ')) + esc(c.hDesde) + '–' + esc(c.hHasta) + (r.ok === false ? ' <b style="display:inline;color:#c0392b">· no llega a tiempo</b>' : '') : '';
+  var q = typeof id === "string" ? "'" + id + "'" : id;
+  L.popup({ offset: [0, -8], autoPan: true }).setLatLng([c.lat, c.lng]).setContent(
+    '<div class="mp-pop"><b>' + (c.planta ? '🏭 ' : '') + esc(c.nombre) + '</b><span>' + (c.planta ? 'entrega en planta' : esc(c.zona || "")) + ' · llega ' + r.eta + ' · ' + r.sitio + ' min' + (c.planta ? ' de entrega' : ' en el sitio · ~' + Math.round(c.kg || 0) + ' kg') + hor + '</span>' +
+    '<div class="pz">Puesto <button onclick="plMoverPuesto_(' + q + ',-1)">◀</button><em>' + (i + 1) + ' de ' + ED.paradas.length + '</em><button onclick="plMoverPuesto_(' + q + ',1)">▶</button></div>' +
+    (c.planta ? '' : '<button class="ac" onclick="plFicha_(' + id + ')">Ver su ficha</button><button class="ac r" onclick="PL_SELM=null;plQuitar_(' + i + ')">Quitar de esta ruta</button>') + '</div>').openOn(PL_MAP);
+}
+function plMoverPuesto_(id, d){
+  var i = ED.paradas.findIndex(function(p){ return String(p.clienteId) === String(id); }), j = i + d;
+  if(i < 0 || j < 0 || j >= ED.paradas.length) return;
+  var t = ED.paradas[i]; ED.paradas[i] = ED.paradas[j]; ED.paradas[j] = t; ED.sucio = true;
+  plPintarRuta_(); plPopParada_(id);
+}
+function plPopCand_(x){
+  var c = plC_(x.id), m = plDondeMenos_(x.id), n = ED.paradas.length, ids = ED.paradas.map(function(p){ return p.clienteId; });
+  var alFinal = plKmOrden_(ids.concat([x.id])) - plKmOrden_(ids);
+  var por = { atrasados: "Atrasado", arrastre: "No se atendió", tocan: "Le toca por frecuencia", nuevos: "Nuevo, sin visitas", recurrentes: "Recurrente", extra: "Recolección extra", pendientes: "Pendiente" }[x.g] || "";
+  L.popup({ offset: [0, -4] }).setLatLng([c.lat, c.lng]).setContent(
+    '<div class="mp-pop"><b>' + esc(c.nombre) + '</b><span>' + esc(por) + ' · ' + esc(c.zona || "") + ' · ~' + Math.round(c.kg || 0) + ' kg · ' + (c.min || PL.config.minSitio) + ' min en el sitio' + (c.hTipo ? ' · 🕘 ' + esc(c.hDesde) + '–' + esc(c.hHasta) : '') + '</span>' +
+    (m ? '<button class="ac p" onclick="plMeter_(' + x.id + ',' + m.i + ')">＋ Meterlo donde menos desvía<small>queda de ' + (m.i + 1) + '.ª parada · +' + Math.max(0.1, m.d).toFixed(1) + ' km</small></button>' : '') +
+    '<button class="ac" onclick="plMeter_(' + x.id + ',' + n + ')">＋ Al final de la ruta<small>queda de ' + (n + 1) + '.ª parada · +' + Math.max(0.1, alFinal).toFixed(1) + ' km</small></button></div>').openOn(PL_MAP);
+}
+function plMeter_(id, i){
+  var n0 = ED.paradas.length; plAgregar_([id], true);
+  var k = ED.paradas.findIndex(function(p){ return p.clienteId === id; });
+  if(k >= 0 && ED.paradas.length > n0){ var p = ED.paradas.splice(k, 1)[0]; ED.paradas.splice(Math.min(i, ED.paradas.length), 0, p); }
+  ED.sucio = true; PL_SELM = id; plPintar_(); toast("Agregado a la ruta");
+}
+/* numerar tocando */
+function plNumerar_(on){ PL_NUM = on ? [] : null; if(on) PL_NUMKM = Math.round(plKmOrden_(ED.paradas.map(function(p){ return p.clienteId; }))); plPintarRuta_(); plMapa_(); }
+function plNumTocar_(id){ if(PL_NUM.indexOf(id) < 0) PL_NUM.push(id); plMapa_(); }
+function plNumDeshacer_(){ PL_NUM.pop(); plMapa_(); }
+function plNumListo_(){
+  if(!PL_NUM.length){ plNumerar_(false); return; }
+  var resto = ED.paradas.filter(function(p){ return PL_NUM.indexOf(p.clienteId) < 0; });
+  var porId = {}; ED.paradas.forEach(function(p){ porId[p.clienteId] = p; });
+  ED.paradas = PL_NUM.map(function(id){ return porId[id]; }).concat(resto);
+  var kmN = Math.round(plKmOrden_(ED.paradas.map(function(p){ return p.clienteId; })));
+  PL_NUM = null; PL_SELM = null; plSucio_(); plPintar_();
+  toast("Orden nuevo · en línea recta ≈ " + kmN + " km (antes ≈ " + PL_NUMKM + ") · revisa y guarda");
+}
+</script>
+<script>
+/* ═══ api 3.6 · OPTIMIZAR CON HORARIOS ═══
+   Con Google: Route Optimization, un camión, sale de la base a su hora y vuelve.
+   Estricto = no llega fuera de su horario (puede esperar); preferencia = mejor dentro.
+   Si alguien no cabe, dice quién y ofrece: salir antes (a la hora que ya probó),
+   pasarlo a otro día, quitarlo o dejarlo al final.
+   Sin Google: lo mismo aquí, en línea recta. */
+function plOptReq_(){
+  var con = ED.paradas.filter(function(p){ var c = plC_(p.clienteId); return m36LL_(c.lat, c.lng); });
+  return { fecha: PL.fecha, salida: ED.horaSalida || PL.config.salida, conductor: ED.conductor,
+    paradas: con.filter(function(p){ return p.clienteId !== "P"; }).map(function(p){ var c = plC_(p.clienteId);
+      return { id: p.clienteId, lat: c.lat, lng: c.lng, min: c.min || PL.config.minSitio, hTipo: c.hTipo || "", hDesde: c.hDesde || "", hHasta: c.hHasta || "" }; }),
+    destinoId: con.some(function(p){ return p.clienteId === "P"; }) ? ED.destinoId : "" };
+}
+function plOptimizar_(){
+  if(!plBase_()){ toast("Primero fija la base en ⚙: de ahí sale y ahí vuelve el camión"); plConfig_(); return; }
+  var req = plOptReq_();
+  if(req.paradas.length + (req.destinoId ? 1 : 0) < 2){ toast("Hacen falta al menos 2 paradas con ubicación"); return; }
+  var g = PL.google || {};
+  if(!g.optimizar){ plOptVer_(plOptLocal_(req)); return; }
+  abrirHojaIni_('<div class="ini-pt">🕘 Optimizar con horarios</div><div class="ini-ps">Google está calculando el mejor orden por carretera, con los horarios de cada cliente…</div><div class="pl-vacio">Un momento…</div>');
+  google.script.run.withSuccessHandler(function(r){
+    if(r && r.google) PL.google = r.google;
+    if(r && r.ok && r.res){ plOptVer_(r.res); return; }
+    plOptVer_(plOptLocal_(req), (r && (r.googleError || r.aviso || r.error)) || "Google no respondió: se calculó aquí en línea recta.");
+  }).withFailureHandler(function(){ plOptVer_(plOptLocal_(req), "Sin conexión con Google: se calculó aquí en línea recta."); }).api_mapaOptimizar(PIN, req);
+}
+/* el mismo cálculo aquí, en línea recta ×1.35 a 27 km/h */
+function plOptLocal_(req, sinAlt){
+  var B = plBase_(), S = req.paradas.map(function(p){ return { id: String(p.id), ll: [p.lat, p.lng], min: p.min, t: p.hTipo, d: plMin_(p.hDesde), h: plMin_(p.hHasta), pl: false }; });
+  if(req.destinoId){ var d = plDestino_(req.destinoId); if(d) S.push({ id: "PLANTA", ll: [d.lat, d.lng], min: d.minutos, t: "estricto", d: plMin_(d.desde), h: plMin_(d.hasta), pl: true }); }
+  var tr = function(a, b){ return plKm_(a, b) / 27 * 60; };
+  var sim = function(ord, t0){
+    var t = t0, prev = B, km = 0, pen = 0, out = [];
+    ord.forEach(function(i){ var s = S[i]; km += plKm_(prev, s.ll); t += tr(prev, s.ll); var w = 0;
+      if(s.t === "estricto" && s.d !== null && t < s.d){ w = s.d - t; t = s.d; }
+      var late = s.h !== null && t > s.h ? t - s.h : 0;
+      if(s.t === "estricto") pen += late * (s.pl ? 1e5 : 1e3); else { pen += late * 2; if(s.d !== null && t < s.d) pen += (s.d - t) * 1; }
+      out.push({ i: i, llega: t, espera: w, late: late }); t += s.min; prev = s.ll; });
+    km += plKm_(prev, B); t += tr(prev, B);
+    return { out: out, km: km, fin: t, costo: pen * 100 + (t - t0) + km * 0.5 };
+  };
+  var mejorar = function(ord, t0){
+    var best = ord.slice(), bc = sim(best, t0).costo, ok = true, vueltas = 0;
+    while(ok && vueltas++ < 40){ ok = false;
+      for(var a = 0; a < best.length; a++) for(var b = 0; b < best.length; b++){ if(a === b) continue; var o = best.slice(); var x = o.splice(a, 1)[0]; o.splice(b, 0, x); var c = sim(o, t0).costo; if(c < bc - 1e-6){ best = o; bc = c; ok = true; } }
+      for(var a2 = 0; a2 < best.length - 1; a2++) for(var b2 = a2 + 2; b2 <= best.length; b2++){ var o2 = best.slice(0, a2).concat(best.slice(a2, b2).reverse(), best.slice(b2)); var c2 = sim(o2, t0).costo; if(c2 < bc - 1e-6){ best = o2; bc = c2; ok = true; } }
+    }
+    return best;
+  };
+  var t0 = plMin_(req.salida) || 470;
+  var resolver = function(t0){
+    var ord = mejorar(S.map(function(_, i){ return i; }), t0), fuera = [];
+    for(var k = 0; k < S.length; k++){
+      var s = sim(ord, t0), peor = -1, pt = 0;
+      s.out.forEach(function(o, j){ var x = S[o.i]; if(x.t === "estricto" && !x.pl && o.late > pt){ pt = o.late; peor = j; } });
+      if(peor < 0) break; fuera.push(ord[peor]); ord = mejorar(ord.filter(function(_, j){ return j !== peor; }), t0);
+    }
+    var s2 = sim(ord, t0), ll = {}, es = {};
+    s2.out.forEach(function(o){ ll[S[o.i].id] = plHH_(o.llega); if(o.espera >= 1) es[S[o.i].id] = Math.round(o.espera); });
+    return { fuente: "local", orden: ord.map(function(i){ return S[i].id; }), llegadas: ll, esperas: es,
+             noCaben: fuera.map(function(i){ return { id: S[i].id, motivo: "no alcanza su horario saliendo a esa hora" }; }),
+             salida: plHH_(t0), regreso: plHH_(s2.fin), km: Math.round(s2.km * 10) / 10, legs: null, tramos: null };
+  };
+  var r = resolver(t0);
+  if(r.noCaben.length && !sinAlt){
+    for(var t = t0 - 5; t >= t0 - 120; t -= 5){ var a = resolver(t); if(!a.noCaben.length){ r.alternativa = a; break; } }
+  }
+  return r;
+}
+/* cómo quedan los horarios con unas llegadas */
+function plOptHor_(ids, llegadas){
+  var n = 0, ok = 0;
+  ids.forEach(function(id){ var c = plC_(id === "PLANTA" ? "P" : Number(id)); if(!c.hTipo || !c.hDesde) return; n++;
+    var m = plMin_(llegadas[id]); if(m === null) return;
+    var bien = c.hTipo === "estricto" ? m <= plMin_(c.hHasta) + 0.5 : (m >= plMin_(c.hDesde) && m <= plMin_(c.hHasta) + 0.5); if(bien) ok++; });
+  return { n: n, ok: ok };
+}
+function plOptVer_(res, aviso){
+  PL_OPT = res;
+  var antes = plCalc_(), ahoraIds = ED.paradas.map(function(p){ return p.clienteId === "P" ? "PLANTA" : String(p.clienteId); });
+  var llA = {}; ED.paradas.forEach(function(p, i){ llA[p.clienteId === "P" ? "PLANTA" : String(p.clienteId)] = antes.paradas[i].eta; });
+  var hA = plOptHor_(ahoraIds, llA), hZ = plOptHor_(res.orden.concat(res.noCaben.map(function(x){ return x.id; })), res.llegadas);
+  var nom = function(id){ return plC_(id === "PLANTA" ? "P" : Number(id)).nombre; };
+  var chip = function(id){
+    var c = plC_(id === "PLANTA" ? "P" : Number(id)), m = plMin_(res.llegadas[id]);
+    if(res.esperas && res.esperas[id]) return '<span class="pl-chip b">espera ' + res.esperas[id] + ' min</span>';
+    if(!c.hTipo || !c.hDesde || m === null) return '';
+    if(c.hTipo === "estricto" && m > plMin_(c.hHasta) + 0.5) return '<span class="pl-chip r">✗ llega ' + Math.round(m - plMin_(c.hHasta)) + ' min tarde</span>';
+    if(c.hTipo !== "estricto" && (m < plMin_(c.hDesde) || m > plMin_(c.hHasta) + 0.5)) return '<span class="pl-chip e">fuera de su preferencia</span>';
+    return '<span class="pl-chip v">✓ a tiempo</span>';
+  };
+  var fila = function(id, k){
+    var c = plC_(id === "PLANTA" ? "P" : Number(id));
+    return '<div class="op-f"><span class="n' + (c.planta ? ' p' : '') + '">' + (c.planta ? 'P' : k + 1) + '</span><span class="h">' + esc(res.llegadas[id] || "—") + '</span><span class="nm"><b>' + esc(c.nombre) + '</b>' +
+      (c.hDesde ? '<span>' + (c.planta ? 'recibe ' : (c.hTipo === "estricto" ? 'recibe solo ' : 'prefiere ')) + esc(c.hDesde) + '–' + esc(c.hHasta) + '</span>' : '') + '</span>' + chip(id) + '</div>';
+  };
+  var fuente = res.fuente === "google" ? 'Tiempos por carretera de Google, para camión, con los minutos en el sitio de cada cliente.' : 'Sin Google: tiempos en línea recta (aproximados). Con Google conectado se calcula por carretera.';
+  var h = '<div class="ini-pt">🕘 Optimizar con horarios · ' + esc(nombreDia_(PL.fecha)) + '</div>' +
+    '<div class="ini-ps">' + esc(String(ED.conductor || "").split(" ")[0]) + ' · ' + esc(ED.vehiculo) + ' · sale ' + esc(res.salida) + ' de la base' + (ED.tipo === "planta" ? ' · viaje a planta' : '') + '</div>' +
+    (aviso ? '<div class="pl-avis" style="margin:8px 0">ℹ ' + esc(aviso) + '</div>' : '') +
+    '<div class="op-k"><div><b>' + (res.km ? res.km + ' km' : '—') + '</b><span>' + (antes.carretera ? 'antes ' : 'antes ≈ ') + antes.km + ' km</span></div><div><b>' + esc(res.regreso || "—") + '</b><span>regreso · antes ' + antes.regreso + '</span></div>' +
+    '<div><b>' + hZ.ok + ' de ' + hZ.n + '</b><span>horarios cumplidos · antes ' + hA.ok + '</span></div></div>';
+  if(!res.noCaben.length) h += '<div class="op-ok">✓ ' + (hZ.n ? 'Todas caben en su horario.' : 'Este es el orden más corto.') + ' ' + (res.orden.indexOf("PLANTA") >= 0 ? 'La planta queda en la ' + (res.orden.indexOf("PLANTA") + 1) + '.ª parada, dentro de su horario de recepción.' : '') + '</div>';
+  else {
+    var m0 = res.noCaben[0], c0 = plC_(Number(m0.id)), idx = ED.paradas.findIndex(function(p){ return String(p.clienteId) === String(m0.id); });
+    h += '<div class="pl-avis" style="margin:0 0 8px">✗ <b>' + (res.noCaben.length === 1 ? esc(c0.nombre) + ' no cabe' : res.noCaben.length + ' clientes no caben') + ' en su horario.</b> ' +
+      esc(c0.nombre) + (c0.hDesde ? ' recibe solo de ' + esc(c0.hDesde) + ' a ' + esc(c0.hHasta) : '') + ' y ' + esc(m0.motivo) + ' (' + esc(res.salida) + ').' +
+      (res.noCaben.length > 1 ? ' También: ' + res.noCaben.slice(1).map(function(x){ return esc(nom(x.id)); }).join(", ") + '.' : '') + '</div>' +
+      '<div class="ini-ps" style="margin:0 0 6px;font-weight:800;color:var(--ini-navy)">¿Qué hacemos?</div><div class="pl-menu" style="margin-bottom:10px">' +
+      (res.alternativa ? '<button onclick="plOptUsar_(\'alt\')">🕖 Salir a las ' + esc(res.alternativa.salida) + '<small>así ' + (res.alternativa.noCaben.length ? 'cabe más gente' : 'caben todas') + ' · el sistema ya probó esa hora</small></button>' : '') +
+      '<button onclick="cerrarHojaIni_();plMenuMover_(' + idx + ')">📅 Pasar ' + esc(c0.nombre) + ' a otro día<small>sale de esta ruta y entra en la del día que elijas</small></button>' +
+      '<button onclick="plOptQuitar_(\'' + esc(m0.id) + '\')">✕ Quitarlo de esta ruta<small>se usa el orden sin ' + (res.noCaben.length === 1 ? 'él' : 'ellos') + '</small></button>' +
+      '<button onclick="plOptUsar_(\'asi\')">⚠ Dejarlo al final de la ruta<small>no llegaría en su horario: conviene avisarle</small></button></div>';
+  }
+  h += '<div class="op-ls">' + res.orden.map(fila).join("") + res.noCaben.map(function(x){ return '<div class="op-f"><span class="n" style="background:#C0392B">✗</span><span class="h">—</span><span class="nm"><b>' + esc(nom(x.id)) + '</b><span>' + esc(x.motivo) + '</span></span></div>'; }).join("") + '</div>' +
+    '<div class="op-src">' + fuente + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:12px"><button class="ini-ok sec" style="flex:1" onclick="cerrarHojaIni_()">Dejarla como estaba</button><button class="ini-ok" style="flex:2" onclick="plOptUsar_(\'si\')">Usar este orden</button></div>';
+  abrirHojaIni_(h);
+}
+function plOptUsar_(modo){
+  var r = modo === "alt" ? PL_OPT.alternativa : PL_OPT; if(!r) return;
+  var porId = {}; ED.paradas.forEach(function(p){ porId[p.clienteId === "P" ? "PLANTA" : String(p.clienteId)] = p; });
+  var nuevas = [], usado = {};
+  r.orden.concat(r.noCaben.map(function(x){ return x.id; })).forEach(function(id){ if(porId[id] && !usado[id]){ nuevas.push(porId[id]); usado[id] = 1; } });
+  ED.paradas.forEach(function(p){ var k = p.clienteId === "P" ? "PLANTA" : String(p.clienteId); if(!usado[k]) nuevas.push(p); });
+  ED.paradas = nuevas;
+  if(modo === "alt") ED.horaSalida = r.salida;
+  cerrarHojaIni_(); plSucio_();
+  if(r.legs && r.legs.length && !r.noCaben.length){ var pts = plPuntos_(); if(r.legs.length === pts.length - 1) ED.trazo = { legs: r.legs, tramos: r.tramos || [], km: r.km, min: r.min, firma: m36Firma_(pts), fuente: "google" }; }
+  plPintar_();
+  toast("Orden aplicado" + (modo === "alt" ? " · sale a las " + r.salida : "") + " · revisa y guarda");
+}
+function plOptQuitar_(id){
+  var i = ED.paradas.findIndex(function(p){ return String(p.clienteId) === String(id); }); if(i < 0) return;
+  ED.paradas.splice(i, 1); PL_OPT.noCaben = PL_OPT.noCaben.filter(function(x){ return String(x.id) !== String(id); });
+  plOptUsar_("si");
+}
+
+/* cómo está Google, en el ⚙ del planificador */
+function plGoogleTxt_(){
+  var g = (PL && PL.google) || {};
+  var t = function(ok, que){ return '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><span class="' + (ok ? 'mp-gok' : 'mp-gsin') + '">' + (ok ? 'conectado' : 'sin conectar') + '</span><span>' + que + '</span></div>'; };
+  return '<div class="ini-ps" style="margin-top:14px;border-top:1px solid var(--ini-linea);padding-top:10px"><b style="color:var(--ini-navy)">Google</b>' +
+    t(g.rutas, 'Camino por carretera' + (g.rutas ? ' · hoy ' + (g.usoTrazo || 0) + ' de ' + (g.topeTrazo || 150) : ' · falta el secreto GOOGLE_MAPS_KEY')) +
+    t(g.optimizar, 'Optimizar con horarios' + (g.optimizar ? ' · hoy ' + (g.usoOptimizar || 0) + ' de ' + (g.topeOptimizar || 50) : (g.cuentaIlegible ? ' · el secreto GOOGLE_RO_CUENTA no se pudo leer: pega el JSON completo' : ' · faltan GOOGLE_RO_CUENTA y GOOGLE_PROYECTO'))) +
+    '<div style="margin-top:6px">Sin Google todo funciona igual, en línea recta.</div></div>';
+}
+
+/* ═══ api 3.6 · DESTINOS DE ENTREGA (⚙) ═══ */
+var DS_L = null;
+function plDestinos_(){
+  DS_L = ((PL && PL.destinos) || []).map(function(d){ return Object.assign({}, d); });
+  if(!DS_L.length) DS_L.push({ id: "", nombre: "", tipo: "propia", lat: "", lng: "", desde: "08:00", hasta: "14:00", minutos: 30, direccion: "" });
+  plDsPintar_();
+}
+function plDsPintar_(){
+  abrirHojaIni_('<div class="ini-pt">🏭 Destinos de entrega</div><div class="ini-ps">Adónde se lleva lo recolectado: la planta propia o la de un socio. Con esto se arma el viaje a planta y el optimizador respeta su horario de recepción.</div>' +
+    DS_L.map(function(d, i){
+      return '<div class="ds-card"><div class="f2"><div><label class="c2-f">Nombre</label><input class="c2-in" id="ds-n' + i + '" value="' + esc(d.nombre) + '" placeholder="Planta de tratamiento…"></div>' +
+        '<div><label class="c2-f">Es</label><select class="c2-in" id="ds-t' + i + '"><option value="propia"' + (d.tipo !== "socio" ? " selected" : "") + '>Planta propia</option><option value="socio"' + (d.tipo === "socio" ? " selected" : "") + '>Planta de un socio</option></select></div></div>' +
+        '<label class="c2-f">Ubicación (enlace del mapa o «lat, lng»)</label><input class="c2-in" id="ds-u' + i + '" value="' + (d.lat ? d.lat + ", " + d.lng : "") + '" placeholder="https://maps.google.com/…@8.95,-79.64">' +
+        '<div class="f3"><div><label class="c2-f">Recibe desde</label><input type="time" class="c2-in" id="ds-d' + i + '" value="' + esc(d.desde) + '"></div><div><label class="c2-f">Hasta</label><input type="time" class="c2-in" id="ds-h' + i + '" value="' + esc(d.hasta) + '"></div>' +
+        '<div><label class="c2-f">Minutos de entrega</label><input type="number" class="c2-in" id="ds-m' + i + '" min="5" max="240" value="' + esc(d.minutos) + '"></div></div>' +
+        '<label class="c2-f">Dirección o nota (opcional)</label><input class="c2-in" id="ds-a' + i + '" value="' + esc(d.direccion || "") + '">' +
+        '<button class="ini-lnk" style="margin-top:8px;color:var(--ini-rojo)" onclick="plDsLeer_();DS_L.splice(' + i + ',1);plDsPintar_()">✕ Quitar este destino</button></div>';
+    }).join("") +
+    '<button class="ini-lnk" style="margin-top:10px" onclick="plDsLeer_();DS_L.push({id:\'\',nombre:\'\',tipo:\'socio\',lat:\'\',lng:\'\',desde:\'08:00\',hasta:\'14:00\',minutos:30,direccion:\'\'});plDsPintar_()">＋ Otro destino</button>' +
+    '<button class="ini-ok" id="ds-ok" style="margin-top:12px" onclick="plDsGuardar_()">Guardar destinos</button>');
+}
+function plDsLeer_(){
+  DS_L.forEach(function(d, i){ if(!$("ds-n" + i)) return;
+    var t = $("ds-u" + i).value, m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+    d.nombre = $("ds-n" + i).value; d.tipo = $("ds-t" + i).value; d.desde = $("ds-d" + i).value; d.hasta = $("ds-h" + i).value; d.minutos = $("ds-m" + i).value; d.direccion = $("ds-a" + i).value;
+    if(m){ d.lat = Number(m[1]); d.lng = Number(m[2]); } else if(!t){ d.lat = ""; d.lng = ""; } else d.lat = "x";
+  });
+}
+function plDsGuardar_(){
+  plDsLeer_();
+  var mal = DS_L.find(function(d){ return d.nombre && d.lat === "x"; }); if(mal){ toast("No entendí la ubicación de «" + mal.nombre + "»"); return; }
+  var b = $("ds-ok"); b.disabled = true; b.textContent = "Guardando…";
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ b.disabled = false; b.textContent = "Guardar destinos"; toast((r && r.error) || "No se pudo guardar"); return; }
+    PL.destinos = r.destinos; if(ED && ED.tipo === "planta"){ ED.destino = plDestino_(ED.destinoId); if(!ED.destino) plCambiarTipo_(""); }
+    cerrarHojaIni_(); toast("Destinos guardados ✓"); plPintar_();
+  }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Guardar destinos"; toast("Sin señal"); }).api_guardarDestinos(PIN, DS_L.filter(function(d){ return String(d.nombre || "").trim(); }));
+}
+</script>
+<script>
+/* ═══ api 3.6 · MAPA DEL DÍA (supervisión) ═══
+   Hoy: cada ruta con su color; una parada se pinta hecha cuando el conductor
+   cierra su recibo (sin GPS); si pasó su hora planificada sin recibo, atrasada.
+   Clientes: todos con su punto por estado, los que no tienen ubicación o la
+   tienen mal, y las ubicaciones que mandan los conductores para aprobar. */
+var MD = null, MD_V = "hoy", MD_F = "", MD_RSEL = null, MD_MAP = null, MD_Z = "", MD_VUELO = false;
+var MD_EC = { atrasado: ["#d64545", "Atrasados"], semana: ["#e0a100", "Les toca esta semana"], aldia: ["#2f8a3b", "Al día"], nuevo: ["#7b4fd0", "Nuevos, sin visitas"], fuera: ["#98A3B3", "Fuera de servicio"] };
+function mdCargar_(f){
+  MD_F = f || MD_F || hoyISO();
+  if(MD_VUELO) return; MD_VUELO = true;
+  if(!MD || MD.fecha !== MD_F) $("md-cuerpo").innerHTML = '<div class="cr-tt"><div><h1>Mapa del día</h1><div class="sub">Abriendo el ' + esc(nombreDia_(MD_F)) + '…</div></div></div><div class="pl-vacio">Un momento…</div>';
+  google.script.run.withSuccessHandler(function(r){
+    MD_VUELO = false;
+    if(!r || !r.ok){ $("md-cuerpo").innerHTML = '<div class="pl-vacio">' + esc((r && r.error) || "No se pudo abrir el mapa") + '</div>'; return; }
+    MD = r; MD_F = r.fecha; if(MD_RSEL !== null && MD_RSEL >= r.rutas.length) MD_RSEL = null; mdPintar_();
+  }).withFailureHandler(function(){ MD_VUELO = false; $("md-cuerpo").innerHTML = '<div class="pl-vacio">Sin conexión. <button class="ini-lnk" onclick="mdCargar_()">Reintentar</button></div>'; }).api_mapaDia(PIN, MD_F);
+}
+function mdDiaMas_(n){ var d = new Date(MD_F + "T12:00:00"); d.setDate(d.getDate() + n); mdCargar_(plIso_(d)); }
+/* la secuencia de puntos de una ruta, con la planta en su puesto */
+function mdSecuencia_(r){
+  var s = r.paradas.map(function(p, i){ return { tipo: "cli", p: p, i: i }; });
+  if(r.tipo === "planta" && r.destino){ var k = r.plantaPos === null || r.plantaPos === undefined ? s.length : Math.min(s.length, r.plantaPos); s.splice(k, 0, { tipo: "planta", d: r.destino }); }
+  return s;
+}
+function mdLL_(x){ return x.tipo === "planta" ? [x.d.lat, x.d.lng] : (m36LL_(x.p.lat, x.p.lng) ? [x.p.lat, x.p.lng] : null); }
+function mdAtrasada_(p){ if(p.hecha || MD.fecha !== MD.hoy || !p.horaPlan) return false; return plMin_(p.horaPlan) + 20 < ahoraMin_(); }
+function mdPintar_(){
+  var v = MD_V, esHoy = MD.fecha === MD.hoy;
+  var h = '<div class="cr-tt"><div><h1>Mapa del día</h1><div class="sub">' + (v === "hoy"
+      ? esc(fechaLargaIni_(MD.fecha)) + ' · ' + MD.rutas.length + (MD.rutas.length === 1 ? ' ruta' : ' rutas') + ' publicada' + (MD.rutas.length === 1 ? '' : 's') + ' · el avance sale de los recibos cerrados'
+      : (MD.clientes.length + MD.sinUbicacion.length) + ' clientes activos · ' + MD.clientes.length + ' con ubicación') + '</div></div><span class="sp"></span>' +
+    '<div class="mp-tg"><button class="' + (v === "hoy" ? "on" : "") + '" onclick="MD_V=\'hoy\';mdPintar_()">Rutas</button><button class="' + (v === "cli" ? "on" : "") + '" onclick="MD_V=\'cli\';mdPintar_()">Clientes' + (MD.propuestas.length ? ' · ' + MD.propuestas.length : '') + '</button></div>' +
+    (v === "hoy" ? '<button class="pl-btn" onclick="mdDiaMas_(-1)">◀</button><input type="date" class="pl-btn" style="padding:6px 8px" value="' + MD.fecha + '" onchange="if(this.value)mdCargar_(this.value)"><button class="pl-btn" onclick="mdDiaMas_(1)">▶</button>' : '') +
+    '<button class="pl-btn" onclick="mdCargar_()" title="Actualizar">⟳</button></div>';
+  if(v === "hoy") h += mdHoyHtml_(esHoy); else h += mdCliHtml_();
+  $("md-cuerpo").innerHTML = h;
+  if(typeof mkIconos_ === "function"){ try{ mkIconos_($("pantalla-mapadia")); }catch(e){} }
+  setTimeout(function(){ if(v === "hoy") mdMapaHoy_(); else mdMapaCli_(); }, 30);
+}
+function mdHoyHtml_(esHoy){
+  var R = MD.rutas;
+  var tot = R.reduce(function(s, r){ return s + r.paradas.length; }, 0), he = R.reduce(function(s, r){ return s + r.hechas; }, 0);
+  var at = 0; R.forEach(function(r){ r.paradas.forEach(function(p){ if(mdAtrasada_(p)) at++; }); });
+  var kg = R.reduce(function(s, r){ return s + r.kg; }, 0);
+  var h = '<div class="mt-k4"><div><b>' + he + ' de ' + tot + '</b><span>paradas hechas</span></div>' +
+    '<div><b>' + (esHoy ? at : '—') + '</b><span>' + (esHoy ? (at === 1 ? 'va atrasada · <em style="color:#8A6300">pasó su hora sin recibo</em>' : 'van atrasadas · pasaron su hora sin recibo') : 'atrasadas: solo se ve el día de hoy') + '</span></div>' +
+    '<div><b>' + Math.round(kg) + ' kg</b><span>recogidos' + (esHoy ? ' hoy' : '') + '</span></div>' +
+    '<div><b>' + R.filter(function(r){ return r.tipo === "planta"; }).length + '</b><span>viaje(s) a planta</span></div></div>';
+  if(!R.length) return h + '<div class="pl-vacio">No hay rutas publicadas para este día.<br><button class="ini-lnk" onclick="PL_F=\'' + MD.fecha + '\';mostrarTab(\'plan\')">Abrir el planificador</button></div>';
+  h += '<div class="mt-grid"><div class="mt-card" style="padding:0;overflow:hidden"><div id="md-mapa" class="md-map"></div></div><div class="mt-col"><div class="mt-card"><h3>Rutas<span class="sp"></span><small>toca una para verla sola</small></h3>' +
+    R.map(function(r, k){
+      var seq = mdSecuencia_(r), sig = r.paradas.find(function(p){ return !p.hecha; }), atr = r.paradas.filter(mdAtrasada_).length;
+      var pct = r.paradas.length ? Math.round(r.hechas / r.paradas.length * 100) : 0;
+      var est = !r.paradas.length ? '<span class="pl-chip b">viaje a planta</span>' : (r.hechas >= r.paradas.length ? '<span class="pl-chip v">terminada</span>' : (atr ? '<span class="pl-chip e">' + atr + ' atrasada' + (atr > 1 ? 's' : '') + '</span>' : '<span class="pl-chip v">a tiempo</span>'));
+      return '<div class="md-rt' + (MD_RSEL === k ? ' on' : '') + '" onclick="MD_RSEL=(MD_RSEL===' + k + '?null:' + k + ');mdPintar_()"><div class="t"><i style="background:' + r.color + '"></i><b>' + (r.tipo === "planta" ? '🏭 ' : '') + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + '</b><span class="sp"></span>' + est + '</div>' +
+        '<div class="pl-bar" style="margin-top:8px"><i style="width:' + pct + '%;background:' + r.color + '"></i></div>' +
+        '<small>' + r.hechas + ' de ' + r.paradas.length + ' paradas · ' + Math.round(r.kg) + ' kg' + (r.tipo === "planta" && r.destino ? ' · entrega en ' + esc(r.destino.nombre) : '') + (sig ? ' · <b>sigue:</b> ' + esc(sig.nombre) + (sig.horaPlan ? ' · plan ' + esc(sig.horaPlan) : '') : '') + '</small>' +
+        (MD_RSEL === k ? '<div style="margin-top:8px">' + seq.map(function(x, i){
+          if(x.tipo === "planta") return '<div class="md-st"><span class="n mp-pl" style="height:20px;font-size:9px;padding:0 5px">P</span><span class="nm">' + esc(x.d.nombre) + '</span><span class="h">recibe ' + esc(x.d.desde) + '–' + esc(x.d.hasta) + '</span></div>';
+          var p = x.p, e = p.hecha ? "hecha" : (mdAtrasada_(p) ? "tarde" : "pend");
+          return '<div class="md-st"><span class="n mp-n ' + e + '" style="' + (e === "pend" ? 'border-color:' + r.color + ';color:' + r.color : '') + '">' + (p.hecha ? '✓' : x.i + 1) + '</span><span class="nm">' + esc(p.nombre) + '</span><span class="h">' +
+            (p.hecha ? '✓ ' + esc(p.horaHecha || "") + (p.kg ? ' · ' + p.kg + ' kg' : '') : (e === "tarde" ? 'plan ' + esc(p.horaPlan) + ' · sin recibo' : (p.horaPlan ? 'plan ' + esc(p.horaPlan) : ''))) + '</span></div>';
+        }).join("") + '</div>' : '') + '</div>';
+    }).join("") +
+    '<div class="md-nota">Sin GPS: una parada se pinta hecha cuando el conductor cierra su recibo. Si pasa 20 minutos de su hora planificada sin recibo, se pinta atrasada.</div></div>' +
+    '<div class="mt-card"><h3>Leyenda</h3><div class="mp-leg" style="gap:8px 14px"><span><i style="background:#2f8a3b"></i>hecha</span><span><i style="background:#fff;box-shadow:0 0 0 2px #16305c"></i>pendiente</span><span><i style="background:#fff;box-shadow:0 0 0 2px #e0a100"></i>atrasada</span><span><i style="background:#14306B;border-radius:3px"></i>planta</span></div>' +
+    (MD.google && MD.google.rutas ? '' : '<div class="md-nota">Sin Google: las rutas se dibujan en línea recta. Con Google conectado, se dibujan por carretera al publicarlas.</div>') + '</div></div></div>';
+  return h;
+}
+function mdMapaHoy_(){
+  if(!$("md-mapa")) return;
+  if(MD_MAP){ try{ MD_MAP.remove(); }catch(e){} MD_MAP = null; }
+  MD_MAP = m36Mapa_("md-mapa");
+  var B = MD.base ? [MD.base.lat, MD.base.lng] : null, pts = B ? [B] : [];
+  if(B) L.marker(B, { icon: m36Ic_('<div class="mp-base">🏠</div>', 28) }).addTo(MD_MAP).bindTooltip(esc(MD.base.nombre));
+  MD.rutas.forEach(function(r, k){
+    if(MD_RSEL !== null && MD_RSEL !== k) return;
+    var seq = mdSecuencia_(r), ll = [], hechoHasta = 0;
+    seq.forEach(function(x, i){ var q = mdLL_(x); if(q){ ll.push(q); } if(x.tipo === "cli" && x.p.hecha) hechoHasta = ll.length; });
+    var P = B ? [B].concat(ll, [B]) : ll;
+    if(B && m36TrazoOk_(r.trazo, P)){
+      r.trazo.legs.forEach(function(l, j){ var g = m36Dec_(l), hecho = j < hechoHasta;
+        L.polyline(g, { color: "#fff", weight: hecho ? 6 : 7, opacity: .7 }).addTo(MD_MAP); L.polyline(g, { color: r.color, weight: hecho ? 4.5 : 3.5, opacity: .95, dashArray: hecho ? null : "7 6" }).addTo(MD_MAP); });
+    } else if(P.length > 1){
+      L.polyline(P, { color: "#fff", weight: 5, opacity: .6 }).addTo(MD_MAP); L.polyline(P, { color: r.color, weight: 3, opacity: .9, dashArray: "5 7" }).addTo(MD_MAP);
+      if(hechoHasta) L.polyline(P.slice(0, hechoHasta + (B ? 1 : 0)), { color: r.color, weight: 4.5, opacity: .9 }).addTo(MD_MAP);
+    }
+    seq.forEach(function(x){
+      var q = mdLL_(x); if(!q) return; pts.push(q);
+      if(x.tipo === "planta"){ L.marker(q, { icon: L.divIcon({ className: "", html: '<div class="mp-pl">PLANTA</div>', iconSize: [70, 26], iconAnchor: [35, 13] }) }).addTo(MD_MAP).bindTooltip(esc(x.d.nombre) + ' · recibe ' + esc(x.d.desde) + '–' + esc(x.d.hasta)); return; }
+      var p = x.p, e = p.hecha ? "hecha" : (mdAtrasada_(p) ? "tarde" : "pend");
+      var sty = e === "pend" ? 'border-color:' + r.color + ';color:' + r.color : (e === "hecha" ? 'box-shadow:0 0 0 2px ' + r.color + ',0 2px 6px rgba(10,30,60,.35)' : '');
+      L.marker(q, { icon: m36Ic_('<div class="mp-n ' + e + '" style="' + sty + '">' + (p.hecha ? '✓' : x.i + 1) + '</div>', 26) }).addTo(MD_MAP)
+        .bindTooltip(esc(p.nombre) + (p.hecha ? ' · hecha ' + esc(p.horaHecha || "") : (e === "tarde" ? ' · atrasada, sin recibo' : (p.horaPlan ? ' · plan ' + esc(p.horaPlan) : ' · pendiente'))));
+    });
+  });
+  if(pts.length > 1) MD_MAP.fitBounds(pts, { padding: [30, 30] }); else MD_MAP.setView(B || [8.99, -79.52], 11);
+}
+function mdCliHtml_(){
+  var zon = []; MD.clientes.concat(MD.sinUbicacion).forEach(function(c){ if(c.zona && zon.indexOf(c.zona) < 0) zon.push(c.zona); }); zon.sort();
+  var vis = MD.clientes.filter(function(c){ return !MD_Z || c.zona === MD_Z; });
+  var cnt = {}; vis.forEach(function(c){ cnt[c.estado] = (cnt[c.estado] || 0) + 1; });
+  var sin = MD.sinUbicacion.filter(function(c){ return !MD_Z || c.zona === MD_Z; }).sort(function(a, b){ return (b.mal ? 1 : 0) - (a.mal ? 1 : 0); });
+  var h = '<div class="md-fil pl-fil"><button class="' + (!MD_Z ? "on" : "") + '" onclick="MD_Z=\'\';mdPintar_()">Todas las zonas</button>' + zon.map(function(z){ return '<button class="' + (MD_Z === z ? "on" : "") + '" onclick="MD_Z=\'' + esc(z).replace(/'/g, "\\'") + '\';mdPintar_()">' + esc(z.toLowerCase()) + '</button>'; }).join("") + '</div>';
+  h += '<div class="mt-grid"><div class="mt-card" style="padding:0;overflow:hidden"><div id="md-mapa" class="md-map"></div></div><div class="mt-col">';
+  if(MD.propuestas.length) h += '<div class="mt-card"><h3>Ubicaciones que mandaron los conductores<span class="sp"></span><small>' + MD.propuestas.length + '</small></h3>' +
+    MD.propuestas.map(function(x){ return '<div class="md-sin"><b>' + esc(x.cliente) + '<span class="mt-sub" style="display:block;font-weight:600">' + esc(String(x.por).split(" ")[0]) + ' · ' + esc(x.fecha) + (x.distancia ? ' · a ' + (x.distancia >= 1000 ? (x.distancia / 1000).toFixed(1) + ' km' : x.distancia + ' m') + ' del punto guardado' : ' · no tenía ubicación') + (x.nota ? ' · «' + esc(x.nota) + '»' : '') + '</span></b><button class="mt-b" onclick="mdVerPropuesta_(\'' + esc(x.ubId) + '\')">Revisar</button></div>'; }).join("") + '</div>';
+  h += '<div class="mt-card"><h3>Cómo están</h3><div class="md-cnt">' + Object.keys(MD_EC).map(function(k){ return '<span><i style="background:' + MD_EC[k][0] + '"></i>' + MD_EC[k][1] + '</span><b>' + (cnt[k] || 0) + '</b>'; }).join("") + '</div>' +
+    '<div class="md-nota">Toca un punto para ver su última y su próxima visita, abrir su ficha o meterlo en la ruta de un día.</div></div>' +
+    '<div class="mt-card"><h3>Sin ubicación o mal escrita<span class="sp"></span><small>' + sin.length + '</small></h3>' +
+    (sin.length ? sin.slice(0, 14).map(function(c){ return '<div class="md-sin"><b>' + esc(c.nombre) + (c.mal ? '<span class="mt-sub" style="display:block;font-weight:600;color:var(--tm-bad,#c0392b)">coordenada fuera de Panamá: ' + esc(c.lat) + ', ' + esc(c.lng) + '</span>' : '<span class="mt-sub" style="display:block;font-weight:600">' + esc((c.zona || "").toLowerCase()) + '</span>') + '</b><button class="mt-b" onclick="mdUbicar_(' + c.id + ')">' + (c.mal ? 'Corregir' : 'Ubicarlo') + '</button></div>'; }).join("") + (sin.length > 14 ? '<div class="md-nota">y ' + (sin.length - 14) + ' más</div>' : '') : '<div class="md-nota">Todos tienen su punto en el mapa ✓</div>') + '</div></div></div>';
+  return h;
+}
+function mdMapaCli_(){
+  if(!$("md-mapa")) return;
+  if(MD_MAP){ try{ MD_MAP.remove(); }catch(e){} MD_MAP = null; }
+  MD_MAP = m36Mapa_("md-mapa");
+  var pts = [];
+  if(MD.base) L.marker([MD.base.lat, MD.base.lng], { icon: m36Ic_('<div class="mp-base">🏠</div>', 28) }).addTo(MD_MAP).bindTooltip(esc(MD.base.nombre));
+  (MD.destinos || []).forEach(function(d){ L.marker([d.lat, d.lng], { icon: L.divIcon({ className: "", html: '<div class="mp-pl">PLANTA</div>', iconSize: [70, 26], iconAnchor: [35, 13] }) }).addTo(MD_MAP).bindTooltip(esc(d.nombre)); });
+  MD.clientes.forEach(function(c){
+    if(MD_Z && c.zona !== MD_Z) return; pts.push([c.lat, c.lng]);
+    L.marker([c.lat, c.lng], { icon: m36Ic_('<div class="mp-c" style="width:15px;height:15px;background:' + MD_EC[c.estado][0] + '"></div>', 15) }).addTo(MD_MAP).on("click", function(){ mdPopCli_(c); });
+  });
+  var metro = pts.filter(function(q){ return q[1] > -79.95 && q[1] < -79.25; });
+  if(pts.length) MD_MAP.fitBounds(!MD_Z && metro.length > 5 ? metro : pts, { padding: [30, 30] }); else MD_MAP.setView([8.99, -79.52], 11);
+}
+function mdPopCli_(c){
+  var sig = plHabilDespues_(hoyISO());
+  L.popup({ offset: [0, -4] }).setLatLng([c.lat, c.lng]).setContent('<div class="mp-pop"><b>' + esc(c.nombre) + '</b><span>' + esc(c.zona || "") + (c.frec ? ' · ' + esc(c.frec) : '') +
+    '<br>Última: ' + (c.ultima ? esc(nombreDia_(c.ultima)) : '—') + ' · próxima: ' + (c.proxima ? esc(nombreDia_(c.proxima)) : '—') + ' · <b style="display:inline;color:' + MD_EC[c.estado][0] + '">' + esc(MD_EC[c.estado][1].toLowerCase()) + '</b></span>' +
+    '<button class="ac" onclick="mostrarTab(\'cli2\');setTimeout(function(){abrirFichaC2_(' + c.id + ')},60)">Ver su ficha</button>' +
+    '<button class="ac p" onclick="mdMeter_(' + c.id + ')">＋ Meterlo en una ruta<small>eliges el día; entra al borrador de ese día</small></button></div>').openOn(MD_MAP);
+}
+function mdMeter_(id){
+  var ds = [], d = hoyISO(); for(var i = 0; i < 4; i++){ d = plHabilDespues_(d); ds.push(d); }
+  var c = MD.clientes.find(function(x){ return x.id === id; }) || { nombre: "" };
+  abrirHojaIni_('<div class="ini-pt">＋ Meter en una ruta</div><div class="ini-ps">' + esc(c.nombre) + ' entra al planificador de ese día; ahí eliges en qué puesto y guardas.</div>' +
+    ds.map(function(f){ return '<button class="c2-rt" onclick="cerrarHojaIni_();PL_ADD=[' + id + '];PL_F=\'' + f + '\';mostrarTab(\'plan\')"><span style="font-size:20px">📅</span><div><b>' + esc(fechaLargaIni_(f)) + '</b><span>abrir el planificador</span></div></button>'; }).join(""));
+}
+/* ubicar o corregir un cliente: se pega el enlace o se toca el mapa */
+var MD_UB = null;
+function mdUbicar_(id){
+  var c = MD.sinUbicacion.find(function(x){ return x.id === id; }) || MD.clientes.find(function(x){ return x.id === id; }); if(!c) return;
+  MD_UB = { id: id, ll: null };
+  abrirHojaIni_('<div class="ini-pt">📍 ' + (c.mal ? 'Corregir' : 'Ubicar') + ' · ' + esc(c.nombre) + '</div><div class="ini-ps">' + esc(c.direccion || c.zona || "") + (c.mal ? ' · la guardada (' + esc(c.lat) + ', ' + esc(c.lng) + ') cae fuera de Panamá' : '') + '</div>' +
+    '<label class="c2-f">Enlace del mapa o «lat, lng»</label><input class="c2-in" id="md-ub-t" placeholder="https://maps.google.com/…@8.98,-79.52" oninput="mdUbTexto_()">' +
+    '<div id="md-ub-m" class="md-mini"></div><div class="md-nota" id="md-ub-n">O toca en el mapa el punto de la entrada.</div>' +
+    '<button class="ini-ok" id="md-ub-ok" style="margin-top:10px" disabled onclick="mdUbGuardar_()">Guardar la ubicación</button>');
+  setTimeout(function(){
+    var m = MD_UB.map = m36Mapa_("md-ub-m", { zoomControl: true }); m.setView(MD.base ? [MD.base.lat, MD.base.lng] : [8.99, -79.52], 12);
+    m.on("click", function(e){ mdUbPoner_([e.latlng.lat, e.latlng.lng]); });
+  }, 40);
+}
+function mdUbTexto_(){ var t = $("md-ub-t").value, m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/); if(m) mdUbPoner_([Number(m[1]), Number(m[2])], true); }
+function mdUbPoner_(ll, centrar){
+  if(!m36LL_(ll[0], ll[1])){ $("md-ub-n").textContent = "Ese punto no está en Panamá."; $("md-ub-ok").disabled = true; return; }
+  MD_UB.ll = ll; if(MD_UB.mk) MD_UB.map.removeLayer(MD_UB.mk);
+  MD_UB.mk = L.circleMarker(ll, { radius: 9, color: "#fff", weight: 3, fillColor: "#1f6fb2", fillOpacity: 1 }).addTo(MD_UB.map);
+  if(centrar) MD_UB.map.setView(ll, 16, { animate: false });
+  $("md-ub-n").textContent = "Punto: " + ll[0].toFixed(6) + ", " + ll[1].toFixed(6); $("md-ub-ok").disabled = false;
+}
+function mdUbGuardar_(){
+  var b = $("md-ub-ok"); b.disabled = true; b.textContent = "Guardando…";
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ b.disabled = false; b.textContent = "Guardar la ubicación"; toast((r && r.error) || "No se pudo"); return; }
+    cerrarHojaIni_(); toast("Ubicación guardada ✓"); mdCargar_();
+  }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Guardar la ubicación"; toast("Sin señal"); }).api_guardarOperativoCliente(PIN, MD_UB.id, { lat: MD_UB.ll[0], lng: MD_UB.ll[1] });
+}
+function mdVerPropuesta_(ubId){
+  var x = MD.propuestas.find(function(p){ return p.ubId === ubId; }); if(!x) return;
+  abrirHojaIni_('<div class="ini-pt">📍 ' + esc(x.cliente) + '</div><div class="ini-ps">La mandó ' + esc(x.por) + ' el ' + esc(x.fecha) + ' desde la puerta' + (x.precision ? ' (precisión ±' + x.precision + ' m)' : '') + '.' + (x.nota ? ' «' + esc(x.nota) + '»' : '') + '</div>' +
+    '<div id="md-pr-m" class="md-mini"></div><div class="md-nota">🔵 la que mandó el conductor' + (x.antes ? ' · 🔴 la guardada (' + (x.distancia >= 1000 ? (x.distancia / 1000).toFixed(1) + ' km' : x.distancia + ' m') + ' de diferencia)' : ' · no tenía ubicación') + '. Al aprobarla, la ficha del cliente cambia.</div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px"><button class="ini-ok sec" style="flex:1" onclick="mdRevisar_(\'' + esc(ubId) + '\',false)">Descartar</button><button class="ini-ok" style="flex:2" onclick="mdRevisar_(\'' + esc(ubId) + '\',true)">Aprobar esta ubicación</button></div>');
+  setTimeout(function(){
+    var m = m36Mapa_("md-pr-m"), p = [[x.lat, x.lng]];
+    L.circleMarker([x.lat, x.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#1A73E8", fillOpacity: 1 }).addTo(m);
+    if(x.antes){ p.push([x.antes.lat, x.antes.lng]); L.circleMarker([x.antes.lat, x.antes.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#C0392B", fillOpacity: 1 }).addTo(m); L.polyline(p, { color: "#fff", weight: 2, dashArray: "4 5" }).addTo(m); }
+    if(p.length > 1) m.fitBounds(p, { padding: [34, 34] }); else m.setView(p[0], 16);
+  }, 40);
+}
+function mdRevisar_(ubId, ok){
+  google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } cerrarHojaIni_(); toast(ok ? "Ubicación aprobada ✓" : "Descartada"); mdCargar_(); })
+    .withFailureHandler(function(){ toast("Sin señal"); }).api_revisarUbicacion(PIN, ubId, !!ok);
+}
+</script>
+<script>
+/* ═══ api 3.6 · MAPA DEL CONDUCTOR ═══
+   El trazo por carretera viene guardado con la ruta (no gasta en Google).
+   La siguiente parada con Navegar (Google Maps o Waze), Llamar y Llegué;
+   si la ubicación del cliente está mal, el conductor manda la suya desde
+   la puerta y logística la aprueba. En un viaje a planta, la planta es una
+   parada más: «Llegué» abre el acta de entrega. */
+var CD_MAP = null, CD_YO = null, CD_VIGIA = null;
+function rutaInfo_(r){
+  if(!r) return null;
+  return { tipo: r.tipo === "planta" ? "planta" : "recoleccion", destino: r.destino || null, plantaPos: r.plantaPos === undefined ? null : r.plantaPos,
+           trazo: r.trazo || null, base: r.base || null };
+}
+/* la ruta como secuencia: clientes y, si es viaje a planta, la planta en su puesto */
+function cdSecuencia_(){
+  var P = RUTA.paradas || [], info = RUTA.info || {};
+  var s = P.map(function(p, i){ return { tipo: "cli", i: i, p: p, c: cli(p.clienteId) || { nombre: "Cliente " + p.clienteId } }; });
+  if(info.tipo === "planta" && info.destino){ var k = info.plantaPos === null || info.plantaPos === undefined ? s.length : Math.min(s.length, info.plantaPos); s.splice(k, 0, { tipo: "planta", d: info.destino }); }
+  s.forEach(function(x){ x.hecha = x.tipo === "planta" ? !!RUTA.plantaHecha : x.p.estadoParada === "completada"; x.ll = x.tipo === "planta" ? [x.d.lat, x.d.lng] : (x.c && m36LL_(x.c.lat, x.c.lng) ? [x.c.lat, x.c.lng] : null); });
+  return s;
+}
+function cdTableroPlanta_(){
+  var d = RUTA.info.destino;
+  return '<div class="tb-et">Mi ruta de hoy</div><div class="tb-t1">🏭 Viaje a planta' + (RUTA.vehiculo ? ' · <span style="white-space:nowrap">' + esc(RUTA.vehiculo) + '</span>' : '') + '</div>' +
+    '<div class="tb-t2">' + esc(d.nombre) + ' · recibe ' + esc(d.desde) + '–' + esc(d.hasta) + (RUTA.plantaHecha ? ' · entregado ✓' : '') + '</div>' +
+    '<button class="tb-go" onclick="event.stopPropagation();mostrarTab(\'mapa\')">Ver en el mapa →</button>';
+}
+function iniciarMapa(){ cdPintar_(); }
+function dibujarMapa(){ cdPintar_(); }
+function cdPintar_(){
+  var s = $("pantalla-mapa"); if(!s || esSupervisor()) return;
+  var seq = cdSecuencia_(), info = RUTA.info || {}, B = info.base ? [info.base.lat, info.base.lng] : null;
+  var k = seq.findIndex(function(x){ return !x.hecha; }), sig = k >= 0 ? seq[k] : null;
+  var nCli = seq.filter(function(x){ return x.tipo === "cli"; }).length, hechas = seq.filter(function(x){ return x.tipo === "cli" && x.hecha; }).length;
+  var kg = (RUTA.paradas || []).filter(function(p){ return p.estadoParada === "completada"; }).reduce(function(a, p){ return a + num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo); }, 0);
+  var h = '<div class="barra-navegacion-top"><h2>🗺️ Mapa de la ruta</h2><button class="btn-volver-hub" onclick="mostrarTab(\'hub\')">☰ Menú</button></div>';
+  if(!seq.length){ s.innerHTML = h + '<div class="vacio" style="padding:30px 10px;text-align:center">No tienes una ruta activa.<br><button class="btn azul" style="margin-top:12px" onclick="mostrarTab(\'agenda\')">Ver mis rutas</button></div>'; return; }
+  var ca = RUTA.cambio;
+  if(ca && (ca.mas.length || ca.menos.length || ca.planta)) h += '<div class="mc-ban"><span style="font-size:18px">🔔</span><span style="flex:1">Logística cambió tu ruta' + (ca.hora ? ' (' + esc(ca.hora) + ')' : '') + ': ' +
+    [ca.mas.length ? 'se agregó <b>' + ca.mas.map(esc).join(", ") + '</b>' : '', ca.menos.length ? 'se quitó <b>' + ca.menos.map(esc).join(", ") + '</b>' : '', ca.planta ? 'cambió el momento de la entrega en planta' : ''].filter(Boolean).join(" · ") + '.</span>' +
+    '<button onclick="RUTA.cambio=null;guardarLocal(K_PAR,RUTA);cdPintar_()">Entendido</button></div>';
+  h += '<div class="mc-top"><span>' + hechas + ' de ' + nCli + ' hechas</span><span class="bar"><i style="width:' + (nCli ? Math.round(hechas / nCli * 100) : (RUTA.plantaHecha ? 100 : 0)) + '%"></i></span><span>' + Math.round(kg) + ' kg</span></div>' +
+    '<div id="cd-mapa" class="mc-map"></div>';
+  if(!sig){
+    h += '<div class="mc-sig" style="border-left-color:var(--eco-verde)"><div class="et" style="color:var(--eco-verde)">Listo</div><div class="n">Todas las paradas están hechas</div><div class="z">' + (info.tipo === "planta" ? 'Entrega en planta hecha. ' : 'Recuerda entregar en planta. ') + 'Regreso a la base.</div>' +
+      (B ? '<div class="mc-acc dos"><button class="nav" onclick="cdNavegar_(' + B[0] + ',' + B[1] + ',\'la base\')">➤ Navegar<small>a la base</small></button><button class="tel" onclick="mostrarTab(\'hub\')">☰<small>menú</small></button></div>' : '') + '</div>';
+  } else if(sig.tipo === "planta"){
+    var d = sig.d;
+    h += '<div class="mc-sig pl"><div class="et">🏭 Siguiente · entrega en planta</div><div class="n">' + esc(d.nombre) + '</div>' +
+      '<div class="z">' + (d.direccion ? esc(d.direccion) + '<br>' : '') + '🕘 recibe ' + esc(d.desde) + '–' + esc(d.hasta) + ' · ' + d.minutos + ' min de entrega' + cdHorarioTxt_(d.desde, d.hasta, "estricto") + '<br><span id="cd-dist"></span></div>' +
+      '<div class="mc-nota az">📦 Llevas lo recogido hoy y lo que esté en acopio. Al llegar, haces el acta de entrega.</div>' +
+      '<div class="mc-acc dos"><button class="nav" onclick="cdNavegar_(' + d.lat + ',' + d.lng + ',\'' + esc(d.nombre).replace(/'/g, "") + '\')">➤ Navegar<small>Google Maps o Waze</small></button>' +
+      '<button class="ok" onclick="cdLlegue_(-1)">✓ Llegué<small>hacer el acta</small></button></div>' +
+      '<button class="mc-mal" onclick="RUTA.plantaHecha=true;guardarLocal(K_PAR,RUTA);cdPintar_()">Ya entregué en planta</button></div>';
+  } else {
+    var c = sig.c, p = sig.p, tel = String(c.telefono || c.whatsapp || "").replace(/[^0-9+]/g, "");
+    var ncli = seq.slice(0, k + 1).filter(function(x){ return x.tipo === "cli"; }).length;
+    h += '<div class="mc-sig"><div class="et">Siguiente · parada ' + ncli + ' de ' + nCli + '</div><div class="n">' + esc(c.nombre) + '</div>' +
+      '<div class="z">' + (c.direccion ? esc(c.direccion) + '<br>' : '') + (c.horarioDesde ? '🕘 recibe ' + (String(c.horarioTipo).toLowerCase() === "estricto" ? 'solo ' : '') + esc(c.horarioDesde) + '–' + esc(c.horarioHasta) + cdHorarioTxt_(c.horarioDesde, c.horarioHasta, String(c.horarioTipo).toLowerCase(), p.horaPlan) : (p.horaPlan ? '🕘 llegar ' + esc(p.horaPlan) : '')) +
+      '<br><span id="cd-dist"></span></div>' +
+      (c.notaConductor ? '<div class="mc-nota">📌 ' + esc(c.notaConductor) + '</div>' : '') +
+      '<div class="mc-acc">' + (sig.ll ? '<button class="nav" onclick="cdNavegar_(' + sig.ll[0] + ',' + sig.ll[1] + ',\'' + esc(c.nombre).replace(/'/g, "") + '\')">➤ Navegar<small>Google Maps o Waze</small></button>' : '<button class="nav" style="opacity:.5" onclick="toast(\'Este cliente no tiene ubicación: manda la tuya al llegar\')">➤ Navegar<small>sin ubicación</small></button>') +
+      '<a class="tel' + (tel ? '' : ' off') + '" href="' + (tel ? 'tel:' + tel : '#') + '">📞 Llamar<small>' + esc(String(c.contacto || "contacto").split(" ")[0]) + '</small></a>' +
+      '<button class="ok" onclick="cdLlegue_(' + p.clienteId + ')">✓ Llegué<small>abrir parada</small></button></div>' +
+      '<button class="mc-mal" onclick="cdMalUbicada_(' + p.clienteId + ')">📍 ' + (sig.ll ? 'El punto de este cliente está mal' : 'Este cliente no tiene ubicación: mandar la mía') + '</button>' +
+      (cdNavApp_() ? '<button class="mc-lnk" style="display:block;margin:0 auto" onclick="try{localStorage.removeItem(\'eco_nav\')}catch(e){};toast(\'La próxima vez te pregunta con qué app navegar\')">Cambiar la app para navegar (' + (cdNavApp_() === "waze" ? "Waze" : "Google Maps") + ')</button>' : '') + '</div>';
+  }
+  var resto = seq.slice(k + 1).filter(function(x){ return !x.hecha; });
+  if(sig && resto.length) h += '<div class="mc-lis"><div class="t">Después</div>' + resto.slice(0, 4).map(function(x){
+      if(x.tipo === "planta") return '<div class="mc-it"><span class="mc-n p" style="width:auto;height:22px;padding:0 6px;border-radius:7px;font-size:9.5px;background:#14306B;color:#fff">PLANTA</span><b>' + esc(x.d.nombre) + '</b><span>' + esc(x.d.desde) + '–' + esc(x.d.hasta) + '</span></div>';
+      var n = seq.slice(0, seq.indexOf(x) + 1).filter(function(y){ return y.tipo === "cli"; }).length;
+      return '<div class="mc-it"><span class="mc-n p" style="width:22px;height:22px;font-size:10px">' + n + '</span><b>' + esc(x.c.nombre) + '</b><span>' + esc(x.p.horaPlan || "") + '</span></div>';
+    }).join("") + (resto.length > 4 ? '<div class="mc-it" style="justify-content:center"><span>y ' + (resto.length - 4) + ' más</span></div>' : '') + '</div>';
+  s.innerHTML = h;
+  setTimeout(function(){ cdDibujar_(seq, k, B); }, 30);
+}
+function cdHorarioTxt_(desde, hasta, tipo, plan){
+  var ahora = ahoraMin_(), d = plMin_(desde), hh = plMin_(hasta);
+  if(RUTA.fecha !== hoyISO() || d === null || hh === null) return plan ? ' · llegar ' + esc(plan) : '';
+  if(ahora > hh) return ' · <span class="ma">ya cerró</span>';
+  if(ahora < d) return ' · abre en ' + duracion_(d - ahora);
+  return ' · <span class="ok">abierto ahora</span>' + (hh - ahora <= 45 ? ' · cierra en ' + (hh - ahora) + ' min' : '');
+}
+function cdDibujar_(seq, k, B){
+  if(!$("cd-mapa")) return;
+  if(CD_MAP){ try{ CD_MAP.remove(); }catch(e){} CD_MAP = null; }
+  CD_MAP = m36Mapa_("cd-mapa", { zoomControl: false });
+  var yb = L.control({ position: "bottomright" }); yb.onAdd = function(){ var d = L.DomUtil.create("div"); d.innerHTML = '<button class="mc-yo-btn" title="Dónde estoy">◎</button>'; L.DomEvent.disableClickPropagation(d); d.onclick = function(){ cdMiPosicion_(true); }; return d; }; yb.addTo(CD_MAP);
+  var info = RUTA.info || {}, ll = [], idxLL = [];
+  seq.forEach(function(x, i){ if(x.ll){ ll.push(x.ll); idxLL.push(i); } });
+  var P = B ? [B].concat(ll, [B]) : ll;
+  var hechoHasta = 0; idxLL.forEach(function(i, j){ if(i < k || k < 0) hechoHasta = j + 1; });
+  if(B && m36TrazoOk_(info.trazo, P)){
+    info.trazo.legs.forEach(function(l, j){ var g = m36Dec_(l);
+      if(j < hechoHasta) L.polyline(g, { color: "#4ADE80", weight: 4, opacity: .9, dashArray: "2 7" }).addTo(CD_MAP);
+      else { L.polyline(g, { color: "#fff", weight: 7, opacity: .8 }).addTo(CD_MAP); L.polyline(g, { color: "#1A73E8", weight: 4 }).addTo(CD_MAP); } });
+  } else if(P.length > 1){
+    var cut = hechoHasta + (B ? 1 : 0);
+    if(cut > 1) L.polyline(P.slice(0, cut), { color: "#4ADE80", weight: 4, opacity: .9, dashArray: "2 7" }).addTo(CD_MAP);
+    L.polyline(P.slice(Math.max(0, cut - 1)), { color: "#1A73E8", weight: 3.5, opacity: .85, dashArray: "6 7" }).addTo(CD_MAP);
+  }
+  if(B) L.marker(B, { icon: m36Ic_('<div class="mc-base">🏠</div>', 26) }).addTo(CD_MAP);
+  var foco = [], nCli = 0;
+  seq.forEach(function(x, i){
+    if(x.tipo === "cli") nCli++;
+    if(!x.ll) return;
+    var html, sz;
+    if(x.tipo === "planta"){ html = '<div class="mc-n" style="width:auto;height:30px;padding:0 9px;border-radius:9px;background:#14306B;color:#fff;font-size:11px;letter-spacing:.5px;' + (i === k ? 'box-shadow:0 0 0 6px rgba(245,179,1,.45),0 2px 8px rgba(0,0,0,.4)' : '') + '">' + (x.hecha ? '✓ ' : '') + 'PLANTA</div>'; sz = [80, 30]; }
+    else { var cls = x.hecha ? "h" : (i === k ? "s" : "p"), w = x.hecha ? 20 : (i === k ? 38 : 26); html = '<div class="mc-n ' + cls + '">' + (x.hecha ? '✓' : nCli) + '</div>'; sz = [w, w]; }
+    L.marker(x.ll, { zIndexOffset: i === k ? 2000 : (x.hecha ? 0 : 1000 - i), icon: L.divIcon({ className: "", html: html, iconSize: sz, iconAnchor: [sz[0] / 2, sz[1] / 2] }) }).addTo(CD_MAP)
+      .bindTooltip(esc(x.tipo === "planta" ? x.d.nombre : x.c.nombre));
+    if(k < 0 || (i >= k - 1 && i <= k + 3)) foco.push(x.ll);
+  });
+  if(CD_YO) cdPonerYo_();
+  if(CD_YO && k >= 0) foco.push(CD_YO);
+  if(foco.length > 1) CD_MAP.fitBounds(foco, { padding: [36, 36] }); else if(foco.length) CD_MAP.setView(foco[0], 15); else CD_MAP.setView(B || [8.99, -79.52], 11);
+  cdDistancia_();
+  cdMiPosicion_(false);
+}
+function cdPonerYo_(){ if(!CD_MAP || !CD_YO) return; if(CD_MAP._yo) CD_MAP.removeLayer(CD_MAP._yo); CD_MAP._yo = L.marker(CD_YO, { zIndexOffset: 3000, icon: m36Ic_('<div class="mc-yo"></div>', 18) }).addTo(CD_MAP); }
+function cdMiPosicion_(centrar){
+  if(!navigator.geolocation){ if(centrar) toast("Este teléfono no da la ubicación"); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    CD_YO = [pos.coords.latitude, pos.coords.longitude]; CD_YO.prec = pos.coords.accuracy;
+    cdPonerYo_(); cdDistancia_(); if(centrar && CD_MAP) CD_MAP.setView(CD_YO, 16, { animate: false });
+  }, function(){ if(centrar) toast("Activa el GPS para ver dónde estás"); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+}
+function cdDistancia_(){
+  var e = $("cd-dist"); if(!e || !CD_YO) return;
+  var seq = cdSecuencia_(), sig = seq.find(function(x){ return !x.hecha; }); if(!sig || !sig.ll) return;
+  var km = plKm_(CD_YO, sig.ll); e.innerHTML = '📍 a unos ' + (km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km') + ' · ~' + Math.max(2, Math.round(km / 27 * 60)) + ' min';
+}
+/* Navegar: Google Maps o Waze, y se recuerda */
+function cdNavApp_(){ try{ return localStorage.getItem("eco_nav") || ""; }catch(e){ return ""; } }
+function cdAbrirNav_(app, la, ln){
+  var u = app === "waze" ? "https://waze.com/ul?ll=" + la + "," + ln + "&navigate=yes" : "https://www.google.com/maps/dir/?api=1&destination=" + la + "," + ln + "&travelmode=driving";
+  window.open(u, "_blank");
+}
+function cdHoja_(html){ cdCerrarHoja_(); var v = document.createElement("div"); v.className = "mc-velo"; v.innerHTML = '<div class="mc-hoja"><div class="asa"></div>' + html + '</div>'; v.addEventListener("click", function(e){ if(e.target === v) cdCerrarHoja_(); }); document.body.appendChild(v); return v; }
+function cdCerrarHoja_(){ document.querySelectorAll(".mc-velo").forEach(function(v){ v.remove(); }); }
+function cdNavegar_(la, ln, nombre){
+  var app = cdNavApp_(); if(app){ cdAbrirNav_(app, la, ln); return; }
+  cdHoja_('<h3>Navegar a ' + esc(nombre) + '</h3><p>Se abre la aplicación con el destino puesto. Al cerrar el recibo, este mapa pasa solo a la siguiente parada.</p>' +
+    '<button class="mc-op" onclick="cdElegirNav_(\'gmaps\',' + la + ',' + ln + ')"><span class="ic" style="background:#E8F0FE">🗺️</span><span><b>Google Maps</b><small>con voz y tráfico</small></span></button>' +
+    '<button class="mc-op" onclick="cdElegirNav_(\'waze\',' + la + ',' + ln + ')"><span class="ic" style="background:#E6F7FD">🚙</span><span><b>Waze</b><small>con voz, tráfico y avisos de la vía</small></span></button>' +
+    '<label class="mc-ck"><input type="checkbox" id="cd-rec" checked> Recordar mi elección en este teléfono</label>');
+}
+function cdElegirNav_(app, la, ln){ var r = $("cd-rec"); if(r && r.checked){ try{ localStorage.setItem("eco_nav", app); }catch(e){} } cdCerrarHoja_(); cdAbrirNav_(app, la, ln); }
+function cdLlegue_(clienteId){
+  if(clienteId < 0){ if(RUTA.info && RUTA.info.destino && typeof EN !== "undefined") EN.destino = RUTA.info.destino.nombre; mostrarTab("entrega"); return; }
+  var i = (RUTA.paradas || []).findIndex(function(p){ return p.clienteId === clienteId; });
+  mostrarTab("paradas"); if(i >= 0 && ABIERTA !== i) setTimeout(function(){ abrirParada(i); }, 60);
+}
+/* la ubicación desde la puerta del cliente */
+function cdMalUbicada_(clienteId){
+  var c = cli(clienteId) || { nombre: "" }, tiene = m36LL_(c.lat, c.lng);
+  cdHoja_('<h3>' + (tiene ? 'Corregir la ubicación' : 'Mandar la ubicación') + '</h3><p>' + esc(c.nombre) + ' · <span id="cd-ub-d">buscando dónde estás…</span></p>' +
+    '<div id="cd-mini" class="mc-mini"></div>' +
+    '<div style="display:flex;gap:14px;font-size:12px;font-weight:800;color:#5B6A80;margin-bottom:10px">' + (tiene ? '<span>🔴 el punto guardado</span>' : '') + '<span>🔵 donde estás</span></div>' +
+    '<textarea class="campo" id="cd-ub-n" style="width:100%;border:1.5px solid #DCE3EC;border-radius:10px;padding:9px;font-family:inherit;font-size:13px" rows="2" placeholder="Ej.: la entrada de recolección es por la calle de atrás"></textarea>' +
+    '<button class="btn" id="cd-ub-ok" style="margin-top:10px" disabled onclick="cdMandarUb_(' + clienteId + ')">Estoy en la puerta · enviar mi ubicación</button>' +
+    '<p style="margin:8px 0 0;font-size:12px">Llega a logística para aprobarla. La ficha del cliente no cambia hasta que la aprueben.</p>');
+  setTimeout(function(){
+    var m = m36Mapa_("cd-mini", { zoomControl: false, attributionControl: false }), guard = tiene ? [c.lat, c.lng] : null;
+    if(guard) L.circleMarker(guard, { radius: 9, color: "#fff", weight: 3, fillColor: "#C0392B", fillOpacity: 1 }).addTo(m);
+    m.setView(guard || CD_YO || [8.99, -79.52], guard ? 16 : 12);
+    var poner = function(){
+      L.marker(CD_YO, { icon: m36Ic_('<div class="mc-yo"></div>', 18) }).addTo(m);
+      if(guard){ L.polyline([guard, CD_YO], { color: "#fff", weight: 2, dashArray: "4 5" }).addTo(m); m.fitBounds([guard, CD_YO], { padding: [30, 30] }); }
+      else m.setView(CD_YO, 17);
+      var t = guard ? Math.round(plKm_(guard, CD_YO) / 1.35 * 1000) : null;
+      $("cd-ub-d").innerHTML = guard ? 'el punto guardado está a <b>' + (t >= 1000 ? (t / 1000).toFixed(1) + ' km' : t + ' m') + '</b> de donde estás' : 'estás aquí';
+      if(CD_YO.prec) $("cd-ub-d").innerHTML += ' (precisión ±' + Math.round(CD_YO.prec) + ' m)';
+      $("cd-ub-ok").disabled = false;
+    };
+    if(!navigator.geolocation){ $("cd-ub-d").textContent = "este teléfono no da la ubicación"; return; }
+    navigator.geolocation.getCurrentPosition(function(pos){ CD_YO = [pos.coords.latitude, pos.coords.longitude]; CD_YO.prec = pos.coords.accuracy; poner(); },
+      function(){ $("cd-ub-d").textContent = "activa el GPS del teléfono y vuelve a abrir esto"; }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  }, 40);
+}
+function cdMandarUb_(clienteId){
+  var b = $("cd-ub-ok"); if(!CD_YO) return; b.disabled = true; b.textContent = "Enviando…";
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ b.disabled = false; b.textContent = "Estoy en la puerta · enviar mi ubicación"; toast((r && r.error) || "No se pudo enviar"); return; }
+    cdCerrarHoja_(); toast("Enviada ✓ Logística la revisa");
+  }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Estoy en la puerta · enviar mi ubicación"; toast("Sin señal: intenta de nuevo"); })
+    .api_reportarUbicacion(PIN, clienteId, CD_YO[0], CD_YO[1], CD_YO.prec || 0, $("cd-ub-n").value);
+}
+/* abrir la ruta completa en Maps (lo que había) sigue funcionando */
+function abrirRutaEnMaps(){
+  var seq = cdSecuencia_().filter(function(x){ return !x.hecha && x.ll; });
+  if(!seq.length){ toast("Sin coordenadas disponibles"); return; }
+  var dest = seq[seq.length - 1].ll, med = seq.slice(0, -1).slice(0, 9);
+  var url = "https://www.google.com/maps/dir/?api=1&destination=" + dest[0] + "," + dest[1] + "&travelmode=driving";
+  if(med.length) url += "&waypoints=" + med.map(function(x){ return x.ll[0] + "," + x.ll[1]; }).join("|");
+  window.open(url, "_blank");
+}
+</script>
 </body>
 
 </html>

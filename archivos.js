@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════
-   ECOVSA · archivos.js (api 3.5.1 · tarjeta de espera en la 3.5.2)
+   ECOVSA · archivos.js (api 3.5.1 · tarjeta de espera en la 3.5.2 · PDF escaneados y avisos en la 3.6)
    Lo que comparten las pantallas que suben documentos:
    · achica las fotos en el navegador (1800 px, JPG) antes de subirlas;
-   · los PDF se suben tal cual (hasta 10 MB);
+   · los PDF con texto se suben tal cual (hasta 10 MB); los escaneados de
+     más de 1 MB se rearman con sus páginas como fotos livianas (api 3.6);
    · sube directo al espacio de archivos con la firma que da el servidor.
    Uso:
      ARCH.preparar(file).then(function (p) { ... p.meta = {nombre, mime, tamano} ... })
@@ -32,6 +33,54 @@
       img.src = url;
     });
   }
+  /* ── api 3.6 · PDF escaneados: cada página es una foto; se rearma liviano ──
+     Se usan pdf.js (para leer las páginas) y jsPDF (para armar el nuevo), que
+     se bajan solo la primera vez que hace falta. Si algo falla, o el nuevo
+     no queda al menos un 20 % más liviano, se sube el original. */
+  var PDF_MIN = 1024 * 1024, PDF_LADO = 1650, PDF_CAL = 0.62, PDF_PAG = 40;
+  var _libs = null;
+  function cargarJs(src) { return new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { mal(new Error('sin ' + src)); }; document.head.appendChild(s); }); }
+  function libsPdf() {
+    if (_libs) return _libs;
+    var B = 'https://cdnjs.cloudflare.com/ajax/libs/';
+    _libs = (window.pdfjsLib ? Promise.resolve() : cargarJs(B + 'pdf.js/3.11.174/pdf.min.js'))
+      .then(function () { return window.jspdf ? null : cargarJs(B + 'jspdf/2.5.1/jspdf.umd.min.js'); })
+      .then(function () { window.pdfjsLib.GlobalWorkerOptions.workerSrc = B + 'pdf.js/3.11.174/pdf.worker.min.js'; });
+    _libs.catch(function () { _libs = null; });
+    return _libs;
+  }
+  function achicarPdf(file, alAvanzar) {
+    return libsPdf().then(function () { return file.arrayBuffer(); }).then(function (buf) {
+      return window.pdfjsLib.getDocument({ data: buf }).promise;
+    }).then(function (doc) {
+      if (doc.numPages > PDF_PAG) return null;
+      /* ¿es escaneado? si las páginas casi no tienen texto, sí */
+      var letras = 0, revisar = Math.min(doc.numPages, 3), cad = Promise.resolve();
+      for (var i = 1; i <= revisar; i++) (function (n) { cad = cad.then(function () { return doc.getPage(n).then(function (pg) { return pg.getTextContent(); }).then(function (tc) { tc.items.forEach(function (it) { letras += String(it.str || '').replace(/\s/g, '').length; }); }); }); })(i);
+      return cad.then(function () {
+        if (letras > 40 * revisar) return null;          // tiene texto: se sube tal cual
+        var pdf = null, n = 0, cad2 = Promise.resolve();
+        for (var j = 1; j <= doc.numPages; j++) (function (k) {
+          cad2 = cad2.then(function () { return doc.getPage(k); }).then(function (pg) {
+            var v1 = pg.getViewport({ scale: 1 }), esc = Math.min(3, PDF_LADO / Math.max(v1.width, v1.height)), v = pg.getViewport({ scale: esc });
+            var c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
+            var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+            return pg.render({ canvasContext: x, viewport: v }).promise.then(function () {
+              var o = v1.width > v1.height ? 'l' : 'p';
+              if (!pdf) pdf = new window.jspdf.jsPDF({ orientation: o, unit: 'pt', format: [v1.width, v1.height], compress: true });
+              else pdf.addPage([v1.width, v1.height], o);
+              pdf.addImage(c.toDataURL('image/jpeg', PDF_CAL), 'JPEG', 0, 0, v1.width, v1.height, undefined, 'FAST');
+              n++; if (alAvanzar) alAvanzar(Math.round(n / doc.numPages * 100));
+            });
+          });
+        })(j);
+        return cad2.then(function () { return pdf ? pdf.output('blob') : null; });
+      });
+    }).then(function (b) {
+      if (!b || b.size > file.size * 0.8) return null;
+      return { blob: b, meta: { nombre: file.name, mime: 'application/pdf', tamano: b.size }, antes: file.size, achicado: true };
+    }).catch(function (e) { console.warn('[archivos] PDF sin achicar: ' + ((e && e.message) || e)); return null; });
+  }
   function preparar(file) {
     if (!file) return Promise.reject(new Error('Elija el archivo.'));
     var t = String(file.type || '').toLowerCase();
@@ -41,8 +90,26 @@
       if (p.meta.tamano > MAX) throw new Error('La foto sigue pesando más de 10 MB.');
       return p;
     });
-    if (file.size > MAX) return Promise.reject(new Error('El PDF pesa ' + kb(file.size) + '. El máximo es 10 MB.'));
-    return Promise.resolve({ blob: file, meta: { nombre: file.name, mime: 'application/pdf', tamano: file.size }, antes: file.size });
+    var tal = { blob: file, meta: { nombre: file.name, mime: 'application/pdf', tamano: file.size }, antes: file.size };
+    if (file.size > 30 * 1024 * 1024) return Promise.reject(new Error('El PDF pesa ' + kb(file.size) + '. El máximo es 10 MB.'));
+    if (file.size <= PDF_MIN) return Promise.resolve(tal);
+    return achicarPdf(file).then(function (p) {
+      var r = p || tal;
+      if (r.meta.tamano > MAX) throw new Error('El PDF pesa ' + kb(r.meta.tamano) + (p ? ' aun achicado' : '') + '. El máximo es 10 MB.');
+      return r;
+    });
+  }
+  /* api 3.6 · lo que contesta Supabase, dicho en español y con el motivo */
+  function motivoSubida(st, txt, p) {
+    var j = null; try { j = JSON.parse(txt || ''); } catch (e) {}
+    var m = String((j && (j.message || j.error)) || txt || ''), c = String((j && j.statusCode) || st);
+    var tipo = (p && p.meta && p.meta.mime) || 'este tipo';
+    if (/mime|invalid_mime|415/i.test(m + ' ' + c)) return 'Supabase no acepta ' + tipo + '. En Storage › documentos › Edit bucket, «Allowed MIME types» debe decir exactamente: image/jpeg, image/png, image/webp, application/pdf';
+    if (/exceed|too large|maximum allowed size|413/i.test(m + ' ' + c)) return 'El archivo pasa el tamaño máximo del espacio documentos en Supabase (debe ser 10 MB).';
+    if (/jwt|signature|expired|token|403|401/i.test(m + ' ' + c)) return 'Se venció el permiso para subir. Toque «Reintentar».';
+    if (/bucket not found|related resource|not.?found|404/i.test(m + ' ' + c)) return 'No existe el espacio «documentos» en Supabase Storage (revise que el nombre esté escrito igual).';
+    if (/duplicate|already exists|409/i.test(m + ' ' + c)) return 'Ese archivo ya estaba subido. Toque «Reintentar».';
+    return 'Supabase no aceptó el archivo (' + st + (m ? ': ' + m.slice(0, 120) : '') + '). Intente de nuevo.';
   }
   /* PUT directo al bucket con la firma. Con XHR para poder mostrar el avance.
      ctrl (opcional): recibe ctrl.abortar() para cancelar la subida. */
@@ -56,7 +123,7 @@
       x.setRequestHeader('content-type', p.meta.mime);
       x.setRequestHeader('x-upsert', 'true');
       if (x.upload && alAvanzar) x.upload.onprogress = function (e) { if (e.lengthComputable) alAvanzar(Math.round(e.loaded / e.total * 100)); };
-      x.onload = function () { if (x.status >= 200 && x.status < 300) ok(true); else mal(new Error('No se pudo subir (' + x.status + '). Intente de nuevo.')); };
+      x.onload = function () { if (x.status >= 200 && x.status < 300) ok(true); else mal(new Error(motivoSubida(x.status, x.responseText, p))); };
       x.onerror = function () { mal(new Error('Se cortó la conexión mientras subía. Intente de nuevo.')); };
       x.send(p.blob);
     });

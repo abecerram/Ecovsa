@@ -44,7 +44,7 @@
        Apps Script lo que no conocía (y fallaba en silencio). Solo optimizar
        ruta sigue en Apps Script, hasta el paquete del mapa. */
     enSupabase: /^api_(?!optimizarRuta$)/,
-    version: 'puente 3.5.3',
+    version: 'puente 3.6',
     /* El recuadro de estado abajo a la derecha:
        'discreto' → solo aparece si algo anda mal (error, reintento o guardados en cola)
        'oculto'   → nunca aparece; la pantalla pinta su propio semáforo con el evento 'puente:estado'
@@ -59,7 +59,7 @@
     maxMediciones: 300,      // cuántas mediciones se guardan para el reporte
     /* Funciones que ESCRIBEN: no se guardan en copia local y, si no
        salen por falta de conexión, van a la cola. */
-    escritura: /^api_(guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|cargarCiclos|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|deducir|reabrir|reiniciar|limpiar|importar|generar)|[a-z]+(Guardar|Preguntar|Responder|NoProcede|Tramitada|Recibida)$/i,
+    escritura: /^api_(guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|cargarCiclos|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|deducir|reabrir|reiniciar|limpiar|importar|generar|reportar|revisar)|[a-z]+(Guardar|Preguntar|Responder|NoProcede|Tramitada|Recibida)$/i,
     /* Lecturas que siempre van en vivo, nunca desde copia. */
     sinCopia: /^api_(login|urlApp)$/i,
     /* Lecturas que se entregan UNA sola vez a la pantalla (sin el
