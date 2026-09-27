@@ -40,8 +40,11 @@
        Bloques en Supabase: entrada y lobby · logística (con el comprobante de visita).
        Optimizar ruta (api_optimizarRuta) sigue en Apps Script a propósito. */
     supabase: 'https://wgufdfagvyelsypypkyr.supabase.co/functions/v1/api',
-    enSupabase: /^api_(abiertasDe|abrirJornada|acta|actaSalida|actas|activos|administracion|agenda|altaBootstrap|anularCiclo|aprobarSolicitud|arqueo|avanceHoy|bootstrap|borrarPago|borrarProspecto|borrarRuta|buscarClientes|buscarRecibos|cajaAbrir|cajaAnular|cajaBootstrap|cajaCerrar|cajaGasto|cambiarEstadoCliente|cargarCiclos|cartera|catalogosFinanzas|cerrarGestion|cerrarJornada|cerrarPendiente|cerrarRuta|certificadosEmitidos|clientesDelDia|clientesPorRevisar|cob_catalogo|cob_direccion|cob_mensaje|cob_registrarEnvio|cob_reporte|cobros|combustible|consumibles|contrato|corregirProveedorDeSolicitud|correoCartera|correrVigia|datosCertificado|deducirInicios|dir_portada|dir_zona|distintivos|editarCiclo|editarFactura|editarPago|emitirCertificado|entradasPendientes|enviarInspeccion|estadoCuenta|estadoResultados|estadoSolicitud|facturasSinCliente|finanzasBootstrap|formulariosRecibidos|generarActa|generarActaPlanta|gestionesDe|getRutas|guardarActivo|guardarCiclo|guardarCombustible|guardarConsumo|guardarCuenta|guardarDatosFormularioCliente|guardarFactura|guardarFicha|guardarGastoFijo|guardarGestion|guardarHorarioCliente|guardarInspeccion|guardarInsumo|guardarLote|guardarMantenimiento|guardarNotificacion|guardarPago|guardarPlanTarea|guardarProspecto|guardarProveedor|guardarProveedorDeSolicitud|guardarRuta|guardarSalida|guardarSolicitud|guardarSolicitudPago|historialCliente|horarioCliente|indicadoresFlota|inspeccion|inspeccionDeProspecto|inspecciones|inventario|lobby|lobby_resumen|login|mantenimiento|marcador|marcarDistintivo|marcarFormularioEnviado|marcarGasto|marcarNovedadVista|marcarReciboEnviado|marcarVistoBueno|miCliente|morosidad|movimientos|notasPropuesta|notificaciones|novedades|obtenerDatosFormularioCliente|obtenerDetalleRecibo|obtenerListaClientes|paraFacturar|pasarACartera|pedirInspeccion|pendientes|ping|plantaActas|plantaBootstrap|plantaReporte|portada|propuesta|prospectos|reabrirRecibo|rechazarSolicitud|registrarEntradaDeSolicitud|registrarEntrega|registrarReciboEmas|registrarServicio|revisarBorrado|revisarContrato|rutasTodas|saldoDisposicion|salidas|solicitudes|tratamiento|ultimosRecibos|urlApp|verCertificado|verFactura|verSolicitud)$/,
-    version: 'puente 3.2',
+    /* api 3.5.3: TODO va a Supabase por omisión. La lista vieja mandaba al
+       Apps Script lo que no conocía (y fallaba en silencio). Solo optimizar
+       ruta sigue en Apps Script, hasta el paquete del mapa. */
+    enSupabase: /^api_(?!optimizarRuta$)/,
+    version: 'puente 3.5.3',
     /* El recuadro de estado abajo a la derecha:
        'discreto' → solo aparece si algo anda mal (error, reintento o guardados en cola)
        'oculto'   → nunca aparece; la pantalla pinta su propio semáforo con el evento 'puente:estado'
@@ -56,7 +59,7 @@
     maxMediciones: 300,      // cuántas mediciones se guardan para el reporte
     /* Funciones que ESCRIBEN: no se guardan en copia local y, si no
        salen por falta de conexión, van a la cola. */
-    escritura: /^api_(guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|cargarCiclos|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|deducir|reabrir|reiniciar|limpiar|importar|generar)/i,
+    escritura: /^api_(guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|cargarCiclos|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|deducir|reabrir|reiniciar|limpiar|importar|generar)|[a-z]+(Guardar|Preguntar|Responder|NoProcede|Tramitada|Recibida)$/i,
     /* Lecturas que siempre van en vivo, nunca desde copia. */
     sinCopia: /^api_(login|urlApp)$/i,
     /* Lecturas que se entregan UNA sola vez a la pantalla (sin el

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>(function(){var q=new URLSearchParams(location.search);var p=(q.get("p")||"app").toLowerCase();var R={"panel":"Inicio.html","alta":"Mercadeo.html","mercadeo":"Mercadeo.html","altaanterior":"Alta.html","acta":"Acta.html","planta":"Planta.html","rplanta":"RPlanta.html","propuesta":"Propuesta.html","contrato":"Contrato.html","asalida":"ActaSalida.html","inicio":"Inicio.html","cobros":"Cobros.html","recibo":"Recibo.html","formulario":"FormularioCliente.html","certificados":"Certificado.html","vercert":"CertificadoVista.html","finanzas":"Inicio.html","solicitud":"SolicitudPago.html","vsolicitud":"SolicitudVista.html","carta":"Carta.html","arqueo":"Arqueo.html","admin":"Administracion.html","vinspeccion":"InspeccionVista.html","micliente":"MiCliente.html","rcartera":"Inicio.html","rzona":"Inicio.html","campo":"Index.html"};if(p!=="app"&&R[p]){location.replace(R[p]+location.search+location.hash);}})();</script>
+<script>(function(){var q=new URLSearchParams(location.search);var p=(q.get("p")||"app").toLowerCase();var R={"panel":"Inicio.html","alta":"Mercadeo.html","mercadeo":"Mercadeo.html","altaanterior":"Alta.html","acta":"Acta.html","planta":"Planta.html","rplanta":"RPlanta.html","propuesta":"Propuesta.html","contrato":"Contrato.html","asalida":"ActaSalida.html","inicio":"Inicio.html","cobros":"Cobros.html","recibo":"Recibo.html","formulario":"FormularioCliente.html","certificados":"MerEntregables.html","vercert":"CertificadoVista.html","finanzas":"Inicio.html","vsolicitud":"SolicitudVista.html","carta":"Carta.html","arqueo":"Arqueo.html","vinspeccion":"InspeccionVista.html","micliente":"MiCliente.html","rcartera":"Inicio.html","rzona":"Inicio.html","campo":"Index.html"};if(p!=="app"&&R[p]){var t=R[p],h="",k=t.indexOf("#");if(k>0){h=t.slice(k);t=t.slice(0,k);}/* api 3.5.3: los enlaces viejos llevan a la pantalla nueva */location.replace(t+location.search+(location.hash||h));}})();</script>
 <title>ECOVSA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <base target="_top">
@@ -11,6 +11,13 @@
 <!-- api 2.9: el lobby habla con Supabase y maneja él mismo el bloqueo por inactividad -->
 <script>window.PUENTE_CONFIG={sinCopia:/./, indicador:'oculto', enSupabase:/^api_(?!optimizarRuta$)/, vigia:false};</script>
 <script src="puente.js"></script>
+<script>/* api 3.5.3: ?p=solicitud y ?p=admin llevan a la pantalla nueva según quién entra
+   (Planta y Logística piden por requisición; Compras está en Mercadeo) */
+(function(){var p=(new URLSearchParams(location.search).get("p")||"").toLowerCase();if(p!=="solicitud"&&p!=="admin")return;
+var pin="";try{pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""');}catch(e){}
+var ir=function(rol){var t=p==="solicitud"?({planta:"Planta.html#req",supervisor:"Index.html#req"}[rol]||"MerCompras.html"):({planta:"Planta.html#mto"}[rol]||"Index.html#inv");location.replace(t);};
+if(!pin||!window.google||!google.script||!google.script.run){ir("");return;}
+google.script.run.withSuccessHandler(function(r){ir(r&&r.ok&&r.usuario?r.usuario.rol:"");}).withFailureHandler(function(){ir("");}).api_login(pin);})();</script>
 <script src="entrada.js"></script>
 <script src="tema.js"></script>
 <style>

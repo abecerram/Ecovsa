@@ -10,6 +10,7 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="modulo-kit.css">
 <script src="modulo-kit.js"></script>
+<script src="archivos.js"></script>
 <style>
 /* ═══ Planta · opción A (api 3.4) ═══ */
 :root{--pl:#6C3A96;--pl2:#c9b3e0}
@@ -80,6 +81,24 @@
 .dtab tbody tr{cursor:pointer}
 @media (max-width:1100px){.flujo,.eqs{grid-template-columns:repeat(2,minmax(0,1fr))}.sem{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.meses{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media (max-width:820px){.flujo,.eqs,.sem,.cadena,.grande{grid-template-columns:minmax(0,1fr)}.b3{gap:5px}}
+/* api 3.5.3 · ficha y plan del equipo, requisiciones */
+.pq-pt{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff}
+.pq-pt .t{display:flex;gap:8px;align-items:center}.pq-pt .t .in{flex:1;font-weight:700}
+.pq-pt .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.pq-pt .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pq-pt .pie{display:flex;align-items:center;gap:8px;margin-top:8px}
+.pq-sec{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:#5b6a80;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+.pq-sec .sp{flex:1}
+.pq-cont{display:flex;gap:12px;align-items:center;background:#f5f0fa;border:1px solid #e3d6f2;border-radius:12px;padding:10px 12px;margin-top:10px}
+.pq-cont b{font-size:20px;color:var(--pl)}.pq-cont span{font-size:12.5px;color:#3d4a60;line-height:1.4}
+.rq-pz{display:flex;gap:3px;margin-top:5px}.rq-pz i{width:16px;height:4px;border-radius:2px;background:var(--line)}.rq-pz i.ok{background:var(--ok)}.rq-pz i.am{background:var(--warn)}.rq-pz i.r{background:var(--bad)}
+.rq-ln{display:grid;grid-template-columns:minmax(0,1fr) 70px 90px 34px;gap:6px;margin-top:6px}
+.rq-adj{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--line);border-radius:11px;padding:12px;font-size:13px;color:var(--muted);cursor:pointer}
+.rq-adj:hover{border-color:var(--pl);color:var(--pl)}
+.rq-cam{margin-top:14px;border-left:2px solid var(--line);padding-left:14px;display:flex;flex-direction:column;gap:10px}
+.rq-cam>div{position:relative;font-size:13px}.rq-cam>div::before{content:"";position:absolute;left:-20px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.rq-cam>div.ya::before{background:var(--warn)}.rq-cam>div.no{color:var(--muted)}.rq-cam>div.no::before{background:var(--line)}.rq-cam>div.r::before{background:var(--bad)}
+.rq-cam small{display:block;color:var(--muted);font-size:12px}
+@media(max-width:700px){.pq-pt .g4{grid-template-columns:1fr 1fr}.rq-ln{grid-template-columns:minmax(0,1fr) 60px 70px 34px}}
 </style>
 </head>
 <body>
@@ -367,7 +386,7 @@ function vMantenimiento() {
   });
   E.forEach(function (a) { if (!base.some(function (n) { return n.toUpperCase() === a.nombre.toUpperCase(); })) tarjetas.push({ nom: a.nombre, a: a, serv: M.servicios.filter(function (s) { return s.equipo.toUpperCase() === a.nombre.toUpperCase(); }) }); });
   var sp = (b.spEquipos || []).filter(function (x) { return !x.servicio; });
-  var h = MK.cabeza('Mantenimiento de equipos', 'Igual que el de la flota: cada equipo con su plan y su historial. Los mismos equipos que ve Administración.');
+  var h = MK.cabeza('Mantenimiento de equipos', 'Cada equipo con su ficha, su plan y su historial. El plan se arma aquí mismo y lo ve también Logística.' + (b.contadorCiclos ? ' Autoclave: ' + MK.num(b.contadorCiclos) + ' ciclos en el contador.' : ''));
   if (!E.length && !M.servicios.length) h += '<div class="aviso am" style="margin-bottom:14px"><b>Ningún equipo de planta tiene plan ni historial.</b>' + (sp.length ? ' Y hay ' + sp.length + ' solicitud(es) de pago de servicios de equipos que no están anotadas aquí.' : '') + '</div>';
   var ic = { Autoclave: 'fuego', Caldera: 'fuego', 'Báscula': 'balanza' };
   h += '<div class="eqs">' + tarjetas.map(function (t) {
@@ -375,15 +394,14 @@ function vMantenimiento() {
     var est = a ? a.estado2 : 'sin plan', tono = est === 'VENCIDO' ? 'bad' : est === 'POR VENCER' ? 'warn' : a ? 'ok' : 'warn';
     var ult = t.serv[0];
     return '<div class="card eq"><div class="h"><span class="ic2">' + MK.ic(ic[t.nom] || 'llaveInglesa', 17) + '</span><b>' + MK.esc(t.nom) + '</b><span class="sp"></span><span class="chipx ' + tono + '">' + (a ? (est === 'al día' ? (tareas.length ? 'al día' : 'sin tareas') : est.toLowerCase()) : 'sin plan') + '</span></div>' +
-      '<div class="tar">' + (tareas.length ? tareas.map(function (x) { return '<span>' + MK.esc(x.tarea) + ' · ' + (x.vence ? (x.faltanDias < 0 ? '<b style="color:var(--bad)">venció ' + fdm(x.vence) + '</b>' : 'vence ' + fdm(x.vence)) : 'sin fecha de partida') + '</span>'; }).join('') : '<span>' + (a ? 'Tiene ficha pero ninguna tarea' : 'Sin plan') + '</span>') +
+      '<div class="tar">' + (tareas.length ? tareas.map(function (x) { return '<span>' + MK.esc(x.tarea) + ' · ' + (x.faltanCiclos != null ? (x.faltanCiclos < 0 ? '<b style="color:var(--bad)">se pasó ' + (-x.faltanCiclos) + ' ciclos</b>' : 'faltan ' + x.faltanCiclos + ' ciclos') + (x.vence ? ' o ' : '') : '') + (x.vence ? (x.faltanDias < 0 ? '<b style="color:var(--bad)">venció ' + fdm(x.vence) + '</b>' : 'vence ' + fdm(x.vence)) : (x.faltanCiclos != null ? '' : 'sin fecha de partida')) + '</span>'; }).join('') : '<span>' + (a ? 'Tiene ficha pero ninguna tarea' : 'Sin plan') + '</span>') +
       '<span>' + (ult ? 'Último servicio: ' + MK.esc(ult.tipo) + ' el ' + fdm(ult.fecha) + (ult.empresa ? ' · ' + MK.esc(ult.empresa) : '') : 'Sin historial') + '</span></div>' +
       '<div class="fila" style="gap:6px;margin-top:auto">' + MK.si('<button class="btn sm pri" onclick="servicio(\'' + MK.esc(t.nom) + '\')">' + MK.ic('mas', 14) + 'Registrar servicio</button>') +
-      (!a && b.puedeActivos ? '<button class="btn sm" onclick="crearEquipo(\'' + MK.esc(t.nom) + '\',' + (t.nom === 'Autoclave') + ')">' + (t.nom === 'Autoclave' ? 'Crear con el plan sugerido' : 'Crear ficha') + '</button>' : '') +
-      (a && b.puedeActivos ? '<a class="btn sm" href="Administracion.html">Editar plan</a>' : '') + '</div></div>';
+      (b.puedeActivos ? '<button class="btn sm" onclick="planEquipo(\'' + MK.esc(t.nom) + '\')">' + (a ? 'Ficha y plan' : 'Crear ficha y plan') + '</button>' : '') + '</div></div>';
   }).join('') + '</div>';
   if (sp.length) h += '<div class="card" style="margin-top:14px"><h3>Solicitudes de pago de equipos sin anotar como servicio</h3>' + MK.tabla(['Solicitud', 'Fecha', 'Proveedor', 'Concepto', '>Total', ''], sp.map(function (x) { return ['<b>' + MK.esc(x.solicitudId) + '</b>', fdm(x.fecha), MK.esc(x.proveedor), MK.esc(x.concepto), D(x.total), MK.si('<button class="btn sm" onclick="servicio(\'\',\'' + x.solicitudId + '\')">Anotar el servicio</button>')]; })) + '<div class="nota">Salen por palabras del concepto (autoclave, caldera, calibración, báscula…). Si alguna no es de planta, no hace falta hacer nada.</div></div>';
   h += '<div class="card" style="margin-top:14px"><h3>Plan sugerido para el autoclave</h3><div class="small muted" style="margin-bottom:8px">se ajusta con Alejandro y el manual del equipo</div>' +
-    MK.tabla(['Tarea', 'Cada', 'Nota'], (b.planSugerido || []).map(function (t) { return [MK.esc(t.tarea), t.cadaDias + ' días', MK.esc(t.notas)]; })) + '</div>';
+    MK.tabla(['Tarea', 'Cada', 'Nota'], (b.planSugerido || []).map(function (t) { return [MK.esc(t.tarea), t.cadaDias + ' días', MK.esc(t.notas)]; })) + '<div class="small muted" style="margin-top:8px">Se aplica desde «Ficha y plan» › «Usar el plan sugerido».</div>' + '</div>';
   h += '<div class="card" style="margin-top:14px"><h3>Historial</h3>' + MK.tabla(['Fecha', 'Equipo', 'Tipo', 'Empresa', 'Resultado', '>Costo'], M.servicios.map(function (s) { return [fdm(s.fecha), MK.esc(s.equipo), MK.esc(s.tipo), MK.esc(s.empresa), MK.esc(s.resultado), s.costo ? D(s.costo) : '—']; }), { vacio: 'Sin servicios anotados todavía.' }) + '</div>';
   return h;
 }
@@ -411,11 +429,6 @@ function guardarServicio(btn, activoId) {
   if (a && a.nombre.toUpperCase() !== d.equipo.toUpperCase()) d.activoId = '';
   MK.ocupado(btn, true);
   MK.llamar('api_plaServicio', d).then(function () { MK.cerrarLado(); MK.aviso('Servicio anotado'); MK.recargar(); }, function () { MK.ocupado(btn, false); });
-}
-function crearEquipo(nom, conPlan) {
-  MK.confirmar(conPlan ? 'Se crea la ficha del autoclave en Administración con las 4 tareas del plan sugerido (hermeticidad, calibración, inspección de empaques y contador). Las fechas arrancan cuando se anote el primer servicio de cada una.' : 'Se crea la ficha de ' + nom + ' en Administración, sin tareas.', function () {
-    MK.llamar('api_plaCrearEquipo', nom, !!conPlan).then(function (r) { MK.aviso('Listo' + (r.tareas ? ' · ' + r.tareas + ' tareas' : '')); MK.recargar(); });
-  }, { titulo: 'Crear ' + nom, boton: 'Crear' });
 }
 
 /* ═══════════ CONSUMIBLES ═══════════ */
@@ -540,13 +553,200 @@ function vReporte() {
 function mesRep(m) { MES_REP = m; MK.repintar(); }
 
 /* ═══════════ PEDIR UN PAGO ═══════════ */
-function vPago() {
-  return MK.cabeza('Pedir un pago', 'La puerta que Planta perdió en el lobby vuelve aquí.') +
-    '<div class="card" style="max-width:680px"><h3>Pedir un pago a la dirección financiera</h3><p class="muted small">Abre el mismo formulario de siempre (proveedor, renglones, ITBMS).</p>' +
-    '<div class="pasosv" style="margin:12px 0"><div><span><b>Llenar la solicitud</b>proveedor, concepto y los renglones; el proyecto es el de planta.</span></div><div><span><b>Enlazar al servicio</b>un pago de mantenimiento se une a su registro con «Registrar servicio» › Solicitud de pago.</span></div></div>' +
-    '<a class="btn pri escribe" href="index.html?p=solicitud" target="_blank">' + MK.ic('billete', 16) + 'Abrir el formulario</a></div>' +
-    ((B().spEquipos || []).length ? '<div class="card" style="margin-top:14px;max-width:680px"><h3>Solicitudes de equipos de planta</h3>' + MK.tabla(['Solicitud', 'Fecha', 'Proveedor', '>Total', 'Estado', 'Servicio'], B().spEquipos.map(function (x) { return [MK.esc(x.solicitudId), fdm(x.fecha), MK.esc(x.proveedor), D(x.total), MK.esc(x.estado.toLowerCase()), x.servicio ? '<span class="chipx ok">anotado</span>' : '<span class="chipx warn">sin anotar</span>']; })) + '</div>' : '');
+/* ═══════════ FICHA Y PLAN DEL EQUIPO (api 3.5.3) ═══════════
+   Antes «Editar plan» llevaba a Administración. Ahora se arma aquí, en un cajón.
+   Cada tarea vence cada tantos días, cada tantos ciclos (solo el autoclave) o las dos:
+   salta la que llegue primero. El contador sale del último ciclo registrado. */
+var PE = null;
+function esAutoclave(n) { return /autoclave/i.test(n || ''); }
+function planEquipo(nom) {
+  var b = B(), a = (b.equipos || []).filter(function (x) { return x.nombre.toUpperCase() === String(nom).toUpperCase(); })[0];
+  PE = { activoId: a ? a.activoId : '', nombre: a ? a.nombre : nom, ciclos: esAutoclave(nom), quitar: [],
+    tareas: a ? a.tareas.filter(function (t) { return !t.noAplica; }).map(function (t) { return { planId: t.planId, tarea: t.tarea, cadaDias: t.cadaDias || '', cadaCiclos: t.cadaCiclos || '', ultimaFecha: t.ultimaFecha || '', ultimoCiclo: t.ultimoCiclo || '', notas: t.notas || '', t: t }; }) : [] };
+  var ctr = b.contadorCiclos || 0;
+  MK.lado('<h2>' + MK.esc(PE.nombre) + ' · ficha y plan</h2><div class="sub">Cada tarea vence cada tantos días' + (PE.ciclos ? ', cada tantos ciclos o las dos: salta la que llegue primero' : '') + '. Lo ve también Logística.</div>' +
+    '<div class="pq-sec">Ficha del equipo</div>' +
+    '<div class="f2"><div><label class="lb">Nombre</label><input class="in" id="pe-nom" value="' + MK.esc(PE.nombre) + '"' + (a ? ' disabled title="El nombre amarra el historial"' : '') + '></div>' +
+    '<div><label class="lb">Responsable</label><input class="in" id="pe-res" value="' + MK.esc(a ? a.responsable : 'Planta') + '"></div>' +
+    '<div><label class="lb">Marca</label><input class="in" id="pe-mar" value="' + MK.esc(a ? a.marca : '') + '" placeholder="Como dice la placa del equipo"></div><div><label class="lb">Modelo</label><input class="in" id="pe-mod" value="' + MK.esc(a ? a.modelo : '') + '" placeholder="—"></div>' +
+    '<div><label class="lb">N.º de serie</label><input class="in" id="pe-ser" value="' + MK.esc(a ? a.serie : '') + '" placeholder="—"></div><div><label class="lb">Año</label><input class="in" id="pe-ani" inputmode="numeric" maxlength="4" value="' + MK.esc(a ? a.anio : '') + '" placeholder="—"></div></div>' +
+    '<label class="lb">Empresa que le da servicio</label><input class="in" id="pe-emp" value="' + MK.esc(a ? a.empresaServicio : '') + '" placeholder="—">' +
+    (PE.ciclos ? '<div class="pq-cont"><b>' + MK.num(ctr) + '</b><span><b style="font-size:13px;color:inherit">ciclos en el contador</b><br>Sale del último ciclo registrado en Tratamiento. Una tarea nueva por ciclos cuenta desde aquí, sin que nadie lo teclee.</span></div>' : '') +
+    '<div class="pq-sec"><span id="pe-cnt"></span><span class="sp"></span><button class="btn sm" onclick="peMas()">' + MK.ic('mas', 14) + 'Tarea</button>' +
+      (PE.ciclos ? '<button class="btn sm gh" onclick="peSugerido()">Usar el plan sugerido</button>' : '') + '</div>' +
+    '<div id="pe-ts"></div>' +
+    '<div class="small muted" style="margin-top:12px">El servicio se sigue anotando con «Registrar servicio»: reinicia el reloj de las tareas que cumple. Lo que haga falta comprar o contratar se pide por <b>Requisiciones</b>.</div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarEquipo(this)">' + MK.ic('check', 16) + (a ? 'Guardar ficha y plan' : 'Crear ficha y plan') + '</button></div>', { ancho: true });
+  pePintar();
 }
+function peProx(t) {
+  if (!t) return ['gris', 'nueva: cuenta desde que se guarde'];
+  var p = [];
+  if (t.faltanCiclos !== null && t.faltanCiclos !== undefined) p.push(t.faltanCiclos < 0 ? 'se pasó por ' + (-t.faltanCiclos) + ' ciclos' : 'faltan ' + t.faltanCiclos + ' ciclos');
+  if (t.vence) p.push(t.faltanDias < 0 ? 'venció el ' + fdm(t.vence) : 'vence el ' + fdm(t.vence) + ' · faltan ' + t.faltanDias + ' días');
+  if (!p.length) return ['gris', 'sin punto de partida: anota la última vez'];
+  return [t.estado === 'VENCIDO' ? 'bad' : t.estado === 'POR VENCER' ? 'warn' : 'ok', p.join(' · o ')];
+}
+function pePintar() {
+  var z = document.getElementById('pe-ts'); if (!z) return;
+  document.getElementById('pe-cnt').textContent = 'Plan · ' + (PE.tareas.length ? PE.tareas.length + (PE.tareas.length === 1 ? ' tarea' : ' tareas') : 'sin tareas');
+  if (!PE.tareas.length) { z.innerHTML = '<div class="aviso az" style="margin-top:6px">' + MK.esc(PE.nombre) + ' todavía no tiene plan. Agrega sus tareas' + (PE.ciclos ? ' o parte del plan sugerido' : '') + ' (se ajusta con Alejandro y el manual del equipo).</div>'; return; }
+  z.innerHTML = PE.tareas.map(function (x, i) {
+    var pr = peProx(x.t);
+    return '<div class="pq-pt" data-i="' + i + '"><div class="t"><input class="in pe-ta" value="' + MK.esc(x.tarea) + '" placeholder="Qué se hace"><button class="btn gh sm" title="Quitar" onclick="peQuitar(' + i + ')">' + MK.ic('x', 14) + '</button></div>' +
+      '<div class="' + (PE.ciclos ? 'g4' : 'g2') + '"><div><label class="lb">Cada (días)</label><input class="in pe-cd" inputmode="numeric" value="' + MK.esc(x.cadaDias) + '" placeholder="—"></div>' +
+      (PE.ciclos ? '<div><label class="lb">O cada (ciclos)</label><input class="in pe-cc" inputmode="numeric" value="' + MK.esc(x.cadaCiclos) + '" placeholder="—"></div>' : '') +
+      '<div><label class="lb">Última vez</label><input class="in pe-uf" type="date" max="' + MK.hoy + '" value="' + MK.esc(x.ultimaFecha) + '"></div>' +
+      (PE.ciclos ? '<div><label class="lb">A los (ciclos)</label><input class="in pe-uc" inputmode="numeric" value="' + MK.esc(x.ultimoCiclo) + '" placeholder="—"></div>' : '') + '</div>' +
+      '<div class="pie"><span class="chipx ' + pr[0] + '">' + MK.esc(pr[1]) + '</span></div></div>';
+  }).join('');
+}
+function peLeer() {
+  [].forEach.call(document.querySelectorAll('#pe-ts .pq-pt'), function (f) {
+    var x = PE.tareas[Number(f.getAttribute('data-i'))], v = function (c) { var e = f.querySelector('.' + c); return e ? e.value.trim() : ''; };
+    x.tarea = v('pe-ta'); x.cadaDias = v('pe-cd'); x.ultimaFecha = v('pe-uf');
+    if (PE.ciclos) { x.cadaCiclos = v('pe-cc'); x.ultimoCiclo = v('pe-uc'); }
+  });
+}
+function peMas() { peLeer(); PE.tareas.push({ planId: '', tarea: '', cadaDias: '', cadaCiclos: '', ultimaFecha: '', ultimoCiclo: '', notas: '' }); pePintar(); var l = document.querySelectorAll('#pe-ts .pe-ta'); if (l.length) l[l.length - 1].focus(); }
+function peQuitar(i) { peLeer(); var x = PE.tareas.splice(i, 1)[0]; if (x && x.planId) PE.quitar.push(x.planId); pePintar(); }
+function peSugerido() {
+  peLeer();
+  var ya = PE.tareas.map(function (t) { return t.tarea.toUpperCase(); }), n = 0;
+  (B().planSugerido || []).forEach(function (s) {
+    if (ya.indexOf(s.tarea.toUpperCase()) >= 0) return;
+    var c = /cada (\d+) ciclos/i.exec(s.notas || '');
+    PE.tareas.push({ planId: '', tarea: s.tarea, cadaDias: s.cadaDias || '', cadaCiclos: c ? c[1] : '', ultimaFecha: '', ultimoCiclo: '', notas: s.notas || '' }); n++;
+  });
+  pePintar(); MK.aviso(n ? 'Se agregaron ' + n + ' tareas del plan sugerido. Ajústalas y guarda.' : 'Ya tiene todas las tareas del plan sugerido.');
+}
+function guardarEquipo(btn) {
+  peLeer();
+  var malas = PE.tareas.filter(function (t) { return t.tarea && !(Number(t.cadaDias) > 0) && !(Number(t.cadaCiclos) > 0); });
+  if (malas.length) { MK.aviso('«' + malas[0].tarea + '» necesita cada cuántos días' + (PE.ciclos ? ' o cada cuántos ciclos' : '') + '.'); return; }
+  var d = { activoId: PE.activoId, nombre: PE.activoId ? PE.nombre : MK.val('pe-nom'), responsable: MK.val('pe-res'), marca: MK.val('pe-mar'), modelo: MK.val('pe-mod'), serie: MK.val('pe-ser'), anio: MK.val('pe-ani'), empresaServicio: MK.val('pe-emp'),
+    tareas: PE.tareas.filter(function (t) { return t.tarea; }).map(function (t) { return { planId: t.planId, tarea: t.tarea, cadaDias: t.cadaDias, cadaCiclos: t.cadaCiclos, ultimaFecha: t.ultimaFecha, ultimoCiclo: t.ultimoCiclo, notas: t.notas }; })
+      .concat(PE.quitar.map(function (id) { return { planId: id, quitar: true }; })) };
+  MK.ocupado(btn, true);
+  MK.llamar('api_plaGuardarEquipo', d).then(function (r) {
+    MK.cerrarLado(); MK.aviso('Guardado' + (r.guardadas ? ' · ' + r.guardadas + (r.guardadas === 1 ? ' tarea' : ' tareas') : '') + (r.quitadas ? ' · ' + r.quitadas + ' quitada' + (r.quitadas > 1 ? 's' : '') : '') + (r.errores && r.errores.length ? ' · ojo: ' + r.errores[0] : ''), r.errores && r.errores.length ? 7000 : 3200);
+    MK.recargar();
+  }, function () { MK.ocupado(btn, false); });
+}
+
+/* ═══════════ REQUISICIONES (api 3.5.3) ═══════════
+   Planta no pide pagos: pide una requisición («requerimos este servicio o este insumo»).
+   Le llega a Compras, en Mercadeo, que la tramita como solicitud de pago con su cotización. */
+var RQP = null, RQN = null;
+var RQ_PASOS = ['Enviada', 'Compras la tramita', 'Aprobada', 'Pagada', 'Recibida'];
+function rqCargar() {
+  MK.llamar('api_reqLista', 'planta').then(function (r) { RQP = r; MK.contadores.req = r.kpis.preguntas ? { n: r.kpis.preguntas, t: 'am' } : null; MK.contador('req', r.kpis.preguntas, 'am'); if (MK.seccion === 'req' || MK.seccion === 'pago') MK.repintar(); },
+    function () { var z = document.getElementById('rq-cuerpo'); if (z && !RQP) MK.error(z, 'No se pudieron abrir las requisiciones.'); });
+}
+function rqEst(r) {
+  var E = { enviada: ['Enviada', 'gris'], pregunta: ['Te preguntan', 'bad'], respondida: ['Respondida', 'gris'], tramite: ['En trámite', 'warn'], aprobada: ['Aprobada', 'warn'],
+    pagada: ['Pagada · por recibir', 'info'], recibida: ['Recibida', 'ok'], noprocede: ['No procede', 'gris'], rechazada: ['Rechazada', 'bad'] }[r.fase] || [r.fase, 'gris'];
+  return '<span class="chipx ' + E[1] + '">' + MK.esc(E[0]) + '</span>';
+}
+function rqPz(r) {
+  if (r.fase === 'noprocede' || r.fase === 'rechazada') return '<div class="rq-pz"><i class="r"></i><i></i><i></i><i></i><i></i></div>';
+  return '<div class="rq-pz">' + RQ_PASOS.map(function (p, i) { return '<i class="' + (i < r.paso || r.fase === 'recibida' ? 'ok' : (i === r.paso ? (r.fase === 'pregunta' ? 'r' : 'am') : '')) + '" title="' + p + '"></i>'; }).join('') + '</div>';
+}
+function vReq() {
+  var h = MK.cabeza('Requisiciones', 'Lo que la planta necesita: un servicio, un repuesto o un insumo. Llega a Compras (Mercadeo), que consigue la cotización y la vuelve solicitud de pago.',
+    MK.si('<button class="btn pri" onclick="rqNueva()">' + MK.ic('mas', 16) + 'Nueva requisición</button>'));
+  if (!RQP) { setTimeout(rqCargar, 0); return h + '<div id="rq-cuerpo"><div class="cargando">Cargando…</div></div>'; }
+  var K = RQP.kpis, L = RQP.lista;
+  h += MK.kpis([{ e: 'Abiertas', v: K.abiertas, s: K.urgentes ? K.urgentes + ' urgente' + (K.urgentes > 1 ? 's' : '') : 'ninguna urgente', c: K.urgentes ? 'bad' : '' },
+    { e: 'Te preguntan', v: K.preguntas, s: K.preguntas ? 'respóndelas aquí' : 'nada por responder', c: K.preguntas ? 'warn' : '' },
+    { e: 'Pagadas · por recibir', v: K.porRecibir, s: 'márcalas cuando lleguen' },
+    { e: 'Tramitado este mes', v: D(K.tramitadoMes), s: K.tramitadasMes + ' requisición(es)' }], 4);
+  var at = '';
+  L.filter(function (r) { return r.fase === 'pregunta'; }).forEach(function (r) { at += '<div class="li" style="--c:var(--bad)"><span class="zc">' + MK.ic('alerta', 17) + '</span><div class="tx"><b>Te preguntan en ' + MK.esc(r.reqId) + '</b><span>' + MK.esc(r.preguntaPor.split(' ')[0]) + ': «' + MK.esc(r.pregunta) + '» · ' + MK.esc(r.que) + '</span></div>' + MK.si('<button class="btn sm pri" onclick="rqDetalle(\'' + r.reqId + '\')">Responder</button>') + '</div>'; });
+  L.filter(function (r) { return r.fase === 'pagada'; }).forEach(function (r) { at += '<div class="li" style="--c:var(--info)"><span class="zc">' + MK.ic('check', 17) + '</span><div class="tx"><b>Se pagó ' + MK.esc(r.reqId) + '</b><span>' + MK.esc(r.que) + (r.solicitud ? ' · ' + MK.esc(r.solicitud.solicitudId) : '') + '. Cuando llegue o se haga, márcala.</span></div>' + MK.si('<button class="btn sm" onclick="rqRecibida(\'' + r.reqId + '\')">Ya llegó</button>') + '</div>'; });
+  if (at) h += '<div class="card" style="margin-top:14px"><h3>Requiere tu atención</h3><div class="lista">' + at + '</div></div>';
+  h += '<div class="card" style="margin-top:14px"><h3>Mis requisiciones</h3>' + MK.tabla(['Requisición', 'Qué se necesita', 'Para', 'Urgencia', 'En qué va'], L.map(function (r) {
+    return ['<b>' + MK.esc(r.reqId) + '</b><div class="small muted">' + fdm(r.fecha) + '</div>', '<b>' + MK.esc(r.que) + '</b><div class="small muted">' + MK.esc(r.tipo) + ' · ' + MK.esc(r.texto) + '</div>', MK.esc(r.para),
+      r.urgencia === 'Urgente' ? '<b style="color:var(--bad)">Urgente</b>' : MK.esc(r.urgencia), rqEst(r) + rqPz(r)];
+  }), { vacio: 'Todavía no hay requisiciones. Cuando haga falta un servicio, un repuesto o un insumo, pídelo con «Nueva requisición».', clic: function (j) { return 'rqDetalle(\'' + L[j].reqId + '\')'; } }) + '</div>';
+  h += '<div class="nota" style="max-width:760px">Tú dices qué hace falta y para qué, sin precios ni datos bancarios. <b>Compras</b> consigue la cotización y la vuelve solicitud de pago; la aprueba la dirección financiera y se paga. Termina cuando la marcas como recibida. Si es un servicio de un equipo, anótalo también con «Registrar servicio» en Mantenimiento.</div>';
+  return h;
+}
+function rqNueva(p) {
+  p = p || {};
+  var eqs = (RQP && RQP.equipos) || ((B().mantenimiento || {}).equiposBase || []).filter(function (x) { return x !== 'Otro'; });
+  RQN = { renglones: [{ desc: p.desc || '', cant: p.cant || 1, unidad: p.unidad || (/insumo/i.test(p.tipo || '') ? 'unid.' : 'servicio') }], archivoId: '', origen: p.origen || '' };
+  var tipos = ['Insumo', 'Servicio o reparación', 'Repuesto', 'Otro'], tp = p.tipo || 'Servicio o reparación';
+  MK.lado('<h2>Nueva requisición</h2><div class="sub">Di qué hace falta y para qué. No hace falta proveedor ni precio: eso lo consigue Compras con la cotización.' + (p.origen ? ' Viene de ' + MK.esc(p.origen) + '.' : '') + '</div>' +
+    '<div class="f2"><div><label class="lb">Qué es</label><select class="in" id="rn-ti">' + tipos.map(function (t) { return '<option' + (t === tp ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div>' +
+    '<div><label class="lb">Para</label><select class="in" id="rn-pa">' + eqs.map(function (e) { return '<option value="equipo|' + MK.esc(e) + '"' + (e === p.para ? ' selected' : '') + '>' + MK.esc(e) + '</option>'; }).join('') +
+      '<option value="planta|La planta"' + (p.para === 'La planta' ? ' selected' : '') + '>La planta (general)</option><option value="consumibles|Consumibles">Consumibles (EPP, químicos)</option></select></div></div>' +
+    '<label class="lb">Qué se necesita</label><div id="rn-ln"></div><button class="btn sm gh" style="margin-top:6px" onclick="rqLeer();RQN.renglones.push({desc:\'\',cant:1,unidad:\'\'});rqRen()">' + MK.ic('mas', 14) + 'Otro renglón</button>' +
+    '<label class="lb">Por qué</label><textarea class="in" id="rn-pq" rows="2" placeholder="Lo que pasa y por qué hace falta">' + MK.esc(p.porque || '') + '</textarea>' +
+    '<div class="f2"><div><label class="lb">Urgencia</label><select class="in" id="rn-ur"><option>Normal</option><option>Esta semana</option><option value="Urgente">Urgente · detiene la operación</option></select></div>' +
+    '<div><label class="lb">Proveedor que conoces (opcional)</label><input class="in" id="rn-pv" value="' + MK.esc(p.proveedor || '') + '" placeholder="Si ya sabes quién lo hace"></div></div>' +
+    '<label class="lb">Foto o cotización (opcional)</label><label class="rq-adj" id="rn-ad"><span>' + MK.ic('documento', 15) + ' Toca para agregar una foto o una cotización que ya tengas</span><input type="file" accept="image/*,application/pdf" onchange="rqAdjunto(this)" hidden></label>' +
+    '<div class="nota">Llega a <b>Compras (Mercadeo)</b> como requisición por tramitar. Cuando la vuelvan solicitud de pago, aquí verás el número, el proveedor y el monto.</div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="rn-ok" onclick="rqGuardar(this)">' + MK.ic('check', 16) + 'Enviar a Compras</button></div>');
+  rqRen();
+}
+function rqLeer() { [].forEach.call(document.querySelectorAll('#rn-ln .rq-ln'), function (f, i) { var q = f.querySelectorAll('.in'); RQN.renglones[i] = { desc: q[0].value, cant: q[1].value, unidad: q[2].value }; }); }
+function rqRen() {
+  document.getElementById('rn-ln').innerHTML = RQN.renglones.map(function (r, i) {
+    return '<div class="rq-ln"><input class="in" value="' + MK.esc(r.desc) + '" placeholder="Qué: servicio, repuesto o insumo"><input class="in" type="number" min="0" value="' + MK.esc(r.cant) + '" title="Cantidad"><input class="in" value="' + MK.esc(r.unidad) + '" placeholder="unid." title="Unidad">' +
+      (RQN.renglones.length > 1 ? '<button class="btn gh sm" title="Quitar" onclick="rqLeer();RQN.renglones.splice(' + i + ',1);rqRen()">' + MK.ic('x', 14) + '</button>' : '<span></span>') + '</div>';
+  }).join('');
+}
+function rqAdjunto(inp) {
+  var f = inp.files[0], z = document.getElementById('rn-ad').firstChild; if (!f) return;
+  if (!window.ARCH) { z.textContent = 'No se pudo preparar el archivo.'; return; }
+  z.textContent = 'Preparando ' + f.name + '…';
+  ARCH.preparar(f).then(function (pr) {
+    return MK.llamar('api_reqPedirSubida', pr.meta).then(function (r) {
+      return ARCH.subir(r.subida, pr, function (pc) { z.textContent = 'Subiendo ' + pr.meta.nombre + ' · ' + pc + '%'; }).then(function () { return MK.llamar('api_reqAdjuntoListo', r.archivoId); });
+    });
+  }).then(function (r) { RQN.archivoId = r.archivo.archivoId; z.textContent = '📎 ' + r.archivo.nombre + ' · listo'; },
+    function (e) { z.textContent = 'No se pudo subir: ' + ((e && (e.message || e.error)) || 'intenta de nuevo'); });
+}
+function rqGuardar(btn) {
+  rqLeer();
+  var pa = MK.val('rn-pa').split('|');
+  var d = { modulo: 'planta', tipo: MK.val('rn-ti'), paraTipo: pa[0], para: pa[1] || '', renglones: RQN.renglones, porque: MK.val('rn-pq'), urgencia: MK.val('rn-ur'),
+    proveedorSugerido: MK.val('rn-pv'), archivoId: RQN.archivoId, origen: RQN.origen };
+  MK.ocupado(btn, true, 'Enviando…');
+  MK.llamar('api_reqGuardar', d).then(function (r) { MK.cerrarLado(); MK.aviso('Requisición ' + r.reqId + ' enviada a Compras'); RQP = null; if (MK.seccion === 'req' || MK.seccion === 'pago') MK.repintar(); else rqCargar(); },
+    function () { MK.ocupado(btn, false); });
+}
+function rqDetalle(id) {
+  var r = RQP && RQP.lista.filter(function (x) { return x.reqId === id; })[0]; if (!r) return;
+  var s = r.solicitud, paso = function (cls, t, sub) { return '<div class="' + cls + '"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
+  var cam = paso('', 'Enviada · ' + fdm(r.fecha), MK.esc(r.solicitadoPor) + ' · ' + MK.esc(r.urgencia));
+  if (r.pregunta) cam += paso(r.fase === 'pregunta' ? 'ya' : '', 'Compras pregunta', MK.esc(r.preguntaPor.split(' ')[0]) + ': «' + MK.esc(r.pregunta) + '»');
+  if (r.respuesta) cam += paso('', 'Respondiste', '«' + MK.esc(r.respuesta) + '»');
+  if (r.fase === 'noprocede') cam += paso('r', 'No procede', MK.esc(r.motivo));
+  else {
+    cam += paso(s ? '' : (r.fase === 'pregunta' ? 'no' : 'ya'), s ? 'Compras la tramitó · ' + MK.esc(s.solicitudId) : 'Compras la tramita', s ? MK.esc(s.proveedor) + (s.total ? ' · ' + D(s.total) : '') : 'cuando consiga la cotización');
+    cam += paso(r.paso >= 2 ? '' : (r.fase === 'tramite' ? 'ya' : 'no'), r.fase === 'rechazada' ? 'Rechazada' : 'Aprobada', 'dirección financiera');
+    cam += paso(r.paso >= 3 ? '' : (r.fase === 'aprobada' ? 'ya' : 'no'), 'Pagada' + (s && s.fechaPago ? ' · ' + fdm(s.fechaPago) : ''), '');
+    cam += paso(r.fase === 'recibida' ? '' : (r.fase === 'pagada' ? 'ya' : 'no'), 'Recibida', '');
+  }
+  var ren = (r.renglones || []).map(function (x) { return [MK.esc(x.desc), MK.num(x.cant, 0) + ' ' + MK.esc(x.unidad || '')]; });
+  MK.lado('<h2>' + MK.esc(r.reqId) + ' · ' + MK.esc(r.que) + '</h2><div class="sub">' + MK.esc(r.tipo) + ' · para ' + MK.esc(r.para) + (r.proveedorSugerido ? ' · proveedor que conoces: ' + MK.esc(r.proveedorSugerido) : '') + '</div>' +
+    (r.porque ? '<div class="nota" style="margin-top:0">' + MK.esc(r.porque) + '</div>' : '') +
+    (ren.length ? '<div style="margin-top:12px">' + MK.tabla(['Qué se necesita', 'Cantidad'], ren) + '</div>' : '') +
+    '<div class="rq-cam">' + cam + '</div>' +
+    '<div class="fila" style="gap:8px;flex-wrap:wrap;margin-top:10px">' +
+      (r.archivoId ? '<button class="btn sm" onclick="rqVerAdjunto(\'' + r.reqId + '\')">' + MK.ic('documento', 14) + 'Ver la foto o cotización</button>' : '') +
+      (s ? '<button class="btn sm" onclick="VR.abrir(\'SolicitudVista.html?id=' + encodeURIComponent(s.solicitudId) + '\',\'Solicitud de pago ' + MK.esc(s.solicitudId) + '\',\'' + MK.esc(s.proveedor) + '\')">Ver la solicitud ' + MK.esc(s.solicitudId) + '</button>' : '') + '</div>' +
+    (r.fase === 'pregunta' ? MK.si('<label class="lb">Tu respuesta</label><textarea class="in" id="rd-re" rows="2" autofocus></textarea>') : '') +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cerrar</button>' +
+      (r.fase === 'pregunta' ? MK.si('<button class="btn pri" onclick="rqResponder(this,\'' + r.reqId + '\')">Responder</button>') : '') +
+      (r.fase === 'pagada' ? MK.si('<button class="btn pri" onclick="rqRecibida(\'' + r.reqId + '\')">Ya llegó · cerrarla</button>') : '') + '</div>', { ancho: true });
+}
+function rqResponder(btn, id) { var t = MK.val('rd-re'); if (!t) { MK.aviso('Escribe la respuesta.'); return; } MK.ocupado(btn, true);
+  MK.llamar('api_reqResponder', id, t).then(function () { MK.cerrarLado(); MK.aviso('Respuesta enviada a Compras'); RQP = null; rqCargar(); }, function () { MK.ocupado(btn, false); }); }
+function rqRecibida(id) { MK.llamar('api_reqRecibida', id).then(function () { MK.cerrarLado(); MK.aviso('Requisición cerrada'); RQP = null; rqCargar(); }); }
+function rqVerAdjunto(id) { MK.llamar('api_reqVerAdjunto', id).then(function (r) { if (window.VR && VR.pestana) VR.pestana(r.url); else window.open(r.url, '_blank'); }); }
 
 /* ═══════════ ARRANQUE ═══════════ */
 MK.iniciar({
@@ -568,7 +768,7 @@ MK.iniciar({
     { g: 'PLANTA' }, { id: 'ini', n: 'Inicio', i: 'casa' },
     { g: 'PROCESO' }, { id: 'rec', n: 'Recepción · actas', i: 'bajar' }, { id: 'tra', n: 'Tratamiento · ciclos', i: 'fuego' }, { id: 'cua', n: 'Cuarentena y despacho', i: 'camion' },
     { g: 'SOPORTE' }, { id: 'mto', n: 'Mantenimiento de equipos', i: 'llaveInglesa' }, { id: 'con', n: 'Consumibles', i: 'caja' }, { id: 'bio', n: 'Verificación biológica', i: 'matraz' },
-    { g: 'INFORMES' }, { id: 'rep', n: 'Reporte mensual', i: 'libro' }, { id: 'pago', n: 'Pedir un pago', i: 'billete' }
+    { g: 'INFORMES' }, { id: 'rep', n: 'Reporte mensual', i: 'libro' }, { id: 'req', n: 'Requisiciones', i: 'billete' }
   ],
   pieMenu: '¿Buscas la pantalla anterior? <a href="PlantaAnterior.html">Abrir</a>',
   alCargar: function (b) {
@@ -579,9 +779,11 @@ MK.iniciar({
     MK.contadores.bio = mes >= b.bioDesde && (!bm || bm.resultado === 'PENDIENTE') ? { n: '!', t: 'am' } : null;
     var p = (b.tratamiento || {}).pendientes || [];
     MK.contadores.cua = p.length ? { n: p.length, t: 'g' } : null;
+    MK.contadores.req = b.reqPreguntas ? { n: b.reqPreguntas, t: 'am' } : null;
+    if (RQP && (MK.seccion === 'req' || MK.seccion === 'pago')) setTimeout(rqCargar, 0);
   },
   pintar: function (id) {
-    var V = { ini: vInicio, rec: vRecepcion, tra: vTratamiento, cua: vCuarentena, mto: vMantenimiento, con: vConsumibles, bio: vBio, rep: vReporte, pago: vPago };
+    var V = { ini: vInicio, rec: vRecepcion, tra: vTratamiento, cua: vCuarentena, mto: vMantenimiento, con: vConsumibles, bio: vBio, rep: vReporte, req: vReq, pago: vReq };
     if (!MK.base) return;
     document.getElementById('main').innerHTML = (V[id] || vInicio)();
   }

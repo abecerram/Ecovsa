@@ -238,6 +238,11 @@ table.inv-l{width:100%;border-collapse:collapse;margin-top:20px}
   .doc{font-size:10.5pt}
   @page{size:letter;margin:12mm}
 }
+/* api 3.5.3 · requisiciones */
+.rqc-de{font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;display:inline-block}.rqc-de.l{background:#E8F0FA;color:#1b4a86}.rqc-de.p{background:#E7F3DD;color:#2F6B0A}
+.rqc-ban{display:flex;gap:12px;align-items:flex-start;border:1px solid #CFE0F5;background:#F3F8FE;border-radius:12px;padding:12px 14px;margin-bottom:14px;max-width:1080px;flex-wrap:wrap}
+.rqc-ban b{display:block}.rqc-ban .sp{flex:1}
+.tabs button .n.urg{background:var(--bad-bg);color:var(--bad)}
 </style>
 </head>
 <body class="mk">
@@ -331,7 +336,8 @@ MK.iniciar('compras', function () {
     pintarMarco();
     pintarForm();
     var t = (location.hash || '').slice(1) || MK.param('tab');
-    irTab(['sol', 'nueva', 'caja', 'tot'].indexOf(t) >= 0 ? t : 'sol', true);
+    irTab(['sol', 'req', 'nueva', 'caja', 'tot'].indexOf(t) >= 0 ? t : 'sol', true);
+    reqCargar();
     return cargarLista();
   }).then(function () {
     pintarTodo();
@@ -387,6 +393,7 @@ function recargar() {
     else if (abiertoDet && buscarSol(DET)) verDet(DET, true);
   }, function (e) { MK.aviso(e.message); });
   if (CAJA) cargarCaja();
+  if (RQC && !RQC.sin) reqCargar();
 }
 
 /* ═══ marco y pestañas ═══ */
@@ -416,12 +423,13 @@ function pintarMarco() {
 function irTab(t, sinHash) {
   TAB = t;
   [].forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.classList.toggle('on', b.getAttribute('data-t') === t); });
-  ['sol', 'nueva', 'caja', 'tot'].forEach(function (x) { var p = $('p-' + x); if (p) p.classList.toggle('on', x === t); });
+  ['sol', 'req', 'nueva', 'caja', 'tot'].forEach(function (x) { var p = $('p-' + x); if (p) p.classList.toggle('on', x === t); });
   if (!sinHash) { try { history.replaceState(null, '', location.pathname + location.search + (t === 'sol' ? '' : '#' + t)); } catch (e) {} }
   if (t !== 'sol') MK.cerrarLado();
   if (t === 'caja' && !CAJA) cargarCaja();
   if (t === 'tot') pintarTot();
   if (t === 'sol') pintarBandeja();
+  if (t === 'req') reqPintar();
   window.scrollTo(0, 0);
 }
 function pintarTodo() { pintarBandeja(); if (TAB === 'tot') pintarTot(); }
@@ -816,6 +824,7 @@ function enviar(d, l, confirmado, btn) {
     MK.aviso('Solicitud ' + r.solicitudId + ' enviada por ' + bal(r.total) + (r.etiqueta ? ' · ' + String(r.etiqueta).toLowerCase() : (Number(r.total) > UMBRAL ? ' · va primero a visto bueno' : ' · espera la aprobación')));
     fLimpiar();
     NUEVA = r.solicitudId;
+    reqAmarrar(r.solicitudId);
     irTab('sol');
     MK.cambio({ tipo: 'compra', id: r.solicitudId });
     /* Lo del proveedor viene después, con la solicitud ya guardada. */
@@ -867,7 +876,8 @@ function provLlamar(b, fn, datos, id, texto) {
   }, function () { MK.ocupado(b, false); $('pv-msg').textContent = 'Sin conexión con el servidor.'; });
 }
 function fTieneAlgo() { return !!$('f-prov').value.trim() || fLeerLin().some(function (l) { return l.concepto || l.valorUnitario; }); }
-function fLimpiarPreg() { if (!fTieneAlgo()) { fLimpiar(); return; } MK.confirmar('Se borra todo lo que llevas escrito en esta solicitud.', fLimpiar, { titulo: 'Limpiar la hoja', boton: 'Limpiar', peligro: true }); }
+function fLimpiarTodo() { fLimpiar(); if (REQ_TRAM) { REQ_TRAM = ''; reqBanda(); } }
+function fLimpiarPreg() { if (!fTieneAlgo()) { fLimpiarTodo(); return; } MK.confirmar('Se borra todo lo que llevas escrito en esta solicitud.', fLimpiarTodo, { titulo: 'Limpiar la hoja', boton: 'Limpiar', peligro: true }); }
 function fLimpiar() {
   ['f-prov', 'f-ruc', 'f-dv', 'f-banco', 'f-cta', 'f-con', 'f-obs'].forEach(function (i) { $(i).value = ''; });
   $('f-retc').value = '0'; $('f-anti').value = '0'; $('f-tc').value = ''; $('f-proy').value = '';
@@ -915,6 +925,134 @@ function fLlenar(s, lineas, soloLineas) {
   $('f-lin').innerHTML = '';
   (lineas.length ? lineas : [null]).forEach(function (l) { fLinea(l ? { cantidad: l.cantidad, unidad: l.unidad, concepto: l.concepto, cuentaCodigo: l.cuentaCodigo, job: l.job, valorUnitario: l.valorUnitario, exento: l.exento } : null); });
   fCalc();
+}
+
+/* ═══ requisiciones (api 3.5.3) ═══
+   Lo que piden Logística y Planta: «requerimos este servicio o este insumo».
+   Compras consigue la cotización y la tramita: se abre la solicitud de pago con
+   lo pedido ya escrito, y al enviarla la requisición queda amarrada a ella. */
+var RQC = null, RQ_FIL = 'abiertas', REQ_TRAM = '';
+function reqCargar() {
+  return MK.api('api_reqLista', MK.pin, 'compras').then(function (r) {
+    if (!r || !r.ok) { RQC = { sin: true }; return; }
+    RQC = r;
+    var t = $('tabs');
+    if (t && !t.querySelector('[data-t="req"]')) {
+      t.children[0].insertAdjacentHTML('afterend', '<button data-t="req" onclick="irTab(\'req\')">Requisiciones<span class="n" id="n-req" hidden></span></button>');
+      $('p-sol').insertAdjacentHTML('afterend', '<div class="pane" id="p-req"><div id="reqbox"></div></div>');
+      if (TAB === 'req') irTab('req', true);
+    }
+    var n = $('n-req'), k = r.kpis.porTramitar;
+    if (n) { n.hidden = !k; n.textContent = k; n.className = 'n' + (r.kpis.urgentes ? ' urg' : ''); }
+    if (TAB === 'req') reqPintar();
+  }, function () {});
+}
+var RQ_DE = { logistica: ['Logística', 'l'], planta: ['Planta', 'p'] };
+function reqPasa(r, f) {
+  if (f === 'abiertas') return ['enviada', 'respondida', 'pregunta'].indexOf(r.fase) >= 0;
+  if (f === 'tramitadas') return !!r.solicitudId;
+  if (f === 'noprocede') return r.fase === 'noprocede';
+  return true;
+}
+function reqPintar() {
+  var z = $('reqbox'); if (!z) return;
+  if (!RQC) { MK.cargando(z, 'Abriendo las requisiciones…'); return; }
+  var K = RQC.kpis, L = RQC.lista, mes = MK.mesNombre(MK.hoy.slice(0, 7)).split(' ')[0];
+  var porT = L.filter(function (r) { return reqPasa(r, 'abiertas'); });
+  var vieja = porT.reduce(function (m, r) { return Math.max(m, r.dias || 0); }, 0);
+  var esperan = L.filter(function (r) { return r.fase === 'pregunta'; }).length;
+  var kp = [['abiertas', K.porTramitar, 'Por tramitar', (K.urgentes ? K.urgentes + ' urgente' + (K.urgentes > 1 ? 's' : '') + ' · ' : '') + (porT.length ? 'la más vieja, ' + diasTxt(vieja) : 'nada pendiente')],
+    ['pregunta', esperan, 'Esperando respuesta', 'preguntas hechas'],
+    ['tramitadas', K.tramitadasMes, 'Tramitadas en ' + mes, bal(K.tramitadoMes)],
+    ['noprocede', K.noProceden, 'No procedieron', 'con su motivo']];
+  var l = L.filter(function (r) { return RQ_FIL === 'pregunta' ? r.fase === 'pregunta' : reqPasa(r, RQ_FIL); });
+  z.innerHTML = '<p class="muted small" style="margin-bottom:12px;max-width:760px">Lo que piden Logística y Planta. Consigue la cotización y dale <b>Tramitar</b>: se abre la solicitud de pago con lo que pidieron ya escrito, y queda amarrada a la requisición para que vean en qué va.</p>' +
+    '<div class="kp4">' + kp.map(function (k) { return '<button type="button" class="kpi' + (RQ_FIL === k[0] ? ' on' : '') + '" onclick="RQ_FIL=\'' + k[0] + '\';reqPintar()"><b>' + k[1] + '</b><span>' + esc(k[2]) + '</span><em>' + esc(k[3]) + '</em></button>'; }).join('') + '</div>' +
+    '<div class="tbw"><table class="tb"><thead><tr class="cab"><th>Requisición</th><th>La pide</th><th>Qué se necesita</th><th>Urgencia</th><th></th></tr></thead><tbody>' +
+    (l.length ? l.map(function (r) {
+      var de = RQ_DE[r.modulo] || [r.modulo, 'l'], urg = r.urgencia === 'Urgente';
+      var acc = '';
+      if (reqPasa(r, 'abiertas')) acc = '<button class="btn sm gh" onclick="event.stopPropagation();reqPreguntar(\'' + r.reqId + '\')">Preguntar</button><button class="btn sm gh" onclick="event.stopPropagation();reqNoProcede(\'' + r.reqId + '\')">No procede</button>' +
+        '<button class="btn sm pri" onclick="event.stopPropagation();reqTramitar(\'' + r.reqId + '\')">Tramitar</button>';
+      else if (r.fase === 'pregunta') acc = '<span class="small muted">esperando respuesta</span>';
+      else if (r.solicitudId) acc = '<button class="btn sm gh" onclick="event.stopPropagation();verDet(\'' + esc(r.solicitudId) + '\')">' + esc(r.solicitudId) + '</button>';
+      return '<tr class="clic" onclick="reqVer(\'' + r.reqId + '\')"><td class="c-id"><b class="mono" style="font-weight:600">' + esc(r.reqId) + '</b><small class="muted">' + (reqPasa(r, 'abiertas') ? diasTxt(r.dias || 0) + ' esperando' : esc(MK.fechaCorta(r.fecha))) + '</small></td>' +
+        '<td><span class="rqc-de ' + de[1] + '">' + esc(de[0]) + '</span><div class="small muted" style="margin-top:3px">' + esc(r.solicitadoPor) + '</div></td>' +
+        '<td class="c-pv"><span class="pv">' + esc(r.que) + '</span>' + (urg ? ' <span class="tag t-bad">URGE</span>' : '') + '<div class="cpt">' + esc(r.tipo) + ' · para ' + esc(r.para) +
+          (r.respuesta && r.fase === 'respondida' ? ' · respondió: «' + esc(r.respuesta) + '»' : (r.proveedorSugerido ? ' · proveedor que conocen: ' + esc(r.proveedorSugerido) : '')) + (r.fase === 'noprocede' ? ' · no procede: ' + esc(r.motivo) : '') + '</div></td>' +
+        '<td class="c-est"><span class="tag ' + (urg ? 't-bad' : r.urgencia === 'Esta semana' ? 't-warn' : 't-gris') + '">' + esc(r.urgencia) + '</span></td>' +
+        '<td class="r"><div class="row" style="gap:6px;justify-content:flex-end;flex-wrap:nowrap">' + acc + '</div></td></tr>';
+    }).join('') : '<tr><td colspan="5">' + MK.vacio(RQ_FIL === 'abiertas' ? 'No hay requisiciones por tramitar.' : 'Nada por aquí.') + '</td></tr>') + '</tbody></table></div>';
+}
+function reqUna(id) { return RQC && RQC.lista ? RQC.lista.filter(function (r) { return r.reqId === id; })[0] : null; }
+function reqVer(id) {
+  var r = reqUna(id); if (!r) return;
+  var de = (RQ_DE[r.modulo] || [r.modulo])[0];
+  MK.lado('<h2>' + esc(r.reqId) + ' · ' + esc(r.que) + '</h2><p class="muted small">' + esc(r.tipo) + ' · para ' + esc(r.para) + ' · lo pide ' + esc(de) + ' (' + esc(r.solicitadoPor) + ') · ' + esc(MK.fechaCorta(r.fecha)) + '</p>' +
+    (r.porque ? '<div class="nota" style="margin-top:10px">' + esc(r.porque) + '</div>' : '') +
+    '<div class="tbw" style="margin-top:12px"><table class="tb"><thead><tr class="cab"><th>Qué se necesita</th><th class="r">Cantidad</th></tr></thead><tbody>' + (r.renglones || []).map(function (x) { return '<tr><td>' + esc(x.desc) + '</td><td class="r">' + esc(x.cant) + ' ' + esc(x.unidad || '') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+    kvHTML([['Urgencia', r.urgencia], ['Proveedor que conocen', r.proveedorSugerido], ['Viene de', r.origen], ['En qué va', r.texto]]) +
+    (r.pregunta ? '<div class="nota" style="margin-top:10px"><b>Pregunta de ' + esc(r.preguntaPor.split(' ')[0]) + ':</b> «' + esc(r.pregunta) + '»' + (r.respuesta ? '<br><b>Respuesta:</b> «' + esc(r.respuesta) + '»' : '<br><span class="muted">sin respuesta todavía</span>') + '</div>' : '') +
+    '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">' + (r.archivoId ? '<button class="btn sm" onclick="reqAdjunto(\'' + r.reqId + '\')">' + MK.ic('documento', 14) + 'Ver la foto o cotización</button>' : '') +
+      (r.solicitudId ? '<button class="btn sm" onclick="verDet(\'' + esc(r.solicitudId) + '\')">Ver la solicitud ' + esc(r.solicitudId) + '</button>' : '') + '</div>' +
+    (reqPasa(r, 'abiertas') ? '<div class="pie-det" style="margin-top:16px"><button class="btn gh" onclick="reqPreguntar(\'' + r.reqId + '\')">Preguntar</button><button class="btn gh" onclick="reqNoProcede(\'' + r.reqId + '\')">No procede</button><div class="sp"></div><button class="btn pri" onclick="reqTramitar(\'' + r.reqId + '\')">Tramitar</button></div>' : ''));
+}
+function reqAdjunto(id) { MK.api('api_reqVerAdjunto', MK.pin, id).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo abrir.'); return; } if (window.VR && VR.pestana) VR.pestana(r.url); else window.open(r.url, '_blank'); }); }
+function reqTexto(id, titulo, ayuda, boton, fn, peligro) {
+  var r = reqUna(id); if (!r) return;
+  MK.hoja('<h2>' + esc(titulo) + '</h2><p class="muted small" style="margin-top:4px">' + esc(r.reqId) + ' · ' + esc(r.que) + ' · ' + esc(ayuda) + '</p>' +
+    '<textarea class="in" id="rq-tx" rows="3" style="margin-top:10px" autofocus></textarea><div class="small" id="rq-msg" style="color:var(--bad);margin-top:6px"></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ' + (peligro ? 'bad' : 'pri') + '" id="rq-ok">' + esc(boton) + '</button></div>');
+  $('rq-ok').onclick = function () {
+    var t = $('rq-tx').value.trim(), b = this; if (!t) { $('rq-msg').textContent = 'Escríbelo primero.'; return; }
+    MK.ocupado(b, true);
+    MK.api(fn, MK.pin, id, t).then(function (x) {
+      MK.ocupado(b, false);
+      if (!x || !x.ok) { $('rq-msg').textContent = (x && x.error) || 'No se pudo.'; return; }
+      MK.cerrarHoja(); MK.cerrarLado(); MK.aviso(fn === 'api_reqPreguntar' ? 'Pregunta enviada a ' + ((RQ_DE[r.modulo] || [r.modulo])[0]) : 'Marcada como no procede'); reqCargar();
+    }, function (e) { MK.ocupado(b, false); $('rq-msg').textContent = e.message; });
+  };
+}
+function reqPreguntar(id) { reqTexto(id, 'Preguntar a quien la pidió', 'la ve en su pantalla y responde ahí mismo', 'Enviar la pregunta', 'api_reqPreguntar'); }
+function reqNoProcede(id) { reqTexto(id, 'No procede', 'di por qué: lo lee quien la pidió', 'No procede', 'api_reqNoProcede', true); }
+/* Tramitar: la hoja de la solicitud con lo pedido ya escrito */
+function reqTramitar(id) {
+  var r = reqUna(id); if (!r) return;
+  var hacer = function () {
+    MK.cerrarLado(); fLimpiar(); REQ_TRAM = id;
+    var de = (RQ_DE[r.modulo] || [r.modulo])[0];
+    if (r.proveedorSugerido) { $('f-prov').value = r.proveedorSugerido; if (provCat(r.proveedorSugerido)) fProv(); }
+    var pr = [].filter.call($('f-proy').options, function (o) { return /PELIGROS/i.test(o.value); })[0]; if (pr) $('f-proy').value = pr.value;
+    if (r.urgencia === 'Urgente') segSet('urg', 'URGE');
+    $('f-con').value = r.que + ' · ' + r.para;
+    $('f-obs').value = 'Viene de la requisición ' + r.reqId + ' (' + de + ', ' + r.solicitadoPor + ')' + (r.porque ? ': ' + r.porque : '.');
+    $('f-lin').innerHTML = '';
+    (r.renglones && r.renglones.length ? r.renglones : [{ desc: r.que, cant: 1, unidad: '' }]).forEach(function (x) { fLinea({ cantidad: x.cant || 1, unidad: String(x.unidad || 'UNIDAD').toUpperCase(), concepto: x.desc, cuentaCodigo: '', job: '', valorUnitario: '', exento: false }); });
+    fCalc();
+    irTab('nueva');
+    reqBanda();
+    MK.aviso('Pon el proveedor de la cotización, la cuenta y los precios');
+  };
+  if (fTieneAlgo() && REQ_TRAM !== id) MK.confirmar('La hoja de la solicitud tiene datos escritos. Se reemplazan por lo de ' + id + '.', hacer, { titulo: 'Tramitar ' + id, boton: 'Reemplazar' });
+  else hacer();
+}
+function reqBanda() {
+  var v = $('rqc-ban'); if (v) v.remove();
+  var r = REQ_TRAM && reqUna(REQ_TRAM); if (!r) return;
+  var de = (RQ_DE[r.modulo] || [r.modulo])[0];
+  $('form').insertAdjacentHTML('afterbegin', '<div class="rqc-ban" id="rqc-ban"><div><b>Tramitando ' + esc(r.reqId) + ' · lo pidió ' + esc(de) + '</b><span class="small muted">' + esc(r.que) + ' · para ' + esc(r.para) + ' · ' + esc(r.urgencia) +
+    '. Al enviar, la requisición queda amarrada a esta solicitud y ' + esc(de) + ' ve el número, el proveedor y el monto.</span></div><span class="sp"></span>' +
+    '<button class="btn sm gh" onclick="reqVer(\'' + r.reqId + '\')">Ver la requisición</button><button class="btn sm gh" onclick="reqSoltar()">Soltarla</button></div>');
+}
+function reqSoltar() { REQ_TRAM = ''; reqBanda(); MK.aviso('La hoja ya no está amarrada a ninguna requisición'); }
+/* Al enviarse la solicitud, se amarra. Si falla, la solicitud ya quedó: se avisa para amarrarla a mano. */
+function reqAmarrar(solicitudId) {
+  if (!REQ_TRAM) return;
+  var id = REQ_TRAM; REQ_TRAM = ''; reqBanda();
+  MK.api('api_reqTramitada', MK.pin, id, solicitudId).then(function (x) {
+    if (x && x.ok) { MK.aviso('Solicitud ' + solicitudId + ' enviada · ' + id + ' queda tramitada', 5000); reqCargar(); }
+    else MK.aviso('La solicitud ' + solicitudId + ' quedó, pero no se pudo amarrar a ' + id + ': ' + ((x && x.error) || 'intenta de nuevo'), 9000);
+  }, function () { MK.aviso('La solicitud ' + solicitudId + ' quedó, pero no se pudo amarrar a ' + id + ' (sin conexión).', 9000); });
 }
 
 /* ═══ caja menuda ═══ */

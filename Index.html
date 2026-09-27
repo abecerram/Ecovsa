@@ -2356,8 +2356,25 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 
 <section id="pantalla-flota" class="pantalla">
 <div class="cr-tt"><div><h1>Flota</h1><div class="sub" id="fl-sub"></div></div><span class="sp"></span>
+<button class="pl-btn" onclick="flDatos_('', true)">＋ Camión nuevo</button>
 <button class="pl-btn" onclick="flCargar_()">⟳ Actualizar</button></div>
 <div id="fl-cuerpo"></div>
+</section>
+
+<!-- api 3.5.3: Inventario y Requisiciones (antes en Administración y Solicitud de pago) -->
+<section id="pantalla-inv" class="pantalla">
+<div class="cr-tt"><div><h1>Inventario</h1><div class="sub" id="iv-sub">Insumos de logística y planta</div></div><span class="sp"></span>
+<button class="pl-btn" onclick="ivInsumo_()">＋ Insumo</button>
+<button class="pl-btn mt-pri" onclick="ivEntregar_()">Entregar</button>
+<button class="pl-btn" onclick="ivCargar_()">⟳</button></div>
+<div id="iv-cuerpo"><div class="c2-vacio">Abriendo…</div></div>
+</section>
+
+<section id="pantalla-req" class="pantalla">
+<div class="cr-tt"><div><h1>Requisiciones</h1><div class="sub">Lo que Logística necesita que se compre o se pague. Compras (Mercadeo) la tramita con su cotización y aquí ves en qué va.</div></div><span class="sp"></span>
+<button class="pl-btn mt-pri" onclick="rqNueva_()">＋ Nueva requisición</button>
+<button class="pl-btn" onclick="rqCargar_()">⟳</button></div>
+<div id="rq-cuerpo"><div class="c2-vacio">Abriendo…</div></div>
 </section>
 
 <section id="pantalla-mto" class="pantalla">
@@ -3718,7 +3735,7 @@ function abrirHorario(id){
   google.script.run
     .withSuccessHandler(function(r){
       if(!r || !r.ok){ toast((r && r.error) || "No se pudo abrir"); cerrarHorario(); return; }
-      HZ = { id: id, tipo: r.horario.tipo || "", desde: r.horario.desde || "", hasta: r.horario.hasta || "",
+      HZ = { id: id, tipo: r.horario.tipo || "", tenia: !!r.horario.tipo, desde: r.horario.desde || "", hasta: r.horario.hasta || "",
              nota: r.horario.nota || "", por: r.horario.por, en: r.horario.en, sug: r.sugerencias || [], nombre: r.cliente.nombre };
       pintarHorario_();
     })
@@ -3737,6 +3754,8 @@ function pintarHorario_(){
                '<div><label style="margin-top:0">Hasta</label><input type="time" value="' + esc(HZ.hasta) + '" onchange="HZ.hasta=this.value"></div></div>' +
                '<label>Nota para el conductor</label><input value="' + esc(HZ.nota) + '" oninput="HZ.nota=this.value" placeholder="Ej: después de las 11 cierran el cuarto de desechos">' : '') +
     (HZ.por ? '<div style="font-size:11.5px;color:var(--gris);margin-top:10px">Lo fijó ' + esc(HZ.por) + (HZ.en ? ' el ' + esc(HZ.en) : '') + '</div>' : '') +
+    /* api 3.5.3: quitarlo sin vueltas */
+    (HZ.tenia ? '<button class="hz-quitar" onclick="quitarHorario_()">✕ Quitar el horario de este cliente</button>' : '') +
     '<div class="hh-pie" style="margin-top:14px"><button class="btn sec" style="flex:1" onclick="cerrarHorario()">Cancelar</button>' +
       '<button class="btn verde" style="flex:1.4" onclick="guardarHorario_()">Guardar horario</button></div></div>';
 }
@@ -3754,7 +3773,10 @@ function usarSugerencia_(k){
   if(!HZ.tipo) HZ.tipo = "preferencia";
   pintarHorario_();
 }
+function quitarHorario_(){ HZ.tipo = ""; HZ.desde = ""; HZ.hasta = ""; guardarHorario_(); }
 function guardarHorario_(){
+  /* api 3.5.3: borrar las dos horas es quitar el horario */
+  if(HZ.tipo && !String(HZ.desde || "").trim() && !String(HZ.hasta || "").trim()) HZ.tipo = "";
   var d = { tipo: HZ.tipo, desde: HZ.desde, hasta: HZ.hasta, nota: HZ.nota };
   toast("Guardando…");
   google.script.run
@@ -3763,7 +3785,7 @@ function guardarHorario_(){
       var c = cli(HZ.id);
       if(c){ c.horarioTipo = r.horario.tipo; c.horarioDesde = r.horario.desde; c.horarioHasta = r.horario.hasta; c.horarioNota = r.horario.nota; guardarLocal(K_CLI, CLIENTES); }
       cerrarHorario(); renderClientes(); if(esSupervisor()) renderRuta();
-      toast("Horario guardado ✓");
+      toast(r.horario.tipo ? "Horario guardado ✓" : "Horario quitado ✓");
       if(typeof c2Refrescar_ === "function") c2Refrescar_();
       if(typeof INI_TAB !== "undefined" && INI_TAB === "plan" && PL) plCargar_(PL.fecha, true);
     })
@@ -4636,12 +4658,12 @@ try{ INI_PER = localStorage.getItem("eco_ini_per") || "semana"; }catch(e){}
 var MENU_SUP = [
   ["Operación"],
   ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["agenda","🗓️","Calendario"],
-  ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"], ["mapa","🗺️","Mapa"],
+  ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"],
   ["recibos","🧾","Recibos"], ["dfin","🏭","Disposición final"],
   ["Por revisar"],
   ["solicitudes","🔔","Solicitudes","solicitudes"],
   ["Administración"],
-  ["flota","🚚","Flota","flota"], ["mto","🔧","Mantenimiento","mto"], ["@admin","📦","Inventario"], ["@inicio","📈","Indicadores"]
+  ["flota","🚚","Flota","flota"], ["mto","🔧","Mantenimiento","mto"], ["inv","📦","Inventario","inv"], ["req","🧾","Requisiciones","req"], ["@inicio","📈","Indicadores"]
 ];
 
 function esEscritorio_(){ return window.matchMedia && window.matchMedia("(min-width:1000px)").matches; }
@@ -5305,7 +5327,7 @@ function fHistorialC2_(F){
         (v.nombre && v.nombre.toUpperCase() !== String(F.cliente.nombre).toUpperCase() ? '<span style="font-weight:600"> · como «' + esc(v.nombre) + '»</span>' : '') + '</span></div>';
     }).join("") : '<div class="c2-vacio">Sin visitas registradas.</div>') +
     '<div class="c2-act"><button class="c2-btn" onclick="verHistorialCliente(\'' + esc(F.cliente.nombre).replace(/'/g, "\\'") + '\')">🧾 Ver los recibos</button>' +
-    '<button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=certificados\'); })">📄 Certificados</button><button class="c2-btn" onclick="exportarVisitasC2_()">⬇ Exportar</button></div>';
+    '<button class="c2-btn" onclick="c2Certificados_()">📄 Certificados</button><button class="c2-btn" onclick="exportarVisitasC2_()">⬇ Exportar</button></div>';
 }
 
 function fHorarioC2_(F){
@@ -6333,9 +6355,9 @@ function flIrDocs_(placa){
   if(INI_TAB !== "flota"){ FL_SEL = placa; mostrarTab("flota"); if(!esEscritorio_()) setTimeout(function(){ flFicha_(placa); }, 400); return; }
   flFicha_(placa);
 }
-function flEditarPlan_(placa){
+function flEditarPlan_(placa, base){
   mostrarTab("mto");
-  var n = 0; (function esp(){ if(typeof MT !== "undefined" && MT && !MT_VUELO) mtPlan_(placa); else if(n++ < 40) setTimeout(esp, 250); })();
+  var n = 0; (function esp(){ if(typeof MT !== "undefined" && MT && !MT_VUELO) mtPlan_(placa, !!base); else if(n++ < 40) setTimeout(esp, 250); })();
 }
 function flDocsCamion_(placa, forzar){
   if(FL_DCV) return; if(FL_DC && FL_DC.camion && FL_DC.placa === placa && !forzar) return;
@@ -6441,7 +6463,7 @@ function flHtmlFicha_(){
   if(!FL_SEL) return '<div class="fl-fic"><div class="c2-vacio">Toca un camión para ver su ficha: combustible, plan de mantenimiento, fallas y revisiones.</div></div>';
   var c = FL.camiones.find(function(x){ return x.placa === FL_SEL; }) || {}, F = FL_FI;
   var h = '<div class="fl-fic"><div style="display:flex;justify-content:space-between;gap:8px"><div><h2>' + esc(c.placa) + (c.marca ? ' · ' + esc(c.marca) : '') + '</h2><div class="ps">' + esc(c.conductor || "—") + (c.odometro ? ' · ' + nIni_(c.odometro) + ' km (' + esc(nombreDia_(c.odometroFecha)) + ')' : '') + ' · tope ' + c.tope + ' paradas</div></div>' + flEstChip_(c.estado) + '</div>' +
-    '<div class="c2-tabs">' + ["Plan","Documentos","Fallas","Revisiones","Combustible","Ficha"].map(function(t){ return '<button class="' + (FL_FT === t ? "on" : "") + '" onclick="FL_FT=\'' + t + '\';flRepFicha_()">' + t + '</button>'; }).join("") + '</div>';
+    '<div class="c2-tabs">' + ["Plan","Servicios","Documentos","Fallas","Revisiones","Combustible","Ficha"].map(function(t){ return '<button class="' + (FL_FT === t ? "on" : "") + '" onclick="FL_FT=\'' + t + '\';flRepFicha_()">' + t + '</button>'; }).join("") + '</div>';
   if(!F) return h + '<div class="c2-vacio">Abriendo…</div></div>';
   if(FL_FT === "Combustible"){
     var C = F.combustible, d = C.kmL !== null && C.kmLAnt !== null ? Math.round((C.kmL - C.kmLAnt) * 10) / 10 : null;
@@ -6456,15 +6478,17 @@ function flHtmlFicha_(){
       '<div class="c2-act"><button class="c2-btn" onclick="flExportar_(FL_FI.combustible.lista,\'' + esc(c.placa) + '\')">⬇ Exportar para contabilidad</button><button class="c2-btn" disabled title="Se activa con las fotos">📷 Vouchers</button></div>';
   } else if(FL_FT === "Plan"){
     var A = F.activo;
-    if(!A) h += '<div class="c2-ob b"><b>Este camión no está en Mantenimiento</b>Regístralo como vehículo en Mantenimiento para tener su plan (aceite, llantas, revisado) con los dos relojes: kilómetros y fecha.</div><div class="c2-act"><button class="c2-btn a" onclick="conUrlApp(function(u){ irA(u + \'?p=admin\'); })">Abrir Mantenimiento ↗</button></div>';
+    if(!A) h += '<div class="c2-ob b"><b>Este camión no tiene plan de mantenimiento</b>Créalo con la base de ECOVSA (aceite, filtros, llantas, frenos y documentos) y ajústalo: cada tarea con sus dos relojes, kilómetros y fecha.</div><div class="c2-act"><button class="c2-btn a" onclick="flEditarPlan_(\'' + esc(c.placa) + '\', true)">Crear su plan</button></div>';
     else {
       h += (A.tareas || []).length ? A.tareas.map(function(t){
         var pct = t.cadaKm && t.faltanKm !== null ? Math.max(0, Math.min(100, Math.round((t.cadaKm - t.faltanKm) / t.cadaKm * 100))) : (t.cadaDias && t.faltanDias !== null ? Math.max(0, Math.min(100, Math.round((t.cadaDias - t.faltanDias) / t.cadaDias * 100))) : 0);
         return '<div class="fl-dt" style="display:block"><div style="display:flex;justify-content:space-between"><b>' + esc(t.tarea) + '</b><span class="' + (t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "a" : "v")) + '">' + esc(t.estado.toLowerCase()) + '</span></div>' +
           '<div style="font-size:11px;color:var(--ini-gris);font-weight:600;margin-top:2px">' + (t.cadaKm ? 'cada ' + nIni_(t.cadaKm) + ' km' + (t.faltanKm !== null ? (t.faltanKm < 0 ? ' · pasado ' + nIni_(-t.faltanKm) + ' km' : ' · faltan ' + nIni_(t.faltanKm) + ' km') : '') : '') + (t.cadaKm && (t.cadaDias || t.vence) ? ' · ' : '') + (t.vence ? 'vence ' + esc(nombreDia_(t.vence)) : '') + '</div>' +
-          '<div class="pl-bar ' + (t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "am" : "")) + '" style="margin-top:6px"><i style="width:' + pct + '%"></i></div></div>'; }).join("") : '<div class="c2-vacio">Sin tareas en su plan.</div>';
-      h += '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="flEditarPlan_(\'' + esc(c.placa) + '\')">Editar plan ↗</button></div>';
+          '<div class="pl-bar ' + (t.estado === "VENCIDO" ? "r" : (t.estado === "POR VENCER" ? "am" : "")) + '" style="margin-top:6px"><i style="width:' + pct + '%"></i></div></div>'; }).join("") : '<div class="c2-ob b"><b>Este camión no tiene plan de mantenimiento</b>Créalo con la base de ECOVSA (aceite, filtros, llantas, frenos y documentos) y ajústalo.</div><div class="c2-act"><button class="c2-btn a" onclick="flEditarPlan_(\'' + esc(c.placa) + '\', true)">Crear su plan</button></div>';
+      h += '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="flEditarPlan_(\'' + esc(c.placa) + '\')">Editar plan</button><button class="c2-btn" onclick="rqNueva_({tipo:\'Servicio o reparación\',paraTipo:\'camion\',para:\'' + esc(c.placa) + '\'})">Pedir por requisición</button></div>';
     }
+  } else if(FL_FT === "Servicios"){
+    h += flHtmlServicios_(c.placa);
   } else if(FL_FT === "Documentos"){
     h += flHtmlDocs_(c.placa);
   } else if(FL_FT === "Fallas"){
@@ -6478,8 +6502,8 @@ function flHtmlFicha_(){
   } else {
     var A2 = F.activo || {};
     h += '<div class="fl-dt"><b>Placa</b><span>' + esc(c.placa) + '</span></div><div class="fl-dt"><b>Marca</b><span>' + esc(A2.marca || c.marca || "—") + '</span></div><div class="fl-dt"><b>Año</b><span>' + esc(A2.anio || "—") + '</span></div><div class="fl-dt"><b>Responsable</b><span>' + esc(A2.responsable || "—") + '</span></div>' +
-      '<div class="fl-dt"><b>Tope de paradas</b><span>' + F.tope + ' <button class="cr-ed" onclick="flTope_(\'' + esc(c.placa) + '\',' + F.tope + ')">✎</button></span></div><div class="fl-dt"><b>En Mantenimiento</b><span>' + (A2.activoId ? esc(A2.activoId) : 'no registrado') + '</span></div>' +
-      '<div class="c2-act"><button class="c2-btn a" onclick="FL_FT=\'Documentos\';flRepFicha_()">Documentos</button><button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=admin\'); })">Editar datos ↗</button></div>';
+      '<div class="fl-dt"><b>Tope de paradas</b><span>' + F.tope + ' <button class="cr-ed" onclick="flTope_(\'' + esc(c.placa) + '\',' + F.tope + ')">✎</button></span></div>' + (A2.notas ? '<div class="fl-dt"><b>Notas</b><span>' + esc(A2.notas) + '</span></div>' : '') + (A2.estado === "Baja" ? '<div class="fl-dt"><b>Estado</b><span class="r">dado de baja</span></div>' : '') + '<div class="fl-dt"><b>En Mantenimiento</b><span>' + (A2.activoId ? esc(A2.activoId) : 'no registrado') + '</span></div>' +
+      '<div class="c2-act"><button class="c2-btn a" onclick="FL_FT=\'Documentos\';flRepFicha_()">Documentos</button><button class="c2-btn" onclick="flDatos_(\'' + esc(c.placa) + '\')">Editar datos</button></div>';
   }
   return h + '</div>';
 }
@@ -6496,14 +6520,16 @@ function flServicio_(){
     '<div class="c2-f">Tareas que se hicieron</div>' + (A.tareas || []).map(function(t){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck fl-sv-t" value="' + esc(t.planId) + '"><div class="nm"><b>' + esc(t.tarea) + '</b></div></label>'; }).join("") +
     '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Fecha</label><input type="date" class="c2-in" id="fl-sv-f" value="' + hoyISO() + '"></div><div style="flex:1"><label class="c2-f">Odómetro</label><input type="number" class="c2-in" id="fl-sv-k" value="' + (c.odometro || "") + '"></div></div>' +
     '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Taller</label><input class="c2-in" id="fl-sv-e"></div><div style="flex:1"><label class="c2-f">Costo B/.</label><input type="number" class="c2-in" id="fl-sv-c"></div></div>' +
+    '<label class="c2-f">Tipo</label><div class="rq-seg" id="fl-sv-tp"><button class="on" onclick="rqSeg_(this)">Preventivo</button><button onclick="rqSeg_(this)">Correctivo</button><button onclick="rqSeg_(this)">Inspección</button></div>' +
     '<label class="c2-f">Observaciones</label><input class="c2-in" id="fl-sv-o">' +
+    '<label class="c2-f">Resultado</label><input class="c2-in" id="fl-sv-r" placeholder="Cómo quedó: bien, pendiente de repuesto…">' +
     (ab.length ? '<div class="c2-f">Fallas que resuelve</div>' + ab.map(function(f){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck fl-sv-f" value="' + esc(f.fallaId) + '"><div class="nm"><b>' + esc(f.punto) + '</b><span>' + esc(f.estado) + '</span></div></label>'; }).join("") : '') +
     '<button class="ini-ok" style="margin-top:12px" onclick="flGuardarServicio_()">Registrar</button>');
 }
 function flGuardarServicio_(){
   var tareas = [].slice.call(document.querySelectorAll(".fl-sv-t:checked")).map(function(x){ return x.value; });
   var fallas = [].slice.call(document.querySelectorAll(".fl-sv-f:checked")).map(function(x){ return x.value; });
-  var d = { activoId: FL_FI.activo.activoId, tipo: "Preventivo", fecha: $("fl-sv-f").value, km: $("fl-sv-k").value, empresa: $("fl-sv-e").value, costo: $("fl-sv-c").value, observaciones: $("fl-sv-o").value, planIds: tareas };
+  var d = { activoId: FL_FI.activo.activoId, tipo: rqSegVal_("fl-sv-tp") || "Preventivo", resultado: $("fl-sv-r").value, fecha: $("fl-sv-f").value, km: $("fl-sv-k").value, empresa: $("fl-sv-e").value, costo: $("fl-sv-c").value, observaciones: $("fl-sv-o").value, planIds: tareas };
   google.script.run.withSuccessHandler(function(r){
     if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
     var k = 0, sig = function(){ if(k >= fallas.length){ cerrarHojaIni_(); toast("Servicio registrado" + (fallas.length ? " · " + fallas.length + " falla(s) cerrada(s)" : "") + " ✓"); flCargar_(); return; }
@@ -6649,7 +6675,7 @@ fHistorialC2_ = function(F){
     (V.length ? '<div class="p7-rg">' + V.slice(0, C2_RMN).map(card).join("") + '</div>' +
       (V.length > C2_RMN ? '<div style="text-align:center;margin-top:10px"><button class="c2-btn" onclick="C2_RMN+=6;pintarFichaC2_()">Ver ' + Math.min(6, V.length - C2_RMN) + ' más · quedan ' + (V.length - C2_RMN) + '</button></div>' : '')
       : '<div class="c2-vacio">Sin visitas registradas.</div>') +
-    '<div class="c2-act"><button class="c2-btn" onclick="conUrlApp(function(u){ irA(u + \'?p=certificados\'); })">📄 Certificados</button><button class="c2-btn" onclick="exportarVisitasC2_()">⬇ Exportar</button></div>';
+    '<div class="c2-act"><button class="c2-btn" onclick="c2Certificados_()">📄 Certificados</button><button class="c2-btn" onclick="exportarVisitasC2_()">⬇ Exportar</button></div>';
 };
 
 /* ── 3a · Disposición final (logística) ── */
@@ -9198,6 +9224,8 @@ if(tab==="monitor" && esSupervisor()) tab = "cierre";
 if(tab==="jornada" && esSupervisor()) tab = "flota";
 if(tab==="disposicion") tab = esSupervisor() ? "dfin" : "entrega";
 if(tab==="avisos" && esSupervisor()) tab = "plan";
+/* api 3.5.3: el mapa del conductor no es del supervisor (el Mapa del día llega con el paquete del mapa) */
+if(tab==="mapa" && esSupervisor()) tab = "plan";
 /* api 3.5.2: clientes nuevos e inspecciones viven dentro de Solicitudes */
 if((tab==="porrevisar" || tab==="inspecciones") && esSupervisor()){ SQ_F = tab==="porrevisar" ? "cli" : "todas"; tab = "solicitudes"; }
 if(tab!=="entrega" && typeof enFirmaCerrar_==="function") enFirmaCerrar_();
@@ -9248,6 +9276,9 @@ if(tab==="monitor") renderMonitor();
 
 if(tab==="porrevisar" && esSupervisor()) cargarPorRevisar(false);
 if(tab==="solicitudes" && esSupervisor()) cargarSolicitudes(false);
+/* api 3.5.3: Inventario y Requisiciones dentro de Logística */
+if(tab==="inv" && esSupervisor()) ivCargar_();
+if(tab==="req" && esSupervisor()) rqCargar_();
 
 if(tab==="inspecciones" && esSupervisor()) cargarInspecciones(false);
 
@@ -9387,7 +9418,13 @@ function cerrarVistaRecibo(){
   var f = $("mvr-frame"); if(f) f.src = "about:blank";
 }
 
-function abrirReciboEnPestana(){ if(RECIBO_VISTA) abrirReciboPublico(RECIBO_VISTA); }
+function abrirReciboEnPestana(){
+  if(!RECIBO_VISTA) return;
+  /* api 3.5.3: desde la vista del recibo, la pestaña aparte es de verdad (no otra vista rápida) */
+  var f = RECIBO_VISTA;
+  conUrlApp(function(u){ var url = u + "?p=recibo&id=" + encodeURIComponent(f) + (esSupervisor() ? "" : "&conductor=1");
+    if(window.VR && VR.pestana) VR.pestana(url); else window.open(url, "_blank"); });
+}
 
 function avisoRecibos(txt){
   var a = $("rec-aviso"); if(!a) return;
@@ -11468,10 +11505,10 @@ function mtPintar_(){
     '<div><b>' + K.vencidos + '</b><span>vencidos' + (K.vencidos ? ' <em style="color:var(--tm-bad)">atender ya</em>' : '') + '</span></div>' +
     '<div><b>' + K.proximos + '</b><span>se acercan · 500 km o 30 días</span></div>' +
     '<div><b>' + K.fallas + '</b><span>fallas abiertas' + (K.bloquean ? ' · <em style="color:var(--tm-bad)">' + K.bloquean + ' no deja salir</em>' : '') + '</span></div>' +
-    '<div><b>' + K.conRevision14 + '/' + K.salidas14 + '</b><span>salidas con revisión · 14 días</span></div></div>';
+    '<div><b>' + bIni_(K.gastoMes || 0).replace(".00", "") + '</b><span>gastado en servicios este mes' + (K.serviciosMes ? ' · ' + K.serviciosMes + (K.serviciosMes === 1 ? ' servicio' : ' servicios') : '') + '</span></div></div>';
   h += '<div class="mt-grid"><div class="mt-col">';
   /* revisiones del conductor */
-  h += '<div class="mt-card"><h3>Revisiones del conductor<span class="sp"></span><small>toca un camión para ver sus revisiones</small></h3><table class="mt-tb"><thead><tr><th>Camión</th><th>Hoy</th><th class="oc">Últimos 14 días</th><th class="r">Semanal</th></tr></thead><tbody>' +
+  h += '<div class="mt-card"><h3>Revisiones del conductor<span class="sp"></span><small>' + K.conRevision14 + ' de ' + K.salidas14 + ' salidas con revisión en 14 días · toca un camión para ver las suyas</small></h3><table class="mt-tb"><thead><tr><th>Camión</th><th>Hoy</th><th class="oc">Últimos 14 días</th><th class="r">Semanal</th></tr></thead><tbody>' +
     MT.camiones.map(function(c){
       var hoy = c.hoy ? mtTag_(c.hoy.bloquea ? "r" : (c.hoy.fallas ? "am" : ""), "Salida " + c.hoy.bien + "/" + c.hoy.puntos + " · " + c.hoy.hora) : (c.salioHoy ? mtTag_("r", "Salió sin revisión") : mtTag_("g", "sin revisión hoy"));
       var sem = c.semanal ? mtTag_("", "hecha " + mtF_(c.semanal.fecha)) : (c.semanalPendiente ? mtTag_("am", "pendiente") : mtTag_("g", "—"));
@@ -11492,7 +11529,7 @@ function mtPintar_(){
   h += '<div class="mt-card mt-at"><h3>Requiere tu atención<span class="sp"></span><small>' + at.length + '</small></h3>' + (at.length ? at.map(function(a, i){
       var b = [];
       if(a.tipo === "falla") b.push(['<button class="mt-b p" onclick="mtDecidir_(\'' + esc(a.fallaId) + '\')">Decidir</button>'], ['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>']);
-      else if(a.tipo === "servicio") b.push(['<button class="mt-b p" onclick="mtServicio_(\'' + esc(a.placa) + '\',\'' + esc(a.planId) + '\')">Registrar servicio</button>'], ['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Ver plan</button>']);
+      else if(a.tipo === "servicio") b.push(['<button class="mt-b p" onclick="mtServicio_(\'' + esc(a.placa) + '\',\'' + esc(a.planId) + '\')">Registrar servicio</button>'], ['<button class="mt-b" onclick="mtPlan_(\'' + esc(a.placa) + '\')">Ver plan</button>'], ['<button class="mt-b" onclick="rqNueva_({tipo:\'Servicio o reparación\',paraTipo:\'camion\',para:\'' + esc(a.placa) + '\',desc:\'' + esc(String(a.titulo).split(' · ').slice(1).join(' · ').replace(/ vencid[oa]$/, '')).replace(/'/g, "\\'") + '\',origen:\'Mantenimiento\'})">Pedir por requisición</button>']);
       else if(a.tipo === "doc") b.push(['<button class="mt-b p" onclick="flIrDocs_(\'' + esc(a.placa) + '\')">' + (a.texto.indexOf("Falta") === 0 ? "Agregar fecha y archivo" : "Ver documento") + '</button>']);
       else if(a.tipo === "sinrev" || a.tipo === "semanal") b.push(['<button class="mt-b" onclick="mtRev_(\'' + esc(a.placa) + '\')">Ver revisiones</button>'], ['<button class="mt-b gh" onclick="mtMarcarVisto_(\'' + esc(a.clave) + '\')">Ya lo hablé</button>']);
       else if(a.tipo === "sinplan") b.push(['<button class="mt-b p" onclick="mtPlan_(\'' + esc(a.placa) + '\', true)">Crear plan</button>']);
@@ -11520,7 +11557,9 @@ function mtHtmlServicio_(){
     '<div class="c2-f">Tareas que se hicieron</div>' + (tareas.length ? tareas.map(function(t){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck mt-sv-t" value="' + esc(t.planId) + '"' + (t.planId === MT_SV.planId ? ' checked' : '') + '><div class="nm"><b>' + esc(t.tarea) + '</b> ' + (t.estado !== "al día" ? mtTag_(mtEst_(t), t.estado === "sin datos" ? "sin punto de partida" : t.estado.toLowerCase()) : '') + '</div></label>'; }).join("") : '<div class="mt-vacio">Este camión no tiene plan todavía. Igual puedes anotar el servicio con una observación.</div>') +
     '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Fecha</label><input type="date" class="c2-in" id="mt-sv-f" value="' + hoyISO() + '"></div><div style="flex:1"><label class="c2-f">Odómetro</label><input type="number" class="c2-in" id="mt-sv-k" value="' + (c.km || "") + '"></div></div>' +
     '<div style="display:flex;gap:8px"><div style="flex:1"><label class="c2-f">Taller</label><input class="c2-in" id="mt-sv-e"></div><div style="flex:1"><label class="c2-f">Costo B/.</label><input type="number" class="c2-in" id="mt-sv-c" step="0.01"></div></div>' +
+    '<label class="c2-f">Tipo</label><div class="rq-seg" id="mt-sv-tp"><button class="on" onclick="rqSeg_(this)">Preventivo</button><button onclick="rqSeg_(this)">Correctivo</button><button onclick="rqSeg_(this)">Inspección</button></div>' +
     '<label class="c2-f">Observaciones</label><input class="c2-in" id="mt-sv-o" placeholder="Qué se hizo, repuestos…">' +
+    '<label class="c2-f">Resultado</label><input class="c2-in" id="mt-sv-r" placeholder="Cómo quedó: bien, pendiente de repuesto…">' +
     (fallas.length ? '<div class="c2-f">Fallas que resuelve</div>' + fallas.map(function(f){ return '<label class="pl-rec" style="cursor:pointer"><input type="checkbox" class="c2-ck mt-sv-fa" value="' + esc(f.fallaId) + '"><div class="nm"><b>' + esc(f.punto) + '</b> <span class="mt-sub">' + esc(f.estado) + (f.bloquea ? ' · no deja salir' : '') + '</span></div></label>'; }).join("") : '') +
     '<div class="mt-sub" style="margin-top:8px">El costo es informativo: el pago entra por Solicitud de pago.</div>' +
     '<button class="ini-ok" id="mt-sv-ok" style="margin-top:12px" onclick="mtGuardarServicio_()">Registrar</button>';
@@ -11528,6 +11567,7 @@ function mtHtmlServicio_(){
 function mtGuardarServicio_(){
   var q = function(s){ return [].slice.call(document.querySelectorAll(s)).map(function(x){ return x.value; }); };
   var d = { placa: $("mt-sv-p").value, fecha: $("mt-sv-f").value, km: $("mt-sv-k").value, empresa: $("mt-sv-e").value, costo: $("mt-sv-c").value,
+            tipo: rqSegVal_("mt-sv-tp") || "Preventivo", resultado: $("mt-sv-r").value,
             observaciones: $("mt-sv-o").value, planIds: q(".mt-sv-t:checked"), fallas: q(".mt-sv-fa:checked") };
   var b = $("mt-sv-ok"); b.disabled = true; b.textContent = "Guardando…";
   google.script.run.withSuccessHandler(function(r){
@@ -12147,6 +12187,387 @@ function mkSup_(){
   prepararMenuSup_ = function(){ var r = orig.apply(this, arguments); try{ mkSup_(); }catch(e){ console.error(e); } return r; };
 })();
 </script>
+<style id="estilo-353">
+/* ═══ api 3.5.3 · Inventario, Requisiciones, datos del camión, servicios y certificados ═══ */
+.rq-seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.rq-seg button{border:1.5px solid var(--ini-linea);background:#fff;border-radius:10px;padding:8px 11px;font:800 12.5px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer}
+.rq-seg button.on{border-color:var(--ini-azul);background:#EEF4FB;color:var(--ini-azul)}
+.rq-seg button.on.urg{border-color:var(--tm-bad);background:var(--tm-bad-bg);color:var(--tm-bad)}
+.rq-pz{display:flex;gap:3px;align-items:center;margin-top:5px}.rq-pz i{height:5px;width:22px;border-radius:3px;background:var(--tm-linea2);display:block}
+.rq-pz i.ok{background:var(--tm-ok)}.rq-pz i.am{background:var(--tm-acento)}.rq-pz i.r{background:var(--tm-bad)}
+.rq-ti{display:inline-block;font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 7px;background:#E8F0FA;color:#1b4a86;margin-right:4px}
+.rq-ti.ins{background:#E7F3DD;color:#2F6B0A}.rq-ti.rep{background:#FFF1D6;color:#8A6300}
+.rq-f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rq-ln{display:grid;grid-template-columns:minmax(0,1fr) 72px 96px 30px;gap:6px;align-items:center;margin-top:6px}
+.rq-ln .c2-in{margin:0}
+.rq-adj{display:block;border:1.5px dashed var(--ini-linea);border-radius:11px;padding:12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--ini-gris);margin-top:4px;cursor:pointer}
+.rq-adj input{display:none}
+.rq-cam{border-left:2px solid var(--ini-linea);margin:8px 0 0 8px;padding-left:14px}
+.rq-cam div{position:relative;padding:0 0 13px}
+.rq-cam div:before{content:"";position:absolute;left:-21px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--tm-ok);border:2px solid #fff;box-shadow:0 0 0 1px var(--tm-ok)}
+.rq-cam div.no:before{background:#fff;box-shadow:0 0 0 1.5px #B6C0CD}.rq-cam div.ya:before{background:var(--tm-acento);box-shadow:0 0 0 1px var(--tm-acento)}
+.rq-cam div.r:before{background:var(--tm-bad);box-shadow:0 0 0 1px var(--tm-bad)}
+.rq-cam b{display:block;font-size:13px;color:var(--ini-tinta)}.rq-cam small{display:block;font-size:12px;color:var(--ini-gris);line-height:1.45}
+.rq-nota{background:#F5F8FC;border:1px solid var(--ini-linea);border-radius:11px;padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--ini-navy);margin-top:10px}
+.iv-cat{display:inline-block;font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:var(--tm-linea2);color:var(--tm-gris)}
+.iv-cat.EPP{background:#E8F0FA;color:#1b4a86}.iv-cat.Bioseguridad{background:#F1EBFC;color:#6D3FC4}.iv-cat.Limpieza{background:#E7F3DD;color:#2F6B0A}.iv-cat.Repuestos{background:#FFF1D6;color:#8A6300}
+.iv-dest{display:inline-flex;gap:5px;align-items:center}.iv-dest i{font-style:normal;font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:#E8F0FA;color:#1b4a86}
+.iv-dest i.per{background:#FFF1D6;color:#8A6300}.iv-dest i.ent{background:#E7F3DD;color:#2F6B0A}
+.iv-ren{display:grid;grid-template-columns:22px minmax(0,1fr) 84px;gap:8px;align-items:start;padding:9px 0;border-top:1px solid var(--tm-linea2)}
+.iv-ren:first-of-type{border-top:0}.iv-ren b{font-size:13px}.iv-ren small{display:block;color:var(--ini-gris);font-size:11.5px}
+.iv-ren select,.iv-ren input{margin:4px 0 0!important}
+.iv-res{background:#F5F8FC;border:1px solid var(--ini-linea);border-radius:11px;padding:10px 12px;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--ini-navy)}
+.fl-sv{padding:9px 0;border-top:1px solid var(--tm-linea2)}.fl-sv:first-child{border-top:0}
+.fl-sv .t{display:flex;justify-content:space-between;gap:8px}.fl-sv b{font-size:13px;color:var(--ini-tinta)}
+.fl-sv small{display:block;font-size:11.5px;color:var(--ini-gris);font-weight:600;margin-top:2px;line-height:1.45}
+.hz-quitar{display:block;width:100%;margin-top:12px;border:1.5px solid #F2C9C4;background:#FFF6F5;color:#B42318;border-radius:12px;padding:11px;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer}
+@media(max-width:999px){.rq-ln{grid-template-columns:minmax(0,1fr) 60px 84px 28px}}
+</style>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.5.3 · LOGÍSTICA SIN PANTALLAS VIEJAS
+   · Inventario dentro de Logística (antes Administración): existencias,
+     entregas, compras por entrar y costo por cliente.
+   · Requisiciones: Logística pide lo que necesita; Compras (Mercadeo) la
+     tramita como solicitud de pago y aquí se ve en qué va.
+   · Flota: datos del camión y camión nuevo en una hoja; historial de
+     servicios. Certificados del cliente en la vista rápida.
+   ═══════════════════════════════════════════════════════════════════ */
+function rqSeg_(b){ [].forEach.call(b.parentNode.children, function(x){ x.classList.remove("on"); }); b.classList.add("on"); }
+function rqSegVal_(id){ var b = document.querySelector("#" + id + " .on"); return b ? b.textContent.replace(/ ·.*$/, "").trim() : ""; }
+function f353_(iso){ return iso ? (typeof nombreDia_ === "function" ? nombreDia_(String(iso).slice(0, 10)) : iso) : ""; }
+function llamar353_(fn){ var args = [].slice.call(arguments, 1);
+  return new Promise(function(ok, mal){ var g = google.script.run.withSuccessHandler(function(r){ if(r && r.ok === false){ toast(r.error || "No se pudo"); mal(r); return; } ok(r); })
+    .withFailureHandler(function(e){ toast((e && e.message) || "Sin señal"); mal(e); }); g[fn].apply(g, args); }); }
+
+/* ── enlaces directos: Index.html#inv, #req ── */
+(function(){
+  var orig = prepararMenuSup_, hecho = false;
+  prepararMenuSup_ = function(){ var r = orig.apply(this, arguments);
+    try{ var h = (location.hash || "").slice(1);
+      if(!hecho && h && esSupervisor() && $("pantalla-" + h) && ["inv","req","flota","mto","plan","cierre","dfin","solicitudes","recibos","agenda"].indexOf(h) >= 0){ hecho = true; setTimeout(function(){ mostrarTab(h); }, 60); }
+    }catch(e){}
+    return r; };
+})();
+
+/* ═══════════ FLOTA: los datos del camión y el camión nuevo ═══════════ */
+function flDatos_(placa, nuevo){
+  var c = nuevo ? {} : ((FL && FL.camiones.find(function(x){ return x.placa === placa; })) || {});
+  var A = (!nuevo && FL_FI && FL_FI.activo) || {};
+  var tope = nuevo ? 14 : ((FL_FI && FL_FI.tope) || c.tope || 14);
+  abrirHojaIni_('<div class="ini-pt">' + (nuevo ? 'Camión nuevo' : 'Datos de ' + esc(placa)) + '</div><div class="ini-ps">' + (nuevo ? 'Queda en Flota, en Mantenimiento y en el planificador.' : 'Lo que identifica al camión en todo el sistema. La placa amarra las jornadas, el combustible y los recibos: no se cambia.') + '</div>' +
+    '<div class="rq-f2"><div><label class="c2-f">Placa</label><input class="c2-in" id="fd-pl" value="' + esc(nuevo ? "" : placa) + '"' + (nuevo ? ' placeholder="Ej: CU-7700"' : ' disabled') + '></div>' +
+    '<div><label class="c2-f">Año</label><input class="c2-in" id="fd-an" inputmode="numeric" maxlength="4" value="' + esc(A.anio || "") + '"></div></div>' +
+    '<label class="c2-f">Marca y modelo</label><input class="c2-in" id="fd-ma" value="' + esc(A.marca || c.marca || "") + '" placeholder="Ej: Hino 300">' +
+    '<div class="rq-f2"><div><label class="c2-f">Responsable</label><input class="c2-in" id="fd-re" value="' + esc(A.responsable || "") + '"></div>' +
+    '<div><label class="c2-f">Tope de paradas por día</label><input class="c2-in" type="number" min="1" max="60" id="fd-to" value="' + esc(tope) + '"></div></div>' +
+    (nuevo ? '' : '<label class="c2-f">Estado</label><div class="rq-seg" id="fd-es"><button class="' + (A.estado === "Baja" ? "" : "on") + '" onclick="rqSeg_(this)">Activo</button><button class="' + (A.estado === "Baja" ? "on" : "") + '" onclick="rqSeg_(this)">Baja</button></div>') +
+    '<label class="c2-f">Notas</label><input class="c2-in" id="fd-no" value="' + esc(A.notas || "") + '">' +
+    (nuevo ? '<label class="pl-rec" style="cursor:pointer;margin-top:10px"><input type="checkbox" class="c2-ck" id="fd-pb" checked><div class="nm"><b>Crear su plan con la base de ECOVSA</b><span>aceite, filtros, llantas, frenos, seguro, revisado y permiso · se ajusta después</span></div></label>' : '') +
+    '<button class="ini-ok" id="fd-ok" style="margin-top:12px" onclick="flGuardarDatos_(' + (nuevo ? 'true' : 'false') + ')">' + (nuevo ? 'Agregar el camión' : 'Guardar') + '</button>');
+}
+function flGuardarDatos_(nuevo){
+  var d = { nuevo: !!nuevo, placa: $("fd-pl").value, anio: $("fd-an").value, marca: $("fd-ma").value, responsable: $("fd-re").value,
+            tope: $("fd-to").value, notas: $("fd-no").value, estado: nuevo ? "Activo" : rqSegVal_("fd-es"), conPlan: nuevo && $("fd-pb").checked };
+  var b = $("fd-ok"); b.disabled = true; b.textContent = "Guardando…";
+  llamar353_("api_guardarCamion", PIN, d).then(function(r){
+    cerrarHojaIni_(); toast(nuevo ? "Camión " + r.placa + " agregado" + (r.plan ? " con su plan" : "") + " ✓" : "Datos guardados ✓");
+    if(typeof MT !== "undefined") MT = null;
+    if(nuevo) FL_SEL = r.placa;
+    flCargar_(); if(FL_SEL && esEscritorio_()) setTimeout(function(){ flFicha_(FL_SEL, true); }, 900);
+  }, function(){ b.disabled = false; b.textContent = nuevo ? "Agregar el camión" : "Guardar"; });
+}
+function flHtmlServicios_(placa){
+  var A = FL_FI && FL_FI.activo, L = (A && A.servicios) || [];
+  if(!A) return '<div class="c2-vacio">Este camión todavía no tiene plan ni historial.</div>';
+  var anio = String(FL.hoy || hoyISO()).slice(0, 4), tot = L.filter(function(s){ return String(s.fecha).slice(0, 4) === anio; }).reduce(function(a, s){ return a + (Number(s.costo) || 0); }, 0);
+  return '<div class="c2-m3"><div><b>' + L.length + '</b><span>servicios anotados</span></div><div><b>' + bIni_(tot).replace(".00", "") + '</b><span>gastado en ' + anio + '</span></div><div><b>' + (L[0] ? esc(nombreDia_(L[0].fecha)) : '—') + '</b><span>último servicio</span></div></div>' +
+    (L.length ? L.map(function(s){
+      return '<div class="fl-sv"><div class="t"><b>' + esc(nombreDia_(s.fecha)) + ' · ' + esc(s.tipo || "Servicio") + '</b><span class="mt-tag' + (s.tipo === "Correctivo" ? " am" : "") + '">' + (s.costo ? bIni_(s.costo) : "sin costo") + '</span></div>' +
+        '<small>' + [s.empresa, s.km ? nIni_(s.km) + ' km' : '', s.obs].filter(Boolean).map(esc).join(' · ') + (s.resultado ? '<br>Resultado: ' + esc(s.resultado) : '') + '</small></div>';
+    }).join("") : '<div class="c2-vacio">Sin servicios anotados todavía.</div>') +
+    '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button></div>';
+}
+
+/* ═══════════ CLIENTES: los certificados, en la vista rápida ═══════════ */
+function c2Certificados_(){
+  var F = C2_FI; if(!F) return;
+  var nom = String(F.cliente.nombre || ""), rs = String(F.cliente.razonSocial || F.cliente.razon || "");
+  abrirHojaIni_('<div class="ini-pt">Certificados · ' + esc(nom) + '</div><div class="ini-ps">Los emitidos a este cliente. Se abren aquí mismo; se emiten en Mercadeo › Certificados y distintivos.</div><div id="c2-certs" class="c2-vacio">Buscando…</div>');
+  llamar353_("api_certificadosEmitidos", PIN, 500).then(function(r){
+    var n = function(x){ return String(x || "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9]/g, ""); };
+    var L = (r.certificados || []).filter(function(c){ return n(c.cliente) === n(nom) || (rs && n(c.cliente) === n(rs)); });
+    var box = $("c2-certs"); if(!box) return;
+    box.className = "";
+    box.innerHTML = L.length ? L.map(function(c){
+      return '<div class="fl-sv"><div class="t"><b>' + esc(c.folio) + '</b><button class="mt-b p" onclick="VR.abrir(\'CertificadoVista.html?p=vercert&folio=' + encodeURIComponent(c.folio) + '\',\'Certificado ' + esc(c.folio) + '\',\'' + esc(f353_(c.desde)) + ' al ' + esc(f353_(c.hasta)) + '\')">Ver</button></div>' +
+        '<small>' + esc(f353_(c.desde)) + ' al ' + esc(f353_(c.hasta)) + ' · ' + nIni_(c.totalKg, 1) + ' kg · ' + c.visitas + ' visitas · emitido el ' + esc(f353_(c.fecha)) + (c.forzado ? ' · emitido sin paz y salvo' : '') + '</small></div>';
+    }).join("") : '<div class="c2-vacio">Todavía no tiene certificados emitidos.</div>';
+  }, function(){ var b = $("c2-certs"); if(b) b.textContent = "No se pudieron traer."; });
+}
+
+/* ═══════════ INVENTARIO ═══════════ */
+var IV = null, IV_TAB = "ex", IV_VUELO = false;
+function ivCargar_(){
+  if(IV_VUELO) return; IV_VUELO = true;
+  var d = new Date(hoyISO() + "T12:00:00"); d.setDate(d.getDate() - 90);
+  llamar353_("api_inventario", PIN, d.toISOString().slice(0, 10), "").then(function(r){ IV_VUELO = false; IV = r; ivPintar_(); }, function(){ IV_VUELO = false; if(!IV) $("iv-cuerpo").innerHTML = '<div class="c2-vacio">No se pudo abrir el inventario. <button class="ini-lnk" onclick="ivCargar_()">Reintentar</button></div>'; });
+}
+function ivNivel_(i){ return i.estado === "POR DEBAJO" ? "r" : (i.estado === "EN EL MÍNIMO" ? "am" : ""); }
+function ivPintar_(){
+  if(!IV) return;
+  var mes = String(IV.hoy).slice(0, 7), M = IV.movimientos || [];
+  var ent = M.filter(function(m){ return m.tipo === "SALIDA" && m.fecha.slice(0, 7) === mes; });
+  var com = M.filter(function(m){ return m.tipo === "ENTRADA" && m.fecha.slice(0, 7) === mes && m.solicitudId; });
+  var reponer = IV.insumos.filter(function(i){ return i.activo && (i.estado === "POR DEBAJO" || i.estado === "EN EL MÍNIMO"); });
+  INI.menu = INI.menu || {}; INI.menu.inv = reponer.length + (IV.pendientes || []).length; pintarMenuSup_();
+  $("iv-sub").textContent = IV.insumos.length + " insumos · al " + f353_(IV.hoy);
+  var h = '<div class="mt-k4"><div><b>' + IV.insumos.filter(function(i){ return i.activo; }).length + '</b><span>insumos en el catálogo</span></div>' +
+    '<div><b>' + reponer.length + '</b><span>hay que reponer' + (IV.totales.bajos ? ' · <em style="color:var(--tm-bad)">' + IV.totales.bajos + ' por debajo</em>' : '') + '</span></div>' +
+    '<div><b>' + ent.length + '</b><span>entregas este mes</span></div>' +
+    '<div><b>' + bIni_(com.reduce(function(a, m){ return a + m.cantidad * m.costoUnitario; }, 0)).replace(".00", "") + '</b><span>comprado este mes</span></div></div>';
+  h += '<div class="cr-tabs">' + [["ex","Existencias"],["en","Entregas"],["co","Compras por entrar · " + (IV.pendientes || []).length],["cc","Costo por cliente"]].map(function(t){ return '<button class="' + (IV_TAB === t[0] ? "on" : "") + '" onclick="IV_TAB=\'' + t[0] + '\';ivPintar_()">' + t[1] + '</button>'; }).join("") + '</div>';
+  h += '<div class="mt-grid"><div class="mt-col"><div class="mt-card" style="padding:6px 8px">';
+  if(IV_TAB === "ex"){
+    h += IV.insumos.length ? '<table class="mt-tb"><tr><th>Insumo</th><th class="r">Hay</th><th class="r oc">Mínimo</th><th class="oc">Nivel</th><th>Estado</th><th></th></tr>' + IV.insumos.map(function(i){
+      var pct = i.minimo ? Math.max(4, Math.min(100, Math.round(i.stock / (i.minimo * 3) * 100))) : 60, n = ivNivel_(i);
+      return '<tr' + (i.activo ? '' : ' style="opacity:.5"') + '><td><b>' + esc(i.descripcion) + '</b><div class="mt-sub"><span class="iv-cat ' + esc(i.categoria) + '">' + esc(i.categoria) + '</span></div></td>' +
+        '<td class="r"><b>' + nIni_(i.stock) + '</b> <span class="mt-sub">' + esc(i.unidad) + '</span></td><td class="r oc"><span class="mt-sub">' + (i.minimo ? 'mín. ' + nIni_(i.minimo) : 'sin mínimo') + '</span></td>' +
+        '<td class="oc" style="width:120px"><div class="mt-bar"><i class="' + n + '" style="width:' + pct + '%"></i></div></td>' +
+        '<td>' + (n ? mtTag_(n, n === "r" ? "reponer" : "en el mínimo") : mtTag_(i.minimo ? "" : "g", i.minimo ? "bien" : "sin mínimo")) + '</td>' +
+        '<td class="r" style="white-space:nowrap"><button class="mt-b" onclick="ivEntregar_(\'' + esc(i.insumoId) + '\')">Entregar</button> <button class="mt-b gh" title="Editar" onclick="ivInsumo_(\'' + esc(i.insumoId) + '\')">✎</button></td></tr>';
+    }).join("") + '</table>' : '<div class="mt-vacio">Todavía no hay insumos. Agrégalos con «＋ Insumo» (con lo que hay hoy como saldo de apertura) o dales entrada desde una compra.</div>';
+  } else if(IV_TAB === "en"){
+    var mv = M.slice(0, 120);
+    h += mv.length ? '<table class="mt-tb"><tr><th>Fecha</th><th>Insumo</th><th class="r">Cant.</th><th>A quién / de dónde</th><th class="oc">Anotó</th></tr>' + mv.map(function(m){
+      var dest = m.tipo === "ENTRADA" ? '<span class="iv-dest"><i class="ent">entrada</i>' + esc(m.proveedor || m.obs || "") + (m.solicitudId ? ' <span class="mt-sub">' + esc(m.solicitudId) + '</span>' : '') + '</span>'
+        : '<span class="iv-dest"><i class="' + (m.destinoTipo === "persona" ? "per" : "") + '">' + esc(m.destinoTipo || "") + '</i>' + esc(m.destino) + '</span>';
+      return '<tr><td>' + esc(f353_(m.fecha)) + '</td><td><b>' + esc(m.insumo) + '</b></td><td class="r"><b>' + (m.tipo === "ENTRADA" ? "+" : "−") + nIni_(m.cantidad) + '</b></td><td>' + dest + '</td><td class="oc"><span class="mt-sub">' + esc(m.entregadoPor || "") + '</span></td></tr>';
+    }).join("") + '</table>' : '<div class="mt-vacio">Sin movimientos en los últimos 90 días.</div>';
+  } else if(IV_TAB === "co"){
+    var P = IV.pendientes || [];
+    h += P.length ? '<table class="mt-tb"><tr><th>Solicitud</th><th>Proveedor</th><th>Renglones</th><th>Estado</th><th></th></tr>' + P.map(function(p, k){
+      return '<tr><td><b>' + esc(p.solicitudId) + '</b><div class="mt-sub">' + esc(f353_(p.fecha)) + '</div></td><td>' + esc(p.proveedor) + '</td><td class="mt-sub">' + p.renglones.map(function(r){ return esc(r.concepto) + ' · ' + nIni_(r.cantidad) + ' ' + esc(String(r.unidad).toLowerCase()); }).join('<br>') + '</td>' +
+        '<td>' + mtTag_(p.estado === "PAGADA" ? "" : "am", p.estado === "PAGADA" ? "pagada" : String(p.estado).toLowerCase()) + '</td><td class="r"><button class="mt-b p" onclick="ivEntrada_(' + k + ')">Dar entrada</button></td></tr>';
+    }).join("") + '</table>' : '<div class="mt-vacio">No hay compras de insumos esperando entrar a la bodega.</div>';
+  } else {
+    var cost = {}; IV.insumos.forEach(function(i){ cost[i.insumoId] = i.costo || 0; });
+    var por = {};
+    M.filter(function(m){ return m.tipo === "SALIDA" && m.destinoTipo === "cliente"; }).forEach(function(m){
+      var k = m.destino; por[k] = por[k] || { cli: k, n: 0, costo: 0, items: {} }; por[k].n += m.cantidad; por[k].costo += m.cantidad * (cost[m.insumoId] || 0); por[k].items[m.insumo] = (por[k].items[m.insumo] || 0) + m.cantidad; });
+    var L = Object.keys(por).map(function(k){ return por[k]; }).sort(function(a, b){ return b.costo - a.costo; });
+    h += L.length ? '<div class="mt-sub" style="padding:6px 8px">Lo entregado a cada cliente en los últimos 90 días, al último costo de compra. Es parte del costo de servirle.</div><table class="mt-tb"><tr><th>Cliente</th><th>Qué se le entregó</th><th class="r">Costo</th></tr>' + L.map(function(x){
+      return '<tr><td><b>' + esc(x.cli) + '</b></td><td class="mt-sub">' + Object.keys(x.items).map(function(k){ return esc(k) + ' · ' + nIni_(x.items[k]); }).join('<br>') + '</td><td class="r"><b>' + (x.costo ? bIni_(x.costo) : '—') + '</b></td></tr>'; }).join("") + '</table>'
+      : '<div class="mt-vacio">No hay entregas a clientes en los últimos 90 días.</div>';
+  }
+  h += '</div></div><div class="mt-col mt-at"><div class="mt-card"><h3>Requiere tu atención</h3>';
+  var at = '';
+  reponer.forEach(function(i){
+    var pide = Math.max(i.minimo * 3 - i.stock, i.minimo);
+    at += '<div class="mt-it"><span class="d' + (i.estado === "POR DEBAJO" ? " r" : "") + '"></span><div><b>' + esc(i.descripcion) + '</b><small>Hay ' + nIni_(i.stock) + ' ' + esc(i.unidad) + ' · el mínimo es ' + nIni_(i.minimo) + '.</small><div class="mt-acc"><button class="mt-b p" onclick="rqNueva_({tipo:\'Insumo\',paraTipo:\'bodega\',para:\'Bodega de logística\',desc:\'' + esc(i.descripcion).replace(/'/g, "\\'") + '\',cant:' + pide + ',unidad:\'' + esc(i.unidad) + '\',origen:\'Inventario\'})">Pedir por requisición</button></div></div></div>';
+  });
+  (IV.pendientes || []).forEach(function(p, k){
+    at += '<div class="mt-it"><span class="d g"></span><div><b>Compra ' + esc(p.solicitudId) + ' por entrar</b><small>' + esc(p.proveedor) + ' · ' + p.renglones.length + (p.renglones.length === 1 ? ' renglón' : ' renglones') + ' · ' + (p.estado === "PAGADA" ? 'pagada' : String(p.estado).toLowerCase()) + '. Cuenta lo que llegó y dale entrada.</small><div class="mt-acc"><button class="mt-b p" onclick="ivEntrada_(' + k + ')">Dar entrada</button></div></div></div>';
+  });
+  h += (at || '<div class="mt-vacio">Nada por ahora: todo por encima del mínimo y sin compras pendientes de entrar.</div>') + '</div>' +
+    '<div class="mt-card"><h3>Cómo se lleva</h3><div class="mt-sub" style="line-height:1.55">Lo que hay no se escribe a mano: sale de las entradas (las compras y el saldo de apertura) menos las entregas. Lo que falta se pide por <b>requisición</b>; cuando Compras lo paga, aparece aquí para darle entrada.</div></div></div></div>';
+  $("iv-cuerpo").innerHTML = h;
+}
+function ivInsumo_(id){
+  var i = id && IV ? IV.insumos.find(function(x){ return x.insumoId === id; }) : null;
+  var cats = (IV && IV.categorias) || ["EPP","Limpieza","Bioseguridad","Repuestos","Otro"];
+  abrirHojaIni_('<div class="ini-pt">' + (i ? esc(i.descripcion) : 'Insumo nuevo') + '</div><div class="ini-ps">' + (i ? 'Lo que hay no se cambia aquí: sale de las entradas y las entregas.' : 'Lo que hay hoy entra como saldo de apertura, y de ahí en adelante se lleva solo.') + '</div>' +
+    '<label class="c2-f">Descripción</label><input class="c2-in" id="ii-de" value="' + esc(i ? i.descripcion : "") + '" placeholder="Ej: Recipiente rojo 55 gal">' +
+    '<div class="rq-f2"><div><label class="c2-f">Categoría</label><select class="c2-in" id="ii-ca">' + cats.map(function(c){ return '<option' + (i && i.categoria === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join("") + '</select></div>' +
+    '<div><label class="c2-f">Unidad</label><input class="c2-in" id="ii-un" value="' + esc(i ? i.unidad : "") + '" placeholder="unid., cajas, galones"></div></div>' +
+    '<div class="rq-f2"><div><label class="c2-f">Mínimo</label><input class="c2-in" type="number" min="0" id="ii-mi" value="' + (i ? i.minimo : "") + '"></div>' +
+    (i ? '<div><label class="c2-f">Hay</label><input class="c2-in" disabled value="' + nIni_(i.stock) + ' ' + esc(i.unidad) + '"></div>' : '<div><label class="c2-f">Hay hoy (apertura)</label><input class="c2-in" type="number" min="0" id="ii-st"></div>') + '</div>' +
+    (i ? '<label class="pl-rec" style="cursor:pointer;margin-top:10px"><input type="checkbox" class="c2-ck" id="ii-ac"' + (i.activo ? '' : ' checked') + '><div class="nm"><b>Ya no se usa</b><span>sale de la lista de reponer; su historial se queda</span></div></label>' : '') +
+    '<button class="ini-ok" id="ii-ok" style="margin-top:12px" onclick="ivGuardarInsumo_(\'' + esc(id || "") + '\')">Guardar</button>');
+}
+function ivGuardarInsumo_(id){
+  var d = { insumoId: id || "", descripcion: $("ii-de").value, categoria: $("ii-ca").value, unidad: $("ii-un").value, minimo: $("ii-mi").value };
+  if(id) d.activo = !$("ii-ac").checked; else d.stockInicial = $("ii-st").value;
+  var b = $("ii-ok"); b.disabled = true;
+  llamar353_("api_guardarInsumo", PIN, d).then(function(){ cerrarHojaIni_(); toast("Insumo guardado ✓"); ivCargar_(); }, function(){ b.disabled = false; });
+}
+var IV_EN = null;
+function ivEntregar_(id){
+  if(!IV){ ivCargar_(); return; }
+  var act = IV.insumos.filter(function(i){ return i.activo; });
+  if(!act.length){ toast("Primero agrega un insumo"); return; }
+  var i = act.find(function(x){ return x.insumoId === id; }) || act[0];
+  IV_EN = { id: i.insumoId, dest: "cliente" };
+  var clis = (typeof CLIENTES !== "undefined" ? CLIENTES : []).map(function(c){ return c.nombre; });
+  abrirHojaIni_('<div class="ini-pt">Entregar</div><div class="ini-ps">La entrega a un cliente queda como costo de servirle; a una persona, como constancia de lo que se le dio (EPP).</div>' +
+    '<label class="c2-f">Insumo</label><select class="c2-in" id="ie-in" onchange="IV_EN.id=this.value;ivQueda_()">' + act.map(function(x){ return '<option value="' + esc(x.insumoId) + '"' + (x.insumoId === i.insumoId ? ' selected' : '') + '>' + esc(x.descripcion) + ' · hay ' + nIni_(x.stock) + ' ' + esc(x.unidad) + '</option>'; }).join("") + '</select>' +
+    '<div class="rq-f2"><div><label class="c2-f">Cantidad</label><input class="c2-in" type="number" min="1" id="ie-ca" value="1" oninput="ivQueda_()"></div><div><label class="c2-f">Fecha</label><input class="c2-in" type="date" id="ie-fe" value="' + hoyISO() + '"></div></div>' +
+    '<label class="c2-f">A quién</label><div class="rq-seg" id="ie-de"><button class="on" onclick="rqSeg_(this);IV_EN.dest=\'cliente\';$(\'ie-dl\').setAttribute(\'list\',\'ie-cl\');$(\'ie-dl\').placeholder=\'Busca el cliente\'">A un cliente</button><button onclick="rqSeg_(this);IV_EN.dest=\'persona\';$(\'ie-dl\').removeAttribute(\'list\');$(\'ie-dl\').placeholder=\'Nombre de la persona\'">A una persona</button></div>' +
+    '<input class="c2-in" id="ie-dl" list="ie-cl" placeholder="Busca el cliente" style="margin-top:8px"><datalist id="ie-cl">' + clis.map(function(n){ return '<option value="' + esc(n) + '">'; }).join("") + '</datalist>' +
+    '<label class="c2-f">Observaciones</label><input class="c2-in" id="ie-ob">' +
+    '<div class="iv-res" id="ie-qu"></div>' +
+    '<button class="ini-ok" id="ie-ok" style="margin-top:12px" onclick="ivGuardarEntrega_(false)">Entregar</button>');
+  ivQueda_();
+}
+function ivQueda_(){
+  var i = IV.insumos.find(function(x){ return x.insumoId === IV_EN.id; }), n = Number($("ie-ca").value) || 0, q = i.stock - n;
+  $("ie-qu").innerHTML = 'Hay <b>' + nIni_(i.stock) + '</b> ' + esc(i.unidad) + ' · quedan <b style="color:' + (q < 0 ? 'var(--tm-bad)' : (i.minimo && q <= i.minimo ? '#8A6300' : 'inherit')) + '">' + nIni_(q) + '</b>' + (i.minimo && q <= i.minimo ? ' · queda en el mínimo o por debajo' : '');
+}
+function ivGuardarEntrega_(forzar){
+  var d = { insumoId: IV_EN.id, cantidad: $("ie-ca").value, fecha: $("ie-fe").value, destinoTipo: IV_EN.dest, destino: $("ie-dl").value, observaciones: $("ie-ob").value, negativoConfirmado: !!forzar };
+  var b = $("ie-ok"); b.disabled = true;
+  google.script.run.withSuccessHandler(function(r){
+    b.disabled = false;
+    if(r && r.sinStock){ $("ie-qu").innerHTML = '<b style="color:var(--tm-bad)">No alcanza:</b> hay ' + nIni_(r.sinStock.hay) + ' ' + esc(r.sinStock.unidad) + ' y se entregan ' + nIni_(r.sinStock.piden) + '. Si de verdad se entregó, anótalo igual y dale entrada a lo que falta.'; b.textContent = "Se entregó igual"; b.onclick = function(){ ivGuardarEntrega_(true); }; return; }
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    cerrarHojaIni_(); toast("Entrega anotada ✓"); ivCargar_();
+  }).withFailureHandler(function(){ b.disabled = false; toast("Sin señal"); }).api_registrarEntrega(PIN, d);
+}
+var IV_ENT = null;
+function ivEntrada_(k){
+  var p = (IV.pendientes || [])[k]; if(!p) return;
+  var norm = function(x){ return String(x || "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9 ]/g, "").trim(); };
+  IV_ENT = p;
+  var ops = IV.insumos.map(function(i){ return '<option value="' + esc(i.insumoId) + '">' + esc(i.descripcion) + '</option>'; }).join("");
+  abrirHojaIni_('<div class="ini-pt">Dar entrada · ' + esc(p.solicitudId) + '</div><div class="ini-ps">' + esc(p.proveedor) + ' · ' + (p.estado === "PAGADA" ? 'pagada' : String(p.estado).toLowerCase()) + '. La cantidad, el proveedor y el costo vienen de la solicitud: aquí solo se confirma lo que llegó a la bodega.</div>' +
+    p.renglones.map(function(r, j){
+      var m = IV.insumos.find(function(i){ return norm(i.descripcion) === norm(r.concepto); });
+      return '<div class="iv-ren"><input type="checkbox" class="c2-ck iv-rk" data-j="' + j + '" checked><div><b>' + esc(r.concepto) + '</b><small>' + nIni_(r.cantidad) + ' ' + esc(String(r.unidad).toLowerCase()) + ' · ' + bIni_(r.costoUnitario) + ' c/u</small>' +
+        '<select class="c2-in iv-ri" data-j="' + j + '"><option value="">＋ Nuevo en el catálogo: ' + esc(r.concepto) + '</option>' + ops.replace('value="' + (m ? esc(m.insumoId) : '§') + '"', 'value="' + (m ? esc(m.insumoId) : '§') + '" selected') + '</select></div>' +
+        '<div><label class="c2-f" style="margin-top:0">Llegó</label><input class="c2-in iv-rc" data-j="' + j + '" type="number" min="0" value="' + r.cantidad + '"></div></div>';
+    }).join("") +
+    '<button class="ini-ok" id="ien-ok" style="margin-top:12px" onclick="ivGuardarEntrada_()">Confirmar entrada</button>');
+}
+function ivGuardarEntrada_(){
+  var p = IV_ENT, L = [];
+  [].forEach.call(document.querySelectorAll(".iv-rk"), function(ck){
+    if(!ck.checked) return; var j = Number(ck.getAttribute("data-j")), r = p.renglones[j];
+    L.push({ insumoId: document.querySelector('.iv-ri[data-j="' + j + '"]').value, concepto: r.concepto, unidad: r.unidad, costoUnitario: r.costoUnitario,
+             cantidad: Number(document.querySelector('.iv-rc[data-j="' + j + '"]').value) || 0 });
+  });
+  if(!L.length){ toast("Marca lo que llegó"); return; }
+  var b = $("ien-ok"); b.disabled = true;
+  llamar353_("api_registrarEntradaDeSolicitud", PIN, p.solicitudId, L).then(function(r){ cerrarHojaIni_(); toast("Entrada cargada · " + r.cargados + " renglón(es)" + (r.insumosNuevos ? " · " + r.insumosNuevos + " insumo(s) nuevo(s)" : "") + " ✓"); ivCargar_(); if(RQ) rqCargar_(); }, function(){ b.disabled = false; });
+}
+
+/* ═══════════ REQUISICIONES (Logística pide; Compras tramita) ═══════════ */
+var RQ = null, RQ_N = null;
+function rqCargar_(){
+  llamar353_("api_reqLista", PIN, "logistica").then(function(r){ RQ = r; INI.menu = INI.menu || {}; INI.menu.req = r.kpis.preguntas; pintarMenuSup_(); rqPintar_(); },
+    function(){ if(!RQ) $("rq-cuerpo").innerHTML = '<div class="c2-vacio">No se pudieron abrir las requisiciones. <button class="ini-lnk" onclick="rqCargar_()">Reintentar</button></div>'; });
+}
+var RQ_PASOS = ["Enviada", "Compras la tramita", "Aprobada", "Pagada", "Recibida"];
+function rqPz_(r){
+  if(r.fase === "noprocede" || r.fase === "rechazada") return '<div class="rq-pz"><i class="r"></i><i></i><i></i><i></i><i></i></div>';
+  return '<div class="rq-pz">' + RQ_PASOS.map(function(p, i){ return '<i class="' + (i < r.paso || r.fase === "recibida" ? "ok" : (i === r.paso ? (r.fase === "pregunta" ? "r" : "am") : "")) + '" title="' + p + '"></i>'; }).join("") + '</div>';
+}
+function rqEst_(r){
+  var E = { enviada: ["Enviada", "g"], pregunta: ["Te preguntan", "r"], respondida: ["Respondida", "g"], tramite: ["En trámite", "am"], aprobada: ["Aprobada", "am"],
+            pagada: ["Pagada · por recibir", ""], recibida: ["Recibida", ""], noprocede: ["No procede", "g"], rechazada: ["Rechazada", "r"] }[r.fase] || [r.fase, "g"];
+  return mtTag_(E[1], E[0]);
+}
+function rqTipoCls_(t){ return /insumo/i.test(t) ? "ins" : (/repuesto|reparaci/i.test(t) ? "rep" : ""); }
+function rqPintar_(){
+  if(!RQ) return;
+  var K = RQ.kpis, L = RQ.lista;
+  var h = '<div class="mt-k4"><div><b>' + K.abiertas + '</b><span>abiertas' + (K.urgentes ? ' · <em style="color:var(--tm-bad)">' + K.urgentes + ' urgente' + (K.urgentes > 1 ? 's' : '') + '</em>' : '') + '</span></div>' +
+    '<div><b>' + K.preguntas + '</b><span>te preguntan' + (K.preguntas ? ' <em style="color:var(--tm-bad)">responder</em>' : '') + '</span></div>' +
+    '<div><b>' + K.porRecibir + '</b><span>pagadas · falta recibirlas</span></div>' +
+    '<div><b>' + bIni_(K.tramitadoMes).replace(".00", "") + '</b><span>tramitado este mes</span></div></div>';
+  h += '<div class="mt-grid"><div class="mt-card" style="padding:6px 8px">' + (L.length ? '<table class="mt-tb"><tr><th>Requisición</th><th>Qué se necesita</th><th class="oc">Para</th><th class="oc">Urgencia</th><th>En qué va</th></tr>' + L.map(function(r){
+      return '<tr class="cl" onclick="rqDetalle_(\'' + esc(r.reqId) + '\')"><td><b>' + esc(r.reqId) + '</b><div class="mt-sub">' + esc(f353_(r.fecha)) + '</div></td>' +
+        '<td><span class="rq-ti ' + rqTipoCls_(r.tipo) + '">' + esc(r.tipo.split(" ")[0]) + '</span><b>' + esc(r.que) + '</b><div class="mt-sub">' + esc(r.texto) + '</div></td>' +
+        '<td class="oc"><b>' + esc(r.para) + '</b></td><td class="oc"><span class="mt-sub"' + (r.urgencia === "Urgente" ? ' style="color:var(--tm-bad);font-weight:800"' : '') + '>' + esc(r.urgencia) + '</span></td>' +
+        '<td>' + rqEst_(r) + rqPz_(r) + '</td></tr>'; }).join("") + '</table>' : '<div class="mt-vacio" style="padding:14px 8px">Todavía no hay requisiciones. Cuando haga falta un servicio, un repuesto o un insumo, pídelo con «＋ Nueva requisición».</div>') + '</div>';
+  var at = '';
+  L.filter(function(r){ return r.fase === "pregunta"; }).forEach(function(r){ at += '<div class="mt-it"><span class="d r"></span><div><b>Te preguntan en ' + esc(r.reqId) + '</b><small>' + esc(r.preguntaPor.split(" ")[0]) + ': «' + esc(r.pregunta) + '» · ' + esc(r.que) + '</small><div class="mt-acc"><button class="mt-b p" onclick="rqDetalle_(\'' + esc(r.reqId) + '\')">Responder</button></div></div></div>'; });
+  L.filter(function(r){ return r.fase === "pagada"; }).forEach(function(r){
+    var ins = /insumo|repuesto/i.test(r.tipo);
+    at += '<div class="mt-it"><span class="d"></span><div><b>' + (ins ? 'Llegó lo de ' : 'Se pagó ') + esc(r.reqId) + '</b><small>' + esc(r.que) + ' · ' + esc(r.solicitud ? r.solicitud.solicitudId : '') + '. ' + (ins ? 'Cuéntalo y dale entrada en Inventario.' : 'Cuando se haga, márcala como hecha.') + '</small><div class="mt-acc">' +
+      (ins ? '<button class="mt-b p" onclick="IV_TAB=\'co\';mostrarTab(\'inv\')">Dar entrada</button>' : '<button class="mt-b p" onclick="rqRecibida_(\'' + esc(r.reqId) + '\')">Ya se hizo</button>') + '</div></div></div>';
+  });
+  h += '<div class="mt-col mt-at"><div class="mt-card"><h3>Requiere tu atención</h3>' + (at || '<div class="mt-vacio">Nada pendiente de tu lado.</div>') + '</div>' +
+    '<div class="mt-card"><h3>Cómo camina</h3><div class="mt-sub" style="line-height:1.55">Tú dices qué hace falta y para qué. <b>Compras</b> consigue la cotización y la vuelve solicitud de pago; la aprueba la dirección financiera y se paga. Si es insumo, termina cuando le das entrada en la bodega; si es servicio, cuando lo marcas como hecho.</div></div></div></div>';
+  $("rq-cuerpo").innerHTML = h;
+}
+/* Nueva requisición. p (opcional) la trae armada desde Inventario, Flota o Mantenimiento. */
+function rqNueva_(p){
+  p = p || {};
+  var cam = (RQ && RQ.camiones) || (FL && FL.camiones.map(function(c){ return c.placa; })) || ["CU-7697","CU-7662","AX-2051"];
+  RQ_N = { renglones: [{ desc: p.desc || "", cant: p.cant || 1, unidad: p.unidad || (/insumo/i.test(p.tipo || "") ? "unid." : "servicio") }], archivoId: "", origen: p.origen || "", para: p.para || "", paraTipo: p.paraTipo || "camion" };
+  var tipos = ["Insumo", "Servicio o reparación", "Repuesto", "Otro"], tp = p.tipo || "Servicio o reparación";
+  var paras = [["camion","Un camión"],["bodega","La bodega"],["cliente","Un cliente"],["oficina","La oficina"],["otro","Otro"]];
+  abrirHojaIni_('<div class="ini-pt">Nueva requisición</div><div class="ini-ps">Di qué hace falta y para qué. No hace falta proveedor ni precio: eso lo consigue Compras con la cotización.' + (p.origen ? ' Viene de ' + esc(p.origen) + '.' : '') + '</div>' +
+    '<label class="c2-f">Qué es</label><div class="rq-seg" id="rn-ti">' + tipos.map(function(t){ return '<button class="' + (t === tp ? "on" : "") + '" onclick="rqSeg_(this)">' + t + '</button>'; }).join("") + '</div>' +
+    '<label class="c2-f">Para</label><div class="rq-f2"><select class="c2-in" id="rn-pt" onchange="RQ_N.paraTipo=this.value;rqPara_()">' + paras.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === RQ_N.paraTipo ? ' selected' : '') + '>' + x[1] + '</option>'; }).join("") + '</select><div id="rn-pb"></div></div>' +
+    '<label class="c2-f">Qué se necesita</label><div id="rn-ln"></div><button class="ini-lnk" style="margin-top:6px" onclick="rqLeer_();RQ_N.renglones.push({desc:\'\',cant:1,unidad:\'\'});rqRen_()">＋ Otro renglón</button>' +
+    '<label class="c2-f">Por qué</label><textarea class="c2-in" id="rn-pq" rows="2" placeholder="Lo que pasa y por qué hace falta"></textarea>' +
+    '<label class="c2-f">Urgencia</label><div class="rq-seg" id="rn-ur"><button class="on" onclick="rqSeg_(this)">Normal</button><button onclick="rqSeg_(this)">Esta semana</button><button class="urg" onclick="rqSeg_(this)">Urgente · detiene la operación</button></div>' +
+    '<label class="c2-f">Proveedor que conoces (opcional)</label><input class="c2-in" id="rn-pv" placeholder="Si ya sabes quién lo hace o lo vende">' +
+    '<label class="c2-f">Foto o cotización (opcional)</label><label class="rq-adj" id="rn-ad">📎 Toca para agregar una foto o una cotización que ya tengas<input type="file" accept="image/*,application/pdf" onchange="rqAdjunto_(this)"></label>' +
+    '<div class="rq-nota">Llega a <b>Compras (Mercadeo)</b> como requisición por tramitar. Cuando la vuelvan solicitud de pago, aquí verás el número, el proveedor y el monto.</div>' +
+    '<button class="ini-ok" id="rn-ok" style="margin-top:12px" onclick="rqGuardar_()">Enviar a Compras</button>');
+  rqPara_(); rqRen_();
+}
+function rqPara_(){
+  var b = $("rn-pb"); if(!b) return; var t = RQ_N.paraTipo;
+  var cam = (RQ && RQ.camiones) || (FL && FL.camiones.map(function(c){ return c.placa; })) || [];
+  if(t === "camion") b.innerHTML = '<select class="c2-in" id="rn-pa">' + cam.map(function(x){ return '<option' + (x === RQ_N.para ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + '</select>';
+  else if(t === "cliente") b.innerHTML = '<input class="c2-in" id="rn-pa" list="rn-cl" placeholder="Busca el cliente" value="' + esc(RQ_N.para) + '"><datalist id="rn-cl">' + (typeof CLIENTES !== "undefined" ? CLIENTES : []).map(function(c){ return '<option value="' + esc(c.nombre) + '">'; }).join("") + '</datalist>';
+  else b.innerHTML = '<input class="c2-in" id="rn-pa" value="' + esc(RQ_N.para || (t === "bodega" ? "Bodega de logística" : (t === "oficina" ? "Oficina" : ""))) + '">';
+}
+function rqLeer_(){ [].forEach.call(document.querySelectorAll("#rn-ln .rq-ln"), function(f, i){ var q = f.querySelectorAll(".c2-in"); RQ_N.renglones[i] = { desc: q[0].value, cant: q[1].value, unidad: q[2].value }; }); }
+function rqRen_(){
+  $("rn-ln").innerHTML = RQ_N.renglones.map(function(r, i){
+    return '<div class="rq-ln"><input class="c2-in" value="' + esc(r.desc) + '" placeholder="Qué: servicio, repuesto o insumo"><input class="c2-in" type="number" min="0" value="' + esc(r.cant) + '" title="Cantidad"><input class="c2-in" value="' + esc(r.unidad) + '" placeholder="unid., servicio" title="Unidad">' +
+      (RQ_N.renglones.length > 1 ? '<button class="mt-b gh" onclick="rqLeer_();RQ_N.renglones.splice(' + i + ',1);rqRen_()">✕</button>' : '<span></span>') + '</div>'; }).join("");
+}
+function rqAdjunto_(inp){
+  var f = inp.files[0]; if(!f || !window.ARCH) return;
+  var z = $("rn-ad"); z.firstChild.textContent = "Preparando " + f.name + "…";
+  ARCH.preparar(f).then(function(pr){
+    return llamar353_("api_reqPedirSubida", PIN, pr.meta).then(function(r){
+      z.firstChild.textContent = "Subiendo " + pr.meta.nombre + "…";
+      return ARCH.subir(r.subida, pr, function(pc){ z.firstChild.textContent = "Subiendo " + pr.meta.nombre + " · " + pc + "%"; }).then(function(){ return llamar353_("api_reqAdjuntoListo", PIN, r.archivoId); });
+    });
+  }).then(function(r){ RQ_N.archivoId = r.archivo.archivoId; z.firstChild.textContent = "📎 " + r.archivo.nombre + " · listo"; },
+          function(e){ z.firstChild.textContent = "📎 No se pudo subir: " + ((e && (e.message || e.error)) || "intenta de nuevo"); });
+}
+function rqGuardar_(){
+  rqLeer_();
+  var d = { modulo: "logistica", tipo: rqSegVal_("rn-ti"), paraTipo: RQ_N.paraTipo, para: ($("rn-pa") || {}).value || "", renglones: RQ_N.renglones,
+            porque: $("rn-pq").value, urgencia: rqSegVal_("rn-ur"), proveedorSugerido: $("rn-pv").value, archivoId: RQ_N.archivoId, origen: RQ_N.origen };
+  var b = $("rn-ok"); b.disabled = true; b.textContent = "Enviando…";
+  llamar353_("api_reqGuardar", PIN, d).then(function(r){ cerrarHojaIni_(); toast("Requisición " + r.reqId + " enviada a Compras ✓"); if(INI_TAB === "req") rqCargar_(); else RQ = null; },
+    function(){ b.disabled = false; b.textContent = "Enviar a Compras"; });
+}
+function rqDetalle_(id){
+  var r = RQ && RQ.lista.find(function(x){ return x.reqId === id; }); if(!r) return;
+  var s = r.solicitud, paso = function(cls, t, sub){ return '<div class="' + cls + '"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
+  var cam = paso("", "Enviada · " + esc(f353_(r.fecha)), esc(r.solicitadoPor) + ' · ' + esc(r.urgencia));
+  if(r.pregunta) cam += paso(r.fase === "pregunta" ? "ya" : "", "Compras pregunta" + (r.preguntaEn ? " · " + esc(f353_(r.preguntaEn)) : ""), esc(r.preguntaPor.split(" ")[0]) + ': «' + esc(r.pregunta) + '»');
+  if(r.respuesta) cam += paso("", "Respondiste", '«' + esc(r.respuesta) + '»');
+  if(r.fase === "noprocede") cam += paso("r", "No procede", esc(r.motivo));
+  else {
+    cam += paso(s ? "" : (r.fase === "pregunta" ? "no" : "ya"), s ? "Compras la tramitó · " + esc(s.solicitudId) : "Compras la tramita", s ? esc(s.proveedor) + (s.total ? ' · ' + bIni_(s.total) : '') : 'cuando consiga la cotización');
+    cam += paso(r.paso >= 2 ? "" : (r.fase === "tramite" ? "ya" : "no"), r.fase === "rechazada" ? "Rechazada" : "Aprobada", r.fase === "rechazada" && s ? esc(s.motivoRechazo || "") : "dirección financiera");
+    cam += paso(r.paso >= 3 ? "" : (r.fase === "aprobada" ? "ya" : "no"), "Pagada" + (s && s.fechaPago ? " · " + esc(f353_(s.fechaPago)) : ""), "");
+    cam += paso(r.fase === "recibida" ? "" : (r.fase === "pagada" ? "ya" : "no"), /insumo|repuesto/i.test(r.tipo) ? "Recibida en la bodega" : "Hecha", "");
+  }
+  abrirHojaIni_('<div class="ini-pt">' + esc(r.reqId) + ' · ' + esc(r.que) + '</div><div class="ini-ps">' + esc(r.tipo) + ' · para ' + esc(r.para) + (r.porque ? ' · ' + esc(r.porque) : '') + (r.proveedorSugerido ? ' · proveedor que conoces: ' + esc(r.proveedorSugerido) : '') + '</div>' +
+    '<div class="rq-cam">' + cam + '</div>' +
+    (r.archivoId ? '<button class="ini-ok sec" style="margin-top:6px" onclick="rqVerAdjunto_(\'' + esc(r.reqId) + '\')">📎 Ver la foto o cotización</button>' : '') +
+    (r.fase === "pregunta" ? '<label class="c2-f">Tu respuesta</label><textarea class="c2-in" id="rd-re" rows="2"></textarea><button class="ini-ok" id="rd-ok" style="margin-top:10px" onclick="rqResponder_(\'' + esc(r.reqId) + '\')">Responder</button>' : '') +
+    (s ? '<button class="ini-ok sec" style="margin-top:10px" onclick="VR.abrir(\'SolicitudVista.html?id=' + encodeURIComponent(s.solicitudId) + '\',\'Solicitud de pago ' + esc(s.solicitudId) + '\',\'' + esc(s.proveedor) + '\')">Ver la solicitud ' + esc(s.solicitudId) + '</button>' : '') +
+    (r.fase === "pagada" && !/insumo|repuesto/i.test(r.tipo) ? '<button class="ini-ok" style="margin-top:10px" onclick="rqRecibida_(\'' + esc(r.reqId) + '\')">Ya se hizo</button>' : '') +
+    (r.fase === "pagada" && /insumo|repuesto/i.test(r.tipo) ? '<button class="ini-ok" style="margin-top:10px" onclick="cerrarHojaIni_();IV_TAB=\'co\';mostrarTab(\'inv\')">Dar entrada en Inventario</button>' : ''));
+}
+function rqResponder_(id){ var t = $("rd-re").value, b = $("rd-ok"); b.disabled = true;
+  llamar353_("api_reqResponder", PIN, id, t).then(function(){ cerrarHojaIni_(); toast("Respuesta enviada a Compras ✓"); rqCargar_(); }, function(){ b.disabled = false; }); }
+function rqRecibida_(id){ llamar353_("api_reqRecibida", PIN, id).then(function(){ cerrarHojaIni_(); toast("Requisición cerrada ✓"); rqCargar_(); }); }
+function rqVerAdjunto_(id){ llamar353_("api_reqVerAdjunto", PIN, id).then(function(r){ if(window.VR && VR.pestana) VR.pestana(r.url); else window.open(r.url, "_blank"); }); }
+</script>
+
 </body>
 
 </html>

@@ -436,6 +436,9 @@ function bloqueFirma(rol, nombre, fecha){
 }
 
 function volver(){
+  /* api 3.5.3: dentro de la vista rápida, «volver» cierra la ventana */
+  try{ if(window.parent && window.parent !== window && window.parent.VR){ window.parent.VR.cerrar(); return; } }catch(e){}
+  /* Compras (Mercadeo) reemplazó a la pantalla vieja de solicitudes */
   var p = (VOLVER_A==="solicitud") ? "?p=solicitud" : "?p=finanzas";
   if(URL_APP){ irA(URL_APP+p); return; }
   google.script.run.withSuccessHandler(function(u){ if(u) irA(u+p); })

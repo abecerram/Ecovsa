@@ -233,3 +233,94 @@
   window.ECOCARGA = { cortina: cortina, listo: listo, mensaje: mensaje, logo: logo, pestana: pestana,
                       ocupado: ocupado, desocupado: desocupado, base: BASE };
 })();
+
+/* ═══════════════════════════════════════════════════════════════════
+   VISTA RÁPIDA DE DOCUMENTOS (api 3.5.3)
+   Recibos, actas, manifiestos, certificados, propuestas, contratos,
+   solicitudes de pago, reportes de planta, cartas, arqueos e
+   inspecciones se abren en una ventana sobre la misma página: se revisa
+   sin salir y se cierra. «Abrir en pestaña ↗» los saca aparte. En el
+   celular ocupa toda la pantalla. «Guardar en PDF» y WhatsApp siguen
+   dentro del documento.
+   Toma los enlaces solo: los <a href> a un documento y los window.open
+   de un documento. Un enlace con data-vr="no" abre como siempre.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  if (window.VR) return;
+  var yo = document.currentScript;
+  try { if (window.top !== window) return; } catch (e) { return; }        /* dentro de otra ventana: nada */
+  if (yo && yo.hasAttribute('data-solo')) return;                          /* páginas del cliente y documentos */
+  var DOCS = { 'recibo.html': 'Recibo de visita', 'acta.html': 'Acta de entrega en planta', 'actasalida.html': 'Manifiesto de salida',
+    'certificadovista.html': 'Certificado', 'propuesta.html': 'Propuesta', 'contrato.html': 'Contrato', 'solicitudvista.html': 'Solicitud de pago',
+    'rplanta.html': 'Reporte de planta', 'carta.html': 'Carta', 'arqueo.html': 'Arqueo de caja menuda', 'inspeccionvista.html': 'Inspección técnica' };
+  var RUTAS = { recibo: 'recibo.html', acta: 'acta.html', asalida: 'actasalida.html', vercert: 'certificadovista.html', propuesta: 'propuesta.html',
+    contrato: 'contrato.html', vsolicitud: 'solicitudvista.html', rplanta: 'rplanta.html', carta: 'carta.html', arqueo: 'arqueo.html', vinspeccion: 'inspeccionvista.html' };
+  function doc(url) {
+    try {
+      if (!url || typeof url !== 'string' || /^(javascript|mailto|tel|blob|data):/i.test(url)) return null;
+      var u = new URL(url, location.href);
+      if (u.origin !== location.origin) return null;
+      var f = u.pathname.split('/').pop().toLowerCase(), p = String(u.searchParams.get('p') || '').toLowerCase();
+      if ((f === '' || f === 'index.html') && RUTAS[p]) f = RUTAS[p];
+      if (!DOCS[f]) return null;
+      var id = u.searchParams.get('id') || u.searchParams.get('folio') || u.searchParams.get('cod') || '';
+      if (f === 'rplanta.html' && u.searchParams.get('desde')) id = u.searchParams.get('desde') + ' al ' + (u.searchParams.get('hasta') || '');
+      return { url: u.href, titulo: DOCS[f], id: id };
+    } catch (e) { return null; }
+  }
+  var css =
+    '.vr-velo{position:fixed;inset:0;background:rgba(10,25,50,.55);z-index:9600;display:flex;align-items:center;justify-content:center;padding:2vh 2vw;animation:vrIn .15s ease-out}' +
+    '@keyframes vrIn{from{opacity:0}to{opacity:1}}' +
+    '.vr-p{background:#fff;border-radius:16px;width:min(1000px,96vw);height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(10,25,50,.35)}' +
+    '.vr-h{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-bottom:1px solid #E3E8EF;font-family:inherit}' +
+    '.vr-h .t{flex:1;min-width:0}.vr-h b{display:block;font-size:15px;font-weight:800;color:#14306B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.vr-h small{display:block;font-size:12px;color:#6B7A90;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.vr-h button{border:1px solid #D9E1EA;background:#fff;color:#14306B;border-radius:10px;padding:8px 12px;font:700 13px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}' +
+    '.vr-h button.x{border-color:transparent;background:#EEF2F6}' +
+    '.vr-b{position:relative;flex:1;background:#EEF2F6}.vr-b iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}' +
+    '.vr-esp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#6B7A90;font:600 13px inherit;font-family:inherit;background:#EEF2F6}' +
+    '@media(max-width:700px){.vr-velo{padding:0}.vr-p{width:100vw;height:100%;border-radius:0}.vr-h .ab span{display:none}}';
+  var abiertoV = null, _open = window.open;
+  function cerrar() { if (abiertoV) { abiertoV.remove(); abiertoV = null; document.removeEventListener('keydown', tecla); } }
+  function tecla(e) { if (e.key === 'Escape') cerrar(); }
+  function abrir(url, titulo, sub) {
+    var d = doc(url) || { url: url, titulo: titulo || 'Documento', id: '' };
+    cerrar();
+    if (!document.getElementById('vr-css')) { var st = document.createElement('style'); st.id = 'vr-css'; st.textContent = css; document.head.appendChild(st); }
+    var v = document.createElement('div'); v.className = 'vr-velo';
+    var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var lg = window.ECOCARGA && ECOCARGA.logo ? ECOCARGA.logo(46, { gira: true }) : '';
+    v.innerHTML = '<div class="vr-p" role="dialog" aria-modal="true"><div class="vr-h"><div class="t"><b>' + esc(titulo || d.titulo) + '</b><small>' + esc(sub || d.id || 'Vista rápida') + '</small></div>' +
+      '<button class="ab" type="button">↗<span> Abrir en pestaña</span></button><button class="x" type="button" aria-label="Cerrar">✕<span> Cerrar</span></button></div>' +
+      '<div class="vr-b"><div class="vr-esp">' + lg + 'Abriendo el documento…</div><iframe title="Documento"></iframe></div></div>';
+    v.addEventListener('click', function (e) { if (e.target === v) cerrar(); });
+    v.querySelector('.x').onclick = cerrar;
+    v.querySelector('.ab').onclick = function () { _open.call(window, d.url, '_blank'); cerrar(); };
+    var f = v.querySelector('iframe');
+    f.onload = function () { var e = v.querySelector('.vr-esp'); if (e) e.remove(); };
+    f.src = d.url;
+    document.body.appendChild(v); abiertoV = v;
+    document.addEventListener('keydown', tecla);
+    return v;
+  }
+  /* window.open de un documento → vista rápida */
+  window.open = function (url, nombre, rasgos) {
+    var d = doc(url);
+    if (d && (!nombre || nombre === '_blank')) {
+      abrir(d.url);
+      return { closed: false, focus: function () {}, close: cerrar, location: { href: d.url } };
+    }
+    return _open.apply(window, arguments);
+  };
+  /* <a href> a un documento → vista rápida (Ctrl/⌘ o data-vr="no" abren como siempre) */
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || a.getAttribute('data-vr') === 'no' || a.hasAttribute('download')) return;
+    var d = doc(a.getAttribute('href'));
+    if (!d) return;
+    e.preventDefault(); abrir(d.url);
+  });
+  window.VR = { abrir: abrir, cerrar: cerrar, esDocumento: function (u) { return !!doc(u); },
+                pestana: function (u) { return _open.call(window, u, '_blank'); } };
+})();
