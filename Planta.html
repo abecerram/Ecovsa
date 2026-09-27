@@ -267,6 +267,7 @@ function anularCiclo(id) {
 }
 </script>
 <script>
+/* Planta-2.js (va adentro: no hace falta subirlo aparte) */
 /* ═══ Planta (api 3.4) · segunda parte ═══ */
 
 /* ═══════════ REGISTRAR CICLO (4 pasos) ═══════════ */
@@ -345,7 +346,7 @@ function vCuarentena() {
     return ['<b>' + MK.esc(s.salidaId) + '</b>', fdm(s.fecha) + ' ' + MK.esc(s.horaSalida || ''), nC || '<span class="chipx warn">sin ciclos</span>', kg(s.kgPlanta), s.kgEmas ? kg(s.kgEmas) : '—',
       s.reciboEmas ? MK.esc(s.reciboEmas) : MK.si('<button class="btn sm" onclick="event.stopPropagation();reciboEmas(\'' + s.salidaId + '\')">Anotar recibo</button>') || '<span class="chipx bad">falta</span>',
       MK.esc(s.vehiculo) + (s.conductor ? '<small>' + MK.esc(s.conductor) + '</small>' : ''), '<button class="btn sm" onclick="event.stopPropagation();abrirDoc(\'?p=asalida&id=' + encodeURIComponent(s.salidaId) + '\')">' + MK.ic('documento', 14) + 'Manifiesto</button>'];
-  }), { vacio: 'Ningún despacho en ' + nomPer() + '.' }) + '<div class="nota">El manifiesto conserva su formato registrado (ECOVSA-FR-SAL-01). Si el ciclo y el despacho no coinciden en sus dos lados, el papel lo dice.</div></div>';
+  }), { vacio: 'Ningún despacho en ' + nomPer() + '.' }) + '<div class="nota">El manifiesto conserva su formato registrado (F-LOG-02). Si el ciclo y el despacho no coinciden en sus dos lados, el papel lo dice.</div></div>';
   return h;
 }
 function despacho() {
@@ -539,6 +540,7 @@ function vReporte() {
   var t = (b.tratamiento || {}).totales || {};
   var h = MK.cabeza('Reporte mensual · ' + MK.mesNombre(MES_REP), 'El libro de control: cada punto del protocolo con los registros del mes. Sale del sistema, no se escribe a mano.',
     MK.chips(meses.map(function (x) { return [x, MK.mesNombre(x).split(' ')[0].replace(/^./, function (z) { return z.toUpperCase(); })]; }), MES_REP, 'mesRep') + '<button class="btn pri noimp" onclick="window.print()">' + MK.ic('imprimir', 16) + 'PDF del mes</button>');
+  h += '<div class="small muted" style="text-align:right;margin:-6px 0 8px;font-weight:700;letter-spacing:.3px">' + MK.esc(b.formularioReporte || 'F-PLA-03 · VERSIÓN 1 / OCT-26') + ' · Reporte mensual de planta</div>';
   h += '<div class="sem">' + sem.map(function (s) { return '<div class="s"><span class="d" style="background:' + col[s[0]] + '">' + MK.ic(ico[s[0]], 15) + '</span><b>' + MK.esc(s[1]) + '</b><span>' + MK.esc(s[2]) + '</span></div>'; }).join('') + '</div>';
   h += '<div class="card" style="margin-bottom:14px"><h3>Cadena de custodia</h3><div class="cadena"><div><span class="t1">Recibido</span><b class="num">' + kg(rec) + '</b><span>' + A.length + ' actas</span></div>' +
     '<div><span class="t1">Tratado</span><b class="num">' + kg(tra) + '</b><span>' + (nums.length ? 'ciclos ' + nums[0] + '–' + nums[nums.length - 1] : 'sin ciclos') + '</span></div>' +

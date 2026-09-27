@@ -170,7 +170,7 @@ function cargar(pin){
         return;
       }
       try{ localStorage.setItem("ecovsa_pin",JSON.stringify(pin)); }catch(e){}
-      pintar(r.acta);
+      ACTA_FORM = r.formulario || ''; pintar(r.acta);
       $("pantalla-pin").style.display="none";
       $("pantalla-aviso").style.display="none";
       $("pantalla-acta").style.display="block";
@@ -179,6 +179,7 @@ function cargar(pin){
     .api_acta(pin, ACTA_ID);
 }
 
+var ACTA_FORM = '';
 function pintar(a){
   var det=a.detalle||[];
   var filas = det.length
@@ -197,7 +198,7 @@ function pintar(a){
   var visitas = det.reduce(function(s,d){return s+d.visitas;},0);
 
   var html =
-  DOCE.membrete({ codigo: 'ECOVSA-FR-DF-01 · Rev. 01 · Gestión de desechos peligrosos' })+
+  DOCE.membrete({ codigo: (ACTA_FORM || 'F-PLA-02 · VERSIÓN 1 / SEP-26') + ' · Acta de disposición final' })+
 
   "<div class='num'>"+
     "<div><span class='et'>Acta de disposición final</span><b>"+esc(a.actaId)+"</b></div>"+

@@ -473,6 +473,20 @@ function textoRecibo(d){
     (url ? "\nTambién puede verlo aquí:\n" + url + "\n" : "") +
     "\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
 }
+/* api 3.8: el mensaje con el ENLACE del recibo, para el envío directo al chat o al correo */
+function textoEnlaceRec(d){
+  var url = enlaceRecibo(); if(!url) return textoRecibo(d);
+  var tot = num(d.totalKg) || (num(d.kgBio) + num(d.kgPunzo) + num(d.kgAnatomo));
+  return "Estimados " + (d.cliente||"") + ":\n\n" +
+    "Su comprobante de la recolección de desechos hospitalarios del " + fechaLarga(d.fecha) + " está listo.\n\n" +
+    "Recibo N.º " + (d.recibo||"") + " · " + tot.toFixed(2) + " kg.\n" + (d.firmante ? "Entregó: " + d.firmante + ".\n" : "") +
+    "\nVéalo y descárguelo en PDF aquí:\n" + url + "\n" +
+    "\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+}
+var HJ_EDITADO = false;
+function msgEnvio(pdf){ var m = ($("hj-msg")||{}).value; if(HJ_EDITADO && m) return m; return pdf ? textoRecibo(DATOS_RECIBO) : textoEnlaceRec(DATOS_RECIBO); }
+function rotuloIr(){ var b = $("hj-go"), v = $("hj"); if(!b || !v || v.getAttribute("data-canal") !== "whatsapp") return;
+  var n = telNormal(($("hj-dest")||{}).value); b.firstChild.nodeValue = n ? "Enviar a " + telBonito(n) : "Escribe el número"; b.disabled = !n; }
 function asuntoRecibo(d){ return "Recibo N.º " + (d.recibo||"") + " · recolección del " + fechaLarga(d.fecha) + " · ECOVSA"; }
 
 /* La columna whatsapp de la hoja a veces guarda el enlace completo. */
@@ -637,7 +651,7 @@ function abrirEnvio(canal){
   var h = '<div class="hj-t">' + (wa ? '💬 Enviar por WhatsApp' : '✉ Enviar por correo') + '</div>' +
     '<div class="hj-s" id="hj-pdf">Recibo ' + esc(d.recibo) + ' · <i class="sp"></i> preparando el PDF…</div>';
   if(wa){
-    h += '<label class="hj-l" for="hj-dest">NÚMERO DE WHATSAPP</label><div class="hj-in"><input id="hj-dest" inputmode="tel" value="' + esc(telBonito(telefonoWhatsApp(d))) + '" placeholder="6612-3344"><button type="button" onclick="limpiarDest()" aria-label="Borrar">×</button></div>' +
+    h += '<label class="hj-l" for="hj-dest">NÚMERO DE WHATSAPP</label><div class="hj-in"><input id="hj-dest" inputmode="tel" oninput="rotuloIr()" value="' + esc(telBonito(telefonoWhatsApp(d))) + '" placeholder="6612-3344"><button type="button" onclick="limpiarDest()" aria-label="Borrar">×</button></div>' +
          '<div class="hj-n">' + (telefonoWhatsApp(d) ? 'Es el de la ficha. Si escribes otro, vale solo esta vez.' : 'La ficha no tiene número: escríbelo.') + '</div>';
   } else {
     h += '<label class="hj-l" for="hj-dest">PARA</label><div class="hj-in"><input id="hj-dest" inputmode="email" value="' + esc(String(d.correo||"").split(/[;,\s]+/)[0] || "") + '" placeholder="correo@cliente.com"><button type="button" onclick="limpiarDest()" aria-label="Borrar">×</button></div>' +
@@ -645,16 +659,21 @@ function abrirEnvio(canal){
          '<label class="hj-l" for="hj-asunto">ASUNTO</label><input class="hj-in2" id="hj-asunto" value="' + esc(asuntoRecibo(d)) + '"' + (ES_CONDUCTOR ? ' readonly' : '') + '>';
   }
   if(sup && d.clienteId) h += '<label class="hj-ck"><input type="checkbox" id="hj-guardar"> Guardar ' + (wa ? 'este número' : 'este correo') + ' en la ficha del cliente</label>';
-  h += '<label class="hj-l" for="hj-msg">MENSAJE QUE ACOMPAÑA AL PDF' + (ES_CONDUCTOR ? '' : ' · se puede editar') + '</label>' +
-       '<textarea id="hj-msg" rows="8"' + (ES_CONDUCTOR ? ' readonly' : '') + '>' + esc(textoRecibo(d)) + '</textarea>';
+  HJ_EDITADO = false;
+  h += '<label class="hj-l" for="hj-msg">MENSAJE' + (ES_CONDUCTOR ? '' : ' · se puede editar') + '</label>' +
+       '<textarea id="hj-msg" rows="8" oninput="HJ_EDITADO=true"' + (ES_CONDUCTOR ? ' readonly' : '') + '>' + esc(textoEnlaceRec(d)) + '</textarea>';
+  /* api 3.8: lo principal va directo al número o al correo que ya se eligió, con el enlace del recibo */
   if(wa){
-    h += '<button type="button" class="hj-b wa" id="hj-ir" onclick="enviarWa()" disabled>📎 Enviar PDF por WhatsApp</button>' +
-         '<button type="button" class="hj-lk" onclick="abrirChat()">¿No aparece el cliente? Abrir su chat primero</button>' +
-         '<div class="hj-n">Se abre el menú Compartir con el PDF y el mensaje: elige el chat del cliente y envía.</div>';
+    var n0 = telefonoWhatsApp(d);
+    h += '<button type="button" class="hj-b wa" id="hj-go" onclick="abrirChat()"' + (n0 ? '' : ' disabled') + '>' + (n0 ? 'Enviar a ' + esc(telBonito(n0)) : 'Escribe el número') +
+           '<small style="display:block;font-size:11.5px;font-weight:700;opacity:.9;margin-top:2px">Se abre su chat con el mensaje listo · solo tocas enviar</small></button>' +
+         '<button type="button" class="hj-lk" id="hj-ir" onclick="enviarWa()" disabled>Mandar el PDF como archivo (eliges el chat)</button>' +
+         '<div class="hj-n">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.</div>';
   } else {
-    h += '<button type="button" class="hj-b az" id="hj-ir" onclick="enviarCorreo()" disabled>✉ ' + (esCelular() ? 'Abrir el correo con el PDF' : 'Abrir borrador en Outlook') + '</button>' +
-         '<div class="hj-n">' + (esCelular() ? 'Eliges Gmail u Outlook y la cuenta; el PDF, el asunto y el mensaje ya van puestos. La dirección se copia para pegarla en «Para».'
-                                            : 'Se descarga un borrador que Outlook abre con Para, asunto, mensaje y el PDF adjunto. Elige la cuenta en «De», revisa y da Enviar. La primera vez, dile a Windows que lo abra siempre con Outlook.') + '</div>';
+    h += '<button type="button" class="hj-b az" id="hj-go" onclick="correoDirecto()">Enviar al correo' +
+           '<small style="display:block;font-size:11.5px;font-weight:700;opacity:.9;margin-top:2px">Se abre tu correo con la dirección, el asunto y el mensaje puestos</small></button>' +
+         '<button type="button" class="hj-lk" id="hj-ir" onclick="enviarCorreo()" disabled>' + (esCelular() ? 'Mandar el PDF como archivo' : 'Mandar el PDF adjunto (borrador para Outlook)') + '</button>' +
+         '<div class="hj-n">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.</div>';
   }
   h += '<button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>';
   var v = $("hj"); if(!v){ v = document.createElement("div"); v.id = "hj"; v.className = "hj"; v.onclick = function(e){ if(e.target === v) cerrarEnvio(); }; document.body.appendChild(v); }
@@ -677,7 +696,7 @@ function guardarEnFicha(campo, valor){
 }
 function enviarWa(){
   var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
-  var msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO), r = RP.pdf; if(!r) return;
+  var msg = msgEnvio(true), r = RP.pdf; if(!r) return;
   guardarEnFicha("whatsapp", n);
   if(puedeCompartirArchivo(r.file)){
     try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).catch(function(){}); }catch(e){}
@@ -692,9 +711,17 @@ function enviarWa(){
 }
 function abrirChat(){
   var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
-  var msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO);
+  var msg = msgEnvio(false);
+  guardarEnFicha("whatsapp", n);
   window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(msg), "_blank");
-  marcarEnviado("PDF whatsapp → " + telBonito(n));
+  marcarEnviado("whatsapp → " + telBonito(n)); cerrarEnvio(); avisoRec("Listo · quedó anotado");
+}
+function correoDirecto(){
+  var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
+  var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO);
+  guardarEnFicha("correo", para[0]);
+  location.href = "mailto:" + para.map(encodeURIComponent).join(",") + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(msgEnvio(false));
+  marcarEnviado("correo → " + para.join(", ")); setTimeout(cerrarEnvio, 400);
 }
 function b64Lineas(s){ return s.replace(/.{1,76}/g, "$&\r\n"); }
 function b64Texto(t){ return btoa(unescape(encodeURIComponent(t))); }
@@ -715,7 +742,7 @@ function armarEml(para, asunto, texto, pdf, fin){
 }
 function enviarCorreo(){
   var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
-  var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO), msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO), r = RP.pdf; if(!r) return;
+  var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO), msg = msgEnvio(true), r = RP.pdf; if(!r) return;
   guardarEnFicha("correo", para[0]);
   var hecho = function(){ marcarEnviado("PDF correo → " + para.join(", ")); cerrarEnvio(); };
   if(esCelular() && puedeCompartirArchivo(r.file)){

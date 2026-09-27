@@ -107,6 +107,7 @@ function llamar(fn, args){
 }
 function falla(t, x){ $("app").innerHTML='<div class="estado"><h1>'+E(t)+'</h1><p>'+x+'</p></div>'; }
 
+var CARTA_FORM = '';
 function pintar(k, em){
   var d=k.datos||{}, F=d.facturas||[], t=k.tipo;
   var vencido=F.filter(function(f){ return f.dias>0; }).reduce(function(s,f){ return s+(Number(f.saldo)||0); },0);
@@ -133,7 +134,7 @@ function pintar(k, em){
     F.map(function(f){ return '<tr><td>'+E(f.factura)+'</td><td class="cf">'+fC(f.fecha)+'</td><td>'+fC(f.vence)+'</td><td>'+(f.dias>0?'<span class="dias v">'+f.dias+' días vencida</span>':'<span class="dias">por vencer</span>')+'</td><td class="r num">'+D(f.saldo)+'</td></tr>'; }).join('')+
     '<tr class="tot"><td colspan="3" class="tc">Total pendiente'+(vencido&&vencido<total?' · vencido '+D(vencido):'')+'</td><td class="cf"></td><td class="r num">'+D(total)+'</td></tr></tbody></table></div>':'';
   var h='<div class="hoja">'+
-    DOCE.membrete({ empresa: em, modo: 'legal', codigo: 'Carta ' + k.id })+
+    DOCE.membrete({ empresa: em, modo: 'legal', codigo: (CARTA_FORM ? CARTA_FORM + ' · ' : '') + 'Carta ' + k.id })+
     '<div class="meta"><div class="para">Señores<b>'+E(d.destinatario||d.nombre)+'</b>'+(d.ruc?'RUC '+E(d.ruc)+'<br>':'')+(d.nombre&&d.destinatario&&d.nombre!==d.destinatario?E(d.nombre)+'<br>':'')+(d.contacto&&!/^n\/?a$/i.test(d.contacto)?'Atención: '+E(d.contacto):'')+'</div>'+
       '<div class="fe">Panamá, '+E(fL(k.fecha))+'<br>Carta '+E(k.id)+'</div></div>'+
     '<div class="tit"><small>'+(t==="reactivacion"?"Aviso":"Aviso de cobro")+'</small>'+E(k.titulo)+'</div>'+
@@ -154,7 +155,7 @@ function pintar(k, em){
   if(!m){ falla("Enlace incompleto","Pídale a ECOVSA que le reenvíe el enlace de la carta. WhatsApp <b>6264-1647</b>."); return; }
   llamar("api_cartaCobro",[m[1]]).then(function(r){
     if(!r||!r.ok){ falla("No encontramos la carta", E((r&&r.error)||"El enlace no es válido.")+" Si la necesita, escríbanos al WhatsApp <b>6264-1647</b>."); return; }
-    pintar(r.carta, r.empresa||{});
+    CARTA_FORM = r.formulario || ''; pintar(r.carta, r.empresa||{});
   }, function(){ falla("Sin conexión","No pudimos abrir la carta. Revise su conexión e intente de nuevo."); });
 })();
 </script>

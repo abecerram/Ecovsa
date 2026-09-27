@@ -3270,13 +3270,15 @@ function abrirParada(i){
   }, 60);
 }
 
+/* api 3.8: una parada «no se pudo recolectar» también está atendida */
+function pAtendida_(p){ return !!p && (p.estadoParada === "completada" || p.estadoParada === "norecolectada"); }
 /* La siguiente que falta por hacer. Al guardar una, se abre esta sola. */
 function siguientePendiente(desde){
   if(!RUTA.paradas) return -1;
   for(var k = desde; k < RUTA.paradas.length; k++)
-    if(RUTA.paradas[k].estadoParada !== "completada") return k;
+    if(!pAtendida_(RUTA.paradas[k])) return k;
   for(var j = 0; j < desde && j < RUTA.paradas.length; j++)
-    if(RUTA.paradas[j].estadoParada !== "completada") return j;
+    if(!pAtendida_(RUTA.paradas[j])) return j;
   return -1;
 }
 
@@ -3302,6 +3304,8 @@ var c=cli(p.clienteId)||{nombre:"Cliente #"+p.clienteId,direccion:"",estado:"",f
 var tot=(num(p.kgBolsas)+num(p.kgPunzo)+num(p.kgAnatomo)).toFixed(2);
 
 var cerrada = p.estadoParada==="completada";
+
+if(p.estadoParada === "norecolectada" && typeof nr38Tarjeta_ === "function") return nr38Tarjeta_(p, i, c);
 
 if(cerrada){
 
@@ -3435,7 +3439,8 @@ function pintarTablero(){
     var mf = minDe_(p.horaFinal);  if(mf !== null && (ultima === null || mf > ultima)) ultima = mf;
   });
   if(primera === null && JORNADA && JORNADA.horaInicio && JORNADA.fecha === RUTA.fecha) primera = minDe_(JORNADA.horaInicio);
-  var todas = hechas >= P.length, cerrada = !!RUTA.cierre;
+  var noRec = P.filter(function(p){ return p.estadoParada === "norecolectada"; }).length;
+  var todas = hechas + noRec >= P.length, cerrada = !!RUTA.cierre;
   var sig = siguientePendiente(0), cSig = sig >= 0 ? cli(P[sig].clienteId) : null;
   var esHoy = (RUTA.fecha || hoyISO()) === hoyISO();
   var enRuta = primera === null ? null : ((todas || cerrada || !esHoy) && ultima !== null ? ultima - primera : ahoraMin_() - primera);
@@ -3447,11 +3452,11 @@ function pintarTablero(){
           : '<span class="tb-tag espera"><i></i>Por empezar</span>';
   var chica = P.length > 9;
   var linea = P.map(function(p, k){
-    var cl = p.estadoParada === "completada" ? "ok" : (cerrada ? "no" : (k === sig ? "ya" : "pe"));
+    var cl = p.estadoParada === "completada" ? "ok" : (p.estadoParada === "norecolectada" ? "nr" : (cerrada ? "no" : (k === sig ? "ya" : "pe")));
     var t = k ? '<div class="tb-tr' + (p.estadoParada === "completada" && P[k-1].estadoParada === "completada" ? " ok" : "") + '"></div>' : '';
-    return t + '<div class="tb-pt ' + cl + '">' + (cl === "ok" ? "✓" : (k+1)) + '</div>';
+    return t + '<div class="tb-pt ' + cl + '">' + (cl === "ok" ? "✓" : (cl === "nr" ? "✕" : (k+1))) + '</div>';
   }).join("");
-  var estrictos = P.filter(function(p){ var H = horarioDe_(cli(p.clienteId)); return p.estadoParada !== "completada" && H && H.tipo === "estricto"; });
+  var estrictos = P.filter(function(p){ var H = horarioDe_(cli(p.clienteId)); return !pAtendida_(p) && H && H.tipo === "estricto"; });
   var alerta = (!cerrada && estrictos.length) ? (function(){
       var c0 = cli(estrictos[0].clienteId), H0 = horarioDe_(c0);
       return '<div class="tb-alerta">🕘 ' + (estrictos.length === 1
@@ -3464,7 +3469,7 @@ function pintarTablero(){
     : (cSig ? '<div class="tb-sig"><div class="l">' + (hechas || primera !== null ? 'Ahora vas a' : 'Primera parada') + '</div>' +
         '<div class="n">' + esc(cSig.nombre) + '</div>' +
         '<div class="d">' + esc([P[sig].contacto || cSig.contacto, cSig.frecuencia].filter(Boolean).join(" · ")) + '</div></div>'
-      : '<div class="tb-sig"><div class="l">Listo</div><div class="n">Todas las paradas están hechas</div><div class="d">Recuerda entregar en planta</div></div>');
+      : '<div class="tb-sig"><div class="l">Listo</div><div class="n">' + (noRec ? 'Todas las paradas atendidas' : 'Todas las paradas están hechas') + '</div><div class="d">' + (noRec ? noRec + ' no se ' + (noRec === 1 ? 'pudo' : 'pudieron') + ' recolectar: logística ya lo sabe. ' : '') + 'Recuerda entregar en planta</div></div>');
   tb.innerHTML =
     '<div class="tb-cab"><div><div class="tb-et">' + (esHoy ? 'Mi ruta de hoy' : 'Mi ruta del ' + nombreDia_(RUTA.fecha)) + '</div>' +
       '<div class="tb-t1">' + P.length + ' paradas' + (RUTA.vehiculo ? ' · <span style="white-space:nowrap">' + esc(RUTA.vehiculo) + '</span>' : '') + '</div>' +
@@ -3472,7 +3477,7 @@ function pintarTablero(){
         (regiones.length ? ' · ' + esc(regiones.slice(0,2).join(" y ")) : '') + '</div></div>' + tag + '</div>' +
     '<div class="tb-linea' + (chica ? ' chica' : '') + '">' + linea + '</div>' +
     '<div class="tb-lb"><span>' + (primera !== null ? hora12_(hhmm_(primera)).replace(/ (a|p)\. m\./, "") : 'inicio') + '</span>' +
-      '<span>' + (todas ? 'fin' : cerrada ? 'cerrada' : 'faltan ' + (P.length - hechas)) + '</span></div>' +
+      '<span>' + (todas ? (noRec ? 'fin · ' + noRec + ' no se ' + (noRec === 1 ? 'pudo' : 'pudieron') : 'fin') : cerrada ? 'cerrada' : 'faltan ' + (P.length - hechas - noRec) + (noRec ? ' · ' + noRec + ' no se ' + (noRec === 1 ? 'pudo' : 'pudieron') : '')) + '</span></div>' +
     '<div class="tb-kpis"><div class="tb-kpi"><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div>' +
       '<div class="tb-kpi"><b>' + (Math.round(kg*10)/10) + '</b><span>kg</span></div>' +
       '<div class="tb-kpi"><b>' + (enRuta === null ? '—' : duracion_(enRuta)) + '</b><span>en ruta</span></div></div>' +
@@ -3553,6 +3558,7 @@ function paradaAbiertaC_(p, i, c){
       (wa ? '<a class="pc-a wa" href="https://wa.me/' + wa + '" target="_blank">' + SVG_MSG + 'WhatsApp</a>' : '') +
     '</div>' +
     '<div class="pc-relojes">' + botonHora_(i, "horaInicio", "LLEGADA") + botonHora_(i, "horaFinal", "SALIDA") + '</div>' +
+    (typeof nr38Boton_ === "function" ? nr38Boton_(p, i) : '') +
     ((p.horaInicio || p.horaFinal) ? '<div class="pc-ayuda">Si una hora quedó mal, tócala otra vez para corregirla</div>' : '') +
     '<div class="pc-tit">Lo que se retira</div>' +
     '<div class="pc-tabla">' + filaDesecho_(i, "bio") + filaDesecho_(i, "pun") +
@@ -3664,7 +3670,7 @@ var MOTIVOS_CIERRE = ["Camión averiado", "Lluvia o clima", "Accidente o emergen
 var MOTIVO_ELEGIDO = "";
 function tarjetaSalirRuta_(){
   var P = RUTA.paradas || []; if(!P.length || esSupervisor()) return "";
-  var hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length, faltan = P.length - hechas;
+  var hechas = P.filter(function(p){ return p.estadoParada === "completada"; }).length, faltan = P.filter(function(p){ return !pAtendida_(p); }).length;
   if(RUTA.cierre) return '<div class="tarjeta" style="border-left:4px solid var(--eco-ambar);margin-top:12px">' +
     '<b>Ruta terminada antes' + (RUTA.cierre.hora ? ' a las ' + esc(RUTA.cierre.hora) : '') + '</b>' +
     '<div style="font-size:12.5px;color:var(--gris);margin-top:4px;line-height:1.45">Motivo: ' + esc(RUTA.cierre.motivo || '') + '<br>' +
@@ -3702,7 +3708,7 @@ function elegirMotivo_(b){
 function terminarRutaConfirmada_(){
   if(!MOTIVO_ELEGIDO){ toast("Elige el motivo"); setTimeout(salirDeRuta, 250); return; }
   var detalle = ($("dlg-input").value || "").trim(), motivo = MOTIVO_ELEGIDO;
-  var faltan = (RUTA.paradas || []).filter(function(p){ return p.estadoParada !== "completada"; }).length;
+  var faltan = (RUTA.paradas || []).filter(function(p){ return !pAtendida_(p); }).length;
   RUTA.cierre = { motivo: motivo + (detalle ? " · " + detalle : ""), hora: ahoraHM(), local: true };
   guardarLocal(K_PAR, RUTA); ABIERTA = -1; renderParadas();
   toast("Ruta terminada · " + faltan + " parada(s) vuelven a pendientes");
@@ -3963,7 +3969,7 @@ function detalleDiaConductor_(fechaIso){
 function trabajarDiaCal_(fecha){
   var d = CAL_DATOS_RUTAS[fecha]; marcarRutaVista_(d);
   var P = RUTA.paradas || [];
-  var pend = P.filter(function(p){ return p.estadoParada !== "completada"; }).length;
+  var pend = P.filter(function(p){ return !pAtendida_(p); }).length;
   if(P.length && RUTA.rutaId && (!d || RUTA.rutaId !== d.rutaId) && pend && !RUTA.cierre){
     preguntar({ titulo: "Cambiar la ruta del tablero", icono: "⇄", boton: "Sí, cambiarla",
       texto: "En tu tablero está la ruta del <b>" + esc(nombreDia_(RUTA.fecha)) + "</b> con " + pend + " parada(s) sin hacer.<br><br>" +
@@ -4020,7 +4026,7 @@ function aplicarRutaServidor_(rs, fecha){
     var ya = {}; (RUTA.paradas || []).forEach(function(p){ ya[p.clienteId] = 1; }); var hoyAhora = {}; r.paradas.forEach(function(p){ hoyAhora[p.clienteId] = 1; });
     var nm = function(id){ var c = cli(id); return c ? c.nombre : "Cliente " + id; };
     RUTA.cambio = { mas: r.paradas.filter(function(p){ return !ya[p.clienteId]; }).map(function(p){ return nm(p.clienteId); }),
-                    menos: (RUTA.paradas || []).filter(function(p){ return !hoyAhora[p.clienteId] && p.estadoParada !== "completada"; }).map(function(p){ return nm(p.clienteId); }),
+                    menos: (RUTA.paradas || []).filter(function(p){ return !hoyAhora[p.clienteId] && !pAtendida_(p); }).map(function(p){ return nm(p.clienteId); }),
                     hora: hhmm_(ahoraMin_()) };
   }
   RUTA.rutaId = r.rutaId; RUTA.vehiculo = r.vehiculo || RUTA.vehiculo; RUTA.paradas = P;
@@ -6646,6 +6652,11 @@ function p7Tipos_(bio, cb, pun, cp, ana, ca){
     .filter(function(x){ return num(x[2]) > 0 || num(x[3]) > 0; });
 }
 function p7Kg_(v){ return (Math.round(num(v) * 10) / 10).toFixed(1); }
+/* api 3.8: «Bioinfeccioso · 6 bolsas»; sin la cantidad si no se contó (antes decía «Bio 0b») */
+function p7Et_(x, corto){
+  var n = num(x[3]), nom = corto ? x[1] : ({ Bio: "Bioinfeccioso", Punzo: "Punzocortante", Anatomo: "Anatomopatológico" }[x[1]] || x[1]);
+  return nom + (n > 0 ? ' · ' + n + (x[4] === "b" ? (n === 1 ? " bolsa" : " bolsas") : (n === 1 ? " recipiente" : " recipientes")) : '');
+}
 
 /* ── 1 · Firma y confirmación del conductor ── */
 function cfStrip_(i){
@@ -6657,7 +6668,7 @@ function cfStrip_(i){
     '<div class="n">' + esc(c.nombre) + '</div>' +
     '<div class="m">' + esc(nombreDia_(RUTA.fecha || hoyISO())) + ' · ' + esc(p.horaInicio || "--:--") + (p.horaFinal ? '–' + esc(p.horaFinal) : '') +
       (RUTA.vehiculo ? ' · ' + esc(RUTA.vehiculo) : '') + ' · ' + esc(RUTA.conductor || (USUARIO && USUARIO.nombre) || "") + '</div>' +
-    '<div class="ks">' + (t.length ? t.map(function(x){ return '<span class="k"><i style="background:' + x[0] + '"></i>' + x[1] + ' ' + num(x[3]) + x[4] + ' · ' + p7Kg_(x[2]) + '</span>'; }).join("") : '<span class="k">sin kilos anotados</span>') +
+    '<div class="ks">' + (t.length ? t.map(function(x){ return '<span class="k"><i style="background:' + x[0] + '"></i>' + p7Et_(x, true) + ' · ' + p7Kg_(x[2]) + '</span>'; }).join("") : '<span class="k">sin kilos anotados</span>') +
       '<span class="tot">' + p7Kg_(tot) + ' kg</span></div>' +
     '<div class="dc">Al firmar, confirma que entregó estos desechos a ECOVSA.</div></div></div>';
 }
@@ -6693,7 +6704,7 @@ function cfConfirmar_(i){
   d.innerHTML = '<div class="top"><div class="ci">✓</div><b>Recibo ' + esc(p.recibo || "") + ' guardado</b><span>' + esc(c.nombre) + ' · van ' + hechas + ' de ' + RUTA.paradas.length + ' paradas</span></div>' +
     '<div class="cu"><div class="p7-rm grande"><div class="h"><b>RECIBO DE VISITA</b><span>' + esc(p.recibo || "—") + '</span></div><div class="b">' +
       '<div class="n">' + esc(c.nombre) + '</div><div class="m">' + esc(nombreDia_(RUTA.fecha || hoyISO())) + ' · ' + esc(p.horaInicio || "") + '–' + esc(p.horaFinal || "") + '</div>' +
-      '<table>' + t.map(function(x){ return '<tr><td><span class="sq" style="background:' + x[0] + '"></span>' + x[1] + ' · ' + num(x[3]) + x[4] + '</td><td>' + p7Kg_(x[2]) + ' kg</td></tr>'; }).join("") + '</table>' +
+      '<table>' + t.map(function(x){ return '<tr><td><span class="sq" style="background:' + x[0] + '"></span>' + p7Et_(x) + '</td><td>' + p7Kg_(x[2]) + ' kg</td></tr>'; }).join("") + '</table>' +
       '<div class="t"><span>Total</span><span>' + p7Kg_(tot) + ' kg</span></div>' +
       '<div class="f">' + (p.firma ? '<i>✍ firmado' + ((p.contacto || c.contacto) ? ' · ' + esc(p.contacto || c.contacto) : '') + '</i>' : '<i class="p">sin firma</i>') + dig + cfSync_(p) + '</div></div></div>' +
     '<button class="cf-b" onclick="cfVer_(\'' + esc(p.recibo || "").replace(/'/g, "\\'") + '\',' + i + ')">👁 Ver el recibo completo</button>' +
@@ -6719,7 +6730,7 @@ fHistorialC2_ = function(F){
     return '<button class="p7-rm" ' + (v.recibo ? 'onclick="verReciboEnPantalla(\'' + esc(v.recibo).replace(/'/g, "\\'") + '\')"' : 'disabled') + '>' +
       '<div class="h"><b>RECIBO</b><span>' + esc(v.recibo || "—") + '</span></div><div class="b">' +
       '<div class="m">' + esc(c2Fecha_(v.fecha)) + (v.hi ? ' · ' + esc(v.hi) + (v.hf ? '–' + esc(v.hf) : '') : '') + '</div>' +
-      (t.length ? '<table>' + t.map(function(x){ return '<tr><td><span class="sq" style="background:' + x[0] + '"></span>' + x[1] + ' · ' + num(x[3]) + x[4] + '</td><td>' + p7Kg_(x[2]) + ' kg</td></tr>'; }).join("") + '</table>' : '') +
+      (t.length ? '<table>' + t.map(function(x){ return '<tr><td><span class="sq" style="background:' + x[0] + '"></span>' + p7Et_(x) + '</td><td>' + p7Kg_(x[2]) + ' kg</td></tr>'; }).join("") + '</table>' : '') +
       '<div class="t"><span>Total</span><span>' + p7Kg_(v.kg) + ' kg</span></div>' +
       '<div class="f">' + (v.firma ? '<i>✍ firmado</i>' : '<i class="p">sin firma</i>') +
         (v.digital ? '<i>' + (v.digital === "correo" ? "✉" : "💬") + ' enviado</i>' : '') +
@@ -7726,7 +7737,7 @@ var kgTotal = kBio + kAna + kPun;
 
 if (kgTotal <= 0) {
 
-toast("⚠️ Ingresa los kilos recolectados");
+if(typeof nr38SinKilos_ === "function") nr38SinKilos_(i); else toast("⚠️ Ingresa los kilos recolectados");
 
 return;
 
@@ -8098,7 +8109,11 @@ hechas.forEach(function(h){
 
 var p=RUTA.paradas.find(function(q){return q.clienteId===h.clienteId;});
 
-if(p){ p.estadoParada="completada"; p.recibo=h.recibo; p.kgBolsas=h.kgBolsas; }
+if(p){ p.estadoParada="completada";
+  /* api 3.8: lo que el teléfono no tenga, lo trae el servidor (cambio de celular o datos borrados) */
+  ["recibo","registroId","horaInicio","horaFinal","kgBolsas","cantBolsas","kgPunzo","cantPunzo","kgAnatomo","cantAnatomo","manifiesto"].forEach(function(k){
+    if((p[k] === undefined || p[k] === "" || p[k] === null) && h[k] !== undefined && h[k] !== "" && h[k] !== null) p[k] = h[k]; });
+}
 
 });
 
@@ -8695,7 +8710,7 @@ var d1,d2;
 
 if(t==="hoy"){ d1=new Date(h); d2=new Date(h); }
 
-else if(t==="sem"){ d1=new Date(h); d1.setDate(d1.getDate()-d1.getDay()+1); d2=new Date(d1); d2.setDate(d2.getDate()+6); }
+else if(t==="sem"){ d1=new Date(h); d1.setDate(d1.getDate()-((d1.getDay()+6)%7)); d2=new Date(d1); d2.setDate(d2.getDate()+6); }
 
 else { d1=new Date(h.getFullYear(),h.getMonth(),1); d2=new Date(h.getFullYear(),h.getMonth()+1,0); }
 
@@ -9125,7 +9140,7 @@ var html =
 
 '</div>' +
 
-'<div style="text-align:right;font-size:9px;color:#555;line-height:1.5"><b>ECOVSA-FR-DF-02 · Rev. 01</b><br>Recepción en planta de tratamiento<br>República de Panamá</div>' +
+'<div style="text-align:right;font-size:9px;color:#555;line-height:1.5"><b>F-PLA-01 · VERSIÓN 1 / SEP-26</b><br>Recepción en planta de tratamiento<br>República de Panamá</div>' +
 
 '</div>' +
 
@@ -13451,7 +13466,7 @@ function cdSecuencia_(){
   var P = RUTA.paradas || [], info = RUTA.info || {};
   var s = P.map(function(p, i){ return { tipo: "cli", i: i, p: p, c: cli(p.clienteId) || { nombre: "Cliente " + p.clienteId } }; });
   if(info.tipo === "planta" && info.destino){ var k = info.plantaPos === null || info.plantaPos === undefined ? s.length : Math.min(s.length, info.plantaPos); s.splice(k, 0, { tipo: "planta", d: info.destino }); }
-  s.forEach(function(x){ x.hecha = x.tipo === "planta" ? !!RUTA.plantaHecha : x.p.estadoParada === "completada"; x.ll = x.tipo === "planta" ? [x.d.lat, x.d.lng] : (x.c && m36LL_(x.c.lat, x.c.lng) ? [x.c.lat, x.c.lng] : null); });
+  s.forEach(function(x){ x.hecha = x.tipo === "planta" ? !!RUTA.plantaHecha : pAtendida_(x.p); x.nr = x.tipo !== "planta" && x.p.estadoParada === "norecolectada"; x.ll = x.tipo === "planta" ? [x.d.lat, x.d.lng] : (x.c && m36LL_(x.c.lat, x.c.lng) ? [x.c.lat, x.c.lng] : null); });
   return s;
 }
 function cdTableroPlanta_(){
@@ -13466,7 +13481,7 @@ function cdPintar_(){
   var s = $("pantalla-mapa"); if(!s || esSupervisor()) return;
   var seq = cdSecuencia_(), info = RUTA.info || {}, B = info.base ? [info.base.lat, info.base.lng] : null;
   var k = seq.findIndex(function(x){ return !x.hecha; }), sig = k >= 0 ? seq[k] : null;
-  var nCli = seq.filter(function(x){ return x.tipo === "cli"; }).length, hechas = seq.filter(function(x){ return x.tipo === "cli" && x.hecha; }).length;
+  var nCli = seq.filter(function(x){ return x.tipo === "cli"; }).length, hechas = seq.filter(function(x){ return x.tipo === "cli" && x.hecha && !x.nr; }).length, nNr = seq.filter(function(x){ return x.nr; }).length;
   var kg = (RUTA.paradas || []).filter(function(p){ return p.estadoParada === "completada"; }).reduce(function(a, p){ return a + num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo); }, 0);
   var h = '<div class="barra-navegacion-top"><h2>🗺️ Mapa de la ruta</h2><button class="btn-volver-hub" onclick="mostrarTab(\'hub\')">☰ Menú</button></div>';
   if(!seq.length){ s.innerHTML = h + '<div class="vacio" style="padding:30px 10px;text-align:center">No tienes una ruta activa.<br><button class="btn azul" style="margin-top:12px" onclick="mostrarTab(\'agenda\')">Ver mis rutas</button></div>'; return; }
@@ -13474,7 +13489,7 @@ function cdPintar_(){
   if(ca && (ca.mas.length || ca.menos.length || ca.planta)) h += '<div class="mc-ban"><span style="font-size:18px">🔔</span><span style="flex:1">Logística cambió tu ruta' + (ca.hora ? ' (' + esc(ca.hora) + ')' : '') + ': ' +
     [ca.mas.length ? 'se agregó <b>' + ca.mas.map(esc).join(", ") + '</b>' : '', ca.menos.length ? 'se quitó <b>' + ca.menos.map(esc).join(", ") + '</b>' : '', ca.planta ? 'cambió el momento de la entrega en planta' : ''].filter(Boolean).join(" · ") + '.</span>' +
     '<button onclick="RUTA.cambio=null;guardarLocal(K_PAR,RUTA);cdPintar_()">Entendido</button></div>';
-  h += '<div class="mc-top"><span>' + hechas + ' de ' + nCli + ' hechas</span><span class="bar"><i style="width:' + (nCli ? Math.round(hechas / nCli * 100) : (RUTA.plantaHecha ? 100 : 0)) + '%"></i></span><span>' + Math.round(kg) + ' kg</span></div>' +
+  h += '<div class="mc-top"><span>' + hechas + ' de ' + nCli + ' hechas' + (nNr ? ' · ' + nNr + ' no se pudo' : '') + '</span><span class="bar"><i style="width:' + (nCli ? Math.round((hechas + nNr) / nCli * 100) : (RUTA.plantaHecha ? 100 : 0)) + '%"></i></span><span>' + Math.round(kg) + ' kg</span></div>' +
     '<div id="cd-mapa" class="mc-map"></div>';
   if(!sig){
     h += '<div class="mc-sig" style="border-left-color:var(--eco-verde)"><div class="et" style="color:var(--eco-verde)">Listo</div><div class="n">Todas las paradas están hechas</div><div class="z">' + (info.tipo === "planta" ? 'Entrega en planta hecha. ' : 'Recuerda entregar en planta. ') + 'Regreso a la base.</div>' +
@@ -13541,7 +13556,7 @@ function cdDibujar_(seq, k, B){
     if(!x.ll) return;
     var html, sz;
     if(x.tipo === "planta"){ html = '<div class="mc-n" style="width:auto;height:30px;padding:0 9px;border-radius:9px;background:#14306B;color:#fff;font-size:11px;letter-spacing:.5px;' + (i === k ? 'box-shadow:0 0 0 6px rgba(245,179,1,.45),0 2px 8px rgba(0,0,0,.4)' : '') + '">' + (x.hecha ? '✓ ' : '') + 'PLANTA</div>'; sz = [80, 30]; }
-    else { var cls = x.hecha ? "h" : (i === k ? "s" : "p"), w = x.hecha ? 20 : (i === k ? 38 : 26); html = '<div class="mc-n ' + cls + '">' + (x.hecha ? '✓' : nCli) + '</div>'; sz = [w, w]; }
+    else { var cls = x.nr ? "h nr" : (x.hecha ? "h" : (i === k ? "s" : "p")), w = x.hecha ? 20 : (i === k ? 38 : 26); html = '<div class="mc-n ' + cls + '">' + (x.nr ? '✕' : (x.hecha ? '✓' : nCli)) + '</div>'; sz = [w, w]; }
     L.marker(x.ll, { zIndexOffset: i === k ? 2000 : (x.hecha ? 0 : 1000 - i), icon: L.divIcon({ className: "", html: html, iconSize: sz, iconAnchor: [sz[0] / 2, sz[1] / 2] }) }).addTo(CD_MAP)
       .bindTooltip(esc(x.tipo === "planta" ? x.d.nombre : x.c.nombre));
     if(k < 0 || (i >= k - 1 && i <= k + 3)) foco.push(x.ll);
@@ -13584,7 +13599,11 @@ function cdElegirNav_(app, la, ln){ var r = $("cd-rec"); if(r && r.checked){ try
 function cdLlegue_(clienteId){
   if(clienteId < 0){ if(RUTA.info && RUTA.info.destino && typeof EN !== "undefined") EN.destino = RUTA.info.destino.nombre; mostrarTab("entrega"); return; }
   var i = (RUTA.paradas || []).findIndex(function(p){ return p.clienteId === clienteId; });
-  mostrarTab("paradas"); if(i >= 0 && ABIERTA !== i) setTimeout(function(){ abrirParada(i); }, 60);
+  mostrarTab("paradas");
+  /* api 3.8: «Llegué» anota la hora de llegada (con el GPS) si todavía no la tiene */
+  if(i >= 0 && !RUTA.paradas[i].horaInicio && !pAtendida_(RUTA.paradas[i]) && !RUTA.cierre){ ABIERTA = i; marcarHoraLlegadaGPS(i); toast("Llegada anotada: " + RUTA.paradas[i].horaInicio); }
+  if(i >= 0 && ABIERTA !== i) setTimeout(function(){ abrirParada(i); }, 60);
+  else if(i >= 0) setTimeout(function(){ var e = $("parada-" + i); if(e && e.scrollIntoView) e.scrollIntoView({block:"start"}); }, 80);
 }
 /* la ubicación desde la puerta del cliente */
 function cdMalUbicada_(clienteId){
@@ -14004,6 +14023,1455 @@ irDirecto37_ = function(){
     var n = 0, e = setInterval(function(){ if(typeof FL !== "undefined" && FL && FL.camiones){ clearInterval(e); FL_FT = "Fallas"; flFicha_(q.placa); } else if(++n > 40) clearInterval(e); }, 250);
   }, 60);
 };
+</script>
+<style id="estilo-38">
+/* ═══════════ api 3.8 · conductor (barra, íconos, no se pudo, incidencias), Bandeja y Calendario ═══════════ */
+/* ── la barra del conductor, como la de Logística ── */
+body.cond-nuevo header{background:#0f2a57!important;border-bottom:0!important;box-shadow:none!important;padding:0 12px!important;padding-top:env(safe-area-inset-top,0px)!important;height:calc(60px + env(safe-area-inset-top,0px));display:flex;align-items:center}
+body.cond-nuevo header .barra-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+body.cond-nuevo .logo-header-box{display:flex;align-items:center;gap:11px;min-width:0}
+body.cond-nuevo #btn-menu-sup{display:none!important}
+body.cond-nuevo header .logo-img-header.tm-marca{width:40px!important;height:40px!important}
+body.cond-nuevo header .logo-img-header:not(.tm-marca){width:40px;height:40px;border-radius:50%;background-size:30px}
+body.cond-nuevo header h1{font-size:0!important;width:92px;height:13px;margin-bottom:4px;background:url(ecovsa-letras.png) left center/contain no-repeat}
+body.cond-nuevo #cab-usuario{font:600 11px Archivo,sans-serif!important;color:#a9bbd9;text-transform:none!important;letter-spacing:.2px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
+body.cond-nuevo #cab-usuario::before{content:"Conductor · "}
+body.cond-nuevo header .semaforo{background:rgba(255,255,255,.08)!important;border:0!important;color:#cfd9ea!important;border-radius:8px!important;padding:7px 9px!important}
+body.cond-nuevo header .semaforo span{display:none}
+body.cond-nuevo header .btn-header{font:600 12.5px Archivo,sans-serif!important;border-radius:8px!important;padding:6px 10px!important;background:none!important;border:1px solid #3a5a8f!important;color:#dfe7f3!important}
+/* ── íconos de línea del conductor ── */
+body.cond-nuevo svg.mki{width:1.1em;height:1.1em;vertical-align:-.18em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;display:inline-block}
+body.cond-nuevo .hub-conductor .mosaico-icono{width:40px!important;height:40px!important;border-radius:11px;display:grid!important;place-items:center;font-size:21px!important;margin-bottom:6px;background:#E8EFFB!important;color:#14306b}
+body.cond-nuevo .hub-conductor .mosaico-icono svg.mki{width:22px;height:22px;stroke-width:1.9}
+body.cond-nuevo .hub-conductor .mosaico-icono.i38-ve{background:#EAF6E4!important;color:#2F6B0A}
+body.cond-nuevo .hub-conductor .mosaico-icono.i38-mo{background:#F1EAF7!important;color:#6C3A96}
+body.cond-nuevo .hub-conductor .mosaico-icono.i38-te{background:#E3F4F4!important;color:#0f6e6e}
+body.cond-nuevo .hub-conductor .mosaico-icono.i38-am{background:#FFF4D6!important;color:#8a6300}
+body.cond-nuevo .hub-conductor .mosaico-icono.i38-na{background:#FFF1E4!important;color:#C8641A}
+body.cond-nuevo .barra-navegacion-top h2 svg.mki{width:19px;height:19px;margin-right:4px;color:#14306b}
+body.cond-nuevo .pc-chip svg.mki{width:13px;height:13px;margin-right:3px}
+/* ── franja de incidencias ── */
+.inc38-strip{display:flex;align-items:center;gap:12px;margin:12px 0 4px;background:#fff;border:1.5px solid #F2C4C0;border-left:5px solid #C0392B;border-radius:14px;padding:13px 14px;grid-column:1/-1;cursor:pointer;box-shadow:0 2px 8px rgba(15,42,87,.06)}
+.inc38-strip .ic{flex:none;width:40px;height:40px;border-radius:11px;background:#FDECEA;color:#C0392B;display:grid;place-items:center}
+.inc38-strip .ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.inc38-strip b{display:block;font-size:15px;font-weight:900;color:#10284F}
+.inc38-strip small{display:block;font-size:12px;font-weight:600;color:#5B6A80;margin-top:2px}
+.inc38-strip .go{margin-left:auto;font-weight:900;color:#C0392B;font-size:18px}
+.inc38-strip em{display:inline-block;white-space:nowrap;vertical-align:2px;font-style:normal;background:#FFF4D6;color:#8a6300;border-radius:99px;padding:2px 8px;font-size:11.5px;font-weight:800;margin-left:6px}
+.inc38-mini{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:12px 0 4px;border:1.5px solid #F2C4C0;background:#fff;color:#A12A1F;border-radius:12px;padding:11px;font:900 13.5px inherit;font-family:inherit;cursor:pointer}
+/* ── no se pudo recolectar ── */
+.pc-nose{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:10px 0 2px;border:1.5px solid #E7C3A6;background:#FFF7F0;color:#A4520F;border-radius:12px;padding:11px;font-family:inherit;font-size:13.5px;font-weight:900;cursor:pointer}
+.pc-nose svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.inc38-mini svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.inc38 svg,.bq38 svg,.cal38 svg{max-width:26px;max-height:26px}
+.pc-intento{margin:10px 0 0;background:#FFF7F0;border:1px dashed #E7C3A6;border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:700;color:#8a4a12}
+.num-parada.nr38{background:#C8641A!important}
+.pill.e-nr38{background:#FDEBDD;color:#A4520F}
+.nr38-sub{font-size:12px;font-weight:700;color:#A4520F;margin-top:3px}
+.nr38-det{margin-top:10px;background:#FFF7F0;border-radius:10px;padding:10px 12px;font-size:13px;color:#5b3510;line-height:1.45}
+.nr38-det b{color:#8a4a12}
+.tb-pt.nr{background:#C8641A!important;color:#fff!important;border-color:#C8641A!important}
+#pantalla-mapa .mc-n.nr{background:#C8641A!important;color:#fff!important}
+/* ── hoja genérica (derivada de Reportar falla) ── */
+.h38-ok{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1.5px solid #DCE3EC;border-radius:12px;padding:10px;margin:0 0 12px;font-size:13px;font-weight:800;color:#10284F;cursor:pointer;text-align:left;width:100%;font-family:inherit}
+.h38-ok i{flex:none;width:36px;height:21px;border-radius:99px;background:#C9D3E0;position:relative;transition:background .15s}
+.h38-ok i:after{content:"";position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .15s}
+.h38-ok.on i{background:#1fa855}.h38-ok.on i:after{left:18px}
+.h38-ok small{display:block;font-weight:600;color:#667489;margin-top:3px;line-height:1.35}
+.h38-fotos{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.h38-fotos .f{width:74px;height:74px;border-radius:11px;background:#9aa6b6 center/cover;position:relative}
+.h38-fotos .f button{position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-weight:900;font-size:12px;line-height:1}
+.h38-fotos label{width:74px;height:74px;border-radius:11px;border:1.5px dashed #C9D3E0;display:grid;place-items:center;text-align:center;font-size:11.5px;font-weight:800;color:#14306b;background:#FAFCFD;cursor:pointer}
+.h38-ta{width:100%;box-sizing:border-box;border:1.5px solid #DCE3EC;border-radius:12px;padding:10px;font:600 14px Archivo,sans-serif;color:#10284F;min-height:64px;margin-bottom:10px}
+/* ── incidencias (conductor) ── */
+.inc38{padding:0 2px 30px}
+.inc38-ctx{font-size:12px;font-weight:700;color:#5B6A80;margin:2px 2px 12px}
+.inc38-sos{background:#FDECEA;border:1.5px solid #F2C4C0;border-radius:14px;padding:12px 13px;margin-bottom:16px}
+.inc38-sos b{display:block;color:#A12A1F;font-size:14px;font-weight:900}
+.inc38-sos p{margin:2px 0 10px;font-size:12.5px;font-weight:600;color:#6d3a35}
+.inc38-sos .dos{display:flex;gap:8px}.inc38-sos a{flex:1;text-align:center;text-decoration:none;border-radius:11px;padding:11px 6px;font-weight:900;font-size:13.5px}
+.inc38-sos a.r{background:#C0392B;color:#fff}.inc38-sos a.b{background:#fff;color:#14306b;border:1.5px solid #cdd7e6}
+.inc38-sos a.off{opacity:.5;pointer-events:none}
+.inc38-h{font-size:11.5px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#5B6A80;margin:6px 2px 9px}
+.inc38-g{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.inc38-t{background:#fff;border:1.5px solid #DCE3EC;border-radius:14px;padding:12px 11px;text-align:left;font-family:inherit;cursor:pointer}
+.inc38-t .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;margin-bottom:8px}
+.inc38-t .ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.inc38-t b{display:block;font-size:13.5px;font-weight:900;color:#10284F;line-height:1.2}
+.inc38-t small{display:block;font-size:11.2px;font-weight:600;color:#667489;margin-top:3px;line-height:1.3}
+.inc38-t.ancho{grid-column:1/-1;display:flex;align-items:center;gap:10px}.inc38-t.ancho .ic{margin:0}
+.c38-r{background:#FDECEA;color:#C0392B}.c38-n{background:#FFF1E4;color:#C8641A}.c38-a{background:#E8EFFB;color:#14306b}.c38-v{background:#EAF6E4;color:#2F6B0A}.c38-m{background:#F1EAF7;color:#6C3A96}.c38-g{background:#EEF1F5;color:#44516a}.c38-t{background:#E3F4F4;color:#0f6e6e}.c38-am{background:#fff4d6;color:#8a6300}
+.inc38-mis{display:flex;justify-content:space-between;align-items:center;margin-top:14px;background:#fff;border:1.5px solid #DCE3EC;border-radius:13px;padding:12px 13px;font-weight:900;color:#14306b;font-size:13.5px;cursor:pointer}
+.inc38-mis em{font-style:normal;background:#FFF4D6;color:#8a6300;border-radius:99px;padding:2px 9px;font-size:12px}
+.inc38-pasos{background:#FFF8E6;border:1.5px solid #F1D48A;border-radius:14px;padding:11px 13px;margin-bottom:14px}
+.inc38-pasos b{display:block;font-size:13px;font-weight:900;color:#7a5600;margin-bottom:6px}
+.inc38-pasos ol{margin:0;padding-left:20px;font-size:12.8px;font-weight:700;color:#4d3b10;line-height:1.5}
+.inc38-pasos small{display:block;margin-top:6px;font-size:11px;color:#8a6300;font-weight:600}
+.inc38-auto{font-size:11.5px;font-weight:600;color:#667489;margin:10px 2px 12px;line-height:1.4}
+.inc38-env{display:block;width:100%;border:0;border-radius:13px;padding:15px;font:900 15px Archivo,sans-serif;color:#fff;background:#C0392B;cursor:pointer}
+.inc38-env.az{background:#14306b}.inc38-env:disabled{background:#C9D3E0}
+.inc38-cli{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1.5px solid #DCE3EC;border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.inc38-cli b{display:block;font-size:13.5px;font-weight:900;color:#10284F}.inc38-cli small{font-size:11.5px;font-weight:600;color:#667489}
+.inc38-cli select{border:1px solid #cfd8e3;background:#fff;border-radius:8px;padding:6px;font:600 12.5px Archivo,sans-serif;color:#14306b;max-width:46%}
+.inc38-okb{display:flex;gap:10px;align-items:center;background:#EAF6E4;border:1.5px solid #B9DDA7;border-radius:14px;padding:12px 13px;margin-bottom:10px;color:#1f5a06;font-weight:900;font-size:14px}
+.inc38-okb small{display:block;font-weight:600;color:#3f6b2a;font-size:12px;margin-top:2px}
+.inc38-kit{background:#FFF8E6;border:1.5px solid #F1D48A;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;color:#6b4d00;margin-bottom:14px}
+.inc38-f{display:flex;gap:6px;margin-bottom:10px}.inc38-f button{border:1.5px solid #DCE3EC;background:#fff;border-radius:99px;padding:6px 12px;font:800 12.5px Archivo,sans-serif;color:#14306b}.inc38-f button.on{background:#14306b;color:#fff;border-color:#14306b}
+.inc38-c{background:#fff;border:1.5px solid #DCE3EC;border-radius:14px;padding:12px 13px;margin-bottom:10px}
+.inc38-c .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.inc38-c b{font-size:14px;font-weight:900;color:#10284F}.inc38-c .fo{font-size:11.5px;font-weight:700;color:#8a96a8}
+.inc38-c p{margin:4px 0 0;font-size:12.5px;font-weight:600;color:#44516a}
+.inc38-pill{flex:none;font-size:10.5px;font-weight:900;letter-spacing:.5px;border-radius:7px;padding:3px 7px;text-transform:uppercase}
+.p38-env{background:#EEF1F5;color:#44516a}.p38-vis{background:#E8EFFB;color:#14306b}.p38-ate{background:#FFF4D6;color:#8a6300}.p38-cer{background:#EAF6E4;color:#2F6B0A}.p38-anu{background:#EEF1F5;color:#8a96a8}.p38-loc{background:#FDECEA;color:#b3261e}
+.inc38-resp{margin-top:9px;background:#F3F6FA;border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:600;color:#10284F}
+.inc38-resp small{display:block;font-size:11px;color:#667489;font-weight:700;margin-top:3px}
+.inc38 .jv-chips{margin-bottom:12px}
+.kit38{display:block;margin-top:4px;color:#b3261e;font-weight:800}
+/* ── aviso de cambio de ruta en la lista y el menú ── */
+.cm38{display:flex;gap:10px;align-items:center;background:#10284F;color:#fff;border-radius:14px;padding:11px 12px;margin:0 0 12px;font-size:13px;font-weight:700;line-height:1.35}
+.cm38 button{flex:none;background:#F5B301;color:#10284F;border:0;border-radius:9px;padding:8px 11px;font:900 12.5px Archivo,sans-serif}
+.pill.e-nueva38{background:#E8EFFB;color:#14306b}
+/* ── recibo: envío directo ── */
+.cf-b.p38-grande{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cf-b.p38-grande small{font-size:11.5px;font-weight:700;opacity:.92}
+.p38-sube{font-size:12px;font-weight:700;color:#8a6300;background:#FFF8E6;border-radius:9px;padding:7px 10px;margin:4px 0 8px}
+/* ══ BANDEJA (Logística) ══ */
+.bq38{font-family:Archivo,system-ui,sans-serif;color:#0f2140;padding:4px 2px 30px}
+.bq38 h1{font-size:22px;font-weight:700;margin:0 0 3px}.bq38 .top p{margin:0 0 14px;font-size:13px;color:#667489}
+.bq38 .bk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.bq38 .bk div{background:#fff;border:1px solid #e1e6ee;border-radius:12px;padding:10px 14px}.bq38 .bk b{display:block;font-size:20px;font-weight:700}.bq38 .bk span{font-size:12px;color:#667489}
+.bq38 .bk .r b{color:#d64045}.bq38 .bk .a b{color:#d99a00}
+.bq38 .bf{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.bq38 .bf button{border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:5px 12px;font:600 12.5px Archivo,sans-serif;color:#44516a;cursor:pointer}
+.bq38 .bf button.on{background:#14306b;border-color:#14306b;color:#fff}.bq38 .bf .sep{width:10px}
+.bq38 .bc{display:grid;grid-template-columns:420px 1fr;gap:12px;align-items:start}
+.bq38 .bl{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:6px}
+.bq38 .bg{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8a96a8;padding:10px 10px 5px}.bq38 .bg.urg{color:#d64045}
+.bq38 .bi{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+.bq38 .bi+.bi{border-top-color:#eef1f5}.bq38 .bi:hover{background:#f7f9fc}.bq38 .bi.sel{background:#eaf0fa;border-color:#c9d7f0}.bq38 .bi.u{background:#fdf3f2}
+.bq38 .bic{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.bq38 .bic.big{width:44px;height:44px;border-radius:12px}
+.bq38 .bic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.bq38 .bic.big svg{width:24px;height:24px}
+.bq38 .bt{flex:1;min-width:0}.bq38 .bt b{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bq38 .bt span{display:block;font-size:11.5px;color:#667489;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bq38 .bo{font-size:10.5px;font-weight:600;color:#8a96a8;margin-bottom:1px}
+.bq38 .ba{flex:none;border:1px solid #e1e6ee;background:#fff;border-radius:8px;padding:5px 9px;font:600 11.5px Archivo,sans-serif;color:#14306b}.bq38 .bi.u .ba{background:#14306b;color:#fff;border-color:#14306b}
+.bq38 .bd{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:16px 18px;min-height:200px}
+.bq38 .bd .vacio{padding:40px 10px;text-align:center;color:#8a96a8}
+.bq38 .dh{display:flex;gap:12px;align-items:center}.bq38 .dh h2{margin:2px 0 0;font-size:18px;font-weight:700;border:0;padding:0;color:#0f2140;text-transform:none;letter-spacing:0}
+.bq38 .est{display:flex;gap:6px;margin:14px 0}.bq38 .est span{flex:1;text-align:center;font-size:11.5px;font-weight:600;padding:6px;border-radius:8px;background:#f3f5f8;color:#8a96a8}
+.bq38 .est .ok{background:#eaf6e4;color:#2f6b0a}.bq38 .est .on{background:#14306b;color:#fff}
+.bq38 .dg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.bq38 .dg div{background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;padding:8px 10px}
+.bq38 .dg small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#8a96a8}.bq38 .dg b{display:block;font-size:13px;margin-top:2px}.bq38 .dg span{font-size:11.5px;color:#667489}.bq38 .dg .vd{color:#2f6b0a}.bq38 .dg .rj{color:#d64045}
+.bq38 .rel{margin:10px 0 8px;font-size:13px;color:#44516a;font-style:italic;background:#f3f5f8;border-radius:10px;padding:9px 12px}
+.bq38 .fo{display:flex;gap:8px;flex-wrap:wrap}.bq38 .fo a{display:block;width:110px;height:82px;border-radius:9px;background:#dfe5ee center/cover;border:1px solid #e1e6ee}
+.bq38 .fo .aviso{font-size:12px;color:#8a6300;background:#fff8e6;border-radius:8px;padding:6px 10px}
+.bq38 .sec{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8a96a8;margin:16px 0 7px}.bq38 .sec em{text-transform:none;letter-spacing:0;font-style:normal;font-weight:600;color:#3b6fd4;margin-left:6px}
+.bq38 .rr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}.bq38 .rr button{border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:4px 10px;font:600 12px Archivo,sans-serif;color:#14306b;cursor:pointer}
+.bq38 .rbox{display:flex;gap:8px}.bq38 .rbox input,.bq38 .in{flex:1;border:1px solid #e1e6ee;border-radius:9px;padding:8px 10px;font:500 13px Archivo,sans-serif;color:#0f2140;min-width:0}
+.bq38 .rbox button,.bq38 .bb button{display:inline-flex;align-items:center;gap:6px;border:1px solid #e1e6ee;background:#fff;border-radius:9px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;color:#14306b;cursor:pointer;text-decoration:none}
+.bq38 button.p,.bq38 a.p{background:#14306b!important;color:#fff!important;border-color:#14306b!important}
+.bq38 button.rj{color:#b3261e!important}
+.bq38 .resp{background:#F3F6FA;border-radius:10px;padding:8px 10px;font-size:12.5px;margin-bottom:6px}.bq38 .resp small{display:block;color:#667489;font-size:11px;margin-top:2px}
+.bq38 .cc{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bq38 .cc label{display:block;font-size:11px;font-weight:600;color:#667489;margin-bottom:3px}.bq38 .cc .in{width:100%;box-sizing:border-box}
+.bq38 .cc .an{grid-column:1/-1}
+.bq38 .bb{display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap}
+.bq38 .bb svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bq38 .listo{background:#eaf6e4;border:1px solid #b9dda7;border-radius:12px;padding:12px 14px;margin-top:12px;color:#1f5a06;font-weight:700;font-size:13px}
+.bq38 .ub-map{height:230px;border-radius:12px;overflow:hidden;border:1px solid #e1e6ee;margin:10px 0}
+.bq38 .volver{display:none;border:0;background:none;color:#14306b;font:700 13px Archivo,sans-serif;padding:4px 0 10px;cursor:pointer}
+.bq38 .sq-emb .sol,.bq38 .sq-emb .ins{margin:0;box-shadow:none}
+.c38-r2{background:#fdecea;color:#C0392B}
+@media(max-width:999px){
+  .bq38 .bk{grid-template-columns:1fr 1fr}.bq38 .bc{grid-template-columns:1fr}.bq38 .dg{grid-template-columns:1fr 1fr}
+  .bq38 .bf{flex-wrap:nowrap;overflow-x:auto}.bq38 .bf button{white-space:nowrap}
+  .bq38.det .bl,.bq38.det .bk,.bq38.det .bf,.bq38.det .top{display:none}.bq38:not(.det) .bd{display:none}.bq38.det .volver{display:block}
+  .bq38 .cc{grid-template-columns:1fr}
+}
+/* ══ CALENDARIO (Logística) ══ */
+.cal38{font-family:Archivo,system-ui,sans-serif;color:#0f2140;padding:4px 2px 30px}
+.cal38 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.cal38 h1{font-size:22px;font-weight:700;margin:0 0 3px}.cal38 .top p{margin:0;font-size:13px;color:#667489}
+.cal38 .nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cal38 .nav b{font-size:15px;min-width:150px;text-align:center}
+.cal38 .nav button{border:1px solid #e1e6ee;background:#fff;border-radius:8px;padding:6px 11px;font:600 14px Archivo,sans-serif;color:#14306b;cursor:pointer}
+.cal38 .nav .hoyb{font-size:12.5px}
+.cal38 .seg{display:inline-flex;background:#eef1f5;border-radius:9px;padding:3px}.cal38 .seg button{border:0;background:none;padding:5px 12px;border-radius:7px;font:600 12.5px Archivo,sans-serif;color:#667489;cursor:pointer}.cal38 .seg button.on{background:#14306b;color:#fff}
+.cal38 .ck{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.cal38 .ck div{background:#fff;border:1px solid #e1e6ee;border-radius:12px;padding:11px 14px}.cal38 .ck b{display:block;font-size:20px;font-weight:700}.cal38 .ck span{font-size:12px;color:#667489}
+.cal38 .ck .w b{color:#d99a00}
+.cal38 .capas{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.cal38 .cp{display:inline-flex;align-items:center;gap:6px;border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:5px 11px;font:600 12px Archivo,sans-serif;color:#44516a;cursor:pointer}
+.cal38 .cp.off{opacity:.45;text-decoration:line-through}
+.cal38 .cp i{width:9px;height:9px;border-radius:3px}.cal38 .cp .r{background:#2f9e44}.cal38 .cp .m{background:#C8641A}.cal38 .cp .i{background:#3b6fd4}.cal38 .cp .c{background:#6C3A96}.cal38 .cp .f{background:#d64045}.cal38 .cp .x{background:#b3261e}
+.cal38 .cuerpo{display:grid;grid-template-columns:1fr 290px;gap:12px;align-items:start}
+.cal38 .grid{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:10px;min-width:0}
+.cal38 .gh,.cal38 .gb{display:grid;grid-template-columns:repeat(7,minmax(0,1fr)) 74px;gap:5px}
+.cal38.sem .gh,.cal38.sem .gb{grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal38 .gh div{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#8a96a8;padding:2px 4px 6px}
+.cal38 .cd{border:1px solid #eef1f5;border-radius:9px;min-height:84px;padding:5px;display:flex;flex-direction:column;gap:3px;background:#fff;cursor:pointer;min-width:0}
+.cal38.sem .cd{min-height:260px}
+.cal38 .cd:hover{border-color:#c9d7f0}.cal38 .cd.fin{background:#fafbfd}.cal38 .cd.otro{opacity:.45}.cal38 .cd.fer{background:#fdf6f5}
+.cal38 .cd.hoy{border:2px solid #14306b}.cal38 .cd.sel{box-shadow:0 0 0 2px #F5B301;border-color:#F5B301}
+.cal38 .cd .n{display:flex;justify-content:space-between;align-items:baseline;gap:4px}.cal38 .cd .n span{font-size:13px;font-weight:700}.cal38 .cd .n em{font-style:normal;font-size:10px;color:#8a96a8;font-weight:600;white-space:nowrap}
+.cal38 .cd.hoy .n span{background:#14306b;color:#fff;border-radius:6px;padding:0 5px}
+.cal38 .fe{font-size:9.5px;font-weight:700;color:#b3261e;line-height:1.2}
+.cal38 .cr{border-radius:6px;padding:2px 5px;font-size:10.2px;line-height:1.25;border-left:3px solid;overflow:hidden}
+.cal38 .cr b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal38 .cr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.cal38 .cr.ok{background:#eaf6e4;border-color:#2f9e44;color:#1f5a06}.cal38 .cr.pen{background:#fff4d6;border-color:#d99a00;color:#6b4d00}
+.cal38 .cr.mal{background:#fdecea;border-color:#d64045;color:#8c1d20}.cal38 .cr.cur{background:#e8effb;border-color:#3b6fd4;color:#14306b}
+.cal38 .cr.pro{background:#f3f5f8;border-color:#8a96a8;color:#44516a}.cal38 .cr.bor{background:#fff;border:1px dashed #8a96a8;border-left:3px dashed #8a96a8;color:#667489}
+.cal38 .ct{font-size:10px;font-weight:700;color:#8a6300;background:#fff8e6;border:1px dashed #F1D48A;border-radius:6px;padding:2px 5px}
+.cal38 .evs{display:flex;gap:3px;margin-top:auto;flex-wrap:wrap}
+.cal38 .ce{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;flex:none}
+.cal38 .ce svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cal38 .ce.ev-mto,.cal38 .ce.ev-doc{background:#FFF1E4;color:#C8641A}.cal38 .ce.ev-ins{background:#e8effb;color:#3b6fd4}.cal38 .ce.ev-rec{background:#F1EAF7;color:#6C3A96}.cal38 .ce.ev-inc,.cal38 .ce.ev-nr{background:#fdecea;color:#b3261e}.cal38 .ce.ev-fer{background:#fdecea;color:#d64045}
+.cal38 .cs{border-radius:9px;background:#f3f5f8;padding:6px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.cal38 .cs b{font-size:12px;font-weight:700}.cal38 .cs span{font-size:10px;color:#8a96a8;margin-bottom:3px}
+.cal38 .ley{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11.5px;color:#667489}.cal38 .ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cal38 .ley .ok{background:#2f9e44}.cal38 .ley .pen{background:#d99a00}.cal38 .ley .mal{background:#d64045}.cal38 .ley .cur{background:#3b6fd4}.cal38 .ley .pro{background:#8a96a8}.cal38 .ley .bor{border:1px dashed #8a96a8}
+.cal38 .ley .tc{flex-basis:100%;font-style:italic}
+.cal38 .pd{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:14px}
+.cal38 .pd .h{font-size:15px;font-weight:700}.cal38 .pd .s{font-size:12px;color:#667489;margin:2px 0 10px}
+.cal38 .pr{border:1px solid #e1e6ee;border-left:4px solid #8a96a8;border-radius:10px;padding:9px 10px;margin-bottom:8px}
+.cal38 .pr.pen{border-left-color:#d99a00}.cal38 .pr.mal{border-left-color:#d64045}.cal38 .pr.ok{border-left-color:#2f9e44}.cal38 .pr.cur{border-left-color:#3b6fd4}
+.cal38 .pr .t{display:flex;justify-content:space-between;gap:6px;font-size:12.5px}.cal38 .pl{font-size:10px;font-weight:700;border-radius:6px;padding:2px 6px;white-space:nowrap;height:fit-content;background:#f3f5f8;color:#44516a}
+.cal38 .pl.pen{background:#fff4d6;color:#8a6300}.cal38 .pl.mal{background:#fdecea;color:#b3261e}.cal38 .pl.ok{background:#eaf6e4;color:#2f6b0a}.cal38 .pl.cur{background:#e8effb;color:#14306b}
+.cal38 .pr .m{font-size:11.5px;color:#667489;margin-top:3px}.cal38 .fal{font-size:11.5px;font-weight:700;color:#b3261e;margin-top:4px}
+.cal38 .bb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.cal38 .bb button{border:1px solid #e1e6ee;background:#fff;border-radius:7px;padding:5px 8px;font:600 11.5px Archivo,sans-serif;color:#14306b;cursor:pointer}.cal38 .bb .p{background:#14306b;color:#fff;border-color:#14306b}
+.cal38 .pe{display:flex;gap:8px;align-items:flex-start;background:#fafbfd;border-radius:9px;padding:8px;margin-bottom:6px;cursor:pointer}.cal38 .pe b{display:block;font-size:12px}.cal38 .pe span{font-size:11px;color:#667489}
+.cal38 .h2{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8a96a8;margin:14px 0 6px}
+.cal38 .px{display:grid;grid-template-columns:62px 1fr auto;gap:6px;align-items:center;font-size:11.5px;padding:6px 0;border-top:1px solid #eef1f5}.cal38 .px b{font-weight:700}.cal38 .px span{color:#44516a}
+.cal38 .px button{border:0;background:none;font:700 11.5px Archivo,sans-serif;color:#14306b;cursor:pointer}.cal38 .px.am span{color:#8a6300}
+@media(max-width:999px){
+  .cal38 .cuerpo{grid-template-columns:1fr}.cal38 .ck{grid-template-columns:1fr 1fr}
+  .cal38 .gh,.cal38 .gb{grid-template-columns:repeat(7,minmax(0,1fr))}.cal38 .cs,.cal38 .gh div:nth-child(8){display:none}
+  .cal38 .cd{min-height:58px;padding:3px}.cal38 .cr span,.cal38 .cd .n em,.cal38 .fe{display:none}.cal38 .cr b{font-size:9px}
+}
+</style>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.8 · EL CONDUCTOR
+   1 · barra nueva e íconos de línea (como Logística)
+   2 · el recibo va directo al chat o al correo del cliente, con su enlace
+   3 · «No se pudo recolectar aquí», con motivo
+   4 · incidencias en ruta, con fotos de paso
+   5 · el aviso de cambio de ruta también en la lista y el menú
+   6 · el kit de derrames en la revisión del camión
+   Todo lo que reemplaza funciones que ya existían se hace por asignación.
+   ═══════════════════════════════════════════════════════════════════ */
+var SVG38 = {
+  tri: '<path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/>',
+  gota: '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>',
+  cruz: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>',
+  choque: '<path d="M3 16V11l2-4h8l2 4v5z"/><circle cx="6.5" cy="16.5" r="1.8"/><circle cx="12" cy="16.5" r="1.8"/><path d="M18 5l1.5 2.5M21 9l-2.5.5M17.5 10.5 20 13"/>',
+  llanta: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5V9M12 15v5.5M3.5 12H9M15 12h5.5"/>',
+  bolsa: '<path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M4 4l16 16"/>',
+  escudo: '<path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6z"/><path d="M12 9v4M12 15.8v.1"/>',
+  mas: '<circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/>',
+  x: '<circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/>',
+  pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  camion: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>',
+  persona: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/>',
+  lupa: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+  reloj: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  qr: '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/>',
+  tel: '<path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2 3.6 1.2V20A17 17 0 0 1 4 5h3.6l1.2 3.6z"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',
+  llave: '<path d="M14.5 6.5a4 4 0 0 0-5.4 5.1L4 16.7 7.3 20l5.1-5.1a4 4 0 0 0 5.1-5.4l-2.6 2.6-2.3-.7-.7-2.3z"/>',
+  campana: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20h4"/>',
+  bajar: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  correo: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/>',
+  mapa: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
+  chat: '<path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z"/>',
+  bandera: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'
+};
+function sv38_(n, cl){ return '<svg viewBox="0 0 24 24"' + (cl ? ' class="' + cl + '"' : '') + ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (SVG38[n] || "") + '</svg>'; }
+function id38_(pre){ return (pre || "L") + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 46656).toString(36).toUpperCase(); }
+function fechaCorta38_(iso){ return iso ? nombreDia_(iso) : ""; }
+
+/* ════ 1 · BARRA NUEVA E ÍCONOS DEL CONDUCTOR ════ */
+/* Los emojis pasan a íconos de línea también para el conductor */
+mkIconos_ = function(raiz){
+  var b = document.body.classList;
+  if(!raiz || !(b.contains("es-sup") || b.contains("cond-nuevo"))) return;
+  var w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, null), lista = [], nodo;
+  while((nodo = w.nextNode())){ MK_RE.lastIndex = 0; if(MK_RE.test(nodo.nodeValue)) lista.push(nodo); }
+  lista.forEach(function(t){
+    var p = t.parentNode; if(!p || MK_SALTA[p.nodeName] || (p.closest && p.closest("#cargando,#login,.mk-no"))) return;
+    var tmp = document.createElement("span");
+    tmp.innerHTML = t.nodeValue.replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; })
+      .replace(MK_RE, function(m, e){ return mkSvg_(MK_EMO[e]); });
+    var f = document.createDocumentFragment(); while(tmp.firstChild) f.appendChild(tmp.firstChild);
+    p.replaceChild(f, t);
+  });
+};
+var I38_COLOR = { "Mis Rutas": "", "Avance de mis rutas": "i38-ve", "Clientes": "i38-mo", "Mapa GPS": "i38-te", "Mapa de la ruta": "i38-te",
+                  "Mis Recibos": "i38-am", "Jornada y Flota": "i38-na", "Jornada y flota": "i38-na", "Planta / Actas": "i38-mo", "Entrega a planta": "i38-mo" };
+function c38Conductor_(){
+  if(typeof esSupervisor !== "function" || esSupervisor() || !PIN){ document.body.classList.remove("cond-nuevo"); return; }
+  document.body.classList.add("cond-nuevo");
+  document.querySelectorAll("#pantalla-hub .mosaico-item").forEach(function(m){
+    var t = ((m.querySelector(".mosaico-tit") || {}).textContent || "").trim(), ic = m.querySelector(".mosaico-icono");
+    if(ic && I38_COLOR[t] && !ic.classList.contains(I38_COLOR[t])) ic.classList.add(I38_COLOR[t]);
+  });
+  inc38Franja_();
+  mkIconos_(document.body);
+  if(!MK_OBS) mkObservar_();
+  if(!INC38.primera){ INC38.primera = 1; setTimeout(inc38CargarMias_, 2500); }
+}
+mkSup_ = (function(orig){ return function(){ var r = orig.apply(this, arguments); try{ c38Conductor_(); }catch(e){ console.error(e); } return r; }; })(mkSup_);
+(function(){ var o = prepararMenuSup_; prepararMenuSup_ = function(){ var r = o.apply(this, arguments); try{ c38Conductor_(); }catch(e){ console.error(e); } return r; }; })();
+
+/* ════ 2 · EL RECIBO DIRECTO AL CLIENTE ════
+   Una página no puede adjuntar un archivo en el chat de un número: por eso
+   el botón principal abre el chat del cliente con el mensaje y el ENLACE del
+   recibo (el cliente lo abre y lo descarga en PDF). El PDF como archivo sigue
+   abajo, para quien lo pida así. */
+function textoEnlace38_(p, c){
+  var kg = num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo);
+  var quien = String(p.firmante || p.contacto || "").trim();
+  return "Estimados " + ((c && c.nombre) || "") + ":\n\n" +
+    "Su comprobante de la recolección de desechos hospitalarios del " + p9FechaLarga_(p.fecha || RUTA.fecha || hoyISO()) + " está listo.\n\n" +
+    "Recibo N.º " + (p.recibo || "") + " · " + kg.toFixed(2) + " kg.\n" + (quien ? "Entregó: " + quien + ".\n" : "") +
+    "\nVéalo y descárguelo en PDF aquí:\n" + enlaceReciboCliente_(p.recibo, p.clave) + "\n" +
+    "\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
+}
+function p38EnCola_(p){ return (COLA || []).some(function(x){ return x.registroId === p.registroId; }); }
+p9Bloque_ = function(i){
+  var p = RUTA.paradas[i], c = cli(p.clienteId) || {}, m = p9Modo_(c); if(!m) return "";
+  var k = p.registroId || p.recibo, listo = !!P9.pdf[k];
+  var h = '<div class="p9-box" id="p9-box">';
+  if(p38EnCola_(p)) h += '<div class="p38-sube">⏳ El recibo todavía no sube (sin señal). Puedes enviarlo: el enlace abre en cuanto suba.</div>';
+  ["whatsapp", "correo"].forEach(function(canal){
+    if(m !== canal && m !== "ambos") return;
+    var D = p9Destino_(i, canal), ed = P9.dest["_ed|" + canal], ok = canal === "correo" ? p9CorreoOk_(D.valor) : !!(D.otro ? p9TelNorm_(D.valor) : D.valor);
+    var vis = D.valor ? (canal === "correo" ? D.valor : p9TelTxt_(D.otro ? p9TelNorm_(D.valor) : D.valor)) : "";
+    h += '<div class="p9-dst"><div class="l">' + (canal === "correo" ? "✉ Correo · se envía a" : "💬 WhatsApp · se envía a") + '</div>';
+    if(!ed) h += '<div class="v"><span>' + (D.valor ? esc(vis) + (D.otro ? ' · solo esta vez' : ' · de la ficha') : '<em>sin ' + (canal === "correo" ? "correo" : "número") + ' en la ficha</em>') + '</span>' +
+      '<button onclick="p9Editar_(' + i + ',\'' + canal + '\')">' + (D.otro ? '✎ cambiar' : '✎ otro') + '</button></div>';
+    else h += '<input class="p9-in" id="p9-in-' + canal + '" inputmode="' + (canal === "correo" ? "email" : "tel") + '" placeholder="' + (canal === "correo" ? "correo@cliente.com" : "6612-3344") + '" value="' + esc(D.otro ? D.valor : "") + '">' +
+      '<div class="p9-acc"><button class="cf-b v" style="margin:0" onclick="p9Usar_(' + i + ',\'' + canal + '\')">Usar este</button><button class="cf-b" style="margin:0" onclick="p9Ficha_(' + i + ',\'' + canal + '\')">Usar el de la ficha</button></div>';
+    h += '</div>';
+    if(ed) return;
+    var hecho = P9.dest["_ok|" + canal] || P9.dest["_ok|" + (canal === "whatsapp" ? "wa1" : "co1")];
+    if(canal === "whatsapp"){
+      h += '<button class="cf-b wa p38-grande" ' + (ok ? '' : 'disabled') + ' onclick="p38Wa_(' + i + ')">' + (hecho ? '✓ Enviado · enviar otra vez' : 'Enviar a ' + esc(vis || "…")) +
+           '<small>Se abre su chat con el mensaje listo · solo tocas enviar</small></button>' +
+           '<button class="p9-lk" ' + (ok && listo ? '' : 'disabled') + ' onclick="p9Compartir_(' + i + ',\'whatsapp\')">Mandar el PDF como archivo (eliges el chat)</button>';
+    } else {
+      h += '<button class="cf-b az p38-grande" style="background:#1f56b3;color:#fff" ' + (ok ? '' : 'disabled') + ' onclick="p38Correo_(' + i + ')">' + (hecho ? '✓ Enviado · enviar otra vez' : 'Enviar al correo') +
+           '<small>Se abre tu correo con la dirección, el asunto y el mensaje puestos</small></button>' +
+           '<button class="p9-lk" ' + (ok && listo ? '' : 'disabled') + ' onclick="p9Compartir_(' + i + ',\'correo\')">Mandar el PDF como archivo</button>';
+    }
+  });
+  h += '<div class="p9-nota">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.' + (listo ? '' : ' <span id="p9-prep">Preparando el PDF…</span>') + '</div>';
+  return h + '</div>';
+};
+function p38Wa_(i){
+  var p = RUTA.paradas[i], c = cli(p.clienteId) || {}, D = p9Destino_(i, "whatsapp"), n = D.otro ? p9TelNorm_(D.valor) : D.valor;
+  if(!n){ toast("Falta el número de WhatsApp"); return; }
+  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(textoEnlace38_(p, c)), "_blank");
+  p9Marcar_(i, "whatsapp", D.otro ? p9TelTxt_(n) : "");
+  P9.dest["_ok|whatsapp"] = 1; setTimeout(function(){ p9Pintar_(i); }, 400);
+}
+function p38Correo_(i){
+  var p = RUTA.paradas[i], c = cli(p.clienteId) || {}, D = p9Destino_(i, "correo");
+  if(!p9CorreoOk_(D.valor)){ toast("Falta un correo válido"); return; }
+  var asunto = "Comprobante de recolección " + (p.recibo || "") + " · ECOVSA";
+  location.href = "mailto:" + encodeURIComponent(D.valor) + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(textoEnlace38_(p, c));
+  p9Marcar_(i, "correo", D.valor);
+  P9.dest["_ok|correo"] = 1; setTimeout(function(){ p9Pintar_(i); }, 400);
+}
+
+/* ════ 3 · NO SE PUDO RECOLECTAR ════ */
+var NR38 = null;
+var NR38_MOTIVOS = ["Estaba cerrado", "No tenían desecho", "No me atendieron", "No encontré el lugar", "No autorizaron el retiro", "No me dio el tiempo", "Otra cosa"];
+function nr38Boton_(p, i){
+  if(esSupervisor() || RUTA.cierre || pAtendida_(p)) return "";
+  return (p.intento ? '<div class="pc-intento">↻ Volviste a esta parada: la primera vez «' + esc(p.intento.motivo) + '» a las ' + esc(p.intento.hora) + '</div>' : '') +
+    '<button class="pc-nose" onclick="nr38Abrir_(' + i + ')">' + sv38_("x") + 'No se pudo recolectar aquí</button>';
+}
+function nr38Tarjeta_(p, i, c){
+  var n = p.noRec || {};
+  var sub = esc(n.motivo || "No se recolectó") + (n.hora ? ' · ' + esc(n.hora) : '') + ' · ' + (n.accion === "tarde" ? 'vuelve hoy' : 'otro día (logística)');
+  if(ABIERTA !== i) return '<div class="parada-card plegada" id="parada-' + i + '" onclick="abrirParada(' + i + ')"><div class="enc"><div class="num-parada nr38">✕</div>' +
+    '<div class="info"><div class="n">' + esc(c.nombre) + '</div><div class="nr38-sub">' + sub + '</div></div><span class="pill e-nr38">NO SE RECOLECTÓ</span><span class="fl-parada">&#9662;</span></div></div>';
+  return '<div class="parada-card abierta" id="parada-' + i + '"><div class="enc" style="cursor:pointer" onclick="abrirParada(' + i + ')"><div class="num-parada nr38">✕</div>' +
+    '<div class="info"><div class="n">' + esc(c.nombre) + '</div><div class="nr38-sub">' + sub + '</div></div><span class="pill e-nr38">NO SE RECOLECTÓ</span><span class="fl-parada abierta">&#9662;</span></div>' +
+    '<div class="nr38-det"><b>Qué pasó:</b> ' + esc(n.motivo || "—") + (n.nota ? '<br><b>Nota:</b> ' + esc(n.nota) : '') +
+      '<br><b>Llegaste:</b> ' + esc(p.horaInicio || n.hora || "—") + (n.fotos ? ' · ' + n.fotos + (n.fotos === 1 ? ' foto' : ' fotos') : '') +
+      '<br>' + (n.incId ? 'Logística ya lo tiene (' + esc(n.incId) + ').' : 'Se envía a logística en cuanto haya señal.') + '</div>' +
+    (RUTA.cierre ? '' : '<button class="pc-nose" style="border-color:#B9DDA7;background:#F2FAEE;color:#2F6B0A" onclick="nr38Deshacer_(' + i + ')">' + sv38_("check") + 'Me equivoqué: sí se pudo recolectar</button>') + '</div>';
+}
+function nr38Abrir_(i, desdeKilos){
+  var p = RUTA.paradas[i]; if(!p) return;
+  NR38 = { i: i, motivo: "", accion: "", nota: "", fotos: [], avisar: false, desdeKilos: !!desdeKilos };
+  nr38Pintar_();
+}
+function nr38SinKilos_(i){
+  var v = velo_("hoja-nr38");
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()"><h3>No anotaste kilos</h3><div class="sub">Para enviar el recibo hace falta lo que se retiró.</div><div style="height:12px"></div>' +
+    '<div class="jv-dos"><button class="si" onclick="cerrarNr38_()">Anotar los kilos<small>Vuelvo a la parada</small></button>' +
+    '<button class="no" onclick="nr38Abrir_(' + i + ', true)">No se pudo recolectar<small>Cuéntale a logística qué pasó</small></button></div></div>';
+  v.classList.add("ver"); v.onclick = cerrarNr38_;
+}
+function cerrarNr38_(){ var v = $("hoja-nr38"); if(v) v.classList.remove("ver"); }
+function nr38Pintar_(){
+  var s = NR38, p = RUTA.paradas[s.i], c = cli(p.clienteId) || { nombre: "" }, v = velo_("hoja-nr38");
+  var tel = telWhatsDe_(c);
+  var chips = '<div class="jv-chips">' + NR38_MOTIVOS.map(function(x){ return '<button class="' + (s.motivo === x ? "on" : "") + '" onclick="NR38.motivo=\'' + x + '\';nr38Pintar_()">' + esc(x) + '</button>'; }).join("") + '</div>';
+  var listo = s.motivo && s.accion;
+  var msg = nr38MsgCliente_();
+  v.innerHTML = '<div class="hoja-abajo" onclick="event.stopPropagation()"><h3>No se pudo recolectar</h3><div class="sub">' + esc(c.nombre) + (p.horaInicio ? ' · llegaste ' + esc(p.horaInicio) : '') + '</div><div style="height:12px"></div>' +
+    '<label class="jv-lab">¿Qué pasó?</label>' + chips +
+    '<label class="jv-lab">¿Qué hacemos con esta parada?</label>' +
+    '<div class="jv-dos"><button class="si' + (s.accion === "tarde" ? " on" : "") + '" onclick="NR38.accion=\'tarde\';nr38Pintar_()">Vuelvo más tarde<small>Pasa al final de mi ruta de hoy</small></button>' +
+      '<button class="no' + (s.accion === "otro" ? " on" : "") + '" style="' + (s.accion === "otro" ? 'border-color:#E7C3A6;background:#FFF7F0;color:#A4520F' : '') + '" onclick="NR38.accion=\'otro\';nr38Pintar_()">Otro día<small>Logística la vuelve a planificar</small></button></div>' +
+    '<label class="jv-lab">Fotos · constancia (opcional)</label>' + fotos38_("NR38", s.fotos, 2, "nr38Pintar_") +
+    (tel ? '<button class="h38-ok' + (s.avisar ? ' on' : '') + '" onclick="NR38.avisar=!NR38.avisar;nr38Pintar_()"><i></i><div>Avisar al cliente por WhatsApp<small>' + esc(msg) + '</small></div></button>' : '') +
+    '<label class="jv-lab">Nota (opcional)</label><input class="jv-in" id="nr38-nota" value="' + esc(s.nota) + '" oninput="NR38.nota=this.value" placeholder="Ej.: el guardia dice que abren a las 2">' +
+    '<div class="jv-hpie"><button class="jv-btn sec" style="flex:1" onclick="cerrarNr38_()">Cancelar</button>' +
+      '<button class="jv-btn ' + (listo ? "azul" : "gris") + '" style="flex:1.4"' + (listo ? '' : ' disabled') + ' onclick="nr38Guardar_()">Guardar</button></div>' +
+    (!listo ? '<div class="jv-ay" style="text-align:center;margin-top:8px">Elige qué pasó y qué hacemos</div>' : '') + '</div>';
+  v.classList.add("ver"); v.onclick = cerrarNr38_;
+}
+function nr38MsgCliente_(){
+  var s = NR38; if(!s) return "";
+  var p = RUTA.paradas[s.i], c = cli(p.clienteId) || {}, h = p.horaInicio || ahoraHM();
+  var que = { "Estaba cerrado": "el local estaba cerrado", "No me atendieron": "no nos pudieron atender", "No encontré el lugar": "no logramos ubicar la entrada",
+              "No autorizaron el retiro": "no se autorizó el retiro", "No tenían desecho": "nos indicaron que no había desechos" }[s.motivo] || "no se pudo hacer la recolección";
+  return "Buenos días, " + (c.nombre || "") + ". Somos ECOVSA: pasamos hoy a las " + h + " y " + que + ". " +
+    (s.accion === "tarde" ? "Volveremos más tarde hoy." : "Logística le escribirá para una nueva fecha.");
+}
+/* Fotos: se guardan en el teléfono hasta que suben (sin señal no se pierden) */
+function fotos38_(obj, lista, max, repintar){
+  return '<div class="h38-fotos">' + lista.map(function(f, k){ return '<div class="f" style="background-image:url(' + f + ')"><button onclick="' + obj + '.fotos.splice(' + k + ',1);' + repintar + '()">✕</button></div>'; }).join("") +
+    (lista.length < max ? '<label>＋ Foto<br>(hasta ' + max + ')<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){' + obj + '.fotos.push(d);' + repintar + '();})"></label>' : '') + '</div>';
+}
+function nr38Guardar_(){
+  var s = NR38; if(!s || !s.motivo || !s.accion) return;
+  var p = RUTA.paradas[s.i], c = cli(p.clienteId) || {};
+  if(!p.horaInicio) marcarHoraLlegadaGPS(s.i);
+  var idLocal = id38_("NR"), hora = p.horaInicio || ahoraHM();
+  if(s.avisar){ var t = telWhatsDe_(c); if(t) window.open("https://wa.me/" + t + "?text=" + encodeURIComponent(nr38MsgCliente_()), "_blank"); }
+  var gps = String(p.gps || "").split(",");
+  var d = { idLocal: idLocal, tipo: "norecolectada", rutaId: RUTA.rutaId || "", fechaRuta: RUTA.fecha || hoyISO(), clienteId: p.clienteId,
+            vehiculo: RUTA.vehiculo || (JORNADA && JORNADA.vehiculo) || "", datos: { motivo: s.motivo, accion: s.accion, nota: s.nota, avisado: !!s.avisar },
+            relato: s.nota, lat: Number(gps[0]) || "", lng: Number(gps[1]) || "", fecha: hoyISO(), hora: hora };
+  inc38Encolar_(d, s.fotos);
+  var sig = "";
+  if(s.accion === "tarde"){
+    p.intento = { motivo: s.motivo, hora: hora, idLocal: idLocal };
+    RUTA.paradas.splice(s.i, 1); RUTA.paradas.push(p);
+  } else {
+    p.estadoParada = "norecolectada"; p.noRec = { motivo: s.motivo, accion: s.accion, hora: hora, nota: s.nota, idLocal: idLocal, fotos: s.fotos.length };
+  }
+  ABIERTA = -1; guardarLocal(K_PAR, RUTA); cerrarNr38_(); NR38 = null;
+  var k = siguientePendiente(0); if(k >= 0){ var cs = cli(RUTA.paradas[k].clienteId); sig = cs ? cs.nombre : ""; }
+  renderParadas();
+  toast(s.accion === "tarde" ? "Anotado · la pasamos al final de tu ruta" : "Guardado · logística ya lo sabe" + (sig ? ". Sigue: " + sig : ""));
+}
+function nr38Deshacer_(i){
+  var p = RUTA.paradas[i]; if(!p || !p.noRec) return;
+  var ref = p.noRec.incId || p.noRec.idLocal;
+  p.estadoParada = "pendiente"; delete p.noRec; guardarLocal(K_PAR, RUTA); renderParadas();
+  google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){})
+    .api_anularIncidencia(PIN, ref, "El conductor sí pudo recolectar");
+  toast("Listo · anota los kilos y envía el recibo");
+}
+
+/* ════ 4 · INCIDENCIAS EN RUTA ════ */
+var INC38 = { vista: "tipos", tipo: "", f: null, mias: null, cfg: null, filtro: "abiertas" };
+var INC38_TIPOS = [
+  ["derrame", "gota", "c38-r", "Derrame o fuga", "Bolsa rota, líquido, desecho fuera del recipiente"],
+  ["lesion", "cruz", "c38-r", "Me lastimé", "Pinchazo con aguja, corte o contacto con fluidos"],
+  ["choque", "choque", "c38-n", "Choque o accidente", "Con el camión, en la vía"],
+  ["falla", "llanta", "c38-a", "Llanta o falla del camión", "Pinchazo, frenos, motor · va a mantenimiento"],
+  ["mala", "bolsa", "c38-m", "Mala gestión del cliente", "Desechos mal separados o mal empacados"],
+  ["seguridad", "escudo", "c38-g", "Seguridad", "Robo, amenaza o zona peligrosa"],
+  ["otra", "mas", "c38-g", "Otra cosa", "Cualquier situación que logística deba saber"]
+];
+var INC38_PASOS = {
+  derrame: ["Ponte guantes, mascarilla y lentes.", "Aparta a la gente del área.", "Usa el kit de derrames: absorbente, pala y bolsa roja.", "Lo recogido va en bolsa roja cerrada y rotulada."],
+  lesion: ["Lava la herida con agua y jabón; no la aprietes.", "Avisa ya a logística.", "Ve al médico hoy: el tiempo cuenta.", "Guarda la aguja o el objeto en un recipiente rígido si se puede."]
+};
+function inc38Nombre_(t){ var x = INC38_TIPOS.filter(function(z){ return z[0] === t; })[0]; return x ? x[3] : (t === "norecolectada" ? "No se pudo recolectar" : t); }
+/* la franja del menú */
+function inc38Franja_(){
+  if(esSupervisor()) return;
+  var ref = $("hub-operador"); if(!ref) return;
+  var el = $("inc38-strip");
+  if(!el){ el = document.createElement("div"); el.id = "inc38-strip"; el.className = "inc38-strip"; el.onclick = function(){ inc38Ir_("tipos"); }; ref.parentNode.insertBefore(el, ref.nextSibling); }
+  var ab = inc38Abiertas_();
+  el.innerHTML = '<div class="ic">' + sv38_("tri") + '</div><div><b>Reportar una incidencia' + (ab ? '<em>' + ab + (ab === 1 ? ' abierta' : ' abiertas') + '</em>' : '') + '</b><small>Derrame, lesión, choque, llanta, mala gestión del cliente</small></div><span class="go">›</span>';
+}
+function inc38Abiertas_(){
+  var l = (INC38.mias && INC38.mias.lista) || leerLocal("inc38_mias", []) || [];
+  var pend = inc38Pend_().length;
+  return l.filter(function(x){ return ["ENVIADA", "VISTA", "ATENCION"].indexOf(x.estado) >= 0; }).length + pend;
+}
+/* la pantalla (se crea al vuelo, una sola vez) */
+function inc38Seccion_(){
+  var s = $("pantalla-incidencias");
+  if(!s){ s = document.createElement("section"); s.id = "pantalla-incidencias"; s.className = "pantalla"; var h = $("pantalla-hub"); h.parentNode.insertBefore(s, h.nextSibling); }
+  return s;
+}
+function inc38Ir_(vista, tipo){
+  if(vista === "form" && tipo === "falla"){ abrirHojaFalla_(null, null, "ruta"); return; }
+  INC38.vista = vista || "tipos"; if(tipo) INC38.tipo = tipo;
+  if(vista === "form") INC38.f = inc38Nuevo_(tipo);
+  inc38Seccion_(); mostrarTab("incidencias"); inc38Pintar_();
+  if(vista === "mias" || vista === "tipos") inc38CargarMias_();
+  window.scrollTo(0, 0);
+}
+function inc38Nuevo_(t){
+  var f = { tipo: t, d: {}, relato: "", fotos: [], clienteId: 0, anotar: true };
+  if(t === "mala"){ var k = ABIERTA >= 0 && RUTA.paradas[ABIERTA] ? ABIERTA : siguientePendiente(0); if(k >= 0) f.clienteId = RUTA.paradas[k].clienteId; }
+  return f;
+}
+function inc38CargarMias_(){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok) return;
+    INC38.mias = r; INC38.cfg = { telLogistica: r.telLogistica, pasosDerrame: r.pasosDerrame, pasosPinchazo: r.pasosPinchazo };
+    guardarLocal("inc38_mias", r.lista || []); guardarLocal("inc38_cfg", INC38.cfg);
+    inc38Restaurar_(r.lista || []);
+    inc38Franja_();
+    if(INC_TAB38_() && (INC38.vista === "mias" || INC38.vista === "enviada" || INC38.vista === "tipos")) inc38Pintar_();
+  }).withFailureHandler(function(){}).api_misIncidencias(PIN);
+}
+/* Al volver a abrir el teléfono (o en otro), las paradas «no se pudo» salen del servidor */
+function inc38Restaurar_(L){
+  if(!RUTA || !RUTA.paradas || !RUTA.rutaId) return;
+  var cambio = false;
+  L.forEach(function(x){
+    if(x.tipo !== "norecolectada" || x.estado === "ANULADA" || String(x.rutaId) !== String(RUTA.rutaId)) return;
+    var d = x.datos || {}; if(d.accion === "tarde") return;
+    var p = RUTA.paradas.filter(function(q){ return Number(q.clienteId) === Number(x.clienteId); })[0];
+    if(!p || p.estadoParada === "completada" || p.recibo || (p.noRec && p.noRec.incId === x.incId)) return;
+    p.estadoParada = "norecolectada"; p.noRec = { motivo: d.motivo, accion: "otro", hora: x.hora, nota: d.nota || "", idLocal: x.idLocal, incId: x.incId, fotos: x.nFotos || 0 };
+    if(!p.horaInicio) p.horaInicio = x.hora;
+    cambio = true;
+  });
+  if(cambio){ guardarLocal(K_PAR, RUTA); var s = $("pantalla-paradas"); if(s && s.classList.contains("activa")) renderParadas(); else if(typeof pintarTablero === "function") pintarTablero(); }
+}
+function INC_TAB38_(){ var s = $("pantalla-incidencias"); return s && s.classList.contains("activa"); }
+function inc38Cfg_(){ return INC38.cfg || leerLocal("inc38_cfg", null) || {}; }
+function inc38Pintar_(){
+  var s = inc38Seccion_(), v = INC38.vista, h = '<div class="barra-navegacion-top"><h2>' +
+    (v === "tipos" ? '⚠ Reportar incidencia' : v === "form" ? esc(inc38Nombre_(INC38.tipo)) : '⚠ Mis incidencias') + '</h2>' +
+    '<button class="btn-volver-hub" onclick="' + (v === "form" ? 'inc38Ir_(\'tipos\')' : 'mostrarTab(\'hub\')') + '">' + (v === "form" ? '← Volver' : '☰ Menú') + '</button></div>';
+  h += '<div class="inc38">' + (v === "tipos" ? inc38Tipos_() : v === "form" ? inc38Form_() : inc38Mias_()) + '</div>';
+  s.innerHTML = h; mkIconos_(s);
+}
+function inc38Ctx_(){
+  var p = ABIERTA >= 0 ? RUTA.paradas[ABIERTA] : null, k = p ? ABIERTA : siguientePendiente(0), c = k >= 0 && RUTA.paradas[k] ? cli(RUTA.paradas[k].clienteId) : null;
+  var veh = RUTA.vehiculo || (JORNADA && JORNADA.vehiculo) || "";
+  return [RUTA.paradas && RUTA.paradas.length ? 'Ruta de hoy' : '', veh, c ? (p ? 'estás en ' : 'sigue ') + 'la parada ' + (k + 1) + ' · ' + c.nombre : ''].filter(Boolean).join(' · ');
+}
+function inc38Tipos_(){
+  var cfg = inc38Cfg_(), tel = String(cfg.telLogistica || "").replace(/[^0-9+]/g, "");
+  var ab = inc38Abiertas_();
+  return '<div class="inc38-ctx">' + esc(inc38Ctx_() || "Sin ruta activa") + '</div>' +
+    '<div class="inc38-sos"><b>¿Hay alguien herido o en peligro?</b><p>Primero ponte a salvo y pide ayuda. El reporte va después.</p><div class="dos"><a class="r" href="tel:911">Llamar al 911</a>' +
+      '<a class="b' + (tel ? '' : ' off') + '" href="' + (tel ? 'tel:' + tel : '#') + '">' + (tel ? 'Llamar a logística' : 'Logística sin número') + '</a></div></div>' +
+    '<div class="inc38-h">¿Qué pasó?</div><div class="inc38-g">' + INC38_TIPOS.map(function(x, k){
+      return '<button class="inc38-t' + (k === INC38_TIPOS.length - 1 ? ' ancho' : '') + '" onclick="inc38Ir_(\'form\',\'' + x[0] + '\')"><div class="ic ' + x[2] + '">' + sv38_(x[1]) + '</div><div><b>' + esc(x[3]) + '</b><small>' + esc(x[4]) + '</small></div></button>'; }).join("") + '</div>' +
+    '<div class="inc38-mis" onclick="inc38Ir_(\'mias\')">Mis incidencias ' + (ab ? '<em>' + ab + (ab === 1 ? ' abierta' : ' abiertas') + '</em>' : '<span style="font-weight:700;color:#8a96a8">ver</span>') + '</div>';
+}
+function ch38_(campo, lista, multi){
+  var f = INC38.f, val = f.d[campo];
+  return '<div class="jv-chips">' + lista.map(function(x){
+    var on = multi ? ((val || []).indexOf(x) >= 0) : val === x;
+    return '<button class="' + (on ? "on" : "") + '" onclick="inc38Ch_(\'' + campo + '\',\'' + x.replace(/'/g, "\\'") + '\',' + (multi ? 1 : 0) + ')">' + esc(x) + '</button>'; }).join("") + '</div>';
+}
+function inc38Ch_(campo, v, multi){
+  var d = INC38.f.d;
+  if(multi){ d[campo] = d[campo] || []; var k = d[campo].indexOf(v); if(k >= 0) d[campo].splice(k, 1); else d[campo].push(v); }
+  else d[campo] = d[campo] === v ? "" : v;
+  inc38Pintar_();
+}
+function dos38_(campo, a, b){
+  var v = INC38.f.d[campo];
+  return '<div class="jv-dos"><button class="si' + (v === a[0] ? " on" : "") + '" onclick="INC38.f.d.' + campo + '=\'' + a[0] + '\';inc38Pintar_()">' + a[1] + '<small>' + a[2] + '</small></button>' +
+    '<button class="no' + (v === b[0] ? " on" : "") + '" onclick="INC38.f.d.' + campo + '=\'' + b[0] + '\';inc38Pintar_()">' + b[1] + '<small>' + b[2] + '</small></button></div>';
+}
+function pasos38_(t){
+  var cfg = inc38Cfg_(), txt = t === "derrame" ? cfg.pasosDerrame : cfg.pasosPinchazo;
+  var l = txt ? String(txt).split(/\n+/).map(function(x){ return x.replace(/^\s*\d+[.)]\s*/, "").trim(); }).filter(Boolean) : INC38_PASOS[t];
+  return '<div class="inc38-pasos"><b>Qué hacer ahora</b><ol>' + l.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ol>' +
+    (txt ? '' : '<small>Pasos provisionales · faltan los oficiales del plan de contingencia de ECOVSA</small>') + '</div>';
+}
+function inc38Listo_(){
+  var f = INC38.f, d = f.d;
+  if(f.tipo === "derrame") return d.donde && d.que && d.cuanto && d.controlado;
+  if(f.tipo === "lesion") return d.que && d.atendido;
+  if(f.tipo === "choque") return d.heridos && d.puedeSeguir;
+  if(f.tipo === "mala") return f.clienteId && (d.hallazgos || []).length && d.recogio;
+  if(f.tipo === "seguridad") return d.que;
+  return (f.relato || "").trim().length >= 5;
+}
+function inc38Form_(){
+  var f = INC38.f, t = f.tipo, d = f.d, h = '<div class="inc38-ctx">' + esc(inc38Ctx_()) + '</div>';
+  if(t === "derrame"){
+    h += pasos38_("derrame") +
+      '<label class="jv-lab">¿Dónde pasó?</label>' + ch38_("donde", ["En el camión", "Donde el cliente", "En la calle", "En la planta"]) +
+      '<label class="jv-lab">¿Qué se derramó?</label>' + ch38_("que", ["Bioinfeccioso", "Punzocortante", "Anatomopatológico", "Líquidos", "No sé"]) +
+      '<label class="jv-lab">¿Cuánto?</label>' + ch38_("cuanto", ["Una bolsa", "Varias bolsas", "Mucho"]) +
+      '<label class="jv-lab">¿Ya está controlado?</label>' + dos38_("controlado", ["si", "Sí, ya lo limpié", "Está recogido y aislado"], ["no", "No, necesito apoyo", "Logística manda ayuda ya"]) +
+      '<label class="jv-lab">¿Usaste el kit de derrames?</label>' + ch38_("kit", ["si", "no"]).replace(/>si</, ">Sí<").replace(/>no</, ">No<");
+  } else if(t === "lesion"){
+    h += pasos38_("lesion") +
+      '<label class="jv-lab">¿Qué te pasó?</label>' + ch38_("que", ["Pinchazo con aguja", "Corte", "Contacto con fluidos", "Golpe o caída", "Otra cosa"]) +
+      '<label class="jv-lab">¿Ya te atendieron?</label>' + ch38_("atendido", ["Voy al médico", "Ya me atendieron", "No hace falta"]);
+  } else if(t === "choque"){
+    h += '<label class="jv-lab">¿Hay heridos?</label>' + ch38_("heridos", ["Nadie", "Sí, leves", "Sí, graves"]) +
+      '<label class="jv-lab">¿El camión puede seguir?</label>' + dos38_("puedeSeguir", ["si", "Sí, puedo seguir", "Con cuidado"], ["no", "No puede seguir", "Logística decide qué hacer"]) +
+      '<label class="jv-lab">¿Hay otro vehículo involucrado?</label>' + ch38_("otro", ["Sí", "No"]) +
+      '<label class="jv-lab">¿Llegó la policía o el tránsito?</label>' + ch38_("policia", ["Sí", "Todavía no", "No hizo falta"]);
+  } else if(t === "mala"){
+    var P = (RUTA.paradas || []);
+    h += '<div class="inc38-cli"><div><b>' + esc((cli(f.clienteId) || {}).nombre || "Elige el cliente") + '</b><small>' + (f.clienteId ? 'Cliente de tu ruta' : 'De las paradas de hoy') + '</small></div>' +
+      (P.length ? '<select onchange="INC38.f.clienteId=Number(this.value);inc38Pintar_()"><option value="">Cambiar…</option>' + P.map(function(p){ var c = cli(p.clienteId) || {}; return '<option value="' + p.clienteId + '">' + esc(c.nombre || "") + '</option>'; }).join("") + '</select>' : '') + '</div>' +
+      '<label class="jv-lab">¿Qué encontraste? (puedes marcar varias)</label>' + ch38_("hallazgos", ["Mezclados con basura común", "Punzocortantes fuera del recipiente", "Bolsas sin rótulo", "Bolsas abiertas o rotas", "Recipiente lleno de más", "Cuarto sucio o sin acceso", "Otra cosa"], true) +
+      '<label class="jv-lab">¿Lo recogiste igual?</label>' + dos38_("recogio", ["si", "Sí, lo recogí", "Queda anotado en el recibo"], ["no", "No lo recogí", "Va como «no se pudo recolectar»"]);
+    if(d.recogio !== "no") h += '<button class="h38-ok' + (f.anotar ? ' on' : '') + '" onclick="INC38.f.anotar=!INC38.f.anotar;inc38Pintar_()"><i></i><div>Anotarlo en el recibo del cliente<small>' +
+      esc((d.hallazgos || []).length ? "Observación: " + d.hallazgos.join(", ").toLowerCase() + "." : "Marca lo que encontraste") + '</small></div></button>';
+  } else if(t === "seguridad"){
+    h += '<label class="jv-lab">¿Qué pasó?</label>' + ch38_("que", ["Robo", "Intento de robo", "Amenaza", "Zona peligrosa", "Otra cosa"]) +
+      '<label class="jv-lab">¿Hay heridos?</label>' + ch38_("heridos", ["Nadie", "Sí"]);
+  }
+  h += '<label class="jv-lab">Fotos' + (t === "mala" ? ' · son la prueba para el cliente' : '') + '</label>' + fotos38_("INC38.f", f.fotos, 3, "inc38Pintar_") +
+    '<label class="jv-lab">' + (t === "otra" ? 'Cuéntalo con tus palabras' : 'Cuéntalo con tus palabras (opcional)') + '</label>' +
+    '<textarea class="h38-ta" id="inc38-rel" oninput="INC38.f.relato=this.value;inc38Btn_()" placeholder="Puedes dictarlo con el micrófono del teclado">' + esc(f.relato) + '</textarea>' +
+    '<div class="inc38-auto">Se guarda solo: ' + esc(nombreDia_(hoyISO())) + ' · ' + esc(ahoraHM()) + (RUTA.vehiculo ? ' · ' + esc(RUTA.vehiculo) : '') + ' · tu ubicación GPS. Sin señal, se guarda y se envía sola.</div>' +
+    '<button class="inc38-env' + (["mala", "otra"].indexOf(t) >= 0 ? ' az' : '') + '" id="inc38-btn"' + (inc38Listo_() ? '' : ' disabled') + ' onclick="inc38Enviar_(this)">Enviar incidencia</button>';
+  return h;
+}
+function inc38Btn_(){ var b = $("inc38-btn"); if(b) b.disabled = !inc38Listo_(); }
+function inc38Enviar_(btn){
+  var f = INC38.f; if(!f || !inc38Listo_()) return;
+  if(btn) btn.disabled = true;
+  var veh = RUTA.vehiculo || (JORNADA && JORNADA.vehiculo) || "", idLocal = id38_("IN");
+  var d = JSON.parse(JSON.stringify(f.d)), tipo = f.tipo;
+  /* mala gestión que no se recogió: es la parada no recolectada, con su motivo */
+  var kStop = f.clienteId ? (RUTA.paradas || []).findIndex(function(p){ return Number(p.clienteId) === Number(f.clienteId); }) : -1;
+  if(tipo === "mala" && d.recogio === "no"){ tipo = "norecolectada"; d = { motivo: "Mala gestión del cliente", accion: "otro", hallazgos: d.hallazgos || [], nota: f.relato }; }
+  var enviar = function(lat, lng){
+    var reg = { idLocal: idLocal, tipo: tipo, rutaId: RUTA.rutaId || "", fechaRuta: RUTA.fecha || "", clienteId: f.clienteId || "", vehiculo: veh,
+                datos: d, relato: f.relato, lat: lat || "", lng: lng || "", fecha: hoyISO(), hora: ahoraHM() };
+    inc38Encolar_(reg, f.fotos);
+    if(tipo === "norecolectada" && kStop >= 0 && !pAtendida_(RUTA.paradas[kStop])){
+      var p = RUTA.paradas[kStop]; if(!p.horaInicio) p.horaInicio = ahoraHM();
+      p.estadoParada = "norecolectada"; p.noRec = { motivo: d.motivo, accion: "otro", hora: p.horaInicio, nota: f.relato, idLocal: idLocal, fotos: f.fotos.length };
+      guardarLocal(K_PAR, RUTA);
+    }
+    if(f.tipo === "mala" && d.recogio === "si" && f.anotar && kStop >= 0 && !pAtendida_(RUTA.paradas[kStop])){
+      var q = RUTA.paradas[kStop], obs = "Observación: " + (d.hallazgos || []).join(", ").toLowerCase() + ".";
+      if(String(q.obs || "").indexOf(obs) < 0) q.obs = (q.obs ? q.obs + " " : "") + obs;
+      guardarLocal(K_PAR, RUTA);
+    }
+    INC38.ultimo = { tipo: tipo, kit: tipo === "derrame" && d.kit === "si", idLocal: idLocal };
+    INC38.f = null; INC38.vista = "enviada"; inc38Pintar_(); inc38Franja_();
+    setTimeout(inc38CargarMias_, 1500);
+  };
+  if(navigator.geolocation){
+    var hecho = false;
+    navigator.geolocation.getCurrentPosition(function(pos){ if(hecho) return; hecho = true; enviar(pos.coords.latitude.toFixed(6), pos.coords.longitude.toFixed(6)); },
+      function(){ if(hecho) return; hecho = true; enviar(); }, { enableHighAccuracy: true, timeout: 5000 });
+    setTimeout(function(){ if(!hecho){ hecho = true; enviar(); } }, 5500);
+  } else enviar();
+}
+/* ── la cola propia de incidencias: el reporte y sus fotos se guardan en el
+   teléfono hasta que el servidor confirma; sin señal no se pierde nada ── */
+function inc38Pend_(){ return leerLocal("inc38_pend", []) || []; }
+function inc38Encolar_(reg, fotos){
+  var l = inc38Pend_(); l.push({ reg: reg, fotos: (fotos || []).slice(0, 3), incId: "", subidas: 0, at: Date.now() });
+  try{ window.localStorage.setItem("inc38_pend", JSON.stringify(l)); guardarLocal("inc38_pend", l); }catch(e){
+    /* sin espacio en el teléfono: el reporte va, las fotos no */
+    l[l.length - 1].fotos = []; guardarLocal("inc38_pend", l); toast("El teléfono no tiene espacio: la incidencia va sin fotos");
+  }
+  inc38Procesar_();
+}
+var INC38_VUELO = false;
+function inc38Procesar_(){
+  if(INC38_VUELO || !PIN) return;
+  var l = inc38Pend_(); if(!l.length) return;
+  var it = l[0]; INC38_VUELO = true;
+  var listo = function(ok){ INC38_VUELO = false; if(ok){ var l2 = inc38Pend_(); l2.shift(); guardarLocal("inc38_pend", l2); inc38Franja_(); inc38Marcar_(it); setTimeout(inc38Procesar_, 300); } };
+  var fotos = function(){
+    if(it.subidas >= it.fotos.length){ listo(true); return; }
+    var dataUrl = it.fotos[it.subidas], blob = inc38Blob_(dataUrl);
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ if(r && r.reintentar){ INC38_VUELO = false; return; } it.subidas++; guardarPend_(); fotos(); return; }
+      ARCH.subir(r.subida, { blob: blob, meta: { mime: "image/jpeg", tamano: blob.size } }).then(function(){
+        google.script.run.withSuccessHandler(function(){ it.subidas++; guardarPend_(); fotos(); })
+          .withFailureHandler(function(){ INC38_VUELO = false; }).api_registrarFotoIncidencia(PIN, r.incId, r.archivoId);
+      }, function(){ INC38_VUELO = false; });
+    }).withFailureHandler(function(){ INC38_VUELO = false; }).api_subirFotoIncidencia(PIN, it.incId || it.reg.idLocal, { nombre: "foto.jpg", mime: "image/jpeg", tamano: blob.size });
+  };
+  var guardarPend_ = function(){ var l2 = inc38Pend_(); if(l2.length){ l2[0] = it; guardarLocal("inc38_pend", l2); } };
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ INC38_VUELO = false; toast((r && r.error) || "No se pudo enviar la incidencia"); var l2 = inc38Pend_(); l2.shift(); guardarLocal("inc38_pend", l2); return; }
+    it.incId = r.incId; guardarPend_(); fotos();
+  }).withFailureHandler(function(){ INC38_VUELO = false; }).api_reportarIncidencia(PIN, it.reg);
+}
+/* la parada queda con el número que dio el servidor */
+function inc38Marcar_(it){
+  if(!it.incId) return;
+  var cambio = false;
+  (RUTA.paradas || []).forEach(function(p){ if(p.noRec && p.noRec.idLocal === it.reg.idLocal){ p.noRec.incId = it.incId; cambio = true; } });
+  if(cambio){ guardarLocal(K_PAR, RUTA); if($("pantalla-paradas") && $("pantalla-paradas").classList.contains("activa")) renderParadas(); }
+}
+function inc38Blob_(dataUrl){
+  var p = String(dataUrl).split(","), bin = atob(p[1] || ""), a = new Uint8Array(bin.length);
+  for(var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return new Blob([a], { type: "image/jpeg" });
+}
+window.addEventListener("online", function(){ setTimeout(inc38Procesar_, 2500); });
+setInterval(function(){ if(navigator.onLine !== false) inc38Procesar_(); }, 45000);
+function inc38Mias_(){
+  var h = "";
+  if(INC38.vista === "enviada"){
+    var u = INC38.ultimo || {};
+    h += '<div class="inc38-okb">✓<div>Incidencia enviada<small>' + (navigator.onLine === false ? 'Sin señal: quedó guardada y se envía sola al volver.' : 'Logística ya la tiene. Aquí ves si la vio y lo que te responde.') + '</small></div></div>';
+    if(u.kit) h += '<div class="inc38-kit">Usaste el kit de derrames: mañana, en la revisión del camión, te pedirá reponerlo.</div>';
+    if(u.tipo === "norecolectada") h += '<div class="inc38-kit" style="background:#FFF7F0;border-color:#E7C3A6;color:#8a4a12">La parada quedó como «no se pudo recolectar».</div>';
+  }
+  var l = ((INC38.mias && INC38.mias.lista) || leerLocal("inc38_mias", []) || []).slice();
+  var pend = inc38Pend_().map(function(x){ return { local: true, tipo: x.reg.tipo, fecha: x.reg.fecha, hora: x.reg.hora, estado: "LOCAL", resumen: x.fotos.length ? x.fotos.length + " foto(s) por subir" : "", respuestas: [] }; });
+  var ab = function(x){ return ["ENVIADA", "VISTA", "ATENCION", "LOCAL"].indexOf(x.estado) >= 0; };
+  var todas = pend.concat(l), vista = INC38.filtro === "todas" ? todas : todas.filter(ab);
+  h += '<div class="inc38-f"><button class="' + (INC38.filtro !== "todas" ? "on" : "") + '" onclick="INC38.filtro=\'abiertas\';inc38Pintar_()">Abiertas · ' + todas.filter(ab).length + '</button><button class="' + (INC38.filtro === "todas" ? "on" : "") + '" onclick="INC38.filtro=\'todas\';inc38Pintar_()">Todas</button></div>';
+  var EST = { LOCAL: ["Por enviar", "p38-loc"], ENVIADA: ["Enviada", "p38-env"], VISTA: ["Vista", "p38-vis"], ATENCION: ["En atención", "p38-ate"], CERRADA: ["Cerrada", "p38-cer"], ANULADA: ["Anulada", "p38-anu"] };
+  h += vista.length ? vista.map(function(x){
+    var e = EST[x.estado] || [x.estado, "p38-env"];
+    return '<div class="inc38-c"' + (x.estado === "CERRADA" || x.estado === "ANULADA" ? ' style="opacity:.78"' : '') + '><div class="top"><div><b>' + esc(x.tipoNombre || inc38Nombre_(x.tipo)) + '</b> <span class="fo">· ' + esc(x.fecha === hoyISO() ? "hoy" : nombreDia_(x.fecha)) + ' ' + esc(x.hora || "") + '</span></div><span class="inc38-pill ' + e[1] + '">' + e[0] + '</span></div>' +
+      '<p>' + esc([x.cliente, x.resumen].filter(Boolean).join(" · ")) + '</p>' +
+      (x.respuestas || []).map(function(r){ return '<div class="inc38-resp">' + esc(r.texto) + '<small>' + esc(String(r.quien).split(" ")[0]) + ' · ' + esc(String(r.cuando).slice(11)) + '</small></div>'; }).join("") +
+      (x.accion && x.estado === "CERRADA" ? '<div class="inc38-resp">' + esc(x.accion) + '<small>Cerrada' + (x.cerradaPor ? ' · ' + esc(String(x.cerradaPor).split(" ")[0]) : '') + '</small></div>' : '') + '</div>';
+  }).join("") : '<div class="vacio">' + (INC38.filtro === "todas" ? 'Ninguna incidencia en los últimos 30 días.' : 'Nada abierto.') + '</div>';
+  return h;
+}
+
+/* ════ 5 · EL CAMBIO DE RUTA TAMBIÉN EN LA LISTA Y EL MENÚ ════ */
+function cm38Html_(){
+  var ca = RUTA && RUTA.cambio;
+  if(esSupervisor() || !ca || !((ca.mas || []).length || (ca.menos || []).length || ca.planta)) return "";
+  return '<div class="cm38" id="cm38"><span style="font-size:18px">🔔</span><span style="flex:1">Logística cambió tu ruta' + (ca.hora ? ' (' + esc(ca.hora) + ')' : '') + ': ' +
+    [ca.mas.length ? 'se agregó <b>' + ca.mas.map(esc).join(", ") + '</b>' : '', ca.menos.length ? 'se quitó <b>' + ca.menos.map(esc).join(", ") + '</b>' : '', ca.planta ? 'cambió el momento de la entrega en planta' : ''].filter(Boolean).join(" · ") + '.</span>' +
+    '<button onclick="RUTA.cambio=null;guardarLocal(K_PAR,RUTA);renderParadas();pintarTablero()">Entendido</button></div>';
+}
+renderParadas = (function(orig){
+  return function(){
+    var r = orig.apply(this, arguments);
+    if(esSupervisor()) return r;
+    var cont = $("lista-paradas"); if(!cont) return r;
+    var ca = RUTA.cambio, html = cm38Html_();
+    if(html) cont.insertAdjacentHTML("afterbegin", html);
+    if(ca && (ca.mas || []).length){
+      (RUTA.paradas || []).forEach(function(p, i){
+        var c = cli(p.clienteId); if(!c || ca.mas.indexOf(c.nombre) < 0 || pAtendida_(p)) return;
+        var e = $("parada-" + i), pl = e && e.querySelector(".enc .pill");
+        if(pl && !e.querySelector(".e-nueva38")) pl.insertAdjacentHTML("beforebegin", '<span class="pill e-nueva38">NUEVA</span>');
+      });
+    }
+    if(RUTA.paradas && RUTA.paradas.length && !cont.querySelector(".inc38-mini"))
+      cont.insertAdjacentHTML("beforeend", '<button class="inc38-mini" onclick="inc38Ir_(\'tipos\')">' + sv38_("tri") + 'Reportar una incidencia</button>');
+    return r;
+  };
+})(renderParadas);
+pintarTablero = (function(orig){
+  return function(){
+    var r = orig.apply(this, arguments);
+    if(esSupervisor()) return r;
+    var tb = $("hub-operador"), old = $("cm38h"); if(old) old.remove();
+    var html = cm38Html_();
+    if(tb && html){ var d = document.createElement("div"); d.id = "cm38h"; d.style.gridColumn = "1/-1"; d.innerHTML = html.replace('id="cm38"', ''); tb.parentNode.insertBefore(d, tb); }
+    inc38Franja_();
+    return r;
+  };
+})(pintarTablero);
+
+/* ════ 6 · EL KIT DE DERRAMES EN LA REVISIÓN ════ */
+itemRevision_ = (function(orig){
+  return function(p, fallasAb){
+    var h = orig.apply(this, arguments);
+    var k = FLOTA && FLOTA.kitDerrame;
+    if(k && (p.puntoId === "d18" || /kit de derrame/i.test(p.punto || "")))
+      h = h.replace('</div><div class="jv-tg">', '<small class="kit38">Se usó el ' + esc(nombreDia_(k.fecha)) + ' (' + esc(k.incId) + '): repónlo antes de salir</small></div><div class="jv-tg">');
+    return h;
+  };
+})(itemRevision_);
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.8 · LOGÍSTICA
+   1 · la Bandeja reemplaza a Solicitudes: todo lo que espera a Logística
+   2 · el reporte de incidencia F-LOG-03 en PDF, armado en la pantalla
+   3 · el Calendario: todas las rutas de cada camión y lo que cae en fecha
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── el menú: la Bandeja va debajo de Inicio ── */
+(function(){
+  var k = MENU_SUP.findIndex(function(it){ return it[0] === "solicitudes"; }); if(k >= 0) MENU_SUP.splice(k, 1);
+  k = MENU_SUP.findIndex(function(it){ return it.length === 1 && it[0] === "Por revisar"; }); if(k >= 0) MENU_SUP.splice(k, 1);
+  k = MENU_SUP.findIndex(function(it){ return it[0] === "hub"; });
+  MENU_SUP.splice(k + 1, 0, ["solicitudes", "🔔", "Bandeja", "bandeja"]);
+})();
+pintarMenuSup_ = (function(orig){
+  return function(){
+    var r = orig.apply(this, arguments);
+    var m = (INI && INI.menu) || {}, a = document.querySelector('#menu-sup a[onclick*="\'solicitudes\'"] em');
+    if(a && (m.incGraves || bq38Urgentes_() )) a.className = "";
+    return r;
+  };
+})(pintarMenuSup_);
+tocarAtencionIni_ = (function(orig){
+  return function(i){
+    var a = INI && INI.atencion[i];
+    if(a && (a.tipo === "incidencia" || a.tipo === "norec")){ bq38Ir_("inc:" + a.datos.incId); return; }
+    if(a && a.tipo === "ubicacion"){ bq38Ir_("", "cond"); return; }
+    return orig.apply(this, arguments);
+  };
+})(tocarAtencionIni_);
+htmlDetIni_ = (function(orig){
+  return function(d){
+    var a = d && d.tipo === "aten" && INI ? INI.atencion[d.k] : null;
+    if(a && (a.tipo === "incidencia" || a.tipo === "norec" || a.tipo === "ubicacion"))
+      return '<div class="ini-pt">' + esc(a.titulo) + '</div><div class="ini-ps">' + esc(a.texto) + '</div>' +
+        '<button class="ini-ok" onclick="bq38Ir_(\'' + (a.datos && a.datos.incId ? 'inc:' + esc(a.datos.incId) : '') + '\')">Ver en la Bandeja</button>';
+    return orig.apply(this, arguments);
+  };
+})(htmlDetIni_);
+
+/* ════ 1 · LA BANDEJA ════ */
+var BQ = { inc: null, sel: "", f: "todo", det: null, detId: "", vuelo: false, iniRef: null, pdf: {}, cierre: null };
+function bq38Ir_(k, f){ cerrarHojaIni_(); BQ.sel = k || ""; BQ.f = f || "todo"; if(k && k.indexOf("inc:") === 0){ BQ.det = null; BQ.detId = ""; } mostrarTab("solicitudes"); }
+function bq38Urgentes_(){ return bq38Items_().filter(function(x){ return x.g === "urg"; }).length; }
+cargarSolicitudes = (function(orig){
+  return function(silencioso){
+    if(!esSupervisor()) return;
+    if(!SQ && !BQ.inc && INI_TAB === "solicitudes"){ var R0 = bq38Raiz_(); if(!R0.innerHTML) R0.innerHTML = '<div class="bd"><div class="vacio">Consultando la bandeja…</div></div>'; }
+    orig.apply(this, arguments);
+    if(BQ.vuelo) return; BQ.vuelo = true;
+    google.script.run.withSuccessHandler(function(r){
+      BQ.vuelo = false; if(!r || !r.ok) return;
+      BQ.inc = r; bq38Contar_();
+      if(INI_TAB === "solicitudes") renderSolicitudes();
+    }).withFailureHandler(function(){ BQ.vuelo = false; }).api_bandejaLogistica(PIN);
+    if(!INI) cargarInicio_();
+    if(typeof p9Preparar_ === "function") p9Preparar_();
+  };
+})(cargarSolicitudes);
+/* el Inicio trae fallas que bloquean y paradas sin hacer: cuando llega, se repinta */
+setInterval(function(){
+  if(typeof INI === "undefined" || INI === BQ.iniRef) return;
+  BQ.iniRef = INI; bq38Contar_();
+  if(INI_TAB === "solicitudes" && SQ) renderSolicitudes();
+}, 800);
+function bq38Contar_(){
+  if(!INI || !INI.menu) return;
+  var n = bq38Items_().length;
+  if(SQ && BQ.inc && INI.menu.bandeja !== n){ INI.menu.bandeja = n; pintarMenuSup_(); }
+}
+function bq38Hace_(f, hora){
+  var hoy = hoyISO(); if(!f) return "";
+  if(f === hoy) return "hoy" + (hora ? " " + hora : "");
+  var d = Math.round((new Date(hoy + "T12:00:00") - new Date(f + "T12:00:00")) / 864e5);
+  if(d === 1) return "ayer" + (hora ? " " + hora : "");
+  if(d > 1 && d < 7) return nombreDia_(f) + (hora ? " · " + hora : "");
+  return "hace " + d + " días";
+}
+var BQ_IC = { derrame: ["gota", "c38-r"], lesion: ["cruz", "c38-r"], choque: ["choque", "c38-n"], mala: ["bolsa", "c38-m"], seguridad: ["escudo", "c38-g"],
+              otra: ["mas", "c38-g"], norecolectada: ["x", "c38-n"] };
+function bq38Items_(){
+  var L = [], hoy = hoyISO();
+  var inc = (BQ.inc && BQ.inc.incidencias) || [];
+  inc.forEach(function(x){
+    var ic = BQ_IC[x.tipo] || ["tri", "c38-g"];
+    L.push({ k: "inc:" + x.incId, cat: "cond", ic: ic[0], c: ic[1], f: x.fecha, h: x.hora, d: x.dias || 0,
+             g: x.gravedad === "alta" ? "urg" : (x.fecha === hoy ? "hoy" : "esp"),
+             o: "Conductor · " + bq38Hace_(x.fecha, x.hora), t: x.titulo, s: [x.resumen, String(x.usuario || "").split(" ")[0], x.nFotos ? x.nFotos + (x.nFotos === 1 ? " foto" : " fotos") : ""].filter(Boolean).join(" · "),
+             b: x.tipo === "norecolectada" ? "Programar" : (x.estado === "ENVIADA" ? "Ver · nueva" : "Ver") });
+  });
+  ((BQ.inc && BQ.inc.ubicaciones) || []).forEach(function(x){
+    L.push({ k: "ub:" + x.ubId, cat: "cond", ic: "pin", c: "c38-t", f: x.fecha, h: x.hora, d: x.dias || 0, g: x.fecha === hoy ? "hoy" : "esp",
+             o: "Conductor · " + bq38Hace_(x.fecha, x.hora), t: "Ubicación para corregir · " + x.cliente,
+             s: x.antes && x.distancia ? "El punto guardado está a " + (x.distancia >= 1000 ? (x.distancia / 1000).toFixed(1) + " km" : x.distancia + " m") + " de la puerta" : "El cliente no tenía ubicación · la mandó " + String(x.por).split(" ")[0], b: "Revisar" });
+  });
+  ((INI && INI.atencion) || []).forEach(function(a, i){
+    if(a.tipo === "bloqueo"){ var fa = Object.assign({}, (a.datos && a.datos.falla) || {}), mf = String(a.texto || "").match(/(\d{4}-\d{2}-\d{2})/); if(!fa.fecha && mf) fa.fecha = mf[1];
+      L.push({ k: "at:bloqueo:" + (fa.fallaId || i), ai: i, cat: "flota", ic: "camion", c: "c38-r", f: fa.fecha || hoy, h: fa.hora || "", d: 0, g: "urg",
+               o: "Flota · " + bq38Hace_(fa.fecha || hoy, fa.hora), t: a.titulo, s: a.texto, b: "Decidir" }); }
+    if(a.tipo === "terminada"){ var dd = a.datos || {};
+      L.push({ k: "at:terminada:" + (dd.rutaId || dd.fecha || i), ai: i, cat: "ruta", ic: "reloj", c: "c38-am", f: dd.fecha || hoy, h: "", d: bq38Dias_(dd.fecha), g: dd.fecha === hoy ? "hoy" : "esp",
+               o: "Ruta · " + bq38Hace_(dd.fecha), t: a.titulo, s: a.texto, b: "Reprogramar" }); }
+  });
+  if(SQ){
+    var S = sqListas_();
+    S.ext.forEach(function(x){ L.push({ k: "ext:" + x.pendienteId, cat: "cli", ic: "qr", c: "c38-v", f: x.pedida, d: x.diasEsperando || 0, g: x.prioridad === "alta" ? "urg" : (x.diasEsperando ? "esp" : "hoy"),
+      o: "Cliente · QR · " + bq38Hace_(x.pedida), t: "Recolección extra · " + x.nombre, s: [x.cuando ? "«" + x.cuando + "»" : "", x.cantidad].filter(Boolean).join(" · "), b: "Elegir día" }); });
+    S.cli.forEach(function(s){ L.push({ k: "cli:" + s.solicitudId, cat: "mer", ic: "persona", c: "c38-v", f: "", d: s.diasEsperando || 0, g: s.diasEsperando ? "esp" : "hoy",
+      o: "Mercadeo · " + (s.diasEsperando ? "hace " + sqDias_(s.diasEsperando) : "hoy"), t: "Cliente nuevo · " + s.empresa, s: (s.plusCode ? "Ubicado" : "Sin ubicación") + " · lo mandó " + (s.registradoPor || "Mercadeo"), b: "Revisar" }); });
+    S.ins.forEach(function(s){ L.push({ k: "ins:" + s.inspeccionId, cat: "mer", ic: "lupa", c: "c38-v", f: "", d: s.diasEsperando || 0, g: s.diasEsperando ? "esp" : "hoy",
+      o: "Mercadeo · " + (s.diasEsperando ? "hace " + sqDias_(s.diasEsperando) : "hoy"), t: "Inspección técnica · " + s.empresa, s: "Pedida por " + (s.pedidaPor || "Mercadeo") + " · sin fecha de visita", b: "Programar" }); });
+  }
+  var G = { urg: 0, hoy: 1, esp: 2 };
+  L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); });
+  return L;
+}
+function bq38Dias_(f){ return f ? Math.max(0, Math.round((new Date(hoyISO() + "T12:00:00") - new Date(f + "T12:00:00")) / 864e5)) : 0; }
+function bq38Raiz_(){
+  var s = $("pantalla-solicitudes"), b = $("bq38");
+  if(!b){
+    ["sq-aviso", "sq-filtros", "sq-lista"].forEach(function(id){ var e = $(id); if(e) e.style.display = "none"; });
+    var h2 = s.querySelector(".barra-navegacion-top h2"); if(h2) h2.textContent = "🔔 Bandeja";
+    b = document.createElement("div"); b.id = "bq38"; b.className = "bq38"; s.appendChild(b);
+  }
+  return b;
+}
+renderSolicitudes = function(){
+  if(!SQ && !BQ.inc){ return; }
+  var R = bq38Raiz_(), L = bq38Items_(), hoy = hoyISO();
+  var S = SQ ? sqListas_() : { prog: [], aten: [] };
+  var cat = function(c){ return L.filter(function(x){ return c === "cond" ? (x.cat === "cond") : x.cat === c; }).length; };
+  var semana = ini38Lunes_(hoy);
+  var aten = ((BQ.inc && BQ.inc.atendidas) || []).map(function(x){ return { f: String(x.cerradaEn || "").slice(0, 10), t: x.titulo, q: x.accion || x.estado, p: x.cerradaPor, k: "inc:" + x.incId }; })
+    .concat((S.aten || []).map(function(a){ return { f: a.fecha, t: a.nombre, q: a.que, p: a.por, k: "" }; }))
+    .sort(function(a, b){ return String(b.f).localeCompare(String(a.f)); });
+  var nAtSem = aten.filter(function(a){ return a.f >= semana; }).length;
+  var nUrg = L.filter(function(x){ return x.g === "urg"; }).length, nHoy = L.filter(function(x){ return x.g === "hoy"; }).length, nVie = L.filter(function(x){ return (x.d || 0) > 7; }).length;
+  var h = '<div class="top"><div><p>Todo lo que espera a Logística, en un solo lugar: lo que mandan los conductores, los clientes desde su QR, Mercadeo y la flota.</p></div></div>' +
+    '<div class="bk"><div class="r"><b>' + nUrg + '</b><span>' + (nUrg === 1 ? "urgente" : "urgentes") + '</span></div><div><b>' + nHoy + '</b><span>nuevas de hoy</span></div>' +
+      '<div class="a"><b>' + nVie + '</b><span>esperan más de 7 días</span></div><div><b>' + nAtSem + '</b><span>atendidas esta semana</span></div></div>';
+  var F = [["todo", "Todo", L.length], ["cond", "Conductores", cat("cond")], ["flota", "Flota", cat("flota")], ["ruta", "Rutas", cat("ruta")], ["cli", "Clientes", cat("cli")], ["mer", "Mercadeo", cat("mer")]]
+    .filter(function(f){ return f[0] === "todo" || f[2]; });
+  h += '<div class="bf">' + F.map(function(f){ return '<button class="' + (BQ.f === f[0] ? "on" : "") + '" onclick="BQ.f=\'' + f[0] + '\';renderSolicitudes()">' + f[1] + ' · ' + f[2] + '</button>'; }).join("") +
+    '<span class="sep"></span><button class="' + (BQ.f === "prog" ? "on" : "") + '" onclick="BQ.f=\'prog\';BQ.sel=\'\';renderSolicitudes()">Programadas' + (S.prog.length ? ' · ' + S.prog.length : '') + '</button>' +
+    '<button class="' + (BQ.f === "aten" ? "on" : "") + '" onclick="BQ.f=\'aten\';BQ.sel=\'\';renderSolicitudes()">Atendidas</button></div>';
+  var lista = "", det = "";
+  if(BQ.f === "prog"){
+    lista = S.prog.length ? S.prog.map(function(x){ return '<div class="sq-emb">' + (x.t === "ext" ? sqTarjetaExtra_(x.o) : sqTarjetaIns_(x.o)) + '</div>'; }).join("")
+      : '<div class="vacio">Nada programado. Cuando metas una recolección extra en un día o agendes una inspección, queda aquí hasta que se haga.</div>';
+    R.className = "bq38"; R.innerHTML = h + '<div class="bl" style="padding:10px">' + lista + '</div>'; mkIconos_(R); return;
+  }
+  if(BQ.f === "aten"){
+    lista = aten.length ? aten.map(function(a){
+      return '<div class="bi"' + (a.k ? ' onclick="BQ.f=\'aten\';bq38Sel_(\'' + a.k + '\')"' : '') + '><i class="bic c38-v">' + sv38_("check") + '</i><div class="bt"><div class="bo">' + esc(nombreDia_(a.f)) + (a.p ? ' · ' + esc(String(a.p).split(" ")[0]) : '') + '</div><b>' + esc(a.t) + '</b><span>' + esc(a.q || "") + '</span></div></div>'; }).join("")
+      : '<div class="vacio">Nada atendido en los últimos 14 días.</div>';
+  } else {
+    var V = BQ.f === "todo" ? L : L.filter(function(x){ return x.cat === BQ.f; });
+    var GT = { urg: "Urgente", hoy: "Nuevas de hoy", esp: "Esperando" }, g0 = "";
+    lista = V.length ? V.map(function(x){
+      var gh = x.g !== g0 ? '<div class="bg ' + x.g + '">' + GT[x.g] + '</div>' : ""; g0 = x.g;
+      return gh + '<div class="bi' + (x.g === "urg" ? " u" : "") + (BQ.sel === x.k ? " sel" : "") + '" onclick="bq38Sel_(\'' + x.k + '\')"><i class="bic ' + x.c + '">' + sv38_(x.ic) + '</i>' +
+        '<div class="bt"><div class="bo">' + esc(x.o) + '</div><b>' + esc(x.t) + '</b><span>' + esc(x.s || "") + '</span></div><button class="ba">' + esc(x.b) + '</button></div>';
+    }).join("") : '<div class="vacio" style="padding:30px 10px;text-align:center;color:#8a96a8">' + (BQ.f === "todo" ? "Todo al día. Lo que manden los conductores, los clientes o Mercadeo aparece aquí." : "Nada en este grupo.") + '</div>';
+    if(!BQ.sel && esEscritorio_() && V.length) BQ.sel = V[0].k;
+  }
+  if(BQ.sel && BQ.sel.indexOf("inc:") !== 0 && !L.some(function(x){ return x.k === BQ.sel; })){ BQ.sel = ""; if(esEscritorio_() && V && V.length) BQ.sel = V[0].k; }
+  det = bq38Det_();
+  R.className = "bq38" + (BQ.sel && !esEscritorio_() ? " det" : "");
+  R.innerHTML = h + '<div class="bc"><div class="bl">' + lista + '</div><div class="bd" id="bq38-det"><button class="volver" onclick="BQ.sel=\'\';renderSolicitudes()">← Volver a la bandeja</button>' + det + '</div></div>';
+  mkIconos_(R);
+  bq38Despues_();
+};
+function ini38Lunes_(f){ var d = new Date(f + "T12:00:00"); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return plIso_(d); }
+function bq38Sel_(k){
+  if(k.indexOf("inc:") === 0 && k !== "inc:" + BQ.detId){ BQ.det = null; BQ.cierre = null; }
+  if(/^(ext|ins|cli):/.test(k)) SQ_AB = k; else SQ_AB = "";
+  BQ.sel = k; renderSolicitudes();
+  if(!esEscritorio_()) window.scrollTo(0, 0);
+}
+/* el detalle de lo elegido */
+function bq38Det_(){
+  var k = BQ.sel; if(!k) return '<div class="vacio">Elige algo de la lista.</div>';
+  if(k.indexOf("inc:") === 0) return bq38DetInc_(k.slice(4));
+  if(k.indexOf("ub:") === 0) return bq38DetUb_(k.slice(3));
+  if(k.indexOf("at:") === 0){
+    var it = bq38Items_().filter(function(x){ return x.k === k; })[0];
+    if(!it) return '<div class="vacio">Ya no está pendiente.</div>';
+    INI_DET = { tipo: "aten", k: it.ai, sel: INI_DET && INI_DET.k === it.ai ? INI_DET.sel : null };
+    return '<div class="bq38-ini">' + htmlDetIni_(INI_DET) + '</div>';
+  }
+  var S = SQ ? sqListas_() : null; if(!S) return '<div class="vacio">Consultando…</div>';
+  var id = k.slice(4), t = k.slice(0, 3);
+  if(t === "ext"){ var x = S.ext.filter(function(o){ return o.pendienteId === id; })[0]; return x ? '<div class="sq-emb">' + sqTarjetaExtra_(x) + '</div>' : '<div class="vacio">Ya se atendió.</div>'; }
+  if(t === "cli"){ var s = S.cli.filter(function(o){ return o.solicitudId === id; })[0]; return s ? '<div class="sq-emb">' + sqTarjetaNuevo_(s) + '</div>' : '<div class="vacio">Ya se atendió.</div>'; }
+  if(t === "ins"){ var n = S.ins.filter(function(o){ return o.inspeccionId === id; })[0]; return n ? '<div class="sq-emb">' + sqTarjetaIns_(n) + '</div>' : '<div class="vacio">Ya se atendió.</div>'; }
+  return "";
+}
+function bq38Despues_(){
+  var k = BQ.sel;
+  if(k.indexOf("cli:") === 0 && SQ_AB === k){ var id = k.slice(4); var c = $("pr-rev-" + id); if(c && c.style.display !== "block") abrirRevisionPR(id); }
+  if(k.indexOf("ub:") === 0) bq38MapaUb_(k.slice(3));
+  if(k.indexOf("inc:") === 0 && BQ.detId !== k.slice(4)) bq38CargarInc_(k.slice(4));
+}
+/* en el escritorio el detalle del Inicio (fallas, paradas sin hacer) se repinta aquí */
+repintarDetIni_ = (function(orig){
+  return function(){ if(INI_TAB === "solicitudes" && BQ.sel.indexOf("at:") === 0){ var d = $("bq38-det"); if(d) renderSolicitudes(); return; } return orig.apply(this, arguments); };
+})(repintarDetIni_);
+
+/* ── ubicación que mandó un conductor ── */
+function bq38DetUb_(id){
+  var x = ((BQ.inc && BQ.inc.ubicaciones) || []).filter(function(u){ return u.ubId === id; })[0];
+  if(!x) return '<div class="vacio">Ya se revisó.</div>';
+  return '<div class="dh"><i class="bic c38-t big">' + sv38_("pin") + '</i><div><div class="bo">La mandó ' + esc(x.por) + ' · ' + esc(bq38Hace_(x.fecha, x.hora)) + '</div><h2>' + esc(x.cliente) + '</h2></div></div>' +
+    '<div class="ub-map" id="bq38-ubm"></div>' +
+    '<div class="dg"><div><small>La que mandó</small><b>' + x.lat.toFixed(5) + ', ' + x.lng.toFixed(5) + '</b><span>' + (x.precision ? 'precisión ±' + x.precision + ' m' : 'desde la puerta') + '</span></div>' +
+      '<div><small>La guardada</small><b>' + (x.antes ? x.antes.lat.toFixed(5) + ', ' + x.antes.lng.toFixed(5) : 'No tenía') + '</b><span>' + (x.antes && x.distancia ? (x.distancia >= 1000 ? (x.distancia / 1000).toFixed(1) + ' km' : x.distancia + ' m') + ' de diferencia' : '') + '</span></div>' +
+      '<div style="grid-column:span 2"><small>Dirección</small><b>' + esc(x.direccion || "—") + '</b></div></div>' +
+    (x.nota ? '<div class="rel">«' + esc(x.nota) + '»</div>' : '') +
+    '<div class="bb"><a class="p" style="background:#fff!important;color:#14306b!important;border:1px solid #e1e6ee!important;border-radius:9px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;text-decoration:none" target="_blank" href="https://www.google.com/maps?q=' + x.lat + ',' + x.lng + '">Ver en Google Maps</a>' +
+      '<button class="rj" onclick="bq38RevUb_(\'' + esc(id) + '\',false)">Descartar</button><button class="p" onclick="bq38RevUb_(\'' + esc(id) + '\',true)">' + sv38_("check") + ' Aprobar esta ubicación</button></div>' +
+    '<div class="rel" style="font-style:normal;font-size:12px">🔵 la que mandó el conductor' + (x.antes ? ' · 🔴 la guardada' : '') + '. Al aprobarla, la ficha del cliente cambia.</div>';
+}
+function bq38MapaUb_(id){
+  var x = ((BQ.inc && BQ.inc.ubicaciones) || []).filter(function(u){ return u.ubId === id; })[0], el = $("bq38-ubm");
+  if(!x || !el || !window.L || typeof m36Mapa_ !== "function") return;
+  setTimeout(function(){
+    try{
+      var m = m36Mapa_("bq38-ubm"), p = [[x.lat, x.lng]];
+      L.circleMarker([x.lat, x.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#1A73E8", fillOpacity: 1 }).addTo(m);
+      if(x.antes){ p.push([x.antes.lat, x.antes.lng]); L.circleMarker([x.antes.lat, x.antes.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#C0392B", fillOpacity: 1 }).addTo(m); }
+      if(p.length > 1) m.fitBounds(p, { padding: [34, 34] }); else m.setView(p[0], 16);
+    }catch(e){ console.error(e); }
+  }, 40);
+}
+function bq38RevUb_(id, ok){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    toast(ok ? "Ubicación aprobada ✓" : "Descartada"); BQ.sel = ""; cargarSolicitudes(true);
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_revisarUbicacion(PIN, id, !!ok);
+}
+
+/* ── una incidencia ── */
+function bq38CargarInc_(id){
+  BQ.detId = id; BQ.det = null;
+  google.script.run.withSuccessHandler(function(r){
+    if(BQ.detId !== id) return;
+    if(!r || !r.ok){ BQ.det = { error: (r && r.error) || "No se pudo abrir" }; }
+    else { BQ.det = r; var x = ((BQ.inc && BQ.inc.incidencias) || []).filter(function(z){ return z.incId === id; })[0]; if(x) x.estado = r.estado; }
+    if(INI_TAB === "solicitudes" && BQ.sel === "inc:" + id){ var d = $("bq38-det"); if(d) d.innerHTML = '<button class="volver" onclick="BQ.sel=\'\';renderSolicitudes()">← Volver a la bandeja</button>' + bq38DetInc_(id); mkIconos_(d); }
+  }).withFailureHandler(function(){ BQ.detId = ""; toast("Sin señal"); }).api_verIncidencia(PIN, id);
+}
+var BQ_CAUSAS = {
+  derrame: ["Bolsa sobrecargada o mal cerrada", "Bolsa rota al subirla", "Recipiente dañado", "Mala sujeción de la carga", "Frenazo o maniobra"],
+  lesion: ["Aguja fuera del recipiente rígido", "No usó el equipo de protección", "Recipiente mal cerrado por el cliente", "Accidente al manipular"],
+  choque: ["Tercero", "Distracción", "Condición de la vía", "Falla mecánica"],
+  mala: ["El cliente no separa sus desechos", "Personal del cliente sin capacitación", "Faltan recipientes o bolsas adecuadas"],
+  seguridad: ["Zona de riesgo", "Horario de riesgo", "Hecho fortuito"],
+  otra: [], norecolectada: []
+};
+var BQ_RESP = ["Recibido", "Llámame", "Voy para allá", "Déjala aparte al llegar a planta", "Sigue con la ruta"];
+function bq38DetInc_(id){
+  var D = BQ.det, x = ((BQ.inc && BQ.inc.incidencias) || []).concat((BQ.inc && BQ.inc.atendidas) || []).filter(function(z){ return z.incId === id; })[0];
+  if(!D || BQ.detId !== id){
+    if(!x) return '<div class="vacio">Consultando…</div>';
+    D = x;
+  }
+  if(D.error) return '<div class="vacio">' + esc(D.error) + '</div>';
+  var ic = BQ_IC[D.tipo] || ["tri", "c38-g"], dd = D.datos || {}, abierta = ["ENVIADA", "VISTA", "ATENCION"].indexOf(D.estado) >= 0, nr = D.tipo === "norecolectada";
+  var hh = function(fh){ return String(fh || "").slice(11, 16); };
+  var h = '<div class="dh"><i class="bic big ' + ic[1] + '">' + sv38_(ic[0]) + '</i><div><div class="bo">' + (nr ? 'No se pudo recolectar' : 'Incidencia') + ' ' + esc(D.incId) + ' · la reportó ' + esc(D.usuario) + ' · ' + esc(bq38Hace_(D.fecha, D.hora)) + '</div><h2>' + esc(D.titulo) + '</h2></div></div>';
+  var e = D.estado;
+  h += '<div class="est"><span class="ok">Enviada ' + esc(D.hora || "") + '</span><span class="' + (D.vistaEn ? "ok" : (e === "ENVIADA" ? "on" : "")) + '">Vista' + (D.vistaEn ? ' ' + esc(hh(D.vistaEn)) : '') + '</span>' +
+    '<span class="' + (e === "ATENCION" ? "on" : (e === "CERRADA" ? "ok" : "")) + '">En atención</span><span class="' + (e === "CERRADA" || e === "ANULADA" ? "on" : "") + '">' + (e === "ANULADA" ? "Anulada" : "Cerrada") + '</span></div>';
+  h += '<div class="dg">' + bq38Datos_(D).map(function(c){ return '<div><small>' + esc(c[0]) + '</small><b' + (c[2] ? ' class="' + c[2] + '"' : '') + '>' + esc(c[1]) + '</b>' + (c[3] ? '<span>' + esc(c[3]) + '</span>' : '') + '</div>'; }).join("") + '</div>';
+  if(D.relato) h += '<div class="rel">«' + esc(D.relato) + '»</div>';
+  if(D.fotos && D.fotos.length) h += '<div class="fo">' + D.fotos.map(function(f){ return '<a target="_blank" href="' + esc(f.url) + '" style="background-image:url(\'' + esc(f.url) + '\')"></a>'; }).join("") + '</div>' +
+    (D.diasFotos !== null && D.diasFotos !== undefined ? '<div class="fo" style="margin-top:6px"><span class="aviso">Las fotos son de paso: se borran al cerrarla (quedan en el PDF)' + (D.diasFotos <= 10 ? ' o en ' + D.diasFotos + (D.diasFotos === 1 ? ' día' : ' días') : '') + '.</span></div>' : '');
+  else if(D.nFotos) h += '<div class="fo"><span class="aviso">Cargando ' + D.nFotos + (D.nFotos === 1 ? ' foto' : ' fotos') + '…</span></div>';
+  else if(D.fotosBorradas) h += '<div class="fo"><span class="aviso">Las fotos ya se borraron: quedaron en el reporte PDF.</span></div>';
+  var R = D.respuestas || [];
+  if(R.length) h += '<div class="sec">Respuestas al conductor</div>' + R.map(function(r){ return '<div class="resp">' + esc(r.texto) + '<small>' + esc(String(r.quien).split(" ")[0]) + ' · ' + esc(r.cuando) + '</small></div>'; }).join("");
+  if(!abierta){
+    h += '<div class="listo">' + (e === "ANULADA" ? 'Anulada' : 'Cerrada') + (D.cerradaPor ? ' por ' + esc(D.cerradaPor) : '') + (D.cerradaEn ? ' · ' + esc(D.cerradaEn) : '') + '.' +
+      (D.causa ? '<br>Causa: ' + esc(D.causa) : '') + (D.accion ? '<br>Qué se hizo: ' + esc(D.accion) : '') + '</div>';
+    if(BQ.pdf[id]) h += bq38BotonesPdf_(id);
+    return h;
+  }
+  h += '<div class="sec">Responder al conductor</div><div class="rr">' + BQ_RESP.map(function(t){ return '<button onclick="$(\'bq38-rt\').value=\'' + t + '\';$(\'bq38-rt\').focus()">' + esc(t) + '</button>'; }).join("") + '</div>' +
+    '<div class="rbox"><input id="bq38-rt" placeholder="Escribe la respuesta: le llega en «Mis incidencias»" onkeydown="if(event.key===\'Enter\')bq38Responder_(\'' + esc(id) + '\')"><button class="p" onclick="bq38Responder_(\'' + esc(id) + '\')">Enviar</button></div>';
+  var C = BQ.cierre && BQ.cierre.id === id ? BQ.cierre : { id: id, causa: "", accion: "", prevencion: "", verificar: "" };
+  BQ.cierre = C;
+  if(nr){
+    h += '<div class="sec">¿Qué se hizo con la parada?</div><div class="rr">' +
+      ['Se programó para otro día', 'El cliente ya no requiere el servicio', 'Se habló con el cliente'].map(function(t){ return '<button onclick="BQ.cierre.accion=\'' + t + '\';$(\'bq38-ac\').value=\'' + t + '\'">' + esc(t) + '</button>'; }).join("") + '</div>' +
+      '<div class="cc"><div class="an"><input class="in" id="bq38-ac" value="' + esc(C.accion) + '" oninput="BQ.cierre.accion=this.value" placeholder="Qué se hizo"></div></div>' +
+      '<div class="bb">' + bq38BtnTel_(D) +
+      (D.clienteId ? '<button onclick="bq38Programar_(' + Number(D.clienteId) + ')">Programar en una ruta</button>' : '') +
+      '<button class="rj" onclick="bq38Anular_(\'' + esc(id) + '\')">Anular</button>' +
+      '<button class="p" onclick="bq38Cerrar_(\'' + esc(id) + '\', this)">' + sv38_("check") + ' Cerrar</button></div>' +
+      '<div class="rel" style="font-style:normal;font-size:12px">Se cierra sola cuando llegue el próximo recibo de este cliente.</div>';
+    return h;
+  }
+  var causas = BQ_CAUSAS[D.tipo] || [];
+  h += '<div class="sec">Para cerrarla <em>queda como acción correctiva (ISO 9001)</em></div>' +
+    '<div class="cc"><div><label>Causa</label><input class="in" id="bq38-ca" list="bq38-cal" value="' + esc(C.causa) + '" oninput="BQ.cierre.causa=this.value" placeholder="Por qué pasó">' +
+      '<datalist id="bq38-cal">' + causas.map(function(c){ return '<option value="' + esc(c) + '">'; }).join("") + '</datalist></div>' +
+      '<div><label>Qué se hizo</label><input class="in" id="bq38-ac" value="' + esc(C.accion) + '" oninput="BQ.cierre.accion=this.value" placeholder="La acción inmediata"></div>' +
+      '<div class="an"><label>Para que no se repita (opcional)</label><input class="in" value="' + esc(C.prevencion) + '" oninput="BQ.cierre.prevencion=this.value" placeholder="Ej.: recordar al cliente llenar las bolsas hasta ¾"></div>' +
+      '<div class="an"><label>Cómo y cuándo se verifica que funcionó (opcional)</label><input class="in" value="' + esc(C.verificar) + '" oninput="BQ.cierre.verificar=this.value" placeholder="Ej.: en la próxima visita al cliente"></div></div>' +
+    '<div class="bb">' + bq38BtnTel_(D) +
+      (D.lat && D.lng ? '<a target="_blank" href="https://www.google.com/maps?q=' + D.lat + ',' + D.lng + '" style="display:inline-flex;align-items:center;border:1px solid #e1e6ee;background:#fff;border-radius:9px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;color:#14306b;text-decoration:none">Ver en el mapa</a>' : '') +
+      (e !== "ATENCION" ? '<button onclick="bq38Atender_(\'' + esc(id) + '\')">Marcar en atención</button>' : '') +
+      '<button onclick="bq38Borrador_(\'' + esc(id) + '\', this)">' + sv38_("bajar") + ' Ver el PDF</button>' +
+      '<button class="p" onclick="bq38Cerrar_(\'' + esc(id) + '\', this)">' + sv38_("check") + ' Cerrar incidencia</button></div>' +
+    '<div class="rel" style="font-style:normal;font-size:12px">Al cerrarla se arma el reporte F-LOG-03 con las fotos, para descargarlo y mandarlo por correo' + ((D.destinos || []).length ? ' a ' + esc(D.destinos.join(", ")) : '') + '. Después las fotos se borran del sistema.</div>';
+  return h;
+}
+function bq38BtnTel_(D){
+  var t = String(D.telConductor || "").replace(/\D/g, "");
+  return t ? '<a href="tel:' + t + '" style="display:inline-flex;align-items:center;gap:6px;border:1px solid #e1e6ee;background:#fff;border-radius:9px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;color:#14306b;text-decoration:none">' + sv38_("tel") + ' Llamar al conductor</a>' : '';
+}
+/* los datos de cada tipo, como pares título/valor */
+function bq38Datos_(D){
+  var d = D.datos || {}, L = [], si = function(v){ return v === "si" ? "Sí" : (v === "no" ? "No" : v); };
+  if(D.tipo === "derrame"){
+    L.push(["Dónde", d.donde || "—", "", D.cliente ? D.cliente : ""]); L.push(["Qué se derramó", d.que || "—", "", d.cuanto || ""]);
+    L.push(["¿Controlado?", d.controlado === "no" ? "No · pidió apoyo" : "Sí", d.controlado === "no" ? "rj" : "vd", d.kit === "si" ? "usó el kit de derrames" : (d.kit === "no" ? "sin usar el kit" : "")]);
+  } else if(D.tipo === "lesion"){ L.push(["Qué le pasó", d.que || "—", "rj"]); L.push(["Atención", d.atendido || "—"]); }
+  else if(D.tipo === "choque"){ L.push(["Heridos", d.heridos || "—", d.heridos && d.heridos !== "Nadie" ? "rj" : ""]); L.push(["¿Puede seguir?", si(d.puedeSeguir) || "—", d.puedeSeguir === "no" ? "rj" : "vd"]);
+    L.push(["Otro vehículo", d.otro || "—"]); L.push(["Policía o tránsito", d.policia || "—"]); }
+  else if(D.tipo === "mala"){ L.push(["Cliente", D.cliente || "—"]); L.push(["Qué encontró", (d.hallazgos || []).join(", ") || "—"]); L.push(["¿Lo recogió?", si(d.recogio) || "—"]); }
+  else if(D.tipo === "seguridad"){ L.push(["Qué pasó", d.que || "—", "rj"]); L.push(["Heridos", d.heridos || "—"]); }
+  else if(D.tipo === "norecolectada"){ L.push(["Cliente", D.cliente || "—"]); L.push(["Qué pasó", d.motivo || "—"]); L.push(["Qué pidió", d.accion === "tarde" ? "Volver más tarde hoy" : "Otro día"]);
+    if(d.hallazgos && d.hallazgos.length) L.push(["Encontró", d.hallazgos.join(", ")]); if(d.avisado) L.push(["Cliente", "Avisado por WhatsApp", "vd"]); }
+  L.push(["Camión", D.vehiculo || "—", "", D.fechaRuta ? "ruta del " + nombreDia_(D.fechaRuta) : ""]);
+  if(D.lat && D.lng) L.push(["Ubicación", Number(D.lat).toFixed(4) + ", " + Number(D.lng).toFixed(4)]);
+  return L;
+}
+function bq38Responder_(id){
+  var i = $("bq38-rt"), t = (i && i.value || "").trim(); if(!t){ toast("Escribe la respuesta"); return; }
+  i.disabled = true;
+  google.script.run.withSuccessHandler(function(r){
+    i.disabled = false;
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    if(BQ.det && BQ.det.incId === id){ BQ.det.respuestas = r.respuestas; BQ.det.estado = r.estado; if(!BQ.det.vistaEn) BQ.det.vistaEn = "hoy"; }
+    toast("Respuesta enviada · el conductor la ve en «Mis incidencias»"); renderSolicitudes();
+  }).withFailureHandler(function(){ i.disabled = false; toast("Sin señal"); }).api_incidenciaResponder(PIN, id, t);
+}
+function bq38Atender_(id){
+  google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } if(BQ.det) BQ.det.estado = "ATENCION"; renderSolicitudes(); })
+    .withFailureHandler(function(){ toast("Sin señal"); }).api_marcarIncidencia(PIN, id, "ATENCION");
+}
+function bq38Anular_(id){
+  if(!BQ.anular || BQ.anular !== id){ BQ.anular = id; toast("Toca «Anular» otra vez para confirmar"); setTimeout(function(){ BQ.anular = ""; }, 4000); return; }
+  BQ.anular = "";
+  google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Anulada"); BQ.sel = ""; BQ.det = null; BQ.detId = ""; cargarSolicitudes(true); })
+    .withFailureHandler(function(){ toast("Sin señal"); }).api_anularIncidencia(PIN, id, "Anulada por logística");
+}
+function bq38Programar_(clienteId){ abrirEditorCon_(plHabilDespues_(hoyISO()), [clienteId]); }
+function bq38Borrador_(id, btn){
+  if(!BQ.det || BQ.det.incId !== id) return;
+  if(btn){ btn.disabled = true; }
+  inc38Pdf_(BQ.det, BQ.cierre, true).then(function(p){ if(btn) btn.disabled = false; bq38Guardar_(p); }, function(e){ if(btn) btn.disabled = false; toast(e && e.message || "No se pudo armar el PDF"); });
+}
+function bq38Cerrar_(id, btn){
+  var D = BQ.det, C = BQ.cierre || {};
+  if(!D || D.incId !== id){ toast("Espera: todavía está cargando"); return; }
+  var nr = D.tipo === "norecolectada";
+  C.accion = String(C.accion || "").trim(); C.causa = String(C.causa || "").trim();
+  if(!C.accion || (!nr && !C.causa)){ toast(nr ? "Escribe qué se hizo con la parada" : "Escribe la causa y lo que se hizo"); var f = $(nr || C.causa ? "bq38-ac" : "bq38-ca"); if(f) f.focus(); return; }
+  btn.disabled = true; var t0 = btn.innerHTML; btn.textContent = nr ? "Cerrando…" : "Armando el reporte…";
+  var fin = function(pdf){
+    btn.textContent = "Cerrando…";
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ btn.disabled = false; btn.innerHTML = t0; toast((r && r.error) || "No se pudo cerrar"); return; }
+      if(pdf) BQ.pdf[id] = pdf;
+      D.estado = "CERRADA"; D.causa = C.causa; D.accion = C.accion; D.cerradaPor = USUARIO.nombre; D.cerradaEn = hoyISO() + " " + ahoraHM(); D.fotosBorradas = (D.fotos || []).length ? true : ""; D.fotos = [];
+      BQ.cierre = null; toast(nr ? "Cerrada" : "Cerrada · el reporte está listo");
+      if(BQ.inc){ BQ.inc.incidencias = BQ.inc.incidencias.filter(function(z){ return z.incId !== id; }); BQ.inc.atendidas.unshift(Object.assign({}, D)); }
+      renderSolicitudes(); cargarInicio_();
+    }).withFailureHandler(function(){ btn.disabled = false; btn.innerHTML = t0; toast("Sin señal: no se cerró"); })
+      .api_cerrarIncidencia(PIN, id, { causa: C.causa, accion: C.accion, prevencion: C.prevencion, verificar: C.verificar, reporte: !!pdf });
+  };
+  if(nr){ fin(null); return; }
+  inc38Pdf_(D, C, false).then(fin, function(e){ btn.disabled = false; btn.innerHTML = t0; toast((e && e.message) || "No se pudo armar el PDF: no se cerró"); });
+}
+function bq38BotonesPdf_(id){
+  var p = BQ.pdf[id]; if(!p) return "";
+  return '<div class="sec">Reporte ' + esc(p.codigo) + '</div><div class="bb" style="justify-content:flex-start">' +
+    '<button onclick="bq38Guardar_(BQ.pdf[\'' + esc(id) + '\'])">' + sv38_("bajar") + ' Descargar el PDF</button>' +
+    '<button class="p" onclick="bq38Correo_(\'' + esc(id) + '\')">' + sv38_("correo") + ' Enviar por correo</button></div>' +
+    '<div class="rel" style="font-style:normal;font-size:12px">' + (esEscritorio_() ? 'En la computadora se descarga un borrador de correo (.eml) con el PDF adjunto: ábrelo y toca Enviar.' : 'En el teléfono se abre «Compartir»: elige tu correo.') +
+    ((BQ.det && BQ.det.destinos || []).length ? ' Para: ' + esc(BQ.det.destinos.join(", ")) + '.' : ' No hay correos configurados para este tipo (Configuración › Incidencias).') + '</div>';
+}
+function bq38Guardar_(p){
+  if(!p) return;
+  var u = URL.createObjectURL(p.blob), a = document.createElement("a"); a.href = u; a.download = p.nombre; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 30000);
+}
+function bq38Correo_(id){
+  var p = BQ.pdf[id], D = BQ.det || {}; if(!p) return;
+  var para = (D.destinos || []).join(", "), asunto = "Reporte de incidencia " + id + " · " + (D.titulo || "") + " · ECOVSA";
+  var cuerpo = "Buenos días:\n\nAdjunto el reporte " + p.codigo + " de la incidencia " + id + " (" + (D.titulo || "") + "), reportada por " + (D.usuario || "") + " el " + (D.fecha || "") + " " + (D.hora || "") + ".\n\n" +
+    (D.causa ? "Causa: " + D.causa + "\n" : "") + (D.accion ? "Qué se hizo: " + D.accion + "\n" : "") + "\nLogística · ECOVSA";
+  if(!esEscritorio_() && navigator.canShare && navigator.share){
+    var f = new File([p.blob], p.nombre, { type: "application/pdf" });
+    if(navigator.canShare({ files: [f] })){ navigator.share({ files: [f], title: asunto, text: cuerpo }).catch(function(){}); return; }
+  }
+  /* un borrador .eml con el PDF adjunto: Outlook o Correo lo abren listo para enviar */
+  var fr = new FileReader();
+  fr.onload = function(){
+    var b64 = String(fr.result).split(",")[1].replace(/.{76}/g, "$&\r\n"), lim = "ECOVSA" + Date.now();
+    var enc = function(s){ return "=?UTF-8?B?" + btoa(unescape(encodeURIComponent(s))) + "?="; };
+    var eml = "To: " + para + "\r\nSubject: " + enc(asunto) + "\r\nX-Unsent: 1\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=\"" + lim + "\"\r\n\r\n" +
+      "--" + lim + "\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" + btoa(unescape(encodeURIComponent(cuerpo))).replace(/.{76}/g, "$&\r\n") + "\r\n" +
+      "--" + lim + "\r\nContent-Type: application/pdf; name=\"" + p.nombre + "\"\r\nContent-Disposition: attachment; filename=\"" + p.nombre + "\"\r\nContent-Transfer-Encoding: base64\r\n\r\n" + b64 + "\r\n--" + lim + "--\r\n";
+    bq38Guardar_({ blob: new Blob([eml], { type: "message/rfc822" }), nombre: id + ".eml" });
+    toast("Abre el correo que se descargó y toca Enviar");
+  };
+  fr.readAsDataURL(p.blob);
+}
+
+/* ════ 2 · EL REPORTE F-LOG-03 EN PDF ════
+   Se dibuja aquí, con jsPDF, antes de cerrar: las fotos se borran del
+   sistema al cerrar la incidencia y quedan solo en este documento. */
+function inc38Lib_(){
+  return new Promise(function(ok, mal){
+    if(window.jspdf) return ok();
+    p9Preparar_(); var n = 0, t = setInterval(function(){ if(window.jspdf){ clearInterval(t); ok(); } else if(++n > 40){ clearInterval(t); mal(new Error("No cargó lo necesario para el PDF. Revisa la señal.")); } }, 250);
+  });
+}
+function inc38FotoData_(url){
+  return fetch(url).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(b){
+    return new Promise(function(ok){ var fr = new FileReader(); fr.onload = function(){ p9Jpg_(fr.result, 900, function(j, w, h){ ok(j ? { d: j, w: w, h: h } : null); }); }; fr.onerror = function(){ ok(null); }; fr.readAsDataURL(b); });
+  }).catch(function(){ return null; });
+}
+function inc38Pdf_(D, C, borrador){
+  C = C || {};
+  return inc38Lib_().then(function(){
+    return Promise.all((D.fotos || []).slice(0, 3).map(function(f){ return inc38FotoData_(f.url); }));
+  }).then(function(F){
+    var J = window.jspdf.jsPDF, d = new J({ unit: "mm", format: "letter" }), E = p9Emp_();
+    var W = 215.9, M = 16, X2 = W - M, y = 14, NAVY = [20, 48, 107], GRIS = [93, 107, 128], LIN = [221, 227, 236], FON = [238, 242, 247];
+    var col = function(c){ d.setTextColor(c[0], c[1], c[2]); }, fill = function(c){ d.setFillColor(c[0], c[1], c[2]); }, draw = function(c){ d.setDrawColor(c[0], c[1], c[2]); };
+    var codigo = D.formulario || "F-LOG-03 · VERSIÓN 1 / OCT-26";
+    var alto = 279.4;
+    var nuevaPag = function(n){ if(y + n > alto - 16){ d.addPage(); y = 16; } };
+    /* encabezado */
+    if(P9.logo){ try{ d.addImage(P9.logo, "JPEG", M, y, 22, 21.7); }catch(e){} }
+    col(NAVY); d.setFont("helvetica", "bold"); d.setFontSize(19); d.text(E.comercial || "ECOVSA", M + 26, y + 7);
+    col(GRIS); d.setFont("helvetica", "normal"); d.setFontSize(7.6);
+    d.text(["Recolección, transporte y disposición final de desechos hospitalarios", "RUC: " + E.ruc + " DV " + E.dv + " · Tel. " + E.telefono + " · " + E.correo, codigo], M + 26, y + 11.5);
+    d.setFont("helvetica", "bold"); d.setFontSize(6.8); d.text("REPORTE INTERNO", X2, y + 3, { align: "right" });
+    col(NAVY); d.setFontSize(13); d.text(D.tipo === "norecolectada" ? "Parada no recolectada" : "Reporte de Incidencia", X2, y + 9.5, { align: "right" });
+    fill(NAVY); var fw = d.getTextWidth(D.incId) + 2; d.setFontSize(11.5); fw = d.getTextWidth(D.incId) + 9; d.roundedRect(X2 - fw, y + 12.5, fw, 8, 1.6, 1.6, "F");
+    d.setTextColor(255, 255, 255); d.text(D.incId, X2 - fw / 2, y + 18, { align: "center" });
+    y += 24; draw(NAVY); d.setLineWidth(0.9); d.line(M, y, X2, y); y += 4;
+    /* tira */
+    var grav = { alta: "ALTA", media: "MEDIA", baja: "BAJA" }[D.gravedad] || "";
+    fill([253, 241, 239]); d.rect(M, y, X2 - M, 7, "F"); fill([192, 57, 43]); d.rect(M, y, 1.4, 7, "F");
+    d.setFontSize(7.6); d.setTextColor(125, 31, 23); d.text(("INCIDENCIA EN RUTA · " + (D.tipoNombre || "") + (grav ? " · GRAVEDAD " + grav : "")).toUpperCase(), M + 4, y + 4.7);
+    var est = borrador ? "BORRADOR · SIN CERRAR" : "ESTADO: CERRADA"; if(borrador) d.setTextColor(138, 99, 0); else d.setTextColor(47, 107, 10);
+    d.text(est, X2 - 3, y + 4.7, { align: "right" }); y += 10;
+    var sec = function(t){ nuevaPag(14); fill(FON); d.roundedRect(M, y, X2 - M, 6.4, 1.2, 1.2, "F"); col(NAVY); d.setFont("helvetica", "bold"); d.setFontSize(8.2); d.text(t, M + 3, y + 4.4); y += 8.6; };
+    var caja = function(x, w, t, v, verde){ var lines = d.splitTextToSize(String(v || "—"), w - 5); var h = 5.6 + lines.length * 4.1;
+      draw(LIN); d.setLineWidth(0.25); d.roundedRect(x, y, w, h, 1.2, 1.2, "S");
+      col(GRIS); d.setFont("helvetica", "bold"); d.setFontSize(6); d.text(String(t).toUpperCase(), x + 2.5, y + 3.4);
+      if(verde) d.setTextColor(47, 107, 10); else d.setTextColor(29, 42, 62); d.setFontSize(8.8); d.text(lines, x + 2.5, y + 7.4); return h; };
+    var fila = function(pares, n){ var g = 2.5, w = (X2 - M - g * (n - 1)) / n, hs = 0;
+      var alt = pares.map(function(p){ return 5.6 + d.splitTextToSize(String(p[1] || "—"), w - 5).length * 4.1; }); hs = Math.max.apply(null, alt); nuevaPag(hs + 3);
+      pares.forEach(function(p, k){ caja(M + k * (w + g), w, p[0], p[1], p[2]); }); y += hs + 2.5; };
+    var tres = function(L){ for(var i = 0; i < L.length; i += 3) fila(L.slice(i, i + 3), 3); };
+    /* 1 · datos */
+    sec("1 · DATOS DEL REPORTE");
+    tres([["Fecha y hora", D.fecha + " · " + D.hora], ["Reportado por", D.usuario + " · conductor"], ["Vehículo", D.vehiculo || "—"],
+          ["Ruta", D.fechaRuta ? "Ruta del " + nombreDia_(D.fechaRuta) : "—"], ["Cliente del lugar", D.cliente || "—"], ["Ubicación GPS", D.lat && D.lng ? Number(D.lat).toFixed(4) + ", " + Number(D.lng).toFixed(4) : "Sin GPS"]]);
+    /* 2 · qué pasó */
+    sec("2 · QUÉ PASÓ");
+    var dat = bq38Datos_(D).filter(function(c){ return ["Camión", "Ubicación", "Cliente"].indexOf(c[0]) < 0; }).map(function(c){ return [c[0], c[1] + (c[3] ? " · " + c[3] : ""), c[2] === "vd"]; });
+    if(dat.length) tres(dat);
+    if(D.relato){ var rl = d.splitTextToSize("«" + D.relato + "» — " + D.usuario, X2 - M - 6); nuevaPag(rl.length * 4.2 + 6);
+      draw(LIN); d.roundedRect(M, y, X2 - M, rl.length * 4.2 + 4, 1.2, 1.2, "S"); d.setFont("helvetica", "italic"); d.setFontSize(8.8); d.setTextColor(29, 42, 62); d.text(rl, M + 3, y + 5); y += rl.length * 4.2 + 6.5; d.setFont("helvetica", "normal"); }
+    /* 3 · fotos */
+    var FT = (F || []).filter(Boolean);
+    if(FT.length || D.nFotos){
+      sec("3 · FOTOS DEL LUGAR"); nuevaPag(48);
+      var gw = (X2 - M - 5) / 3;
+      FT.forEach(function(f, k){ var x = M + k * (gw + 2.5), hh = 40, ww = gw;
+        var r = Math.min(ww / f.w, hh / f.h), iw = f.w * r, ih = f.h * r;
+        fill([244, 246, 249]); d.roundedRect(x, y, gw, hh, 1.2, 1.2, "F");
+        try{ d.addImage(f.d, "JPEG", x + (gw - iw) / 2, y + (hh - ih) / 2, iw, ih); }catch(e){}
+        col(GRIS); d.setFontSize(6.6); d.text("Foto " + (k + 1) + " · " + (D.vehiculo || ""), x, y + hh + 3.2); });
+      if(!FT.length){ col(GRIS); d.setFontSize(8); d.text("Las fotos no se pudieron cargar al armar este reporte.", M, y + 5); y += 9; }
+      else y += 46;
+    }
+    /* 4 · seguimiento */
+    sec((FT.length || D.nFotos ? "4" : "3") + " · SEGUIMIENTO");
+    var T = [[D.hora, "Reporte enviado desde la ruta" + (D.nFotos ? ", con " + D.nFotos + (D.nFotos === 1 ? " foto" : " fotos") : ""), D.usuario]];
+    if(D.vistaEn) T.push([String(D.vistaEn).slice(11, 16) || String(D.vistaEn), "Visto en la Bandeja de Logística", D.vistaPor || ""]);
+    (D.respuestas || []).forEach(function(r){ T.push([String(r.cuando).slice(11, 16) || r.cuando, "Respuesta al conductor: «" + r.texto + "»", r.quien]); });
+    if(!borrador) T.push([ahoraHM(), "Incidencia cerrada", USUARIO.nombre]);
+    nuevaPag(8); fill(NAVY); d.rect(M, y, X2 - M, 6, "F"); d.setTextColor(255, 255, 255); d.setFont("helvetica", "bold"); d.setFontSize(7);
+    d.text("HORA", M + 2.5, y + 4); d.text("QUÉ SE HIZO", M + 24, y + 4); d.text("QUIÉN", X2 - 46, y + 4); y += 6;
+    d.setFont("helvetica", "normal"); d.setFontSize(8.2);
+    T.forEach(function(t){ var q = d.splitTextToSize(t[1], X2 - M - 76); var hh = q.length * 3.9 + 2.6; nuevaPag(hh);
+      d.setTextColor(29, 42, 62); d.setFont("helvetica", "bold"); d.text(String(t[0] || ""), M + 2.5, y + 4); d.setFont("helvetica", "normal"); d.text(q, M + 24, y + 4);
+      d.text(d.splitTextToSize(String(t[2] || ""), 44), X2 - 46, y + 4); draw([230, 235, 242]); d.line(M, y + hh, X2, y + hh); y += hh; });
+    y += 3;
+    /* 5 · cierre */
+    sec((FT.length || D.nFotos ? "5" : "4") + " · CIERRE Y ACCIÓN CORRECTIVA");
+    fila([["Causa", C.causa || (borrador ? "(por completar)" : "—")], ["Acción inmediata", C.accion || (borrador ? "(por completar)" : "—")]], 2);
+    if(C.prevencion || borrador) fila([["Para que no se repita", C.prevencion || (borrador ? "(opcional)" : "—")]], 1);
+    fila([["Cerrada por", borrador ? "—" : USUARIO.nombre + " · " + hoyISO() + " " + ahoraHM()], ["Verificar que funcionó", C.verificar || "—"]], 2);
+    /* firmas */
+    nuevaPag(22); y += 12; draw([29, 42, 62]); d.setLineWidth(0.3);
+    var fw2 = (X2 - M - 20) / 2;
+    d.line(M, y, M + fw2, y); d.line(X2 - fw2, y, X2, y);
+    d.setTextColor(29, 42, 62); d.setFont("helvetica", "bold"); d.setFontSize(8.4);
+    d.text(D.usuario || "", M + fw2 / 2, y + 4, { align: "center" }); d.text(USUARIO.nombre || "", X2 - fw2 / 2, y + 4, { align: "center" });
+    d.setFont("helvetica", "normal"); d.setFontSize(7.6); d.text("Reporta · Conductor", M + fw2 / 2, y + 8, { align: "center" }); d.text("Revisa y cierra · Logística", X2 - fw2 / 2, y + 8, { align: "center" });
+    y += 13; draw(LIN); d.line(M, y, X2, y); col(GRIS); d.setFontSize(6.8);
+    d.text(d.splitTextToSize("Enviado a: " + ((D.destinos || []).join(", ") || "según el tipo de incidencia, en Configuración") + ". Reporte generado el " + hoyISO() + " " + ahoraHM() +
+      " desde el sistema de ECOVSA. Las fotos se tomaron en el lugar y se borran del sistema al cerrar la incidencia: este documento es el registro que se conserva.", X2 - M), M, y + 4);
+    /* pie de página con el código en cada hoja */
+    var np = d.getNumberOfPages();
+    for(var i = 1; i <= np; i++){ d.setPage(i); col(GRIS); d.setFontSize(6.6); d.text(codigo + " · " + D.incId, M, alto - 8); d.text("Página " + i + " de " + np, X2, alto - 8, { align: "right" }); }
+    var blob = d.output("blob");
+    return { blob: blob, nombre: (borrador ? "BORRADOR_" : "") + D.incId + "_" + String(D.tipo) + ".pdf", codigo: codigo.split(" · ")[0] };
+  });
+}
+
+/* ════ 3 · EL CALENDARIO DE LOGÍSTICA ════ */
+var CAL38 = { vista: "mes", ref: null, sel: "", r: null, capas: { r: 1, m: 1, i: 1, c: 1, x: 1, f: 1 }, vuelo: false };
+try{ CAL38.vista = localStorage.getItem("eco_cal38_v") || "mes"; var cp = JSON.parse(localStorage.getItem("eco_cal38_c") || "null"); if(cp) CAL38.capas = cp; }catch(e){}
+cargarDatosCalendario = (function(orig){
+  return function(){
+    if(!esSupervisor()){ var c = $("cal38"); if(c) c.style.display = "none"; document.querySelectorAll("#pantalla-agenda .cal-contenedor,#mr-nuevas").forEach(function(e){ e.style.display = ""; }); return orig.apply(this, arguments); }
+    cal38Cargar_();
+  };
+})(cargarDatosCalendario);
+function cal38Raiz_(){
+  var s = $("pantalla-agenda"), c = $("cal38");
+  document.querySelectorAll("#pantalla-agenda .cal-contenedor,#mr-nuevas").forEach(function(e){ e.style.display = "none"; });
+  var h2 = $("tit-cal"); if(h2) h2.textContent = "📅 Calendario";
+  if(!c){ c = document.createElement("div"); c.id = "cal38"; s.appendChild(c); }
+  c.style.display = "";
+  return c;
+}
+function cal38Rango_(){
+  var ref = CAL38.ref || hoyISO(), d;
+  if(CAL38.vista === "sem"){ var a = ini38Lunes_(ref); d = new Date(a + "T12:00:00"); d.setDate(d.getDate() + 6); return [a, plIso_(d)]; }
+  var p = ref.slice(0, 8) + "01", a2 = ini38Lunes_(p), fin = new Date(Number(ref.slice(0, 4)), Number(ref.slice(5, 7)), 0);
+  var f2 = new Date(fin.getFullYear(), fin.getMonth(), fin.getDate(), 12); f2.setDate(f2.getDate() + (7 - ((f2.getDay() + 6) % 7) - 1));
+  return [a2, plIso_(f2)];
+}
+function cal38Cargar_(){
+  var R = cal38Raiz_(); if(!CAL38.ref) CAL38.ref = hoyISO();
+  var r = cal38Rango_(), clave = r.join("|");
+  if(!CAL38.r || CAL38.r.clave !== clave) R.innerHTML = '<div class="cal38"><div class="vacio" style="padding:40px;text-align:center;color:#8a96a8">Consultando el calendario…</div></div>';
+  if(CAL38.vuelo === clave) return; CAL38.vuelo = clave;
+  google.script.run.withSuccessHandler(function(x){
+    if(CAL38.vuelo === clave) CAL38.vuelo = false;
+    if(!x || !x.ok){ R.innerHTML = '<div class="cal38"><div class="vacio">' + esc((x && x.error) || "No se pudo consultar") + '</div></div>'; return; }
+    x.clave = clave; CAL38.r = x; cal38Pintar_();
+  }).withFailureHandler(function(){ CAL38.vuelo = false; R.innerHTML = '<div class="cal38"><div class="vacio">Sin conexión.</div></div>'; }).api_calLogistica(PIN, r[0], r[1]);
+}
+function cal38Mover_(n){
+  var d = new Date((CAL38.ref || hoyISO()) + "T12:00:00");
+  if(CAL38.vista === "sem") d.setDate(d.getDate() + 7 * n); else { d.setDate(1); d.setMonth(d.getMonth() + n); }
+  CAL38.ref = plIso_(d); CAL38.sel = ""; cal38Cargar_();
+}
+function cal38Vista_(v){ CAL38.vista = v; try{ localStorage.setItem("eco_cal38_v", v); }catch(e){} if(v === "sem" && CAL38.sel) CAL38.ref = CAL38.sel; cal38Cargar_(); }
+function cal38Capa_(k){ CAL38.capas[k] = CAL38.capas[k] ? 0 : 1; try{ localStorage.setItem("eco_cal38_c", JSON.stringify(CAL38.capas)); }catch(e){} cal38Pintar_(); }
+function cal38Estado_(d, hoy){
+  var todo = d.total > 0 && d.completadas >= d.total;
+  if(d.borrador) return ["bor", "Borrador"];
+  if(todo) return ["ok", "Completa"];
+  if(d.fecha > hoy) return ["pro", "Programada"];
+  var cerrada = /cerr|termin/i.test(d.estadoRuta);
+  if(d.fecha === hoy && !cerrada) return ["cur", d.completadas ? "En curso · " + d.completadas + "/" + d.total : "Por salir"];
+  var n = d.total - d.completadas; return ["mal", n + " sin hacer"];
+}
+var CAL38_EV = { mto: ["llave", "m"], doc: ["doc", "m"], ins: ["lupa", "i"], rec: ["campana", "c"], inc: ["tri", "x"], nr: ["x", "x"], fer: ["bandera", "f"] };
+function cal38Pintar_(){
+  var R = cal38Raiz_(), X = CAL38.r; if(!X) return;
+  var hoy = X.hoy || hoyISO(), rg = cal38Rango_(), C = CAL38.capas, sem = CAL38.vista === "sem";
+  var M = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var ref = CAL38.ref, mesRef = ref.slice(0, 7);
+  var porDia = {}, evDia = {};
+  X.dias.forEach(function(d){ (porDia[d.fecha] = porDia[d.fecha] || []).push(d); });
+  X.eventos.forEach(function(e){ var k = CAL38_EV[e.tipo]; if(!k || !C[k[1]]) return; (evDia[e.fecha] = evDia[e.fecha] || []).push(e); });
+  /* cifras del mes (o de la semana) que se mira */
+  var enPer = function(f){ return sem ? (f >= rg[0] && f <= rg[1]) : f.slice(0, 7) === mesRef; };
+  var dP = X.dias.filter(function(d){ return enPer(d.fecha) && !d.borrador; });
+  var sinHacer = dP.filter(function(d){ return d.fecha < hoy; }).reduce(function(s, d){ return s + (d.total - d.completadas); }, 0);
+  var tot = dP.reduce(function(s, d){ return s + d.total; }, 0), hech = dP.reduce(function(s, d){ return s + d.completadas; }, 0);
+  var toca = Object.keys(X.toca || {}).filter(enPer).reduce(function(s, f){ return s + X.toca[f]; }, 0);
+  var tit = sem ? "Semana del " + Number(rg[0].slice(8)) + " " + M[Number(rg[0].slice(5, 7)) - 1].slice(0, 3) + " al " + Number(rg[1].slice(8)) + " " + M[Number(rg[1].slice(5, 7)) - 1].slice(0, 3)
+                : M[Number(ref.slice(5, 7)) - 1].charAt(0).toUpperCase() + M[Number(ref.slice(5, 7)) - 1].slice(1) + " " + ref.slice(0, 4);
+  var h = '<div class="cal38' + (sem ? " sem" : "") + '"><div class="top"><div><p>Todas las rutas de cada camión, y lo que cae en fecha: mantenimiento, documentos, inspecciones, recordatorios y feriados.</p></div>' +
+    '<div class="nav"><button onclick="cal38Mover_(-1)">‹</button><b>' + esc(tit) + '</b><button onclick="cal38Mover_(1)">›</button><button class="hoyb" onclick="CAL38.ref=hoyISO();CAL38.sel=hoyISO();cal38Cargar_()">Hoy</button>' +
+    '<div class="seg"><button class="' + (sem ? "" : "on") + '" onclick="cal38Vista_(\'mes\')">Mes</button><button class="' + (sem ? "on" : "") + '" onclick="cal38Vista_(\'sem\')">Semana</button></div></div></div>' +
+    '<div class="ck"><div><b>' + dP.length + '</b><span>' + (dP.length === 1 ? "ruta" : "rutas") + (sem ? " esta semana" : " en el mes") + '</span></div>' +
+      '<div><b>' + (tot ? Math.round(hech / tot * 100) : 0) + '%</b><span>' + hech + ' de ' + tot + ' paradas hechas</span></div>' +
+      '<div' + (sinHacer ? ' class="w"' : '') + '><b>' + sinHacer + '</b><span>paradas quedaron sin hacer</span></div>' +
+      '<div' + (toca ? ' class="w"' : '') + '><b>' + toca + '</b><span>clientes les toca y no hay ruta</span></div></div>' +
+    '<div class="capas">' + [["r", "Rutas"], ["m", "Mantenimiento y documentos"], ["i", "Inspecciones"], ["c", "Recordatorios"], ["x", "Incidencias"], ["f", "Feriados"]].map(function(c){
+      return '<button class="cp' + (C[c[0]] ? "" : " off") + '" onclick="cal38Capa_(\'' + c[0] + '\')"><i class="' + c[0] + '"></i>' + c[1] + '</button>'; }).join("") + '</div>';
+  var DS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  h += '<div class="cuerpo"><div class="grid"><div class="gh">' + DS.map(function(x){ return '<div>' + x + '</div>'; }).join("") + (sem ? '' : '<div>Semana</div>') + '</div><div class="gb">';
+  var d = new Date(rg[0] + "T12:00:00"), fin = rg[1], semKg = 0, semR = 0, k = 0;
+  while(true){
+    var f = plIso_(d), rs = porDia[f] || [], ev = evDia[f] || [], fer = (X.eventos || []).filter(function(e){ return e.tipo === "fer" && e.fecha === f; })[0];
+    var cls = "cd" + (f === hoy ? " hoy" : "") + (CAL38.sel === f ? " sel" : "") + (d.getDay() === 0 || d.getDay() === 6 ? " fin" : "") + (!sem && f.slice(0, 7) !== mesRef ? " otro" : "") + (fer && C.f ? " fer" : "");
+    var kg = rs.reduce(function(s, r){ return s + (r.totalKg || 0); }, 0);
+    semKg += kg; semR += rs.filter(function(r){ return !r.borrador; }).length;
+    h += '<div class="' + cls + '" onclick="CAL38.sel=\'' + f + '\';cal38Pintar_()"><div class="n"><span>' + d.getDate() + '</span>' + (kg ? '<em>' + nIni_(kg) + ' kg</em>' : '') + '</div>';
+    if(fer && C.f) h += '<div class="fe">' + esc(fer.titulo) + '</div>';
+    if(C.r) rs.slice(0, sem ? 8 : 3).forEach(function(r){ var e = cal38Estado_(r, hoy);
+      h += '<div class="cr ' + e[0] + '"><b>' + esc(r.vehiculo || "Sin camión") + ' · ' + esc(String(r.conductor || "").split(" ")[0]) + '</b><span>' + (e[0] === "pro" || e[0] === "bor" ? r.total + " paradas" : r.completadas + "/" + r.total) + (sem && r.primera ? ' · ' + esc(r.primera) + (r.ultima ? '–' + esc(r.ultima) : '') : '') + '</span></div>'; });
+    if(C.r && rs.length > (sem ? 8 : 3)) h += '<div class="cr pro"><b>+ ' + (rs.length - (sem ? 8 : 3)) + ' más</b></div>';
+    if(C.r && X.toca && X.toca[f]) h += '<div class="ct">' + X.toca[f] + ' le toca · sin ruta</div>';
+    var evs = ev.filter(function(e){ return e.tipo !== "fer"; });
+    if(evs.length) h += '<div class="evs">' + evs.slice(0, 6).map(function(e){ var q = CAL38_EV[e.tipo]; return '<span class="ce ev-' + e.tipo + '" title="' + esc(e.titulo) + '">' + sv38_(q[0]) + '</span>'; }).join("") + '</div>';
+    h += '</div>';
+    k++;
+    if(k % 7 === 0){
+      if(!sem) h += '<div class="cs"><span>semana</span><b>' + semR + (semR === 1 ? ' ruta' : ' rutas') + '</b><span>' + (semKg ? nIni_(semKg) + ' kg' : '') + '</span></div>';
+      semKg = 0; semR = 0;
+    }
+    if(f >= fin) break; d.setDate(d.getDate() + 1);
+  }
+  h += '</div><div class="ley"><span><i class="ok"></i>Completa</span><span><i class="cur"></i>Hoy en curso</span><span><i class="mal"></i>Quedó sin hacer</span><span><i class="pro"></i>Programada</span><span><i class="bor"></i>Borrador</span>' +
+    '<span class="tc">«Le toca · sin ruta»: clientes cuya próxima recolección cae ese día y todavía no están en ninguna ruta.</span></div></div>';
+  h += '<div class="pd">' + cal38Dia_(CAL38.sel || (hoy >= rg[0] && hoy <= rg[1] ? hoy : rg[0])) + '</div></div></div>';
+  R.innerHTML = h; mkIconos_(R);
+}
+function cal38Dia_(f){
+  var X = CAL38.r, hoy = X.hoy || hoyISO(), rs = X.dias.filter(function(d){ return d.fecha === f; }), ev = X.eventos.filter(function(e){ return e.fecha === f && e.tipo !== "fer"; });
+  var fer = X.eventos.filter(function(e){ return e.fecha === f && e.tipo === "fer"; })[0];
+  var h = '<div class="h">' + esc(fechaLargaIni_(f)) + '</div><div class="s">' + (fer ? '<b style="color:#b3261e">Feriado · ' + esc(fer.titulo) + '</b> · ' : '') +
+    (rs.length ? rs.length + (rs.length === 1 ? " ruta" : " rutas") + ' · ' + rs.reduce(function(s, r){ return s + r.total; }, 0) + ' paradas' : 'Sin rutas') + '</div>';
+  rs.forEach(function(r){
+    var e = cal38Estado_(r, hoy);
+    h += '<div class="pr ' + e[0] + '"><div class="t"><b>' + esc(r.vehiculo || "Sin camión") + ' · ' + esc(r.conductor || "Sin conductor") + '</b><span class="pl ' + e[0] + '">' + esc(e[1]) + '</span></div>' +
+      '<div class="m">' + r.completadas + ' de ' + r.total + ' paradas' + (r.totalKg ? ' · ' + nIni_(r.totalKg) + ' kg' : '') + (r.primera ? ' · ' + esc(r.primera) + (r.ultima ? '–' + esc(r.ultima) : '') : '') + (r.motivoCierre ? ' · ' + esc(r.motivoCierre) : '') + '</div>';
+    if(e[0] === "mal" && r.sinHacer.length) h += '<div class="fal">Sin hacer: ' + esc(r.sinHacer.slice(0, 4).map(function(p){ return p.nombre; }).join(", ")) + (r.sinHacer.length > 4 ? ' y ' + (r.sinHacer.length - 4) + ' más' : '') + '</div>';
+    h += '<div class="bb">';
+    if(e[0] === "mal") h += '<button class="p" onclick="abrirEditorCon_(plHabilDespues_(hoyISO()),[' + r.sinHacer.map(function(p){ return Number(p.clienteId); }).join(",") + '])">Reprogramar</button>';
+    if(f <= hoy && !r.borrador) h += '<button onclick="cal38Cierre_(\'' + f + '\',\'' + esc(r.rutaId) + '\')">Ver en Cierre</button>';
+    if(f >= hoy) h += '<button onclick="abrirEditorCon_(\'' + f + '\',[])">' + (r.borrador ? 'Seguir el borrador' : 'Editar la ruta') + '</button>';
+    h += '</div></div>';
+  });
+  if(!rs.length && f >= hoy) h += '<div class="bb" style="margin-bottom:10px"><button class="p" onclick="abrirEditorCon_(\'' + f + '\',[])">Crear ruta</button></div>';
+  if(X.toca && X.toca[f]) h += '<div class="px am"><b>Le toca</b><span>' + X.toca[f] + (X.toca[f] === 1 ? ' cliente' : ' clientes') + ' sin ruta ese día</span><button onclick="abrirEditorCon_(\'' + f + '\',[])">Planificar</button></div>';
+  if(ev.length){
+    h += '<div class="h2">Ese día</div>' + ev.map(function(e){ var q = CAL38_EV[e.tipo] || ["mas"];
+      var go = e.incId ? 'bq38Ir_(\'inc:' + esc(e.incId) + '\')' : (e.tipo === "mto" || e.tipo === "doc" ? 'mostrarTab(\'mto\')' : (e.tipo === "ins" ? 'BQ.f=\'mer\';mostrarTab(\'solicitudes\')' : ''));
+      return '<div class="pe"' + (go ? ' onclick="' + go + '"' : '') + '><span class="ce ev-' + e.tipo + '" style="width:22px;height:22px">' + sv38_(q[0]) + '</span><div><b>' + esc(e.titulo) + '</b><span>' +
+        esc({ mto: "Mantenimiento", doc: "Documento del camión", ins: "Inspección" + (e.por ? " · " + e.por : ""), rec: "Tu recordatorio", inc: e.abierta ? "Incidencia abierta" : "Incidencia cerrada", nr: e.abierta ? "No se pudo recolectar · abierta" : "No se pudo recolectar · cerrada" }[e.tipo] || "") + '</span></div></div>'; }).join("");
+  }
+  return h;
+}
+function cal38Cierre_(f, rutaId){
+  CR_P = "rango"; CR_D = f; CR_H = f; CR_SEL = rutaId || "";
+  mostrarTab("cierre");
+  try{ $("cr-d").value = f; $("cr-h").value = f; crPintarCab_(); }catch(e){}
+}
 </script>
 </body>
 

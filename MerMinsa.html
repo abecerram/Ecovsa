@@ -75,7 +75,7 @@
   function pintar() {
     var F = R.filas, T = R.totales, em = R.empresa || {}, fuera = F.filter(function (f) { return f.fuera; }).length;
     var h = '<div class="enc"><div><b>' + E(em.razonSocial || 'ECOVSA') + '</b>RUC ' + E(em.ruc || '') + (em.dv ? ' DV ' + E(em.dv) : '') + ' · ' + E(em.resolucion || '') + '</div>' +
-      '<div style="text-align:right"><b>Informe del ' + R.trimestre + '.º trimestre de ' + R.anio + '</b>' + E(MK.fechaCorta(R.desde)) + ' al ' + E(MK.fechaCorta(R.hasta)) + '</div></div>';
+      '<div style="text-align:right">' + (R.formulario ? '<small style="display:block;font-size:9px;color:#555">' + E(R.formulario) + '</small>' : '') + '<b>Informe del ' + R.trimestre + '.º trimestre de ' + R.anio + '</b>' + E(MK.fechaCorta(R.desde)) + ' al ' + E(MK.fechaCorta(R.hasta)) + '</div></div>';
     h += '<div class="kp"><div><span>Establecimientos</span><b class="num">' + T.establecimientos + '</b><small>' + (fuera ? fuera + ' salieron de servicio en el trimestre' : 'todos en servicio') + '</small></div>' +
       '<div><span>Kilos recolectados</span><b class="num">' + N(T.kg) + '</b><small>' + R.meses.map(function (m, i) { return nomMes(m) + ' ' + N(F.reduce(function (a, f) { return a + f.kg[i]; }, 0)); }).join(' · ') + '</small></div>' +
       '<div><span>Visitas</span><b class="num">' + N(T.visitas) + '</b><small>recibos de recolección</small></div>' +

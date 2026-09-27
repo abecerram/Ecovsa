@@ -3,18 +3,19 @@
    Pone el emblema de ECOVSA (globo + flechas) en el lugar del logo de la
    barra azul de cada pantalla: da una vuelta al abrir y otra si lo tocan.
    Dónde: Mercadeo (.sysbar .lg), el lobby (.lb .lg) y Logística solo para
-   supervisión (body.es-sup header .logo-img-header). El conductor no cambia.
+   supervisión (body.es-sup header .logo-img-header). api 3.8: también el
+   conductor (body.cond-nuevo); a él tocarlo lo lleva a su menú, no al lobby.
    api 3.4.1: tocar el emblema lleva al lobby (los módulos) desde cualquier
    página; en el lobby solo gira. Si hay algo a medio llenar, pregunta antes.
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
   if (window.TemaECOVSA) return;
-  var SEL = '.sysbar .lg, .lb .lg, body.es-sup header .logo-img-header';
+  var SEL = '.sysbar .lg, .lb .lg, body.es-sup header .logo-img-header, body.cond-nuevo header .logo-img-header';
   var girado = false;
   function marca(el) {
     if (!el || el.classList.contains('tm-marca')) return;
     el.classList.add('tm-marca');
-    el.setAttribute('title', esLobby(el) ? 'ECOVSA' : 'Volver a los módulos');
+    el.setAttribute('title', esLobby(el) ? 'ECOVSA' : (esConductor() ? 'Mi menú' : 'Volver a los módulos'));
     el.setAttribute('role', 'button');
     el.innerHTML = '<div class="tm-3d"><img src="entrada-globo.png" alt=""><img src="entrada-bio.png" alt="">' +
       '<div class="tm-fl"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div>';
@@ -24,6 +25,7 @@
   }
   /* ── volver al lobby ── */
   function esLobby(el) { return !!(el.closest && el.closest('.lb')); }
+  function esConductor() { return document.body.classList.contains('cond-nuevo'); }
   var tocados = [];
   document.addEventListener('input', function (e) {
     var t = e.target;
@@ -46,6 +48,7 @@
   function tocar(el) {
     girar(el);
     if (esLobby(el)) return;
+    if (esConductor()) { if (typeof window.mostrarTab === 'function') window.mostrarTab('hub'); return; }
     if (aMedias()) { preguntar(); return; }
     setTimeout(irLobby, 420);
   }
@@ -78,7 +81,7 @@
   function quitar() {
     /* si la barra deja de ser de supervisión (otra sesión), vuelve el logo de siempre */
     document.querySelectorAll('header .logo-img-header.tm-marca').forEach(function (el) {
-      if (document.body.classList.contains('es-sup')) return;
+      if (document.body.classList.contains('es-sup') || document.body.classList.contains('cond-nuevo')) return;
       el.classList.remove('tm-marca'); el.innerHTML = '';
     });
   }

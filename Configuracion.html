@@ -418,6 +418,47 @@ function guardarCob(btn) {
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
 
+/* ═══ INCIDENCIAS EN RUTA (api 3.8) ═══
+   El teléfono de logística que el conductor llama desde la ruta, a quién
+   va el reporte F-LOG-03 según el tipo, si los graves le llegan a gerencia
+   y los pasos que ve el conductor en un derrame o un pinchazo. */
+var INC = null, INC_VUELO = false;
+var INC_PASOS0 = {
+  derrame: '1. Ponte guantes, mascarilla y lentes.\n2. Aparta a la gente del área.\n3. Usa el kit de derrames: absorbente, pala y bolsa roja.\n4. Lo recogido va en bolsa roja cerrada y rotulada.',
+  pinchazo: '1. Lava la herida con agua y jabón; no la aprietes.\n2. Avisa ya a logística.\n3. Ve al médico hoy: el tiempo cuenta.\n4. Guarda la aguja o el objeto en un recipiente rígido si se puede.'
+};
+function vIncidencias() {
+  if (!INC) {
+    if (!INC_VUELO) { INC_VUELO = true; MK.api('api_incConfig', PIN).then(function (r) { INC_VUELO = false; if (r && r.ok) { INC = { tel: r.telLogistica || '', co: r.correos || {}, ger: r.avisarGerencia !== false, pd: r.pasosDerrame || '', pp: r.pasosPinchazo || '' }; MK.repintar(); } else MK.aviso((r && r.error) || 'No se pudo consultar'); }, function (e) { INC_VUELO = false; MK.aviso(e.message); }); }
+    return MK.cabeza('Incidencias en ruta', 'Consultando…');
+  }
+  var co = function (k, b, s) { return '<div class="rr" style="display:block"><div class="rt" style="margin-bottom:6px"><b>' + b + '</b><span>' + s + '</span></div><input class="in" style="width:100%" value="' + MK.esc(INC.co[k] || '') + '" placeholder="correo@ecovsa.com, otro@ecovsa.com" onchange="INC.co.' + k + '=this.value"></div>'; };
+  var pas = function (k, b, s, v, def) { return '<div class="rr" style="display:block"><div class="rt" style="margin-bottom:6px"><b>' + b + (v ? '' : ' <span class="tag t-gris">por confirmar</span>') + '</b><span>' + s + '</span></div><textarea class="in" rows="5" style="width:100%" placeholder="' + MK.esc(def) + '" onchange="INC.' + k + '=this.value">' + MK.esc(v) + '</textarea></div>'; };
+  return MK.cabeza('Incidencias en ruta', 'Lo que usa el conductor cuando reporta un derrame, una lesión, un choque o una mala gestión del cliente, y a quién va el reporte F-LOG-03.') +
+    '<div class="card reg">' +
+    '<div class="rr"><div class="rt"><b>Teléfono de logística</b><span>El botón «Llamar a logística» del conductor. Sin número, el botón sale apagado.</span></div><div class="monto"><input style="width:150px" inputmode="tel" value="' + MK.esc(INC.tel) + '" placeholder="6000-0000" onchange="INC.tel=this.value"></div></div>' +
+    '<div class="rr"><div class="rt"><b>Las graves le llegan a gerencia</b><span>Lesión, choque, seguridad y derrame sin controlar aparecen en el lobby de gerencia.</span></div>' + sw(INC.ger, 'INC.ger=!INC.ger;MK.repintar()') + '</div>' +
+    '</div><div class="card reg" style="margin-top:12px"><div class="rt" style="padding:12px 2px 4px"><b>A quién va el reporte por correo</b><span style="display:block">Al cerrar una incidencia, el reporte se descarga y se abre el correo con estas direcciones. Para varias, sepáralas con coma.</span></div>' +
+    co('logistica', 'Logística', 'Todas las incidencias.') +
+    co('gerencia', 'Gerencia', 'Derrame, lesión, choque, seguridad y otra.') +
+    co('mercadeo', 'Mercadeo', 'Mala gestión del cliente y paradas no recolectadas.') +
+    co('mantenimiento', 'Mantenimiento', 'Para cuando se agreguen las fallas del camión a este reporte.') +
+    '</div><div class="card reg" style="margin-top:12px"><div class="rt" style="padding:12px 2px 4px"><b>Qué hacer ahora</b><span style="display:block">Los pasos que ve el conductor arriba del formulario. Un paso por línea. Vacío: salen los provisionales (en gris).</span></div>' +
+    pas('pd', 'Derrame o fuga', 'Según el plan de contingencia de ECOVSA.', INC.pd, INC_PASOS0.derrame) +
+    pas('pp', 'Pinchazo o lesión', 'Según el protocolo de accidentes con material biológico.', INC.pp, INC_PASOS0.pinchazo) +
+    '</div><div class="fila" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="INC=null;MK.repintar()">Descartar</button><button class="btn pri" onclick="guardarInc(this)">' + MK.ic('check', 16) + 'Guardar</button></div>';
+}
+function guardarInc(btn) {
+  var d = { telLogistica: INC.tel, incGerencia: INC.ger ? 'SI' : 'NO', incPasosDerrame: INC.pd, incPasosPinchazo: INC.pp,
+            incCorreoLogistica: INC.co.logistica || '', incCorreoGerencia: INC.co.gerencia || '', incCorreoMercadeo: INC.co.mercadeo || '', incCorreoMantenimiento: INC.co.mantenimiento || '' };
+  MK.ocupado(btn, true);
+  MK.api('api_guardarConfigLogistica', PIN, d).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.aviso('Guardado'); INC = null; MK.repintar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
 /* ═══ SEGURIDAD ═══ */
 function vSeguridad() {
   var sd = SEGU.sesionDesde ? new Date(SEGU.sesionDesde) : null;
@@ -503,6 +544,7 @@ MK.iniciar({
     { id: 'perm', n: 'Módulos por rol', i: 'tabla' },
     { id: 'reg', n: 'Reglas de solicitudes', i: 'reglas' },
     { id: 'cob', n: 'Escalera de cobro', i: 'escalera' },
+    { id: 'inc', n: 'Incidencias en ruta', i: 'alerta' },
     { id: 'seg', n: 'Seguridad', i: 'candado' },
     { id: 'his', n: 'Historial', i: 'historial' },
     { id: 'esp', n: 'Espacio de archivos', i: 'subir' },
@@ -521,7 +563,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, seg: vSeguridad, his: vHistorial, ent: vEntrada, esp: vEspacio };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, his: vHistorial, ent: vEntrada, esp: vEspacio };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });
