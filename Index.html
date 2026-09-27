@@ -3171,6 +3171,7 @@ if(d.jornada) { JORNADA=d.jornada; guardarLocal(K_JOR,JORNADA); }
 enLinea=true; pintarCabecera(); pintarSync(); renderTodo();
 
 mostrarTab("hub");
+if(typeof irDirecto37_==="function") irDirecto37_();   /* api 3.7: enlace directo desde el lobby */
 
 /* La bandeja del asistente, solo para quien puede atender lo que avisa.
    Lo que hoy vigila logística son las altas de cliente esperando
@@ -13605,6 +13606,283 @@ function abrirRutaEnMaps(){
   var url = "https://www.google.com/maps/dir/?api=1&destination=" + dest[0] + "," + dest[1] + "&travelmode=driving";
   if(med.length) url += "&waypoints=" + med.map(function(x){ return x.ll[0] + "," + x.ll[1]; }).join("|");
   window.open(url, "_blank");
+}
+</script>
+<style id="estilo-37">
+/* ═══ api 3.7 · planificador, mapas quietos, clientes y recordatorios ═══ */
+.tp2{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;padding:10px 14px 0}
+.tp2 .lbl{width:100%;font-size:11px;font-weight:900;letter-spacing:.6px;color:var(--ini-gris);text-transform:uppercase}
+.tp2 button.op{flex:1;min-width:170px;display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--ini-linea);background:#fff;border-radius:12px;padding:9px 12px;cursor:pointer;font-family:Archivo,sans-serif}
+.tp2 button.op .ico{width:34px;height:34px;border-radius:10px;background:#EEF3F9;display:grid;place-items:center;flex:none}
+.tp2 button.op .ico svg{width:19px;height:19px;stroke:var(--ini-navy);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tp2 button.op b{display:block;font-size:13px;font-weight:900;color:var(--ini-navy)}.tp2 button.op small{display:block;font-size:11px;font-weight:600;color:var(--ini-gris)}
+.tp2 button.op.on{border-color:var(--ini-navy);background:#F4F8FF;box-shadow:0 0 0 3px #E3ECFA}.tp2 button.op.on .ico{background:var(--ini-navy)}.tp2 button.op.on .ico svg{stroke:#fff}
+.tp2 .dst{width:100%;display:flex;gap:8px;align-items:center;font-size:12px;font-weight:800;color:var(--ini-gris)}
+.tp2 .dst select{flex:1;min-width:0;border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 9px;font:800 13px Archivo,sans-serif;color:var(--ini-navy);background:#fff}
+.tp2 .dst .x{border:0;background:none;color:var(--ini-azul);font:800 12px Archivo,sans-serif;cursor:pointer}
+.pl-cand .fx,.vj-sp .fx{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.pl-cand .fx i,.vj-sp .fx i{font-style:normal;font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;background:#F1F4F8;color:#44536a}
+.pl-cand .fx i.r,.vj-sp .fx i.r{background:#FDECEA;color:#b3261e}.pl-cand .fx i.a,.vj-sp .fx i.a{background:#FFF4DB;color:#8a5a00}.pl-cand .fx i.v,.vj-sp .fx i.v{background:#E8F5EA;color:#2d7a3a}
+.pp-bar{display:flex;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--ini-linea);background:#F7FAFE}
+.pp-bar .nv{width:36px;height:36px;flex:none;border-radius:10px;border:1.5px solid var(--ini-linea);background:#fff;font:900 15px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer}
+.pp-bar .nv[disabled]{opacity:.35;cursor:default}
+.pp-bar .info{flex:1;min-width:0}.pp-bar .info b{display:block;font-size:13.5px;font-weight:900;color:var(--ini-navy)}
+.pp-bar .info span{font-size:11.5px;font-weight:700;color:var(--ini-gris)}
+.pp-bar .num{background:var(--ini-navy);color:#fff;border-radius:8px;padding:3px 9px;font-size:12px;font-weight:900;white-space:nowrap}
+.pp-bar .todo{border:1.5px solid var(--ini-linea);background:#fff;border-radius:10px;padding:8px 12px;font:800 12px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer;white-space:nowrap}
+.pp-bar .todo.on{background:var(--ini-navy);color:#fff;border-color:var(--ini-navy)}
+.m37-rueda{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:800;background:rgba(15,30,55,.82);color:#fff;border-radius:10px;padding:9px 14px;font:700 13px Archivo,sans-serif;pointer-events:none;opacity:0;transition:opacity .2s}
+.m37-rueda.si{opacity:1}
+@media (max-width:999px){ .pp-bar{flex-wrap:wrap}.pp-bar .info{order:5;flex-basis:100%}.pp-bar .todo{margin-left:auto} }
+/* clientes: la ficha acompaña la lista */
+@media (min-width:1000px){
+  .c2-grid > #c2-ficha{position:sticky;top:12px;max-height:calc(100vh - 110px);overflow:auto;border-radius:14px}
+  .c2-grid > #c2-ficha .c2-fic{position:static}
+}
+.c2-nav{display:flex;align-items:center;gap:8px;margin:-4px 0 10px;padding-bottom:10px;border-bottom:1px solid var(--ini-linea);font-size:12px;font-weight:800;color:var(--ini-gris)}
+.c2-nav button{border:1.5px solid var(--ini-linea);background:#fff;border-radius:9px;padding:5px 10px;font:800 12px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer}
+.c2-nav button[disabled]{opacity:.35;cursor:default}
+.c2-nav .sp{flex:1;text-align:center}
+/* recuérdamelo */
+.rcd{border:1.5px solid #e0a100;background:#FFFBF0;border-radius:12px;padding:12px 14px;margin-top:12px}
+.rcd h4{margin:0 0 8px;font-size:13px;font-weight:900;color:var(--ini-navy);display:flex;gap:8px;align-items:center}
+.rcd textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--ini-linea);border-radius:10px;padding:8px 10px;font:600 13px Archivo,sans-serif;min-height:58px;resize:vertical}
+.rcd .fl{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;align-items:center}
+.rcd .fl button{border:1.5px solid var(--ini-linea);background:#fff;border-radius:18px;padding:5px 11px;font:800 12px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer}
+.rcd .fl button.on{background:var(--ini-navy);color:#fff;border-color:var(--ini-navy)}
+.rcd .fl input{border:1.5px solid var(--ini-linea);border-radius:18px;padding:4px 10px;font:800 12px Archivo,sans-serif;color:var(--ini-navy)}
+.rcd .pie{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}.rcd .pie span{flex:1;min-width:160px;font-size:11.5px;color:var(--ini-gris);font-weight:600}
+.rcd-lista{margin-top:10px;font-size:12.5px}
+.rcd-lista .ttl{font-size:11px;font-weight:900;letter-spacing:.6px;color:var(--ini-gris);text-transform:uppercase;margin-bottom:4px}
+.rcd-lista .rw{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #F1F4F8;font-weight:700;color:#44536a}
+.rcd-lista .rw em{font-style:normal;color:#8a5a00;font-weight:800;white-space:nowrap}.rcd-lista .rw em.r{color:#b3261e}
+.rcd-lista .rw span{flex:1;min-width:0}
+.rcd-lista .rw button{border:1px solid var(--ini-linea);background:#fff;border-radius:7px;padding:3px 8px;font:800 11px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer}
+</style>
+<script>
+/* ═══════════ api 3.7 ═══════════
+   · La lista del planificador vuelve a decir la última recolección y cuándo le toca.
+   · Tipo de ruta con dos botones y los íconos de línea del sistema.
+   · Los mapas ya no se acercan solos con la rueda del ratón: acercan con Ctrl + rueda.
+   · Barra «parada a parada» y «Ver toda la ruta»: el mapa solo se mueve cuando tú lo pides.
+   · Clientes: la ficha acompaña la lista, con Anterior / Siguiente, y el botón Recuérdamelo.
+   · Enlace directo desde el lobby (ruta en borrador, recordatorio de un cliente). */
+
+/* ── mapas: la rueda sola no acerca (se usaba para bajar por la página y el mapa se volvía loco) ── */
+var m36MapaBase37_ = m36Mapa_;
+m36Mapa_ = function(id, op){
+  var fino = window.matchMedia && matchMedia("(pointer:fine)").matches;
+  var m = m36MapaBase37_(id, Object.assign({}, op || {}, fino ? { scrollWheelZoom: false } : {}));
+  if(!fino) return m;
+  var box = m.getContainer(), av = document.createElement("div"), t = 0;
+  av.className = "m37-rueda"; av.textContent = "Para acercar: Ctrl + rueda del ratón"; box.appendChild(av);
+  box.addEventListener("wheel", function(e){
+    if(e.ctrlKey || e.metaKey){
+      e.preventDefault();
+      var z = m.getZoom() + (e.deltaY < 0 ? 1 : -1);
+      m.setZoomAround(m.mouseEventToContainerPoint(e), Math.max(m.getMinZoom(), Math.min(m.getMaxZoom(), z)), { animate: false });
+    } else {
+      av.classList.add("si"); clearTimeout(t); t = setTimeout(function(){ av.classList.remove("si"); }, 1300);
+    }
+  }, { passive: false });
+  return m;
+};
+
+/* ── tipo de ruta ── */
+plTipoHtml_ = function(){
+  var ds = (PL && PL.destinos) || [], pl = ED.tipo === "planta";
+  var d0 = ED.destinoId || (ds[0] ? ds[0].id : "");
+  return '<div class="tp2"><div class="lbl">Tipo de ruta</div>' +
+    '<button class="op' + (pl ? '' : ' on') + '" onclick="plCambiarTipo_(\'\')"><span class="ico">' + mkSvg_("camion") + '</span><span><b>Ruta de recolección</b><small>Sale de la base, recoge y vuelve</small></span></button>' +
+    '<button class="op' + (pl ? ' on' : '') + '" onclick="' + (d0 ? 'plCambiarTipo_(\'' + esc(d0) + '\')' : 'plDestinos_()') + '"><span class="ico">' + mkSvg_("planta") + '</span><span><b>Viaje a planta</b><small>' + (ds.length ? 'Entrega lo acopiado y recoge de camino' : 'Primero agrega los destinos de entrega') + '</small></span></button>' +
+    (pl ? '<div class="dst">Destino<select onchange="plCambiarTipo_(this.value)">' + ds.map(function(d){ return '<option value="' + esc(d.id) + '"' + (ED.destinoId === d.id ? ' selected' : '') + '>' + esc(d.nombre) + (d.desde ? ' · recibe ' + esc(d.desde) + '–' + esc(d.hasta) : '') + '</option>'; }).join("") + '</select><button class="x" onclick="plDestinos_()">Destinos</button></div>' : '') +
+    '</div>';
+};
+
+/* ── la lista: última recolección y cuándo le toca ── */
+function pl37Dias_(a, b){ return Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5); }
+function pl37Fechas_(id){
+  var c = plC_(id); if(!c || !c.id) return "";
+  var hoy = hoyISO(), dia = PL.fecha, u, p = "";
+  if(c.ultima){ var d = pl37Dias_(c.ultima, hoy); u = '<i>Última: ' + esc(nombreDia_(c.ultima)) + ' · ' + (d <= 0 ? 'hoy' : d === 1 ? 'ayer' : 'hace ' + d + ' días') + '</i>'; }
+  else u = '<i class="a">Sin recolecciones todavía</i>';
+  if(c.proxima){
+    var k = pl37Dias_(dia, c.proxima);
+    if(k < 0) p = '<i class="r">Tocaba: ' + esc(nombreDia_(c.proxima)) + ' · ' + (-k) + (k === -1 ? ' día' : ' días') + ' de atraso</i>';
+    else if(k === 0) p = '<i class="v">Le toca este día</i>';
+    else p = '<i>Le toca: ' + esc(nombreDia_(c.proxima)) + ' · ' + k + (k === 1 ? ' día después' : ' días después') + '</i>';
+  }
+  return '<div class="fx">' + u + p + '</div>';
+}
+function pl37PonerFechas_(){
+  var box = $("pl-toca"); if(!box || !PL) return;
+  [].forEach.call(box.querySelectorAll(".pl-cand, .vj-sp"), function(el){
+    if(el.querySelector(".fx")) return;
+    var src = (el.getAttribute("onclick") || "") + " " + ((el.querySelector(".add") || {}).outerHTML || "");
+    var m = src.match(/PL_SEL\[(\d+)\]/) || src.match(/plAgregar_\(\[(\d+)\]/);
+    if(!m) return;
+    var nm = el.querySelector(".nm"); if(nm) nm.insertAdjacentHTML("beforeend", pl37Fechas_(Number(m[1])));
+  });
+}
+var plPintarCandsBase37_ = plPintarCandsBase_;
+plPintarCandsBase_ = function(){ plPintarCandsBase37_.apply(this, arguments); pl37PonerFechas_(); };
+if(typeof plCamino_ === "function"){ var plCaminoBase37_ = plCamino_; plCamino_ = function(){ var r = plCaminoBase37_.apply(this, arguments); pl37PonerFechas_(); return r; }; }
+
+/* ── el mapa: parada a parada; solo se mueve cuando tú lo pides ── */
+var PL_PASO = 0, PL_PASO_K = "", PL_PASO_IR = false;
+function pl37Paradas_(){ return ED.paradas.map(function(p, i){ return { p: p, i: i, c: plC_(p.clienteId) }; }).filter(function(x){ return m36LL_(x.c.lat, x.c.lng); }); }
+function pl37Barra_(){
+  var L_ = pl37Paradas_(), C = plCalc_(), tz = plTrazoVigente_(), n = L_.length;
+  if(!n) return "";
+  if(PL_PASO > n) PL_PASO = 0;
+  var h;
+  if(!PL_PASO){
+    h = '<button class="nv" disabled title="Anterior">◀</button><span class="num">Toda la ruta</span><div class="info"><b>' + n + (n === 1 ? ' parada' : ' paradas') + ' · ' + (tz ? tz.km + ' km por carretera' : '≈ ' + C.km + ' km') + ' · regreso ≈ ' + C.regreso + '</b>' +
+      '<span>Con ◀ ▶ vas de parada en parada. El mapa no se mueve solo.</span></div>' +
+      '<button class="nv" title="Primera parada" onclick="pl37Paso_(1)">▶</button><button class="todo on">Ver toda la ruta</button>';
+  } else {
+    var b = plBase_(), prev = b, km = 0, min = null, k = 0;
+    for(var j = 0; j < PL_PASO; j++){
+      var x0 = L_[j], ll = [x0.c.lat, x0.c.lng];
+      if(tz && tz.tramos && tz.tramos[j]){ km = tz.tramos[j].km; min = tz.tramos[j].min; }
+      else { km = prev ? plKm_(prev, ll) : 0; min = null; }
+      prev = ll; k = j;
+    }
+    var x = L_[PASO_I = PL_PASO - 1], r = C.paradas[x.i], ant = PL_PASO > 1 ? L_[PL_PASO - 2].c : null;
+    var nomAnt = ant ? String(ant.nombre || "").split(/\s*[-(]/)[0] : "la base";
+    h = '<button class="nv" title="Anterior" onclick="pl37Paso_(' + (PL_PASO - 1) + ')">◀</button><span class="num">Parada ' + PL_PASO + ' de ' + n + '</span>' +
+      '<div class="info"><b>' + (x.c.planta ? 'Planta · ' : '') + esc(x.c.nombre) + '</b><span>' + (x.c.planta ? 'entrega en planta' : esc(x.c.zona || "")) + ' · llega ' + r.eta + ' · ' + r.sitio + ' min en el sitio · ' +
+      (Math.round(km * 10) / 10) + ' km' + (min ? ' (' + min + ' min)' : '') + ' desde ' + esc(nomAnt) +
+      (x.c.hDesde ? ' · ' + (x.c.hTipo === "estricto" ? 'recibe solo ' : 'prefiere ') + esc(x.c.hDesde) + '–' + esc(x.c.hHasta) + (r.ok === false ? ' · no llega a tiempo' : '') : '') + '</span></div>' +
+      '<button class="nv" title="Siguiente" ' + (PL_PASO >= n ? 'disabled' : 'onclick="pl37Paso_(' + (PL_PASO + 1) + ')"') + '>▶</button><button class="todo" onclick="pl37Paso_(0)">Ver toda la ruta</button>';
+  }
+  return '<div class="pp-bar">' + h + '</div>';
+}
+var PASO_I = 0;
+function pl37Paso_(n){
+  PL_PASO = Math.max(0, n); PL_PASO_IR = true;
+  if(!PL_PASO){ PL_SELM = null; PL_MAPV = null; }
+  else { var x = pl37Paradas_()[PL_PASO - 1]; PL_SELM = x ? x.p.clienteId : null; }
+  plMapa_();
+  if(typeof plPintarRuta_ === "function") plPintarRuta_();
+}
+var plMapaBase37_ = plMapa_;
+plMapa_ = function(){
+  var k = (PL && PL.fecha) + "|" + (ED && ED.rutaId || "nueva") + "|" + (ED ? ED.paradas.length : 0);
+  if(k !== PL_PASO_K){ PL_PASO_K = k; if(!PL_PASO_IR) PL_PASO = 0; }
+  var r = plMapaBase37_.apply(this, arguments);
+  var box = $("pl-toca"); if(!box || !PL_MAP) return r;
+  if(!PL_NUM){
+    var hint = box.querySelector(".mp-hint");
+    if(hint) hint.insertAdjacentHTML("afterend", pl37Barra_());
+    /* al ir de parada en parada, el mapa se acerca a esa parada; si no, se queda donde lo dejaste */
+    if(PL_PASO_IR && PL_PASO){
+      var x = pl37Paradas_()[PL_PASO - 1];
+      if(x) setTimeout(function(){ if(PL_MAP){ PL_MAP.invalidateSize(); PL_MAP.setView([x.c.lat, x.c.lng], Math.max(PL_MAP.getZoom(), 15), { animate: false }); } }, 70);
+    }
+  }
+  PL_PASO_IR = false;
+  return r;
+};
+/* tocar un número en el mapa también la vuelve «la parada que estás viendo», sin mover el mapa */
+var plPopParadaBase37_ = plPopParada_;
+plPopParada_ = function(id){
+  var L_ = pl37Paradas_(); for(var i = 0; i < L_.length; i++) if(String(L_[i].p.clienteId) === String(id)) PL_PASO = i + 1;
+  return plPopParadaBase37_.apply(this, arguments);
+};
+
+/* ── Clientes: Anterior / Siguiente y Recuérdamelo ── */
+function c237Lista_(){ return c2Lista_().slice(0, C2_N); }
+function c237Nav_(){
+  if(!esEscritorio_() || !C2_ID || C2_F === "revisar") return "";
+  var l = c237Lista_(), k = l.findIndex(function(c){ return c.id === C2_ID; });
+  if(k < 0) return "";
+  return '<div class="c2-nav"><button ' + (k > 0 ? 'onclick="c237Ir_(-1)"' : 'disabled') + '>◀ Anterior</button><span class="sp">' + (k + 1) + ' de ' + l.length + ' en esta lista</span>' +
+    '<button ' + (k < l.length - 1 ? 'onclick="c237Ir_(1)"' : 'disabled') + '>Siguiente ▶</button></div>';
+}
+function c237Ir_(d){
+  var l = c237Lista_(), k = l.findIndex(function(c){ return c.id === C2_ID; });
+  var n = l[k + d]; if(!n) return;
+  C2_RCD = null; abrirFichaC2_(n.id);
+  setTimeout(function(){ var tr = document.querySelector("tr.op"); if(tr && tr.scrollIntoView) tr.scrollIntoView({ block: "nearest" }); }, 30);
+}
+var htmlFichaC2Base37_ = htmlFichaC2_;
+htmlFichaC2_ = function(){
+  var h = htmlFichaC2Base37_.apply(this, arguments);
+  var nav = c237Nav_();
+  return nav ? h.replace('<div class="c2-fic">', '<div class="c2-fic">' + nav) : h;
+};
+var C2_RCD = null;   /* null = cerrado; { f: 'yyyy-mm-dd', t: 'texto' } = escribiendo */
+function c237Mas_(n){ var d = new Date(hoyISO() + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function c237Lunes_(){ var d = new Date(hoyISO() + "T12:00:00"), w = d.getDay(); d.setDate(d.getDate() + ((8 - w) % 7 || 7)); return d.toISOString().slice(0, 10); }
+function c237RcdHtml_(){
+  var F = C2_FI; if(!F) return "";
+  var L_ = F.recordatorios || [], hoy = hoyISO(), h = "";
+  if(C2_RCD){
+    var ops = [["Mañana", c237Mas_(1)], ["En 3 días", c237Mas_(3)], ["El lunes", c237Lunes_()], ["En una semana", c237Mas_(7)]];
+    ops = ops.filter(function(o, i){ return !ops.slice(0, i).some(function(q){ return q[1] === o[1]; }); });   /* domingo: «mañana» ya es el lunes */
+    var usada = ops.some(function(o){ return o[1] === C2_RCD.f; });
+    h += '<div class="rcd"><h4>' + mkSvg_("campana") + ' Recuérdamelo</h4>' +
+      '<textarea id="c2-rcd-t" placeholder="¿Qué quieres que te recuerde de este cliente?" oninput="C2_RCD.t=this.value">' + esc(C2_RCD.t || "") + '</textarea>' +
+      '<div class="fl">' + ops.map(function(o){ return '<button class="' + (C2_RCD.f === o[1] ? "on" : "") + '" onclick="C2_RCD.f=\'' + o[1] + '\';c237Rcd_()">' + o[0] + '</button>'; }).join("") +
+      '<input type="date" min="' + c237Mas_(0) + '" value="' + (usada ? "" : esc(C2_RCD.f || "")) + '" onchange="C2_RCD.f=this.value;c237Rcd_()"></div>' +
+      '<div class="pie"><span>' + (C2_RCD.f ? 'Te sale en el lobby, en «Lo tuyo», el ' + esc(nombreDia_(C2_RCD.f)) + '.' : 'Elige el día.') + '</span>' +
+      '<button class="c2-btn" onclick="C2_RCD=null;c237Rcd_()">Cancelar</button><button class="c2-btn a" id="c2-rcd-ok" onclick="c237RcdGuardar_(this)">Guardar</button></div></div>';
+  }
+  if(L_.length){
+    h += '<div class="rcd-lista"><div class="ttl">Tus recordatorios de este cliente</div>' + L_.map(function(r){
+      var vence = r.fecha < hoy, es = r.fecha === hoy;
+      return '<div class="rw"><em class="' + (vence ? "r" : "") + '">' + (es ? 'hoy' : esc(nombreDia_(r.fecha))) + '</em><span>' + esc(r.texto) + '</span>' +
+        '<button onclick="c237RcdAccion_(\'' + esc(r.rcdId) + '\',\'hecho\',this)">Hecho</button><button title="Quitar" onclick="c237RcdAccion_(\'' + esc(r.rcdId) + '\',\'borrar\',this)">✕</button></div>';
+    }).join("") + '</div>';
+  }
+  return h;
+}
+function c237Rcd_(){ var b = $("c2-rcd"); if(b) b.innerHTML = c237RcdHtml_(); var t = $("c2-rcd-t"); if(t && C2_RCD && !C2_RCD.t) t.focus(); }
+function c237RcdAbrir_(){ C2_RCD = { f: c237Mas_(1), t: "" }; c237Rcd_(); var b = $("c2-rcd"); if(b && b.scrollIntoView) b.scrollIntoView({ block: "nearest" }); }
+function c237RcdGuardar_(btn){
+  if(!C2_RCD || !C2_FI) return;
+  var t = String(C2_RCD.t || "").trim();
+  if(t.length < 3){ toast("Escribe qué quieres que te recuerde"); return; }
+  if(!C2_RCD.f){ toast("Elige el día"); return; }
+  btn.disabled = true; btn.textContent = "Guardando…";
+  var id = C2_FI.cliente.id, f = C2_RCD.f;
+  google.script.run.withSuccessHandler(function(r){
+    btn.disabled = false; btn.textContent = "Guardar";
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    if(C2_FI && C2_FI.cliente.id === id) C2_FI.recordatorios = r.recordatorios || [];
+    C2_RCD = null; c237Rcd_(); toast("Te lo recuerdo el " + nombreDia_(f));
+  }).withFailureHandler(function(){ btn.disabled = false; btn.textContent = "Guardar"; toast("Sin señal: intenta de nuevo"); })
+    .api_recordar(PIN, { clienteId: id, texto: t, fecha: f, modulo: "campo" });
+}
+function c237RcdAccion_(rid, acc, btn){
+  if(btn) btn.disabled = true;
+  var id = C2_FI ? C2_FI.cliente.id : 0;
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ if(btn) btn.disabled = false; toast((r && r.error) || "No se pudo"); return; }
+    if(C2_FI && C2_FI.cliente.id === id) C2_FI.recordatorios = r.recordatorios || [];
+    c237Rcd_(); toast(acc === "hecho" ? "Listo, marcado como hecho" : "Recordatorio quitado");
+  }).withFailureHandler(function(){ if(btn) btn.disabled = false; toast("Sin señal"); })
+    .api_recordatorioAccion(PIN, rid, acc);
+}
+var fResumenC2Base37_ = fResumenC2_;
+fResumenC2_ = function(F, c0){
+  var h = fResumenC2Base37_.apply(this, arguments);
+  var n = (F.recordatorios || []).length;
+  return h + '<div style="margin-top:8px"><button class="c2-btn" onclick="c237RcdAbrir_()">🔔 Recuérdamelo' + (n ? ' · ' + n : '') + '</button></div><div id="c2-rcd">' + c237RcdHtml_() + '</div>';
+};
+var abrirFichaC2Base37_ = abrirFichaC2_;
+abrirFichaC2_ = function(id){ if(Number(id) !== C2_ID) C2_RCD = null; return abrirFichaC2Base37_.apply(this, arguments); };
+
+/* ── enlace directo desde el lobby: abre la ruta en borrador o la ficha del cliente ── */
+function irDirecto37_(){
+  var q = null; try { q = JSON.parse(localStorage.getItem("eco_ir") || "null"); localStorage.removeItem("eco_ir"); } catch(e){}
+  if(!q || !q.t || Date.now() - q.t > 120000 || !esSupervisor()) return;
+  setTimeout(function(){
+    if(q.tab === "plan"){ if(q.fecha) PL_F = q.fecha; mostrarTab("plan"); }
+    else if(q.tab === "cli2"){ mostrarTab("cli2"); if(q.cli){ var n = 0, e = setInterval(function(){ if(typeof C2 !== "undefined" && C2 && C2.clientes){ clearInterval(e); abrirFichaC2_(q.cli); } else if(++n > 40) clearInterval(e); }, 250); } }
+    else if(q.tab) mostrarTab(q.tab);
+  }, 60);
 }
 </script>
 </body>

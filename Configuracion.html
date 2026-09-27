@@ -28,6 +28,10 @@
 .estu{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;display:inline-block}
 .estu.si{background:var(--ok-bg);color:#276b33}.estu.no{background:var(--line2);color:var(--muted)}
 .roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* api 3.7: módulo principal y «también sigue» */
+.prin{display:block;font-size:11.5px;color:var(--navy2);font-weight:700;margin-top:4px}
+.sig{display:flex;gap:6px;flex-wrap:wrap}.sig button{border:1px solid var(--line);border-radius:18px;padding:6px 12px;font:700 12.5px Archivo,sans-serif;background:#fff;cursor:pointer;color:inherit}
+.sig button.on{background:var(--info-bg);border-color:var(--navy2);color:var(--navy2)}
 .pinbox{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px dashed #b9c6de;border-radius:12px;padding:12px 14px}
 .pinbox .d{font-size:26px;font-weight:800;letter-spacing:8px;font-variant-numeric:tabular-nums}
 .pinbox small{display:block;font-size:12px;color:var(--muted)}
@@ -184,7 +188,7 @@ function vUsuarios() {
         '<div class="nm"><b>' + MK.esc(u.nombre) + (u.prueba ? ' <span class="tag t-gris">prueba</span>' : '') + (u.yo ? ' <span class="tag t-info">tú</span>' : '') + '</b><span>' +
         (u.activo ? MK.esc(detRol(u.rol)) : 'De baja desde ' + MK.esc(MK.dmy(u.fechaBaja) || '—') + (u.motivoBaja ? ' · ' + MK.esc(u.motivoBaja) : '')) +
         ((u.largoPin || 4) < largo && u.activo ? ' · <b style="color:#8a6300;display:inline">PIN de ' + (u.largoPin || 4) + '</b>' : '') + '</span></div>' +
-        '<div class="rolc">' + tagRol(u.rol) + '</div>' +
+        '<div class="rolc">' + tagRol(u.rol) + (u.activo && u.prefs && u.rol !== 'operador' ? '<span class="prin">principal: ' + MK.esc(nomPrin(u.prefs.principal)) + '</span>' : '') + '</div>' +
         '<div class="co ' + (u.correo ? '' : 'falta') + '">' + MK.esc(u.correo || 'Sin correo') + (u.telefono ? ' · ' + MK.esc(u.telefono) : '') + '</div>' +
         '<div class="ul"><span class="estu ' + (u.activo ? 'si' : 'no') + '">' + (u.activo ? 'Activo' : 'De baja') + '</span></div>' +
         '<div class="ac">' + acc + '</div></div>';
@@ -199,7 +203,24 @@ function rolesHtml(sel) {
     return '<div class="caja-sel' + (r.id === sel ? ' on' : '') + '" data-rol="' + r.id + '" onclick="elegirRol(this)"><b>' + MK.esc(r.n) + '</b><span>' + MK.esc(r.d) + '</span></div>';
   }).join('') + '</div>';
 }
-function elegirRol(el) { [].forEach.call(el.parentNode.children, function (x) { x.classList.toggle('on', x === el); }); }
+function elegirRol(el) { [].forEach.call(el.parentNode.children, function (x) { x.classList.toggle('on', x === el); }); if (document.getElementById('e-prin')) pintarPrin(); }
+/* api 3.7 · módulo principal: lo que ve primero en el lobby, sus números y de qué le avisa */
+var PRIN = null;   /* { p: 'campo', s: ['planta','cobros'] } mientras se edita */
+function nomPrin(id) { var x = (B().principales || []).filter(function (m) { return m.id === id; })[0]; return x ? x.n : id; }
+function puedeVerRol(rol, mod) { if (rol === 'admin') return true; var f = (B().matriz || {})[mod]; return !!(f && f[rol] && f[rol] !== 'n'); }
+function pintarPrin() {
+  var box = document.getElementById('e-prin'); if (!box || !PRIN) return;
+  var rol = rolElegido() || 'operador';
+  if (rol === 'operador') { box.innerHTML = '<div class="small muted" style="margin-top:10px">El conductor entra directo a su ruta: no usa el lobby.</div>'; return; }
+  var L = (B().principales || []).filter(function (m) { return puedeVerRol(rol, m.id); });
+  if (!L.some(function (m) { return m.id === PRIN.p; })) PRIN.p = ((B().principalRol || {})[rol] && puedeVerRol(rol, B().principalRol[rol])) ? B().principalRol[rol] : (L[0] ? L[0].id : '');
+  PRIN.s = PRIN.s.filter(function (x) { return x !== PRIN.p && L.some(function (m) { return m.id === x; }); });
+  box.innerHTML = '<label class="lb">Módulo principal · lo que ve primero en el lobby</label><div class="roles">' +
+    L.map(function (m) { return '<div class="caja-sel' + (m.id === PRIN.p ? ' on' : '') + '" onclick="PRIN.p=\'' + m.id + '\';pintarPrin()"><b>' + MK.esc(m.n) + ((B().principalRol || {})[rol] === m.id ? ' <span class="tag t-gris">el de su rol</span>' : '') + '</b><span>' + MK.esc(m.d) + '</span></div>'; }).join('') + '</div>' +
+    '<label class="lb">También sigue · le sale aparte, en una línea por módulo</label><div class="sig">' +
+    L.filter(function (m) { return m.id !== PRIN.p; }).map(function (m) { var on = PRIN.s.indexOf(m.id) >= 0; return '<button type="button" class="' + (on ? 'on' : '') + '" onclick="PRIN.s=' + (on ? 'PRIN.s.filter(function(x){return x!==\'' + m.id + '\'})' : 'PRIN.s.concat([\'' + m.id + '\'])') + ';pintarPrin()">' + (on ? '✓ ' : '') + MK.esc(m.n) + '</button>'; }).join('') + '</div>' +
+    '<div class="small muted" style="margin-top:8px">Solo cambia lo que ve primero y de qué le avisa. Lo que puede abrir lo sigue decidiendo su rol, en Módulos por rol.</div>';
+}
 function rolElegido() { var e = document.querySelector('#mk-lado .roles .on'); return e ? e.getAttribute('data-rol') : ''; }
 function altaUsuario() {
   var L = SEGU.largoPin || 4;
@@ -232,14 +253,23 @@ function editarUsuario(i) {
   var u = usu(i); if (!u) return;
   MK.lado('<h2>Editar a ' + MK.esc(u.nombre) + '</h2><div class="sub">' + MK.esc(nomRol(u.rol)) + '</div>' +
     '<label class="lb">Nombre completo</label><input class="in" id="e-nom" value="' + MK.esc(u.nombre) + '">' +
-    '<label class="lb">Rol</label>' + rolesHtml(u.rol) +
+    '<label class="lb">Rol</label>' + rolesHtml(u.rol) + '<div id="e-prin"></div>' +
     '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="e-cor" value="' + MK.esc(u.correo) + '"></div><div><label class="lb">Teléfono</label><input class="in" id="e-tel" value="' + MK.esc(u.telefono) + '"></div></div>' +
     '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>El cambio de rol le cambia los módulos en su siguiente entrada al lobby. Queda en el historial.</span></div></div>' +
     '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarEdicion(' + i + ',this)">' + MK.ic('check', 16) + 'Guardar cambios</button></div>');
+  PRIN = { p: (u.prefs && u.prefs.principal) || '', s: ((u.prefs && u.prefs.sigue) || []).slice() };
+  pintarPrin();
 }
 function guardarEdicion(i, btn) {
   var u = usu(i);
   var d = { i: i, nombre: u.nombre, nuevoNombre: MK.val('e-nom'), rol: rolElegido(), correo: MK.val('e-cor'), telefono: MK.val('e-tel') };
+  if (PRIN && d.rol !== 'operador') {
+    var pf = u.prefs || {}, def = (B().principalRol || {})[d.rol];
+    /* si no se tocó y es el de su rol, se deja «según su rol» (así sigue al rol si algún día cambia) */
+    d.principal = (PRIN.p === def && !pf.elegido) ? '' : PRIN.p;
+    var s0 = (pf.sigue || []).slice().sort().join(','), s1 = PRIN.s.slice().sort().join(',');
+    if (s0 !== s1 || pf.sigueRaw) d.sigue = PRIN.s.slice();
+  }
   MK.ocupado(btn, true);
   MK.api('api_cfgEditarUsuario', PIN, d).then(function (r) {
     MK.ocupado(btn, false);

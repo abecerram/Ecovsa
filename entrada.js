@@ -42,6 +42,7 @@
   }
   function acierto() { try { localStorage.removeItem('eco_fallos'); localStorage.setItem('eco_login_t', String(Date.now())); } catch (e) {} }
   var K_PIN = 'ecovsa_pin', K_ACT = 'eco_actividad', K_BLOQ = 'eco_bloqueado', K_FONDO = 'eco_fondo', K_ROL = 'eco_rol_sesion';
+  var K_BNOM = 'eco_bloq_nombre';   /* api 3.7: de quién era la sesión en pausa (solo el nombre, nunca el PIN) */
   var SOL = [0.49, 0.40];                         /* dónde está el sol en la foto */
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -305,11 +306,17 @@
     var y = E.q('.e-pc-yo'), op = E.op, nom = String(op.nombre || '').trim();
     var h = new Date().getHours(), sal = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
     if (op.bloqueo && nom && !E.otro) {
-      var p = nom.split(/\s+/), ini = ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+      /* api 3.7: en la sesión en pausa también va el logo de ECOVSA; el nombre, debajo */
+      var p = nom.split(/\s+/);
       y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
-      y.innerHTML = '<div class="e-pc-av ini">' + esc(ini) + '</div><div class="e-pc-nom">' + esc(nom) + '</div>' +
+      y.innerHTML = '<div class="e-pc-emb" title="ECOVSA"><div class="e-pc-3d">' +
+          '<img src="' + BASE + 'entrada-globo.png" alt="" draggable="false"><img src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
+          '<div class="e-pc-fl"><img src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div></div></div>' +
+        '<img class="e-pc-wm" src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false">' +
+        '<div class="e-pc-nom" style="margin-top:4px">' + esc(nom) + '</div>' +
         '<div class="e-pc-sub">🔒 Sesión en pausa · escribe tu PIN para seguir donde estabas</div>' +
         '<button type="button" class="e-pc-otro">¿No eres ' + esc(p[0]) + '? Entrar con otro PIN</button>';
+      pcGiro(0);
     } else {
       y.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
       /* api 3.5.2: en la computadora el emblema también se arma al abrir, como en el celular */
@@ -502,6 +509,8 @@
     if (V.bloqueado) return;
     V.bloqueado = true;
     lsSet(K_BLOQ, '1'); lsDel(K_PIN);                   /* sin PIN guardado: nadie entra sin escribirlo */
+    /* api 3.7: se recuerda de quién era, para que una recarga no lo olvide */
+    if (V.nombre) lsSet(K_BNOM, V.nombre); else V.nombre = lsGet(K_BNOM) || '';
     montar({ bloqueo: true, nombre: V.nombre,
       validar: function (p, fin) {
         var sinRed = !window.google || !google.script || !google.script.run;
@@ -512,6 +521,9 @@
         google.script.run.withSuccessHandler(function (r) {
           if (!r || !r.ok) { fin({ ok: false, error: (r && r.error) || 'PIN no válido' }); return; }
           if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
+          /* api 3.7: tras una recarga no hay PIN en memoria; si es la misma persona, sigue en esta misma página */
+          if (!V.pin && V.nombre && String(r.usuario.nombre || '').trim() === String(V.nombre).trim()) {
+            fin({ ok: true, mismo: true, recargar: true, otro: p, nombre: V.nombre, pausa: 900 }); return; }
           fin({ ok: true, mismo: false, nombre: r.usuario.nombre, otro: p, rol: r.usuario.rol, texto: 'Abriendo tus módulos…' });
         }).withFailureHandler(function () {
           if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
@@ -519,6 +531,8 @@
         }).api_login(p);
       },
       alEntrar: function (r) {
+        lsDel(K_BNOM);
+        if (r.recargar) { lsSet(K_PIN, JSON.stringify(r.otro)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now())); try { sessionStorage.removeItem(K_ROL); } catch (e) {} location.reload(); return; }
         if (r.mismo) { lsSet(K_PIN, JSON.stringify(V.pin)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now())); desbloquearAqui(); return; }
         /* otra persona: guarda su PIN y va a su lobby */
         lsSet(K_PIN, JSON.stringify(r.otro)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now()));

@@ -67,6 +67,14 @@ body{background:var(--l-bg)!important;color:var(--l-ink);font-family:'Archivo',s
 .it .tx{flex:1;min-width:0;font-weight:600;line-height:1.3}.it .tx small{display:block;color:var(--l-muted);font-size:11.5px;font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vacio{padding:12px 2px;color:var(--l-muted);font-size:13px}
 .mas{display:block;width:100%;border:0;background:none;color:#1f56b3;font:700 12.5px Archivo,sans-serif;padding:8px 0 0;cursor:pointer;text-align:left}
+/* api 3.7: «Lo que te espera» en tres grupos */
+.grp{font-size:10.5px;font-weight:800;letter-spacing:1px;color:#5b6a80;margin:14px 0 2px;display:flex;gap:8px;align-items:center}.grp.pri{margin-top:2px}
+.grp i{flex:1;height:1px;background:var(--l-line2)}
+.it .ac{display:flex;gap:6px;flex:none;align-self:center}
+.it .ac button{font:800 11px Archivo,sans-serif;color:#1f56b3;border:1px solid var(--l-line);border-radius:7px;padding:4px 9px;background:#fff;cursor:pointer}
+.it .ac button:hover{background:#f1f5fb}.it .ac button[disabled]{opacity:.5}
+.it.mio .tx{font-weight:700}.it.mio .tx small{white-space:normal}
+.it.sig .tx{font-weight:600;color:#44536a}
 .mods{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .m{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid var(--l-line);border-radius:14px;padding:18px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;color:inherit;min-height:150px;width:100%;transition:border-color .15s,box-shadow .15s,transform .15s}
 .m:hover{border-color:#9db4d8;box-shadow:0 8px 22px rgba(15,33,64,.09);transform:translateY(-1px)}
@@ -185,13 +193,22 @@ function pintar(r){
   /* Certificados, Solicitud de pago, Finanzas y Administración ya no salen aquí
      (zona «aparte»): las pantallas siguen existiendo y se llega a ellas desde su módulo. */
   var mods=r.modulos.filter(function(m){ return m.permitido && (m.zona==="centro"||m.zona==="lado"); });
-  var idT=TUYO[rol]; if(!mods.some(function(m){ return m.id===idT; })) idT=mods.length?mods[0].id:"";
+  /* api 3.7: «tu módulo» es el módulo principal de la persona (Configuración › Usuarios) */
+  var idT=r.principal||TUYO[rol]; if(!mods.some(function(m){ return m.id===idT; })) idT=mods.length?mods[0].id:"";
   mods=mods.filter(function(m){ return m.id===idT; }).concat(mods.filter(function(m){ return m.id!==idT; }));
   var mT=modulo(idT), nomT=mT?mT.titulo:"";
   var todoRol=(rol==="gerente"||rol==="admin");
-  var P=(r.pendientes||[]).filter(function(p){ return todoRol || p.ir===idT; });
-  ESPERA=P;
-  var nP=todoRol?(r.totalPendientes||P.length):P.length, nU=P.filter(function(p){ return p.nivel==="r"; }).length;
+  var G=r.grupos||null, P, nP, nU;
+  if(G){
+    var gT=(G.tuyo||[]).slice(0,4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
+    ESPERA=gT.concat(gM,gS); P=ESPERA;
+    var mios=(G.tuyo||[]).concat(G.modulo||[]);
+    nP=mios.length; nU=mios.filter(function(p){ return p.nivel==="r"; }).length;
+  } else {
+    P=(r.pendientes||[]).filter(function(p){ return todoRol || p.ir===idT; });
+    ESPERA=P;
+    nP=todoRol?(r.totalPendientes||P.length):P.length; nU=P.filter(function(p){ return p.nivel==="r"; }).length;
+  }
   var subt=nP ? (nP+(nP===1?" asunto de ":" asuntos de ")+nomT+(nP===1?" te espera":" te esperan")+(nU?", "+nU+(nU===1?" urgente":" urgentes"):"")) : "Todo al día en "+nomT;
 
   $("tablero").innerHTML=
@@ -209,21 +226,48 @@ function pintar(r){
          (obra?'<span class="st">En construcción</span>':(e?'<span class="st"><i style="background:'+PUNTO[e.nivel]+'"></i>'+esc(e.texto)+'</span>':''))+'<span class="ar">›</span></button>'; }).join("")+'</div>'+
    '</div>'+
    '<div class="box"><h2>LO QUE TE ESPERA HOY <span>'+esc(nomT)+'</span></h2>'+
-     (P.length? P.slice(0,5).map(function(p,i){ return '<div class="it" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div></div>'; }).join("")
-       : '<div class="vacio">No hay nada esperando por ti. Buen trabajo.</div>')+
+     (G ? esperaGrupos(gT,gM,gS,nomT) : (P.length? P.slice(0,5).map(function(p,i){ return '<div class="it" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div></div>'; }).join("")
+       : '<div class="vacio">No hay nada esperando por ti. Buen trabajo.</div>'))+
      (idT?'<button class="mas" onclick="abrir(\''+idT+'\')">Ver todo en '+esc(nomT)+' →</button>':'')+
    '</div></div>'+
    '<div class="pie"><span>ECOVSA · Ecología · Vida · Salud</span><span>Sesión segura · se bloquea tras 15 minutos sin uso</span></div></div>';
 }
+/* api 3.7: lo tuyo · tu módulo hoy · también sigues */
+function esperaGrupos(gT,gM,gS,nomT){
+  if(!gT.length && !gM.length && !gS.length) return '<div class="vacio">No hay nada esperando por ti. Buen trabajo.</div>';
+  var k=0, h='', uno=function(p,cls){
+    var i=k++, ac='';
+    if(p.tipo==="rcd") ac='<div class="ac"><button onclick="event.stopPropagation();rcdAcc('+i+',\'hecho\',this)">Hecho</button><button onclick="event.stopPropagation();rcdAcc('+i+',\'manana\',this)">Mañana</button></div>';
+    else if(p.tipo==="borrador") ac='<div class="ac"><button onclick="event.stopPropagation();irPend('+i+')">Abrir</button></div>';
+    return '<div class="it '+(cls||'')+'" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div>'+ac+'</div>';
+  };
+  var pri=true, cab=function(t){ var x='<div class="grp'+(pri?' pri':'')+'">'+t+' <i></i></div>'; pri=false; return x; };
+  if(gT.length) h+=cab('LO TUYO')+gT.map(function(p){ return uno(p,'mio'); }).join("");
+  if(gM.length) h+=cab(esc(String(nomT||'').toUpperCase())+' HOY')+gM.map(function(p){ return uno(p,''); }).join("");
+  else if(gT.length) h+=cab(esc(String(nomT||'').toUpperCase())+' HOY')+'<div class="vacio" style="padding:6px 2px">Nada urgente en '+esc(nomT)+'.</div>';
+  if(gS.length) h+=cab('TAMBIÉN SIGUES')+gS.map(function(p){ return uno(p,'sig'); }).join("");
+  return h;
+}
+function rcdAcc(i,acc,btn){
+  var p=ESPERA[i]; if(!p||!p.rcdId) return; if(btn) btn.disabled=true;
+  google.script.run.withSuccessHandler(function(x){
+    if(!x||!x.ok){ if(btn) btn.disabled=false; avisar((x&&x.error)||"No se pudo"); return; }
+    avisar(acc==="hecho"?"Listo, marcado como hecho":"Te lo recuerdo mañana");
+    cargar(PIN_ACTUAL,function(y){ if(y&&y.ok){ TAB=y; pintar(y); } });
+  }).withFailureHandler(function(){ if(btn) btn.disabled=false; avisar("Sin conexión"); }).api_recordatorioAccion(PIN_ACTUAL,p.rcdId,acc);
+}
 function modulo(id){ return (TAB&&TAB.modulos||[]).filter(function(m){ return m.id===id; })[0]; }
 function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
+  /* api 3.7: la ruta en borrador o la ficha del cliente se abren directo */
+  var ir=null; if(p.tipo==="borrador") ir={tab:"plan",fecha:p.fecha}; else if(p.tipo==="rcd"&&p.clienteId&&p.ir==="campo") ir={tab:"cli2",cli:p.clienteId};
+  if(ir){ ir.t=Date.now(); try{ localStorage.setItem("eco_ir",JSON.stringify(ir)); }catch(e){} }
   if(m && m.permitido && m.estado!=="construccion") abrir(p.ir); else avisar("Esto lo atiende otro módulo."); }
 function avisar(t){ var a=$("aviso"); a.textContent=t; a.style.display="block"; clearTimeout(window._av); window._av=setTimeout(function(){ a.style.display="none"; },3600); }
 
 function abrir(p){ navegar(URL_APP+"?p="+p); }
 function navegar(u){ if(window.__ir) window.__ir(u); else irA(u); }
 function salir(){
-  try{ localStorage.removeItem("ecovsa_pin"); sessionStorage.removeItem("eco_rol_sesion"); }catch(e){}
+  try{ localStorage.removeItem("ecovsa_pin"); localStorage.removeItem("eco_bloq_nombre"); sessionStorage.removeItem("eco_rol_sesion"); }catch(e){}
   PIN_ACTUAL=""; TAB=null; clearInterval(REFRESCO);
   EntradaECOVSA.detener();
   entrada();
