@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   ECOVSA · archivos.js (api 3.5.1 · tarjeta de espera en la 3.5.2 · PDF escaneados y avisos en la 3.6)
+   ECOVSA · archivos.js (api 3.5.1 · tarjeta de espera en la 3.5.2 · PDF escaneados y avisos en la 3.6 · subir al elegir en la 3.7.1)
    Lo que comparten las pantallas que suben documentos:
    · achica las fotos en el navegador (1800 px, JPG) antes de subirlas;
    · los PDF con texto se suben tal cual (hasta 10 MB); los escaneados de
@@ -273,5 +273,51 @@
     return { cancelar: function () { if (T && T.estado === 'trabajando') { cancelada = true; if (ctrl.abortar) ctrl.abortar(); T.quitar(); } }, tarjeta: function () { return T; } };
   }
 
-  window.ARCH = { preparar: preparar, subir: subir, kb: kb, MAX: MAX, acepta: '.pdf,application/pdf,image/*', tarjeta: tarjeta, flujo: flujo };
+  /* api 3.7.1 · Subir apenas se elige el archivo: mientras la persona llena el resto
+     (número, fechas), el archivo ya va subiendo. Al tocar «Guardar» solo falta registrarlo.
+     op.host · op.file · op.pedir(meta) → {subida, archivoId} · op.reemplazar
+     Devuelve { listo() → Promise(archivoId), guardar(registrar, textoListo) → Promise(respuesta), cancelar(), tarjeta() } */
+  function anticipar(op) {
+    var ctrl = {}, T = null, cancelada = false, prom = null, id = '';
+    var correr = function () {
+      cancelada = false; id = '';
+      if (T) T.quitar();
+      T = tarjeta(op.host, { nombre: op.file.name, detalle: kb(op.file.size), reemplazar: op.reemplazar,
+        pasos: /^image\//.test(op.file.type || '') ? ['Achicando la foto', 'Subiendo', 'Guardando', 'Listo'] : ['Preparando', 'Subiendo', 'Guardando', 'Listo'],
+        alCancelar: function () { cancelada = true; if (ctrl.abortar) ctrl.abortar(); T.quitar(); if (op.alCancelar) op.alCancelar(); } });
+      T.paso(0);
+      prom = preparar(op.file).then(function (p) {
+        if (cancelada) throw Object.assign(new Error('cancelada'), { cancelada: true });
+        if (p && p.meta && p.antes && p.meta.tamano < p.antes) T.detalle(kb(p.antes) + ' → ' + kb(p.meta.tamano));
+        T.paso(1);
+        return Promise.resolve(op.pedir(p.meta)).then(function (r) {
+          if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo preparar la subida.');
+          if (!r.subida) throw new Error(r.almacenError || 'El espacio de archivos no respondió. Intente en un rato.');
+          return subir(r.subida, p, T.avance, ctrl).then(function () { id = r.archivoId; T.paso(2, 'Subido · falta Guardar'); T.el.querySelector('.bar').classList.remove('ind'); T.el.querySelector('.bar i').style.width = '100%'; return r.archivoId; });
+        });
+      });
+      prom.catch(function (e) {
+        if (cancelada || (e && e.cancelada)) return;
+        T.error((e && e.message) || 'No se pudo subir.', correr); if (op.alError) op.alError((e && e.message) || '', T);
+      });
+    };
+    correr();
+    return {
+      listo: function () { return prom; },
+      subido: function () { return !!id; },
+      guardar: function (registrar, textoListo) {
+        return prom.then(function (archivoId) {
+          T.paso(2, 'Guardando');
+          return Promise.resolve(registrar(archivoId)).then(function (r) {
+            if (r && r.ok === false) throw new Error(r.error || 'No se pudo registrar.');
+            T.listo(textoListo || 'Guardado'); return r;
+          });
+        }).catch(function (e) { if (!(e && e.cancelada)) T.error((e && e.message) || 'No se pudo guardar.'); throw e; });
+      },
+      cancelar: function () { if (T && T.estado === 'trabajando') { cancelada = true; if (ctrl.abortar) ctrl.abortar(); T.quitar(); } },
+      tarjeta: function () { return T; }
+    };
+  }
+
+  window.ARCH = { preparar: preparar, subir: subir, kb: kb, MAX: MAX, acepta: '.pdf,application/pdf,image/*', tarjeta: tarjeta, flujo: flujo, anticipar: anticipar };
 })();

@@ -200,6 +200,9 @@ function pintar(r){
   var todoRol=(rol==="gerente"||rol==="admin");
   var G=r.grupos||null, P, nP, nU;
   if(G){
+    /* api 3.7.1: si el espacio de archivos pasa del aviso, sale primero en «Lo tuyo» */
+    var E=r.espacio, eb=E?((E.real&&E.real.bytes!=null)?E.real.bytes:E.registrado):0;
+    if(E && eb>=E.aviso){ var mb=Math.round(eb/1048576); G.tuyo=[{nivel:eb>=E.limite*0.95?"r":"a",tipo:"espacio",ir:"config",titulo:"El espacio de archivos va en "+mb+" MB de "+(E.limite>=1073741824?Math.round(E.limite/1073741824)+" GB":Math.round(E.limite/1048576)+" MB"),texto:"Es el límite del plan gratis de Supabase. Toca para ver en qué se está usando."}].concat(G.tuyo||[]); }
     var gT=(G.tuyo||[]).slice(0,4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
     ESPERA=gT.concat(gM,gS); P=ESPERA;
     var mios=(G.tuyo||[]).concat(G.modulo||[]);
@@ -259,7 +262,9 @@ function rcdAcc(i,acc,btn){
 function modulo(id){ return (TAB&&TAB.modulos||[]).filter(function(m){ return m.id===id; })[0]; }
 function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
   /* api 3.7: la ruta en borrador o la ficha del cliente se abren directo */
+  if(p.tipo==="espacio"){ navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html#esp"); return; }
   var ir=null; if(p.tipo==="borrador") ir={tab:"plan",fecha:p.fecha}; else if(p.tipo==="rcd"&&p.clienteId&&p.ir==="campo") ir={tab:"cli2",cli:p.clienteId};
+  else if(p.tipo==="rcd"&&p.rtipo==="ruta"&&p.ref) ir={tab:"plan",fecha:String(p.ref).split("|")[0]}; else if(p.tipo==="rcd"&&p.rtipo==="camion"&&p.ref) ir={tab:"flota",placa:p.ref};
   if(ir){ ir.t=Date.now(); try{ localStorage.setItem("eco_ir",JSON.stringify(ir)); }catch(e){} }
   if(m && m.permitido && m.estado!=="construccion") abrir(p.ir); else avisar("Esto lo atiende otro módulo."); }
 function avisar(t){ var a=$("aviso"); a.textContent=t; a.style.display="block"; clearTimeout(window._av); window._av=setTimeout(function(){ a.style.display="none"; },3600); }

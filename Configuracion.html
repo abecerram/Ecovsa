@@ -450,6 +450,25 @@ function cerrarTodas() {
   }, { titulo: 'Cerrar la sesión de todos', boton: 'Cerrar todas', peligro: true });
 }
 
+/* ═══ api 3.7.1 · ESPACIO DE ARCHIVOS ═══ */
+var ESP = null, ESP_V = false;
+function vEspacio() {
+  if (!ESP) { if (!ESP_V) { ESP_V = true; MK.api('api_espacioArchivos', PIN).then(function (r) { ESP_V = false; ESP = r || { ok: false }; MK.repintar(); }, function () { ESP_V = false; ESP = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+    return MK.cabeza('Espacio de archivos', 'Cuánto ocupan los documentos y fotos subidos.') + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
+  if (!ESP.ok) return MK.cabeza('Espacio de archivos', '') + '<div class="aviso am">' + MK.esc(ESP.error || 'No se pudo consultar.') + '</div>';
+  var mb = function (b) { return b >= 1073741824 ? (Math.round(b / 107374182.4) / 10) + ' GB' : b >= 1048576 ? (Math.round(b / 104857.6) / 10) + ' MB' : Math.max(0, Math.round(b / 1024)) + ' KB'; };
+  var real = ESP.real && ESP.real.bytes != null ? ESP.real : null, b = real ? real.bytes : ESP.registrado.bytes;
+  var pc = Math.min(100, Math.round(b / ESP.limite * 1000) / 10), col = b >= ESP.limite * 0.95 ? 'var(--bad)' : b >= ESP.aviso ? '#c98a00' : 'var(--ok)';
+  var h = MK.cabeza('Espacio de archivos', 'El plan gratis de Supabase da ' + mb(ESP.limite) + '. Desde ' + mb(ESP.aviso) + ' sale un aviso en tu lobby.', '<button class="btn" onclick="ESP=null;MK.repintar()">' + MK.ic('renovar', 15) + 'Actualizar</button>');
+  h += '<div class="card"><div class="fila" style="justify-content:space-between;align-items:baseline"><b style="font-size:26px">' + mb(b) + '</b><span class="muted">de ' + mb(ESP.limite) + ' · ' + pc + ' %</span></div>' +
+    '<div style="height:12px;border-radius:8px;background:var(--line2);overflow:hidden;margin:10px 0 6px"><div style="height:100%;width:' + pc + '%;background:' + col + '"></div></div>' +
+    '<div class="small muted">' + (real ? 'Medido en Supabase: ' + real.archivos + ' archivos en el espacio «' + MK.esc(ESP.bucket) + '»' + (real.todo > real.bytes + 1048576 ? ' · con los demás espacios, ' + mb(real.todo) : '') + '.' : 'Según lo registrado en el sistema (' + ESP.registrado.archivos + ' archivos). La medida exacta de Supabase no respondió.') + '</div></div>';
+  var L = ESP.registrado.porAmbito || [];
+  h += '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">En qué se usa</h3>' + (L.length ? MK.tabla(['Qué', '>Tamaño', '>Parte'], L.map(function (x) { return [MK.esc(x.nombre), mb(x.bytes), (ESP.registrado.bytes ? Math.round(x.bytes / ESP.registrado.bytes * 100) : 0) + ' %']; })) : '<div class="vacio">Todavía no hay archivos.</div>') +
+    '<div class="nota">Las fotos se achican solas al subir y los PDF escaneados se rearman livianos. Si se acerca al límite, se puede pasar al plan de pago de Supabase o borrar lo que ya no sirve.</div></div>';
+  return h;
+}
+
 /* ═══ HISTORIAL ═══ */
 function vHistorial() {
   var H = B().historial || [];
@@ -486,6 +505,7 @@ MK.iniciar({
     { id: 'cob', n: 'Escalera de cobro', i: 'escalera' },
     { id: 'seg', n: 'Seguridad', i: 'candado' },
     { id: 'his', n: 'Historial', i: 'historial' },
+    { id: 'esp', n: 'Espacio de archivos', i: 'subir' },
     { g: 'AYUDA' },
     { id: 'ent', n: 'Cómo se entra', i: 'puerta' }
   ],
@@ -501,7 +521,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, seg: vSeguridad, his: vHistorial, ent: vEntrada };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, seg: vSeguridad, his: vHistorial, ent: vEntrada, esp: vEspacio };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });

@@ -896,6 +896,9 @@ function subirLote(inp) {
         try {
           var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
           var ws = wb.Sheets[wb.SheetNames[0]];
+          /* api 3.7.1: el diario de cobros de Sage (Cash Receipts Journal) se lee tal como sale */
+          var crudo = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+          if (crudo.length && esSage(crudo[0])) { leerSage(crudo, nombre, 'archivo'); return; }
           var txt = XLSX.utils.sheet_to_csv(ws, { FS: '\t', rawNumbers: false, dateNF: 'dd/mm/yyyy' });
           LOTE = { txt: txt, archivo: nombre }; leerLote(true);
         } catch (x) { MK.aviso('No pude leer el Excel: ' + x.message); }
@@ -921,6 +924,8 @@ function leerLote(yaTengo) {
     var out = [], cur = '', q = false; for (var i = 0; i < l.length; i++) { var ch = l[i]; if (ch === '"') q = !q; else if (ch === ',' && !q) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out;
   };
   var cab0 = partir(lineas[0]), cab = cab0.map(function (h) { return qa(h.trim().toLowerCase().replace(/[°º#.:]/g, '')).replace(/\s+/g, ' ').trim(); });
+  /* api 3.7.1: si lo pegado es el diario de Sage, se lee con sus reglas (fechas mes/día/año) */
+  if (esSage(cab0)) { leerSage(lineas.map(partir), archivo, 'pegado'); return; }
   var idx = {}; Object.keys(SIN).forEach(function (k) { idx[k] = cab.findIndex(function (h) { return SIN[k].indexOf(h) >= 0; }); });
   if (idx.monto < 0 || (idx.factura < 0 && idx.cliente < 0)) { MK.aviso('No encontré las columnas de monto y factura o cliente en la primera fila.'); return; }
   var NOM = { tipo: 'tipo', fecha: 'fecha', factura: 'n.º de factura', cliente: 'cliente', ruc: 'RUC', monto: 'monto', ref: 'referencia', metodo: 'método' };
@@ -964,6 +969,8 @@ function clasP(r, porNum, F, P) {
   if (f) {
     var cf = cu(f.clave) || {}; r.cuenta = cf;
     if (f.saldo <= 0.001) { r.g = 'd'; r.why = 'La ' + f.factura + ' ya estaba pagada. ¿Es de otra factura de ' + (cf.cliente || f.cliente) + '?'; return r; }
+    /* api 3.7.1: un pago más grande que el saldo no entra solo */
+    if (r.monto > f.saldo + 0.01) { r.g = 'd'; r.why = 'El pago de ' + D(r.monto) + ' es mayor que lo que falta de la ' + f.factura + ' (' + D(f.saldo) + '). ¿Ya estaba registrado en parte?'; return r; }
     r.g = 'n'; r.why = 'Nuevo · se aplica a la ' + f.factura + ' de ' + (cf.cliente || f.cliente) + ' (saldo ' + D(f.saldo) + (r.monto < f.saldo - 0.009 ? ', queda ' + D(f.saldo - r.monto) : '') + ')'; return r;
   }
   if (r.factura) {
@@ -975,13 +982,115 @@ function clasP(r, porNum, F, P) {
   r.g = 'n'; r.why = 'Nuevo · sin factura escrita; cuenta hallada por ' + r.por + ': ' + r.cuenta.cliente + '. Se amarra en Conciliar pagos con la propuesta de aplicarlo a las más viejas.';
   return r;
 }
+/* ═══ api 3.7.1 · EL DIARIO DE COBROS DE SAGE (Cash Receipts Journal) ═══
+   Cada cobro son 2 o más filas con la misma referencia: la que baja la factura
+   (cuenta 13050501, «Invoice: …», en Credit) y la de dónde vino el dinero:
+     111…     banco (entró el dinero)          → depósito
+     24080502 ITBMS que retuvo el cliente      → retención
+     28050501 adelanto del cliente que se aplica → otro (anticipo)
+     41300506 lo que pagó de más               → no es pago de factura; se avisa
+   El número de factura se toma tal cual (sin quitar ceros). Si el archivo no
+   cuadra (débitos ≠ créditos), no se carga nada. */
+var SAGE_FAC = '13050501';
+function esSage(cab) {
+  var c = (cab || []).map(function (h) { return qa(String(h || '').toLowerCase()).replace(/[^a-z]/g, ''); });
+  return c.indexOf('accountid') >= 0 && c.indexOf('transactionref') >= 0 && c.some(function (h) { return h.indexOf('credit') === 0; }) && c.some(function (h) { return h.indexOf('debit') === 0; });
+}
+function sageFecha(v, origen) {
+  if (v instanceof Date) return v.getFullYear() + '-' + ('0' + (v.getMonth() + 1)).slice(-2) + '-' + ('0' + v.getDate()).slice(-2);
+  if (typeof v === 'number') return fechaL(v, 'auto');
+  var t = String(v || '').trim(); if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
+  return fechaL(t, origen === 'archivo' ? 'dmy' : 'mdy');   /* lo copiado de Sage viene mes/día/año */
+}
+function sageMonto(v) { if (typeof v === 'number') return Math.round(v * 100) / 100; return Math.round(numL(v) * 100) / 100; }
+function leerSage(rows, archivo, origen) {
+  var cab = rows[0].map(function (h) { return qa(String(h || '').toLowerCase()).replace(/[^a-z]/g, ''); });
+  var ix = function (k) { return cab.findIndex(function (h) { return h.indexOf(k) === 0; }); };
+  var I = { f: ix('date'), cta: ix('accountid'), ref: ix('transactionref'), des: ix('linedescription'), deb: ix('debit'), cre: ix('credit') };
+  var L = rows.slice(1).map(function (r, i) {
+    return { n: i + 2, fecha: sageFecha(r[I.f], origen), cta: String(r[I.cta] == null ? '' : r[I.cta]).trim(), ref: String(r[I.ref] || '').trim(), des: String(r[I.des] || '').trim(), deb: sageMonto(r[I.deb]), cre: sageMonto(r[I.cre]) };
+  }).filter(function (x) { return x.cta && x.fecha && (x.deb || x.cre); });
+  if (!L.length) { MK.aviso('El diario no trae filas con cuenta, fecha y monto.'); return; }
+  var tD = L.reduce(function (s, x) { return s + x.deb; }, 0), tC = L.reduce(function (s, x) { return s + x.cre; }, 0);
+  tD = Math.round(tD * 100) / 100; tC = Math.round(tC * 100) / 100;
+  /* los cobros: filas seguidas con la misma referencia y la misma fecha */
+  var G = [];
+  L.forEach(function (x) { var u = G[G.length - 1]; if (u && u.ref === x.ref && u.fecha === x.fecha) u.l.push(x); else G.push({ ref: x.ref, fecha: x.fecha, l: [x] }); });
+  var raros = [], filas = [], vistas = {}, porRef = {}, dif = [];
+  var F = B().facturas || [], P = B().pagos || [], porNum = {}; F.forEach(function (f) { porNum[f.factura] = f; });
+  var conPago = {}, enArchivo = {};
+  G.forEach(function (g) { g.l.forEach(function (x) { if (x.cta === SAGE_FAC && x.cre > 0) { var n0 = String(x.des).replace(/^\s*invoice\s*[:#]?\s*/i, '').trim(); enArchivo[n0] = Math.round(((enArchivo[n0] || 0) + x.cre) * 100) / 100; } }); });
+  G.forEach(function (g) {
+    var fac = g.l.filter(function (x) { return x.cta === SAGE_FAC && x.cre > 0; });
+    var ori = g.l.filter(function (x) { return x.cta !== SAGE_FAC && x.deb > 0; });
+    var otras = g.l.filter(function (x) { return x.cta !== SAGE_FAC && x.cre > 0; });
+    var sd = g.l.reduce(function (s, x) { return s + x.deb - x.cre; }, 0);
+    if (Math.abs(sd) > 0.009) raros.push('El cobro ' + g.ref + ' del ' + fdm(g.fecha) + ' no cuadra por sí solo (diferencia ' + D(Math.abs(sd)) + ').');
+    otras.forEach(function (x) { if (/^4/.test(x.cta)) dif.push(x); else raros.push('Fila ' + x.n + ': cuenta ' + x.cta + ' en crédito que no es de factura (' + x.des + ', ' + D(x.cre) + ').'); });
+    var tipos = ori.map(function (x) { return /^111/.test(x.cta) ? 'banco' : x.cta === '24080502' ? 'ret' : /^2805/.test(x.cta) ? 'ant' : 'otra'; });
+    var tipo = tipos.filter(function (t, i, a) { return a.indexOf(t) === i; });
+    var metodo = tipo.length === 1 ? { banco: 'depósito', ret: 'retención', ant: 'otro', otra: 'otro' }[tipo[0]] : 'depósito';
+    var nota = tipo.length === 1 ? { banco: '', ret: 'Retención de ITBMS aplicada en Sage', ant: 'Anticipo del cliente aplicado en Sage (legalización de pago)', otra: 'Cuenta de origen ' + ori.map(function (x) { return x.cta; }).join(', ') }[tipo[0]] : 'Cobro mixto en Sage: ' + ori.map(function (x) { return x.cta + ' ' + D(x.deb); }).join(' + ');
+    if (tipo.length > 1) raros.push('El cobro ' + g.ref + ' mezcla dinero del banco con retención o anticipo: se carga como depósito; revísalo.');
+    tipo.forEach(function (t) { if (t === 'otra') raros.push('El cobro ' + g.ref + ' viene de una cuenta que no reconozco (' + ori.filter(function (x) { return !/^111|^2408|^2805/.test(x.cta); }).map(function (x) { return x.cta; }).join(', ') + ').'); });
+    var cli = (ori[0] || {}).des || '';
+    if (!/^(legalizaci|aplicaci|retenci)/i.test(g.ref) && ori.length) { (porRef[g.ref] = porRef[g.ref] || []).push({ cli: cli, fecha: g.fecha }); }
+    fac.forEach(function (x, k) {
+      var num = String(x.des).replace(/^\s*invoice\s*[:#]?\s*/i, '').trim();
+      var cl = (ori.length === fac.length ? ori[k].des : cli) || '';
+      if (metodo !== 'retención' && metodo !== 'otro') conPago[num] = 1;
+      var r = { n: x.n, tipo: 'P', fecha: g.fecha, factura: num, cliente: cl, ruc: '', monto: x.cre, ref: g.ref, metodo: metodo, nota: nota, sage: metodo === 'retención' ? 'ret' : metodo === 'otro' ? 'ant' : '' };
+      var cuE = cuentaDeLote(r.cliente, ''); r.cuenta = cuE && cuE[0]; r.por = cuE && cuE[1];
+      var firma = r.factura + '|' + r.fecha + '|' + r.monto;
+      if (vistas[firma]) { r.g = 'y'; r.why = 'Repetido dentro del mismo archivo'; filas.push(r); return; }
+      vistas[firma] = 1;
+      clasP(r, porNum, F, P);
+      /* ya registrado con otra fecha (p. ej. en la carga inicial): mismo monto a esa factura, o la factura
+         ya tiene pagado exactamente lo que el archivo le aplica */
+      if (r.g === 'd' && porNum[r.factura]) {
+        var pf = P.filter(function (q) { return !q.anulado && q.factura === r.factura; });
+        var igual = pf.filter(function (q) { return Math.abs(q.monto - r.monto) < 0.01; })[0];
+        var suma = Math.round(pf.reduce(function (t, q) { return t + q.monto; }, 0) * 100) / 100;
+        if (igual) { r.g = 'y'; r.why = 'Ya está: pago del ' + fdm(igual.fecha) + ' por ' + D(igual.monto) + ' a la ' + r.factura + (igual.fecha !== r.fecha ? ' (en Sage con fecha ' + fdm(r.fecha) + ')' : ''); }
+        else if (pf.length && Math.abs(suma - (enArchivo[r.factura] || 0)) < 0.01) { r.g = 'y'; r.why = 'Ya está: la ' + r.factura + ' ya tiene ' + D(suma) + ' en pagos, lo mismo que este archivo le aplica'; }
+      }
+      if (r.sage === 'ret' && r.g === 'n') r.why = 'Retención de ITBMS · ' + r.why;
+      if (r.sage === 'ant' && r.g === 'n') r.why = 'Anticipo aplicado · ' + r.why;
+      filas.push(r);
+    });
+  });
+  /* un mismo recibo con clientes distintos */
+  Object.keys(porRef).forEach(function (k) {
+    var cs = porRef[k].map(function (x) { return x.cli.toUpperCase(); }).filter(function (c, i, a) { return a.indexOf(c) === i; });
+    if (cs.length > 1) raros.push('El ' + k + ' aparece para ' + cs.length + ' clientes: ' + porRef[k].map(function (x) { return x.cli + ' (' + fdm(x.fecha) + ')'; }).join(' y ') + '. Pregúntale a contabilidad.');
+  });
+  /* recibos que faltan en la numeración de cada mes */
+  var num = {};
+  Object.keys(porRef).forEach(function (k) { var m = k.toUpperCase().match(/RECIBO\s*#?\s*0*(\d+)\s*[-\s]\s*([A-ZÁÉÍÓÚ]+)/); if (m) (num[m[2]] = num[m[2]] || []).push(Number(m[1])); });
+  Object.keys(num).forEach(function (mes) { var l = num[mes], mx = Math.max.apply(null, l), falta = []; for (var i = 1; i <= mx; i++) if (l.indexOf(i) < 0) falta.push(i); if (falta.length && falta.length <= 10) raros.push('En ' + mes.toLowerCase() + ' no aparece' + (falta.length > 1 ? 'n los recibos ' : ' el recibo ') + falta.map(function (n) { return '#' + n; }).join(', ') + '. ¿Se anularon?'); });
+  /* retenciones sin su pago en el archivo */
+  filas.filter(function (r) { return r.sage === 'ret' && !conPago[r.factura]; }).forEach(function (r) { raros.push('La ' + r.factura + (r.cliente ? ' de ' + r.cliente : '') + ' tiene la retención aplicada, pero su pago no está en este archivo.'); });
+  dif.forEach(function (x) { raros.push('En el ' + x.ref + ' contabilidad dejó ' + D(x.cre) + ' como diferencia (' + x.des.toLowerCase() + '): el cliente pagó de más. No se carga como pago.'); });
+  var cuadra = Math.abs(tD - tC) < 0.01;
+  LOTE = { txt: '', archivo: archivo, filas: filas, sage: { filas: L.length, cobros: G.length, deb: tD, cre: tC, cuadra: cuadra, raros: raros },
+           cols: '<span>Diario de cobros de Sage <i>→ ' + L.length + ' filas · ' + G.length + ' cobros</i></span>', leido: 'Diario de cobros de Sage · ' + filas.length + ' pagos a facturas', f: 'todos' };
+  MK.repintar();
+}
+function sageResumen() {
+  var S = LOTE && LOTE.sage; if (!S) return '';
+  return '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Diario de cobros de Sage</h3>' +
+    '<div class="small">' + S.filas + ' filas · ' + S.cobros + ' cobros · débitos ' + D(S.deb) + ' · créditos ' + D(S.cre) + ' · ' +
+    (S.cuadra ? '<b style="color:var(--ok)">cuadra</b>' : '<b style="color:var(--bad)">no cuadra: no se carga nada hasta que contabilidad lo corrija</b>') + '</div>' +
+    (S.raros.length ? '<div class="aviso am" style="margin-top:10px"><b>Para preguntarle a contabilidad · ' + S.raros.length + '</b><ul style="margin:6px 0 0 18px;padding:0">' + S.raros.map(function (t) { return '<li>' + MK.esc(t) + '</li>'; }).join('') + '</ul></div>' : '<div class="small muted" style="margin-top:6px">Nada raro en el archivo.</div>') + '</div>';
+}
 var GN = { n: ['Nuevas', 'se cargan'], y: ['Ya estaban', 'se ignoran'], d: ['Dudosas', 'alguien decide'], s: ['Sin cuenta', 'se cargan y van a Conciliar'] };
 function lotePintar() {
   var R = LOTE.filas, cnt = function (k) { return R.filter(function (r) { return r.g === k; }).length; };
   var sum = function (t, gs) { return R.filter(function (r) { return r.tipo === t && gs.indexOf(r.g) >= 0; }).reduce(function (s, r) { return s + r.monto; }, 0); };
   var L = LOTE.f === 'todos' ? R : R.filter(function (r) { return r.g === LOTE.f; });
   var incluye = R.filter(function (r) { return r.g === 'n' || r.g === 's' || (r.g === 'd' && r.acepta); });
-  return '<div class="grupos" style="margin-top:14px">' + ['n', 'y', 'd', 's'].map(function (k) { return '<div class="gr ' + k + (LOTE.f === k ? ' on' : '') + '" onclick="LOTE.f=LOTE.f===\'' + k + '\'?\'todos\':\'' + k + '\';MK.repintar()"><span>' + GN[k][0] + '</span><b class="num">' + cnt(k) + '</b><small>' + GN[k][1] + '</small></div>'; }).join('') + '</div>' +
+  if (LOTE.sage && !LOTE.sage.cuadra) incluye = [];
+  return sageResumen() + '<div class="grupos" style="margin-top:14px">' + ['n', 'y', 'd', 's'].map(function (k) { return '<div class="gr ' + k + (LOTE.f === k ? ' on' : '') + '" onclick="LOTE.f=LOTE.f===\'' + k + '\'?\'todos\':\'' + k + '\';MK.repintar()"><span>' + GN[k][0] + '</span><b class="num">' + cnt(k) + '</b><small>' + GN[k][1] + '</small></div>'; }).join('') + '</div>' +
     '<div class="card"><h3>' + (LOTE.f === 'todos' ? 'Todas las filas' : GN[LOTE.f][0]) + '</h3>' +
     MK.tabla(['Fila', '', 'Fecha', 'Factura', 'Cliente en el lote', '>Monto', 'Resultado', 'Qué pasa'], L.map(function (r) {
       return [r.n, '<span class="tipo ' + (r.tipo === 'F' ? 'f' : 'p') + '">' + (r.tipo === 'F' ? 'FACTURA' : 'PAGO') + '</span>', fdm(r.fecha) || '<span class="chipx warn">sin fecha</span>', MK.esc(r.factura || '—'), MK.esc(r.cliente || '—'), D(r.monto),
@@ -997,7 +1106,8 @@ function lotePintar() {
 function confirmarLote(btn) {
   var R = LOTE.filas.filter(function (r) { return r.g === 'n' || r.g === 's' || (r.g === 'd' && r.acepta); });
   var facs = R.filter(function (r) { return r.tipo === 'F'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, cliente: r.cuenta ? r.cuenta.cliente : r.cliente, razon: r.cuenta ? r.cuenta.razon : r.cliente, ruc: r.ruc || (r.cuenta ? r.cuenta.ruc : ''), monto: r.monto, clienteId: r.cuenta && r.cuenta.clienteIds ? r.cuenta.clienteIds[0] : '' }; });
-  var pags = R.filter(function (r) { return r.tipo === 'P'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, monto: r.monto, referencia: r.ref, metodo: r.metodo, cliente: r.cuenta ? (r.cuenta.razon || r.cuenta.cliente) : r.cliente }; });
+  if (LOTE.sage && !LOTE.sage.cuadra) { MK.aviso('El diario no cuadra: no se carga nada.'); return; }
+  var pags = R.filter(function (r) { return r.tipo === 'P'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, monto: r.monto, referencia: r.ref, metodo: r.metodo, nota: r.nota || '', cliente: r.cuenta ? (r.cuenta.razon || r.cuenta.cliente) : r.cliente }; });
   MK.ocupado(btn, true, 'Cargando…');
   MK.llamar('api_cobCargarLote', { archivo: LOTE.archivo, facturas: facs, pagos: pags }).then(function (r) {
     LOTE.hecho = 'Lote ' + r.loteId + ' cargado: ' + r.facturas + ' facturas (' + D(r.totalFacturas) + ') y ' + r.pagos + ' pagos (' + D(r.totalPagos) + ').' + (r.saltadas && r.saltadas.length ? ' Se saltaron ' + r.saltadas.length + ' que ya estaban.' : '') + ' Se puede anular completo hoy mismo.';

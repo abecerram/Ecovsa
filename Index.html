@@ -6432,7 +6432,12 @@ function flDocNoAplica_(i, si){
   google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast(si ? d.tarea + ": no aplica" : d.tarea + " vuelve a contar"); flDocsListo_(); })
     .withFailureHandler(function(){ toast("Sin señal"); }).api_docCamionNoAplica(PIN, d.planId, si);
 }
-function flDocsListo_(){ FL_DOCS = null; if(typeof MT !== "undefined") MT = null; flDocsCamion_(FL_SEL, true); }
+function flDocsListo_(r){
+  FL_DOCS = null; if(typeof MT !== "undefined") MT = null;
+  /* api 3.7.1: el guardado ya trae los documentos de ese camión: no se vuelve a pedir nada */
+  if(r && r.camion && FL_DC && FL_SEL){ FL_DC = { ok: true, placa: FL_SEL, camion: r.camion, puedeEditar: FL_DC.puedeEditar, sugeridos: FL_DC.sugeridos, hoy: FL_DC.hoy }; if(FL_FT === "Documentos") flRepFicha_(); return; }
+  flDocsCamion_(FL_SEL, true);
+}
 function flDocRenovar_(i){
   var d = i >= 0 ? FL_DC.camion.docs[i] : null, nuevo = !d, ren = d && d.vence && d.archivo;
   FL_DR = { i: i, d: d, file: null };
@@ -6448,7 +6453,16 @@ function flDocRenovar_(i){
     '<button class="ini-ok" id="fd-ok" onclick="flDocGuardar_()">Guardar</button><button class="ini-ok sec" onclick="cerrarHojaIni_()">Cancelar</button>' +
     (d && d.historial.length ? '<div class="c2-lab">Historial</div>' + d.historial.map(function(x){ return '<div class="fl-dt"><b>' + (x.nombre ? esc(x.nombre) : 'sin archivo') + '</b><span>' + (x.vence ? 'vencía el ' + esc(mtF_(x.vence)) : '') + '</span></div>'; }).join("") : ''));
 }
-function flDocArchivo_(inp){ var f = inp.files[0]; FL_DR.file = f || null; $("fd-zt").textContent = f ? "📎 " + f.name + " · " + ARCH.kb(f.size) : "⬆ Toca para elegir el PDF o la foto del documento"; $("fd-z").classList.toggle("on", !!f); }
+function flDocArchivo_(inp){
+  var f = inp.files[0]; FL_DR.file = f || null; $("fd-zt").textContent = f ? "📎 " + f.name + " · " + ARCH.kb(f.size) : "⬆ Toca para elegir el PDF o la foto del documento"; $("fd-z").classList.toggle("on", !!f);
+  /* api 3.7.1: empieza a subir apenas se elige; mientras tanto se llenan las fechas */
+  if(FL_DR.sub){ FL_DR.sub.cancelar(); FL_DR.sub = null; }
+  if(!f || !ARCH.anticipar) return;
+  var placa = FL_SEL;
+  FL_DR.sub = ARCH.anticipar({ host: $("fd-sub"), reemplazar: true, file: f,
+    pedir: function(meta){ return new Promise(function(ok, mal){
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function(){ mal(new Error("Sin señal: no se pudo preparar la subida.")); }).api_docCamionPedirSubida(PIN, placa, meta); }); } });
+}
 function flDocGuardar_(){
   var R = FL_DR, d = R.d, b = $("fd-ok"), msg = $("fd-msg");
   var v = $("fd-v").value;
@@ -6462,14 +6476,23 @@ function flDocGuardar_(){
     b.textContent = "Guardando…";
     google.script.run.withSuccessHandler(function(r){
       if(!r || !r.ok){ b.disabled = false; b.textContent = "Guardar"; msg.textContent = (r && r.error) || "No se pudo"; return; }
-      cerrarHojaIni_(); toast("Documento guardado ✓"); flDocsListo_();
+      cerrarHojaIni_(); toast("Documento guardado ✓"); flDocsListo_(r);
     }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Guardar"; msg.textContent = "Sin señal: no se guardó."; }).api_docCamionGuardar(PIN, FL_SEL, dat);
   };
   if(!R.file) return guardar("");
+  var placa = FL_SEL;
+  /* api 3.7.1: el archivo ya venía subiendo desde que se eligió; solo falta registrarlo */
+  if(R.sub){
+    b.textContent = R.sub.subido() ? "Guardando…" : "Terminando de subir…";
+    R.sub.guardar(function(archivoId){ dat.archivoId = archivoId; return new Promise(function(ok, mal){
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function(){ mal(new Error("El archivo subió pero no se guardó el registro. Toca Guardar otra vez.")); }).api_docCamionGuardar(PIN, placa, dat); }); }, "Documento guardado")
+      .then(function(r){ toast("Documento guardado ✓"); setTimeout(function(){ if($("fd-sub")) cerrarHojaIni_(); flDocsListo_(r); }, 700); },
+            function(){ b.disabled = false; b.textContent = "Guardar"; });
+    return;
+  }
   /* api 3.5.2: la subida con su tarjeta (emblema, porcentaje, pasos). Si se cierra la
      hoja, sigue subiendo y se ve en la píldora de abajo. */
   b.textContent = "Subiendo…";
-  var placa = FL_SEL;
   ARCH.flujo({ host: $("fd-sub"), reemplazar: true, file: R.file, textoListo: "Documento guardado",
     pedir: function(meta){ return new Promise(function(ok, mal){
       google.script.run.withSuccessHandler(ok).withFailureHandler(function(){ mal(new Error("Sin señal: no se pudo preparar la subida.")); }).api_docCamionPedirSubida(PIN, placa, meta); }); },
@@ -13884,6 +13907,103 @@ function irDirecto37_(){
     else if(q.tab) mostrarTab(q.tab);
   }, 60);
 }
+</script>
+<style id="estilo-371">
+/* api 3.7.1 · Recuérdamelo también en la ruta y en el camión */
+.rc37{margin:12px 14px 14px}
+.rc37 .rcd{margin-top:8px}.rc37 .rcd-lista{margin-top:8px}
+.fl-fic .rc37{margin:10px 0 12px}
+</style>
+<script>
+/* ═══════════ api 3.7.1 · Recuérdamelo en la ruta del planificador y en el camión ═══════════ */
+var RC37 = {}, RC37_CTX = {}, RC37_F = null;
+function rc37Key_(c){ return c.tipo + "|" + (c.tipo === "ruta" ? String(c.ref).split("|")[0] : String(c.ref).toUpperCase()); }
+function rc37Cargar_(c, host){
+  var k = rc37Key_(c); RC37[k] = null;
+  google.script.run.withSuccessHandler(function(r){ RC37[k] = (r && r.ok && r.recordatorios) || []; rc37Repintar_(host); })
+    .withFailureHandler(function(){ RC37[k] = []; rc37Repintar_(host); }).api_recordatorios(PIN, c.tipo, c.ref);
+}
+function rc37Html_(c, host){
+  RC37_CTX[host] = c;
+  var k = rc37Key_(c); if(RC37[k] === undefined) rc37Cargar_(c, host);
+  return '<div class="rc37" id="' + host + '">' + rc37Inner_(host) + '</div>';
+}
+function rc37Repintar_(host){ var b = $(host); if(b) b.innerHTML = rc37Inner_(host); }
+function rc37Inner_(host){
+  var c = RC37_CTX[host]; if(!c) return "";
+  var L_ = RC37[rc37Key_(c)] || [], hoy = hoyISO(), F = RC37_F && RC37_F.host === host ? RC37_F : null, h = "";
+  h += '<button class="c2-btn" onclick="rc37Abrir_(\'' + host + '\')">🔔 Recuérdamelo ' + esc(c.sobre || "") + (L_.length ? ' · ' + L_.length : '') + '</button>';
+  if(F){
+    var ops = [["Mañana", c237Mas_(1)], ["En 3 días", c237Mas_(3)], ["El lunes", c237Lunes_()], ["En una semana", c237Mas_(7)]];
+    ops = ops.filter(function(o, i){ return !ops.slice(0, i).some(function(q){ return q[1] === o[1]; }); });
+    var usada = ops.some(function(o){ return o[1] === F.f; });
+    h += '<div class="rcd"><h4>' + mkSvg_("campana") + ' Recuérdamelo · ' + esc(c.refTxt || "") + '</h4>' +
+      '<textarea id="rc37-t" placeholder="' + esc(c.ejemplo || "¿Qué quieres que te recuerde?") + '" oninput="RC37_F.t=this.value">' + esc(F.t || "") + '</textarea>' +
+      '<div class="fl">' + ops.map(function(o){ return '<button class="' + (F.f === o[1] ? "on" : "") + '" onclick="RC37_F.f=\'' + o[1] + '\';rc37Repintar_(\'' + host + '\')">' + o[0] + '</button>'; }).join("") +
+      '<input type="date" min="' + c237Mas_(0) + '" value="' + (usada ? "" : esc(F.f || "")) + '" onchange="RC37_F.f=this.value;rc37Repintar_(\'' + host + '\')"></div>' +
+      '<div class="pie"><span>' + (F.f ? 'Te sale en el lobby, en «Lo tuyo», el ' + esc(nombreDia_(F.f)) + '.' : 'Elige el día.') + '</span>' +
+      '<button class="c2-btn" onclick="RC37_F=null;rc37Repintar_(\'' + host + '\')">Cancelar</button><button class="c2-btn a" id="rc37-ok" onclick="rc37Guardar_(this)">Guardar</button></div></div>';
+  }
+  if(L_.length) h += '<div class="rcd-lista"><div class="ttl">Tus recordatorios ' + esc(c.sobre || "") + '</div>' + L_.map(function(r){
+      return '<div class="rw"><em class="' + (r.fecha < hoy ? "r" : "") + '">' + (r.fecha === hoy ? 'hoy' : esc(nombreDia_(r.fecha))) + '</em><span>' + esc(r.texto) + '</span>' +
+        '<button onclick="rc37Accion_(\'' + host + '\',\'' + esc(r.rcdId) + '\',\'hecho\',this)">Hecho</button><button title="Quitar" onclick="rc37Accion_(\'' + host + '\',\'' + esc(r.rcdId) + '\',\'borrar\',this)">✕</button></div>';
+    }).join("") + '</div>';
+  return h;
+}
+function rc37Abrir_(host){ RC37_F = { host: host, f: c237Mas_(1), t: "" }; rc37Repintar_(host); var t = $("rc37-t"); if(t){ t.focus(); if(t.scrollIntoView) t.scrollIntoView({ block: "nearest" }); } }
+function rc37Guardar_(btn){
+  var F = RC37_F; if(!F) return; var c = RC37_CTX[F.host]; if(!c) return;
+  var t = String(F.t || "").trim();
+  if(t.length < 3){ toast("Escribe qué quieres que te recuerde"); return; }
+  if(!F.f){ toast("Elige el día"); return; }
+  btn.disabled = true; btn.textContent = "Guardando…";
+  var host = F.host, f = F.f;
+  google.script.run.withSuccessHandler(function(r){
+    btn.disabled = false; btn.textContent = "Guardar";
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    RC37[rc37Key_(c)] = r.recordatorios || []; RC37_F = null; rc37Repintar_(host); toast("Te lo recuerdo el " + nombreDia_(f));
+  }).withFailureHandler(function(){ btn.disabled = false; btn.textContent = "Guardar"; toast("Sin señal: intenta de nuevo"); })
+    .api_recordar(PIN, { tipo: c.tipo, ref: c.ref, refTxt: c.refTxt, texto: t, fecha: f, modulo: "campo" });
+}
+function rc37Accion_(host, rid, acc, btn){
+  var c = RC37_CTX[host]; if(btn) btn.disabled = true;
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ if(btn) btn.disabled = false; toast((r && r.error) || "No se pudo"); return; }
+    if(c) RC37[rc37Key_(c)] = r.recordatorios || []; rc37Repintar_(host); toast(acc === "hecho" ? "Listo, marcado como hecho" : "Recordatorio quitado");
+  }).withFailureHandler(function(){ if(btn) btn.disabled = false; toast("Sin señal"); }).api_recordatorioAccion(PIN, rid, acc);
+}
+
+/* en la ruta del planificador */
+var plPintarRutaBase371_ = plPintarRuta_;
+plPintarRuta_ = function(){
+  var r = plPintarRutaBase371_.apply(this, arguments);
+  var box = $("pl-ruta"); if(!box || !PL || !ED) return r;
+  var cond = String(ED.conductor || "").split(" ")[0];
+  box.insertAdjacentHTML("beforeend", rc37Html_({ tipo: "ruta", ref: PL.fecha + "|" + (ED.rutaId || ""), sobre: "sobre esta ruta",
+    refTxt: "Ruta del " + nombreDia_(PL.fecha) + (cond ? " · " + cond : ""), ejemplo: "Ej.: confirmar con " + (cond || "el conductor") + " la hora de salida" }, "rc-ruta"));
+  return r;
+};
+/* en el camión (pestaña Fallas de su ficha) */
+var flHtmlFichaBase371_ = flHtmlFicha_;
+flHtmlFicha_ = function(){
+  var h = flHtmlFichaBase371_.apply(this, arguments);
+  if(!FL_SEL || FL_FT !== "Fallas") return h;
+  var i = h.indexOf('<div class="c2-tabs">'); if(i < 0) return h;
+  var j = h.indexOf('</div>', i) + 6;
+  return h.slice(0, j) + rc37Html_({ tipo: "camion", ref: FL_SEL, sobre: "sobre este camión", refTxt: "Camión " + FL_SEL, ejemplo: "Ej.: llamar al taller por los frenos" }, "rc-camion") + h.slice(j);
+};
+/* enlace directo desde el lobby: también al camión */
+var irDirectoBase371_ = irDirecto37_;
+irDirecto37_ = function(){
+  var q = null; try { q = JSON.parse(localStorage.getItem("eco_ir") || "null"); } catch(e){}
+  if(!q || q.tab !== "flota") return irDirectoBase371_();
+  try { localStorage.removeItem("eco_ir"); } catch(e){}
+  if(!q.t || Date.now() - q.t > 120000 || !esSupervisor()) return;
+  setTimeout(function(){
+    mostrarTab("flota");
+    var n = 0, e = setInterval(function(){ if(typeof FL !== "undefined" && FL && FL.camiones){ clearInterval(e); FL_FT = "Fallas"; flFicha_(q.placa); } else if(++n > 40) clearInterval(e); }, 250);
+  }, 60);
+};
 </script>
 </body>
 
