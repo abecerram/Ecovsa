@@ -266,6 +266,10 @@
   .savebar .tx span.l{display:none}
   .vt .res{display:none}
 }
+.srv td{vertical-align:middle}
+.srv-cat{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-top:10px}
+.srv-cat button{text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font:inherit;cursor:pointer;display:grid;gap:3px}
+.srv-cat button:hover{border-color:var(--navy)}.srv-cat small{color:var(--muted);font-size:12px}
 </style>
 </head>
 <body class="mk">
@@ -740,8 +744,60 @@
       campo('canal envio', 'Enviar facturas por', { ops: [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']] }) + '</div>' +
       '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado.</span></div>';
     return '<div class="b2"><div class="stack">' + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
+      serviciosCard() +
       card('Notas de la propuesta', '<div id="notas-box"></div>') + card('Para facturación', fact) + '</div>' +
       '<div class="stack">' + propuestaCard() + card('Inspección técnica', inspeccionHtml()) + '</div></div>';
+  }
+
+  /* ═══ api 3.12 · Servicios y productos: cualquier propuesta los puede llevar ═══ */
+  var QUIEN_TX = { camion: 'Personal del camión', conductor: 'Conductor en la visita', mercadeo: 'Mercadeo', otro: 'Otro' };
+  function serviciosCard() {
+    if (OP.gran) return card('Servicios y productos', '<p class="small muted">En un gran generador los servicios y productos van por grupo de sedes, en la cuenta.</p><a class="btn sm" style="margin-top:8px" href="MerCuenta.html?id=' + encodeURIComponent(COD) + '&paso=4">' + IC('lapiz', 14) + ' Abrir la cuenta</a>');
+    var S = D.servicios || { lista: [], total: 0 }, u = unica(), L = S.lista || [];
+    var h = L.length ? '<table class="vt srv">' + L.map(function (x, i) {
+      var cant = x.cantidad === 'solicitud' ? 'por solicitud' : x.cantidad + (u ? '' : (x.cada === 'visita' ? ' en cada visita' : ' al mes'));
+      return '<tr><td><b>' + E(x.nombre) + '</b><small class="muted" style="display:block">' + E(QUIEN_TX[x.quien] || '') + (x.stock != null ? ' · quedan ' + E(x.stock) : '') + (x.activoCat === false ? ' · <span class="tag t-warn">apagado en el catálogo</span>' : '') + '</small></td>' +
+        '<td>' + E(cant) + '</td><td class="num" style="text-align:right">' + (x.modo === 'cobrado' ? MK.dinero(x.precio) + (u ? '' : ' c/u') : '<span class="tag t-info">Incluido</span>') + '</td>' +
+        '<td class="num" style="text-align:right">' + (x.modo === 'cobrado' ? '<b>' + MK.dinero(x.total) + '</b>' + (u ? '' : '<small class="muted" style="display:block">al mes</small>') : '—') + '</td>' +
+        (ro() ? '' : '<td style="white-space:nowrap"><button class="btn sm gh" data-a="srv-editar" data-i="' + i + '" title="Cambiar">' + IC('lapiz', 13) + '</button><button class="btn sm gh" data-a="srv-quitar" data-i="' + i + '" title="Quitar">' + IC('basura', 13) + '</button></td>') + '</tr>';
+    }).join('') + '</table>' + (S.total ? '<div class="small" style="margin-top:8px;text-align:right">Cobrado ' + (u ? 'en el servicio' : 'al mes') + ': <b>' + MK.dinero(S.total) + '</b> · suma al valor de la oportunidad</div>' : '')
+      : '<p class="small muted">Fumigación, recipientes punzocortantes, bolsas… lo que haya en el catálogo. Salen en la propuesta y, al pasar a cartera, el conductor repone los envases en la visita.</p>';
+    return card('Servicios y productos', h, ro() ? '' : '<button class="btn sm" data-a="srv-agregar">' + IC('mas', 13) + ' Agregar</button>');
+  }
+  function srvGuardar(lista, b) {
+    if (b) MK.ocupado(b, true);
+    return MK.llamar('api_guardarServiciosOp', MK.pin, COD, lista).then(function (r) {
+      if (b) MK.ocupado(b, false); D.servicios = r.servicios; MK.cerrarHoja(); MK.aviso('Servicios guardados'); MK.cambio({ tipo: 'servicios' });
+    }, function () { if (b) MK.ocupado(b, false); });
+  }
+  function srvListaBase() { return ((D.servicios && D.servicios.lista) || []).map(function (x) { return { catId: x.catId, nombre: x.nombre, tipo: x.tipo, cantidad: x.cantidad, cada: x.cada, modo: x.modo, precio: x.precio, insumoId: x.insumoId, quien: x.quien }; }); }
+  function srvHoja(i) {
+    var L = srvListaBase(), S = D.servicios || {}, u = unica();
+    if (i == null) {
+      var ya = {}; L.forEach(function (x) { ya[x.catId] = 1; });
+      var C = (S.catalogo || []).filter(function (c) { return !ya[c.id]; });
+      var h = MK.hoja('<h2>Agregar servicio o producto</h2><p class="small muted">Del catálogo de ECOVSA. Lo que no esté se crea en Tarifario y catálogo.</p>' +
+        (C.length ? '<div class="srv-cat">' + C.map(function (c) { return '<button type="button" data-cat="' + E(c.id) + '"><b>' + E(c.nombre) + '</b><small>' + E(c.tipo === 'servicio' ? 'Servicio' : c.tipo === 'prestamo' ? 'Préstamo' : 'Producto') + (c.stock != null ? ' · quedan ' + E(c.stock) : '') + (c.precio ? ' · ' + MK.dinero(c.precio) : '') + ' · ' + E(QUIEN_TX[c.quien] || '') + '</small></button>'; }).join('') + '</div>' : MK.vacio('Ya están todos los del catálogo.')) +
+        '<div class="pie"><a class="btn" href="MerTarifario.html#catalogo">Ir al catálogo</a><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true });
+      [].forEach.call(h.querySelectorAll('[data-cat]'), function (b) { b.onclick = function () {
+        var c = (S.catalogo || []).filter(function (z) { return z.id === b.getAttribute('data-cat'); })[0]; if (!c) return;
+        L.push({ catId: c.id, nombre: c.nombre, tipo: c.tipo, cantidad: 1, cada: 'mes', modo: c.tipo === 'servicio' && c.precio ? 'cobrado' : 'incluido', precio: c.precio || 0, insumoId: c.insumoId, quien: c.quien });
+        D.servicios.lista = L; srvHoja(L.length - 1); }; });
+      return;
+    }
+    var x = L[i]; if (!x) return;
+    var h2 = MK.hoja('<h2>' + E(x.nombre) + '</h2>' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="sv-c">CANTIDAD</label><select class="sel" id="sv-c">' + ['1', '2', '3', '4', '5', '10', 'solicitud'].map(function (o) { return '<option value="' + o + '"' + (String(x.cantidad) === o ? ' selected' : '') + '>' + (o === 'solicitud' ? 'Por solicitud' : o) + '</option>'; }).join('') + '</select></div>' +
+      (u ? '' : '<div><label class="lb" for="sv-d">CADA</label><select class="sel" id="sv-d"><option value="mes"' + (x.cada !== 'visita' ? ' selected' : '') + '>Al mes</option><option value="visita"' + (x.cada === 'visita' ? ' selected' : '') + '>En cada visita</option></select></div>') +
+      '<div><label class="lb" for="sv-m">EN LA PROPUESTA</label><select class="sel" id="sv-m"><option value="incluido"' + (x.modo !== 'cobrado' ? ' selected' : '') + '>Incluido</option><option value="cobrado"' + (x.modo === 'cobrado' ? ' selected' : '') + '>Cobrado aparte</option></select></div>' +
+      '<div><label class="lb" for="sv-p">PRECIO (B/.)</label><input class="in" id="sv-p" type="number" min="0" step="0.01" value="' + (x.precio || '') + '"></div></div>' +
+      '<p class="small muted" style="margin-top:8px">Incluido: sale en la propuesta sin precio aparte. Cobrado: suma al valor' + (u ? ' del trabajo.' : ' del mes (precio × cantidad al mes).') + '</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="sv-ok">Guardar</button></div>');
+    h2.querySelector('#sv-ok').onclick = function () {
+      var c = $('sv-c').value; x.cantidad = c === 'solicitud' ? 'solicitud' : Number(c); x.cada = c === 'solicitud' ? 'solicitud' : ($('sv-d') ? $('sv-d').value : 'visita');
+      x.modo = $('sv-m').value; x.precio = Number($('sv-p').value) || 0;
+      srvGuardar(L, this);
+    };
   }
 
   function propuestaCard() {
@@ -1334,6 +1390,10 @@
       case 'standby': hojaEtapa('Stand-by'); break;
       case 'pasar-gran': MK.confirmar('La oportunidad pasa a ser una cuenta con sedes. Lo que ya está escrito (contacto, kilos, frecuencia y precio) se lleva a la primera sede.', function () {
           MK.llamar('api_pasarAGranGenerador', MK.pin, COD).then(function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, function () {}); }, { boton: 'Pasar a gran generador' }); break;
+      case 'srv-agregar': srvHoja(null); break;
+      case 'srv-editar': srvHoja(Number(el.getAttribute('data-i'))); break;
+      case 'srv-quitar': (function () { var L = srvListaBase(), i = Number(el.getAttribute('data-i')), n = (L[i] || {}).nombre;
+        MK.confirmar('Se quita «' + n + '» de esta propuesta.', function () { L.splice(i, 1); srvGuardar(L); }, { boton: 'Quitar' }); })(); break;
       case 'reabrir-ficha': REABIERTA = true; MK.aviso('Ficha reabierta: ya puedes corregirla'); pintar(); break;
       case 'tarea-nueva': MK.tarea({ ref: COD, refTipo: 'op', cuenta: OP.empresa, fecha: MK.masDias(MK.hoy, 1) }); break;
       case 'tarea-completar': var t = tareaPor(id); if (t && t.estado === 'pendiente') MK.completar(t); break;

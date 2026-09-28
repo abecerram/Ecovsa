@@ -966,6 +966,9 @@ function resumenProp(){
     (p.visitaAdic && !p.unica ? r('Visita adicional', dinero(p.visitaAdic)) : '') +
     (p.plazo ? r('Contrato', esc(p.plazo) + ' meses') : '') +
     r('Incluye', p.unica ? 'recibo digital y<br>certificado de tratamiento' : 'recibo digital, certificado<br>y distintivo con QR') +
+    /* api 3.12: sus servicios y productos */
+    (E.servicios && E.servicios.lista && E.servicios.lista.length ? E.servicios.lista.map(function (v) {
+      return r(esc(v.nombre), v.modo === 'cobrado' ? dinero(v.total) + (p.unica ? '' : ' al mes') : 'incluido'); }).join('') : '') +
     '<div class="rw tot"><span>' + (p.unica ? 'Costo del servicio' : 'Costo por visita') + '</span><b>' + dinero(p.costo) + ' <small>+ ITBMS</small></b></div></div>';
 }
 function urlPropuesta(){ return 'Propuesta.html?token=' + encodeURIComponent(TOKEN) + '&k=' + encodeURIComponent(K); }

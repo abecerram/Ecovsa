@@ -34,11 +34,11 @@
     }).withFailureHandler(function () { if (listo) listo(); }).api_entradaAjustes();
   }
   /* intentos equivocados en ESTE equipo */
+  /* api 3.12: los intentos los cuenta el SERVIDOR (3 → 10 min, 3 más → 15 min, 3 más → bloqueado).
+     Aquí solo se recuerda la espera que dijo el servidor, para no mandar intentos inútiles. */
   function bloqueadoHasta() { try { var f = JSON.parse(localStorage.getItem('eco_fallos') || '{}'); return f.hasta && f.hasta > Date.now() ? f.hasta : 0; } catch (e) { return 0; } }
-  function fallo() {
-    try { var f = JSON.parse(localStorage.getItem('eco_fallos') || '{}'); f.n = (f.n || 0) + 1;
-      if (f.n >= (AJ.intentos || 5)) { f.hasta = Date.now() + (AJ.esperaMin || 10) * 60000; f.n = 0; }
-      localStorage.setItem('eco_fallos', JSON.stringify(f)); } catch (e) {}
+  function fallo(r) {
+    try { var b = r && r.bloqueo; if (b && b.tipo === 'espera' && b.min) localStorage.setItem('eco_fallos', JSON.stringify({ hasta: Date.now() + b.min * 60000 })); } catch (e) {}
   }
   function acierto() { try { localStorage.removeItem('eco_fallos'); localStorage.setItem('eco_login_t', String(Date.now())); } catch (e) {} }
   var K_PIN = 'ecovsa_pin', K_ACT = 'eco_actividad', K_BLOQ = 'eco_bloqueado', K_FONDO = 'eco_fondo', K_ROL = 'eco_rol_sesion';
@@ -111,6 +111,17 @@
   '#ent .e-teclas .e-bs{font-size:18px;background:transparent}#ent .e-teclas .e-ok{background:#F5B301;color:#3d2a00;font-size:15px}' +
   '#ent .e-teclas .e-ok[disabled]{opacity:.35}' +
   '#ent .e-msg{text-align:center;min-height:20px;font-size:13px;margin-top:10px;color:#ffc9c4;font-weight:700}' +
+  /* api 3.12: crear tu PIN y «¿Olvidaste tu PIN?» */
+  '#ent .e-olv{display:block;margin:8px auto 0;background:none;border:0;color:rgba(255,255,255,.8);font:700 12.5px Archivo,system-ui,sans-serif;text-decoration:underline;cursor:pointer}' +
+  '#ent .e-olvp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,380px);background:#fff;color:#14306b;border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.45);z-index:5;text-shadow:none}' +
+  '#ent .e-olvp b{display:block;font-size:17px}#ent .e-olvp p{font-size:13px;color:#5e6b7e;margin:6px 0 12px;line-height:1.45}' +
+  '#ent .e-olvp input{width:100%;border:1px solid #cfd8e6;border-radius:10px;padding:11px 12px;font:600 15px Archivo,system-ui,sans-serif;color:#14306b}' +
+  '#ent .e-olvp .fl{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}' +
+  '#ent .e-olvp button{border:0;border-radius:10px;padding:10px 14px;font:800 13.5px Archivo,system-ui,sans-serif;cursor:pointer;background:#eef2f8;color:#14306b}' +
+  '#ent .e-olvp button.si{background:#14306b;color:#fff}#ent .e-olvp .ok{font-size:13.5px;color:#2d6a0b;font-weight:700;margin-top:10px}' +
+  '#ent.creando .e-tt{color:#F5B301}' +
+  '#ent .e-pc-tit{display:none;font-weight:800;font-size:17px;text-align:center}#ent .e-pc-tit small{display:block;font-weight:600;font-size:12.5px;opacity:.85;margin-top:3px;color:#fff}' +
+  '#ent.creando .e-pc-tit{display:block;color:#F5B301}' +
   '#ent .e-bienv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:18vh;pointer-events:none;opacity:0;transition:opacity .4s;text-shadow:0 2px 14px rgba(0,0,0,.6)}' +
   '#ent .e-bienv.si{opacity:1}#ent .e-bienv b{font-size:26px}#ent .e-bienv span{opacity:.85;margin-top:6px}' +
   '#ent .e-fnd-b{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border:0;border-radius:18px;padding:7px 11px;background:rgba(10,30,50,.4);color:rgba(255,255,255,.85);font:700 12.5px Archivo,system-ui,sans-serif;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);cursor:pointer}' +
@@ -213,13 +224,14 @@
       '</div>' +
       '<div class="e-bienv"><b></b><span></span></div>' +
       '<div class="e-tec"><div class="e-tt">' + (op.bloqueo ? 'Escribe tu PIN para seguir' : 'Escribe tu PIN') + '<small>' + (op.bloqueo ? 'Si eres otra persona, escribe el tuyo' : 'Rutas ECOVSA') + '</small></div>' +
-        '<div class="e-pts"></div><div class="e-teclas"></div><div class="e-msg" aria-live="polite"></div></div>' +
+        '<div class="e-pts"></div><div class="e-teclas"></div><div class="e-msg" aria-live="polite"></div>' +
+        '<button type="button" class="e-olv">¿Olvidaste tu PIN?</button></div>' +
       '<div class="e-pc"><div class="e-pc-velo"></div>' +
         '<div class="e-pc-reloj"><b></b><span></span></div>' +
         '<div class="e-pc-zona"><div class="e-pc-yo"></div>' +
-          '<div class="e-pc-fila"><div class="e-pc-pin"></div><button type="button" class="e-pc-ir" title="Entrar" aria-label="Entrar" disabled>→</button></div>' +
+          '<div class="e-pc-tit"></div><div class="e-pc-fila"><div class="e-pc-pin"></div><button type="button" class="e-pc-ir" title="Entrar" aria-label="Entrar" disabled>→</button></div>' +
           '<div class="e-pc-msg" aria-live="polite"></div>' +
-          '<div class="e-pc-hint">Escribe tu PIN · <kbd>Enter</kbd> · <button type="button" class="e-pc-vtec">teclado en pantalla</button></div>' +
+          '<div class="e-pc-hint">Escribe tu PIN · <kbd>Enter</kbd> · <button type="button" class="e-pc-vtec">teclado en pantalla</button> · <button type="button" class="e-olv" style="display:inline;margin:0">¿Olvidaste tu PIN?</button></div>' +
           '<div class="e-pc-tec"></div>' +
         '</div></div>' +
       '<button type="button" class="e-fnd-b">🌳 Fondo</button>' +
@@ -265,6 +277,7 @@
     q('.e-teclas').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-teclas').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     E.onKey = function (e) { if (!E || !$('ent')) return;
+      if (e.target && e.target.tagName === 'INPUT') return;   /* escribiendo el nombre en «¿Olvidaste tu PIN?» */
       if (/^[0-9]$/.test(e.key)) { abrir(); tecla(e.key); e.preventDefault(); }
       else if (e.key === 'Backspace') { tecla('⌫'); e.preventDefault(); }
       else if (e.key === 'Enter') { if (d.classList.contains('abierto')) tecla('ok'); else abrir(); e.preventDefault(); }
@@ -274,7 +287,7 @@
     q('.e-fnd').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     q('.e-fnd').addEventListener('click', function (e) { var b = e.target.closest('button[data-f]'); if (!b) return; fondoAplicar(b.getAttribute('data-f')); lsSet(K_FONDO, b.getAttribute('data-f')); q('.e-fnd').classList.remove('si'); });
     d.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b,.e-pc-zona')) return;
+      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b,.e-pc-zona,.e-olvp')) return;
       q('.e-fnd').classList.remove('si');
       if (d.classList.contains('abierto')) cerrarTec(); else abrir();
     });
@@ -282,6 +295,7 @@
     q('.e-pc-tec').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-pc-ir').addEventListener('click', function (e) { e.stopPropagation(); tecla('ok'); });
     q('.e-pc-vtec').addEventListener('click', function (e) { e.stopPropagation(); d.classList.toggle('teclado'); });
+    [].forEach.call(d.querySelectorAll('.e-olv'), function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); olvide(); }); });
     q('.e-pc-yo').addEventListener('click', function (e) { if (e.target.closest('.e-pc-emb')) { e.stopPropagation(); E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.4); return; }
       if (!e.target.closest('.e-pc-otro')) return; e.stopPropagation(); E.otro = true; E.pin = ''; pts(); pcYo(); msg(''); });
     E.onVis = function () { if (!document.hidden && E && !E.raf) cuadro(); };
@@ -392,9 +406,9 @@
     E.raf = requestAnimationFrame(cuadro);
   }
   function pts() {
-    if (!E) return; var n = Math.max(largo(), E.pin.length);
+    if (!E) return; var n = E.modo === 'crear' ? largo() : Math.max(largo(), E.pin.length);
     E.q('.e-pts').innerHTML = Array.from({ length: n }, function (_, i) { return '<i class="' + (i < E.pin.length ? 'on' : '') + '"></i>'; }).join('');
-    var ok = E.q('.e-ok'); if (ok) ok.disabled = E.pin.length < 4;
+    var ok = E.q('.e-ok'); if (ok) { ok.disabled = E.pin.length < 4; ok.textContent = E.modo === 'crear' ? 'Seguir' : 'Entrar'; }
     var pp = E.q('.e-pc-pin');
     if (pp) {
       var hh = '';
@@ -409,6 +423,13 @@
   function tecla(k) {
     if (!E || E.ocupado) return; tocarTec(); msg('');
     if (k === '⌫') { E.pin = E.pin.slice(0, -1); pts(); return; }
+    if (E.modo === 'crear') {                       /* api 3.12: creando su propio PIN */
+      if (k === 'ok') { if (E.pin.length === largo()) crearPaso(); else msg('Tu PIN lleva ' + largo() + ' números'); return; }
+      if (E.pin.length >= largo()) return;
+      E.pin += k; pts(); E.vel += 6;
+      if (E.pin.length === largo()) setTimeout(crearPaso, 180);
+      return;
+    }
     if (k === 'ok') { if (E.pin.length >= 4) probar(); return; }
     if (E.pin.length >= 6) return;
     E.pin += k; pts(); E.vel += 6;
@@ -432,13 +453,91 @@
         E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
         setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
         setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, r.pausa || 1500);
+      } else if (r && r.crearPin) {
+        /* api 3.12: entró con un PIN temporal: ahora crea el suyo */
+        E.ocupado = false; empezarCrear(pin, r.nombre || '');
       } else {
-        E.ocupado = false; fallo();
+        E.ocupado = false; fallo(r);
         var p = E.q('.e-pts'), p2 = E.q('.e-pc-pin'); p.classList.add('mal'); p2.classList.add('mal'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
         msg((r && r.error) || 'PIN no válido · intenta otra vez');
         setTimeout(function () { if (!E) return; p.classList.remove('mal'); p2.classList.remove('mal'); E.pin = ''; pts(); }, 600);
       }
     });
+  }
+
+  /* ═══ api 3.12 · Crear tu PIN (después de entrar con el temporal) ═══ */
+  function tituloCrear(t, s) {
+    if (!E) return;
+    E.q('.e-tt').innerHTML = esc(t) + '<small>' + esc(s || '') + '</small>';
+    var h = E.q('.e-pc-tit'); if (h) h.innerHTML = esc(t) + '<small>' + esc(s || '') + '</small>';
+  }
+  function empezarCrear(temporal, nombre) {
+    if (!E) return;
+    E.modo = 'crear'; E.temp = temporal; E.nomCrear = nombre; E.primero = ''; E.pin = '';
+    E.d.classList.add('creando'); E.d.classList.add('abierto');
+    var n = String(nombre || '').split(' ')[0];
+    tituloCrear((n ? 'Hola, ' + n + ' · ' : '') + 'crea tu PIN', largo() + ' números que solo tú sepas. No lo compartas con nadie.');
+    msg('Ese era tu PIN temporal: ahora escribe el tuyo.', '#cfe0ff'); pts();
+  }
+  function salirCrear() {
+    if (!E) return;
+    E.modo = null; E.temp = ''; E.primero = ''; E.d.classList.remove('creando');
+    E.q('.e-tt').innerHTML = (E.op.bloqueo ? 'Escribe tu PIN para seguir' : 'Escribe tu PIN') + '<small>' + (E.op.bloqueo ? 'Si eres otra persona, escribe el tuyo' : 'Rutas ECOVSA') + '</small>';
+    var h = E.q('.e-pc-tit'); if (h) h.innerHTML = '';
+  }
+  function crearPaso() {
+    if (!E || E.modo !== 'crear' || E.ocupado || E.pin.length !== largo()) return;
+    if (!E.primero) {
+      /* todos iguales o seguidos (1111, 1234, 4321): se avisa de una vez, sin repetirlo */
+      var d = E.pin.split('').map(Number), sube = true, baja = true;
+      for (var i = 1; i < d.length; i++) { if (d[i] !== d[i - 1] + 1) sube = false; if (d[i] !== d[i - 1] - 1) baja = false; }
+      if (/^(\d)\1+$/.test(E.pin) || sube || baja) { E.pin = ''; pts(); msg('Ese PIN es muy fácil de adivinar (todos iguales o seguidos). Elige otro.'); return; }
+      E.primero = E.pin; E.pin = ''; pts();
+      tituloCrear('Escríbelo otra vez', 'Para confirmar tu PIN nuevo'); msg(''); return;
+    }
+    if (E.pin !== E.primero) {
+      E.primero = ''; E.pin = ''; pts();
+      tituloCrear('No coinciden · empieza otra vez', largo() + ' números que solo tú sepas'); msg('Los dos PIN no son iguales.'); return;
+    }
+    var nuevo = E.pin;
+    if (!window.google || !google.script || !google.script.run) { msg('Sin conexión. Intenta con señal.'); return; }
+    E.ocupado = true; msg('Guardando tu PIN…', '#cfe0ff');
+    google.script.run.withSuccessHandler(function (r) {
+      if (!E) return; E.ocupado = false;
+      if (r && r.ok) {
+        salirCrear(); msg('¡Listo! Ese es tu PIN desde ahora.', '#b8ff8a');
+        E.pin = nuevo; pts(); setTimeout(probar, 700); return;
+      }
+      if (r && (r.bloqueo || r.requiereLogin)) { fallo(r); salirCrear(); E.pin = ''; pts(); msg((r && r.error) || 'No se pudo.'); return; }
+      E.primero = ''; E.pin = ''; pts();
+      tituloCrear('Elige otro PIN', largo() + ' números que solo tú sepas');
+      msg((r && r.error) || 'No se pudo guardar. Intenta otra vez.');
+    }).withFailureHandler(function () { if (!E) return; E.ocupado = false; msg('Sin conexión. Intenta con señal.'); }).api_crearMiPin(E.temp, nuevo);
+  }
+  /* ═══ api 3.12 · ¿Olvidaste tu PIN? → aviso al administrador ═══ */
+  function olvide() {
+    if (!E || E.q('.e-olvp')) return;
+    var p = document.createElement('div'); p.className = 'e-olvp';
+    p.innerHTML = '<b>¿Olvidaste tu PIN?</b><p>Escribe tu nombre y le avisamos al administrador. Él te da un PIN temporal para que crees el tuyo. También puedes pedírselo directamente.</p>' +
+      '<input type="text" autocomplete="name" placeholder="Tu nombre y apellido" maxlength="80"><div class="ok" hidden></div>' +
+      '<div class="fl"><button type="button" class="no">Cerrar</button><button type="button" class="si">Avisar al administrador</button></div>';
+    E.d.appendChild(p);
+    var inp = p.querySelector('input'), ok = p.querySelector('.ok'), si = p.querySelector('.si');
+    setTimeout(function () { inp.focus(); }, 60);
+    p.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    p.querySelector('.no').onclick = function () { p.parentNode.removeChild(p); };
+    var enviar = function () {
+      var n = inp.value.trim(); if (n.length < 3) { ok.hidden = false; ok.style.color = '#a8262b'; ok.textContent = 'Escribe tu nombre.'; return; }
+      if (!window.google || !google.script || !google.script.run) { ok.hidden = false; ok.textContent = 'Sin conexión. Pídeselo directamente al administrador.'; return; }
+      si.disabled = true;
+      google.script.run.withSuccessHandler(function (r) {
+        si.disabled = false; ok.hidden = false; ok.style.color = r && r.ok ? '#2d6a0b' : '#a8262b';
+        ok.textContent = (r && (r.texto || r.error)) || 'Listo.';
+        if (r && r.ok) { si.style.display = 'none'; inp.disabled = true; }
+      }).withFailureHandler(function () { si.disabled = false; ok.hidden = false; ok.textContent = 'Sin conexión. Pídeselo directamente al administrador.'; }).api_pedirPinNuevo(n);
+    };
+    si.onclick = enviar;
+    inp.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') enviar(); if (e.key === 'Escape') p.parentNode.removeChild(p); });
   }
 
   /* ═══ El vigía: bloqueo por inactividad en cualquier página ═══ */
@@ -519,7 +618,7 @@
         if (V.pin && p === V.pin && sinRed) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
         if (sinRed) { fin({ ok: false, error: 'Sin conexión. Intenta con señal.' }); return; }
         google.script.run.withSuccessHandler(function (r) {
-          if (!r || !r.ok) { fin({ ok: false, error: (r && r.error) || 'PIN no válido' }); return; }
+          if (!r || !r.ok) { fin({ ok: false, error: (r && r.error) || 'PIN no válido', crearPin: r && r.crearPin, nombre: r && r.nombre, bloqueo: r && r.bloqueo }); return; }
           if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
           /* api 3.7: tras una recarga no hay PIN en memoria; si es la misma persona, sigue en esta misma página */
           if (!V.pin && V.nombre && String(r.usuario.nombre || '').trim() === String(V.nombre).trim()) {

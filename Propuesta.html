@@ -313,6 +313,7 @@ function pintar(p){
      las editó para este cliente, manda lo que ella guardó. Antes vivían aquí
      escritas a mano y afirmaban un contrato a 12 meses incluso en las
      recolecciones de una sola visita. */
+  (!GRAN && p.servicios && p.servicios.lista && p.servicios.lista.length ? tablaServicios(p.servicios, UNICA) : '')+
   '<div class="sec">Nota importante</div>'+
   '<ul class="notas">'+
     '<li>Propuesta vigente hasta '+esc(larga(vence))+'.</li>'+
@@ -340,6 +341,16 @@ function pintar(p){
   if(!CLIENTE) pintarEnvios(p);
 }
 
+/* api 3.12 · servicios y productos de una propuesta de un solo punto */
+function tablaServicios(S, UNICA){
+  return '<div class="sec" style="font-size:12.5px;margin-top:14px">Servicios y productos</div>'+
+    '<table><thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio</th><th>'+(UNICA?'Total':'Al mes')+'</th></tr></thead><tbody>'+
+    S.lista.map(function(v){ var cant=v.cantidad==='solicitud'?'Por solicitud':v.cantidad+(UNICA?'':(v.cada==='visita'?' por visita':' al mes'));
+      return '<tr><td>'+esc(v.nombre)+'</td><td class="n">'+esc(cant)+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(v.precio):'Incluido')+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(v.total):'—')+'</td></tr>'; }).join('')+
+    (S.total?'<tr class="tot"><td colspan="3">'+(UNICA?'SERVICIOS Y PRODUCTOS':'SERVICIOS Y PRODUCTOS AL MES')+'</td><td class="n">B/. '+n2(S.total)+'</td></tr>':'')+
+    '</tbody></table>'+
+    '<div class="pie-tabla">'+(S.total?'Lo cobrado se factura aparte'+(UNICA?' junto con el servicio':' cada mes, más ITBMS')+'. ':'')+'Lo incluido va sin costo adicional.</div>';
+}
 /* api 3.11 · la propuesta de una cuenta con varias sedes */
 function frecDe(v){ v=Number(v)||0; return v>=8?'2 veces por semana':v>=4?'Semanal':v>=2?'Quincenal':v>=1?'Mensual':v>=0.5?'Bimestral':'Trimestral'; }
 function tablaGran(c){

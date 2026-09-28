@@ -149,6 +149,8 @@ function usarBase(b) {
   MK.base = b; MK.usuario = b.usuario; MK.hoy = b.hoy;
   MAT = JSON.parse(JSON.stringify(b.matriz)); REG = JSON.parse(JSON.stringify(b.reglas)); SEGU = JSON.parse(JSON.stringify(b.seguridad)); COB = JSON.parse(JSON.stringify(b.cobros));
   MK.pintarBarra(); MK.pintarMenu();
+  /* api 3.12: avisos de seguridad abiertos (equipos bloqueados, pedidos de PIN) */
+  if (MK.contador) MK.contador('seg', b.segResumen && b.segResumen.abiertos, 'r');
   var sb = document.querySelector('#sysbar .mod'); if (sb && !document.querySelector('#sysbar .candado')) sb.insertAdjacentHTML('afterend', '<span class="candado">' + MK.ic('candado', 14) + 'SOLO ADMINISTRADOR</span>');
 }
 function recargar() {
@@ -181,13 +183,15 @@ function vUsuarios() {
       var c = COLOR_ROL[u.rol] || '#5b6880';
       var soloAdmin = u.rol === 'admin' && u.activo && admins.length < 2 && !u.prueba;
       var acc = u.activo
-        ? '<button class="btn sm" onclick="editarUsuario(' + u.i + ')">' + MK.ic('lapiz', 15) + 'Editar</button><button class="btn sm" onclick="nuevoPin(' + u.i + ')">' + MK.ic('llave', 15) + 'Nuevo PIN</button>' +
+        ? '<button class="btn sm" onclick="editarUsuario(' + u.i + ')">' + MK.ic('lapiz', 15) + 'Editar</button><button class="btn sm" onclick="nuevoPin(' + u.i + ')">' + MK.ic('llave', 15) + 'PIN temporal</button>' +
           (u.yo || soloAdmin ? '' : '<button class="btn sm bad" onclick="bajaUsuario(' + u.i + ')">' + MK.ic('baja', 15) + 'Dar de baja</button>')
         : '<button class="btn sm" onclick="reactivar(' + u.i + ')">' + MK.ic('alta', 15) + 'Reactivar</button>';
       return '<div class="u ' + (u.activo ? '' : 'baja') + '"><span class="av2" style="background:' + c + '">' + MK.esc(MK.ini(u.nombre)) + '</span>' +
         '<div class="nm"><b>' + MK.esc(u.nombre) + (u.prueba ? ' <span class="tag t-gris">prueba</span>' : '') + (u.yo ? ' <span class="tag t-info">tú</span>' : '') + '</b><span>' +
         (u.activo ? MK.esc(detRol(u.rol)) : 'De baja desde ' + MK.esc(MK.dmy(u.fechaBaja) || '—') + (u.motivoBaja ? ' · ' + MK.esc(u.motivoBaja) : '')) +
-        ((u.largoPin || 4) < largo && u.activo ? ' · <b style="color:#8a6300;display:inline">PIN de ' + (u.largoPin || 4) + '</b>' : '') + '</span></div>' +
+        ((u.largoPin || 4) < largo && u.activo ? ' · <b style="color:#8a6300;display:inline">PIN de ' + (u.largoPin || 4) + '</b>' : '') +
+        (u.activo && u.pinTemporal ? ' · <b style="color:' + (u.pinVence && u.pinVence < ahoraTxt() ? '#a8262b' : '#8a6300') + ';display:inline">' + (u.pinVence && u.pinVence < ahoraTxt() ? 'PIN temporal vencido' : 'PIN temporal · vence ' + MK.esc(fechaHora(u.pinVence))) + '</b>'
+          : u.activo && u.pinCreadoEn ? ' · creó su PIN el ' + MK.esc(fechaHora(u.pinCreadoEn)) : '') + '</span></div>' +
         '<div class="rolc">' + tagRol(u.rol) + (u.activo && u.prefs && u.rol !== 'operador' ? '<span class="prin">principal: ' + MK.esc(nomPrin(u.prefs.principal)) + '</span>' : '') + '</div>' +
         '<div class="co ' + (u.correo ? '' : 'falta') + '">' + MK.esc(u.correo || 'Sin correo') + (u.telefono ? ' · ' + MK.esc(u.telefono) : '') + '</div>' +
         '<div class="ul"><span class="estu ' + (u.activo ? 'si' : 'no') + '">' + (u.activo ? 'Activo' : 'De baja') + '</span></div>' +
@@ -197,6 +201,8 @@ function vUsuarios() {
   return h;
 }
 function filtroU(f) { FILTRO = f; MK.repintar(); }
+function ahoraTxt() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+function fechaHora(t) { t = String(t || ''); return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.slice(8, 10) + '/' + t.slice(5, 7) + (t.length > 10 ? ' ' + t.slice(11, 16) : '') : t; }
 function usu(i) { return (B().usuarios || []).filter(function (u) { return u.i === i; })[0]; }
 function rolesHtml(sel) {
   return '<div class="roles">' + (B().roles || []).map(function (r) {
@@ -228,7 +234,7 @@ function altaUsuario() {
     '<label class="lb">Nombre completo</label><input class="in" id="a-nom" autofocus placeholder="Nombre y apellido"><div class="small muted" style="margin-top:4px">Así sale en recibos, rutas y solicitudes. Se guarda sin espacios de más y con mayúscula inicial.</div>' +
     '<label class="lb">Qué va a hacer · rol</label>' + rolesHtml('') +
     '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="a-cor" placeholder="para avisos y recibos"></div><div><label class="lb">Teléfono</label><input class="in" id="a-tel" placeholder="opcional"></div></div>' +
-    '<label class="lb">PIN de entrada</label><div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">El sistema lo genera</b><small>' + L + ' números, sin repetir ni en orden: nada de 1111 o 1234. Lo ves una sola vez al guardar, para entregárselo en persona.</small></div></div>' +
+    '<label class="lb">PIN de entrada</label><div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">El sistema genera un PIN TEMPORAL</b><small>Lo ves una sola vez al guardar, para entregárselo en persona. Vence en 48 horas y sirve solo para que, en su primer ingreso, cree su propio PIN de ' + L + ' números, que tú no vas a conocer.</small></div></div>' +
     '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>Queda en el historial quién lo dio de alta y cuándo.</span></div></div>' +
     '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="a-ok" onclick="guardarAlta(this)">' + MK.ic('check', 16) + 'Dar de alta</button></div>');
 }
@@ -240,13 +246,13 @@ function guardarAlta(btn) {
   MK.api('api_cfgAltaUsuario', PIN, d).then(function (r) {
     MK.ocupado(btn, false);
     if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
-    mostrarPin(r.nombre, r.pin, 'Quedó dado de alta como ' + nomRol(r.rol) + '.');
+    mostrarPin(r.nombre, r.pin, 'Quedó dado de alta como ' + nomRol(r.rol) + '.', r.vence);
     recargar();
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
-function mostrarPin(nombre, pin, texto) {
-  MK.lado('<h2>PIN de ' + MK.esc(nombre) + '</h2><div class="sub">' + MK.esc(texto || '') + '</div>' +
-    '<div class="pinbox nuevo"><span class="d">' + MK.esc(pin) + '</span><div><b style="font-size:13px">Se muestra una sola vez</b><small>Anótalo y entrégaselo en persona o por mensaje directo, nunca en un grupo. Al cerrar esta ventana ya no se puede volver a ver: solo generar otro.</small></div></div>' +
+function mostrarPin(nombre, pin, texto, vence) {
+  MK.lado('<h2>PIN temporal de ' + MK.esc(nombre) + '</h2><div class="sub">' + MK.esc(texto || '') + '</div>' +
+    '<div class="pinbox nuevo"><span class="d">' + MK.esc(pin) + '</span><div><b style="font-size:13px">Temporal · se muestra una sola vez</b><small>Entrégaselo en persona o por mensaje directo, nunca en un grupo.' + (vence ? ' Vence el ' + MK.esc(fechaHora(vence)) + '.' : '') + ' Al entrar con él, el sistema le pide crear su propio PIN, que tú no vas a conocer.</small></div></div>' +
     '<div class="pie2"><button class="btn pri" onclick="MK.cerrarLado()">' + MK.ic('check', 16) + 'Ya lo anoté</button></div>');
 }
 function editarUsuario(i) {
@@ -279,16 +285,16 @@ function guardarEdicion(i, btn) {
 }
 function nuevoPin(i) {
   var u = usu(i); if (!u) return; var L = SEGU.largoPin || 4;
-  MK.lado('<h2>Nuevo PIN para ' + MK.esc(u.nombre) + '</h2><div class="sub">Para cuando lo olvidó o lo vio otra persona. El PIN de antes deja de servir en cuanto se genera el nuevo.</div>' +
-    '<div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">' + L + ' números · se muestra una sola vez</b><small>Entrégaselo en persona o por mensaje directo, nunca en un grupo.</small></div></div>' +
-    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarPin(' + i + ',this)">' + MK.ic('llave', 16) + 'Generar PIN nuevo</button></div>');
+  MK.lado('<h2>PIN temporal para ' + MK.esc(u.nombre) + '</h2><div class="sub">Para cuando lo olvidó o pide cambiarlo. El PIN de antes deja de servir en cuanto se genera el temporal; con el temporal crea su propio PIN al entrar.</div>' +
+    '<div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">' + L + ' números · vence en 48 horas · se muestra una sola vez</b><small>Entrégaselo en persona o por mensaje directo, nunca en un grupo.</small></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarPin(' + i + ',this)">' + MK.ic('llave', 16) + 'Generar PIN temporal</button></div>');
 }
 function generarPin(i, btn) {
   var u = usu(i); MK.ocupado(btn, true, 'Generando…');
   MK.api('api_cfgNuevoPin', PIN, { i: i, nombre: u.nombre }).then(function (r) {
     MK.ocupado(btn, false);
     if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
-    mostrarPin(r.nombre, r.pin, 'El PIN anterior ya no sirve.'); recargar();
+    mostrarPin(r.nombre, r.pin, 'El PIN anterior ya no sirve.', r.vence); SEGAV = null; recargar();
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
 function bajaUsuario(i) {
@@ -460,12 +466,40 @@ function guardarInc(btn) {
 }
 
 /* ═══ SEGURIDAD ═══ */
+/* api 3.12 · avisos: equipos bloqueados y pedidos de PIN nuevo */
+var SEGAV = null, SEGAV_V = false;
+function avisosSeg() {
+  if (!SEGAV) { if (!SEGAV_V) { SEGAV_V = true; MK.api('api_cfgSeguridadAvisos', PIN).then(function (r) { SEGAV_V = false; SEGAV = r || { ok: false }; MK.repintar(); }, function () { SEGAV_V = false; SEGAV = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+    return '<div class="card"><h3>Avisos de seguridad</h3><div class="vacio">Consultando…</div></div>'; }
+  if (!SEGAV.ok) return '<div class="aviso am">' + MK.esc(SEGAV.error || 'No se pudieron traer los avisos.') + '</div>';
+  var ab = SEGAV.avisos.filter(function (a) { return a.estado === 'abierto'; }), vi = SEGAV.avisos.filter(function (a) { return a.estado !== 'abierto'; }).slice(0, 8);
+  var fila = function (a, abierto) {
+    var ic = a.tipo === 'pidePin' ? 'llave' : 'candado';
+    var usr = a.tipo === 'pidePin' ? (B().usuarios || []).filter(function (u) { return u.activo && u.nombre === a.nombre; })[0] : null;
+    var acc = !abierto ? '<span class="small muted">' + MK.esc(a.atendidoPor ? 'atendido por ' + a.atendidoPor : 'atendido') + '</span>'
+      : a.tipo === 'pidePin' ? (usr ? '<button class="btn sm pri" onclick="nuevoPin(' + usr.i + ')">' + MK.ic('llave', 14) + 'Generar PIN temporal</button>' : '') + '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
+      : '<button class="btn sm pri" onclick="desbloquear(\'' + a.id + '\',this)">' + MK.ic('llave', 14) + 'Desbloquear</button><button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Dejarlo bloqueado</button>';
+    return '<div class="rr"><div class="rt"><b>' + MK.ic(ic, 15) + ' ' + MK.esc(a.titulo) + '</b><span>' + MK.esc(fechaHora(a.fecha + ' ' + a.hora)) + ' · ' + MK.esc(a.detalle) +
+      (a.tipo !== 'pidePin' ? '<br>Equipo: ' + MK.esc(a.equipoTxt || 'sin identificar') + (a.conexion ? ' · conexión ' + MK.esc(a.conexion) : '') : a.equipoTxt ? '<br>Lo pidió desde: ' + MK.esc(a.equipoTxt) : '') + '</span></div><div class="fila">' + acc + '</div></div>';
+  };
+  return '<div class="card reg"><h3>Avisos de seguridad' + (ab.length ? ' <span class="tag t-bad">' + ab.length + ' por atender</span>' : '') + '</h3>' +
+    (ab.length ? ab.map(function (a) { return fila(a, true); }).join('') : '<div class="small muted" style="padding:6px 0">Nada por atender: ningún equipo bloqueado ni pedidos de PIN.</div>') +
+    (vi.length ? '<div class="small muted" style="margin:12px 0 4px;font-weight:700">Atendidos</div>' + vi.map(function (a) { return fila(a, false); }).join('') : '') + '</div>';
+}
+function desbloquear(id, btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgDesbloquear', PIN, id).then(function (r) { MK.ocupado(btn, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('Equipo desbloqueado'); SEGAV = null; recargar(); }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function atenderSeg(id, btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgAtenderAviso', PIN, id).then(function (r) { MK.ocupado(btn, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } SEGAV = null; recargar(); }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
 function vSeguridad() {
   var sd = SEGU.sesionDesde ? new Date(SEGU.sesionDesde) : null;
-  return MK.cabeza('Seguridad de la entrada', 'Cómo se protege el PIN y la sesión.') +
+  return MK.cabeza('Seguridad de la entrada', 'Cómo se protege el PIN y la sesión.') + avisosSeg() +
     '<div class="card reg">' +
     '<div class="rr"><div class="rt"><b>La sesión se bloquea tras</b><span>Sin uso; se desbloquea con el mismo PIN. El conductor no se bloquea.</span></div><div class="monto"><input style="width:70px" value="' + SEGU.minInactivo + '" onchange="SEGU.minInactivo=Number(this.value)"> min</div></div>' +
-    '<div class="rr"><div class="rt"><b>Intentos de PIN equivocado antes de esperar</b><span>Después de esos intentos, ese equipo espera antes de volver a probar.</span></div><div class="fila"><div class="monto"><input style="width:60px" value="' + SEGU.intentos + '" onchange="SEGU.intentos=Number(this.value)"> intentos</div><div class="monto"><input style="width:60px" value="' + SEGU.esperaMin + '" onchange="SEGU.esperaMin=Number(this.value)"> min</div></div></div>' +
+    '<div class="rr"><div class="rt"><b>Intentos de PIN equivocados</b><span>Los cuenta el servidor, por equipo: 3 intentos → espera 10 min · 3 más → espera 15 min · 3 más → el equipo queda bloqueado y te llega el aviso aquí. Si desde una misma red se equivocan 30 veces en una hora, esa red espera 15 min. Un PIN que acabas de reemplazar o de alguien de baja no cuenta como intento.</span></div><span class="tag t-info">3 · 10 min · 3 · 15 min · 3 · bloqueo</span></div>' +
     '<div class="rr"><div class="rt"><b>Largo del PIN</b><span>Si pasas a 6: los PIN nuevos y los que regeneres salen de 6, y los de 4 siguen sirviendo hasta que les des uno nuevo (en Usuarios se marca quién sigue con PIN de 4).</span></div><div class="seg"><button class="' + (SEGU.largoPin !== 6 ? 'on' : '') + '" onclick="SEGU.largoPin=4;MK.repintar()">4 números</button><button class="' + (SEGU.largoPin === 6 ? 'on' : '') + '" onclick="SEGU.largoPin=6;MK.repintar()">6 números</button></div></div>' +
     '<div class="rr"><div class="rt"><b>Al llegar al último número, entrar solo</b><span>Entra al escribir el último número, sin tocar «Entrar». El emblema da su vuelta completa repartida entre los números del PIN.</span></div>' + sw(SEGU.alUltimo, 'SEGU.alUltimo=!SEGU.alUltimo;MK.repintar()') + '</div>' +
     '<div class="rr"><div class="rt"><b>Pedir el PIN otra vez para entrar aquí</b><span>Aunque la sesión esté abierta: si alguien deja la computadora encendida, no llega a Configuración.</span></div>' + sw(SEGU.pedirPinConfig, 'SEGU.pedirPinConfig=!SEGU.pedirPinConfig;MK.repintar()') + '</div>' +
@@ -489,6 +523,65 @@ function cerrarTodas() {
       MK.aviso('Listo: cada quien vuelve a entrar con su PIN'); recargar();
     });
   }, { titulo: 'Cerrar la sesión de todos', boton: 'Cerrar todas', peligro: true });
+}
+
+/* ═══ api 3.12 · DATOS DE PRUEBA ═══ */
+var PRB = null, PRB_V = false, PRB_Q = '';
+function cargarPrb() { if (PRB_V) return; PRB_V = true; MK.api('api_cfgDatosPrueba', PIN, PRB_Q).then(function (r) { PRB_V = false; PRB = r || { ok: false }; MK.repintar(); }, function () { PRB_V = false; PRB = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+function vPrueba() {
+  var h = MK.cabeza('Datos de prueba', 'Los clientes y oportunidades que se crearon para probar. Solo tú los marcas como prueba y solo tú los borras, con todo lo que cuelga de ellos. Antes de borrar se guarda una copia en el Registro de borrados.');
+  h += '<div class="card"><div class="fila" style="gap:8px"><input class="in" id="prb-q" placeholder="Buscar un cliente u oportunidad por nombre o código" value="' + MK.esc(PRB_Q) + '" onkeydown="if(event.key===\'Enter\'){PRB_Q=this.value;PRB=null;MK.repintar()}"><button class="btn" onclick="PRB_Q=MK.val(\'prb-q\');PRB=null;MK.repintar()">' + MK.ic('buscar', 15) + 'Buscar</button></div>' +
+    '<div class="small muted" style="margin-top:6px">Sin buscar, salen los ya marcados y los que por el nombre parecen de prueba (prueba, test, demo, ejemplo).</div></div>';
+  if (!PRB) { cargarPrb(); return h + '<div class="card"><div class="vacio">Buscando…</div></div>'; }
+  if (!PRB.ok) return h + '<div class="aviso am">' + MK.esc(PRB.error || 'No se pudo.') + '</div>';
+  var fila = function (x) {
+    return '<div class="rr"><div class="rt"><b>' + MK.esc(x.nombre) + ' ' + (x.prueba ? '<span class="tag t-bad">prueba</span>' : x.sugerido ? '<span class="tag t-warn">parece de prueba</span>' : '') + '</b><span>' + (x.tipo === 'cliente' ? 'Cliente CLI-' + ('000' + x.id).slice(-3) : 'Oportunidad ' + MK.esc(x.id)) + (x.estado ? ' · ' + MK.esc(x.estado) : '') + '</span></div><div class="fila">' +
+      (x.prueba ? '<button class="btn sm" onclick="marcarPrb(\'' + x.tipo + '\',\'' + MK.esc(x.id) + '\',false,this)">Quitar la marca</button><button class="btn sm bad" onclick="verBorrarPrb(\'' + x.tipo + '\',\'' + MK.esc(x.id) + '\')">' + MK.ic('basura', 14) + 'Borrar definitivamente</button>'
+        : '<button class="btn sm" onclick="marcarPrb(\'' + x.tipo + '\',\'' + MK.esc(x.id) + '\',true,this)">' + MK.ic('check', 14) + 'Marcar como prueba</button>') + '</div></div>';
+  };
+  h += '<div class="card reg"><h3>Clientes · ' + PRB.clientes.length + '</h3>' + (PRB.clientes.length ? PRB.clientes.map(fila).join('') : '<div class="small muted">Ninguno.</div>') + '</div>';
+  h += '<div class="card reg"><h3>Oportunidades · ' + PRB.oportunidades.length + '</h3>' + (PRB.oportunidades.length ? PRB.oportunidades.map(fila).join('') : '<div class="small muted">Ninguna.</div>') + '</div>';
+  return h;
+}
+function marcarPrb(t, id, si, btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgMarcarPrueba', PIN, t, id, si).then(function (r) { MK.ocupado(btn, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso(si ? 'Marcado como prueba' : 'Marca quitada'); PRB = null; MK.repintar(); }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function verBorrarPrb(t, id) {
+  MK.lado('<h2>Borrar definitivamente</h2><div class="cargando">Viendo qué cuelga de él…</div>');
+  MK.api('api_cfgAlcancePrueba', PIN, t, id).then(function (r) {
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    var x = r.alcance;
+    MK.lado('<h2>Borrar ' + (t === 'cliente' ? 'el cliente' : 'la oportunidad') + ' ' + MK.esc(x.nombre) + '</h2><div class="sub">No se puede deshacer desde el sistema. Queda una copia completa en el Registro de borrados.</div>' +
+      '<div class="card" style="margin-top:12px;padding:12px 14px"><b style="font-size:13px">Se borra junto con</b><div class="pasa" style="margin-top:8px">' +
+      (x.partes.length ? x.partes.map(function (p) { return '<div>' + MK.ic('basura') + '<span>' + p.n + ' ' + MK.esc(p.que) + '</span></div>'; }).join('') : '<div>' + MK.ic('check') + '<span>Nada más cuelga de él.</span></div>') + '</div></div>' +
+      '<label class="lb">Para confirmar, escribe el nombre: <b>' + MK.esc(x.nombre) + '</b></label><input class="in" id="prb-conf" autocomplete="off">' +
+      '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn bad" onclick="borrarPrb(\'' + t + '\',\'' + MK.esc(id) + '\',this)">' + MK.ic('basura', 16) + 'Borrar definitivamente</button></div>');
+  });
+}
+function borrarPrb(t, id, btn) {
+  MK.ocupado(btn, true, 'Borrando…');
+  MK.api('api_cfgBorrarPrueba', PIN, t, id, MK.val('prb-conf')).then(function (r) { MK.ocupado(btn, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.cerrarLado(); MK.aviso('Borrado · ' + r.borradas + ' fila(s) con copia en el registro'); PRB = null; RB = null; recargar(); }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
+/* ═══ api 3.12 · REGISTRO DE BORRADOS ═══ */
+var RB = null, RB_V = false;
+function vRegistro() {
+  var h = MK.cabeza('Registro de borrados', 'Todo lo que se borra o se anula en el sistema: quién, cuándo, qué y por qué. Lo de cada módulo solo lo borra o lo anula su módulo o el administrador.');
+  if (!RB) { if (!RB_V) { RB_V = true; MK.api('api_cfgRegistroBorrados', PIN).then(function (r) { RB_V = false; RB = r || { ok: false }; MK.repintar(); }, function () { RB_V = false; RB = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+    return h + '<div class="card"><div class="vacio">Cargando…</div></div>'; }
+  if (!RB.ok) return h + '<div class="aviso am">' + MK.esc(RB.error || 'No se pudo.') + '</div>';
+  return h + '<div class="card">' + MK.tabla(['Cuándo', 'Quién', 'Módulo', 'Qué', 'Motivo', ''], RB.registro.map(function (x) {
+    return [MK.esc(fechaHora(x.fecha + ' ' + x.hora)), MK.esc(x.quien) + '<small>' + MK.esc(nomRol(x.rol)) + '</small>', MK.esc(x.modulo), '<b>' + MK.esc(x.accion) + '</b><small>' + MK.esc(x.ref) + (x.detalle ? ' · ' + MK.esc(x.detalle) : '') + '</small>', MK.esc(x.motivo || '—'),
+      x.conCopia ? '<button class="btn sm" onclick="verCopia(\'' + x.id + '\')">' + MK.ic('ojo', 14) + 'Copia</button>' : ''];
+  }), { vacio: 'Todavía no se ha borrado ni anulado nada desde que se instaló el registro.' }) + '</div>';
+}
+function verCopia(id) {
+  MK.lado('<h2>Copia de lo borrado</h2><div class="cargando">Trayendo…</div>', { ancho: true });
+  MK.api('api_cfgCopiaBorrado', PIN, id).then(function (r) {
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.lado('<h2>Copia de lo borrado</h2><div class="sub">Tal como estaba en la base antes de borrarse. Si hay que rehacer algo, de aquí se copian los datos.</div><pre style="white-space:pre-wrap;font-size:11.5px;background:#f6f8fb;border-radius:10px;padding:12px;max-height:70vh;overflow:auto">' + MK.esc(JSON.stringify(r.datos, null, 1)) + '</pre>', { ancho: true });
+  });
 }
 
 /* ═══ api 3.7.1 · ESPACIO DE ARCHIVOS ═══ */
@@ -573,6 +666,8 @@ MK.iniciar({
     { id: 'seg', n: 'Seguridad', i: 'candado' },
     { id: 'fun', n: 'Funciones', i: 'ajustes' },
     { id: 'his', n: 'Historial', i: 'historial' },
+    { id: 'rb', n: 'Registro de borrados', i: 'basura' },
+    { id: 'prb', n: 'Datos de prueba', i: 'filtro' },
     { id: 'esp', n: 'Espacio de archivos', i: 'subir' },
     { g: 'AYUDA' },
     { id: 'ent', n: 'Cómo se entra', i: 'puerta' }
@@ -589,7 +684,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, his: vHistorial, ent: vEntrada, esp: vEspacio };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });

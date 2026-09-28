@@ -191,13 +191,29 @@
     return conTurno(function () { return intentoDirecto(fn, args, id, esc); });
   }
 
+  /* api 3.12: un número al azar que identifica este navegador (no dice nada de la persona):
+     el servidor cuenta ahí los intentos de PIN equivocados */
+  function equipo() {
+    var e = lsGet('eco_equipo');
+    if (!e || !/^[a-z0-9]{12,40}$/.test(e)) {
+      e = ''; for (var i = 0; i < 20; i++) e += 'abcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 36));
+      try { localStorage.setItem('eco_equipo', e); } catch (x) {}
+    }
+    return e;
+  }
+  function equipoTxt() {
+    var u = navigator.userAgent || '';
+    var so = /Android/.test(u) ? 'Android' : /iPhone|iPad/.test(u) ? 'iPhone' : /Windows/.test(u) ? 'Windows' : /Mac OS/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'Equipo';
+    var nav = /Edg\//.test(u) ? 'Edge' : /OPR\//.test(u) ? 'Opera' : /Chrome\//.test(u) ? 'Chrome' : /Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'navegador';
+    return so + ' · ' + nav;
+  }
   function intentoDirecto(fn, args, id, esc) {
     var ctrl = window.AbortController ? new AbortController() : null;
     var reloj_ = ctrl ? setTimeout(function () { ctrl.abort(); }, CONFIG.timeoutMs) : null;
     return fetch(destino(fn), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ fn: fn, args: args, id: id, esc: !!esc }),
+      body: JSON.stringify({ fn: fn, args: args, id: id, esc: !!esc, eq: equipo(), eqd: equipoTxt() }),
       redirect: 'follow',
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (res) {
