@@ -208,7 +208,7 @@ function abrirCuenta(k) {
   var p = c.paso;
   var puedeSusp = c.vencido > 0.009 && !c.suspensionPedida && c.situacion !== 'mora' && !c.sinFicha;
   var vencidas = abiertas.filter(function (f) { return f.mora > 0; });
-  MK.lado('<span class="et">Cuenta</span><h2>' + MK.esc(c.cliente) + '</h2><div class="sub">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + (c.puntos && c.puntos.length > 1 ? '<br>Puntos: ' + c.puntos.map(MK.esc).join(' · ') : '') + (c.nombres && c.nombres.length > 1 ? '<br>En las facturas: ' + c.nombres.map(MK.esc).join(' · ') : '') + '</div>' +
+  MK.lado('<span class="et">Cuenta</span><h2>' + MK.esc(c.cliente) + '</h2><div class="sub">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + (c.puntos && c.puntos.length > 1 ? '<br>Puntos: ' + c.puntos.map(MK.esc).join(' · ') : '') + (c.nombres && c.nombres.length > 1 ? '<br>En las facturas: ' + c.nombres.map(MK.esc).join(' · ') : '') + (c.pagaDesde ? '<br>Paga desde ' + MK.esc(c.pagaDesde) : '') + '</div>' +
     '<div class="fila">' + escChip(c.escalon) + (c.situacion === 'mora' ? '<span class="chipx bad">servicio suspendido</span>' : '') + (c.sinFicha ? '<span class="chipx warn">sin ficha de cliente</span>' : '') + (c.tipo === 'contrato' ? '<span class="chipx info">contrato</span>' : '') + chipTarde(c) + '</div>' +
     '<div style="margin-top:12px">' + MK.kpis([{ e: 'Debe', v: D(c.saldo), c: c.saldo ? 'bad' : '' }, { e: 'Vencido', v: D(c.vencido) }, { e: 'Mora', v: c.moraMax + ' d' }, { e: 'Último pago', v: c.ultimoPago ? fdm(c.ultimoPago) : 'nunca', s: c.diasSinPago != null ? 'hace ' + c.diasSinPago + ' días' : '' }], 4) + '</div>' +
     bloqueSusp(c) + (c.cartaUltimo ? '<div class="small muted" style="margin:0 0 8px">' + MK.ic('documento', 14) + ' Carta de último aviso enviada el ' + fdm(c.cartaUltimo.fecha) + (c.cartaUltimo.limite ? ' · plazo hasta el ' + fdm(c.cartaUltimo.limite) : '') + '</div>' : '') +
@@ -467,6 +467,7 @@ function guardarIncQ(btn) {
 }
 </script>
 <script>
+/* Cobros-2.js (va adentro: no hace falta subirlo aparte) */
 /* ═══ Cobros (api 3.5) · segunda parte: seguimientos, planes, escalera, cartera, documentos ═══ */
 
 /* ═══════════ SEGUIMIENTOS ═══════════ */
@@ -739,7 +740,7 @@ function vDeudores() {
   var L = FDEU.indexOf('esc:') === 0 ? deben.filter(function (c) { return c.escalon === FDEU.slice(4); }) : (f[FDEU] || deben);
   if (QDEU) { var q = QDEU.toUpperCase(); L = L.filter(function (c) { return (c.cliente + ' ' + c.razon + ' ' + c.ruc).toUpperCase().indexOf(q) >= 0; }); }
   var h = MK.cabeza('Deudores', 'Una fila por contribuyente (RUC). Toca una fila para abrir la cuenta.',
-    '<input class="in" style="width:220px" placeholder="Buscar…" value="' + MK.esc(QDEU) + '" oninput="QDEU=this.value;clearTimeout(window._td);window._td=setTimeout(MK.repintar,250)">');
+    '<input class="in" id="q-deu" style="width:220px" placeholder="Buscar…" value="' + MK.esc(QDEU) + '" oninput="QDEU=this.value;clearTimeout(window._td);window._td=setTimeout(MK.repintar,250)">');
   h += '<div style="margin-bottom:12px">' + MK.chips([['deben', 'Deben', f.deben.length], ['sinGestion', 'Sin gestionar', f.sinGestion.length], ['sinContacto', 'Sin contacto', f.sinContacto.length], ['promesas', 'Promesas', f.promesas.length], ['planes', 'Con plan', f.planes.length], ['todas', 'Todas', f.todas.length]].concat(FDEU.indexOf('esc:') === 0 ? [[FDEU, (escD(FDEU.slice(4)) || {}).n || '', L.length]] : []), FDEU, 'filtroDeu') + '</div>';
   h += '<div class="dtab">' + MK.tabla(['Cuenta', 'Escalón', 'Facturas', 'Mora', 'Último pago', 'Última gestión', 'Contacto', '>Saldo'], L.map(function (c) {
     return ['<b>' + MK.esc(c.cliente) + '</b><small>' + MK.esc(c.razon || '') + '</small>', escChip(c.escalon), c.abiertas, c.moraMax ? '<span class="chipx ' + (c.moraMax > 90 ? 'bad' : 'warn') + '">' + c.moraMax + ' d</span>' : '—',
@@ -756,16 +757,24 @@ function vFacturas() {
   var g = { abiertas: F.filter(function (f) { return f.saldo > 0.009; }), vencidas: F.filter(function (f) { return f.mora > 0; }), mes: F.filter(function (f) { return f.fecha.slice(0, 7) === MK.hoy.slice(0, 7); }),
     pagadas: F.filter(function (f) { return f.estado === 'PAGADA'; }), incobrables: F.filter(function (f) { return f.estado === 'INCOBRABLE'; }), todas: F };
   var L = (g[FFAC] || F).slice().sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
-  if (QFAC) { var q = QFAC.toUpperCase(); L = L.filter(function (f) { return (f.factura + ' ' + f.cliente + ' ' + f.razon + ' ' + f.ruc).toUpperCase().indexOf(q) >= 0; }); }
+  /* api 3.9: con algo escrito se busca en TODAS las facturas (una pagada no aparecía en «Abiertas»),
+     y el número vale con o sin los ceros de adelante (212 = 0000000212) */
+  var enOtras = 0;
+  if (QFAC.trim()) {
+    var enChip = L.length;
+    L = F.filter(function (f) { return facCoincide(f, QFAC); }).sort(function (a, b) { return facOrden(a, QFAC) - facOrden(b, QFAC) || (a.fecha < b.fecha ? 1 : -1); });
+    enOtras = L.filter(function (f) { return (g[FFAC] || F).indexOf(f) < 0; }).length;
+  }
   var tono = { PAGADA: 'ok', PARCIAL: 'warn', VENCIDA: 'bad', PENDIENTE: 'info', INCOBRABLE: 'gris' };
   var h = MK.cabeza('Facturas', 'Lo que salió de contabilidad. El saldo se calcula con los pagos; nadie lo escribe a mano.',
-    '<input class="in" style="width:200px" placeholder="Número, cliente o RUC" value="' + MK.esc(QFAC) + '" oninput="QFAC=this.value;clearTimeout(window._tf);window._tf=setTimeout(MK.repintar,250)"><button class="btn pri escribe" onclick="nuevaFactura()">' + MK.ic('mas', 16) + 'Nueva factura</button>');
+    '<input class="in" id="q-fac" style="width:200px" placeholder="Número, cliente o RUC" value="' + MK.esc(QFAC) + '" oninput="QFAC=this.value;clearTimeout(window._tf);window._tf=setTimeout(MK.repintar,250)"><button class="btn pri escribe" onclick="nuevaFactura()">' + MK.ic('mas', 16) + 'Nueva factura</button>');
   h += '<div style="margin-bottom:12px">' + MK.chips([['abiertas', 'Abiertas', g.abiertas.length], ['vencidas', 'Vencidas', g.vencidas.length], ['mes', 'Este mes', g.mes.length], ['pagadas', 'Pagadas', g.pagadas.length], ['incobrables', 'Incobrables', g.incobrables.length], ['todas', 'Todas', F.length]], FFAC, 'filtroFac') + '</div>';
-  var LL = L.slice(0, 300);
+  var LL = L.slice(0, 300); window._LLF = LL;
   h += MK.tabla(['Factura', 'Fecha', 'Cliente', 'Vence', 'Estado', '>Total', '>Cobrado', '>Saldo'], LL.map(function (f) {
     return ['<b>' + MK.esc(f.factura) + '</b>' + (f.lote ? '<small>' + MK.esc(f.lote) + '</small>' : ''), fdm(f.fecha), MK.esc(f.cliente) + '<small>' + MK.esc(f.razon) + '</small>', fdm(f.vencimiento), '<span class="chipx ' + tono[f.estado] + '">' + f.estado.toLowerCase() + (f.mora ? ' · ' + f.mora + ' d' : '') + '</span>', D(f.total), D(f.cobrado), f.estado === 'INCOBRABLE' ? '<span class="muted">' + D(f.saldoReal) + '</span>' : D(f.saldo)];
-  }), { clic: function (j) { return 'abrirCuenta(\'' + LL[j].clave + '\')'; }, vacio: 'Ninguna factura aquí.', pie: ['<b>' + L.length + '</b>', '', '', '', '', D(L.reduce(function (s, f) { return s + f.total; }, 0)), D(L.reduce(function (s, f) { return s + f.cobrado; }, 0)), D(L.reduce(function (s, f) { return s + f.saldo; }, 0))] });
+  }), { clic: function (j) { return 'verFacturaBuscada(window._LLF[' + j + '])'; }, vacio: QFAC.trim() ? 'Ninguna factura con «' + MK.esc(QFAC.trim()) + '».' : 'Ninguna factura aquí.', pie: ['<b>' + L.length + '</b>', '', '', '', '', D(L.reduce(function (s, f) { return s + f.total; }, 0)), D(L.reduce(function (s, f) { return s + f.cobrado; }, 0)), D(L.reduce(function (s, f) { return s + f.saldo; }, 0))] });
   if (L.length > LL.length) h += '<div class="nota">Se ven las 300 más recientes; usa el buscador para las demás.</div>';
+  if (QFAC.trim()) h = h.replace('<div style="margin-bottom:12px">', '<div class="nota" style="margin:0 0 10px">Buscando «' + MK.esc(QFAC.trim()) + '» en todas las facturas' + (enOtras ? ' · ' + enOtras + ' no son de «' + MK.esc(FFAC) + '»' : '') + '. Borra la búsqueda para volver a la pestaña.</div><div style="margin-bottom:12px">');
   return h;
 }
 function filtroFac(f) { FFAC = f; MK.repintar(); }
@@ -1281,6 +1290,29 @@ function vPorVencer() {
 function filtroPV(d) { PV_DIAS = Number(d) || 15; MK.repintar(); }
 
 /* ═══════════ ARRANQUE ═══════════ */
+/* api 3.9 · buscar una factura por su número, con o sin ceros adelante */
+function sinCerosF(x) { return String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^0+(?=\d)/, ''); }
+function facCoincide(f, q) {
+  var Q = String(q || '').trim().toUpperCase(); if (!Q) return true;
+  var n = sinCerosF(Q);
+  if (/^\d+$/.test(n) && sinCerosF(f.factura).indexOf(n) >= 0) return true;
+  return (f.factura + ' ' + f.cliente + ' ' + f.razon + ' ' + f.ruc).toUpperCase().indexOf(Q) >= 0;
+}
+/* La factura que se buscó, con sus pagos; y desde ahí, su cuenta */
+function verFacturaBuscada(f) {
+  var c = cu(f.clave), P = (B().pagos || []).filter(function (p) { return p.factura === f.factura; });
+  var tono = { PAGADA: 'ok', PARCIAL: 'warn', VENCIDA: 'bad', PENDIENTE: 'info', INCOBRABLE: 'gris' }[f.estado] || 'gris';
+  MK.lado('<span class="et">Factura</span><h2>' + MK.esc(f.factura) + '</h2><div class="sub">' + MK.esc(f.cliente) + (f.razon ? ' · ' + MK.esc(f.razon) : '') + (f.ruc ? ' · RUC ' + MK.esc(f.ruc) : '') + '</div>' +
+    '<div class="fila"><span class="chipx ' + tono + '">' + String(f.estado || '').toLowerCase() + (f.mora ? ' · ' + f.mora + ' días' : '') + '</span>' + (f.lote ? '<span class="chipx gris">' + MK.esc(f.lote) + '</span>' : '') + '</div>' +
+    '<div style="margin-top:12px">' + MK.kpis([{ e: 'Total', v: D(f.total), s: 'emitida ' + fdm(f.fecha) }, { e: 'Cobrado', v: D(f.cobrado), s: f.retenido > 0.009 ? 'retención ' + D(f.retenido) : '' },
+      { e: 'Saldo', v: D(f.saldo), c: f.saldo > 0.009 ? 'bad' : '' }, { e: 'Vence', v: f.vencimiento ? fdm(f.vencimiento) : '—', s: f.concepto || '' }], 4) + '</div>' +
+    '<h3 style="margin:14px 0 6px;font-size:14px">Pagos de esta factura · ' + P.length + '</h3>' +
+    (P.length ? MK.tabla(['Fecha', 'Método', 'Referencia', '>Monto'], P.map(function (p) { return [fdm(p.fecha), MK.esc(p.metodo || '—'), MK.esc(p.referencia || '') + (p.lote ? '<small>' + MK.esc(p.lote) + '</small>' : ''), D(p.monto)]; }))
+              : '<div class="small muted">Sin pagos registrados.</div>') +
+    '<div class="fila" style="justify-content:flex-end;margin-top:14px">' + (c ? '<button class="btn pri" onclick="abrirCuenta(\'' + f.clave + '\')">' + MK.ic('personas', 16) + 'Ver la cuenta de ' + MK.esc(c.cliente) + '</button>'
+      : '<span class="small muted">Esta factura no amarra con ninguna cuenta: revísala en Conciliar pagos.</span>') + '</div>');
+}
+function facOrden(f, q) { var n = sinCerosF(q), m = sinCerosF(f.factura); return m === n ? 0 : (m.indexOf(n) === 0 ? 1 : 2); }
 MK.iniciar({
   modulo: 'Cobros',
   base: 'api_cobBase',
@@ -1294,8 +1326,14 @@ MK.iniciar({
         if ((c.cliente + ' ' + c.razon + ' ' + (c.nombres || []).join(' ') + ' ' + (c.puntos || []).join(' ')).toUpperCase().indexOf(Q) >= 0 || (qr.length >= 4 && String(c.ruc).toUpperCase().replace(/[^A-Z0-9]/g, '').indexOf(qr) >= 0))
           out.push({ t: c.cliente, d: (c.razon || '') + ' · ' + (c.saldo > 0.009 ? 'debe ' + D(c.saldo) : 'al día'), i: 'personas', ir: function () { abrirCuenta(c.clave); } });
       });
-      (B().facturas || []).forEach(function (f) { if (f.factura.indexOf(q.trim()) >= 0) out.push({ t: 'Factura ' + f.factura, d: f.cliente + ' · ' + f.estado.toLowerCase() + ' · ' + D(f.saldo || f.total), i: 'factura', ir: function () { abrirCuenta(f.clave); } }); });
-      return out;
+      var num = /^\d+$/.test(sinCerosF(q)), fs = [];
+      (B().facturas || []).forEach(function (f) {
+        if (num ? sinCerosF(f.factura).indexOf(sinCerosF(q)) >= 0 : String(f.factura).toUpperCase().indexOf(Q.trim()) >= 0)
+          fs.push({ o: num ? facOrden(f, q) : 1, t: 'Factura ' + f.factura, d: f.cliente + ' · ' + String(f.estado || '').toLowerCase() + ' · ' + D(f.saldo > 0.009 ? f.saldo : f.total), i: 'factura', ir: function () { verFacturaBuscada(f); } });
+      });
+      fs.sort(function (a, b) { return a.o - b.o; });
+      /* un número: primero las facturas (la exacta arriba); un nombre: primero las cuentas */
+      return num ? fs.concat(out) : out.concat(fs);
     }
   },
   paginas: [

@@ -356,7 +356,15 @@
     try { MK.op.pintar(id); } catch (e) { console.error(e); if (main) main.innerHTML = '<div class="aviso rj">Error al pintar: ' + MK.esc(e.message) + '</div>'; }
     window.scrollTo(0, 0);
   };
-  MK.repintar = function () { try { MK.op.pintar(MK.seccion); } catch (e) { console.error(e); } };
+  /* api 3.9: al repintar, el buscador de la página conserva el cursor. Antes, en Cobros
+     (Facturas, Deudores) la pantalla se volvía a dibujar al primer número y lo demás
+     que se escribía se perdía. */
+  MK.repintar = function () {
+    var a = document.activeElement, id = a && a.id && a.closest && a.closest('#main') ? a.id : '', s0 = null, s1 = null;
+    if (id) { try { s0 = a.selectionStart; s1 = a.selectionEnd; } catch (e) {} }
+    try { MK.op.pintar(MK.seccion); } catch (e) { console.error(e); }
+    if (id) { var n = document.getElementById(id); if (n && n !== a) { try { n.focus(); if (s0 !== null) n.setSelectionRange(s0, s1); } catch (e) {} } }
+  };
   window.addEventListener('popstate', function () { var h = (location.hash || '').slice(1); if (h && h !== MK.seccion) MK.ir(h, true); });
 
   /* ── arranque ── */

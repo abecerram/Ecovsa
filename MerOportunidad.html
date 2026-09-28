@@ -153,6 +153,20 @@
 .cli-rev{background:#fff7df;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
 .cli-rev b{display:flex;gap:5px;align-items:center;color:#7a5600}.cli-rev span{color:var(--muted);overflow-wrap:anywhere}
 .cli-link{margin-bottom:14px;border-left:4px solid var(--navy2)}
+/* api 3.9 · bandeja temporal y revisión con los datos al lado */
+.bt39{margin-bottom:14px;border-left:4px solid #d99a00}
+.bt39.ok{border-left-color:var(--ok)}.bt39.r{border-left-color:var(--bad)}
+.bt39 .cnt{display:inline-flex;align-items:baseline;gap:4px;background:#fff4d6;color:#7a5600;border-radius:9px;padding:4px 10px;font-weight:700;font-size:13px}
+.bt39 .cnt b{font-size:18px}.bt39.r .cnt{background:#fdecea;color:#a8262b}
+.bt39 .const{font-size:12.5px;color:var(--muted);margin-top:6px}
+.rv39{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+.rv39 .pv{background:#eef1f5;border-radius:12px;min-height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rv39 .pv iframe{width:100%;height:520px;border:0;background:#fff}
+.rv39 .pv.pags{display:block;max-height:540px;overflow:auto;padding:10px}.rv39 .pv canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 1px 4px rgba(15,33,64,.15);margin:0 auto 10px}.rv39 .pv img{max-width:100%;max-height:520px;display:block}
+.rv39 .dt label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:10px 0 3px}
+.rv39 .dt .in{width:100%;box-sizing:border-box}.rv39 .dt .in.cam{border-color:#d99a00;background:#fffcf2}
+.rv39 .dt .ay{font-size:12px;color:var(--muted);margin-top:8px}
+@media(max-width:760px){.rv39{grid-template-columns:1fr}.rv39 .pv{min-height:260px}.rv39 .pv iframe{height:360px}}
 .dcard .fn{font-size:12px;color:var(--muted);display:flex;gap:5px;align-items:center;overflow-wrap:anywhere;min-width:0}
 .dcard .fn span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dcard .row .chk{font-size:12.5px;font-weight:600}
@@ -806,7 +820,7 @@
           : (GER ? '<div class="small muted">Sin archivo</div>' : '<button class="zona" data-a="subir" data-col="' + E(d[0]) + '">' + IC('subir', 18) + 'Subir el archivo</button>')) + '</div>';
     }).join('');
     var todos = (D.documentos || []).slice().sort(function (a, b) { return String(b.creadoEn).localeCompare(String(a.creadoEn)); });
-    return tarjetaEnlaceDocs() + card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
+    return tarjetaEnlaceDocs() + tarjetaBandeja() + card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
         (bloqCasilla && !GER ? '<p class="small muted" style="margin-top:10px">La ficha está firmada: las casillas solo las cambia supervisión.</p>' : ''),
         '<span class="l muted">' + docsSi() + ' de ' + ld.length + ' · los 5 primeros los pide el contrato</span>') +
       '<div style="margin-top:14px">' + card('Archivos y envíos', (todos.length ? '<div style="overflow-x:auto"><table class="vt">' + todos.map(function (d) { return filaDoc(d, false); }).join('') + '</table></div>'
@@ -821,8 +835,8 @@
     if (dc.estado === 'por revisar') {
       var a = archCli(col); if (!a) return '';
       return '<div class="cli-rev"><b>' + IC('subir', 13) + ' El cliente lo subió</b><span>' + E(a.nombre) + ' · ' + E(ARCH.kb(a.tamano)) + ' · ' + E(fh(a.subidoEn)) + '</span>' +
-        '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="ver-cli" data-id="' + E(a.archivoId) + '">' + IC('ojo', 14) + ' Ver</button>' +
-        (GER ? '' : '<button class="btn sm ok" data-a="aceptar-cli" data-id="' + E(a.archivoId) + '">' + IC('check', 14) + ' Aceptar</button><button class="btn sm gh" data-a="rechazar-cli" data-id="' + E(a.archivoId) + '" data-n="' + E(dc.n) + '">Rechazar</button>') + '</div></div>';
+        '<div class="row" style="gap:6px;flex-wrap:wrap">' + (GER ? '<button class="btn sm" data-a="ver-cli" data-id="' + E(a.archivoId) + '">' + IC('ojo', 14) + ' Ver</button>'
+          : '<button class="btn sm pri" data-a="revisar-cli" data-id="' + E(a.archivoId) + '" data-col="' + E(col) + '">' + IC('ojo', 14) + ' Revisar con los datos</button>') + '</div></div>';
     }
     if (dc.estado === 'rechazado') return '<div class="small" style="color:var(--bad)">Rechazado: ' + E(dc.motivo) + ' · el cliente lo ve en su enlace</div>';
     return '';
@@ -865,6 +879,191 @@
           (tel ? '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + (OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '') + ', le escribimos de ECOVSA. Revisamos su ' + nombre.toLowerCase() + ' y necesitamos que lo vuelva a subir: ' + m + '.\n\nLo puede subir aquí mismo:\n' + enlaceFormulario()) + '" onclick="MK.cerrarHoja()">' + IC('whatsapp', 15) + ' Avisar por WhatsApp</a>' : '') + '</div>');
         MK.cambio({ tipo: 'documento' });
       }, function (e) { MK.ocupado(b, false); $('rc-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  /* ═══ api 3.9 · Bandeja temporal: revisar con los datos al lado, expediente y borrado ═══ */
+  var RV_CAMPOS = {
+    'doc cedula representante': [['representante legal', 'Representante legal'], ['cedula representante', 'Cédula del representante']],
+    'doc registro publico': [['razon social', 'Razón social'], ['ruc', 'RUC'], ['dv', 'DV'], ['representante legal', 'Representante legal']],
+    'doc aviso operacion': [['razon social', 'Razón social'], ['ruc', 'RUC'], ['direccion', 'Dirección']],
+    'doc datos bancarios': [['razon social', 'Titular de la cuenta (razón social)']]
+  };
+  function tarjetaBandeja() {
+    var dc = D.docsCliente; if (!dc || unica() || !dc.temporal) return '';
+    var t = dc.temporal;
+    if (!t.n && !t.borrados && !t.expediente) return '';
+    var urg = t.n && t.quedan !== null && t.quedan <= 5;
+    var h = '<div class="card bt39' + (!t.n ? ' ok' : urg ? ' r' : '') + '"><div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:240px"><b>' + IC('clip', 15) + ' Bandeja temporal de documentos</b>';
+    if (t.n) h += '<div class="small" style="margin-top:4px">' + t.n + (t.n === 1 ? ' documento' : ' documentos') + ' del cliente' + (t.aceptados ? ' · ' + t.aceptados + (t.aceptados === 1 ? ' aceptado' : ' aceptados') : '') + (t.porRevisar ? ' · ' + t.porRevisar + ' por revisar' : '') +
+      '. Sirven para verificar los datos y armar el expediente impreso: <b>no se guardan</b>. Se borran solos a los ' + t.dias + ' días de subidos.</div>';
+    else h += '<div class="small" style="margin-top:4px">La bandeja está vacía.' + (t.borrados ? ' Documentos borrados: ' + E(t.borrados) + '.' : '') + '</div>';
+    h += '<div class="const">' + (t.expediente ? IC('check', 13) + ' Expediente ' + E(t.expediente) : (t.n ? 'Todavía no se ha impreso ni descargado el expediente.' : '')) +
+      (t.pagaDesde ? '<br>' + IC('billete', 13) + ' Paga desde ' + E(t.pagaDesde) + ' (lo ve Cobros para reconocer sus pagos)' : '') + '</div></div>';
+    if (t.n) h += '<div style="text-align:right"><span class="cnt">' + (t.quedan ? 'se borran en <b>' + t.quedan + '</b> ' + (t.quedan === 1 ? 'día' : 'días') : '<b>hoy</b> se borran') + '</span>' +
+      (GER ? '' : '<div class="row" style="gap:6px;margin-top:10px;justify-content:flex-end;flex-wrap:wrap"><button class="btn sm' + (t.expediente ? '' : ' pri') + '" data-a="expediente"' + (t.aceptados ? '' : ' disabled title="Primero acepta los documentos"') + '>' + IC('imprimir', 14) + ' Armar el expediente</button>' +
+        '<button class="btn sm' + (t.expediente ? ' pri' : '') + '" data-a="borrar-docs"' + (t.aceptados ? '' : ' disabled') + '>' + IC('basura', 14) + ' Ya lo imprimí · borrar</button></div>') + '</div>';
+    return h + '</div></div>';
+  }
+  /* Revisar: el documento a la izquierda y los datos del formulario a la derecha */
+  function revisarCli(id, col) {
+    var dc = docCli(col) || {}, a = archCli(col) || {}, X = (D.docsCliente && D.docsCliente.datos) || {}, C = RV_CAMPOS[col] || [];
+    var campos = C.map(function (c) { return '<label for="rv-' + E(c[0]).replace(/\s/g, '_') + '">' + E(c[1]) + '</label><input class="in" data-rv="' + E(c[0]) + '" id="rv-' + E(c[0]).replace(/\s/g, '_') + '" value="' + E(X[c[0]] || '') + '" data-orig="' + E(X[c[0]] || '') + '" oninput="this.classList.toggle(\'cam\', this.value.trim() !== this.getAttribute(\'data-orig\'))">'; }).join('');
+    if (col === 'doc datos bancarios') campos += '<label for="rv-banco">Banco</label><input class="in" id="rv-banco" placeholder="Banco General" list="rv-bancos"><datalist id="rv-bancos">' +
+      ['Banco General', 'Banistmo', 'BAC Credomatic', 'Banesco', 'Caja de Ahorros', 'Banco Nacional de Panamá', 'Global Bank', 'Multibank', 'Scotiabank', 'Credicorp Bank', 'St. Georges Bank', 'Banisi', 'Towerbank', 'Canal Bank', 'Mercantil Banco']
+        .map(function (b) { return '<option value="' + b + '">'; }).join('') + '</datalist>' +
+      '<label for="rv-u4">Últimos 4 dígitos de la cuenta</label><input class="in" id="rv-u4" inputmode="numeric" maxlength="4" placeholder="1234">' +
+      '<div class="ay">El número completo no se guarda: solo el banco y los últimos 4, para que Cobros reconozca sus depósitos.</div>';
+    MK.hoja('<h2>' + E(dc.n || 'Documento') + '</h2><p class="small muted">' + E(OP.empresa || '') + ' · lo subió el cliente el ' + E(fh(a.subidoEn)) + ' · ' + E(a.nombre || '') + '</p>' +
+      '<div class="rv39" style="margin-top:12px"><div class="pv" id="rv-pv"><span class="small muted">Abriendo el documento…</span></div>' +
+      '<div class="dt"><b style="font-size:13px">Compáralo con la ficha</b>' + (campos || '<div class="small muted" style="margin-top:8px">Revisa que el documento se lea completo y esté vigente.</div>') +
+      '<div class="ay">Si algo no coincide, corrígelo aquí: se guarda en la ficha al aceptar.</div></div></div>' +
+      '<div id="rv-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div class="pie"><a class="btn gh" id="rv-abrir" target="_blank" rel="noopener" style="display:none">' + IC('enlace', 14) + ' Abrir aparte</a><span style="flex:1"></span><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button>' +
+      '<button class="btn bad" id="rv-no">Rechazar</button><button class="btn pri" id="rv-si">' + IC('check', 15) + ' Coincide · aceptar</button></div>', { ancha: true });
+    MK.api('api_arcVer', MK.pin, id).then(function (r) {
+      var pv = $('rv-pv'); if (!pv) return;
+      if (!r || !r.ok || !r.url) { pv.innerHTML = '<span class="small" style="color:var(--bad)">' + E((r && (r.error || r.almacenError)) || 'No se pudo abrir.') + '</span>'; return; }
+      if (/pdf/i.test(r.mime || a.mime || '')) verPdfEn(pv, r.url); else pv.innerHTML = '<img src="' + E(r.url) + '" alt="Documento">';
+      var ab = $('rv-abrir'); if (ab) { ab.href = r.url; ab.style.display = ''; }
+    }, function () { var pv = $('rv-pv'); if (pv) pv.innerHTML = '<span class="small">Sin conexión.</span>'; });
+    $('rv-no').onclick = function () { rechazarCli(id, dc.n || 'el documento'); };
+    $('rv-si').onclick = function () {
+      var datos = {}, b = this;
+      [].forEach.call(document.querySelectorAll('[data-rv]'), function (i) { if (i.value.trim() !== i.getAttribute('data-orig')) datos[i.getAttribute('data-rv')] = i.value.trim(); });
+      if (col === 'doc datos bancarios') {
+        datos.banco = ($('rv-banco').value || '').trim(); datos.ult4 = ($('rv-u4').value || '').replace(/\D/g, '');
+        if (!datos.banco || datos.ult4.length !== 4) { $('rv-msg').textContent = 'Escribe el banco y los últimos 4 dígitos.'; return; }
+      }
+      MK.ocupado(b, true, 'Aceptando…');
+      MK.api('api_docsRevisar', MK.pin, id, 'aceptar', '', datos).then(function (r) {
+        if (!r || !r.ok) { MK.ocupado(b, false); $('rv-msg').textContent = (r && r.error) || 'No se pudo.'; return; }
+        MK.cerrarHoja();
+        var n = Object.keys(datos).filter(function (k) { return k !== 'banco' && k !== 'ult4'; }).length;
+        MK.aviso((r.completo ? 'Aceptado. Ya están todos: el enlace del cliente se cerró.' : 'Aceptado') + (n ? ' · se corrigió la ficha' : ''));
+        MK.cambio({ tipo: 'documento' });
+      }, function (e) { MK.ocupado(b, false); $('rv-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  /* Las páginas del PDF dibujadas aquí mismo (en el celular un PDF dentro de la página no se ve bien) */
+  function verPdfEn(pv, url) {
+    var B = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+    var lib = window.pdfjsLib ? Promise.resolve() : new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = B + 'pdf.min.js'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+    lib.then(function () {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = B + 'pdf.worker.min.js';
+      return window.pdfjsLib.getDocument(url).promise;
+    }).then(function (doc) {
+      pv.innerHTML = ''; pv.className = 'pv pags'; var cad = Promise.resolve();
+      for (var i = 1; i <= Math.min(doc.numPages, 8); i++) (function (n) {
+        cad = cad.then(function () { return doc.getPage(n); }).then(function (pg) {
+          var v = pg.getViewport({ scale: 1.4 }), c = document.createElement('canvas'); c.width = v.width; c.height = v.height; pv.appendChild(c);
+          return pg.render({ canvasContext: c.getContext('2d'), viewport: v }).promise;
+        });
+      })(i);
+      return cad;
+    }).catch(function () { pv.innerHTML = '<iframe src="' + E(url) + '" title="Documento"></iframe>'; });
+  }
+  /* El expediente: una portada con los datos y todos los documentos aceptados, en un solo PDF */
+  var EXP = null;
+  function libPdf() {
+    if (window.PDFLib) return Promise.resolve();
+    return new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'; s.onload = ok; s.onerror = function () { mal(new Error('Sin conexión para armar el PDF.')); }; document.head.appendChild(s); });
+  }
+  function hojaExpediente() {
+    EXP = null;
+    MK.hoja('<h2>Expediente de documentos</h2><p class="small muted">' + E(OP.empresa || '') + ' · una portada con los datos del cliente y sus documentos aceptados, en un solo PDF.</p>' +
+      '<div id="ex-est" class="small" style="margin:14px 0">Armando el expediente…</div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><button class="btn" id="ex-bajar" disabled>' + IC('bajar', 15) + ' Descargar</button><button class="btn pri" id="ex-imp" disabled>' + IC('imprimir', 15) + ' Imprimir</button></div>');
+    var est = function (t) { var e = $('ex-est'); if (e) e.innerHTML = t; };
+    MK.api('api_docsExpediente', MK.pin, COD).then(function (r) {
+      if (!r || !r.ok) { est('<span style="color:var(--bad)">' + E((r && r.error) || 'No se pudo.') + '</span>'); return; }
+      return libPdf().then(function () { return armarExpediente(r, est); }).then(function (x) {
+        EXP = x;
+        est(IC('check', 14) + ' Listo: ' + x.paginas + ' páginas · ' + E(ARCH.kb(x.blob.size)) + (r.faltan.length ? '<br><span style="color:#8a6300">Faltan: ' + E(r.faltan.join(', ')) + '</span>' : '') + (x.fallaron.length ? '<br><span style="color:var(--bad)">No se pudieron agregar: ' + E(x.fallaron.join(', ')) + '</span>' : ''));
+        $('ex-bajar').disabled = false; $('ex-imp').disabled = false;
+        $('ex-bajar').onclick = function () { var u = URL.createObjectURL(x.blob), a = document.createElement('a'); a.href = u; a.download = x.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 60000); expHecho('descargado'); };
+        $('ex-imp').onclick = function () { imprimirPdf(x.blob); expHecho('impreso'); };
+      });
+    }).catch(function (e) { est('<span style="color:var(--bad)">' + E((e && e.message) || 'No se pudo armar el expediente.') + '</span>'); });
+  }
+  function expHecho(como) {
+    MK.api('api_docsExpedienteHecho', MK.pin, COD, como).then(function (r) { if (r && r.ok) { MK.aviso('Expediente ' + como + ' · queda la constancia'); MK.cambio({ tipo: 'documento' }); } }, function () {});
+  }
+  function imprimirPdf(blob) {
+    var u = URL.createObjectURL(blob), f = document.getElementById('ex-print');
+    if (f) f.remove();
+    f = document.createElement('iframe'); f.id = 'ex-print'; f.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';
+    f.onload = function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(u, '_blank'); } };
+    f.src = u; document.body.appendChild(f);
+  }
+  function armarExpediente(r, est) {
+    var L = PDFLib, pdf, fuente, negrita, fallaron = [];
+    var NAVY = L.rgb(20 / 255, 48 / 255, 107 / 255), GRIS = L.rgb(93 / 255, 107 / 255, 128 / 255), TINTA = L.rgb(29 / 255, 42 / 255, 62 / 255), LIN = L.rgb(221 / 255, 227 / 255, 236 / 255);
+    var limpio = function (t) { return String(t == null ? '' : t).replace(/\s*[\r\n]+\s*/g, ', ').replace(/[^\x20-\x7E\u00A0-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u00B7]/g, ''); };
+    return L.PDFDocument.create().then(function (d) {
+      pdf = d; pdf.setTitle('Expediente ' + r.empresa); pdf.setAuthor('ECOVSA');
+      return Promise.all([pdf.embedFont(L.StandardFonts.Helvetica), pdf.embedFont(L.StandardFonts.HelveticaBold)]);
+    }).then(function (F) {
+      fuente = F[0]; negrita = F[1];
+      var pg = pdf.addPage([612, 792]), y = 740, X = r.datos || {};
+      var t = function (s, x, yy, o) { o = o || {}; pg.drawText(limpio(s), { x: x, y: yy, size: o.size || 10, font: o.b ? negrita : fuente, color: o.color || TINTA, maxWidth: o.max || 520 }); };
+      t('ECOVSA', 46, y, { size: 22, b: true, color: NAVY }); t('EXPEDIENTE DEL CLIENTE', 566 - negrita.widthOfTextAtSize('EXPEDIENTE DEL CLIENTE', 9), y + 6, { size: 9, b: true, color: GRIS });
+      t(r.cod, 566 - negrita.widthOfTextAtSize(limpio(r.cod), 12), y - 12, { size: 12, b: true, color: NAVY });
+      y -= 18; t('Recolección, transporte y disposición final de desechos hospitalarios', 46, y, { size: 8.5, color: GRIS });
+      y -= 12; pg.drawLine({ start: { x: 46, y: y }, end: { x: 566, y: y }, thickness: 2, color: NAVY });
+      y -= 34; t(r.empresa, 46, y, { size: 18, b: true });
+      y -= 26;
+      var fila = function (k, v) { t(k.toUpperCase(), 46, y, { size: 7.5, b: true, color: GRIS }); t(v || '-', 200, y, { size: 10.5 }); y -= 8; pg.drawLine({ start: { x: 46, y: y }, end: { x: 566, y: y }, thickness: 0.5, color: LIN }); y -= 14; };
+      fila('Razón social', X['razon social']); fila('RUC', (X.ruc || '') + (X.dv ? '  DV ' + X.dv : '')); fila('Representante legal', X['representante legal']);
+      fila('Cédula del representante', X['cedula representante']); fila('Dirección', X.direccion); fila('Contacto', [X.contacto, X.telefono, X.correo].filter(Boolean).join(' · '));
+      if (X.pagaDesde) fila('Paga desde', X.pagaDesde);
+      y -= 14; t('DOCUMENTOS DE ESTE EXPEDIENTE', 46, y, { size: 8.5, b: true, color: NAVY }); y -= 18;
+      r.docs.forEach(function (x, i) { t((i + 1) + '.  ' + x.n, 56, y, { size: 10.5, b: true }); t('Verificado por ' + (x.revisadoPor || '-') + ' · ' + String(x.revisadoEn || '').slice(0, 10), 300, y, { size: 9, color: GRIS }); y -= 17; });
+      if (r.faltan.length) { y -= 4; t('Faltan: ' + r.faltan.join(', '), 56, y, { size: 9.5, color: L.rgb(0.54, 0.39, 0) }); y -= 16; }
+      y -= 20; pg.drawLine({ start: { x: 46, y: 120 }, end: { x: 250, y: 120 }, thickness: 0.6, color: TINTA });
+      t('Revisó · Mercadeo', 46, 106, { size: 9, color: GRIS }); t(r.por, 46, 94, { size: 9.5, b: true });
+      t('Armado el ' + r.hecho + ' desde el sistema de ECOVSA. Los documentos originales se borran del sistema (bandeja temporal de ' + r.temporal.dias + ' días): este expediente impreso es el que se archiva.', 46, 60, { size: 7.5, color: GRIS, max: 520 });
+      /* los documentos, uno tras otro */
+      var cad = Promise.resolve();
+      r.docs.forEach(function (x, i) {
+        cad = cad.then(function () {
+          est('Agregando ' + E(x.n) + ' (' + (i + 1) + ' de ' + r.docs.length + ')…');
+          return fetch(x.url).then(function (res) { if (!res.ok) throw new Error('no bajó'); return res.arrayBuffer(); }).then(function (buf) {
+            if (/pdf/i.test(x.mime)) return L.PDFDocument.load(buf, { ignoreEncryption: true }).then(function (src) { return pdf.copyPages(src, src.getPageIndices()); }).then(function (pp) { pp.forEach(function (p) { pdf.addPage(p); }); });
+            var emb = /png/i.test(x.mime) ? pdf.embedPng(buf) : /jpe?g/i.test(x.mime) ? pdf.embedJpg(buf) : aJpg(buf, x.mime).then(function (b) { return pdf.embedJpg(b); });
+            return emb.then(function (im) { var p = pdf.addPage([612, 792]), k = Math.min(576 / im.width, 756 / im.height); p.drawImage(im, { x: (612 - im.width * k) / 2, y: (792 - im.height * k) / 2, width: im.width * k, height: im.height * k }); });
+          }).catch(function () { fallaron.push(x.n); });
+        });
+      });
+      return cad;
+    }).then(function () { return pdf.save(); }).then(function (bytes) {
+      return { blob: new Blob([bytes], { type: 'application/pdf' }), paginas: pdf.getPageCount(), fallaron: fallaron,
+               nombre: 'Expediente_' + String(r.empresa || r.cod).replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '') + '.pdf' };
+    });
+  }
+  function aJpg(buf, mime) {
+    return new Promise(function (ok, mal) {
+      var u = URL.createObjectURL(new Blob([buf], { type: mime })), im = new Image();
+      im.onload = function () { var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0);
+        URL.revokeObjectURL(u); c.toBlob(function (b) { b.arrayBuffer().then(ok, mal); }, 'image/jpeg', 0.85); };
+      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error('imagen')); }; im.src = u;
+    });
+  }
+  function borrarDocs() {
+    var t = (D.docsCliente && D.docsCliente.temporal) || {};
+    MK.hoja('<h2>Borrar los documentos del cliente</h2><p class="muted" style="margin-top:6px">Se borran del sistema los ' + (t.aceptados || 0) + ' documentos aceptados de ' + E(OP.empresa || '') + '. ' +
+      (t.expediente ? 'El expediente ya quedó ' + E(String(t.expediente).split(' ')[0]) + '.' : '<b style="color:var(--bad)">Todavía no has impreso ni descargado el expediente:</b> después no se pueden recuperar.') +
+      (t.porRevisar ? '<br>Lo que está por revisar se queda hasta que lo revises.' : '') + '</p>' +
+      '<p class="small muted">En la oportunidad queda la constancia de quién los borró y cuándo. Las casillas del checklist se quedan marcadas.</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button>' + (t.expediente ? '' : '<button class="btn" id="bd-exp">' + IC('imprimir', 15) + ' Armar el expediente primero</button>') +
+      '<button class="btn bad" id="bd-si">' + IC('basura', 15) + ' Sí, borrarlos</button></div>');
+    if ($('bd-exp')) $('bd-exp').onclick = function () { hojaExpediente(); };
+    $('bd-si').onclick = function () {
+      var b = this; MK.ocupado(b, true, 'Borrando…');
+      MK.api('api_docsBorrarCliente', MK.pin, COD).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+        MK.cerrarHoja(); MK.aviso(r.borrados + (r.borrados === 1 ? ' documento borrado' : ' documentos borrados') + ' · queda la constancia'); MK.cambio({ tipo: 'documento' });
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
     };
   }
   function waDocs() {
@@ -1027,6 +1226,9 @@
       case 'ver-archivo': verArchivo(id); break;
       case 'ver-cli': verCli(id); break;
       case 'aceptar-cli': aceptarCli(id, el); break;
+      case 'revisar-cli': revisarCli(id, el.getAttribute('data-col')); break;
+      case 'expediente': hojaExpediente(); break;
+      case 'borrar-docs': borrarDocs(); break;
       case 'rechazar-cli': rechazarCli(id, el.getAttribute('data-n') || 'el documento'); break;
       case 'wa-docs': waDocs(); break;
       case 'envio-doc': hojaEnvioDoc(docPor(el.getAttribute('data-doc'))); break;

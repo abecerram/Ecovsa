@@ -289,6 +289,16 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
               '<a class="btn sm" href="MerOportunidad.html?id=' + encodeURIComponent(o.cod) + '#documentos">Revisar</a></div>';
           }).join('') + '</div>';
       }
+      /* api 3.9 · la bandeja temporal: lo que se borra primero, arriba */
+      var T = r.temporal || [];
+      if (T.length) h += '<div class="card" style="border-left:4px solid ' + (T[0].quedan <= 5 ? 'var(--bad)' : 'var(--amber)') + '"><h3>' + MK.ic('clip', 16) + ' Bandeja temporal <span class="sp"></span><span class="l muted">' + T.length + (T.length === 1 ? ' cliente' : ' clientes') + '</span></h3>' +
+        '<div class="small muted" style="margin:-4px 0 6px">Los documentos de los clientes se borran solos a los 30 días. Imprime el expediente y bórralos cuando termines.</div>' +
+        T.slice(0, 8).map(function (o) {
+          return '<div style="padding:9px 0;border-top:1px solid var(--line2)" class="row"><div style="flex:1;min-width:0"><b>' + esc(o.empresa || o.cod) + '</b><div class="small muted">' + o.n + (o.n === 1 ? ' documento' : ' documentos') +
+            (o.expediente ? ' · expediente ' + esc(String(o.expediente).split(' ')[0]) : ' · sin expediente') + '</div></div>' +
+            '<span class="tag ' + (o.quedan <= 5 ? 't-bad' : 't-warn') + '" style="margin-right:8px">' + (o.quedan ? 'se borran en ' + o.quedan + (o.quedan === 1 ? ' día' : ' días') : 'se borran hoy') + '</span>' +
+            '<a class="btn sm" href="MerOportunidad.html?id=' + encodeURIComponent(o.cod) + '#documentos">Abrir</a></div>';
+        }).join('') + '</div>';
       el.innerHTML = h;
     }, function () {});
   }

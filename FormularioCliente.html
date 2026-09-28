@@ -190,6 +190,20 @@ details.info .x b{color:var(--ink)}
 .dbtn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #c9d5e8;background:#fff;color:var(--navy2);border-radius:10px;padding:9px 12px;font:700 13.5px Archivo,sans-serif;cursor:pointer;flex:none;white-space:nowrap}
 .dbtn svg.i{width:17px;height:17px}.dbtn:disabled{opacity:.6}
 @media(max-width:520px){.dit{flex-wrap:wrap}.dtx{flex:1 1 calc(100% - 60px)}.dbtn{margin-left:50px}}
+/* api 3.9 · varias fotos en un solo PDF */
+.dcomp{margin:0 14px 14px;border:1.5px solid #c9d5e8;border-radius:14px;background:#f7f9fc;padding:14px}
+.dcomp h5{font-size:14.5px;margin:0 0 3px}.dcomp .ay{font-size:12.8px;color:var(--muted);margin-bottom:10px}
+.dpags{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:9px;margin-bottom:10px}
+.dpag{position:relative;aspect-ratio:3/4;border-radius:9px;background:#fff center/contain no-repeat;border:1px solid var(--line)}
+.dpag b{position:absolute;left:5px;top:5px;background:var(--navy2);color:#fff;border-radius:6px;font-size:11px;padding:1px 6px}
+.dpag button{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(15,33,64,.75);color:#fff;font-size:14px;cursor:pointer}
+.dpag.bn{filter:grayscale(1) contrast(1.35)}
+.dacc{display:flex;gap:8px;flex-wrap:wrap}.dacc .dbtn{margin:0}
+.dbn{display:flex;align-items:center;gap:10px;margin:12px 0 4px;font-size:13.5px;font-weight:600;cursor:pointer}
+.dbn input{width:20px;height:20px}
+.dgo{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px;background:var(--navy2);color:#fff;font:800 15px Archivo,sans-serif;cursor:pointer}
+.dgo:disabled{opacity:.5}
+.dmin{display:block;margin:10px auto 0;border:0;background:none;color:var(--navy2);font:700 13px Archivo,sans-serif;text-decoration:underline;cursor:pointer}
 .okc{width:66px;height:66px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:6px auto 14px}
 .okc svg.i{width:34px;height:34px;stroke-width:2.6}
 .okc.am{background:var(--warn-bg);color:var(--warn)}
@@ -268,6 +282,7 @@ var IC = {
   telefono:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
   whatsapp:'<path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c.5 2 2.3 4 4.5 4.8l1.2-1.2 2 1-.5 1.5c-3.5.3-7.7-3.6-7.6-7.2l1.4-.6 1 2z"/>',
   correo:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  camara:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   subir:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>'
 };
@@ -679,6 +694,14 @@ document.addEventListener('click', function (ev) {
   if (a === 'docs') return pantallaDocs({ yaEnvio: enviado });
   if (a === 'volverForm') { if (enviado) return listo(); return pintar(); }
   if (a === 'subirDoc') return elegirDoc(b.getAttribute('data-doc'));
+  if (a === 'componer') { COMP = { doc: b.getAttribute('data-doc'), pags: [], bn: true, ocupado: false }; pantallaDocs({ yaEnvio: enviado }); var c = document.querySelector('.dcomp'); if (c && c.scrollIntoView) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  if (a === 'compFoto') return $('dfoto').click();
+  if (a === 'compGal') return $('dgal').click();
+  if (a === 'compPdf') return elegirDoc(COMP.doc);
+  if (a === 'compQuitar') { COMP.pags.splice(Number(b.getAttribute('data-i')), 1); return pantallaDocs({ yaEnvio: enviado }); }
+  if (a === 'compBn') { COMP.bn = !COMP.bn; return pantallaDocs({ yaEnvio: enviado }); }
+  if (a === 'compCancelar') { COMP = null; return pantallaDocs({ yaEnvio: enviado }); }
+  if (a === 'compEnviar') return compEnviar();
   if (!D || enviado) return;
   if (a === 'empezar') { guardar(PASOS[1]); return ir(1); }
   if (a === 'atras') {
@@ -874,20 +897,101 @@ function pantallaDocs(o){
     '<div class="dprog"><div><i style="width:' + Math.round(hechos / Math.max(1, L.length) * 100) + '%"></i></div><span>' + hechos + ' de ' + L.length + ' recibidos</span></div>' +
     '<div class="dlis">' + L.map(function (d) {
       var e = EST[d.estado] || [d.estado, 'g'], su = SUBIDAS[d.doc] && SUBIDAS[d.doc].tarjeta(), op = su && su.estado === 'trabajando' ? 'Subiendo…' : DOC_OP[d.doc];
-      var btn = d.estado === 'aceptado' ? '' : '<button class="dbtn" data-a="subirDoc" data-doc="' + esc(d.doc) + '"' + (op ? ' disabled' : '') + '>' + ic('subir') + (op ? esc(op) : d.estado === 'falta' ? 'Subir' : d.estado === 'rechazado' ? 'Volver a subir' : 'Cambiar archivo') + '</button>';
+      var btn = d.estado === 'aceptado' || (COMP && COMP.doc === d.doc) ? '' : '<button class="dbtn" data-a="componer" data-doc="' + esc(d.doc) + '"' + (op ? ' disabled' : '') + '>' + ic('camara') + (op ? esc(op) : d.estado === 'falta' ? 'Subir' : d.estado === 'rechazado' ? 'Volver a subir' : 'Cambiar archivo') + '</button>';
       return '<div class="dit ' + e[1] + '"><div class="dic">' + ic(d.estado === 'aceptado' ? 'check' : d.estado === 'rechazado' ? 'alerta' : 'documento') + '</div><div class="dtx"><b>' + esc(d.n) + '</b>' +
         '<span class="dch ' + e[1] + '">' + esc(e[0]) + '</span>' +
         '<small>' + (d.estado === 'rechazado' ? '<b class="mot">Motivo: ' + esc(d.motivo) + '</b>' : d.estado === 'por revisar' ? 'Recibimos ' + esc(d.nombre || 'el archivo') + '. Lo revisamos pronto.' : d.estado === 'aceptado' ? 'Listo, gracias.' : esc(d.ayuda)) + '</small></div>' + btn + '</div>' +
-        (SUBIDAS[d.doc] ? '<div class="dsub" data-sub="' + esc(d.doc) + '"></div>' : '');
+        (SUBIDAS[d.doc] ? '<div class="dsub" data-sub="' + esc(d.doc) + '"></div>' : '') + (COMP && COMP.doc === d.doc ? compHtml(d) : '');
     }).join('') + '</div>' +
     '<input type="file" id="dfile" accept="' + ((window.ARCH && ARCH.acepta) || '.pdf,image/*') + '" hidden>' +
     '<div id="derr"></div>' +
-    '<div class="notita" style="margin-top:14px">' + ic('candado') + '<span>Sus documentos se guardan en un espacio privado de ECOVSA. Solo los ve el equipo que prepara su contrato.</span></div>' +
+    '<input type="file" id="dfoto" accept="image/*" capture="environment" hidden><input type="file" id="dgal" accept="image/*" multiple hidden>' +
+    '<div class="notita" style="margin-top:14px">' + ic('candado') + '<span>Sus documentos se guardan en un espacio privado de ECOVSA, solo para verificar sus datos y preparar su contrato. Se borran del sistema a los 30 días.</span></div>' +
     '<button class="btn sec" style="margin-top:16px" data-a="volverForm">' + ic('atras') + (o.yaEnvio ? 'Volver' : 'Volver al formulario') + '</button>' +
     pie() + '</main>';
-  var inp = $('dfile'); inp.onchange = function () { var f = inp.files[0]; var dd = inp.getAttribute('data-doc'); inp.value = ''; if (f && dd) subirDoc(dd, f); };
+  var inp = $('dfile'); inp.onchange = function () { var f = inp.files[0]; var dd = inp.getAttribute('data-doc'); inp.value = ''; if (f && dd) { COMP = null; subirDoc(dd, f); } };
+  [$('dfoto'), $('dgal')].forEach(function (x) { x.onchange = function () { var L = [].slice.call(x.files || []); x.value = ''; compAgregar(L); }; });
   ponerSubidas();
   var h = document.querySelector('.bc h2'); if (h) h.focus({ preventScroll: true });
+}
+/* ── api 3.9 · varias fotos en un solo PDF ──
+   La cédula por las dos caras o el Registro Público de varias hojas: cada foto
+   es una página. «Modo documento» la pasa a blanco y negro con más contraste,
+   para que se lea impresa. El PDF se arma aquí y sube como un solo archivo. */
+var COMP = null;
+var COMP_AYUDA = {
+  'doc cedula representante': 'Tome la foto del frente y después la del reverso: van en un solo archivo.',
+  'doc registro publico': 'Una foto por cada hoja, en orden.',
+  'doc aviso operacion': 'Una foto del aviso completo, que se lean los datos.',
+  'doc datos bancarios': 'La carta o referencia del banco. Solo usamos el banco y los últimos 4 dígitos para reconocer sus pagos.'
+};
+function compHtml(d){
+  var n = COMP.pags.length;
+  return '<div class="dcomp"><h5>' + esc(d.n) + '</h5><div class="ay">' + esc(COMP_AYUDA[d.doc] || 'Una foto por página.') + '</div>' +
+    (n ? '<div class="dpags">' + COMP.pags.map(function (p, k) { return '<div class="dpag' + (COMP.bn ? ' bn' : '') + '" style="background-image:url(' + p.d + ')"><b>' + (k + 1) + '</b><button data-a="compQuitar" data-i="' + k + '" aria-label="Quitar la página ' + (k + 1) + '">✕</button></div>'; }).join('') + '</div>' : '') +
+    '<div class="dacc"><button class="dbtn" data-a="compFoto">' + ic('camara') + (n ? 'Otra foto' : 'Tomar foto') + '</button><button class="dbtn" data-a="compGal">' + ic('subir') + 'Elegir fotos</button>' +
+      (n ? '' : '<button class="dbtn" data-a="compPdf">' + ic('documento') + 'Ya lo tengo en PDF</button>') + '</div>' +
+    (n ? '<label class="dbn"><input type="checkbox" data-a="compBn"' + (COMP.bn ? ' checked' : '') + '>Modo documento: blanco y negro, más fácil de leer</label>' +
+         '<button class="dgo" data-a="compEnviar"' + (COMP.ocupado ? ' disabled' : '') + '>' + (COMP.ocupado ? 'Armando el PDF…' : 'Enviar ' + (n === 1 ? '1 página' : n + ' páginas') + ' como un solo archivo') + '</button>' : '') +
+    '<button class="dmin" data-a="compCancelar">Cancelar</button></div>';
+}
+function compAgregar(L){
+  if (!COMP || !L.length) return;
+  var cad = Promise.resolve();
+  L.slice(0, 12 - COMP.pags.length).forEach(function (f) {
+    cad = cad.then(function () { return compLeer(f).then(function (p) { if (p) COMP.pags.push(p); }); });
+  });
+  cad.then(function () { pantallaDocs({ yaEnvio: enviado }); });
+}
+/* cada foto se achica a 1600 px antes de guardarla en memoria */
+function compLeer(f){
+  return new Promise(function (ok) {
+    var u = URL.createObjectURL(f), im = new Image();
+    im.onload = function () {
+      var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); ok({ d: c.toDataURL('image/jpeg', 0.85), w: c.width, h: c.height });
+    };
+    im.onerror = function () { URL.revokeObjectURL(u); errDoc('Una de las fotos no se pudo abrir.'); ok(null); };
+    im.src = u;
+  });
+}
+function compJsPdf(){
+  if (window.jspdf) return Promise.resolve();
+  return new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = ok; s.onerror = function () { mal(new Error('Sin conexión para armar el PDF. Intente de nuevo.')); }; document.head.appendChild(s); });
+}
+/* blanco y negro con contraste, como una fotocopia */
+function compBn(p){
+  return new Promise(function (ok) {
+    var im = new Image();
+    im.onload = function () {
+      var c = document.createElement('canvas'); c.width = p.w; c.height = p.h; var x = c.getContext('2d'); x.drawImage(im, 0, 0);
+      var D = x.getImageData(0, 0, c.width, c.height), a = D.data;
+      for (var i = 0; i < a.length; i += 4) { var g = 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2]; g = (g - 128) * 1.45 + 150; g = g < 0 ? 0 : g > 255 ? 255 : g; a[i] = a[i + 1] = a[i + 2] = g; }
+      x.putImageData(D, 0, 0); ok({ d: c.toDataURL('image/jpeg', 0.7), w: p.w, h: p.h });
+    };
+    im.src = p.d;
+  });
+}
+function compEnviar(){
+  if (!COMP || !COMP.pags.length || COMP.ocupado) return;
+  COMP.ocupado = true; pantallaDocs({ yaEnvio: enviado });
+  var doc = COMP.doc, P = COMP.pags.slice(), bn = COMP.bn;
+  compJsPdf().then(function () {
+    return Promise.all(P.map(function (p) { return bn ? compBn(p) : Promise.resolve(p); }));
+  }).then(function (Q) {
+    var pdf = null, W = 612, H = 792, M = 18;
+    Q.forEach(function (p) {
+      var ap = p.w > p.h ? 'l' : 'p', pw = ap === 'l' ? H : W, ph = ap === 'l' ? W : H;
+      if (!pdf) pdf = new window.jspdf.jsPDF({ orientation: ap, unit: 'pt', format: 'letter', compress: true }); else pdf.addPage('letter', ap);
+      var k = Math.min((pw - 2 * M) / p.w, (ph - 2 * M) / p.h), w = p.w * k, h = p.h * k;
+      pdf.addImage(p.d, 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h, undefined, 'FAST');
+    });
+    var b = pdf.output('blob'), nom = doc.replace(/^doc /, '').replace(/\s+/g, '_') + '.pdf';
+    var f; try { f = new File([b], nom, { type: 'application/pdf' }); } catch (e) { f = b; f.name = nom; }
+    COMP = null; subirDoc(doc, f);
+  }).catch(function (e) { COMP.ocupado = false; pantallaDocs({ yaEnvio: enviado }); errDoc((e && e.message) || 'No se pudo armar el PDF.'); });
 }
 function elegirDoc(doc){ var inp = $('dfile'); if (!inp) return; inp.setAttribute('data-doc', doc); inp.click(); }
 function errDoc(t){ var e = $('derr'); if (e) e.innerHTML = '<div class="notita mal">' + ic('alerta') + '<span>' + esc(t) + '</span></div>'; }
