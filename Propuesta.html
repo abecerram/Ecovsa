@@ -175,12 +175,31 @@ function arrancar(){
   if(window.google && google.script && google.script.url){
     google.script.url.getLocation(function(loc){
       var p=(loc&&loc.parameter)||{};
+      if(p.token&&p.k) return seguirCliente(p.token,p.k);
       seguir(p.cod||"");
     });
   } else {
-    var m=(location.search||"").match(/[?&]cod=([^&]+)/);
-    seguir(m?decodeURIComponent(m[1]):"");
+    var q=new URLSearchParams(location.search||"");
+    if(q.get("token")&&q.get("k")) return seguirCliente(q.get("token"),q.get("k"));
+    seguir(q.get("cod")||"");
   }
+}
+
+/* api 3.10: el cliente la abre desde su enlace, sin PIN (con la llave del enlace).
+   Ve la misma propuesta, sin los botones de envío. */
+var CLIENTE=false;
+function seguirCliente(token,k){
+  CLIENTE=true; COD=token;
+  document.title="Su propuesta · ECOVSA";
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar la propuesta.")); return; }
+      DATOS=r; pintar(r.prospecto);
+      $("aviso").style.display="none"; $("app").style.display="block";
+      var e=$("envios"); if(e) e.style.display="none";
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión. La propuesta necesita señal."); })
+    .api_enlacePropuesta(token,k);
 }
 
 function seguir(cod){
@@ -209,7 +228,7 @@ function pintar(p){
   var total=Math.round((costo+imp)*100)/100;
   var kg=Number(p["kg plan"])||0;
   var fProp=p["fecha propuesta"]||p["fecha contacto"]||DATOS.hoy;
-  var vence=sumarDias(fProp, p["validez propuesta"]||30);
+  var vence=(DATOS&&DATOS.vence)||sumarDias(fProp, p["validez propuesta"]||30);
 
   var atencion = p.contacto ? (p.contacto + (p.cargo ? " · "+p.cargo : "")) : "";
 
@@ -218,6 +237,8 @@ function pintar(p){
      incluidos en un plan, y "total por visita" no significa nada cuando la
      visita es una. El servidor ya dice cuál de las dos es. */
   var UNICA = !!p.visitaUnica;
+  /* api 3.11: gran generador — una tabla por grupo de sedes y el total mensual */
+  var GRAN = !!(p.gran && p.cuenta);
 
   var html =
   DOCE.membrete({ empresa: emp(),
@@ -265,7 +286,7 @@ function pintar(p){
 
   '<div class="sec">Propuesta económica</div>'+
   '<p>De acuerdo con el volumen de desechos a entregar, nuestra propuesta económica es la siguiente:</p>'+
-  (UNICA
+  (GRAN ? tablaGran(p.cuenta) : UNICA
     ? '<table><thead><tr><th>Concepto</th><th>Cantidad estimada</th><th>Precio</th>'+
         '<th>ITBMS</th><th>Total</th></tr></thead><tbody>'+
         '<tr><td>'+esc(p.descripcionTrabajo||"Recolección única")+'</td>'+
@@ -308,7 +329,7 @@ function pintar(p){
       '6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.</p>')+
 
   '<div class="firma"><p>Atentamente,</p>'+
-    '<div class="lin"><b>'+esc(p.asesor||DATOS.usuario.nombre||"")+'</b>Coord. Comercial · ECOVSA</div>'+
+    '<div class="lin"><b>'+esc(p.asesor||(DATOS.usuario||{}).nombre||"")+'</b>Coord. Comercial · ECOVSA</div>'+
   '</div>'+
 
   '<div class="pie">'+esc(pieEmpresa())+' · '+esc(emp().instagram)+
@@ -316,7 +337,34 @@ function pintar(p){
 
   $("hoja").innerHTML=html;
   document.title="Propuesta "+p.codigoPropuesta+" · "+(p.empresa||"");
-  pintarEnvios(p);
+  if(!CLIENTE) pintarEnvios(p);
+}
+
+/* api 3.11 · la propuesta de una cuenta con varias sedes */
+function frecDe(v){ v=Number(v)||0; return v>=8?'2 veces por semana':v>=4?'Semanal':v>=2?'Quincenal':v>=1?'Mensual':v>=0.5?'Bimestral':'Trimestral'; }
+function tablaGran(c){
+  var FAC={consolidada:'una sola factura mensual para toda la cuenta, con el detalle de cada sede',sede:'una factura mensual por sede',grupo:'una factura mensual por grupo de sedes'};
+  var h='';
+  (c.grupos||[]).forEach(function(g,gi){
+    var abrir=[];
+    h+='<div class="sec" style="font-size:12.5px;margin-top:14px">'+(c.grupos.length>1?'Grupo '+(gi+1)+' · ':'')+esc(g.nombre)+'</div>'+
+      '<table><thead><tr><th>Sede</th><th>Frecuencia</th><th>Visitas al mes</th><th>Inicio</th></tr></thead><tbody>'+
+      g.sedes.map(function(s){ var ab=/abrir/i.test(s.desde||''); if(ab) abrir.push(s.nombre);
+        return '<tr><td>'+esc(s.nombre)+(ab?' *':'')+'</td><td>'+(g.aSolicitud?'A solicitud':frecDe(s.visitas))+'</td><td class="n">'+(g.aSolicitud?'—':s.visitas)+'</td><td>'+esc(ab?'Al abrir':(/^\d{4}-\d{2}-\d{2}$/.test(s.desde||'')?larga(s.desde):'Al firmar'))+'</td></tr>'; }).join('')+
+      '</tbody></table>'+
+      '<table style="margin-top:6px"><thead><tr><th>Concepto</th><th>Cantidad</th><th>Al mes</th></tr></thead><tbody>'+
+      '<tr><td>Recolección, transporte, tratamiento y disposición final'+(g.aSolicitud?' (a solicitud)':'')+'</td><td class="n">'+(g.aSolicitud?'—':Math.round(g.visitas*100)/100+' visitas · hasta '+Math.round(g.kgIncluidos)+' kg')+'</td><td class="n">B/. '+n2(g.recoleccion)+'</td></tr>'+
+      (g.servicios||[]).map(function(v){ var cant=v.cantidad==='solicitud'?'Por solicitud':v.cantidad+' '+(v.cada==='visita'?'por visita':'al mes')+' por sede';
+        return '<tr><td>'+esc(v.nombre)+'</td><td class="n">'+esc(cant)+'</td><td class="n">'+(v.modo==='cobrado'&&v.total?'B/. '+n2(v.total):'Incluido')+'</td></tr>'; }).join('')+
+      '<tr class="tot"><td colspan="2">SUBTOTAL '+(c.grupos.length>1?'DEL GRUPO':'MENSUAL')+'</td><td class="n">B/. '+n2(g.total)+'</td></tr></tbody></table>'+
+      (abrir.length?'<div class="pie-tabla">* '+esc(abrir.join(', '))+': se factura desde su apertura.</div>':'');
+  });
+  h+='<table style="margin-top:12px"><tbody>'+
+    '<tr><td>Subtotal mensual · '+c.sedes+' sede'+(c.sedes===1?'':'s')+'</td><td class="n">B/. '+n2(c.subtotal)+'</td></tr>'+
+    '<tr><td>ITBMS 7 %</td><td class="n">B/. '+n2(c.itbms)+'</td></tr>'+
+    '<tr class="tot"><td>TOTAL MENSUAL</td><td class="n">B/. '+n2(c.total)+'</td></tr></tbody></table>'+
+    '<div class="pie-tabla">Facturación: '+esc(FAC[c.facturacion]||FAC.consolidada)+'. El precio de recolección incluye hasta los kilogramos indicados por grupo; el excedente se factura a B/. '+n2(c.kgAdicional)+' el kilogramo. Precios en balboas (B/.).'+(c.plazo?' Contrato de '+c.plazo+' meses.':'')+'</div>';
+  return h;
 }
 
 /* ═══ ENVIAR LA PROPUESTA ═══════════════════════════════════════════

@@ -1845,6 +1845,18 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 .rx2-vacio{background:#fff;border:1px dashed #cfd8e3;border-radius:12px;padding:26px 14px;text-align:center;color:#6a7689}
 .rx2-pie{font-size:13px;color:#4a5668;padding:2px 4px}
 @media (max-width:760px){.rx2-tabla{display:none}.rx2-cards{display:flex}.rx2-seg{flex:1}.rx2-seg button{flex:1;padding:7px 4px}}
+/* api 3.11 · reponer en la visita */
+.pc-rep{border:2px solid #b9dda7;background:#f4fbf0;border-radius:14px;padding:10px 12px;margin-top:12px}
+.pc-carga{border:2px solid #c9d8f0;background:#f3f7fd;border-radius:14px;padding:12px;margin-bottom:12px}
+.pc-carga.hecha{border-width:1px;padding:9px 12px;font-size:13px;color:#2d6a0b;background:#f4fbf0;border-color:#cfe8c2;cursor:pointer}
+.pc-rep-t{font:800 11px Archivo,sans-serif;letter-spacing:1.2px;color:#2d6a0b;margin-bottom:4px}
+.pc-rep-it{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid #dcefd3;cursor:pointer}
+.pc-rep-t+.pc-rep-it{border-top:0}
+.pc-rep-it b{display:block;font-size:15px}.pc-rep-it small{color:#667489;font-size:12.5px}
+.pc-rep-ck{width:30px;height:30px;border-radius:9px;border:2px solid #2d6a0b;display:grid;place-items:center;color:#fff;font-weight:900;flex:none;background:#fff}
+.pc-rep-ck.on{background:#2d6a0b}
+.pc-rep-q{font-size:22px;font-weight:800;color:#2d6a0b;font-variant-numeric:tabular-nums}
+.pc-rep-n{font-size:12px;color:#667489;margin-top:6px;line-height:1.45}
 </style>
 
 </head>
@@ -3297,7 +3309,7 @@ return;
 
 }
 
-cont.innerHTML=RUTA.paradas.map(function(p,i){
+cont.innerHTML=cargaReponer_() + RUTA.paradas.map(function(p,i){
 
 var c=cli(p.clienteId)||{nombre:"Cliente #"+p.clienteId,direccion:"",estado:"",frecuencia:"",contacto:""};
 
@@ -3353,7 +3365,7 @@ var bajo = p.horaInicio
 if(!abierta){
 return '<div class="parada-card plegada" id="parada-'+i+'" onclick="abrirParada('+i+')">'+
 '<div class="enc"><div class="num-parada'+(p.horaInicio?' yendo':'')+'">'+(i+1)+'</div>'+
-'<div class="info"><div class="n">'+esc(c.nombre)+'</div><div class="z">'+bajo+'</div></div>'+
+'<div class="info"><div class="n">'+esc(c.nombre)+'</div><div class="z">'+bajo+(repPendiente_(c)?' · <b style="color:#2d6a0b">🧰 repone</b>':'')+'</div></div>'+
 '<span class="pill '+claseEstado(c.estado)+'">'+esc(c.estado)+'</span>'+
 '<span class="fl-parada">&#9662;</span></div>'+
 '</div>';
@@ -3533,6 +3545,46 @@ function botonHora_(i, k, rotulo){
   var marcar = k === "horaInicio" ? "marcarHoraLlegadaGPS(" + i + ")" : "marcarHora(" + i + ",'horaFinal')";
   return '<button class="pc-hora" onclick="' + marcar + '"><small>' + rotulo + '</small><b>--:--</b><em>Toca para marcar</em></button>';
 }
+/* ═══ api 3.11 · lo que se repone en la visita (recipientes, bolsas…) ═══
+   Mercadeo lo pone en la propuesta; el conductor lo ve aquí, lo marca al
+   dejarlo y sale en el recibo. El inventario lo descuenta al enviar. */
+function repDe_(c){ return (c && c.reponer) || []; }
+function repPendiente_(c){ return repDe_(c).some(function(r){ return r.toca; }); }
+function repMarcado_(p, r){ if(!p.rep) p.rep = {}; if(p.rep[r.repId] === undefined) p.rep[r.repId] = !!r.toca; return p.rep[r.repId]; }
+function toggleRep(i, id){
+  var p = RUTA.paradas[i]; if(!p) return; if(!p.rep) p.rep = {};
+  p.rep[id] = !p.rep[id]; guardarLocal(K_PAR, RUTA); renderParadas();
+}
+function entregasDe_(p, c){
+  return repDe_(c).filter(function(r){ return repMarcado_(p, r); }).map(function(r){
+    return { repId: r.repId, catId: r.catId, insumoId: r.insumoId, nombre: r.nombre, cantidad: r.cantidad }; });
+}
+function reponerParada_(p, i, c){
+  var L = repDe_(c); if(!L.length) return '';
+  return '<div class="pc-rep"><div class="pc-rep-t">REPONER EN ESTA VISITA</div>' + L.map(function(r){
+    var on = repMarcado_(p, r);
+    return '<div class="pc-rep-it" onclick="toggleRep(' + i + ',\'' + esc(r.repId) + '\')"><span class="pc-rep-ck' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span>' +
+      '<div style="flex:1"><b>' + esc(r.nombre) + '</b><small>' + (r.cada === 'visita' ? 'En cada visita' : r.toca ? 'Recambio del mes' : 'Ya se entregó este mes') + '</small></div><span class="pc-rep-q">' + r.cantidad + '</span></div>';
+  }).join('') + '<div class="pc-rep-n">Lo marcado sale en el recibo y se descuenta del inventario.</div></div>';
+}
+function cargaReponer_(){
+  if(!RUTA || !RUTA.paradas) return '';
+  var tot = {}, orden = [];
+  RUTA.paradas.forEach(function(p){
+    if(p.estadoParada === "completada" || p.estadoParada === "norecolectada") return;
+    var c = cli(p.clienteId); repDe_(c).forEach(function(r){
+      if(!r.toca) return;
+      if(!tot[r.nombre]){ tot[r.nombre] = { n: 0, dondes: [] }; orden.push(r.nombre); }
+      tot[r.nombre].n += Number(r.cantidad) || 0; if(tot[r.nombre].dondes.indexOf(c.nombre) < 0) tot[r.nombre].dondes.push(c.nombre);
+    });
+  });
+  if(!orden.length) return '';
+  if(RUTA.repCargado) return '<div class="pc-carga hecha" onclick="RUTA.repCargado=false;guardarLocal(K_PAR,RUTA);renderParadas()">🧰 Cargado para reponer: ' + orden.map(function(n){ return tot[n].n + ' ' + esc(n); }).join(' · ') + ' <u>ver</u></div>';
+  return '<div class="pc-carga"><div class="pc-rep-t" style="color:#0b5394">CARGAR PARA REPONER</div>' + orden.map(function(n){
+    return '<div class="pc-rep-it"><span style="font-size:20px">🧰</span><div style="flex:1"><b>' + esc(n) + '</b><small>' + esc(tot[n].dondes.join(' · ')) + '</small></div><span class="pc-rep-q" style="color:#0b5394">' + tot[n].n + '</span></div>';
+  }).join('') + '<div class="pc-rep-n">Lo que no se entregue se queda en el inventario: solo se descuenta lo que se marca en cada parada.</div>' +
+    '<button class="btn verde" style="width:100%;margin-top:8px" onclick="RUTA.repCargado=true;guardarLocal(K_PAR,RUTA);renderParadas()">✓ Ya lo cargué</button></div>';
+}
 function paradaAbiertaC_(p, i, c){
   if(!p.recibo){ p.recibo = generarFolioSugerido(); guardarLocal(K_PAR, RUTA); }
   var tot = (num(p.kgBolsas) + num(p.kgPunzo) + num(p.kgAnatomo)).toFixed(2);
@@ -3563,6 +3615,7 @@ function paradaAbiertaC_(p, i, c){
     '<div class="pc-tit">Lo que se retira</div>' +
     '<div class="pc-tabla">' + filaDesecho_(i, "bio") + filaDesecho_(i, "pun") +
       (verAna ? filaDesecho_(i, "ana") : '<div class="pc-otro" onclick="mostrarAna(' + i + ')">＋ Otro tipo de desecho (anatomopatológico)</div>') + '</div>' +
+    reponerParada_(p, i, c) +
     '<div class="pc-tit">Recibo</div>' +
     '<div class="fila" style="grid-template-columns:1.25fr 1fr">' +
       '<div><label style="margin-top:0">N.º de recibo</label><div class="pc-edit"><input id="inp-rec-' + i + '" value="' + esc(p.recibo) + '" oninput="setCampo(' + i + ',\'recibo\',this.value.trim())"><span>✎</span></div></div>' +
@@ -7809,7 +7862,9 @@ firmante: p.contacto || c.contacto || "",
 
 lat: p.lat || "",
 
-lng: p.lng || ""
+lng: p.lng || "",
+
+entregas: entregasDe_(p, c)
 
 };
 
@@ -7971,6 +8026,9 @@ var totKg = (num(p.kgBolsas)+num(p.kgAnatomo)+num(p.kgPunzo)).toFixed(2);
 var totBultos = num(p.cantBolsas)+num(p.cantAnatomo)+num(p.cantPunzo);
 
 filas += '<tr class="tot"><td colspan="2">TOTAL RETIRADO</td><td style="text-align:right">'+totBultos+'</td><td style="text-align:right">'+totKg+'</td></tr>';
+
+/* api 3.11: lo que se repuso en la visita */
+try{ var entR = entregasDe_(p, c); if(entR.length) filas += '<tr><td colspan="4" style="background:#f4fbf0;color:#2d6a0b;font-size:11px"><b>Se entregó en esta visita:</b> ' + entR.map(function(e){ return esc(e.cantidad + ' ' + e.nombre); }).join(' · ') + '</td></tr>'; }catch(e){}
 
 $("rec-tabla-cuerpo").innerHTML = filas;
 

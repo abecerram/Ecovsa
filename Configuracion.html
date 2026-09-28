@@ -510,11 +510,36 @@ function vEspacio() {
   return h;
 }
 
+/* ═══ FUNCIONES (api 3.10) ═══
+   Interruptores para toda la empresa. Cada cambio queda en el historial. */
+var FUN = null;
+function vFunciones() {
+  var L = B().funcionesLista || [], orig = B().funciones || {};
+  if (!FUN) FUN = JSON.parse(JSON.stringify(orig));
+  var cambios = L.filter(function (x) { return !!FUN[x[0]] !== !!orig[x[0]]; }).length;
+  return MK.cabeza('Funciones', 'Funciones delicadas que el cliente usa desde afuera. Se prenden o apagan para toda la empresa; mientras estén prendidas, Mercadeo sigue decidiendo cliente por cliente si envía el enlace.') +
+    '<div class="card reg">' + L.map(function (x) {
+      var on = !!FUN[x[0]];
+      return '<div class="rr"><div class="rt"><b>' + MK.esc(x[1]) + '</b><span>' + MK.esc(on ? x[2] : x[3]) + '</span></div><div class="fila">' + sw(on, "FUN['" + x[0] + "']=!FUN['" + x[0] + "'];MK.repintar()") +
+        '<span style="font-weight:700;font-size:13px;color:' + (on ? 'var(--ok)' : 'var(--muted)') + '">' + (on ? 'Prendida' : 'Apagada') + '</span></div></div>';
+    }).join('') + '</div>' +
+    '<div class="nota" style="margin-top:12px">La recolección extra desde el QR no se apaga aquí: siempre está disponible para el cliente.</div>' +
+    '<div class="fila" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="FUN=null;MK.repintar()"' + (cambios ? '' : ' disabled') + '>Descartar</button><button class="btn pri" onclick="guardarFunciones(this)"' + (cambios ? '' : ' disabled') + '>' + MK.ic('check', 16) + 'Guardar' + (cambios ? ' (' + cambios + ')' : '') + '</button></div>';
+}
+function guardarFunciones(btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgGuardarFunciones', PIN, FUN).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.aviso(r.sinCambios ? 'No había cambios' : 'Funciones guardadas'); FUN = null; recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+
 /* ═══ HISTORIAL ═══ */
 function vHistorial() {
   var H = B().historial || [];
   var l = H.filter(function (h) { return FH === 'todo' || h.seccion === FH; });
-  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros'];
+  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros', 'Funciones'];
   return MK.cabeza('Historial', 'Todo lo que se hace en Configuración, con quién y cuándo. No se puede borrar.') +
     '<div class="card"><div style="margin-bottom:10px">' + MK.chips([['todo', 'Todo', H.length]].concat(secs.map(function (s) { return [s, s, H.filter(function (h) { return h.seccion === s; }).length]; })), FH, 'filtroH') + '</div>' +
     MK.tabla(['Fecha', 'Quién', 'Qué'], l.map(function (h) { return ['<span class="hisf">' + MK.esc(MK.dmy(h.fecha.slice(0, 10)) + ' ' + h.fecha.slice(11)) + '</span>', MK.esc(h.quien), '<b style="font-weight:600">' + MK.esc(h.accion) + '</b>' + (h.detalle ? '<small>' + MK.esc(h.detalle) + '</small>' : '')]; }), { vacio: 'Todavía no hay nada: el historial empezó con esta versión.' }) + '</div>';
@@ -546,6 +571,7 @@ MK.iniciar({
     { id: 'cob', n: 'Escalera de cobro', i: 'escalera' },
     { id: 'inc', n: 'Incidencias en ruta', i: 'alerta' },
     { id: 'seg', n: 'Seguridad', i: 'candado' },
+    { id: 'fun', n: 'Funciones', i: 'ajustes' },
     { id: 'his', n: 'Historial', i: 'historial' },
     { id: 'esp', n: 'Espacio de archivos', i: 'subir' },
     { g: 'AYUDA' },
@@ -563,7 +589,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, his: vHistorial, ent: vEntrada, esp: vEspacio };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, his: vHistorial, ent: vEntrada, esp: vEspacio };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });

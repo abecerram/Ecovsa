@@ -48,6 +48,7 @@
     { id: 'inicio', n: 'Mi día comercial', i: 'casa', f: 'Mercadeo.html', b: 'suspensiones' },
     { id: 'oportunidades', n: 'Oportunidades', i: 'embudo', f: 'MerOportunidades.html', b: 'oportunidades', bg: true },
     { id: 'oportunidad', n: 'Ficha de oportunidad', i: 'documento', f: 'MerOportunidad.html', oculto: true },
+    { id: 'cuenta', n: 'Cuenta de gran generador', i: 'edificio', f: 'MerCuenta.html', oculto: true },
     { id: 'nueva', n: 'Nueva oportunidad', i: 'mas', accion: 'captura' },
     { id: 'agenda', n: 'Agenda y actividades', i: 'calendario', f: 'MerAgenda.html', b: 'agenda' },
     { g: 'CLIENTES' },
@@ -60,6 +61,7 @@
     { g: 'ANÁLISIS' },
     { id: 'reportes', n: 'Reportes', i: 'grafico', f: 'MerReportes.html' },
     { id: 'minsa', n: 'Informe al MINSA', i: 'documento', f: 'MerMinsa.html' },
+    { id: 'tarifario', n: 'Tarifario y catálogo', i: 'moneda', f: 'MerTarifario.html' },
     { id: 'ajustes', n: 'Plantillas y ajustes', i: 'ajustes', f: 'MerAjustes.html' }
   ];
   MK.PAGINAS = PAGINAS;
@@ -319,7 +321,64 @@
   MK.TIPOS_PASO = TIPOS_PASO;
 
   /* ── captura rápida (Nueva oportunidad · opción C) ── */
+  /* api 3.11: lo primero es el tipo — micro (captura rápida), gran generador (cuenta con sedes) o visita única */
   MK.captura = function (pre) {
+    pre = pre || {};
+    if (pre.tipoServicio || pre.directo) return capturaRapida(pre);
+    var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small">Lo primero es el tipo: cambia lo que se pide y cómo se arma el precio.</p>' +
+      '<div class="mk-tipos">' +
+      '<button type="button" data-t="micro"><span class="tag t-gris">MICROGENERADOR</span><b>Captura rápida</b><small>Un solo punto: clínicas, consultorios, veterinarias. Precio por visita.</small></button>' +
+      '<button type="button" data-t="gran"><span class="tag t-info">GRAN GENERADOR</span><b>Cuenta con sedes</b><small>Varias sedes o mucho volumen: hospitales, cadenas, laboratorios. Paso a paso, con el total mensual.</small></button>' +
+      '<button type="button" data-t="unica"><span class="tag t-warn">VISITA ÚNICA</span><b>Trabajo puntual</b><small>Una sola recolección (limpieza, cierre, fármacos vencidos). Sin contrato.</small></button></div>' +
+      '<p class="small muted" style="margin-top:12px">Si la captura rápida crece (2 sedes o más, o mucho volumen), la ficha sugiere pasarla a gran generador sin perder nada.</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
+    [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute('data-t');
+        if (t === 'gran') return capturaGran(pre);
+        capturaRapida(Object.assign({}, pre, { tipoServicio: t === 'unica' ? 'VISITA UNICA' : 'RECURRENTE' }));
+      };
+    });
+  };
+  /* Gran generador: empresa (o un cliente que ya existe) y a la cuenta paso a paso */
+  function capturaGran(pre) {
+    var aj = (MK.base && MK.base.ajustes) || {}, cli = pre.clienteId ? { id: pre.clienteId, nombre: pre.empresa || '' } : null;
+    var h = MK.hoja('<h2>Gran generador · cuenta con sedes</h2><p class="muted small">Empieza con la empresa. Las sedes, el precio, los servicios y la facturación se arman paso a paso y se guarda en cada paso.</p>' +
+      '<label class="lb" for="cg-emp">EMPRESA O CLIENTE</label><input class="in" id="cg-emp" autofocus value="' + MK.esc(pre.empresa || '') + '" placeholder="Nombre de la empresa">' +
+      '<div id="cg-cli" style="margin-top:8px"></div>' +
+      '<div class="grid g3" style="gap:10px"><div><label class="lb" for="cg-con">CONTACTO</label><input class="in" id="cg-con" placeholder="Nombre"></div>' +
+      '<div><label class="lb" for="cg-cor">CORREO</label><input class="in" id="cg-cor" inputmode="email"></div>' +
+      '<div><label class="lb" for="cg-cel">CELULAR</label><input class="in" id="cg-cel" inputmode="tel"></div></div>' +
+      '<label class="lb">¿DE DÓNDE VIENE?</label>' + chips('fuente', (aj.fuentes || []), pre.fuente || '') +
+      '<div id="cg-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.captura()">' + MK.ic('atras', 14) + ' Tipo</button><button class="btn pri" id="cg-ok">Empezar ' + MK.ic('flecha', 14) + '</button></div>');
+    activarChips(h);
+    var emp = document.getElementById('cg-emp'), box = document.getElementById('cg-cli'), tD = null;
+    var pintarCli = function (l) {
+      if (cli) { box.innerHTML = '<div class="aviso az">' + MK.ic('edificio', 15) + ' <b>' + MK.esc(cli.nombre) + '</b> ya es cliente: la oportunidad queda amarrada a su ficha y sus datos vienen de allá. <a href="#" id="cg-suelta">No es este</a></div>';
+        document.getElementById('cg-suelta').onclick = function () { cli = null; pintarCli([]); return false; }; return; }
+      box.innerHTML = l.length ? '<div class="small">¿Ya es cliente? ' + l.map(function (z, i) { return '<a href="#" data-i="' + i + '">' + MK.esc(z.nombre) + '</a>'; }).join(' · ') + '</div>' : '';
+      [].forEach.call(box.querySelectorAll('[data-i]'), function (a) { a.onclick = function () { var z = l[Number(a.getAttribute('data-i'))]; cli = { id: z.id, nombre: z.nombre }; emp.value = z.nombre; pintarCli([]); return false; }; });
+    };
+    emp.oninput = function () {
+      clearTimeout(tD); var q = emp.value.trim(); if (cli && q !== cli.nombre) cli = null; if (q.length < 3) { pintarCli([]); return; }
+      tD = setTimeout(function () { MK.api('api_crmBuscar', MK.pin, q).then(function (x) { pintarCli(((x && x.resultados) || []).filter(function (z) { return z.tipo === 'cliente'; }).slice(0, 4)); }, function () {}); }, 300);
+    };
+    pintarCli([]); if (pre.empresa && !cli) emp.oninput();
+    document.getElementById('cg-ok').onclick = function () {
+      var b = this, msg = document.getElementById('cg-msg');
+      var d = { empresa: emp.value.trim(), clienteId: cli ? cli.id : '', contacto: document.getElementById('cg-con').value.trim(), correo: document.getElementById('cg-cor').value.trim(),
+        celular: document.getElementById('cg-cel').value.trim(), fuente: valorChips(h, 'fuente'), tipo: 'gran' };
+      if (!d.empresa) { msg.textContent = 'Escribe el nombre de la empresa.'; emp.focus(); return; }
+      MK.ocupado(b, true, 'Creando…');
+      MK.api('api_crearCuentaGran', MK.pin, d).then(function (r) {
+        if (!r || !r.ok) { MK.ocupado(b, false); msg.textContent = (r && r.error) || 'No se pudo crear.'; return; }
+        location.href = 'MerCuenta.html?id=' + encodeURIComponent(r.codigoPropuesta);
+      }, function (e) { MK.ocupado(b, false); msg.textContent = e.message; });
+    };
+  }
+  MK.capturaGran = capturaGran;
+  function capturaRapida(pre) {
     pre = pre || {};
     var aj = (MK.base && MK.base.ajustes) || {};
     var h = MK.hoja('<h2>Captura rápida</h2><p class="muted small">Lo mínimo para no perder a nadie. Entra al embudo como «Registrado» y queda en «Completar después».</p>' +
@@ -369,7 +428,7 @@
           '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir aquí</button><button class="btn" onclick="MK.cerrarHoja();MK.captura()">Otra captura</button><button class="btn pri" onclick="MK.irOportunidad(\'' + MK.esc(r.codigoPropuesta) + '\')">Abrir la ficha</button></div>');
       }, function (e) { MK.ocupado(b, false); msg.textContent = e.message; });
     };
-  };
+  }
 
   /* ── registrar actividad / completar tarea ── */
   MK.actividad = function (o) {

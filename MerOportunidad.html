@@ -67,6 +67,7 @@
 .ban.bad{border-left-color:var(--bad);border-color:#f1c3c4;background:#fffafa}
 .ban.ok{border-left-color:var(--ok)}
 .ban.gris{border-left-color:var(--gris)}
+.ban.warn{border-left-color:var(--amber);border-color:#f1d48a;background:#fffbef}
 .ban>svg{margin-top:2px;color:var(--muted)}
 .ban .bx{flex:1 1 300px;min-width:0}
 .ban .bx b{font-size:14px}
@@ -153,6 +154,16 @@
 .cli-rev{background:#fff7df;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
 .cli-rev b{display:flex;gap:5px;align-items:center;color:#7a5600}.cli-rev span{color:var(--muted);overflow-wrap:anywhere}
 .cli-link{margin-bottom:14px;border-left:4px solid var(--navy2)}
+/* api 3.10 · el enlace del cliente de principio a fin */
+.enl-pasos{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.enl-pasos>div{flex:1;min-width:112px;border-radius:10px;padding:8px 10px;background:#f3f5f8;color:#8a96a8}
+.enl-pasos>div.ok{background:#eaf6e4;color:#2f6b0a}.enl-pasos>div.on{background:var(--navy2);color:#fff}.enl-pasos>div.no{background:#fdecea;color:#a8262b}
+.enl-pasos b{display:block;font-size:12.5px}.enl-pasos small{font-size:11.5px;opacity:.9}
+.enl-nota{font-size:12.5px;color:var(--muted);margin-top:10px}
+.ban.am{border-left-color:var(--amber);background:#fffbef}
+.ban.okv{border-left-color:var(--ok);background:#f4fbf0}
+.ban .acc{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
+.cli-banco{display:flex;flex-direction:column;gap:6px;background:#fff8e6;border:1px solid #f1d48a;border-radius:10px;padding:9px 10px;font-size:12.5px}
 /* api 3.9 · bandeja temporal y revisión con los datos al lado */
 .bt39{margin-bottom:14px;border-left:4px solid #d99a00}
 .bt39.ok{border-left-color:var(--ok)}.bt39.r{border-left-color:var(--bad)}
@@ -435,6 +446,8 @@
     var e = OP.estado, u = unica();
     var docsC = 5 - docsContratoFaltan().length, datosC = REQ.length - reqFaltan().length;
     if (GER) return { t: 'Ver propuesta', ic: 'ojo', fn: verPropuesta, d: 'Estás en modo consulta. La edición corresponde a mercadeo.' };
+    if (OP.gran && ['Registrado', 'Formulario enviado', 'Formulario recibido'].indexOf(e) >= 0)
+      return { t: 'Armar la cuenta', ic: 'edificio', fn: function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, d: 'Sedes, precio, servicios y facturación, paso a paso. Al enviarla desde allí pasa sola a «Propuesta enviada».' };
     switch (e) {
       case 'Registrado': return { t: 'Enviar formulario', ic: 'whatsapp', fn: hojaFormulario, d: 'Le llega un enlace para que llene sus datos. Al enviarlo pasa sola a «Formulario enviado».' };
       case 'Formulario enviado': return { t: 'Reenviar formulario', ic: 'whatsapp', fn: hojaFormulario, d: 'Enviado' + (OP['formulario enviado'] ? ' el ' + E(String(OP['formulario enviado']).split(' · ')[0]) : '') + '. Cuando el cliente lo llene, sus datos llegan solos a esta ficha.' };
@@ -525,10 +538,23 @@
           : 'Ya no se modifica. Si hay un error, pídele a supervisión que la reabra.') + '</p></div>' +
         (SUP && !REABIERTA ? '<button class="btn" data-a="reabrir-ficha">' + IC('lapiz', 15) + ' Reabrir</button>' : '') + '</div>';
     }
-    if (OP.estado === 'Rechazado') h += '<div class="ban bad">' + IC('alerta', 18) + '<div class="bx"><b>Oportunidad perdida</b><p>Motivo: ' + E(OP['motivo perdida'] || 'sin motivo') + (OP['fecha cierre'] ? ' · ' + MK.fechaCorta(OP['fecha cierre']) : '') + '</p></div></div>';
-    if (OP.estado === 'Stand-by') h += '<div class="ban gris">' + IC('reloj', 18) + '<div class="bx"><b>En stand-by' + (OP.retomar ? ' hasta el ' + MK.fechaLarga(OP.retomar) : '') + '</b><p>No cuenta en el pronóstico. Se retoma con la tarea programada.</p></div></div>';
+    var rE = (D.enlace && D.enlace.respuesta) || '';
+    if (OP.estado === 'Rechazado' && rE !== 'rechazo') h += '<div class="ban bad">' + IC('alerta', 18) + '<div class="bx"><b>Oportunidad perdida</b><p>Motivo: ' + E(OP['motivo perdida'] || 'sin motivo') + (OP['fecha cierre'] ? ' · ' + MK.fechaCorta(OP['fecha cierre']) : '') + '</p></div></div>';
+    if (OP.estado === 'Stand-by' && rE !== 'despues') h += '<div class="ban gris">' + IC('reloj', 18) + '<div class="bx"><b>En stand-by' + (OP.retomar ? ' hasta el ' + MK.fechaLarga(OP.retomar) : '') + '</b><p>No cuenta en el pronóstico. Se retoma con la tarea programada.</p></div></div>';
     if (OP.estado === 'Pasado a cartera') h += '<div class="ban ok">' + IC('edificio', 18) + '<div class="bx"><b>Pasó a cartera</b><p>La solicitud de alta se armó con los datos de esta ficha. Operaciones la aprueba con su ubicación.' + (SUP || GER ? '' : ' La ficha ya no se modifica; si hay un error, pídele a supervisión que la reabra.') + '</p></div>' +
       (OP.clienteId ? '<button class="btn" onclick="MK.irCliente(\'' + E(OP.clienteId) + '\')">' + IC('edificio', 15) + ' Ver ficha del cliente</button>' : '') + '</div>';
+    h = banRespuesta() + h;
+    /* api 3.11: gran generador — la cuenta con sus sedes se arma en su propia pantalla */
+    if (OP.gran) {
+      var cr = OP.cuentaResumen || {};
+      h = '<div class="ban info">' + IC('edificio', 18) + '<div class="bx"><b>Gran generador · ' + (cr.sedes || 0) + ' sede' + (cr.sedes === 1 ? '' : 's') + (cr.grupos > 1 ? ' en ' + cr.grupos + ' grupos' : '') + ' · ' + MK.dinero(OP.valor) + ' al mes</b>' +
+        '<p>Las sedes, el precio por grupo, los servicios y productos y la facturación se arman en la cuenta' + (cr.aceptadas != null ? ' · el cliente aceptó ' + cr.aceptadas + ' de ' + cr.sedes + ' sedes' : '') +
+        (cr.pagadores && cr.pagadores.length ? ' · paga ' + E(cr.pagadores.slice(0, 2).join(', ')) + (cr.pagadores.length > 2 ? ' y ' + (cr.pagadores.length - 2) + ' más' : '') : '') + '.</p></div>' +
+        '<a class="btn pri" href="MerCuenta.html?id=' + encodeURIComponent(COD) + '">' + IC('lapiz', 15) + ' ' + (cerrada() || GER ? 'Ver la cuenta' : 'Editar sedes y precios') + '</a></div>' + h;
+    } else if (OP.sugerirGran && !GER) {
+      h = '<div class="ban warn">' + IC('alerta', 18) + '<div class="bx"><b>Sugerencia: pasarla a gran generador</b><p>Genera unos ' + Math.round(OP.kgMesEstimado || 0) + ' kg al mes (desde ' + ((OP.granDesde && OP.granDesde.kg) || 200) + ' kg o ' + ((OP.granDesde && OP.granDesde.sedes) || 2) + ' sedes se sugiere). Como cuenta puede tener sus sedes, precio por volumen, servicios y facturación por pagador. No se pierde lo escrito.</p></div>' +
+        '<button class="btn" data-a="pasar-gran">' + IC('edificio', 15) + ' Pasar a gran generador</button></div>' + h;
+    }
     $('bans').innerHTML = h;
   }
 
@@ -607,7 +633,7 @@
     var borrar = GER ? '' : '<button class="borrar" data-a="borrar">' + IC('basura', 13) + ' Borrar esta oportunidad</button>';
     var pend = (D.tareas || []).filter(function (t) { return t.estado === 'pendiente'; });
     var falt = listaDocs().filter(function (d) { return v(d[0]).toUpperCase() !== 'SI'; });
-    return '<div class="b2"><div class="stack">' + card('Identificación', ident) + formularioCard() + borrar + '</div>' +
+    return tarjetaEnlace() + '<div class="b2"><div class="stack">' + card('Identificación', ident) + formularioCard() + borrar + '</div>' +
       '<div class="stack">' + card('Contactos', contactosHtml(), '<span class="l muted">' + (D.contactos || []).length + '</span>') +
       card('Tareas pendientes', tareasHtml(pend, true), GER || !OP.abierta ? '' : '<button class="btn sm gh" data-a="tarea-nueva">' + IC('mas', 13) + ' Nueva</button>') +
       card('Documentos', dprog() + '<div class="small muted">' + (falt.length ? 'Faltan: ' + falt.map(function (d) { return d[1]; }).join(', ') + '.' : 'Documentación completa.') + '</div>',
@@ -820,7 +846,7 @@
           : (GER ? '<div class="small muted">Sin archivo</div>' : '<button class="zona" data-a="subir" data-col="' + E(d[0]) + '">' + IC('subir', 18) + 'Subir el archivo</button>')) + '</div>';
     }).join('');
     var todos = (D.documentos || []).slice().sort(function (a, b) { return String(b.creadoEn).localeCompare(String(a.creadoEn)); });
-    return tarjetaEnlaceDocs() + tarjetaBandeja() + card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
+    return tarjetaEnlace() + tarjetaBandeja() + card('Checklist de documentos', dprog() + '<div class="dcards" style="margin-top:10px">' + cards + '</div>' +
         (bloqCasilla && !GER ? '<p class="small muted" style="margin-top:10px">La ficha está firmada: las casillas solo las cambia supervisión.</p>' : ''),
         '<span class="l muted">' + docsSi() + ' de ' + ld.length + ' · los 5 primeros los pide el contrato</span>') +
       '<div style="margin-top:14px">' + card('Archivos y envíos', (todos.length ? '<div style="overflow-x:auto"><table class="vt">' + todos.map(function (d) { return filaDoc(d, false); }).join('') + '</table></div>'
@@ -832,6 +858,12 @@
   function archCli(col) { return ((D.docsCliente && D.docsCliente.archivos) || []).filter(function (a) { return a.doc === col && a.estado === 'POR_REVISAR'; })[0] || null; }
   function bloqueCli(col, si) {
     var dc = docCli(col); if (!dc || si) return '';
+    if (dc.escrito) {
+      if (dc.estado === 'por revisar') return '<div class="cli-banco"><b>' + IC('lapiz', 13) + ' El cliente los escribió</b><span>' + E(dc.banco) + ' ····' + E(dc.ult4) + ' · titular ' + E(dc.titular) + '</span>' +
+        (GER ? '' : '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm pri" data-a="banco-ok">' + IC('check', 14) + ' Revisar y aceptar</button><button class="btn sm" data-a="banco-no">Pedir corrección</button></div>') + '</div>';
+      if (dc.estado === 'rechazado') return '<div class="small" style="color:var(--bad)">Por corregir: ' + E(dc.motivo) + ' · el cliente lo ve en su enlace</div>';
+      return '';
+    }
     if (dc.estado === 'por revisar') {
       var a = archCli(col); if (!a) return '';
       return '<div class="cli-rev"><b>' + IC('subir', 13) + ' El cliente lo subió</b><span>' + E(a.nombre) + ' · ' + E(ARCH.kb(a.tamano)) + ' · ' + E(fh(a.subidoEn)) + '</span>' +
@@ -841,12 +873,110 @@
     if (dc.estado === 'rechazado') return '<div class="small" style="color:var(--bad)">Rechazado: ' + E(dc.motivo) + ' · el cliente lo ve en su enlace</div>';
     return '';
   }
-  function tarjetaEnlaceDocs() {
-    var dc = D.docsCliente; if (!dc || unica()) return '';
-    var n = dc.porRevisar || 0, falt = (dc.docs || []).filter(function (x) { return x.estado !== 'aceptado'; }).length;
-    return '<div class="card cli-link"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>' + IC('enlace', 15) + ' El cliente sube sus documentos desde su enlace</b>' +
-      '<div class="small muted" style="margin-top:3px">' + (dc.completo ? 'Todos aceptados: el enlace ya quedó cerrado para el cliente.' : (n ? n + ' esperando tu revisión · ' : '') + falt + ' por completar. Es el mismo enlace del formulario; con todos aceptados se cierra solo.') + '</div></div>' +
-      (dc.completo || GER ? '' : '<div class="row" style="gap:6px"><button class="btn sm" data-a="copiar-enlace">' + IC('enlace', 14) + ' Copiar enlace</button>' + (waNumero(OP.celular) || waNumero(OP.telefono) ? '<button class="btn sm wa" data-a="wa-docs">' + IC('whatsapp', 14) + ' Pedírselos</button>' : '') + '</div>') + '</div></div>';
+  /* ═══ api 3.10 · El enlace del cliente, de principio a fin ═══ */
+  function fcor(x) { var f = String(x || '').replace(/^'/, '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(f) ? MK.fechaCorta(f) : ''; }
+  function tarjetaEnlace() {
+    var e = D.enlace; if (!e) return '';
+    var p = e.paso, u = e.unica, dc = e.docs, docs = (dc && dc.docs) || [];
+    var nAc = docs.filter(function (x) { return x.estado === 'aceptado'; }).length, nRev = docs.filter(function (x) { return x.estado === 'por revisar'; }).length;
+    var I = { datos: 1, espera: 2, propuesta: 2, vencida: 2, documentos: 3, revision: 3, contrato: 4, aceptada: 4, bienvenida: 6, noacepto: 2 }[p] || 1;
+    var cl = function (n) { return p === 'noacepto' && n === 2 ? 'no' : n < I ? 'ok' : n === I ? 'on' : ''; };
+    var fe = String(OP['formulario enviado'] || '');
+    var s1 = e.datosRecibidos ? 'recibidos ' + fcor(e.datosRecibidos) : I > 1 ? 'no hizo falta' : fe ? 'esperando al cliente' : 'sin enviar';
+    var s2 = p === 'noacepto' ? 'no la aceptó' + (e.respuestaEn ? ' · ' + fcor(e.respuestaEn) : '')
+      : I > 2 ? (e.respuesta === 'acepto' ? 'aceptada ' + fcor(e.respuestaEn) : 'aceptada')
+      : p === 'vencida' ? 'venció ' + fcor(e.vence)
+      : p === 'propuesta' ? (e.respuesta === 'despues' ? 'lo decidirá después' : 'en su enlace') + (e.vence ? ' · vence ' + fcor(e.vence) : '')
+      : e.propuestaEnlace ? 'la verá aquí al anotar el envío' : 'por correo o WhatsApp';
+    var s3 = u ? 'no aplica: visita única' : !e.docsEnlace ? 'apagado en Configuración' : p === 'documentos' || p === 'revision' ? nAc + ' de ' + docs.length + ' aceptados' + (nRev ? ' · ' + nRev + ' por revisar' : '')
+      : I > 3 ? 'aceptados' : 'se piden al aceptar';
+    var s4 = I > 4 ? 'firmado' : I === 4 ? (u ? 'coordinar la fecha' : 'en preparación') : u ? 'al aceptar' : 'al aceptar los documentos';
+    var s5 = I > 5 ? 'el enlace se cerró' : 'con el contrato firmado';
+    var paso = function (n, t, sub) { return '<div class="' + cl(n) + '"><b>' + n + ' · ' + t + '</b><small>' + E(sub) + '</small></div>'; };
+    var puedePedir = !GER && !u && e.docsEnlace && !e.docsPedidos && ['bienvenida', 'noacepto'].indexOf(p) < 0 && OP.estado !== 'Rechazado';
+    var ab = OP['formulario estado'] || e.datosRecibidos || I > 1;
+    var nota = !e.propuestaEnlace ? 'La propuesta en el enlace está apagada (Configuración › Funciones): se envía por correo o WhatsApp como antes.'
+      : p === 'espera' ? 'Cuando anotes el envío de la propuesta, el cliente la ve en su enlace y la acepta, la rechaza o la deja para más adelante; la etapa cambia sola.'
+      : p === 'noacepto' ? 'El cliente ve el mensaje de agradecimiento y puede pedir una nueva propuesta.'
+      : p === 'bienvenida' ? 'El cliente ve la bienvenida' + (e.primeraRecoleccion ? ' con su primera recolección el ' + MK.fechaLarga(e.primeraRecoleccion) : ' (la primera recolección «la coordinamos con usted» hasta que esté en una ruta)') + '.'
+      : puedePedir ? 'Si el cliente aceptó por otro medio, toca «Pedir documentos»: su enlace se abre para cargarlos y se abre WhatsApp con el mensaje listo.' : '';
+    return '<div class="card cli-link"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:240px"><b>' + IC('enlace', 15) + ' El enlace del cliente</b>' +
+      '<div class="small muted" style="margin-top:3px">Es el mismo enlace de principio a fin: el cliente ve en él cada paso de su trámite.</div></div>' +
+      (GER ? '' : '<div class="row" style="gap:6px;flex-wrap:wrap">' + (ab ? '<a class="btn sm gh" href="' + E(enlaceFormulario()) + '" target="_blank" rel="noopener">' + IC('ojo', 14) + ' Verlo como el cliente</a>' : '') +
+        '<button class="btn sm" data-a="copiar-enlace">' + IC('enlace', 14) + ' Copiar enlace</button>' +
+        (puedePedir ? '<button class="btn sm pri" data-a="pedir-docs">' + IC('subir', 14) + ' Pedir documentos</button>' : (p === 'documentos' && (waNumero(OP.celular) || waNumero(OP.telefono)) ? '<button class="btn sm wa" data-a="wa-docs">' + IC('whatsapp', 14) + ' Recordárselos</button>' : '')) + '</div>') + '</div>' +
+      '<div class="enl-pasos">' + paso(1, 'Datos', s1) + paso(2, 'Propuesta', s2) + paso(3, 'Documentos', s3) + paso(4, u ? 'Visita' : 'Contrato', s4) + paso(5, 'Bienvenida', s5) + '</div>' +
+      (nota ? '<div class="enl-nota">' + nota + '</div>' : '') + '</div>';
+  }
+  /* La respuesta del cliente desde su enlace, mientras la etapa siga donde la dejó */
+  function banRespuesta() {
+    var e = D.enlace; if (!e || GER) return '';
+    var tel = waNumero(OP.celular) || waNumero(OP.telefono), nom = OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '';
+    var cuando = e.respuestaEn ? MK.fechaCorta(e.respuestaEn.slice(0, 10)) + ' ' + e.respuestaEn.slice(11, 16) : '';
+    var tarea = function (re) { var t = (D.tareas || []).filter(function (x) { return x.estado === 'pendiente' && re.test(x.titulo); })[0]; return t ? ' y te quedó la tarea <b>' + E(t.titulo.split(' · ')[0]) + '</b> para el ' + MK.fechaCorta(t.fecha) : ''; };
+    var h = '';
+    if (e.respuesta === 'acepto' && OP.estado === 'Contrato en proceso') {
+      var gr = 'Hola' + nom + ', gracias por aceptar nuestra propuesta ' + COD + ' para ' + (OP.empresa || 'su establecimiento') + '. ' + (e.unica ? 'Coordinemos la fecha y la hora de la visita.' : e.docsPedidos ? 'En su mismo enlace ya puede cargar los documentos para el contrato:\n' + enlaceFormulario() : 'Le preparamos el contrato y se lo enviamos para firmar.');
+      h += '<div class="ban okv">' + IC('check', 18) + '<div class="bx"><b>El cliente aceptó la propuesta desde su enlace</b><p>' + E(String(e.aceptoPor).replace(' · ', ' (') + (e.aceptoPor.indexOf(' · ') > 0 ? ')' : '')) + ' · ' + E(cuando) + '. La etapa pasó sola a <b>Contrato en proceso</b>.' +
+        (e.docsPedidos ? ' Su enlace ya le pide los documentos.' : '') + '</p></div><div class="acc">' +
+        (tel ? '<a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + encodeURIComponent(gr) + '">' + IC('whatsapp', 14) + ' Agradecerle</a>' : '') +
+        (e.unica ? '' : '<button class="btn sm pri" data-a="contrato">' + IC('contrato', 14) + ' Preparar el contrato</button>') + '</div></div>';
+    }
+    if (e.respuesta === 'rechazo' && OP.estado === 'Rechazado')
+      h += '<div class="ban bad">' + IC('x', 18) + '<div class="bx"><b>El cliente no aceptó la propuesta desde su enlace</b><p>Motivo: <b>' + E(String(e.motivo).toLowerCase()) + '</b>' + (e.comentario ? ' · «' + E(e.comentario) + '»' : '') + ' · ' + E(cuando) +
+        '. La etapa pasó a <b>Rechazado</b>' + tarea(/^Llamar para entender/) + '. El cliente ya ve el mensaje de agradecimiento.</p></div><div class="acc">' +
+        '<button class="btn sm" data-a="actividad" data-tipo="llamada">' + IC('telefono', 14) + ' Llamar</button><button class="btn sm pri" data-a="reabrir-op">' + IC('documento', 14) + ' Hacer otra propuesta</button></div></div>';
+    if (e.respuesta === 'despues' && OP.estado === 'Stand-by')
+      h += '<div class="ban am">' + IC('reloj', 18) + '<div class="bx"><b>El cliente lo decidirá más adelante</b><p>' + (e.comentario ? '«' + E(e.comentario) + '» · ' : '') + E(cuando) + '. La etapa pasó a <b>Stand-by</b>' + tarea(/^Retomar/) +
+        '.' + (e.vence ? ' Todavía puede aceptarla desde su enlace hasta el ' + MK.fechaLarga(e.vence) + '.' : '') + '</p></div>' +
+        (tel ? '<div class="acc"><a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + nom + ', le escribimos de ECOVSA sobre la propuesta ' + COD + '.') + '">' + IC('whatsapp', 14) + ' Escribirle</a></div>' : '') + '</div>';
+    var pide = String(e.pide || '');
+    if (pide && ((/^actualizada/.test(pide) && e.paso === 'vencida') || (/^nueva/.test(pide) && e.paso === 'noacepto')))
+      h += '<div class="ban am">' + IC('renovar', 18) + '<div class="bx"><b>El cliente pidió ' + (/^nueva/.test(pide) ? 'una nueva propuesta' : 'una propuesta actualizada') + ' desde su enlace</b><p>' + MK.fechaLarga(pide.slice(-10)) + '. ' +
+        (/^nueva/.test(pide) ? 'Reábrela, ajusta la propuesta y anota el envío: el cliente la verá en su enlace.' : 'Ajusta la propuesta y anota el envío con la nueva vigencia: el cliente la verá en su enlace.') + '</p></div>' +
+        (/^nueva/.test(pide) ? '<div class="acc"><button class="btn sm pri" data-a="reabrir-op">' + IC('renovar', 14) + ' Reabrir</button></div>' : '<div class="acc"><button class="btn sm pri" data-a="envio-propuesta">' + IC('documento', 14) + ' Anotar el envío</button></div>') + '</div>';
+    return h;
+  }
+  function pedirDocs(b) {
+    MK.ocupado(b, true);
+    MK.api('api_enlacePedirDocs', MK.pin, COD).then(function (r) {
+      MK.ocupado(b, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+      MK.aviso('Listo: el enlace del cliente ya pide los documentos.');
+      if (waNumero(OP.celular) || waNumero(OP.telefono)) waDocs();
+      MK.cambio({ tipo: 'documento' });
+    }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+  /* Los datos bancarios que el cliente escribió en su enlace */
+  function revisarBanco(ok) {
+    var b = (D.enlace && D.enlace.bancarios) || {};
+    if (!ok) {
+      MK.hoja('<h2>Pedir que corrija sus datos bancarios</h2><p class="small muted">El cliente ve el motivo en su enlace y los vuelve a escribir.</p>' +
+        '<label class="lb" for="bk-m">QUÉ HAY QUE CORREGIR</label><input class="in" id="bk-m" autofocus placeholder="Ej.: el titular debe ser la sociedad, no una persona">' +
+        '<div id="bk-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="bk-ok">Pedir corrección</button></div>');
+      $('bk-ok').onclick = function () {
+        var m = $('bk-m').value.trim(), bt = this; if (!m) { $('bk-msg').textContent = 'Escribe qué hay que corregir: lo lee el cliente.'; return; }
+        MK.ocupado(bt, true);
+        MK.api('api_bancariosRevisar', MK.pin, COD, 'rechazar', m).then(function (r) {
+          MK.ocupado(bt, false); if (!r || !r.ok) { $('bk-msg').textContent = (r && r.error) || 'No se pudo.'; return; }
+          MK.cerrarHoja(); MK.aviso('Listo: el cliente lo ve en su enlace.'); MK.cambio({ tipo: 'documento' });
+        }, function (e) { MK.ocupado(bt, false); $('bk-msg').textContent = 'Sin conexión: ' + e.message; });
+      };
+      return;
+    }
+    MK.hoja('<h2>Datos bancarios del cliente</h2><p class="small muted">Los escribió en su enlace. Corrige si hace falta y acéptalos: Cobros los usa para reconocer sus pagos.</p>' +
+      '<label class="lb" for="bk-b">BANCO</label><input class="in" id="bk-b" value="' + E(b.banco) + '">' +
+      '<label class="lb" for="bk-u">ÚLTIMOS 4 DÍGITOS</label><input class="in" id="bk-u" maxlength="4" inputmode="numeric" value="' + E(b.ult4) + '">' +
+      '<label class="lb" for="bk-t">TITULAR DE LA CUENTA</label><input class="in" id="bk-t" value="' + E(b.titular) + '">' +
+      (OP['razon social'] && b.titular && clave(b.titular) !== clave(OP['razon social']) ? '<div class="aviso am" style="margin-top:10px">El titular no coincide con la razón social de la ficha (' + E(OP['razon social']) + ').</div>' : '') +
+      '<div id="bk-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="bk-ok">' + IC('check', 15) + ' Aceptar</button></div>');
+    $('bk-ok').onclick = function () {
+      var bt = this; MK.ocupado(bt, true);
+      MK.api('api_bancariosRevisar', MK.pin, COD, 'aceptar', '', { banco: $('bk-b').value.trim(), ult4: $('bk-u').value.trim(), titular: $('bk-t').value.trim() }).then(function (r) {
+        MK.ocupado(bt, false); if (!r || !r.ok) { $('bk-msg').textContent = (r && r.error) || 'No se pudo.'; return; }
+        MK.cerrarHoja(); MK.aviso(r.completo ? 'Aceptados. Ya están todos los documentos.' : 'Aceptados · la casilla quedó marcada'); MK.cambio({ tipo: 'documento' });
+      }, function (e) { MK.ocupado(bt, false); $('bk-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
   }
   function verCli(id) {
     var w = window.open('', '_blank');
@@ -1068,8 +1198,10 @@
   }
   function waDocs() {
     var tel = waNumero(OP.celular) || waNumero(OP.telefono); if (!tel) return;
-    var falt = ((D.docsCliente && D.docsCliente.docs) || []).filter(function (x) { return x.estado !== 'aceptado'; }).map(function (x) { return '• ' + x.n; }).join('\n');
-    window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + (OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '') + ', le escribimos de ECOVSA. Para preparar el contrato de ' + (OP.empresa || 'su establecimiento') + ' necesitamos estos documentos:\n' + falt + '\n\nLos puede subir en PDF o como foto desde este enlace, cuando los tenga:\n' + enlaceFormulario()), '_blank');
+    var L = ((D.docsCliente && D.docsCliente.docs) || []);
+    var falt = (L.length ? L.filter(function (x) { return x.estado !== 'aceptado' && x.estado !== 'por revisar'; }) : [{ n: 'Aviso de operación' }, { n: 'Cédula del representante legal' }, { n: 'Registro Público' }, { n: 'Datos bancarios', escrito: true }])
+      .map(function (x) { return '• ' + x.n + (x.escrito ? ' (se escriben: banco, titular y últimos 4 dígitos)' : ''); }).join('\n');
+    window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + (OP.contacto ? ' ' + String(OP.contacto).split(' ')[0] : '') + ', le escribimos de ECOVSA. Para preparar el contrato de ' + (OP.empresa || 'su establecimiento') + ' necesitamos:\n' + falt + '\n\nLos carga en este mismo enlace, uno a la vez: una foto con el celular o un PDF de cada uno.\n' + enlaceFormulario()), '_blank');
   }
   var EST_DOC = { borrador: ['Borrador', 't-gris'], enviada: ['Enviada', 't-info'], aceptada: ['Aceptada', 't-ok'], firmada: ['Firmada', 't-ok'], rechazada: ['Rechazada', 't-bad'], vencida: ['Vencida', 't-warn'], anulada: ['Anulada', 't-gris'] };
   function tagDoc(d) {
@@ -1200,6 +1332,8 @@
       case 'ganada': hojaEtapa('Firmado'); break;
       case 'perdida': hojaEtapa('Rechazado'); break;
       case 'standby': hojaEtapa('Stand-by'); break;
+      case 'pasar-gran': MK.confirmar('La oportunidad pasa a ser una cuenta con sedes. Lo que ya está escrito (contacto, kilos, frecuencia y precio) se lleva a la primera sede.', function () {
+          MK.llamar('api_pasarAGranGenerador', MK.pin, COD).then(function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, function () {}); }, { boton: 'Pasar a gran generador' }); break;
       case 'reabrir-ficha': REABIERTA = true; MK.aviso('Ficha reabierta: ya puedes corregirla'); pintar(); break;
       case 'tarea-nueva': MK.tarea({ ref: COD, refTipo: 'op', cuenta: OP.empresa, fecha: MK.masDias(MK.hoy, 1) }); break;
       case 'tarea-completar': var t = tareaPor(id); if (t && t.estado === 'pendiente') MK.completar(t); break;
@@ -1231,6 +1365,10 @@
       case 'borrar-docs': borrarDocs(); break;
       case 'rechazar-cli': rechazarCli(id, el.getAttribute('data-n') || 'el documento'); break;
       case 'wa-docs': waDocs(); break;
+      case 'pedir-docs': pedirDocs(el); break;
+      case 'banco-ok': revisarBanco(true); break;
+      case 'banco-no': revisarBanco(false); break;
+      case 'reabrir-op': hojaReabrir(); break;
       case 'envio-doc': hojaEnvioDoc(docPor(el.getAttribute('data-doc'))); break;
       case 'contrato': revisarContrato(); break;
       case 'cartera': hojaCartera(); break;
@@ -1662,6 +1800,7 @@
       '<label class="lb" for="ep-v">VÁLIDA HASTA</label><input class="in" type="date" id="ep-v" value="' + MK.masDias(MK.hoy, Number(v('validez propuesta') || 30)) + '">' +
       (prev ? '<label class="chk" style="margin-top:12px"><input type="checkbox" id="ep-nv"> Es una versión nueva (cambió el precio o las notas) · hoy va en v' + prev.version + '</label>' : '') +
       (iA >= 0 && iA < 3 ? '<div class="aviso az" style="margin-top:10px">La etapa pasa sola a «Propuesta enviada».</div>' : '') +
+      (D.enlace && D.enlace.propuestaEnlace ? '<div class="aviso vd" style="margin-top:10px">Al anotarlo, el cliente también la ve en su enlace y puede aceptarla, rechazarla o dejarla para más adelante hasta la fecha de vigencia.</div>' : '') +
       (hayCambios() ? '<div class="aviso am" style="margin-top:10px">Primero se guardan tus cambios de la ficha.</div>' : '') +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ep-ok">Anotar envío</button></div>');
     MK.activarChips(h);

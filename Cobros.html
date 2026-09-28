@@ -187,7 +187,7 @@ function panelCuenta(k) {
   var p = c.paso;
   return '<span class="et">Estado de cuenta</span><div class="fila" style="justify-content:space-between;margin-top:2px"><h3 style="font-size:17px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0">' + MK.esc(c.cliente) + '</h3><b class="num" style="font-size:20px;color:var(--bad)">' + D(c.saldo) + '</b></div>' +
     '<div class="small muted">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + '</div>' +
-    '<div class="fila" style="margin-top:8px">' + escChip(c.escalon) + (c.grande ? '<span class="chipx warn">cuenta grande</span>' : '') + (c.promesa ? '<span class="chipx info">promesa ' + fdm(c.promesa.fecha) + '</span>' : '') + (c.plan ? '<span class="chipx info">plan ' + MK.esc(c.plan.estado.toLowerCase()) + '</span>' : '') + (c.reclamo ? '<span class="chipx warn">reclamo abierto</span>' : '') + chipTarde(c) + '</div>' +
+    '<div class="fila" style="margin-top:8px">' + escChip(c.escalon) + (c.esPagador ? '<span class="chipx info">pagador · ' + MK.esc(MODO_PAG[c.modo] || 'una sola factura') + '</span>' : '') + (c.grande ? '<span class="chipx warn">cuenta grande</span>' : '') + (c.promesa ? '<span class="chipx info">promesa ' + fdm(c.promesa.fecha) + '</span>' : '') + (c.plan ? '<span class="chipx info">plan ' + MK.esc(c.plan.estado.toLowerCase()) + '</span>' : '') + (c.reclamo ? '<span class="chipx warn">reclamo abierto</span>' : '') + chipTarde(c) + '</div>' +
     '<div class="facs">' + abiertas.slice(0, 6).map(function (f) { return '<div class="f"><b>' + MK.esc(f.factura) + '</b><span>' + fdm(f.fecha) + (f.mora ? ' · ' + f.mora + ' días' : '') + '</span><div class="sa num">' + D(f.saldo) + '</div></div>'; }).join('') + (abiertas.length > 6 ? '<div class="f"><b>+' + (abiertas.length - 6) + ' más</b></div>' : '') + '</div>' +
     (p ? '<div class="nota ' + (p.tono === 'bad' || p.tono === 'warn' ? 'am' : '') + '"><b>Siguiente paso · ' + MK.esc(MK.cuando(p.fecha)) + '</b><br>' + MK.esc(p.texto) + '</div>' : '') +
     '<div class="small muted" style="margin-top:10px">' + MK.ic('telefono', 14) + ' ' + MK.esc(c.telefono || 'sin teléfono') + ' &nbsp; ' + MK.ic('correo', 14) + ' ' + MK.esc(c.correo || 'sin correo') + (c.contacto ? ' &nbsp; · ' + MK.esc(c.contacto) : '') + '</div>' +
@@ -208,8 +208,8 @@ function abrirCuenta(k) {
   var p = c.paso;
   var puedeSusp = c.vencido > 0.009 && !c.suspensionPedida && c.situacion !== 'mora' && !c.sinFicha;
   var vencidas = abiertas.filter(function (f) { return f.mora > 0; });
-  MK.lado('<span class="et">Cuenta</span><h2>' + MK.esc(c.cliente) + '</h2><div class="sub">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + (c.puntos && c.puntos.length > 1 ? '<br>Puntos: ' + c.puntos.map(MK.esc).join(' · ') : '') + (c.nombres && c.nombres.length > 1 ? '<br>En las facturas: ' + c.nombres.map(MK.esc).join(' · ') : '') + (c.pagaDesde ? '<br>Paga desde ' + MK.esc(c.pagaDesde) : '') + '</div>' +
-    '<div class="fila">' + escChip(c.escalon) + (c.situacion === 'mora' ? '<span class="chipx bad">servicio suspendido</span>' : '') + (c.sinFicha ? '<span class="chipx warn">sin ficha de cliente</span>' : '') + (c.tipo === 'contrato' ? '<span class="chipx info">contrato</span>' : '') + chipTarde(c) + '</div>' +
+  MK.lado('<span class="et">Cuenta</span><h2>' + MK.esc(c.cliente) + '</h2><div class="sub">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + (c.puntos && c.puntos.length > 1 ? '<br>Puntos: ' + c.puntos.map(MK.esc).join(' · ') : '') + (c.esPagador ? (c.nombres && c.nombres.length ? '<br>Así aparece en contabilidad: ' + c.nombres.map(MK.esc).join(' · ') : '') : c.nombres && c.nombres.length > 1 ? '<br>En las facturas: ' + c.nombres.map(MK.esc).join(' · ') : '') + (c.pagaDesde ? '<br>Paga desde ' + MK.esc(c.pagaDesde) : '') + '</div>' +
+    '<div class="fila">' + escChip(c.escalon) + (c.esPagador ? '<span class="chipx info">pagador · ' + MK.esc(MODO_PAG[c.modo] || 'una sola factura') + '</span>' : '') + (c.situacion === 'mora' ? '<span class="chipx bad">servicio suspendido</span>' : '') + (c.sinFicha ? '<span class="chipx warn">sin ficha de cliente</span>' : '') + (c.tipo === 'contrato' ? '<span class="chipx info">contrato</span>' : '') + chipTarde(c) + '</div>' +
     '<div style="margin-top:12px">' + MK.kpis([{ e: 'Debe', v: D(c.saldo), c: c.saldo ? 'bad' : '' }, { e: 'Vencido', v: D(c.vencido) }, { e: 'Mora', v: c.moraMax + ' d' }, { e: 'Último pago', v: c.ultimoPago ? fdm(c.ultimoPago) : 'nunca', s: c.diasSinPago != null ? 'hace ' + c.diasSinPago + ' días' : '' }], 4) + '</div>' +
     bloqueSusp(c) + (c.cartaUltimo ? '<div class="small muted" style="margin:0 0 8px">' + MK.ic('documento', 14) + ' Carta de último aviso enviada el ' + fdm(c.cartaUltimo.fecha) + (c.cartaUltimo.limite ? ' · plazo hasta el ' + fdm(c.cartaUltimo.limite) : '') + '</div>' : '') +
     (p && !(p.tipo === 'suspension' && c.suspension && c.suspension.abierta) ? '<div class="nota ' + (p.tono === 'bad' || p.tono === 'warn' ? 'am' : '') + '" style="margin-top:0"><b>Siguiente paso · ' + MK.esc(MK.cuando(p.fecha)) + '</b><br>' + MK.esc(p.texto) + '</div>' : '') +
@@ -235,9 +235,10 @@ function abrirCuenta(k) {
         (g.seCompromete ? ' · prometió ' + D(g.montoPrometido) + ' para el ' + fdm(g.fechaPrometida) : '') + (g.notas ? '<br><span class="muted">' + MK.esc(g.notas) + '</span>' : '') + '<br><span class="muted small">' + MK.esc(g.hechoPor) + '</span></span></div>';
     }).join('') : MK.vacio('Nadie ha gestionado esta cuenta todavía.')) + '</div>', { ancho: true });
 }
+var MODO_PAG = { consolidada: 'una sola factura', sede: 'factura por sede', grupo: 'factura por grupo' };
 function contacto(k) {
   var c = cu(k);
-  MK.lado('<h2>Contacto de ' + MK.esc(c.cliente) + '</h2><div class="sub">Se guarda en la ficha del cliente' + (c.puntos && c.puntos.length > 1 ? ' (sus ' + c.puntos.length + ' puntos)' : '') + '. Lo ve también Mercadeo.</div>' +
+  MK.lado('<h2>Contacto de ' + MK.esc(c.cliente) + '</h2><div class="sub">' + (c.esPagador ? 'Es el contacto de cobro del pagador: las facturas, los estados de cuenta y las cartas van solo aquí, nunca a una sede.' : 'Se guarda en la ficha del cliente' + (c.puntos && c.puntos.length > 1 ? ' (sus ' + c.puntos.length + ' puntos)' : '') + '. Lo ve también Mercadeo.') + '</div>' +
     '<label class="lb">Persona que atiende los pagos</label><input class="in" id="ct-per" value="' + MK.esc(c.contacto) + '">' +
     '<div class="f2"><div><label class="lb">Teléfono o WhatsApp</label><input class="in" id="ct-tel" value="' + MK.esc(c.telefono) + '"></div><div><label class="lb">Correo</label><input class="in" id="ct-cor" value="' + MK.esc(c.correo) + '"></div></div>' +
     (c.sinFicha ? '<div class="aviso am" style="margin-top:12px">Esta cuenta no tiene ficha de cliente: créala en Mercadeo para poder guardar el contacto.</div>' : '') +
@@ -467,7 +468,6 @@ function guardarIncQ(btn) {
 }
 </script>
 <script>
-/* Cobros-2.js (va adentro: no hace falta subirlo aparte) */
 /* ═══ Cobros (api 3.5) · segunda parte: seguimientos, planes, escalera, cartera, documentos ═══ */
 
 /* ═══════════ SEGUIMIENTOS ═══════════ */
@@ -730,6 +730,83 @@ function tramosDe(b) {
 }
 
 /* ═══════════ DEUDORES ═══════════ */
+/* ═══════════ api 3.11 · PAGADORES ═══════════
+   Quién paga cuando un cliente tiene varias sedes. La cuenta de Cobros es
+   el pagador (MINIMED CORP, no HOSPITAL-MINIMED) y las cartas van solo a su
+   contacto de cobro. Con factura por sede, cada sede es su propio pagador. */
+var PAGD = null, PAG_CARGANDO = false;
+function cargarPagadores(forzar) {
+  if (PAG_CARGANDO || (PAGD && !forzar)) return;
+  PAG_CARGANDO = true;
+  MK.p('api_cobPagadores').then(function (r) { PAG_CARGANDO = false; if (r && r.ok) { PAGD = r; if (MK.seccion === 'pagadores') MK.repintar(); } else MK.aviso((r && r.error) || 'No se pudieron cargar los pagadores.'); },
+    function (e) { PAG_CARGANDO = false; MK.aviso(e.message); });
+}
+function vPagadores() {
+  var trabaja = B().permiso === 'trabaja';
+  var h = MK.cabeza('Pagadores', 'Quién paga cuando un cliente tiene varias sedes. La cuenta se cobra al pagador y las cartas van solo a su contacto de cobro, nunca a una sede.',
+    trabaja ? '<button class="btn pri" onclick="editarPagador()">' + MK.ic('mas', 16) + 'Nuevo pagador</button>' : '');
+  if (!PAGD) { cargarPagadores(); return h + '<div class="cargando">Cargando pagadores…</div>'; }
+  var L = PAGD.pagadores || [];
+  h += '<div class="card"><h3>Pagadores · ' + L.length + '</h3>' +
+    MK.tabla(['Pagador', 'Factura', 'Sedes', 'Contacto de cobro', '>Debe', ''], L.map(function (p) {
+      var c = cu('P' + p.pagadorId);
+      return ['<b>' + MK.esc(p.nombre) + '</b>' + (p.razon && p.razon !== p.nombre ? '<small>' + MK.esc(p.razon) + '</small>' : '') + (p.nombresFactura.length ? '<small>En contabilidad: ' + MK.esc(p.nombresFactura.join(' · ')) + '</small>' : ''),
+        '<span class="chipx info">' + MK.esc(MODO_PAG[p.modo] || p.modo) + '</span>',
+        p.sedes.length + p.clientesNombres.filter(function (n) { return !p.sedes.some(function (s) { return s.nombre.toUpperCase() === n.toUpperCase(); }); }).length,
+        MK.esc(p.contacto || '—') + (p.correo ? '<small>' + MK.esc(p.correo) + '</small>' : '<small style="color:var(--bad)">sin correo de cobro</small>'),
+        c ? D(c.saldo) : '<span class="muted">—</span>',
+        '<span style="white-space:nowrap">' + (c ? '<button class="btn sm" onclick="event.stopPropagation();abrirCuenta(\'P' + p.pagadorId + '\')">' + MK.ic('ojo', 14) + 'Cuenta</button> ' : '') + (trabaja ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'' + p.pagadorId + '\')">' + MK.ic('lapiz', 14) + 'Editar</button>' : '') + '</span>'];
+    }), { vacio: 'Todavía no hay pagadores. Las cuentas se agrupan por RUC, como antes.' }) + '</div>';
+  var S = PAGD.sugerencias || [];
+  if (S.length) h += '<div class="card"><h3>Mismo RUC, varias sedes, sin pagador <span class="sp"></span><span class="l muted">' + S.length + '</span></h3>' +
+    '<div class="nota" style="margin:0 0 10px">Si pagan todo junto, créale su pagador: la cuenta toma su nombre y su contacto de cobro.</div>' +
+    MK.tabla(['RUC', 'Razón social', 'Sedes', ''], S.map(function (x, i) {
+      return [MK.esc(x.ruc), MK.esc(x.razon || '—'), x.sedes.length + '<small>' + MK.esc(x.sedes.slice(0, 4).map(function (s) { return s.nombre; }).join(' · ')) + (x.sedes.length > 4 ? '…' : '') + '</small>',
+        trabaja ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'\',' + i + ')">' + MK.ic('mas', 14) + 'Crear pagador</button>' : ''];
+    })) + '</div>';
+  return h;
+}
+function editarPagador(id, sug) {
+  if (!PAGD) return;
+  var p = id ? (PAGD.pagadores || []).filter(function (x) { return x.pagadorId === id; })[0] : null, s = sug != null ? PAGD.sugerencias[sug] : null;
+  p = p || { nombre: s ? (s.razon || '') : '', razon: s ? s.razon : '', ruc: s ? s.ruc : '', modo: 'consolidada', clienteIds: s ? s.sedes.map(function (x) { return x.id; }) : [], nombresFactura: [], contacto: '', correo: '', telefono: '', credito: 30, notas: '' };
+  var sel = {}; (p.clientes || p.clienteIds || []).forEach(function (x) { sel[String(x)] = 1; });
+  var cand = (PAGD.clientes || []).filter(function (c) { return sel[c.id] || (p.ruc && String(c.ruc).replace(/[^0-9A-Z]/gi, '') === String(p.ruc).replace(/[^0-9A-Z]/gi, '')); });
+  MK.lado('<h2>' + (id ? 'Editar pagador' : 'Nuevo pagador') + '</h2><div class="sub">La cuenta de Cobros toma este nombre y este contacto. Las sedes quedan como detalle.</div>' +
+    '<label class="lb">Nombre (como se le cobra)</label><input class="in" id="pg-nom" value="' + MK.esc(p.nombre) + '" placeholder="Ej. MINIMED CORP">' +
+    '<div class="f2"><div><label class="lb">Razón social</label><input class="in" id="pg-raz" value="' + MK.esc(p.razon) + '"></div><div><label class="lb">RUC</label><input class="in" id="pg-ruc" value="' + MK.esc(p.ruc) + '"></div></div>' +
+    '<label class="lb">¿Cómo se le factura?</label><select class="in" id="pg-mod">' + Object.keys(PAGD.modos).map(function (k) { return '<option value="' + k + '"' + (k === p.modo ? ' selected' : '') + '>' + MK.esc(PAGD.modos[k]) + '</option>'; }).join('') + '</select>' +
+    '<label class="lb">Sus sedes</label><input class="in" id="pg-bus" placeholder="Buscar un cliente para agregarlo…" oninput="pagBuscar()"><div id="pg-res" class="small"></div>' +
+    '<div id="pg-sedes" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:6px 10px;margin-top:6px">' + cand.map(function (c) {
+      return '<label class="chk" style="display:flex;gap:8px;padding:4px 0"><input type="checkbox" data-cli="' + MK.esc(c.id) + '"' + (sel[c.id] ? ' checked' : '') + '>' + MK.esc(c.nombre) + '</label>'; }).join('') + '</div>' +
+    '<label class="lb">Así aparece en contabilidad <span class="muted">(un nombre por línea)</span></label><textarea class="in" id="pg-fac" rows="2" placeholder="HOSPITAL-MINIMED">' + MK.esc((p.nombresFactura || []).join('\n')) + '</textarea>' +
+    '<h3 style="margin-top:16px">Contacto de cobro</h3>' +
+    '<label class="lb">Persona</label><input class="in" id="pg-con" value="' + MK.esc(p.contacto) + '" placeholder="Cuentas por pagar">' +
+    '<div class="f2"><div><label class="lb">Correo para facturas y cartas</label><input class="in" id="pg-cor" value="' + MK.esc(p.correo) + '"></div><div><label class="lb">Teléfono</label><input class="in" id="pg-tel" value="' + MK.esc(p.telefono) + '"></div></div>' +
+    '<div class="f2"><div><label class="lb">Días de crédito</label><input class="in" type="number" min="0" id="pg-cre" value="' + (p.credito || 30) + '"></div><div><label class="lb">Nota</label><input class="in" id="pg-not" value="' + MK.esc(p.notas || '') + '"></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarPagador(\'' + (id || '') + '\',this)">' + MK.ic('check', 16) + 'Guardar</button></div>', { ancho: true });
+}
+function pagBuscar() {
+  var q = MK.val('pg-bus').toUpperCase(), r = document.getElementById('pg-res');
+  if (q.length < 3) { r.innerHTML = ''; return; }
+  var ya = {}; [].forEach.call(document.querySelectorAll('#pg-sedes [data-cli]'), function (x) { ya[x.getAttribute('data-cli')] = 1; });
+  var L = (PAGD.clientes || []).filter(function (c) { return !ya[c.id] && (c.nombre + ' ' + c.razon + ' ' + c.ruc).toUpperCase().indexOf(q) >= 0; }).slice(0, 8);
+  r.innerHTML = L.length ? L.map(function (c) { return '<a href="#" onclick="pagAgregar(\'' + MK.esc(c.id) + '\');return false" style="display:inline-block;margin:4px 8px 0 0">+ ' + MK.esc(c.nombre) + '</a>'; }).join('') : '<span class="muted">Nada con ese nombre.</span>';
+}
+function pagAgregar(id) {
+  var c = (PAGD.clientes || []).filter(function (x) { return x.id === id; })[0]; if (!c) return;
+  document.getElementById('pg-sedes').insertAdjacentHTML('beforeend', '<label class="chk" style="display:flex;gap:8px;padding:4px 0"><input type="checkbox" data-cli="' + MK.esc(c.id) + '" checked>' + MK.esc(c.nombre) + '</label>');
+  document.getElementById('pg-bus').value = ''; document.getElementById('pg-res').innerHTML = '';
+}
+function guardarPagador(id, btn) {
+  var d = { pagadorId: id, nombre: MK.val('pg-nom'), razon: MK.val('pg-raz'), ruc: MK.val('pg-ruc'), modo: MK.val('pg-mod'),
+    clienteIds: [].map.call(document.querySelectorAll('#pg-sedes [data-cli]:checked'), function (x) { return x.getAttribute('data-cli'); }),
+    nombresFactura: MK.val('pg-fac').split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean),
+    contacto: MK.val('pg-con'), correo: MK.val('pg-cor'), telefono: MK.val('pg-tel'), credito: Number(MK.val('pg-cre')) || 30, notas: MK.val('pg-not') };
+  MK.ocupado(btn, true);
+  MK.llamar('api_guardarPagador', d).then(function () { MK.cerrarLado(); MK.aviso('Pagador guardado'); PAGD = null; recargar(); }, function () { MK.ocupado(btn, false); });
+}
+
 function vDeudores() {
   var b = B(), C = (b.cuentas || []);
   var deben = C.filter(function (c) { return c.saldo > 0.009; });
@@ -1345,6 +1422,7 @@ MK.iniciar({
     { id: 'esc', n: 'Cómo cobramos', i: 'escalera' },
     { id: 'cartera', n: 'Cartera', i: 'suma' },
     { id: 'deudores', n: 'Deudores', i: 'personas' },
+    { id: 'pagadores', n: 'Pagadores', i: 'maletin' },
     { g: 'DOCUMENTOS' },
     { id: 'facturas', n: 'Facturas', i: 'factura' },
     { id: 'pagos', n: 'Pagos', i: 'billete' },
@@ -1368,7 +1446,7 @@ MK.iniciar({
     MK.contadores.inco = null;
   },
   pintar: function (id) {
-    var V = { midia: vMiDia, pv: vPorVencer, seg: vSeguimientos, planes: vPlanes, esc: vEscalera, cartera: vCartera, deudores: vDeudores, facturas: vFacturas, pagos: vPagos, lote: vLote, conc: vConciliar, pfac: vParaFacturar, inco: vIncobrables };
+    var V = { pagadores: vPagadores, midia: vMiDia, pv: vPorVencer, seg: vSeguimientos, planes: vPlanes, esc: vEscalera, cartera: vCartera, deudores: vDeudores, facturas: vFacturas, pagos: vPagos, lote: vLote, conc: vConciliar, pfac: vParaFacturar, inco: vIncobrables };
     if (!MK.base) return;
     document.getElementById('main').innerHTML = (V[id] || vMiDia)();
   }

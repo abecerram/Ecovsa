@@ -139,7 +139,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
 (function () {
   var E = MK.esc, D = MK.dinero, N = MK.num, IC = MK.ic;
   var ID = MK.param('id'), R = null, TAB = 'resumen', TLF = 'todo', ROL = '', LISTAS = null;
-  var TABS = ['resumen', 'servicio', 'cobros', 'contrato', 'contactos', 'actividad', 'documentos'];
+  var TABS = ['resumen', 'servicio', 'propuestas', 'cobros', 'contrato', 'contactos', 'actividad', 'documentos'];
   var NIV = { sano: ['Sano', 'ok'], atencion: ['Atención', 'warn'], riesgo: ['En riesgo', 'bad'], crecer: ['Puede crecer', 'info'] };
   var SIT = { activo: ['Activo', 'ok'], mora: ['Suspendido por mora', 'bad'], pausa: ['En pausa', 'warn'], cierre: ['De baja · cerró', 'gris'], retiro: ['De baja · se retiró', 'gris'] };
   var SIT_TEXTO = {
@@ -212,6 +212,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
         '<button class="btn pri sm" id="q-act">' + IC('mas', 15) + 'Registrar actividad</button>' +
         '<button class="btn sm" id="q-tar">' + IC('tarea', 15) + 'Nueva tarea</button>' +
         (puedeEditar() ? '<button class="btn sm" id="q-edit">' + IC('lapiz', 15) + 'Editar ficha</button>' : '') +
+        (puedeEditar() ? '<button class="btn sm" id="q-prop">' + IC('documento', 15) + 'Nueva propuesta</button>' : '') +
       '</div>' +
       '<div class="facts">' +
         '<div><span>PLAN</span><b class="num">' + (c.planKg ? N(c.planKg) + ' kg' : '—') + (c.planCosto ? ' · ' + D(c.planCosto) : '') + '</b><small>' + E(titulo(c.frecuencia) || 'sin frecuencia') + (pc ? ' · de la cuenta' : '') + '</small></div>' +
@@ -308,7 +309,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var c = R.cliente;
     var pendientes = R.tareas.filter(function (t) { return t.estado === 'pendiente'; }).length;
     var venc = R.cobros.facturas.filter(function (f) { return f.vencida; }).length;
-    var tabs = [['resumen', 'Resumen'], ['servicio', 'Servicio'], ['cobros', 'Cobros', venc, 'r'], ['contrato', 'Contrato', c.diasVence !== null && c.diasVence <= 60 ? '!' : '', 'r'], ['contactos', 'Contactos', R.contactos.length], ['actividad', 'Actividad', pendientes], ['documentos', 'Documentos', R.documentos.length + R.certificados.length]];
+    var tabs = [['resumen', 'Resumen'], ['servicio', 'Servicio'], ['propuestas', 'Propuestas'], ['cobros', 'Cobros', venc, 'r'], ['contrato', 'Contrato', c.diasVence !== null && c.diasVence <= 60 ? '!' : '', 'r'], ['contactos', 'Contactos', R.contactos.length], ['actividad', 'Actividad', pendientes], ['documentos', 'Documentos', R.documentos.length + R.certificados.length]];
     var m = document.getElementById('main');
     var y = window.scrollY;
     m.innerHTML = '<div class="crumb"><a href="MerClientes.html">Clientes</a>' + (c.cuenta ? ' › ' + E(c.cuenta) : '') + ' › ' + E(c.nombre) + '</div>' +
@@ -334,6 +335,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     q('q-act').onclick = function () { MK.actividad(ctx({})); };
     q('q-tar').onclick = function () { MK.tarea(ctx({})); };
     if (q('q-edit')) q('q-edit').onclick = editarFicha;
+    if (q('q-prop')) q('q-prop').onclick = nuevaPropuesta;
     if (q('sp-susp')) q('sp-susp').onclick = function () { decidir('suspender'); };
     if (q('sp-plazo')) q('sp-plazo').onclick = function () { decidir('plazo'); };
     if (q('sp-seguir')) q('sp-seguir').onclick = function () { decidir('seguir'); };
@@ -343,9 +345,75 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
 
   function pintarPanel() {
     var p = document.getElementById('panel'); if (!p) return;
+    if (TAB === 'propuestas') { pPropuestas(p); return; }
     var f = { resumen: pResumen, servicio: pServicio, cobros: pCobros, contrato: pContrato, contactos: pContactos, actividad: pActividad, documentos: pDocumentos }[TAB] || pResumen;
     p.innerHTML = f();
     enlazarPanel(p);
+    if (TAB === 'servicio') { p.insertAdjacentHTML('afterbegin', '<div id="rep-box"></div>'); pReponer(); }
+  }
+
+  /* ═══ api 3.11: propuestas del cliente (nueva, misma sede o varias sedes) ═══ */
+  function nuevaPropuesta() {
+    var c = R.cliente, fuera = ['mora', 'cierre', 'retiro', 'pausa'].indexOf(sit()) >= 0;
+    var h = MK.hoja('<h2>Nueva propuesta · ' + E(c.nombre) + '</h2><p class="small muted">Queda amarrada a su ficha: no se duplica el cliente.' + (fuera ? ' Está fuera de servicio: la propuesta es su <b>reactivación</b>; al pasar a cartera vuelve a activo con su historial.' : '') + '</p>' +
+      '<div class="mk-tipos">' +
+      '<button type="button" data-t="misma"><span class="tag t-gris">MISMA SEDE</span><b>Propuesta para este punto</b><small>Parte de su plan actual' + (c.planKg ? ' (' + N(c.planKg) + ' kg · ' + E(titulo(c.frecuencia) || 'sin frecuencia') + ')' : '') + '. Precio por visita, como siempre.</small></button>' +
+      '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Cuenta de gran generador</b><small>Este punto más sus sucursales nuevas: sedes, precio por grupo, servicios, facturación y cobro.</small></button></div>' +
+      '<div id="np-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
+    [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute('data-t'); b.disabled = true;
+        MK.api('api_crearCuentaGran', MK.pin, { clienteId: c.id, tipo: t }).then(function (r) {
+          if (!r || !r.ok) { b.disabled = false; document.getElementById('np-msg').textContent = (r && r.error) || 'No se pudo crear.'; return; }
+          location.href = t === 'gran' ? 'MerCuenta.html?id=' + encodeURIComponent(r.codigoPropuesta) : 'MerOportunidad.html?id=' + encodeURIComponent(r.codigoPropuesta);
+        }, function (e) { b.disabled = false; document.getElementById('np-msg').textContent = e.message; });
+      };
+    });
+  }
+  function pPropuestas(p) {
+    p.innerHTML = '<div class="card"><div class="cargando">Buscando sus propuestas…</div></div>';
+    MK.api('api_propuestasCliente', MK.pin, R.cliente.id).then(function (r) {
+      if (TAB !== 'propuestas') return;
+      if (!r || !r.ok) { p.innerHTML = '<div class="aviso rj">' + E((r && r.error) || 'No se pudo cargar.') + '</div>'; return; }
+      var L = r.propuestas || [];
+      p.innerHTML = '<div class="card"><h3>' + IC('documento', 16) + 'Propuestas<span class="sp"></span>' + (puedeEditar() ? '<button class="btn sm pri" id="pp-nueva">' + IC('mas', 14) + 'Nueva propuesta</button>' : '') + '</h3>' +
+        (L.length ? '<div class="tbw"><table class="tb"><thead><tr><th>Propuesta</th><th>Tipo</th><th>Etapa</th><th class="r">Valor al mes</th><th>Fecha</th><th></th></tr></thead><tbody>' + L.map(function (x) {
+          return '<tr><td><b>' + E(x.cod) + '</b><small style="display:block">' + E(x.empresa) + '</small></td><td>' + (x.gran ? '<span class="tag t-info">Gran generador · ' + x.sedes + ' sedes</span>' : '<span class="tag t-gris">Un punto</span>') + '</td>' +
+            '<td>' + MK.ETAPA_TAG(x.estado) + '</td><td class="r num">' + D(x.valor) + '</td><td>' + E(x.fecha ? MK.fecha(x.fecha) : '—') + '</td>' +
+            '<td style="white-space:nowrap">' + (x.gran ? '<a class="btn sm" href="MerCuenta.html?id=' + encodeURIComponent(x.cod) + '">Cuenta</a> ' : '') + '<a class="btn sm" href="MerOportunidad.html?id=' + encodeURIComponent(x.cod) + '">Ficha</a></td></tr>';
+        }).join('') + '</tbody></table></div>' : MK.vacio('Todavía no tiene propuestas registradas en el sistema.')) + '</div>';
+      var b = document.getElementById('pp-nueva'); if (b) b.onclick = nuevaPropuesta;
+    }, function (e) { p.innerHTML = '<div class="aviso rj">' + E(e.message) + '</div>'; });
+  }
+  /* lo que el conductor le deja en cada visita (recipientes, bolsas…) */
+  function pReponer() {
+    var box = document.getElementById('rep-box'); if (!box) return;
+    MK.api('api_reposicionesCliente', MK.pin, R.cliente.id).then(function (r) {
+      if (!r || !r.ok || !document.getElementById('rep-box')) return;
+      var L = r.lista || [];
+      if (!L.length && !r.puede) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="card" style="margin-bottom:14px"><h3>' + IC('caja', 16) + 'Se repone en la visita<span class="sp"></span>' + (r.puede ? '<button class="btn sm" id="rp-mas">' + IC('mas', 14) + 'Agregar</button>' : '') + '</h3>' +
+        (L.length ? L.map(function (x) {
+          return '<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line2);gap:10px"><span class="tag t-ok" style="min-width:34px;text-align:center">' + x.cantidad + '</span><div style="flex:1"><b>' + E(x.nombre) + '</b><small class="muted" style="display:block">' + E(r.cadas[x.cada] || x.cada) +
+            (x.cada === 'mes' ? ' · este mes: ' + (x.yaEsteMes >= x.cantidad ? 'ya se entregó' : 'pendiente') : '') + (x.insumoId ? '' : ' · sin amarrar al inventario') + '</small></div>' +
+            (r.puede ? '<button class="btn gh sm" data-rpq="' + E(x.repId) + '" title="Quitar">' + IC('basura', 14) + '</button>' : '') + '</div>';
+        }).join('') : '<div class="small muted">No se le repone nada. Los envases que se agregan en una propuesta aparecen aquí al pasar a cartera.</div>') +
+        '<div class="small muted" style="margin-top:8px">El conductor lo ve en la parada; lo que entrega sale en el recibo y del inventario.</div></div>';
+      var m = document.getElementById('rp-mas'); if (m) m.onclick = function () { agregarRep(r); };
+      [].forEach.call(box.querySelectorAll('[data-rpq]'), function (b) { b.onclick = function () { MK.confirmar('El conductor deja de reponerlo en las próximas visitas.', function () { MK.llamar('api_borrarReposicion', MK.pin, b.getAttribute('data-rpq')).then(pReponer, function () {}); }, { boton: 'Quitar' }); }; });
+    }, function () {});
+  }
+  function agregarRep(r) {
+    var h = MK.hoja('<h2>Reponer en la visita</h2><p class="small muted">' + E(R.cliente.nombre) + '</p>' +
+      '<label class="lb" for="rp-cat">PRODUCTO</label><select class="sel" id="rp-cat">' + (r.productos || []).map(function (p) { return '<option value="' + E(p.id) + '">' + E(p.nombre) + (p.stock != null ? ' · quedan ' + p.stock : ' · sin inventario') + '</option>'; }).join('') + '</select>' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="rp-can">CANTIDAD</label><input class="in" type="number" min="1" id="rp-can" value="1"></div>' +
+      '<div><label class="lb" for="rp-cad">CADA CUÁNTO</label><select class="sel" id="rp-cad"><option value="mes">Una vez al mes</option><option value="visita">En cada visita</option></select></div></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="rp-ok">Guardar</button></div>');
+    document.getElementById('rp-ok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.llamar('api_guardarReposicion', MK.pin, { clienteId: R.cliente.id, catId: document.getElementById('rp-cat').value, cantidad: Number(document.getElementById('rp-can').value), cada: document.getElementById('rp-cad').value })
+        .then(function () { MK.cerrarHoja(); MK.aviso('Guardado'); pReponer(); }, function () { MK.ocupado(b, false); });
+    };
   }
 
   /* ── piezas ── */

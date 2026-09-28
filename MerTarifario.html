@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarifario y catálogo · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* api 3.11 · Tarifario con reglas y catálogo de servicios y productos (maqueta 44) */
+.w44{font-size:13.5px}
+.w44 h1{font-size:22px;margin:0 0 4px}
+.w44 .lead{color:var(--muted);font-size:13px}
+.w44 .g{display:grid;gap:14px;align-items:start}.w44 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}.w44 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.w44 .cd{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.w44 .cd h3{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700;margin:0 0 12px;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+.w44 table.t{width:100%;border-collapse:collapse}
+.w44 table.t th{text-align:left;font-size:10.5px;letter-spacing:.6px;color:#5b6a80;text-transform:uppercase;padding:6px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+.w44 table.t td{padding:6px 7px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.w44 table.t .in,.w44 table.t .sel{padding:6px 8px;font-size:13px}
+.w44 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.w44 .in.n{text-align:right}
+.w44 .rw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.w44 .rw .in{width:110px;text-align:right}
+.w44 .add{border:1.5px dashed #c9d5e8;background:#fff;border-radius:10px;padding:7px 12px;font:700 12.5px Archivo,sans-serif;color:var(--navy);display:inline-flex;gap:6px;align-items:center;cursor:pointer;margin-top:10px}
+.w44 .nota{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.w44 .ico{background:none;border:0;cursor:pointer;color:#8a96a8;padding:4px;border-radius:6px}.w44 .ico:hover{color:var(--navy);background:#eef3fb}.w44 .ico.bad:hover{color:#a8262b;background:#fdecea}
+.w44 .ejemplo{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;background:#fff4d6;color:#8a6100;border-radius:5px;padding:1px 6px;margin-left:4px;vertical-align:4px}
+.w44 .sw{width:34px;height:20px;border-radius:11px;background:#2f9e44;position:relative;display:inline-block;flex:none;border:0;cursor:pointer}
+.w44 .sw:after{content:"";position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:#fff}
+.w44 .sw.off{background:#c9d2df}.w44 .sw.off:after{right:auto;left:3px}
+.w44 .bar{padding:4px 0 8px;display:flex;gap:10px;align-items:center}
+.w44 .his{max-height:260px;overflow:auto}.w44 .his div{padding:6px 0;border-bottom:1px solid var(--line2);font-size:12.5px}.w44 .his small{color:var(--muted);display:block}
+.w44 .tag2{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
+.w44 .mo{background:#f1ecfa;color:#6c3a96}.w44 .vd{background:#eaf6e4;color:#1f6b35}.w44 .am{background:#fff4d6;color:#8a6100}.w44 .az{background:#e7edf7;color:#1d3f86}
+@media (max-width:1000px){.w44 .g3,.w44 .g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="mk">
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando el tarifario…</div></main></div>
+<script>
+(function () {
+  var D = null, T = null, ED = false, SUCIO = false;
+  var E = MK.esc, IC = MK.ic, $ = function (id) { return document.getElementById(id); };
+  var n2 = function (n) { return Number(n || 0).toFixed(2); };
+  var FRECS = [['SEMANAL', 4], ['2X SEMANA', 8], ['QUINCENAL', 2], ['MENSUAL', 1], ['BIMESTRAL', 0.5], ['TRIMESTRAL', 0.34]];
+  var ZN = { 'CENTRO CIUDAD': 'Centro ciudad', 'PANAMÁ NORTE': 'Panamá Norte', 'PANAMÁ ESTE': 'Panamá Este', 'PANAMÁ OESTE': 'Panamá Oeste', 'CHORRERA': 'La Chorrera', 'COLON': 'Colón', 'INTERIOR': 'Interior (base)', 'OTRA': 'Otra' };
+  MK.iniciar('tarifario', function () { cargar(); });
+  function cargar() {
+    MK.api('api_tarifario', MK.pin).then(function (r) {
+      if (!r || !r.ok) { MK.error('main', (r && r.error) || 'No se pudo cargar.'); return; }
+      D = r; T = JSON.parse(JSON.stringify(r.tarifario)); ED = !!r.puedeEditar; SUCIO = false; pintar();
+      if (location.hash === '#catalogo') setTimeout(function () { var c = $('catalogo'); if (c) c.scrollIntoView(); }, 50);
+    }, function (e) { MK.error('main', e.message); });
+  }
+  var inp = function (k, v, w) { return '<input class="in n" data-k="' + k + '" type="number" min="0" step="0.01" value="' + (v == null ? '' : v) + '"' + (w ? ' style="width:' + w + 'px"' : '') + '>'; };
+  function pintar() {
+    var kg = T.kg.map(function (x, i) {
+      var desde = i ? T.kg[i - 1].hasta : 0;
+      return '<tr data-i="' + i + '"><td>' + (desde || 0) + ' – ' + (x.hasta == null ? 'en adelante' : '<input class="in n" data-kg="hasta" type="number" min="1" value="' + x.hasta + '" style="width:90px;display:inline-block"> kg') + '</td>' +
+        '<td class="n"><input class="in n" data-kg="precio" type="number" min="0" step="0.01" value="' + n2(x.precio) + '" style="width:100px;display:inline-block"></td><td>' + (x.hasta != null ? '<button class="ico bad" data-quitar-kg title="Quitar tramo">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
+    }).join('');
+    var zonas = D.zonas.map(function (z) { return '<tr><td>' + E(ZN[z] || z) + '</td><td class="n"><input class="in n" data-zona="' + E(z) + '" type="number" min="0" step="0.01" value="' + n2(T.zonas[z]) + '" style="width:100px;display:inline-block"></td></tr>'; }).join('');
+    var planes = T.planes.map(function (p, i) {
+      var desde = i ? T.planes[i - 1].hasta : 0;
+      return '<tr data-i="' + i + '"><td>' + (p.hasta == null ? 'más de ' + (desde || 0) + ' kg al mes' : (desde || 0) + ' – <input class="in n" data-pl="hasta" type="number" min="1" value="' + p.hasta + '" style="width:80px;display:inline-block"> kg al mes') + '</td>' +
+        '<td><select class="sel" data-pl="frecuencia">' + FRECS.map(function (f) { return '<option' + (f[0] === p.frecuencia ? ' selected' : '') + '>' + f[0] + '</option>'; }).join('') + '</select></td>' +
+        '<td>' + (p.hasta != null ? '<button class="ico bad" data-quitar-pl title="Quitar regla">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
+    }).join('');
+    var cat = D.catalogo.map(function (c) {
+      var tipo = c.tipo === 'servicio' ? 'Servicio' : c.tipo === 'prestamo' ? 'Préstamo' : 'Producto';
+      return '<tr data-id="' + E(c.id) + '"><td><b>' + E(c.nombre) + '</b><div class="small muted">' + E(c.descripcion || '') + '</div></td>' +
+        '<td><span class="tag2 ' + (c.tipo === 'servicio' ? 'mo' : c.tipo === 'prestamo' ? 'az' : 'vd') + '">' + tipo + '</span></td>' +
+        '<td class="small">' + (c.insumoId ? E(c.insumo) + '<div class="muted">quedan ' + c.stock + (c.minimo && c.stock <= c.minimo ? ' · <b style="color:#a8262b">bajo el mínimo</b>' : '') + '</div>' : c.tipo === 'servicio' ? '—' : '<span class="muted">sin amarrar</span>') + '</td>' +
+        '<td class="n">' + (c.precio ? 'B/. ' + n2(c.precio) : '—') + '<div class="small muted">' + E(c.unidad || '') + '</div></td>' +
+        '<td class="small">' + E(D.quien[c.quien] || '') + '</td>' +
+        '<td><button class="sw' + (c.activo ? '' : ' off') + '" data-activo title="' + (c.activo ? 'Activo: sale en las propuestas' : 'Apagado: ya no sale en las propuestas nuevas') + '"' + (ED ? '' : ' disabled') + '></button></td>' +
+        '<td style="white-space:nowrap">' + (ED ? '<button class="ico" data-editar title="Editar">' + IC('lapiz', 14) + '</button>' + (c.usado ? '' : '<button class="ico bad" data-borrar title="Borrar (nunca se usó)">' + IC('basura', 14) + '</button>') : '') + '</td></tr>';
+    }).join('');
+    $('main').innerHTML = '<div class="w44"><div class="ph" style="margin-bottom:12px"><div><h1>Tarifario' + (T.ejemplo ? ' <span class="ejemplo">NÚMEROS DE EJEMPLO</span>' : '') + '</h1><p class="lead">Los precios de referencia con que el sistema sugiere el precio de cada sede. Katherine pone el precio final en cada propuesta.</p></div>' +
+      '<div class="sp"></div>' + (ED ? '<button class="btn pri" id="guardar2">' + IC('check', 15) + ' Guardar</button> ' : '') + '<span class="small muted">' + (T.cambiadoPor ? 'Último cambio: ' + E(T.cambiadoPor) + ' · ' + E(String(T.cambiadoEn || '').slice(0, 16)) : 'Todavía no se ha guardado') + '</span></div>' +
+      (T.ejemplo ? '<div class="aviso am" style="margin-bottom:14px">Estos números son de ejemplo. Cuando pongas los de ECOVSA y guardes, el sistema empieza a usarlos en las propuestas nuevas.</div>' : '') +
+      '<div class="g g3"><div class="cd"><h3>' + IC('caja', 16) + '1 · Precio del kilo por volumen</h3><table class="t"><thead><tr><th>Kilos al mes (toda la cuenta)</th><th class="n">Precio del kg</th><th></th></tr></thead><tbody>' + kg + '</tbody></table>' +
+      (ED ? '<button class="add" id="mas-kg">' + IC('mas', 14) + ' Agregar tramo</button>' : '') +
+      '<div class="rw" style="margin-top:10px"><span>Kilo adicional (excedente)</span>' + inp('kgAdicional', n2(T.kgAdicional)) + '</div></div>' +
+      '<div class="cd"><h3>' + IC('ruta', 16) + '2 · Viaje por zona</h3><table class="t"><thead><tr><th>Zona</th><th class="n">Viaje por visita</th></tr></thead><tbody>' + zonas + '</tbody></table>' +
+      '<div class="rw" style="margin-top:8px"><span>Recargo fuera del área (por km)</span>' + inp('recargoKm', n2(T.recargoKm)) + '</div><div class="rw"><span>…desde (km de la planta)</span>' + inp('recargoDesdeKm', T.recargoDesdeKm) + '</div>' +
+      '<div class="nota" id="ej-km"></div></div>' +
+      '<div class="cd"><h3>' + IC('billete', 16) + '3 · Mínimos</h3><div class="rw"><span>Mínimo por visita (en ruta)</span>' + inp('minimoRuta', n2(T.minimoRuta)) + '</div>' +
+      '<div class="rw"><span>Visita a solicitud (fuera de ruta)</span>' + inp('minimoSolicitud', n2(T.minimoSolicitud)) + '</div><div class="rw"><span>Visita única</span>' + inp('minimoUnica', n2(T.minimoUnica)) + '</div>' +
+      '<div class="nota">Si el cálculo de una visita da menos, la propuesta sugiere el mínimo.</div></div></div>' +
+      '<div class="g g2"><div class="cd"><h3>' + IC('tarea', 16) + '4 · Reglas del plan sugerido</h3><div class="small muted" style="margin-bottom:8px">Con lo que genera cada sede, el sistema sugiere la frecuencia.</div>' +
+      '<table class="t"><thead><tr><th>Si genera…</th><th>Se sugiere</th><th></th></tr></thead><tbody>' + planes + '</tbody></table>' +
+      (ED ? '<button class="add" id="mas-pl">' + IC('mas', 14) + ' Agregar regla</button>' : '') +
+      '<label class="chk" style="margin-top:12px"><input type="checkbox" id="anat"' + (T.anatomoSemanal ? ' checked' : '') + '> Con anatomopatológico, nunca menos que semanal</label>' +
+      '<div class="rw" style="margin-top:10px"><span>Sugerir «gran generador» desde</span><span style="display:flex;gap:6px;align-items:center">' + inp('granDesdeSedes', T.granDesdeSedes, 70) + ' sedes o ' + inp('granDesdeKg', T.granDesdeKg, 80) + ' kg al mes</span></div></div>' +
+      '<div class="cd"><h3>' + IC('reloj', 16) + 'Historial</h3><div class="his">' + (D.historial.length ? D.historial.map(function (h) { return '<div><b>' + E(h.quien) + '</b> ' + E(h.que) + '<small>' + E(h.cuando) + '</small></div>'; }).join('') : '<div class="muted">Sin cambios todavía.</div>') + '</div>' +
+      '<div class="nota">Las propuestas ya enviadas conservan los precios con que salieron.</div></div></div>' +
+      (ED ? '<div class="bar"><button class="btn pri" id="guardar">' + IC('check', 15) + ' Guardar el tarifario</button><span class="small muted" id="est"></span></div>' : '') +
+      '<div class="cd" id="catalogo" style="margin-top:14px"><h3>' + IC('estrella', 16) + '5 · Servicios y productos<span style="flex:1"></span>' + (ED ? '<button class="btn sm pri" id="nuevo">' + IC('mas', 14) + ' Nuevo servicio o producto</button>' : '') + '</h3>' +
+      '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Nombre</th><th>Tipo</th><th>Del inventario</th><th class="n">Precio</th><th>Quién</th><th>Activo</th><th></th></tr></thead><tbody>' + cat + '</tbody></table></div>' +
+      '<div class="nota">Apagado: ya no sale en las propuestas nuevas (las viejas lo conservan). Borrar solo se puede si nunca se usó. Un producto amarrado al inventario se descuenta cuando el conductor lo repone en la visita.</div></div></div>';
+    ejemploKm(); enlazar();
+    if (!ED) [].forEach.call(document.querySelectorAll('#main input,#main select'), function (x) { x.disabled = true; });
+  }
+  function ejemploKm() {
+    var km = Number(T.recargoDesdeKm) + 50, v = Number(T.zonas.INTERIOR) + 50 * Number(T.recargoKm);
+    var e = $('ej-km'); if (e) e.textContent = 'Ejemplo: una sede a ' + km + ' km paga ' + n2(T.zonas.INTERIOR) + ' + 50 km × ' + n2(T.recargoKm) + ' = B/. ' + n2(v) + ' de viaje.';
+  }
+  function enlazar() {
+    var m = $('main');
+    m.oninput = m.onchange = function (e) {
+      var t = e.target, tr = t.closest('tr[data-i]');
+      if (t.hasAttribute('data-k')) T[t.getAttribute('data-k')] = t.value === '' ? null : Number(t.value);
+      else if (t.hasAttribute('data-zona')) T.zonas[t.getAttribute('data-zona')] = Number(t.value) || 0;
+      else if (t.hasAttribute('data-kg') && tr) T.kg[Number(tr.getAttribute('data-i'))][t.getAttribute('data-kg')] = Number(t.value) || 0;
+      else if (t.hasAttribute('data-pl') && tr) { var p = T.planes[Number(tr.getAttribute('data-i'))]; if (t.getAttribute('data-pl') === 'hasta') p.hasta = Number(t.value) || 0; else { p.frecuencia = t.value; p.visitas = (FRECS.filter(function (f) { return f[0] === t.value; })[0] || [0, 1])[1]; } }
+      else if (t.id === 'anat') T.anatomoSemanal = t.checked;
+      else return;
+      SUCIO = true; if ($('est')) $('est').textContent = 'Hay cambios sin guardar'; ejemploKm();
+      if (e.type === 'change' && (t.getAttribute('data-kg') === 'hasta' || t.getAttribute('data-pl') === 'hasta')) pintar();
+    };
+    m.onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var tr = b.closest('tr');
+      if (b.id === 'mas-kg') { var ult = T.kg[T.kg.length - 2]; T.kg.splice(T.kg.length - 1, 0, { hasta: (ult ? ult.hasta : 0) + 100, precio: T.kg[T.kg.length - 1].precio }); SUCIO = true; pintar(); }
+      else if (b.hasAttribute('data-quitar-kg')) { T.kg.splice(Number(tr.getAttribute('data-i')), 1); SUCIO = true; pintar(); }
+      else if (b.id === 'mas-pl') { var u = T.planes[T.planes.length - 2]; T.planes.splice(T.planes.length - 1, 0, { hasta: (u ? u.hasta : 0) + 20, frecuencia: 'MENSUAL', visitas: 1 }); SUCIO = true; pintar(); }
+      else if (b.hasAttribute('data-quitar-pl')) { T.planes.splice(Number(tr.getAttribute('data-i')), 1); SUCIO = true; pintar(); }
+      else if (b.id === 'guardar' || b.id === 'guardar2') guardar(b);
+      else if (b.id === 'nuevo') editar(null);
+      else if (b.hasAttribute('data-editar')) editar(item(tr.getAttribute('data-id')));
+      else if (b.hasAttribute('data-activo')) { var it = item(tr.getAttribute('data-id')); guardarItem(Object.assign({}, it, { activo: !it.activo })); }
+      else if (b.hasAttribute('data-borrar')) { var ib = item(tr.getAttribute('data-id'));
+        MK.confirmar('Se borra «' + ib.nombre + '» del catálogo. Nunca se usó en una propuesta ni en una reposición.', function () {
+          MK.llamar('api_borrarCatalogoItem', MK.pin, ib.id).then(function (r) { D.catalogo = r.catalogo; MK.aviso('Borrado'); pintar(); }, function () {}); }, { boton: 'Borrar', peligro: true }); }
+    };
+  }
+  function item(id) { return D.catalogo.filter(function (c) { return c.id === id; })[0]; }
+  function guardar(b) {
+    MK.ocupado(b, true);
+    MK.api('api_guardarTarifario', MK.pin, T).then(function (r) {
+      MK.ocupado(b, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return; }
+      MK.aviso(r.sinCambios ? 'No había cambios' : 'Tarifario guardado'); cargar();
+    }, function (e) { MK.ocupado(b, false); MK.aviso(e.message); });
+  }
+  function guardarItem(it) {
+    return MK.llamar('api_guardarCatalogoItem', MK.pin, it).then(function (r) { D.catalogo = r.catalogo; MK.cerrarLado(); MK.aviso('Guardado'); pintar(); }, function () {});
+  }
+  function editar(it) {
+    it = it || { tipo: 'producto', quien: 'conductor', activo: true, unidad: 'unidad', precio: 0 };
+    var sel = function (id, obj, v) { return '<select class="sel" id="' + id + '">' + Object.keys(obj).map(function (k) { return '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + E(obj[k]) + '</option>'; }).join('') + '</select>'; };
+    var l = MK.lado('<h2 style="margin:0 0 4px">' + (it.id ? 'Editar' : 'Nuevo servicio o producto') + '</h2><p class="small muted">Sale en «Agregar servicio o producto» de cada propuesta.</p>' +
+      '<label class="lb" for="i-nom">NOMBRE</label><input class="in" id="i-nom" value="' + E(it.nombre || '') + '" placeholder="Ej. Bolsas rojas (paquete de 50)">' +
+      '<label class="lb" for="i-des">DESCRIPCIÓN</label><input class="in" id="i-des" value="' + E(it.descripcion || '') + '">' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="i-tip">TIPO</label>' + sel('i-tip', D.tipos, it.tipo) + '</div><div><label class="lb" for="i-qui">QUIÉN LO HACE O LO ENTREGA</label>' + sel('i-qui', D.quien, it.quien) + '</div>' +
+      '<div><label class="lb" for="i-pre">PRECIO DE REFERENCIA</label><input class="in" id="i-pre" type="number" min="0" step="0.01" value="' + (it.precio || '') + '"></div><div><label class="lb" for="i-uni">UNIDAD</label><input class="in" id="i-uni" value="' + E(it.unidad || '') + '" placeholder="unidad, por visita…"></div></div>' +
+      '<div id="i-invb"><label class="lb" for="i-inv">DEL INVENTARIO</label><select class="sel" id="i-inv"><option value="">— Sin amarrar —</option>' + D.insumos.map(function (x) { return '<option value="' + E(x.insumoId) + '"' + (x.insumoId === it.insumoId ? ' selected' : '') + '>' + E(x.descripcion) + ' · quedan ' + x.stock + '</option>'; }).join('') + '</select>' +
+      '<p class="small muted" style="margin-top:6px">Amarrado al inventario, lo que el conductor deja en la visita se descuenta solo.</p></div>' +
+      '<label class="chk" style="margin-top:12px"><input type="checkbox" id="i-act"' + (it.activo !== false ? ' checked' : '') + '> Activo (sale en las propuestas nuevas)</label>' +
+      '<div class="row" style="margin-top:16px;gap:8px;justify-content:flex-end"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="i-ok">Guardar</button></div>');
+    var ver = function () { $('i-invb').style.display = $('i-tip').value === 'servicio' ? 'none' : ''; }; $('i-tip').onchange = ver; ver();
+    $('i-ok').onclick = function () {
+      var d = { id: it.id || '', nombre: $('i-nom').value.trim(), descripcion: $('i-des').value.trim(), tipo: $('i-tip').value, quien: $('i-qui').value,
+        precio: Number($('i-pre').value) || 0, unidad: $('i-uni').value.trim(), insumoId: $('i-tip').value === 'servicio' ? '' : $('i-inv').value, activo: $('i-act').checked };
+      if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
+      var b = this; MK.ocupado(b, true); guardarItem(d).then(function () { MK.ocupado(b, false); });
+    };
+  }
+  window.addEventListener('beforeunload', function (e) { if (SUCIO) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>

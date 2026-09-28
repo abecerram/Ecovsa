@@ -332,6 +332,10 @@ function renderizarRecibo(r){
   }
 
   filas += '<tr class="tot"><td colspan="2">TOTAL RETIRADO</td><td style="text-align:right">'+totBultos+'</td><td style="text-align:right">'+totKg+'</td></tr>';
+  /* api 3.11: lo que se repuso en la visita */
+  if(d.entregas && d.entregas.length){
+    filas += '<tr><td colspan="4" style="background:#f4fbf0;color:#2d6a0b;font-size:11px"><b>Se entregó en esta visita:</b> ' + d.entregas.map(function(e){ return esc(e.cantidad + ' ' + e.nombre); }).join(' · ') + '</td></tr>';
+  }
 
   var firmaHtml = d.firma
 
@@ -629,7 +633,7 @@ function prepararPdf(fin){
         var r = recPdfDe_({ recibo:d.recibo, cliente:d.cliente, contacto: d.firmante || d.contactoAtiende || d.contacto || "", fecha:d.fecha,
           horaInicio:d.horaInicio, horaFinal:d.horaFinal, vehiculo:d.vehiculo, operador:d.responsable,
           kgBolsas:d.kgBio, cantBolsas:d.cantBio, kgPunzo:d.kgPunzo, cantPunzo:d.cantPunzo, kgAnatomo:d.kgAnatomo, cantAnatomo:d.cantAnatomo,
-          obs:d.obs, clave:d.clave }, recEmp_());
+          obs:(d.entregas && d.entregas.length ? 'Se entregó en esta visita: ' + d.entregas.map(function(e){ return e.cantidad + ' ' + e.nombre; }).join(', ') + '. ' : '') + (d.obs || ''), clave:d.clave }, recEmp_());
         try{ r.file = new File([r.blob], r.nombre, { type:"application/pdf" }); }catch(e){ r.file = null; }
         RP.pdf = r; fin(r);
       }catch(e){ fin(null, "No se pudo armar el PDF."); }
