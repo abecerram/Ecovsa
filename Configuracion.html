@@ -474,13 +474,16 @@ function avisosSeg() {
   if (!SEGAV.ok) return '<div class="aviso am">' + MK.esc(SEGAV.error || 'No se pudieron traer los avisos.') + '</div>';
   var ab = SEGAV.avisos.filter(function (a) { return a.estado === 'abierto'; }), vi = SEGAV.avisos.filter(function (a) { return a.estado !== 'abierto'; }).slice(0, 8);
   var fila = function (a, abierto) {
-    var ic = a.tipo === 'pidePin' ? 'llave' : 'candado';
+    /* api 3.13: los avisos de Mercadeo (textos de la propuesta y del contrato, numeración, reglas de base) solo se marcan «Listo» */
+    var merc = a.tipo === 'mercadeo';
+    var ic = a.tipo === 'pidePin' ? 'llave' : merc ? 'documento' : 'candado';
     var usr = a.tipo === 'pidePin' ? (B().usuarios || []).filter(function (u) { return u.activo && u.nombre === a.nombre; })[0] : null;
     var acc = !abierto ? '<span class="small muted">' + MK.esc(a.atendidoPor ? 'atendido por ' + a.atendidoPor : 'atendido') + '</span>'
+      : merc ? '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
       : a.tipo === 'pidePin' ? (usr ? '<button class="btn sm pri" onclick="nuevoPin(' + usr.i + ')">' + MK.ic('llave', 14) + 'Generar PIN temporal</button>' : '') + '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
       : '<button class="btn sm pri" onclick="desbloquear(\'' + a.id + '\',this)">' + MK.ic('llave', 14) + 'Desbloquear</button><button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Dejarlo bloqueado</button>';
     return '<div class="rr"><div class="rt"><b>' + MK.ic(ic, 15) + ' ' + MK.esc(a.titulo) + '</b><span>' + MK.esc(fechaHora(a.fecha + ' ' + a.hora)) + ' · ' + MK.esc(a.detalle) +
-      (a.tipo !== 'pidePin' ? '<br>Equipo: ' + MK.esc(a.equipoTxt || 'sin identificar') + (a.conexion ? ' · conexión ' + MK.esc(a.conexion) : '') : a.equipoTxt ? '<br>Lo pidió desde: ' + MK.esc(a.equipoTxt) : '') + '</span></div><div class="fila">' + acc + '</div></div>';
+      (merc ? '' : a.tipo !== 'pidePin' ? '<br>Equipo: ' + MK.esc(a.equipoTxt || 'sin identificar') + (a.conexion ? ' · conexión ' + MK.esc(a.conexion) : '') : a.equipoTxt ? '<br>Lo pidió desde: ' + MK.esc(a.equipoTxt) : '') + '</span></div><div class="fila">' + acc + '</div></div>';
   };
   return '<div class="card reg"><h3>Avisos de seguridad' + (ab.length ? ' <span class="tag t-bad">' + ab.length + ' por atender</span>' : '') + '</h3>' +
     (ab.length ? ab.map(function (a) { return fila(a, true); }).join('') : '<div class="small muted" style="padding:6px 0">Nada por atender: ningún equipo bloqueado ni pedidos de PIN.</div>') +
@@ -628,11 +631,117 @@ function guardarFunciones(btn) {
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
 
+/* ═══ DATOS DE LA EMPRESA (api 3.13) ═══
+   Lo que el contrato toma de aquí: el representante legal de ECOTERMO, el folio
+   mercantil, la cuenta del banco y los correos de notificación. Antes estaban
+   escritos a mano dentro del contrato. El número de cuenta se guarda completo, pero
+   en pantalla solo se ven los últimos 4 (sale completo solo en el contrato impreso). */
+var EMPD = null, EMPV = false, EMPE = null, EMP_CTA = null;
+function empCopia(e) {
+  e = e || {}; var r = e.representanteLegal || {}, b = e.datosBancarios || {};
+  if (typeof r === 'string') r = { nombre: r };
+  return { razonSocial: e.razonSocial || '', nombreComercial: e.nombreComercial || '', ruc: e.ruc || '', dv: e.dv || '', folio: e.folio || '',
+    representanteLegal: { nombre: r.nombre || '', nacionalidad: r.nacionalidad || '', documento: r.documento || '', genero: r.genero || '' },
+    datosBancarios: { banco: b.banco || '', titular: b.titular || '', tipo: b.tipo || '' },
+    correosNotificacion: (e.correosNotificacion || []).slice() };
+}
+function empCambios() {
+  if (!EMPD || !EMPE) return 0;
+  var o = empCopia(EMPD.empresa), n = 0;
+  ['razonSocial', 'nombreComercial', 'ruc', 'dv', 'folio'].forEach(function (k) { if (o[k] !== EMPE[k]) n++; });
+  ['nombre', 'nacionalidad', 'documento', 'genero'].forEach(function (k) { if (o.representanteLegal[k] !== EMPE.representanteLegal[k]) n++; });
+  ['banco', 'titular', 'tipo'].forEach(function (k) { if (o.datosBancarios[k] !== EMPE.datosBancarios[k]) n++; });
+  if (JSON.stringify(o.correosNotificacion) !== JSON.stringify(EMPE.correosNotificacion)) n++;
+  if (EMP_CTA !== null && EMP_CTA.replace(/\s/g, '')) n++;
+  return n;
+}
+function empIn(ruta, v, ph, extra) {
+  return '<input class="in" style="width:100%" value="' + MK.esc(v) + '" placeholder="' + MK.esc(ph || '') + '" autocomplete="off" oninput="empPon(\'' + ruta + '\',this.value)"' + (extra || '') + '>';
+}
+function empPon(ruta, v) {
+  if (ruta) { var p = ruta.split('.'), o = EMPE; while (p.length > 1) o = o[p.shift()]; o[p[0]] = v; }
+  var b = document.getElementById('emp-guardar'), d = document.getElementById('emp-desc'), n = empCambios();
+  if (b) { b.disabled = !n; b.innerHTML = MK.ic('check', 16) + 'Guardar' + (n ? ' (' + n + ')' : ''); } if (d) d.disabled = !n;
+}
+function vEmpresa() {
+  var cab = MK.cabeza('Datos de la empresa', 'Lo que el contrato toma de aquí: el representante legal, el folio mercantil, la cuenta del banco y a qué correos se notifica. Se aplica a los contratos que se generen desde que guardas; los ya generados conservan lo que salió.');
+  if (!EMPD) {
+    if (!EMPV) { EMPV = true; MK.api('api_empresaDatos', PIN).then(function (r) { EMPV = false; EMPD = r || { ok: false }; if (EMPD.ok) EMPE = empCopia(EMPD.empresa); MK.repintar(); }, function () { EMPV = false; EMPD = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+    return cab + '<div class="card"><div class="vacio">Consultando…</div></div>';
+  }
+  if (!EMPD.ok) return cab + '<div class="aviso am">' + MK.esc(EMPD.error || 'No se pudieron traer los datos.') + ' <a href="#" onclick="EMPD=null;MK.repintar();return false">Reintentar</a></div>';
+  if (!EMPE) EMPE = empCopia(EMPD.empresa);
+  var o = empCopia(EMPD.empresa), E = EMPE, R = E.representanteLegal, Bk = E.datosBancarios, bo = (EMPD.empresa || {}).datosBancarios || {}, n = empCambios();
+  var fila = function (b, s, campo) { return '<div class="rr"><div class="rt"><b>' + b + '</b><span>' + s + '</span></div><div style="min-width:0;width:340px;max-width:100%">' + campo + '</div></div>'; };
+  var soloLeer = function (v) { return '<div class="in" style="width:100%;background:#f6f8fb;color:#3d4a60" title="Solo lectura">' + MK.esc(v) + '</div>'; };
+  var faltan = [];
+  if (!R.nombre.trim()) faltan.push('el representante legal'); if (!E.folio.trim()) faltan.push('el folio mercantil');
+  if (!Bk.banco.trim() || !(bo.tieneCuenta || (EMP_CTA || '').trim())) faltan.push('los datos bancarios'); if (!E.correosNotificacion.filter(function (x) { return String(x).trim(); }).length) faltan.push('los correos de notificación');
+  var h = cab + (faltan.length ? '<div class="aviso am" style="margin-bottom:12px">Falta ' + MK.esc(faltan.join(', ')) + '. Mientras falte, el contrato impreso dice «[falta en Configuración › Datos de la empresa]» en ese lugar.</div>' : '');
+  h += '<div class="card reg"><h3>La empresa</h3>' +
+    fila('Razón social', 'Va en los documentos legales (contrato, facturas, certificados).', o.razonSocial ? soloLeer(o.razonSocial) : empIn('razonSocial', E.razonSocial, 'ECOTERMO DE PANAMA S.A.')) +
+    fila('Nombre comercial', 'Va en lo operativo y en la propuesta.', o.nombreComercial ? soloLeer(o.nombreComercial) : empIn('nombreComercial', E.nombreComercial, 'ECOVSA')) +
+    '<div class="rr"><div class="rt"><b>RUC y DV</b><span>Como sale en el membrete.</span></div><div class="fila" style="flex-wrap:nowrap;width:340px;max-width:100%"><div style="flex:1;min-width:0">' + empIn('ruc', E.ruc, 'RUC') + '</div><span class="muted small">DV</span><div style="width:70px;flex:none">' + empIn('dv', E.dv, 'DV', ' maxlength="3"') + '</div></div></div>' +
+    fila('Folio mercantil', 'Número de inscripción en el Registro Público.', empIn('folio', E.folio, 'Folio')) +
+    '</div>';
+  h += '<div class="card reg" style="margin-top:12px"><h3>Representante legal</h3>' +
+    fila('Nombre completo', 'Firma el contrato por la empresa.', empIn('representanteLegal.nombre', R.nombre, 'Nombre y apellidos')) +
+    fila('Nacionalidad', 'Como se escribe en el contrato.', empIn('representanteLegal.nacionalidad', R.nacionalidad, 'Ej.: panameña')) +
+    fila('Documento de identidad', 'Cédula o pasaporte.', empIn('representanteLegal.documento', R.documento, 'Número del documento')) +
+    '<div class="rr"><div class="rt"><b>En el contrato dice</b><span>«el señor …, varón» o «la señora …, mujer».</span></div><div class="seg"><button type="button" class="' + (R.genero === 'M' ? 'on' : '') + '" onclick="EMPE.representanteLegal.genero=\'M\';MK.repintar()">El señor</button><button type="button" class="' + (R.genero === 'F' ? 'on' : '') + '" onclick="EMPE.representanteLegal.genero=\'F\';MK.repintar()">La señora</button></div></div>' +
+    '</div>';
+  h += '<div class="card reg" style="margin-top:12px"><h3>Datos bancarios</h3>' +
+    fila('Banco', 'Donde el cliente paga por ACH.', empIn('datosBancarios.banco', Bk.banco, 'Nombre del banco')) +
+    fila('Titular de la cuenta', 'Nombre de la cuenta.', empIn('datosBancarios.titular', Bk.titular, 'Titular')) +
+    '<div class="rr"><div class="rt"><b>Tipo de cuenta</b><span>Así sale en el contrato.</span></div><div class="seg"><button type="button" class="' + (/^CORR/i.test(Bk.tipo) ? 'on' : '') + '" onclick="EMPE.datosBancarios.tipo=\'CORRIENTE\';MK.repintar()">Corriente</button><button type="button" class="' + (/^AHO/i.test(Bk.tipo) ? 'on' : '') + '" onclick="EMPE.datosBancarios.tipo=\'AHORROS\';MK.repintar()">Ahorros</button></div></div>' +
+    '<div class="rr"><div class="rt"><b>Número de cuenta</b><span>Aquí solo se ven los últimos 4. Completo sale solo en el contrato impreso.</span></div><div style="width:340px;max-width:100%">' +
+    (EMP_CTA === null
+      ? '<div class="fila"><b id="emp-mascara" style="font-size:16px;letter-spacing:1px;font-variant-numeric:tabular-nums">' + (bo.tieneCuenta ? MK.esc(bo.cuentaMascara || '••••') : '<span class="muted" style="font-size:13px;letter-spacing:0">Sin número</span>') + '</b><button type="button" class="btn sm" id="emp-cambiar" onclick="EMP_CTA=\'\';MK.repintar();setTimeout(function(){var i=document.getElementById(\'emp-cta\');if(i)i.focus();},30)">' + MK.ic('lapiz', 14) + (bo.tieneCuenta ? 'Cambiar número' : 'Poner número') + '</button></div>'
+      : '<div class="fila" style="flex-wrap:nowrap"><input class="in" id="emp-cta" style="flex:1;min-width:0" inputmode="numeric" autocomplete="off" placeholder="Número completo de la cuenta" value="' + MK.esc(EMP_CTA) + '" oninput="EMP_CTA=this.value;empPon(null)"><button type="button" class="btn sm" onclick="EMP_CTA=null;MK.repintar()">Cancelar</button></div><div class="small muted" style="margin-top:4px">Se guarda al tocar «Guardar». Después solo se verán los últimos 4.</div>') +
+    '</div></div></div>';
+  h += '<div class="card reg" style="margin-top:12px"><h3>Correos de notificación del contrato</h3><div class="rt" style="padding:4px 2px 8px"><span style="display:block">Los que el contrato da para notificar a la empresa (cláusula de domicilio y notificaciones).</span></div>' +
+    E.correosNotificacion.map(function (c, i) {
+      return '<div class="rr"><div class="fila" style="flex-wrap:nowrap;width:100%"><input class="in" style="flex:1;min-width:0" type="email" value="' + MK.esc(c) + '" autocomplete="off" oninput="empPon(\'correosNotificacion.' + i + '\',this.value)"><button type="button" class="btn sm bad" title="Quitar" aria-label="Quitar ' + MK.esc(c) + '" onclick="EMPE.correosNotificacion.splice(' + i + ',1);MK.repintar()">' + MK.ic('x', 14) + '</button></div></div>';
+    }).join('') +
+    '<div class="rr"><div class="fila" style="flex-wrap:nowrap;width:100%"><input class="in" id="emp-co-n" style="flex:1;min-width:0" type="email" placeholder="otro@correo.com" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();empAgregarCorreo();}"><button type="button" class="btn sm" onclick="empAgregarCorreo()">' + MK.ic('mas', 14) + 'Agregar</button></div></div></div>';
+  h += '<div class="nota" style="margin-top:12px">El contrato los toma solo: <b>{representanteLegal}</b>, <b>{datosBancarios}</b> y <b>{correosNotificacion}</b>. Cada cambio queda en el Historial.</div>' +
+    '<div class="small" id="emp-msg" style="color:var(--bad);margin-top:10px;text-align:right"></div>' +
+    '<div class="fila" style="justify-content:flex-end;margin-top:8px"><button class="btn" id="emp-desc" onclick="EMPE=null;EMP_CTA=null;MK.repintar()"' + (n ? '' : ' disabled') + '>Descartar</button><button class="btn pri" id="emp-guardar" onclick="guardarEmpresa(this)"' + (n ? '' : ' disabled') + '>' + MK.ic('check', 16) + 'Guardar' + (n ? ' (' + n + ')' : '') + '</button></div>';
+  return h;
+}
+function empAgregarCorreo() {
+  var i = document.getElementById('emp-co-n'), v = i ? i.value.trim() : '';
+  if (!v) { if (i) i.focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { MK.aviso('Ese correo no se ve bien: ' + v); return; }
+  if (EMPE.correosNotificacion.some(function (x) { return String(x).trim().toLowerCase() === v.toLowerCase(); })) { MK.aviso('Ese correo ya está.'); return; }
+  EMPE.correosNotificacion.push(v); MK.repintar();
+  setTimeout(function () { var n = document.getElementById('emp-co-n'); if (n) n.focus(); }, 30);
+}
+function guardarEmpresa(btn) {
+  var m = document.getElementById('emp-msg'), E = EMPE;
+  var cos = E.correosNotificacion.map(function (x) { return String(x).trim(); }).filter(Boolean);
+  var mal = cos.filter(function (x) { return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x); });
+  if (mal.length) { m.textContent = 'Revisa: ' + mal.join(', ') + ' no parece un correo.'; return; }
+  var cta = EMP_CTA === null ? '' : EMP_CTA.replace(/\s/g, '');
+  if (EMP_CTA !== null && cta && !/^[0-9-]{4,30}$/.test(cta)) { m.textContent = 'El número de cuenta solo lleva números y guiones.'; return; }
+  var d = { razonSocial: E.razonSocial.trim(), nombreComercial: E.nombreComercial.trim(), ruc: E.ruc.trim(), dv: E.dv.trim(), folio: E.folio.trim(),
+    representanteLegal: { nombre: E.representanteLegal.nombre.trim(), nacionalidad: E.representanteLegal.nacionalidad.trim(), documento: E.representanteLegal.documento.trim(), genero: E.representanteLegal.genero },
+    datosBancarios: { banco: E.datosBancarios.banco.trim(), titular: E.datosBancarios.titular.trim(), tipo: E.datosBancarios.tipo },
+    correosNotificacion: cos };
+  if (cta) d.datosBancarios.cuenta = cta;   // solo se manda si se cambió
+  m.textContent = ''; MK.ocupado(btn, true);
+  MK.api('api_empresaGuardar', PIN, d).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { m.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+    MK.aviso('Datos de la empresa guardados'); EMPD = null; EMPE = null; EMP_CTA = null; recargar();
+  }, function (e) { MK.ocupado(btn, false); m.textContent = e.message || 'Sin conexión'; });
+}
+
 /* ═══ HISTORIAL ═══ */
 function vHistorial() {
   var H = B().historial || [];
   var l = H.filter(function (h) { return FH === 'todo' || h.seccion === FH; });
-  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros', 'Funciones'];
+  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros', 'Funciones', 'Empresa'];
   return MK.cabeza('Historial', 'Todo lo que se hace en Configuración, con quién y cuándo. No se puede borrar.') +
     '<div class="card"><div style="margin-bottom:10px">' + MK.chips([['todo', 'Todo', H.length]].concat(secs.map(function (s) { return [s, s, H.filter(function (h) { return h.seccion === s; }).length]; })), FH, 'filtroH') + '</div>' +
     MK.tabla(['Fecha', 'Quién', 'Qué'], l.map(function (h) { return ['<span class="hisf">' + MK.esc(MK.dmy(h.fecha.slice(0, 10)) + ' ' + h.fecha.slice(11)) + '</span>', MK.esc(h.quien), '<b style="font-weight:600">' + MK.esc(h.accion) + '</b>' + (h.detalle ? '<small>' + MK.esc(h.detalle) + '</small>' : '')]; }), { vacio: 'Todavía no hay nada: el historial empezó con esta versión.' }) + '</div>';
@@ -665,6 +774,7 @@ MK.iniciar({
     { id: 'inc', n: 'Incidencias en ruta', i: 'alerta' },
     { id: 'seg', n: 'Seguridad', i: 'candado' },
     { id: 'fun', n: 'Funciones', i: 'ajustes' },
+    { id: 'emp', n: 'Datos de la empresa', i: 'maletin' },
     { id: 'his', n: 'Historial', i: 'historial' },
     { id: 'rb', n: 'Registro de borrados', i: 'basura' },
     { id: 'prb', n: 'Datos de prueba', i: 'filtro' },
@@ -684,7 +794,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });

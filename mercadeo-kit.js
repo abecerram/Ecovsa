@@ -31,7 +31,9 @@
      MK.tarea({ref, refTipo, cuenta, fecha, hora, …})  crear / editar tarea
      MK.mensaje({canal, telefono, correo, ref, refTipo, cuenta, contacto, momento, vars})
      MK.irOportunidad(cod) / MK.irCliente(id)
-     MK.cambio()                       avisa a la pantalla que algo se guardó
+     MK.enlaceCatalogo(volver, de)     api 3.13 · ir al catálogo y volver a la propuesta
+     MK.quitarParam(['agregar'])       api 3.13 · limpia de la dirección lo ya atendido
+     MK.cambio()                     avisa a la pantalla que algo se guardó
                                        (window 'mk:cambio'); cada pantalla
                                        recarga lo suyo al oírlo.
    ═══════════════════════════════════════════════════════════════════ */
@@ -48,7 +50,7 @@
     { id: 'inicio', n: 'Mi día comercial', i: 'casa', f: 'Mercadeo.html', b: 'suspensiones' },
     { id: 'oportunidades', n: 'Oportunidades', i: 'embudo', f: 'MerOportunidades.html', b: 'oportunidades', bg: true },
     { id: 'oportunidad', n: 'Ficha de oportunidad', i: 'documento', f: 'MerOportunidad.html', oculto: true },
-    { id: 'cuenta', n: 'Cuenta de gran generador', i: 'edificio', f: 'MerCuenta.html', oculto: true },
+    { id: 'cuenta', n: 'Cuenta con sedes', i: 'edificio', f: 'MerCuenta.html', oculto: true },
     { id: 'nueva', n: 'Nueva oportunidad', i: 'mas', accion: 'captura' },
     { id: 'agenda', n: 'Agenda y actividades', i: 'calendario', f: 'MerAgenda.html', b: 'agenda' },
     { g: 'CLIENTES' },
@@ -61,7 +63,7 @@
     { g: 'ANÁLISIS' },
     { id: 'reportes', n: 'Reportes', i: 'grafico', f: 'MerReportes.html' },
     { id: 'minsa', n: 'Informe al MINSA', i: 'documento', f: 'MerMinsa.html' },
-    { id: 'tarifario', n: 'Tarifario y catálogo', i: 'moneda', f: 'MerTarifario.html' },
+    { id: 'tarifario', n: 'Planes y tarifas', i: 'moneda', f: 'MerTarifario.html' },
     { id: 'ajustes', n: 'Plantillas y ajustes', i: 'ajustes', f: 'MerAjustes.html' }
   ];
   MK.PAGINAS = PAGINAS;
@@ -220,6 +222,16 @@
   MK.cargando = function (el, t) { if (typeof el === 'string') el = document.getElementById(el); if (el) el.innerHTML = '<div class="cargando">' + MK.esc(t || 'Cargando…') + '</div>'; };
   MK.vacio = function (t) { return '<div class="vacio">' + MK.esc(t) + '</div>'; };
   MK.error = function (el, t) { if (typeof el === 'string') el = document.getElementById(el); if (el) el.innerHTML = '<div class="aviso rj">' + MK.esc(t || 'No se pudo cargar.') + ' <a href="#" onclick="location.reload();return false">Reintentar</a></div>'; };
+  /* api 3.13: ir al catálogo de «Planes y tarifas» y volver a la propuesta.
+     volver = la página de donde se sale (relativa, Mer*.html); de = el nombre que se ve en «← Volver a la propuesta de …».
+     Al crear el artículo, «Volver y agregarlo» regresa a «volver» con &agregar=<id>. */
+  MK.enlaceCatalogo = function (volver, de) {
+    return 'MerTarifario.html?volver=' + encodeURIComponent(volver || '') + (de ? '&de=' + encodeURIComponent(de) : '') + '#catalogo';
+  };
+  /* quita de la dirección los parámetros ya atendidos (así, al recargar, no se repite) */
+  MK.quitarParam = function (claves) {
+    try { var u = new URL(location.href); [].concat(claves).forEach(function (k) { u.searchParams.delete(k); }); history.replaceState(null, '', u.pathname.split('/').pop() + (u.search || '') + (u.hash || '')); } catch (e) {}
+  };
   MK.irOportunidad = function (cod) { location.href = 'MerOportunidad.html?id=' + encodeURIComponent(cod); };
   MK.irCliente = function (id) { location.href = 'MerCliente.html?id=' + encodeURIComponent(id); };
   MK.ocupado = function (btn, si, texto) {
@@ -321,16 +333,17 @@
   MK.TIPOS_PASO = TIPOS_PASO;
 
   /* ── captura rápida (Nueva oportunidad · opción C) ── */
-  /* api 3.11: lo primero es el tipo — micro (captura rápida), gran generador (cuenta con sedes) o visita única */
+  /* api 3.11: lo primero es el tipo — micro (captura rápida), cuenta con sedes o visita única.
+     api 3.13: «gran generador» ya no es un tipo: es una etiqueta interna por volumen (100 kg al mes o más, sumando sedes). */
   MK.captura = function (pre) {
     pre = pre || {};
     if (pre.tipoServicio || pre.directo) return capturaRapida(pre);
     var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small">Lo primero es el tipo: cambia lo que se pide y cómo se arma el precio.</p>' +
       '<div class="mk-tipos">' +
       '<button type="button" data-t="micro"><span class="tag t-gris">MICROGENERADOR</span><b>Captura rápida</b><small>Un solo punto: clínicas, consultorios, veterinarias. Precio por visita.</small></button>' +
-      '<button type="button" data-t="gran"><span class="tag t-info">GRAN GENERADOR</span><b>Cuenta con sedes</b><small>Varias sedes o mucho volumen: hospitales, cadenas, laboratorios. Paso a paso, con el total mensual.</small></button>' +
+      '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Cuenta con sedes</b><small>Un cliente con 2 sedes o más: cadenas, laboratorios, policlínicas. Paso a paso, con el total mensual.</small></button>' +
       '<button type="button" data-t="unica"><span class="tag t-warn">VISITA ÚNICA</span><b>Trabajo puntual</b><small>Una sola recolección (limpieza, cierre, fármacos vencidos). Sin contrato.</small></button></div>' +
-      '<p class="small muted" style="margin-top:12px">Si la captura rápida crece (2 sedes o más, o mucho volumen), la ficha sugiere pasarla a gran generador sin perder nada.</p>' +
+      '<p class="small muted" style="margin-top:12px">Si la captura rápida suma otra sede, en la ficha está «Agregar otra sede», sin perder nada. «Gran generador» va por volumen: desde 100 kg al mes, sumando todas sus sedes.</p>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
     [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
       b.onclick = function () {
@@ -340,10 +353,10 @@
       };
     });
   };
-  /* Gran generador: empresa (o un cliente que ya existe) y a la cuenta paso a paso */
+  /* Cuenta con sedes: empresa (o un cliente que ya existe) y a la cuenta paso a paso */
   function capturaGran(pre) {
     var aj = (MK.base && MK.base.ajustes) || {}, cli = pre.clienteId ? { id: pre.clienteId, nombre: pre.empresa || '' } : null;
-    var h = MK.hoja('<h2>Gran generador · cuenta con sedes</h2><p class="muted small">Empieza con la empresa. Las sedes, el precio, los servicios y la facturación se arman paso a paso y se guarda en cada paso.</p>' +
+    var h = MK.hoja('<h2>Cuenta con sedes</h2><p class="muted small">Empieza con la empresa. Las sedes, el precio, los servicios y la facturación se arman paso a paso y se guarda en cada paso.</p>' +
       '<label class="lb" for="cg-emp">EMPRESA O CLIENTE</label><input class="in" id="cg-emp" autofocus value="' + MK.esc(pre.empresa || '') + '" placeholder="Nombre de la empresa">' +
       '<div id="cg-cli" style="margin-top:8px"></div>' +
       '<div class="grid g3" style="gap:10px"><div><label class="lb" for="cg-con">CONTACTO</label><input class="in" id="cg-con" placeholder="Nombre"></div>' +

@@ -3,177 +3,1053 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tarifario y catálogo · Mercadeo · ECOVSA</title>
+<title>Planes y tarifas · Mercadeo · ECOVSA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir|duplicarPlan$|planEstado$|promoCerrar$)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
 <style>
-/* api 3.11 · Tarifario con reglas y catálogo de servicios y productos (maqueta 44) */
-.w44{font-size:13.5px}
-.w44 h1{font-size:22px;margin:0 0 4px}
-.w44 .lead{color:var(--muted);font-size:13px}
-.w44 .g{display:grid;gap:14px;align-items:start}.w44 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}.w44 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.w44 .cd{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
-.w44 .cd h3{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700;margin:0 0 12px;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+/* api 3.13 · Planes y tarifas: pestañas Planes · Reglas de base · Catálogo, armar plan por pasos y promociones */
+.w44{--nv:var(--navy);--ln:var(--line);--ln2:var(--line2);--mu:var(--muted);font-size:13.5px}
+.w44 h1{font-size:22px;margin:0 0 4px;color:var(--ink);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.w44 .lead{color:var(--mu);font-size:13px;margin-bottom:14px}
+.w44 .crumb2{font-size:13px;color:var(--mu);margin-bottom:6px}.w44 .crumb2 a{color:var(--mu);cursor:pointer}
+.w44 .ejemplo{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;background:#fff4d6;color:#8a6100;border-radius:5px;padding:1px 6px}
+.w44 .tabs{margin-bottom:16px}
+.w44 .cd{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px;min-width:0}
+.w44 .cd h3{font-size:12px;letter-spacing:.9px;color:#5b6a80;font-weight:700;margin:0 0 12px;text-transform:uppercase;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.w44 .cd h3 .ult{font-size:11.5px;letter-spacing:0;text-transform:none;font-weight:600;color:var(--mu)}
+.w44 .cd h3 .btn,.w44 .cd h3 .lk{text-transform:none;letter-spacing:0}
 .w44 table.t{width:100%;border-collapse:collapse}
-.w44 table.t th{text-align:left;font-size:10.5px;letter-spacing:.6px;color:#5b6a80;text-transform:uppercase;padding:6px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
-.w44 table.t td{padding:6px 7px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.w44 table.t th{text-align:left;font-size:10.5px;letter-spacing:.6px;color:#5b6a80;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--ln);white-space:nowrap}
+.w44 table.t td{padding:9px 8px;border-bottom:1px solid var(--ln2);vertical-align:middle}
+.w44 table.t tr:last-child td{border-bottom:0}
 .w44 table.t .in,.w44 table.t .sel{padding:6px 8px;font-size:13px}
-.w44 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.w44 .in.n{text-align:right}
-.w44 .rw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:13px}
-.w44 .rw .in{width:110px;text-align:right}
-.w44 .add{border:1.5px dashed #c9d5e8;background:#fff;border-radius:10px;padding:7px 12px;font:700 12.5px Archivo,sans-serif;color:var(--navy);display:inline-flex;gap:6px;align-items:center;cursor:pointer;margin-top:10px}
-.w44 .nota{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
-.w44 .ico{background:none;border:0;cursor:pointer;color:#8a96a8;padding:4px;border-radius:6px}.w44 .ico:hover{color:var(--navy);background:#eef3fb}.w44 .ico.bad:hover{color:#a8262b;background:#fdecea}
-.w44 .ejemplo{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;background:#fff4d6;color:#8a6100;border-radius:5px;padding:1px 6px;margin-left:4px;vertical-align:4px}
-.w44 .sw{width:34px;height:20px;border-radius:11px;background:#2f9e44;position:relative;display:inline-block;flex:none;border:0;cursor:pointer}
+.w44 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.w44 .in.n{text-align:right;font-variant-numeric:tabular-nums}
+.w44 .tg{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.w44 .az{background:#e7edf7;color:#1d3f86}.w44 .vd{background:#eaf6e4;color:#1f6b35}.w44 .am{background:#fff4d6;color:#8a6100}.w44 .gr{background:#eef1f5;color:#5d6b80}.w44 .mo{background:#f1ecfa;color:#6c3a96}
+.w44 .int{background:#eef3fb;color:#1d3f86;border:1px dashed #9db3d8}
+.w44 .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.w44 .nota{font-size:12px;color:var(--mu);margin-top:10px;line-height:1.55}
+.w44 .add{border:1.5px dashed #c9d5e8;background:#fff;border-radius:10px;padding:7px 12px;font:700 12.5px Archivo,sans-serif;color:var(--nv);display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.w44 .add:disabled{opacity:.45;cursor:default}
+.w44 .ico{background:none;border:0;cursor:pointer;color:#8a96a8;padding:4px;border-radius:6px}.w44 .ico:hover{color:var(--nv);background:#eef3fb}.w44 .ico.bad:hover{color:#a8262b;background:#fdecea}
+.w44 .sw{width:34px;height:20px;border-radius:11px;background:#2f9e44;position:relative;display:inline-block;flex:none;border:0;cursor:pointer;vertical-align:middle}
 .w44 .sw:after{content:"";position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:#fff}
-.w44 .sw.off{background:#c9d2df}.w44 .sw.off:after{right:auto;left:3px}
-.w44 .bar{padding:4px 0 8px;display:flex;gap:10px;align-items:center}
-.w44 .his{max-height:260px;overflow:auto}.w44 .his div{padding:6px 0;border-bottom:1px solid var(--line2);font-size:12.5px}.w44 .his small{color:var(--muted);display:block}
-.w44 .tag2{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px}
-.w44 .mo{background:#f1ecfa;color:#6c3a96}.w44 .vd{background:#eaf6e4;color:#1f6b35}.w44 .am{background:#fff4d6;color:#8a6100}.w44 .az{background:#e7edf7;color:#1d3f86}
-@media (max-width:1000px){.w44 .g3,.w44 .g2{grid-template-columns:1fr}}
+.w44 .sw.off{background:#c9d2df}.w44 .sw.off:after{right:auto;left:3px}.w44 .sw:disabled{cursor:default;opacity:.7}
+.w44 .fx{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.w44 .sp{flex:1}.w44 .mut{color:var(--mu)}.w44 .sm{font-size:12px}
+.w44 .lk{color:var(--navy2);cursor:pointer;background:none;border:0;font:inherit;font-weight:700;padding:0;display:inline-flex;gap:5px;align-items:center}
+.w44 label.l{display:block;font-size:11px;letter-spacing:.7px;color:#5b6a80;font-weight:700;text-transform:uppercase;margin-bottom:5px}
+.w44 .g{display:grid;gap:14px}.w44 .g2{grid-template-columns:1fr 1fr}.w44 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.w44 .g .in,.w44 .g .sel{width:100%}
+.w44 .ay{font-size:11.5px;color:var(--mu);margin-top:4px;line-height:1.4}
+.w44 .in.ed{border-color:#d99a00;background:#fffdf6}
+.w44 .dif{font-size:12px;font-weight:800}.w44 .dif.bj{color:#a8262b}.w44 .dif.sb{color:#1f6b35}
+.w44 .avisoTop{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+/* lista */
+.w44 tr.apag td{opacity:.55}.w44 tr.apag td:nth-last-child(-n+2){opacity:1}
+.w44 tr.borr td{background:#fffcf2}
+.w44 tr.marca td{background:#f0f9ec}
+.w44 tr.marca td:first-child{box-shadow:inset 3px 0 0 #2f9e44}
+.w44 .pn b{font-size:14px}
+.w44 .uso b{font-variant-numeric:tabular-nums}
+.w44 .inc{font-size:12.5px;line-height:1.5;color:#3b4a60}
+.w44 .est{white-space:normal;max-width:230px}
+/* pasos (igual que el editor de la cuenta) */
+.w44 .stp{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}
+.w44 .stp>button{flex:1;min-width:120px;border-radius:10px;padding:8px 11px;background:#f3f5f8;color:#8a96a8;border:0;text-align:left;font:inherit;cursor:pointer}
+.w44 .stp>button.ok{background:#eaf6e4;color:#2f6b0a}.w44 .stp>button.on{background:var(--nv);color:#fff}
+.w44 .stp>button.falta{background:#fff4d6;color:#8a6100}.w44 .stp>button.falta small{opacity:1;font-weight:700}
+.w44 .stp b{display:block;font-size:12.5px}.w44 .stp small{font-size:11.5px;opacity:.9}
+.w44 .bar{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border-top:1px solid var(--ln);padding-top:14px;margin-top:4px;position:sticky;bottom:0;background:var(--bg,#f4f6f9);padding-bottom:10px;z-index:3}
+.w44 .dos{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 320px;align-items:start}
+.w44 .lat{position:sticky;top:76px}
+.w44 .rw{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--ln2);font-size:13px}.w44 .rw b{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.w44 .rw small{display:block;color:var(--mu);font-size:11.5px}
+.w44 .rw:last-child{border-bottom:0}
+.w44 .big{background:var(--nv);color:#fff;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:800;font-size:15px}
+.w44 .big span:last-child{font-size:18px;white-space:nowrap}
+.w44 .avi{display:flex;gap:10px;align-items:flex-start;border-radius:11px;padding:10px 12px;font-size:12.8px;line-height:1.5;margin-top:10px}
+.w44 .avi.az{border:1px solid #c9d8f5;background:#eef4ff;color:#1d3f86}.w44 .avi.am{border:1px solid #f1d48a;background:#fffbef;color:#6b4d00}.w44 .avi.vd{border:1px solid #bfe3b3;background:#f4fbf0;color:#1e5a2a}
+.w44 .avi .i{flex:none;margin-top:1px}
+.w44 .seg{margin-top:2px;flex-wrap:wrap}
+.w44 .res3{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:14px;align-items:start;padding:12px 0;border-bottom:1px solid var(--ln2)}
+.w44 .res3:last-child{border-bottom:0}
+.w44 .res3 .k{font-size:11px;letter-spacing:.7px;color:#5b6a80;font-weight:700;text-transform:uppercase;padding-top:2px}
+.w44 .res3 .v{font-size:13.5px;line-height:1.6}
+/* promoción */
+.w44 .ben{border:1px solid var(--ln);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;background:#fbfcfe}
+.w44 .ben .bi{width:30px;height:30px;border-radius:8px;background:#eaf6e4;color:#1f6b35;display:flex;align-items:center;justify-content:center}
+.w44 .ben .bt{font-weight:700;font-size:13.5px;margin-bottom:6px}
+.w44 .ben .fx .in,.w44 .ben .fx .sel{padding:6px 8px;font-size:13px;max-width:100%}
+.w44 .adds{display:flex;gap:8px;flex-wrap:wrap}
+.w44 .pls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;margin-top:10px}
+.w44 .pls .chk{padding:5px 0;flex-wrap:wrap}
+.w44 .pls .chk.dis{color:var(--mu);cursor:default}
+.w44 .vista{background:#f5f8fd;border:1px solid #d9e3f2;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.55}
+/* reglas */
+.w44 .reglas{border:1px solid var(--ln);border-radius:12px;overflow:hidden}
+.w44 .rg{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;padding:14px 16px;border-bottom:1px solid var(--ln)}
+.w44 .rg:last-child{border-bottom:0}
+.w44 .rl b{display:block;font-size:14px;color:var(--nv);margin-bottom:4px}
+.w44 .rl span{font-size:12.5px;color:var(--mu);line-height:1.5;display:block}
+.w44 .rv{min-width:0}.w44 .rv table.t td{padding:5px 7px}
+.w44 .rv .x{width:34px;text-align:right}.w44 .rv .fl{width:26px;color:#9aa6b8}
+.w44 .pre{font-size:12px;color:var(--mu);margin-right:5px}.w44 .u{font-size:12px;color:var(--mu);margin-left:5px}
+.w44 .rw2{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--ln2);font-size:13px;flex-wrap:wrap}
+.w44 .rw2:last-child{border-bottom:0}
+.w44 .zns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px}
+.w44 .zn{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--ln2);font-size:13px}
+.w44 .his div.h,.lado .his div.h{padding:8px 0;border-bottom:1px solid var(--line2);font-size:12.8px;line-height:1.45}.w44 .his div.h:last-child{border-bottom:0}.w44 .his small,.lado .his small{color:var(--muted);display:block}
+.w44 .guarda{position:sticky;bottom:12px;display:none;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid #f0d58a;box-shadow:0 6px 22px rgba(13,40,80,.16);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:13px;font-weight:600;color:#6b4d00;z-index:4}
+.w44 .guarda.si{display:flex}.w44 .guarda>span:first-child{display:flex;gap:8px;align-items:center}
+.w44 .topReglas{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.hoja .cat{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-top:10px}
+.hoja .cat button{text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font:inherit;cursor:pointer}
+.hoja .cat button:hover{border-color:var(--navy)}
+/* volver a la propuesta (o al plan que se está armando) */
+.volver-w{position:sticky;top:58px;z-index:20;background:var(--bg);padding:8px 0 10px;margin:-20px 0 6px}
+.volver{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--info-bg);border:1px solid #c9d8f5;border-radius:12px;padding:7px 12px 7px 8px;font-size:12.5px;color:#1d3f86}
+.volver .btn{background:#fff}
+@media (max-width:1000px){.w44 .dos,.w44 .g3,.w44 .g2{grid-template-columns:minmax(0,1fr)}.w44 .lat{position:static}.w44 .rg{grid-template-columns:minmax(0,1fr);gap:8px}.w44 .zns,.w44 .pls{grid-template-columns:1fr}.w44 .res3{grid-template-columns:1fr;gap:4px}}
+@media (max-width:900px){.volver-w{margin-top:-14px}}
+@media (max-width:560px){.w44 #tPlanes,.w44 #tPromos{min-width:960px}.w44 #tPlanes .inc,.w44 #tPromos .inc{min-width:200px}.w44 .rv select[data-pl]{min-width:120px}.w44 .stp>button{min-width:140px}.w44 .bar>.fx{width:100%}.w44 .bar>.fx:last-child{justify-content:flex-end}.w44 .ben{grid-template-columns:minmax(0,1fr) auto}.w44 .ben .bi{display:none}}
 </style>
 </head>
 <body class="mk">
 <div id="sysbar"></div>
-<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando el tarifario…</div></main></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando planes y tarifas…</div></main></div>
 <script>
 (function () {
-  var D = null, T = null, ED = false, SUCIO = false;
+  /* D = api_tarifario (reglas, catálogo, zonas, historial) · PL = api_planes (planes, promociones, sectores) */
+  var D = null, PL = null, PLerr = '', T = null, T0 = null, SUCIO = false, ED = false;
+  var A = null, A0 = '', P = null, P0 = '';
+  var S = { v: 'tabs', tab: 'planes', K: 0, marca: '', marcaTxt: '', marcaPromo: '', aviso: null, pendiente: false };
   var E = MK.esc, IC = MK.ic, $ = function (id) { return document.getElementById(id); };
-  var n2 = function (n) { return Number(n || 0).toFixed(2); };
-  var FRECS = [['SEMANAL', 4], ['2X SEMANA', 8], ['QUINCENAL', 2], ['MENSUAL', 1], ['BIMESTRAL', 0.5], ['TRIMESTRAL', 0.34]];
+  var clon = function (o) { return JSON.parse(JSON.stringify(o)); };
+  var n2 = function (n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var d2 = function (n) { return 'B/. ' + n2(n); };
+  var FRECS = [['2X SEMANA', 8], ['SEMANAL', 4], ['QUINCENAL', 2], ['MENSUAL', 1], ['BIMESTRAL', 0.5], ['TRIMESTRAL', 0.34]];
+  var FR = { 'SEMANAL': 'Semanal', '2X SEMANA': '2 veces por semana', 'QUINCENAL': 'Quincenal', 'MENSUAL': 'Mensual', 'BIMESTRAL': 'Bimestral', 'TRIMESTRAL': 'Trimestral' };
   var ZN = { 'CENTRO CIUDAD': 'Centro ciudad', 'PANAMÁ NORTE': 'Panamá Norte', 'PANAMÁ ESTE': 'Panamá Este', 'PANAMÁ OESTE': 'Panamá Oeste', 'CHORRERA': 'La Chorrera', 'COLON': 'Colón', 'INTERIOR': 'Interior (base)', 'OTRA': 'Otra' };
+  var SECTORES_BASE = ['Consultorios', 'Clínicas y policlínicas', 'Hospitales', 'Laboratorios', 'Veterinarias', 'Odontologías', 'Farmacias', 'Otro'];
+  var CADA = [['visita', 'cada visita', 0], ['mes', 'al mes', 1], ['bimestre', 'cada 2 meses', 2], ['trimestre', 'cada 3 meses', 3], ['semestre', 'cada 6 meses', 6]];
+  var DURAS = [[1, '1 mes'], [3, '3 meses'], [6, '6 meses'], [0, 'Todo el contrato']];
+  var BEN = { gratis: ['Servicio o producto gratis', 'caja'], kgAdicional: ['Kilo adicional a otro precio', 'moneda'], visitasExtra: ['Visitas extra sin costo', 'camion'], precio: ['Precio por visita distinto', 'billete'] };
+  var PASOS = [['Para quién', 'kilos, zona y referencia'], ['El plan', 'frecuencia y precio'], ['Servicios y productos', 'del catálogo'], ['Revisar y guardar', 'nombre y tipo']];
+  var visDe = function (f) { return (FRECS.filter(function (x) { return x[0] === f; })[0] || [0, 1])[1]; };
+  var visTxt = function (v) { return v >= 1 ? v + (v === 1 ? ' visita' : ' visitas') + ' al mes' : v === 0.5 ? '1 visita cada 2 meses' : '1 visita cada 3 meses'; };
+  var cadaDe = function (k) { return CADA.filter(function (x) { return x[0] === k; })[0] || CADA[1]; };
+  /* forma común de un servicio (3.13): {itemId, nombre, modo:'incluido'|'cobrado', cantidad, cada, meses:1|2|3|6, precio (por vez), total (al mes, repartido), delPlan, dePromo} */
+  var mesesDe = function (k) { var m = cadaDe(k)[2]; return m || 1; };
+  var CADA_M = { 1: 'mes', 2: 'bimestre', 3: 'trimestre', 6: 'semestre' };
+  function normServ(s) { var x = clon(s); if (!x.cada) x.cada = CADA_M[Number(x.meses)] || 'mes'; if (x.modo !== 'cobrado') x.modo = 'incluido'; return x; }
+  var faltaTxt = function (s) { return (/^(los|las) /.test(s) ? 'faltan ' : 'falta ') + s; };
+  var lista = function (l) { return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || ''; };
+  function fecha(iso, anio) {
+    if (!/^\d{4}-\d{2}-\d{2}/.test(iso || '')) return iso || '';
+    var p = String(iso).slice(0, 10).split('-');
+    return Number(p[2]) + ' ' + MK.MESES[Number(p[1]) - 1] + (anio ? ' ' + p[0] : '');
+  }
+  var hoy = function () { return MK.hoy || MK.hoyLocal(); };
+
+  /* se llega desde una propuesta: ?volver=MerCuenta.html%3Fid%3D…&de=Nombre del cliente (solo nuestras pantallas Mer*.html) */
+  var VOLVER = (function () { var v = MK.param('volver'); return /^Mer[A-Za-z]+\.html(\?[^#<>"'\s\\]*)?$/.test(v) && v.indexOf('//') < 0 ? v : ''; })(), DE = MK.param('de');
+  var TABS = ['planes', 'reglas', 'catalogo'];
+  var leerHash = function () { var h = (location.hash || '').slice(1); return TABS.indexOf(h) >= 0 ? h : ''; };
+  /* #promociones (enlace de la oportunidad) abre Planes en la lista de promociones */
+  if (location.hash === '#promociones') S.irPromos = true;
+  S.tab = leerHash() || (VOLVER && !S.irPromos ? 'catalogo' : 'planes');
+  function ponerHash(t) { try { history.replaceState(null, '', location.pathname + location.search + '#' + t); } catch (e) {} }
+  window.addEventListener('hashchange', function () { var h = leerHash(); if (h && D && S.v === 'tabs' && h !== S.tab) irTab(h); });
+
   MK.iniciar('tarifario', function () { cargar(); });
-  function cargar() {
-    MK.api('api_tarifario', MK.pin).then(function (r) {
+  function cargar(despues) {
+    Promise.all([
+      MK.api('api_tarifario', MK.pin),
+      MK.api('api_planes', MK.pin).then(null, function (e) { return { ok: false, error: e.message }; })
+    ]).then(function (rr) {
+      var r = rr[0], p = rr[1];
       if (!r || !r.ok) { MK.error('main', (r && r.error) || 'No se pudo cargar.'); return; }
-      D = r; T = JSON.parse(JSON.stringify(r.tarifario)); ED = !!r.puedeEditar; SUCIO = false; pintar();
-      if (location.hash === '#catalogo') setTimeout(function () { var c = $('catalogo'); if (c) c.scrollIntoView(); }, 50);
+      D = r; D.tipos = D.tipos || { servicio: 'Servicio', producto: 'Producto', prestamo: 'Préstamo' };
+      D.quien = D.quien || {}; D.insumos = D.insumos || []; D.historial = D.historial || []; D.catalogo = D.catalogo || [];
+      D.zonas = D.zonas || Object.keys(r.tarifario.zonas || {});
+      T = clon(r.tarifario); T0 = clon(r.tarifario); SUCIO = false; ED = !!r.puedeEditar;
+      if (p && p.ok) { PL = p; PL.planes = p.planes || []; PL.promos = p.promos || []; PLerr = ''; }
+      else { PL = null; PLerr = (p && p.error) || 'No se pudieron cargar los planes.'; }
+      if (S.v === 'tabs') ponerHash(S.tab);
+      pintar();
+      if (despues) despues();
     }, function (e) { MK.error('main', e.message); });
   }
-  var inp = function (k, v, w) { return '<input class="in n" data-k="' + k + '" type="number" min="0" step="0.01" value="' + (v == null ? '' : v) + '"' + (w ? ' style="width:' + w + 'px"' : '') + '>'; };
+  var EDP = function () { return PL ? (PL.puedeEditar != null ? !!PL.puedeEditar : ED) : false; };
+  var sectores = function () { return (PL && PL.sectores && PL.sectores.length) ? PL.sectores : SECTORES_BASE; };
+  var cat = function (id) { return D.catalogo.filter(function (c) { return c.id === id; })[0] || null; };
+  var kaBase = function () { return Number(T0.kgAdicional) || 0; };
+  var granKg = function () { return Number(T0.granDesdeKg) || 100; };
+  var planDe = function (id) { return ((PL && PL.planes) || []).filter(function (p) { return p.id === id; })[0] || null; };
+  var esGranPlan = function (p) { return typeof p.gran === 'boolean' ? p.gran : Number(p.kgIncluidos) >= granKg(); };
+  function historial() { return (PL && PL.historial && PL.historial.length) ? PL.historial : D.historial; }
+
   function pintar() {
-    var kg = T.kg.map(function (x, i) {
-      var desde = i ? T.kg[i - 1].hasta : 0;
-      return '<tr data-i="' + i + '"><td>' + (desde || 0) + ' – ' + (x.hasta == null ? 'en adelante' : '<input class="in n" data-kg="hasta" type="number" min="1" value="' + x.hasta + '" style="width:90px;display:inline-block"> kg') + '</td>' +
-        '<td class="n"><input class="in n" data-kg="precio" type="number" min="0" step="0.01" value="' + n2(x.precio) + '" style="width:100px;display:inline-block"></td><td>' + (x.hasta != null ? '<button class="ico bad" data-quitar-kg title="Quitar tramo">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
-    }).join('');
-    var zonas = D.zonas.map(function (z) { return '<tr><td>' + E(ZN[z] || z) + '</td><td class="n"><input class="in n" data-zona="' + E(z) + '" type="number" min="0" step="0.01" value="' + n2(T.zonas[z]) + '" style="width:100px;display:inline-block"></td></tr>'; }).join('');
-    var planes = T.planes.map(function (p, i) {
-      var desde = i ? T.planes[i - 1].hasta : 0;
-      return '<tr data-i="' + i + '"><td>' + (p.hasta == null ? 'más de ' + (desde || 0) + ' kg al mes' : (desde || 0) + ' – <input class="in n" data-pl="hasta" type="number" min="1" value="' + p.hasta + '" style="width:80px;display:inline-block"> kg al mes') + '</td>' +
-        '<td><select class="sel" data-pl="frecuencia">' + FRECS.map(function (f) { return '<option' + (f[0] === p.frecuencia ? ' selected' : '') + '>' + f[0] + '</option>'; }).join('') + '</select></td>' +
-        '<td>' + (p.hasta != null ? '<button class="ico bad" data-quitar-pl title="Quitar regla">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
-    }).join('');
-    var cat = D.catalogo.map(function (c) {
-      var tipo = c.tipo === 'servicio' ? 'Servicio' : c.tipo === 'prestamo' ? 'Préstamo' : 'Producto';
-      return '<tr data-id="' + E(c.id) + '"><td><b>' + E(c.nombre) + '</b><div class="small muted">' + E(c.descripcion || '') + '</div></td>' +
-        '<td><span class="tag2 ' + (c.tipo === 'servicio' ? 'mo' : c.tipo === 'prestamo' ? 'az' : 'vd') + '">' + tipo + '</span></td>' +
-        '<td class="small">' + (c.insumoId ? E(c.insumo) + '<div class="muted">quedan ' + c.stock + (c.minimo && c.stock <= c.minimo ? ' · <b style="color:#a8262b">bajo el mínimo</b>' : '') + '</div>' : c.tipo === 'servicio' ? '—' : '<span class="muted">sin amarrar</span>') + '</td>' +
-        '<td class="n">' + (c.precio ? 'B/. ' + n2(c.precio) : '—') + '<div class="small muted">' + E(c.unidad || '') + '</div></td>' +
-        '<td class="small">' + E(D.quien[c.quien] || '') + '</td>' +
-        '<td><button class="sw' + (c.activo ? '' : ' off') + '" data-activo title="' + (c.activo ? 'Activo: sale en las propuestas' : 'Apagado: ya no sale en las propuestas nuevas') + '"' + (ED ? '' : ' disabled') + '></button></td>' +
-        '<td style="white-space:nowrap">' + (ED ? '<button class="ico" data-editar title="Editar">' + IC('lapiz', 14) + '</button>' + (c.usado ? '' : '<button class="ico bad" data-borrar title="Borrar (nunca se usó)">' + IC('basura', 14) + '</button>') : '') + '</td></tr>';
-    }).join('');
-    $('main').innerHTML = '<div class="w44"><div class="ph" style="margin-bottom:12px"><div><h1>Tarifario' + (T.ejemplo ? ' <span class="ejemplo">NÚMEROS DE EJEMPLO</span>' : '') + '</h1><p class="lead">Los precios de referencia con que el sistema sugiere el precio de cada sede. Katherine pone el precio final en cada propuesta.</p></div>' +
-      '<div class="sp"></div>' + (ED ? '<button class="btn pri" id="guardar2">' + IC('check', 15) + ' Guardar</button> ' : '') + '<span class="small muted">' + (T.cambiadoPor ? 'Último cambio: ' + E(T.cambiadoPor) + ' · ' + E(String(T.cambiadoEn || '').slice(0, 16)) : 'Todavía no se ha guardado') + '</span></div>' +
-      (T.ejemplo ? '<div class="aviso am" style="margin-bottom:14px">Estos números son de ejemplo. Cuando pongas los de ECOVSA y guardes, el sistema empieza a usarlos en las propuestas nuevas.</div>' : '') +
-      '<div class="g g3"><div class="cd"><h3>' + IC('caja', 16) + '1 · Precio del kilo por volumen</h3><table class="t"><thead><tr><th>Kilos al mes (toda la cuenta)</th><th class="n">Precio del kg</th><th></th></tr></thead><tbody>' + kg + '</tbody></table>' +
-      (ED ? '<button class="add" id="mas-kg">' + IC('mas', 14) + ' Agregar tramo</button>' : '') +
-      '<div class="rw" style="margin-top:10px"><span>Kilo adicional (excedente)</span>' + inp('kgAdicional', n2(T.kgAdicional)) + '</div></div>' +
-      '<div class="cd"><h3>' + IC('ruta', 16) + '2 · Viaje por zona</h3><table class="t"><thead><tr><th>Zona</th><th class="n">Viaje por visita</th></tr></thead><tbody>' + zonas + '</tbody></table>' +
-      '<div class="rw" style="margin-top:8px"><span>Recargo fuera del área (por km)</span>' + inp('recargoKm', n2(T.recargoKm)) + '</div><div class="rw"><span>…desde (km de la planta)</span>' + inp('recargoDesdeKm', T.recargoDesdeKm) + '</div>' +
-      '<div class="nota" id="ej-km"></div></div>' +
-      '<div class="cd"><h3>' + IC('billete', 16) + '3 · Mínimos</h3><div class="rw"><span>Mínimo por visita (en ruta)</span>' + inp('minimoRuta', n2(T.minimoRuta)) + '</div>' +
-      '<div class="rw"><span>Visita a solicitud (fuera de ruta)</span>' + inp('minimoSolicitud', n2(T.minimoSolicitud)) + '</div><div class="rw"><span>Visita única</span>' + inp('minimoUnica', n2(T.minimoUnica)) + '</div>' +
-      '<div class="nota">Si el cálculo de una visita da menos, la propuesta sugiere el mínimo.</div></div></div>' +
-      '<div class="g g2"><div class="cd"><h3>' + IC('tarea', 16) + '4 · Reglas del plan sugerido</h3><div class="small muted" style="margin-bottom:8px">Con lo que genera cada sede, el sistema sugiere la frecuencia.</div>' +
-      '<table class="t"><thead><tr><th>Si genera…</th><th>Se sugiere</th><th></th></tr></thead><tbody>' + planes + '</tbody></table>' +
-      (ED ? '<button class="add" id="mas-pl">' + IC('mas', 14) + ' Agregar regla</button>' : '') +
-      '<label class="chk" style="margin-top:12px"><input type="checkbox" id="anat"' + (T.anatomoSemanal ? ' checked' : '') + '> Con anatomopatológico, nunca menos que semanal</label>' +
-      '<div class="rw" style="margin-top:10px"><span>Sugerir «gran generador» desde</span><span style="display:flex;gap:6px;align-items:center">' + inp('granDesdeSedes', T.granDesdeSedes, 70) + ' sedes o ' + inp('granDesdeKg', T.granDesdeKg, 80) + ' kg al mes</span></div></div>' +
-      '<div class="cd"><h3>' + IC('reloj', 16) + 'Historial</h3><div class="his">' + (D.historial.length ? D.historial.map(function (h) { return '<div><b>' + E(h.quien) + '</b> ' + E(h.que) + '<small>' + E(h.cuando) + '</small></div>'; }).join('') : '<div class="muted">Sin cambios todavía.</div>') + '</div>' +
-      '<div class="nota">Las propuestas ya enviadas conservan los precios con que salieron.</div></div></div>' +
-      (ED ? '<div class="bar"><button class="btn pri" id="guardar">' + IC('check', 15) + ' Guardar el tarifario</button><span class="small muted" id="est"></span></div>' : '') +
-      '<div class="cd" id="catalogo" style="margin-top:14px"><h3>' + IC('estrella', 16) + '5 · Servicios y productos<span style="flex:1"></span>' + (ED ? '<button class="btn sm pri" id="nuevo">' + IC('mas', 14) + ' Nuevo servicio o producto</button>' : '') + '</h3>' +
-      '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Nombre</th><th>Tipo</th><th>Del inventario</th><th class="n">Precio</th><th>Quién</th><th>Activo</th><th></th></tr></thead><tbody>' + cat + '</tbody></table></div>' +
-      '<div class="nota">Apagado: ya no sale en las propuestas nuevas (las viejas lo conservan). Borrar solo se puede si nunca se usó. Un producto amarrado al inventario se descuenta cuando el conductor lo repone en la visita.</div></div></div>';
-    ejemploKm(); enlazar();
-    if (!ED) [].forEach.call(document.querySelectorAll('#main input,#main select'), function (x) { x.disabled = true; });
+    var mm = $('main'); mm.onclick = mm.oninput = mm.onchange = null;
+    if (S.v === 'armar') return pintarArmar();
+    if (S.v === 'promo') return pintarPromo();
+    var cuerpo = S.tab === 'planes' ? tabPlanes() : S.tab === 'reglas' ? tabReglas() : tabCatalogo();
+    mm.innerHTML = '<div class="w44">' + barraVolver() +
+      '<div class="ph" style="margin-bottom:10px"><div><h1>Planes y tarifas' + (T0.ejemplo ? ' <span class="ejemplo">NÚMEROS DE EJEMPLO</span>' : '') + '</h1>' +
+      '<p class="lead" style="margin:0">Los planes y promociones que salen en las propuestas, las reglas que dan el precio de referencia y el catálogo.</p></div>' +
+      '<div class="sp"></div><button class="btn" id="verHis">' + IC('reloj', 15) + ' Historial</button></div>' +
+      '<div class="tabs">' +
+        '<button data-tab="planes" class="' + (S.tab === 'planes' ? 'on' : '') + '">Planes' + (PL ? '<span class="n">' + PL.planes.length + '</span>' : '') + '</button>' +
+        '<button data-tab="reglas" class="' + (S.tab === 'reglas' ? 'on' : '') + '">Reglas de base</button>' +
+        '<button data-tab="catalogo" class="' + (S.tab === 'catalogo' ? 'on' : '') + '">Catálogo<span class="n">' + D.catalogo.length + '</span></button></div>' +
+      cuerpo + '</div>';
+    [].forEach.call(document.querySelectorAll('.tabs [data-tab]'), function (b) { b.onclick = function () { irTab(b.getAttribute('data-tab')); }; });
+    $('verHis').onclick = verHistorial;
+    if ($('volverPlan')) $('volverPlan').onclick = volverAlPlan;
+    if (S.tab === 'planes') enPlanes(); else if (S.tab === 'reglas') enReglas(); else enCatalogo();
+    if (!ED && S.tab === 'reglas') [].forEach.call(document.querySelectorAll('#main .rv input,#main .rv select'), function (x) { x.disabled = true; });
   }
-  function ejemploKm() {
-    var km = Number(T.recargoDesdeKm) + 50, v = Number(T.zonas.INTERIOR) + 50 * Number(T.recargoKm);
-    var e = $('ej-km'); if (e) e.textContent = 'Ejemplo: una sede a ' + km + ' km paga ' + n2(T.zonas.INTERIOR) + ' + 50 km × ' + n2(T.recargoKm) + ' = B/. ' + n2(v) + ' de viaje.';
+  function barraVolver() {
+    if (S.pendiente && A) return '<div class="volver-w"><div class="volver"><button class="btn sm" id="volverPlan">' + IC('atras', 15) + ' Volver al plan que estás armando</button><span>Lo que crees aquí lo puedes amarrar a ese plan.</span></div></div>';
+    if (VOLVER) return '<div class="volver-w"><div class="volver"><a class="btn sm" href="' + E(VOLVER) + '">' + IC('atras', 15) + ' Volver a la propuesta' + (DE ? ' de ' + E(DE) : '') + '</a><span>Lo que crees aquí queda listo para agregarlo a esa propuesta.</span></div></div>';
+    return '';
   }
-  function enlazar() {
+  function irTab(t) {
+    if (S.tab === 'reglas' && t !== 'reglas' && SUCIO) {
+      MK.hoja('<h2>Hay cambios sin guardar</h2><p class="muted" style="margin-top:6px">Guarda o descarta los cambios de las reglas de base antes de cambiar de pestaña.</p>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir editando</button><button class="btn bad" id="h-desc">Descartar los cambios</button></div>');
+      $('h-desc').onclick = function () { MK.cerrarHoja(); T = clon(T0); SUCIO = false; irTab(t); };
+      ponerHash(S.tab);
+      return;
+    }
+    S.tab = t; S.v = 'tabs'; S.aviso = null; S.marca = ''; S.marcaPromo = ''; ponerHash(t); pintar(); window.scrollTo(0, 0);
+  }
+  function verHistorial() {
+    var h = historial();
+    MK.lado('<h2 style="margin:0 0 4px">Historial</h2><p class="small muted">Cambios en planes, promociones, reglas de base y catálogo. Cada cambio de las reglas de base le avisa al administrador.</p><div class="his" style="margin-top:10px">' +
+      (h.length ? h.map(function (x) { return '<div class="h"><b>' + E(x.quien) + '</b> ' + E(x.que) + '<small>' + E(x.cuando) + '</small></div>'; }).join('') : '<div class="muted small">Sin cambios todavía.</div>') + '</div>');
+  }
+
+  /* ═══════════ pestaña Planes ═══════════ */
+  function faltaDePlan(p) {
+    if (p.falta && p.falta.length) return p.falta;
+    var f = [];
+    if (!String(p.nombre || '').trim()) f.push('el nombre');
+    if (!p.frecuencia) f.push('la frecuencia');
+    if (!(Number(p.kgIncluidos) > 0)) f.push('los kilos incluidos');
+    if (!(Number(p.precio) > 0)) f.push('el precio por visita');
+    if (p.tipo === 'especial' && !p.sector) f.push('el sector');
+    return f;
+  }
+  function mesServicio(s, vis) {
+    var cd = cadaDe(normServ(s).cada), pr = (Number(s.precio) || 0) * (Number(s.cantidad) || 0);
+    return cd[2] ? pr / cd[2] : pr * vis;
+  }
+  function servTxt(s, vis) {
+    s = normServ(s); var cd = cadaDe(s.cada), c = Number(s.cantidad) || 1, nom = (c > 1 ? c + ' × ' : '') + (s.nombre || (cat(s.itemId) || {}).nombre || 'Servicio');
+    if (s.modo === 'incluido') return nom + ' ' + cd[1];
+    return nom + ' ' + cd[1] + ' · ' + d2(mesServicio(s, vis)) + ' al mes';
+  }
+  function tipoTag(p) { return p.tipo === 'especial' ? '<span class="tg mo">Especial · ' + E(p.sector || 'sin sector') + '</span>' : '<span class="tg az">Regular</span>'; }
+  function filaPlan(p) {
+    var borr = p.estado === 'borrador', apag = p.estado === 'apagado', vis = Number(p.visitas) || visDe(p.frecuencia), ed = EDP();
+    var tags = (borr ? '<span class="tg am">Borrador · sin terminar</span>' : tipoTag(p)) +
+      (!borr && esGranPlan(p) ? '<span class="tg int" title="Etiqueta de uso dentro del sistema. El cliente nunca la ve.">Gran generador</span>' : '') +
+      (apag ? '<span class="tg gr">Apagado</span>' : '') +
+      (p.id === S.marca ? '<span class="tg vd">' + IC('check', 11) + ' ' + E(S.marcaTxt || 'Nuevo') + '</span>' : '');
+    var ka = p.kgAdicional != null && p.kgAdicional !== '' ? d2(p.kgAdicional) : d2(kaBase()) + '<div class="sm mut">de las reglas de base</div>';
+    var u = p.usos || {}, up = Number(u.propuestas) || 0, uf = Number(u.firmadas) || 0;
+    var sv = (p.servicios || []).map(function (s) { return E(servTxt(s, vis)); });
+    var falta = faltaDePlan(p);
+    return '<tr class="' + (borr ? 'borr' : apag ? 'apag' : '') + (p.id === S.marca ? ' marca' : '') + '" data-id="' + E(p.id) + '">' +
+      '<td class="pn"><b>' + (String(p.nombre || '').trim() ? E(p.nombre) : '<span class="mut">Plan sin nombre</span>') + '</b><div class="tags">' + tags + '</div></td>' +
+      '<td style="white-space:nowrap">' + (p.frecuencia ? E(FR[p.frecuencia] || p.frecuencia) : '<span class="mut">—</span>') + (Number(p.kgIncluidos) > 0 ? '<div class="sm mut">' + E(p.kgIncluidos) + ' kg al mes</div>' : '') + '</td>' +
+      '<td class="n">' + (Number(p.precio) > 0 ? '<b>' + d2(p.precio) + '</b>' : '<span class="mut">—</span>') + '</td>' +
+      '<td style="white-space:nowrap">' + (borr ? '<span class="mut">—</span>' : ka) + '</td>' +
+      '<td class="inc">' + (borr && falta.length ? '<span style="color:#8a6100;font-weight:700">' + E(faltaTxt(lista(falta))) + '</span>' : sv.length ? sv.join('<br>') : '<span class="mut">—</span>') + '</td>' +
+      '<td class="n uso">' + (borr ? '<span class="mut sm">no se ofrece</span>' : '<b>' + up + '</b> <span class="sm mut">' + (up === 1 ? 'propuesta' : 'propuestas') + '</span><div class="sm"><b style="color:#1f6b35">' + uf + (uf === 1 ? ' firmada' : ' firmadas') + '</b></div>') + '</td>' +
+      '<td>' + (borr ? (ed ? '<button class="btn sm" data-seguir>' + IC('lapiz', 13) + ' Seguir armando</button>' : '') :
+        '<button class="sw' + (apag ? ' off' : '') + '" data-activo title="' + (apag ? 'Apagado: no sale en las propuestas nuevas' : 'Activo: sale al elegir plan en las propuestas') + '"' + (ed ? '' : ' disabled') + '></button>') + '</td>' +
+      '<td style="white-space:nowrap">' + (borr || !ed ? '' : '<button class="ico" data-editar title="Abrir en «Armar plan»">' + IC('lapiz', 14) + '</button><button class="ico" data-duplicar title="Duplicar (la copia nace como borrador)">' + IC('renovar', 14) + '</button>') + '</td></tr>';
+  }
+  function estadoPromo(p) {
+    var h = hoy(), cerrada = p.estado === 'cerrada' || (p.hasta && p.hasta < h);
+    if (cerrada) { var n = Number(p.vigentes) || 0; return ['gr', 'Oferta cerrada' + (n ? ' · ' + n + (n === 1 ? ' cliente con el beneficio vigente' : ' clientes con el beneficio vigente') : '')]; }
+    if (p.desde && p.desde > h) return ['az', 'Activa desde ' + fecha(p.desde)];
+    return ['vd', 'Activa hasta ' + fecha(p.hasta)];
+  }
+  function benTxt(b) {
+    if (b.tipo === 'gratis') { var c = Number(b.cantidad) || 1, it = cat(b.itemId); return (c > 1 ? c + ' × ' : '') + (b.nombre || (it && it.nombre) || 'Servicio') + ' ' + cadaDe(b.cada)[1] + ' sin costo'; }
+    var pr = b.precio === '' || b.precio == null ? 'B/. …' : d2(b.precio);
+    if (b.tipo === 'kgAdicional') return 'Kilo adicional a ' + pr;
+    if (b.tipo === 'visitasExtra') { var v = Number(b.cantidad) || 1; return v + (v === 1 ? ' visita extra' : ' visitas extra') + ' al mes sin costo'; }
+    return 'Precio por visita de ' + pr;
+  }
+  var duraTxt = function (m) { m = Number(m) || 0; return m ? m + (m === 1 ? ' mes' : ' meses') : 'Todo el contrato'; };
+  function filaPromo(p) {
+    var es = estadoPromo(p), u = p.usos || {}, up = Number(u.propuestas) || 0, uf = Number(u.firmadas) || 0;
+    var pls = p.planes === 'todos' ? 'Todos los planes' : (p.planes || []).map(function (id) { var x = planDe(id); return x ? E(x.nombre) : ''; }).filter(Boolean).join(' · ') || '<span class="mut">—</span>';
+    return '<tr data-id="' + E(p.id) + '"' + (p.id === S.marcaPromo ? ' class="marca"' : '') + '>' +
+      '<td class="pn"><b>' + E(p.nombre) + '</b>' + (p.id === S.marcaPromo ? '<div class="tags"><span class="tg vd">' + IC('check', 11) + ' Guardada</span></div>' : '') + '</td>' +
+      '<td class="inc">' + (p.beneficios || []).map(function (b) { return E(benTxt(b)); }).join('<br>') + '</td>' +
+      '<td style="white-space:nowrap">' + duraTxt(p.duracionMeses) + (Number(p.duracionMeses) ? '<div class="sm mut">para quien firma</div>' : '') + '</td>' +
+      '<td style="white-space:nowrap">' + fecha(p.desde) + ' – ' + fecha(p.hasta, true) + '</td>' +
+      '<td class="inc">' + pls + '</td>' +
+      '<td class="n uso"><b>' + up + '</b> <span class="sm mut">' + (up === 1 ? 'propuesta' : 'propuestas') + '</span><div class="sm"><b style="color:#1f6b35">' + uf + (uf === 1 ? ' firmada' : ' firmadas') + '</b></div></td>' +
+      '<td class="est"><span class="tg ' + es[0] + '" style="white-space:normal;line-height:1.35">' + E(es[1]) + '</span></td>' +
+      '<td style="white-space:nowrap">' + (EDP() ? '<button class="ico" data-promo title="Abrir la promoción">' + IC('lapiz', 14) + '</button>' : '') + '</td></tr>';
+  }
+  function tabPlanes() {
+    if (!PL) return '<div class="aviso rj">' + E(PLerr) + ' <a href="#" id="reintentarPl">Reintentar</a></div>';
+    var orden = function (p) { return p.id === S.marca ? 0 : p.estado === 'activo' ? 1 : p.estado === 'apagado' ? 2 : 3; };
+    var pls = PL.planes.map(function (p, i) { return [p, i]; }).sort(function (a, b) { return orden(a[0]) - orden(b[0]) || a[1] - b[1]; }).map(function (x) { return x[0]; });
+    var act = PL.planes.filter(function (p) { return p.estado === 'activo'; }).length, bor = PL.planes.filter(function (p) { return p.estado === 'borrador'; }).length, apg = PL.planes.length - act - bor;
+    var ed = EDP();
+    var av = S.aviso ? '<div class="aviso ' + S.aviso.c + ' avisoTop">' + IC(S.aviso.c === 'vd' ? 'check' : 'alerta', 16) + '<div><b>' + E(S.aviso.t) + '</b><br>' + E(S.aviso.x) + '</div></div>' : '';
+    var cuenta = act + (act === 1 ? ' activo' : ' activos') + (apg ? ' · ' + apg + (apg === 1 ? ' apagado' : ' apagados') : '') + (bor ? ' · ' + bor + (bor === 1 ? ' borrador' : ' borradores') : '');
+    return av +
+      '<div class="cd"><h3>' + IC('estrella', 16) + 'Planes<span class="ult">' + cuenta + '</span><span style="flex:1"></span>' + (ed ? '<button class="btn pri sm" id="armarPlan">' + IC('mas', 14) + ' Armar plan nuevo</button>' : '') + '</h3>' +
+      (pls.length ? '<div class="tbw" style="overflow-x:auto"><table class="t" id="tPlanes"><thead><tr><th>Plan</th><th>Frecuencia</th><th class="n">Precio por visita</th><th>Kilo adicional</th><th>Incluye</th><th class="n">Uso</th><th>Activo</th><th></th></tr></thead><tbody>' + pls.map(filaPlan).join('') + '</tbody></table></div>'
+        : MK.vacio('Todavía no hay planes. Arma el primero con «Armar plan nuevo».')) +
+      '<div class="nota">Un plan <b>especial o campaña</b> solo se le ofrece a clientes de su sector. <b>Gran generador</b> sale solo en esta lista (planes de ' + granKg() + ' kg o más al mes): nunca en lo que ve el cliente. Un <b>borrador</b> no se ofrece hasta terminarlo. Apagar un plan no cambia las propuestas enviadas ni los contratos firmados.</div></div>' +
+      '<div class="cd" id="cdPromos" style="scroll-margin-top:72px"><h3>' + IC('campana', 16) + 'Promociones<span class="ult">se suman a un plan · no son planes</span><span style="flex:1"></span>' + (ed ? '<button class="btn pri sm" id="armarPromo">' + IC('mas', 14) + ' Armar promoción</button>' : '') + '</h3>' +
+      (PL.promos.length ? '<div class="tbw" style="overflow-x:auto"><table class="t" id="tPromos"><thead><tr><th>Promoción</th><th>Beneficios</th><th>Cuánto dura</th><th>Se ofrece</th><th>Se suma a</th><th class="n">Uso</th><th>Estado</th><th></th></tr></thead><tbody>' + PL.promos.map(filaPromo).join('') + '</tbody></table></div>'
+        : MK.vacio('Todavía no hay promociones.')) +
+      '<div class="nota">Al terminar el beneficio, el cobro cambia solo al plan normal; 15 días antes les llega aviso a Katherine y a Cobros. La propuesta con promoción vence cuando cierra la oferta. Al que ya firmó no se le corta nada.</div></div>';
+  }
+  function enPlanes() {
     var m = $('main');
+    if ($('reintentarPl')) $('reintentarPl').onclick = function (e) { e.preventDefault(); MK.cargando('main', 'Cargando planes y tarifas…'); cargar(); };
+    if ($('armarPlan')) $('armarPlan').onclick = function () { abrirArmar(null); };
+    if ($('armarPromo')) $('armarPromo').onclick = function () { abrirPromo(null); };
+    m.onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var tr = b.closest('tr[data-id]'); if (!tr) return;
+      var id = tr.getAttribute('data-id');
+      if (b.hasAttribute('data-promo')) { var pr = PL.promos.filter(function (x) { return x.id === id; })[0]; if (pr) abrirPromo(pr); return; }
+      var p = planDe(id); if (!p) return;
+      if (b.hasAttribute('data-seguir') || b.hasAttribute('data-editar')) abrirArmar(p);
+      else if (b.hasAttribute('data-duplicar')) duplicar(p, b);
+      else if (b.hasAttribute('data-activo')) cambiarEstado(p, b);
+    };
+    if (S.irPromos) { S.irPromos = false; setTimeout(function () { var c = $('cdPromos'); if (c && c.scrollIntoView) c.scrollIntoView({ block: 'start' }); }, 60); }
+    if (S.marca || S.marcaPromo) setTimeout(function () { var r = document.querySelector('tr.marca'); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'center' }); }, 60);
+  }
+  function duplicar(p, b) {
+    MK.ocupado(b, true, '…');
+    MK.llamar('api_duplicarPlan', MK.pin, p.id).then(function (r) {
+      PL.planes = r.planes || PL.planes; S.marca = r.id || ''; S.marcaTxt = 'Copia'; S.marcaPromo = '';
+      S.aviso = { c: 'am', t: 'Se duplicó «' + (p.nombre || 'Plan') + '»', x: 'La copia nace como borrador: no se ofrece hasta que la termines con «Seguir armando».' };
+      pintar(); MK.aviso('Copia creada como borrador');
+    }, function () { MK.ocupado(b, false); });
+  }
+  function cambiarEstado(p, b) {
+    var activo = p.estado !== 'activo';
+    b.disabled = true;
+    MK.llamar('api_planEstado', MK.pin, p.id, activo).then(function (r) {
+      PL.planes = r.planes || PL.planes; S.aviso = null;
+      pintar(); MK.aviso(activo ? 'Plan prendido: ya sale en las propuestas' : 'Plan apagado: ya no sale en las propuestas nuevas');
+    }, function () { b.disabled = false; });
+  }
+
+  /* ═══════════ cálculo de referencia (mismas reglas de base; si api_calcularPlan responde, manda lo del servidor) ═══════════ */
+  var CALC = { t: null, key: '', srv: null, apagado: false };
+  function sugerida(kg, anat) {
+    var f = 'MENSUAL', pl = T0.planes || [];
+    for (var j = 0; j < pl.length; j++) { if (pl[j].hasta == null || kg <= pl[j].hasta) { f = pl[j].frecuencia; break; } }
+    if (anat && T0.anatomoSemanal && visDe(f) < 4) f = 'SEMANAL';
+    return f;
+  }
+  function datosCalc() {
+    return { kgMes: Number(A.kgMes) || 0, zona: A.zona, km: Number(A.km) || 0, anatomo: !!A.anatomo, frecuencia: A.frecuencia, precio: Number(A.precio) || 0,
+      servicios: A.servicios.map(function (s) { return { itemId: s.itemId, nombre: s.nombre, modo: s.modo === 'cobrado' ? 'cobrado' : 'incluido', cantidad: Number(s.cantidad) || 0, cada: s.cada, meses: mesesDe(s.cada), precio: Number(s.precio) || 0, delPlan: true, dePromo: false }; }) };
+  }
+  function calc() {
+    var kg = Number(A.kgMes) || 0, fr = A.frecuencia || sugerida(kg, A.anatomo), vis = visDe(fr), tr = null, desde = 0, tk = T0.kg || [];
+    for (var j = 0; j < tk.length; j++) { if (tk[j].hasta == null || kg <= tk[j].hasta) { tr = tk[j]; desde = j ? tk[j - 1].hasta : 0; break; } }
+    var pkg = tr ? Number(tr.precio) : 0, kgV = vis ? kg / vis : 0, rec = kgV * pkg;
+    var zonas = T0.zonas || {}, via = Number(zonas[A.zona]) || 0, km = Number(A.km) || 0;
+    var extra = A.zona === 'INTERIOR' && km > Number(T0.recargoDesdeKm) ? (km - Number(T0.recargoDesdeKm)) * Number(T0.recargoKm) : 0;
+    var bruto = rec + via + extra, min = Number(T0.minimoRuta) || 0;
+    var c = { sug: sugerida(kg, A.anatomo), vis: vis, pkg: pkg, tramo: 'tramo ' + (desde || 0) + '–' + (tr && tr.hasta != null ? tr.hasta + ' kg' : 'en adelante'), kgV: kgV, rec: rec, via: via + extra,
+      ref: kg > 0 ? Math.round(Math.max(bruto, min) * 100) / 100 : 0, min: kg > 0 && bruto < min };
+    var s = CALC.srv;
+    if (kg > 0 && s && s.key === JSON.stringify(datosCalc()) && typeof s.r.referencia === 'number') {
+      var r = s.r;
+      if (r.sugerida) c.sug = r.sugerida;
+      if (typeof r.visitas === 'number' && r.visitas > 0) c.vis = r.visitas;
+      if (typeof r.precioKg === 'number') c.pkg = r.precioKg;
+      if (typeof r.kgVisita === 'number') c.kgV = r.kgVisita;
+      if (typeof r.viaje === 'number') c.via = r.viaje;
+      if (r.tramo) c.tramo = typeof r.tramo === 'string' ? (/^tramo/i.test(r.tramo) ? r.tramo : 'tramo ' + r.tramo) : 'tramo ' + (r.tramo.desde || 0) + '–' + (r.tramo.hasta != null ? r.tramo.hasta + ' kg' : 'en adelante');
+      c.rec = c.kgV * c.pkg; c.ref = r.referencia; c.min = c.ref > c.rec + c.via + 0.005; c.srv = true;
+    }
+    return c;
+  }
+  function pedirCalculo() {
+    if (CALC.apagado || !A) return;
+    var datos = datosCalc(), key = JSON.stringify(datos);
+    if (key === CALC.key || !(datos.kgMes > 0)) return;
+    clearTimeout(CALC.t);
+    CALC.t = setTimeout(function () {
+      CALC.key = key;
+      MK.api('api_calcularPlan', MK.pin, datos).then(function (r) {
+        if (key !== CALC.key || !A) return;
+        if (r && r.ok) { CALC.srv = { key: key, r: r }; if (S.v === 'armar') refrescar(); }
+        else CALC.apagado = !!(r && /no existe|desconoc|not found|no se encontr/i.test(r.error || ''));
+      }, function () {});
+    }, 650);
+  }
+  function serv() {
+    var c = calc(), tot = 0, inc = [], cob = [];
+    A.servicios.forEach(function (s) {
+      var cd = cadaDe(s.cada), nom = s.nombre || (cat(s.itemId) || {}).nombre || 'Servicio';
+      if (s.modo === 'incluido') inc.push({ n: nom, txt: (Number(s.cantidad) || 1) + ' ' + cd[1] });
+      else { var pr = (Number(s.precio) || 0) * (Number(s.cantidad) || 0), mes = cd[2] ? pr / cd[2] : pr * c.vis; tot += mes; cob.push({ n: nom, pr: pr, cada: cd[1], mes: mes, rep: cd[2] > 1 }); }
+    });
+    return { tot: tot, inc: inc, cob: cob };
+  }
+
+  /* ═══════════ Armar plan por pasos ═══════════ */
+  function abrirArmar(p) {
+    var ref = (p && p.referencia) || {};
+    A = {
+      id: p ? p.id : '', version: p ? p.version || '' : '', estado: p ? p.estado : 'borrador', usos: p ? p.usos || {} : {},
+      kgMes: ref.kgMes != null ? ref.kgMes : (p && Number(p.kgIncluidos) > 0 ? p.kgIncluidos : ''),
+      zona: ref.zona || D.zonas[0] || '', km: ref.km || '', anatomo: !!ref.anatomo,
+      frecuencia: p ? p.frecuencia || '' : '', kgIncluidos: p && p.kgIncluidos != null ? p.kgIncluidos : '', precio: p && Number(p.precio) > 0 ? p.precio : '',
+      kgAdicional: p && p.kgAdicional != null ? p.kgAdicional : '',
+      servicios: p ? (p.servicios || []).map(normServ) : [], nombre: p ? p.nombre || '' : '', tipo: p && p.tipo === 'especial' ? 'especial' : 'regular', sector: p ? p.sector || '' : '', descripcion: p ? p.descripcion || '' : '',
+      frMan: !!(p && p.frecuencia), kgMan: !!(p && Number(p.kgIncluidos) > 0), visto: p ? 3 : -1
+    };
+    if (!A.frecuencia && Number(A.kgMes) > 0) A.frecuencia = sugerida(Number(A.kgMes), A.anatomo);
+    A0 = firma();
+    CALC.key = ''; CALC.srv = null;
+    var k = 0;
+    if (p) { k = 3; for (var i = 0; i < 4; i++) { if (falta(i).length) { k = i; break; } } }
+    S.v = 'armar'; S.K = k; S.aviso = null; S.marca = ''; S.marcaPromo = ''; S.pendiente = false;
+    pintar(); window.scrollTo(0, 0);
+  }
+  function firma() { var x = clon(A); delete x.visto; delete x.frMan; delete x.kgMan; return JSON.stringify(x); }
+  var cambiosA = function () { return !!A && firma() !== A0; };
+  var existente = function () { return !!(A && A.id && A.estado !== 'borrador'); };
+  function falta(i) {
+    var f = [];
+    if (i === 0) { if (!(Number(A.kgMes) > 0)) f.push('los kilos al mes'); if (!A.zona) f.push('la zona'); if (A.zona === 'INTERIOR' && !(Number(A.km) > 0)) f.push('los km desde la planta'); }
+    if (i === 1) { if (!A.frecuencia) f.push('la frecuencia'); if (!(Number(A.kgIncluidos) > 0)) f.push('los kilos incluidos'); if (!(Number(A.precio) > 0)) f.push('el precio por visita'); }
+    if (i === 3) { if (!String(A.nombre || '').trim()) f.push('el nombre'); if (A.tipo === 'especial' && !A.sector) f.push('el sector'); }
+    return f;
+  }
+  var faltaTodo = function () { return [0, 1, 3].reduce(function (x, i) { return x.concat(falta(i)); }, []); };
+  function estadoPaso(i) {
+    var nAm = A.servicios.length, am = nAm + (nAm === 1 ? ' amarrado' : ' amarrados');
+    if (i === S.K) return { cl: 'on', txt: i === 2 && nAm ? am : PASOS[i][1] };
+    var hecho = i <= A.visto;
+    if (i === 2) return nAm ? { cl: hecho ? 'ok' : '', txt: am } : { cl: '', txt: 'opcional' + (hecho ? ' · ninguno' : '') };
+    var f = falta(i);
+    if (!f.length) return { cl: hecho ? 'ok' : '', txt: PASOS[i][1] };
+    return hecho ? { cl: 'falta', txt: faltaTxt(f[0]) + (f.length > 1 ? ' (+' + (f.length - 1) + ')' : ''), todo: f } : { cl: '', txt: PASOS[i][1] };
+  }
+  function pasosHtml() {
+    return PASOS.map(function (p, i) {
+      var e = estadoPaso(i);
+      return '<button type="button" data-k="' + i + '" class="' + e.cl + '"' + (e.todo ? ' title="' + E(e.todo.map(faltaTxt).join(' · ')) + '"' : '') + '><b>' + (e.cl === 'ok' ? '✓ ' : (i + 1) + ' · ') + p[0] + '</b><small>' + E(e.txt) + '</small></button>';
+    }).join('');
+  }
+  function pintarArmar() {
+    var K = S.K, titulo = !A.id ? 'Armar plan nuevo' : A.estado === 'borrador' ? 'Seguir armando «' + (A.nombre || 'Plan sin nombre') + '»' : 'Editar «' + A.nombre + '»';
+    var up = Number((A.usos || {}).propuestas) || 0;
+    $('main').innerHTML = '<div class="w44">' +
+      '<div class="crumb2"><a data-volver>Planes y tarifas</a> / <a data-volver>Planes</a> · <b>' + (A.id ? E(A.nombre || 'borrador') : 'plan nuevo') + '</b></div>' +
+      '<h1>' + E(titulo) + (T0.ejemplo ? ' <span class="ejemplo">NÚMEROS DE EJEMPLO</span>' : '') + '</h1>' +
+      '<div class="lead">' + (existente() ? 'Los cambios valen para las propuestas nuevas. Las propuestas enviadas y los contratos firmados conservan el plan con que salieron' + (up ? ' (' + up + (up === 1 ? ' propuesta' : ' propuestas') + ')' : '') + '.'
+        : 'Arma el plan paso a paso. «Guardar y salir» lo deja como <b>borrador</b>: no se ofrece en las propuestas hasta guardarlo completo.') + '</div>' +
+      '<div class="stp" id="stp">' + pasosHtml() + '</div>' +
+      '<div class="dos"><div id="izq">' + [p1, p2, p3, p4][K]() + '</div><div id="lat">' + [lat1, lat2, lat3, lat4][K]() + '</div></div>' +
+      '<div class="bar"><div class="fx">' + (K ? '<button class="btn" id="b-atras">' + IC('atras', 14) + ' Atrás</button>' : '') + '<span class="sm mut">Paso ' + (K + 1) + ' de 4</span></div>' +
+      '<div class="fx"><button class="btn" id="b-cancelar">' + IC('x', 14) + ' Cancelar</button><button class="btn" id="b-salir" title="' + (existente() ? 'Guarda los cambios y vuelve a Planes' : 'Queda como borrador: no se ofrece') + '">' + IC('check', 14) + ' Guardar y salir</button>' +
+      (K < 3 ? '<button class="btn pri" id="b-sig">Siguiente ' + IC('flecha', 14) + '</button>' : '') + '</div></div></div>';
+    enArmar();
+    pedirCalculo();
+  }
+  function refrescar() {
+    if (S.v !== 'armar') return;
+    var s = $('stp'), l = $('lat'); if (s) s.innerHTML = pasosHtml(); if (l) l.innerHTML = [lat1, lat2, lat3, lat4][S.K]();
+    var dt = $('difTxt'); if (dt) dt.innerHTML = difHtml();
+  }
+  function irPaso(k) { if (k < 0 || k > 3) return; A.visto = Math.max(A.visto, S.K); S.K = k; pintar(); window.scrollTo(0, 0); }
+  function salirArmar() { A = null; S.pendiente = false; S.v = 'tabs'; S.tab = 'planes'; ponerHash('planes'); pintar(); window.scrollTo(0, 0); }
+  function cancelar() {
+    if (!cambiosA()) { salirArmar(); return; }
+    MK.hoja('<h2>¿Salir sin guardar?</h2><p class="muted" style="margin-top:6px">Se pierde lo que cambiaste. Si quieres seguir después, usa «Guardar y salir»' + (existente() ? '.' : ': queda como borrador.') + '</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir editando</button><button class="btn bad" id="b-perder">Salir sin guardar</button></div>');
+    $('b-perder').onclick = function () { MK.cerrarHoja(); salirArmar(); };
+  }
+  function selZona() { return '<select class="sel" data-a="zona">' + D.zonas.map(function (z) { return '<option value="' + E(z) + '"' + (z === A.zona ? ' selected' : '') + '>' + E(ZN[z] || z) + '</option>'; }).join('') + '</select>'; }
+  function p1() {
+    var inter = A.zona === 'INTERIOR';
+    return '<div class="cd"><h3>' + IC('persona', 16) + '¿Para qué cliente es el plan?</h3>' +
+      '<div class="g g3">' +
+        '<div><label class="l" for="a-kg">Kilos al mes</label><input class="in n" id="a-kg" data-a="kgMes" type="number" min="0" step="1" value="' + E(A.kgMes) + '"><div class="ay">Lo que genera el cliente tipo.</div></div>' +
+        '<div><label class="l">Zona</label>' + selZona() + '<div class="ay">Donde está la sede.</div></div>' +
+        '<div><label class="l" for="a-km">Km desde la planta</label><input class="in n" id="a-km" data-a="km" type="number" min="0" value="' + (inter ? E(A.km) : '') + '"' + (inter ? '' : ' disabled placeholder="solo interior"') + '><div class="ay">Solo si la zona es Interior.</div></div></div>' +
+      '<label class="chk" style="margin-top:16px"><input type="checkbox" data-a="anatomo"' + (A.anatomo ? ' checked' : '') + '> Tiene anatomopatológico</label>' +
+      '<div class="ay" style="margin-left:24px">Con anatomopatológico se sugiere semanal o más.</div>' +
+      '<div class="avi az" style="margin-top:16px">' + IC('alerta', 15) + '<div>Con estos datos sale la <b>referencia</b>. En el paso 2 pones tu precio y ves la diferencia.</div></div></div>';
+  }
+  function lat1() {
+    var c = calc();
+    if (!(Number(A.kgMes) > 0)) return '<div class="cd lat"><h3>' + IC('moneda', 16) + 'Referencia</h3><div class="muted small">Escribe los kilos al mes para ver la referencia.</div></div>';
+    return '<div class="cd lat"><h3>' + IC('moneda', 16) + 'Referencia</h3>' +
+      '<div class="rw"><span>Frecuencia sugerida</span><b>' + E(FR[c.sug] || c.sug) + '</b></div>' +
+      (A.frecuencia && A.frecuencia !== c.sug ? '<div class="rw"><span>Frecuencia del plan</span><b>' + E(FR[A.frecuencia] || A.frecuencia) + '</b></div>' : '') +
+      '<div class="rw"><span>Visitas al mes</span><b>' + visTxt(c.vis) + '</b></div>' +
+      '<div class="rw"><span>Kilos por visita</span><b>' + n2(c.kgV).replace(/\.00$/, '') + ' kg</b></div>' +
+      '<div class="rw"><span>Precio del kg<small>' + E(c.tramo) + '</small></span><b>' + d2(c.pkg) + '</b></div>' +
+      '<div class="rw"><span>Recolección por visita</span><b>' + d2(c.rec) + '</b></div>' +
+      '<div class="rw"><span>Viaje · ' + E(ZN[A.zona] || A.zona || '') + '</span><b>' + d2(c.via) + '</b></div>' +
+      (c.min ? '<div class="rw"><span style="color:#8a6100">Se aplica el mínimo en ruta</span><b style="color:#8a6100">' + d2(c.ref) + '</b></div>' : '') +
+      '<div class="big"><span>Referencia por visita</span><span>' + d2(c.ref) + '</span></div>' +
+      '<div class="nota" style="margin-top:8px">Al mes: ' + d2(c.ref * c.vis) + ' · ' + visTxt(c.vis) + '. Sale de las <a class="lk" data-irtab="reglas">reglas de base</a>.</div>' +
+      (Number(A.kgMes) >= granKg() ? '<div class="avi az">' + IC('estrella', 15) + '<div>Con ' + E(A.kgMes) + ' kg al mes el plan lleva la etiqueta <b>Gran generador</b>. El cliente no la ve.</div></div>' : '') + '</div>';
+  }
+  function difHtml() {
+    var c = calc(), pv = Number(A.precio) || 0, dif = c.ref ? Math.round((pv - c.ref) / c.ref * 100) : 0;
+    if (!pv) return 'Escribe tu precio.';
+    if (!c.ref) return '';
+    return '<span class="dif ' + (dif < 0 ? 'bj' : 'sb') + '">' + (dif > 0 ? '+' : '') + dif + ' % ' + (dif < 0 ? 'bajo' : dif > 0 ? 'sobre' : 'igual a') + ' la referencia</span>';
+  }
+  function p2() {
+    var c = calc();
+    return '<div class="cd"><h3>' + IC('estrella', 16) + 'El plan que vas a ofrecer</h3>' +
+      '<div class="g g2">' +
+        '<div><label class="l">Frecuencia</label><select class="sel" data-a="frecuencia">' + (A.frecuencia ? '' : '<option value="">— Elegir —</option>') + FRECS.map(function (f) { return '<option value="' + f[0] + '"' + (f[0] === A.frecuencia ? ' selected' : '') + '>' + FR[f[0]] + '</option>'; }).join('') + '</select>' +
+          '<div class="ay">' + (Number(A.kgMes) > 0 ? 'Sugerida: <b>' + E(FR[c.sug] || c.sug) + '</b>' : 'Sin kilos en el paso 1 no hay sugerida') + (A.frecuencia ? ' · ' + visTxt(visDe(A.frecuencia)) : '') + '</div></div>' +
+        '<div><label class="l" for="a-kgi">Kilos incluidos al mes</label><input class="in n" id="a-kgi" data-a="kgIncluidos" type="number" min="0" value="' + E(A.kgIncluidos) + '"><div class="ay">Lo que pase de aquí se cobra como kilo adicional.</div></div></div>' +
+      '<div class="g g3" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ln2)">' +
+        '<div><label class="l">Referencia por visita</label><input class="in n" value="' + (c.ref ? n2(c.ref) : '') + '" readonly tabindex="-1"><div class="ay">De las reglas de base.</div></div>' +
+        '<div><label class="l" for="a-pre">Precio por visita (Katherine)</label><input class="in n ed" id="a-pre" data-a="precio" type="number" min="0" step="0.01" value="' + E(A.precio) + '"><div class="ay" id="difTxt">' + difHtml() + '</div></div>' +
+        '<div><label class="l" for="a-ka">Kilo adicional</label><input class="in n" id="a-ka" data-a="kgAdicional" type="number" min="0" step="0.01" value="' + E(A.kgAdicional) + '" placeholder="' + n2(kaBase()) + '"><div class="ay">Vacío: toma el de las reglas de base (' + d2(kaBase()) + ').</div></div></div></div>';
+  }
+  function latMes(con) {
+    var c = calc(), s = serv(), pv = Number(A.precio) || 0, rec = pv * c.vis, refMes = c.ref * c.vis;
+    var h = '<div class="cd lat"><h3>' + IC('billete', 16) + 'Resultado del mes</h3>' +
+      '<div class="rw"><span>Recolección<small>' + visTxt(c.vis) + ' × ' + d2(pv) + '</small></span><b>' + d2(rec) + '</b></div>';
+    if (con) {
+      s.cob.forEach(function (x) { h += '<div class="rw"><span>' + E(x.n) + '<small>' + (x.rep ? d2(x.pr) + ' ' + x.cada + ', repartido' : x.cada) + '</small></span><b>' + d2(x.mes) + '</b></div>'; });
+      s.inc.forEach(function (x) { h += '<div class="rw"><span>' + E(x.n) + '<small>' + E(x.txt) + '</small></span><b style="color:#1f6b35">incluido</b></div>'; });
+    } else {
+      h += '<div class="rw"><span>Referencia al mes</span><b>' + d2(refMes) + '</b></div>' +
+        (pv && refMes ? '<div class="rw"><span>Diferencia al mes</span><b class="dif ' + (rec < refMes ? 'bj' : 'sb') + '">' + (rec - refMes >= 0 ? '+' : '−') + n2(Math.abs(rec - refMes)) + '</b></div>' : '') +
+        '<div class="rw"><span>Kilo adicional</span><b>' + (A.kgAdicional !== '' && A.kgAdicional != null ? d2(A.kgAdicional) : d2(kaBase()) + ' <span class="mut" style="font-weight:600">(base)</span>') + '</b></div>';
+    }
+    h += '<div class="big"><span>' + (con ? 'Total al mes' : 'Recolección al mes') + '</span><span>' + d2(rec + (con ? s.tot : 0)) + '</span></div>' +
+      '<div class="nota" style="margin-top:8px">Más ITBMS. Es lo que ve Katherine al elegir el plan en una propuesta.</div></div>';
+    return h;
+  }
+  var lat2 = function () { return latMes(false); }, lat3 = function () { return latMes(true); };
+  function p3() {
+    var c = calc();
+    var rows = A.servicios.map(function (a, i) {
+      var it = cat(a.itemId), cd = cadaDe(a.cada), pr = (Number(a.precio) || 0) * (Number(a.cantidad) || 0), mes = cd[2] ? pr / cd[2] : pr * c.vis;
+      var tipo = it ? (D.tipos[it.tipo] || it.tipo) : '';
+      return '<tr data-i="' + i + '"><td style="min-width:190px"><b>' + E(a.nombre || (it && it.nombre) || '') + '</b><div class="sm mut">' + (it ? E(tipo) + ' · ' + (Number(a.precio) ? d2(a.precio) + ' ' + E(it.unidad || '') : 'sin precio') : 'ya no está en el catálogo') + '</div></td>' +
+        '<td><select class="sel" data-am="modo" style="width:108px"><option value="incluido"' + (a.modo === 'incluido' ? ' selected' : '') + '>Incluido</option><option value="cobrado"' + (a.modo === 'cobrado' ? ' selected' : '') + '>Cobrado</option></select></td>' +
+        '<td><input class="in n" data-am="cantidad" type="number" min="1" value="' + E(a.cantidad) + '" style="width:64px"></td>' +
+        '<td><select class="sel" data-am="cada" style="width:138px">' + CADA.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === a.cada ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></td>' +
+        '<td class="n">' + (a.modo === 'incluido' ? '<span class="tg vd">sin costo</span>' : '<b>' + d2(mes) + '</b> <span class="sm mut">al mes</span>' + (cd[2] > 1 ? '<div class="sm mut">' + d2(pr) + ' ' + cd[1] + ', repartido</div>' : '')) + '</td>' +
+        '<td style="width:34px"><button class="ico bad" data-quitar title="Quitar">' + IC('basura', 14) + '</button></td></tr>';
+    }).join('');
+    return '<div class="cd"><h3>' + IC('caja', 16) + 'Servicios y productos del plan<span class="ult">opcional</span><span style="flex:1"></span><button class="lk" id="irCatalogo" style="font-size:12.5px">Ir al catálogo ' + IC('flecha', 13) + '</button></h3>' +
+      '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Del catálogo</th><th>Cómo va</th><th>Cantidad</th><th>Cada cuánto</th><th class="n">Se cobra</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="6" class="mut">Ninguno todavía.</td></tr>') + '</tbody></table></div>' +
+      '<div style="margin-top:12px"><button class="add" id="amarrar">' + IC('mas', 14) + ' Amarrar servicio o producto</button></div>' +
+      '<div class="avi am">' + IC('alerta', 15) + '<div>Lo que no es de cada mes se cobra <b>repartido cada mes</b>: por ejemplo, una fumigación cada 3 meses de B/. 45.00 son B/. 15.00 al mes.</div></div>' +
+      '<div class="nota">Incluido: va sin costo dentro del plan. Los productos los deja el conductor en la visita y se descuentan del inventario.</div></div>';
+  }
+  function p4() {
+    var c = calc(), s = serv(), pv = Number(A.precio) || 0, dif = c.ref ? Math.round((pv - c.ref) / c.ref * 100) : 0;
+    var sv = s.inc.map(function (x) { return E(x.n) + ': ' + E(x.txt) + ', <b style="color:#1f6b35">incluido</b>'; })
+      .concat(s.cob.map(function (x) { return E(x.n) + ': ' + E(x.cada) + ', cobrado' + (x.rep ? ' · ' + d2(x.pr) + ' repartido en <b>' + d2(x.mes) + ' al mes</b>' : ' · <b>' + d2(x.mes) + ' al mes</b>'); }));
+    var cam = function (k) { return '<button class="lk sm" data-k2="' + k + '">' + IC('lapiz', 13) + ' Cambiar</button>'; };
+    var f0 = falta(0), f1 = falta(1), ft = function (f) { return '<div style="color:#8a6100;font-weight:700">' + E(faltaTxt(lista(f))) + '</div>'; };
+    return '<div class="cd"><h3>' + IC('lapiz', 16) + 'Nombre y tipo</h3>' +
+        '<div class="g g2"><div><label class="l" for="a-nom">Nombre del plan</label><input class="in" id="a-nom" data-a="nombre" maxlength="80" value="' + E(A.nombre) + '" placeholder="Ej. Odontologías 2026"><div class="ay">Así sale en la propuesta.</div></div>' +
+        '<div><label class="l">Tipo</label><div class="seg"><button type="button" data-tipo="regular" class="' + (A.tipo === 'regular' ? 'on' : '') + '">Regular</button><button type="button" data-tipo="especial" class="' + (A.tipo === 'especial' ? 'on' : '') + '">Especial o campaña</button></div>' +
+          (A.tipo === 'especial' ? '<div style="margin-top:10px"><label class="l">Sector</label><select class="sel" data-a="sector"><option value="">— Elegir —</option>' + sectores().map(function (x) { return '<option' + (x === A.sector ? ' selected' : '') + '>' + E(x) + '</option>'; }).join('') + (A.sector && sectores().indexOf(A.sector) < 0 ? '<option selected>' + E(A.sector) + '</option>' : '') + '</select><div class="ay">Solo se le ofrece a clientes de este sector.</div></div>' : '<div class="ay">Se le ofrece a cualquier cliente.</div>') + '</div></div></div>' +
+      '<div class="cd"><h3>' + IC('lista', 16) + 'Revisa el plan</h3>' +
+        '<div class="res3"><div class="k">Para quién</div><div class="v">' + (f0.length ? ft(f0) : E(A.kgMes) + ' kg al mes · ' + E(ZN[A.zona] || A.zona) + (A.zona === 'INTERIOR' ? ' a ' + E(A.km) + ' km' : '') + ' · ' + (A.anatomo ? 'con' : 'sin') + ' anatomopatológico') + '</div>' + cam(0) + '</div>' +
+        '<div class="res3"><div class="k">El plan</div><div class="v">' + (f1.length ? ft(f1) : '') + (A.frecuencia ? E(FR[A.frecuencia]) + ' · ' + visTxt(c.vis) : '') + (Number(A.kgIncluidos) > 0 ? ' · ' + E(A.kgIncluidos) + ' kg incluidos al mes' : '') +
+          (pv ? '<br><b>' + d2(pv) + ' por visita</b>' + (c.ref ? ' <span class="dif ' + (dif < 0 ? 'bj' : 'sb') + '">' + (dif > 0 ? '+' : '') + dif + ' %</span> <span class="mut">contra la referencia de ' + d2(c.ref) + '</span>' : '') : '') +
+          '<br>Kilo adicional ' + (A.kgAdicional !== '' && A.kgAdicional != null ? d2(A.kgAdicional) : d2(kaBase()) + ' <span class="mut">(de las reglas de base)</span>') + '</div>' + cam(1) + '</div>' +
+        '<div class="res3"><div class="k">Servicios y productos</div><div class="v">' + (sv.length ? sv.join('<br>') : '<span class="mut">Ninguno</span>') + '</div>' + cam(2) + '</div>' +
+      '</div>';
+  }
+  function lat4() {
+    var c = calc(), s = serv(), pv = Number(A.precio) || 0, tot = pv * c.vis + s.tot, ft = faltaTodo();
+    var nota = A.estado === 'apagado' ? 'Sigue apagado: no sale en las propuestas hasta que lo prendas en la lista.' :
+      'Queda activo y sale al elegir plan en las propuestas' + (A.tipo === 'especial' && A.sector ? ' de clientes del sector ' + E(A.sector) : '') + '. Queda en el historial.';
+    return '<div class="cd lat"><h3>' + IC('billete', 16) + 'Resultado del mes</h3>' +
+      '<div class="rw"><span>Recolección<small>' + visTxt(c.vis) + ' × ' + d2(pv) + '</small></span><b>' + d2(pv * c.vis) + '</b></div>' +
+      s.cob.map(function (x) { return '<div class="rw"><span>' + E(x.n) + '<small>' + (x.rep ? 'repartido al mes' : x.cada) + '</small></span><b>' + d2(x.mes) + '</b></div>'; }).join('') +
+      s.inc.map(function (x) { return '<div class="rw"><span>' + E(x.n) + '<small>' + E(x.txt) + '</small></span><b style="color:#1f6b35">incluido</b></div>'; }).join('') +
+      '<div class="big"><span>Total al mes</span><span>' + d2(tot) + '</span></div>' +
+      '<div class="nota" style="margin-top:6px">Más ITBMS.</div>' +
+      (ft.length ? '<div class="avi am">' + IC('alerta', 15) + '<div>Para guardarlo completo ' + E(faltaTxt(lista(ft))) + '. Mientras tanto, «Guardar y salir» lo deja como borrador.</div></div>' : '') +
+      '<button class="btn pri" id="guardarPlan" style="width:100%;justify-content:center;margin-top:12px">' + IC('check', 15) + (existente() ? ' Guardar los cambios' : ' Guardar el plan') + '</button>' +
+      '<div class="nota" style="text-align:center;margin-top:6px">' + nota + '</div></div>';
+  }
+  function enArmar() {
+    var m = $('main');
+    var alEscribir = function (e) {
+      var t = e.target, k = t.getAttribute('data-a'), tr = t.closest('tr[data-i]');
+      if (k) {
+        A[k] = t.type === 'checkbox' ? t.checked : t.value;
+        if (k === 'frecuencia') A.frMan = true;
+        if (k === 'kgIncluidos') A.kgMan = true;
+        if (k === 'kgMes' || k === 'anatomo') { var kg = Number(A.kgMes) || 0; if (!A.frMan && kg > 0) A.frecuencia = sugerida(kg, A.anatomo); if (!A.kgMan) A.kgIncluidos = A.kgMes; }
+        if (k === 'zona' && A.zona !== 'INTERIOR') A.km = '';
+      } else if (t.hasAttribute('data-am') && tr) {
+        A.servicios[Number(tr.getAttribute('data-i'))][t.getAttribute('data-am')] = t.value;
+      } else return;
+      if (e.type === 'change') pintar(); else refrescar();
+      pedirCalculo();
+    };
+    m.oninput = function (e) { if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') alEscribir(e); };
+    m.onchange = function (e) { var t = e.target; if (t.tagName === 'SELECT' || t.type === 'checkbox' || t.hasAttribute('data-am')) alEscribir(e); };
+    m.onclick = function (e) {
+      var b = e.target.closest('button,a'); if (!b) return;
+      if (b.hasAttribute('data-volver')) cancelar();
+      else if (b.closest('#stp') && b.hasAttribute('data-k')) irPaso(Number(b.getAttribute('data-k')));
+      else if (b.id === 'b-atras') irPaso(S.K - 1);
+      else if (b.id === 'b-sig') irPaso(S.K + 1);
+      else if (b.id === 'b-cancelar') cancelar();
+      else if (b.id === 'b-salir') guardarPlan(!existente(), b);
+      else if (b.id === 'guardarPlan') guardarPlan(false, b);
+      else if (b.hasAttribute('data-tipo')) { A.tipo = b.getAttribute('data-tipo'); if (A.tipo === 'regular') A.sector = ''; pintar(); }
+      else if (b.hasAttribute('data-k2')) irPaso(Number(b.getAttribute('data-k2')));
+      else if (b.hasAttribute('data-quitar')) { A.servicios.splice(Number(b.closest('tr').getAttribute('data-i')), 1); pintar(); }
+      else if (b.id === 'amarrar') amarrar();
+      else if (b.id === 'irCatalogo') irOtraPestana('catalogo');
+      else if (b.hasAttribute('data-irtab')) irOtraPestana(b.getAttribute('data-irtab'));
+    };
+  }
+  /* ir a otra pestaña sin perder el plan: arriba queda «Volver al plan que estás armando» */
+  function irOtraPestana(tab) {
+    A.visto = Math.max(A.visto, S.K); S.pendiente = true; S.v = 'tabs'; S.tab = tab || 'catalogo'; S.aviso = null; ponerHash(S.tab); pintar(); window.scrollTo(0, 0);
+  }
+  function volverAlPlan() {
+    if (S.tab === 'reglas' && SUCIO) { MK.aviso('Guarda o descarta los cambios de las reglas antes de volver al plan.'); return; }
+    S.pendiente = false; S.v = 'armar'; ponerHash('planes'); CALC.key = ''; pintar(); window.scrollTo(0, 0);
+  }
+  function amarrar() {
+    var ya = A.servicios.map(function (s) { return s.itemId; });
+    var libres = D.catalogo.filter(function (c) { return c.activo && ya.indexOf(c.id) < 0; });
+    var h = MK.hoja('<h2>Amarrar del catálogo</h2><p class="small muted">Elige el servicio o producto. Luego dices si va incluido o cobrado, cuántos y cada cuánto.</p>' +
+      (libres.length ? '<div class="cat">' + libres.map(function (c) { return '<button data-id="' + E(c.id) + '"><b>' + E(c.nombre) + '</b><div class="small muted">' + E(D.tipos[c.tipo] || c.tipo) + ' · ' + (c.precio ? d2(c.precio) + ' ' + E(c.unidad || '') : 'sin precio') + '</div></button>'; }).join('') + '</div>'
+        : '<div class="aviso" style="margin-top:10px">Ya están amarrados todos los servicios y productos activos.</div>') +
+      '<div class="pie"><button class="btn" id="h-cat">' + IC('mas', 14) + ' Crear uno nuevo en el catálogo</button><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true });
+    [].forEach.call(h.querySelectorAll('.cat button'), function (b) { b.onclick = function () { amarrarItem(cat(b.getAttribute('data-id'))); MK.cerrarHoja(); pintar(); }; });
+    $('h-cat').onclick = function () { MK.cerrarHoja(); irOtraPestana('catalogo'); editar(null); };
+  }
+  function amarrarItem(it) {
+    if (!it || !A) return;
+    A.servicios.push({ itemId: it.id, nombre: it.nombre, modo: 'incluido', cantidad: 1, cada: 'mes', precio: Number(it.precio) || 0 });
+  }
+  function planDeA(borrador) {
+    var c = calc(), kgi = Number(A.kgIncluidos) || 0;
+    return {
+      id: A.id || '', nombre: String(A.nombre || '').trim(), tipo: A.tipo, sector: A.tipo === 'especial' ? A.sector : '', descripcion: A.descripcion || '',
+      frecuencia: A.frecuencia || '', visitas: A.frecuencia ? visDe(A.frecuencia) : 0, kgIncluidos: kgi, precio: Number(A.precio) || 0,
+      kgAdicional: A.kgAdicional === '' || A.kgAdicional == null ? null : Number(A.kgAdicional),
+      servicios: A.servicios.map(function (s) { var x = { itemId: s.itemId, nombre: s.nombre, modo: s.modo === 'cobrado' ? 'cobrado' : 'incluido', cantidad: Number(s.cantidad) || 1, cada: s.cada, meses: mesesDe(s.cada), precio: Number(s.precio) || 0, delPlan: true, dePromo: false };
+        x.total = x.modo === 'cobrado' ? Math.round(mesServicio(x, c.vis) * 100) / 100 : 0; return x; }),
+      estado: borrador ? 'borrador' : (A.estado === 'apagado' ? 'apagado' : 'activo'), gran: kgi >= granKg(), falta: faltaTodo(),
+      referencia: { kgMes: Number(A.kgMes) || 0, zona: A.zona, km: Number(A.km) || 0, anatomo: !!A.anatomo, valor: c.ref },
+      version: A.version || ''
+    };
+  }
+  function guardarPlan(borrador, b) {
+    var f = faltaTodo();
+    if (!borrador && f.length) { A.visto = 3; refrescar(); MK.aviso('Antes de guardar: ' + faltaTxt(lista(f)) + '.'); return; }
+    var bad = A.servicios.filter(function (s) { return !(Number(s.cantidad) > 0); });
+    if (bad.length) { MK.aviso('Revisa la cantidad de ' + (bad[0].nombre || 'un servicio') + '.'); return; }
+    var plan = planDeA(borrador), nombre = plan.nombre || 'Plan sin nombre', eraNuevo = !A.id;
+    MK.ocupado(b, true);
+    MK.llamar('api_guardarPlanTarifa', MK.pin, plan, !!borrador).then(function (r) {
+      PL.planes = r.planes || PL.planes;
+      S.marca = r.id || A.id; S.marcaTxt = eraNuevo && !borrador ? 'Nuevo' : 'Guardado'; S.marcaPromo = '';
+      S.aviso = borrador ? { c: 'am', t: '«' + nombre + '» quedó como borrador', x: 'No se ofrece en las propuestas hasta terminarlo con «Seguir armando».' }
+        : { c: 'vd', t: 'Plan «' + nombre + '» guardado', x: plan.estado === 'apagado' ? 'Sigue apagado: prende el interruptor para que salga en las propuestas.' : 'Ya sale al elegir plan en las propuestas' + (plan.tipo === 'especial' ? ' de clientes del sector ' + plan.sector : '') + '.' };
+      A = null; S.pendiente = false; S.v = 'tabs'; S.tab = 'planes'; ponerHash('planes');
+      pintar(); window.scrollTo(0, 0);
+      MK.aviso(borrador ? 'Quedó como borrador' : 'Plan guardado');
+    }, function () { MK.ocupado(b, false); });
+  }
+
+  /* ═══════════ Armar promoción (una sola hoja) ═══════════ */
+  function abrirPromo(p) {
+    P = p ? clon(p) : { id: '', nombre: '', beneficios: [], duracionMeses: 3, desde: hoy(), hasta: '', planes: [], estado: 'activa', version: '' };
+    if (P.planes !== 'todos' && !Array.isArray(P.planes)) P.planes = [];
+    P0 = JSON.stringify(P);
+    S.v = 'promo'; S.aviso = null; S.marca = ''; S.marcaPromo = '';
+    pintar(); window.scrollTo(0, 0);
+  }
+  var gratisIds = function () { return P.beneficios.filter(function (b) { return b.tipo === 'gratis' && b.itemId; }).map(function (b) { return b.itemId; }); };
+  function choca(pl) {  /* el plan ya trae alguno de los servicios que la promoción regala */
+    var g = gratisIds();
+    return (pl.servicios || []).filter(function (s) { return g.indexOf(s.itemId) >= 0; }).map(function (s) { return s.nombre || (cat(s.itemId) || {}).nombre || ''; });
+  }
+  function planesPromo() { return PL.planes.filter(function (p) { return p.estado === 'activo' || (Array.isArray(P.planes) && P.planes.indexOf(p.id) >= 0 && p.estado !== 'borrador'); }); }
+  function limpiarChoques() {
+    if (!Array.isArray(P.planes)) return [];
+    var fuera = [];
+    P.planes = P.planes.filter(function (id) { var pl = planDe(id); if (pl && choca(pl).length) { fuera.push(pl.nombre); return false; } return true; });
+    return fuera;
+  }
+  function vistaCliente() {
+    var dura = Number(P.duracionMeses) || 0, cuando = dura ? 'Durante los primeros ' + duraTxt(dura).toLowerCase() + ' de servicio' : 'Durante todo el contrato';
+    var ben = P.beneficios.map(function (b) { var s = benTxt(b); return s.charAt(0).toLowerCase() + s.slice(1); });
+    var cand = planesPromo().filter(function (p) { return p.estado === 'activo' && !choca(p).length && (P.planes === 'todos' || P.planes.indexOf(p.id) >= 0); });
+    var ej = cand[0];
+    var h = '<div class="vista"><b>Promoción ' + E(P.nombre || '(sin nombre)') + '</b><br>' + (ben.length ? E(cuando) + ': ' + E(lista(ben)) + '.' + (dura ? ' Después sigue su plan normal.' : '') : '<span class="mut">Agrega al menos un beneficio.</span>') +
+      (P.hasta ? '<br><span class="mut">Válida hasta el ' + E(fecha(P.hasta, true)) + '.</span>' : '') + '</div>';
+    if (ej) {
+      var vis = Number(ej.visitas) || visDe(ej.frecuencia), cob = (ej.servicios || []).filter(function (s) { return s.modo === 'cobrado'; });
+      var mes = (Number(ej.precio) || 0) * vis + cob.reduce(function (t, s) { return t + mesServicio(s, vis); }, 0), primeros = dura ? 'primeros ' + duraTxt(dura).toLowerCase() : 'todo el contrato';
+      h += '<div style="margin-top:12px" class="sm mut">Ejemplo con el plan <b style="color:var(--ink)">' + E(ej.nombre) + '</b></div>' +
+        '<div class="rw"><span>Plan al mes<small>' + visTxt(vis) + ' × ' + d2(ej.precio) + (cob.length ? ' + ' + E(cob.map(function (s) { return s.nombre || ''; }).join(', ')) + (cob.some(function (s) { return cadaDe(s.cada)[2] > 1; }) ? ' repartido' : '') : '') + '</small></span><b>' + d2(mes) + '</b></div>';
+      P.beneficios.forEach(function (b) {
+        if (b.tipo === 'gratis') h += '<div class="rw"><span>' + E(b.nombre || (cat(b.itemId) || {}).nombre || '') + '<small>' + E((Number(b.cantidad) || 1) + ' ' + cadaDe(b.cada)[1]) + ' · ' + primeros + '</small></span><b style="color:#1f6b35">sin costo</b></div>';
+        else if (b.tipo === 'kgAdicional') h += '<div class="rw"><span>Kilo adicional<small>' + primeros + (dura ? ' · después ' + d2(ej.kgAdicional != null && ej.kgAdicional !== '' ? ej.kgAdicional : kaBase()) : '') + '</small></span><b>' + d2(b.precio) + '</b></div>';
+        else if (b.tipo === 'visitasExtra') h += '<div class="rw"><span>' + E(benTxt(b).replace(' sin costo', '')) + '<small>' + primeros + '</small></span><b style="color:#1f6b35">sin costo</b></div>';
+        else if (b.tipo === 'precio') h += '<div class="rw"><span>Precio por visita<small>' + primeros + (dura ? ' · después ' + d2(ej.precio) : '') + '</small></span><b>' + d2(b.precio) + '</b></div>';
+      });
+    } else if (PL.planes.length) h += '<div class="nota">Elige a qué planes se suma para ver un ejemplo.</div>';
+    h += '<div class="avi am">' + IC('reloj', 15) + '<div>' + (dura ? 'Al terminar, el cobro pasa solo al plan normal. 15 días antes les llega aviso a Katherine y a Cobros.' : 'El beneficio dura todo el contrato del cliente que firme con la promoción.') + '</div></div>';
+    return h;
+  }
+  function pintarPromo() {
+    var catAct = D.catalogo.filter(function (c) { return c.activo; });
+    var rows = P.beneficios.map(function (b, i) {
+      var f = '';
+      if (b.tipo === 'gratis') {
+        var opts = catAct.slice(), it = cat(b.itemId); if (b.itemId && (!it || !it.activo)) opts.push({ id: b.itemId, nombre: b.nombre || 'ya no está en el catálogo' });
+        f = '<select class="sel" data-b="itemId" style="width:240px"><option value="">— Elegir del catálogo —</option>' + opts.map(function (c) { return '<option value="' + E(c.id) + '"' + (c.id === b.itemId ? ' selected' : '') + '>' + E(c.nombre) + '</option>'; }).join('') + '</select>' +
+          '<span class="sm mut">cantidad</span><input class="in n" data-b="cantidad" type="number" min="1" value="' + E(b.cantidad) + '" style="width:64px">' +
+          '<select class="sel" data-b="cada" style="width:140px">' + CADA.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === b.cada ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>';
+      } else if (b.tipo === 'kgAdicional') f = '<span class="pre">B/.</span><input class="in n" data-b="precio" type="number" min="0" step="0.01" value="' + E(b.precio) + '" style="width:96px"><span class="sm mut">el kilo, en vez del precio del plan</span>';
+      else if (b.tipo === 'visitasExtra') f = '<input class="in n" data-b="cantidad" type="number" min="1" value="' + E(b.cantidad) + '" style="width:64px"><span class="sm mut">visitas extra al mes, sin costo</span>';
+      else f = '<span class="pre">B/.</span><input class="in n" data-b="precio" type="number" min="0" step="0.01" value="' + E(b.precio) + '" style="width:96px"><span class="sm mut">por visita mientras dure el beneficio</span>';
+      return '<div class="ben" data-i="' + i + '"><div class="bi">' + IC(BEN[b.tipo][1], 16) + '</div><div><div class="bt">' + BEN[b.tipo][0] + '</div><div class="fx">' + f + '</div></div><button class="ico bad" data-qb title="Quitar">' + IC('basura', 14) + '</button></div>';
+    }).join('');
+    var tiene = function (t) { return P.beneficios.some(function (b) { return b.tipo === t; }); };
+    var todos = P.planes === 'todos', lpl = planesPromo(), noSuman = [];
+    var plSel = lpl.map(function (p) {
+      var ch = choca(p); if (ch.length) noSuman.push(p.nombre);
+      var dis = todos || ch.length, on = !ch.length && (todos || P.planes.indexOf(p.id) >= 0);
+      return '<label class="chk' + (dis ? ' dis' : '') + '"><input type="checkbox" data-pl="' + E(p.id) + '"' + (on ? ' checked' : '') + (dis ? ' disabled' : '') + '> ' + E(p.nombre) +
+        (p.tipo === 'especial' ? ' <span class="tg mo">' + E(p.sector) + '</span>' : '') + (p.estado === 'apagado' ? ' <span class="tg gr">apagado</span>' : '') +
+        (ch.length ? ' <span class="sm mut">· ya trae ' + E(lista(ch)) + '</span>' : '') + '</label>';
+    }).join('');
+    var nPl = todos ? lpl.length - noSuman.length : P.planes.length;
+    var es = P.id ? estadoPromo(JSON.parse(P0)) : null, cerrada = es && es[0] === 'gr', nom0 = P.id ? JSON.parse(P0).nombre : '';
+    $('main').innerHTML = '<div class="w44">' +
+      '<div class="crumb2"><a data-volver>Planes y tarifas</a> / <a data-volver>Promociones</a> · <b>' + (P.id ? E(nom0) : 'promoción nueva') + '</b></div>' +
+      '<h1>' + (P.id ? 'Editar promoción' : 'Armar promoción') + (es ? ' <span class="tg ' + es[0] + '">' + E(es[1]) + '</span>' : '') + '</h1>' +
+      '<div class="lead">Un paquete de beneficios que se suma a un plan. No cambia el plan: al terminar el beneficio, el cobro vuelve solo al plan normal.</div>' +
+      (P.id ? '<div class="aviso az avisoTop">' + IC('alerta', 16) + '<div>Lo que cambies vale para las propuestas nuevas. Las propuestas enviadas y los clientes que firmaron conservan la versión con que salieron.</div></div>' : '') +
+      '<div class="dos"><div>' +
+        '<div class="cd"><h3>' + IC('lapiz', 16) + 'Nombre</h3><input class="in" data-p="nombre" maxlength="80" value="' + E(P.nombre) + '" placeholder="Ej. Bienvenida noviembre" style="width:100%;max-width:420px"><div class="ay">Así sale en la propuesta, junto al plan.</div></div>' +
+        '<div class="cd"><h3>' + IC('estrella', 16) + 'Beneficios<span class="ult">elige uno o varios</span></h3>' + rows +
+          '<div class="adds">' + Object.keys(BEN).map(function (k) { var uno = k !== 'gratis' && tiene(k); return '<button class="add" data-add="' + k + '"' + (uno ? ' disabled title="Ya está agregado"' : '') + '>' + IC('mas', 14) + ' ' + BEN[k][0] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="cd"><h3>' + IC('calendario', 16) + 'Cuánto dura y cuándo se ofrece</h3>' +
+          '<label class="l">El beneficio dura, para quien firma</label><div class="seg">' + DURAS.map(function (x) { return '<button type="button" data-dura="' + x[0] + '" class="' + (Number(P.duracionMeses) === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+          '<div class="g g3" style="margin-top:14px"><div><label class="l" for="p-desde">Se ofrece desde</label><input class="in" id="p-desde" data-p="desde" type="date" value="' + E(P.desde) + '"></div><div><label class="l" for="p-hasta">Hasta</label><input class="in" id="p-hasta" data-p="hasta" type="date" value="' + E(P.hasta) + '"' + (P.desde ? ' min="' + E(P.desde) + '"' : '') + '></div><div></div></div>' +
+          '<div class="nota">' + (P.hasta ? 'Después del ' + fecha(P.hasta) + ' ya no sale en propuestas nuevas y la propuesta que la lleve vence ese día. ' : 'Pon hasta cuándo se ofrece: la propuesta que la lleve vence ese día. ') + (Number(P.duracionMeses) ? 'Al que firmó le dura sus ' + duraTxt(P.duracionMeses).toLowerCase() + ' completos.' : 'Al que firmó le dura todo el contrato.') + '</div></div>' +
+        '<div class="cd"><h3>' + IC('lista', 16) + 'A qué planes se suma</h3>' +
+          '<div class="seg"><button type="button" data-todos="1" class="' + (todos ? 'on' : '') + '">Todos los planes</button><button type="button" data-todos="0" class="' + (todos ? '' : 'on') + '">Algunos</button></div>' +
+          (lpl.length ? '<div class="pls">' + plSel + '</div>' : '<div class="nota">No hay planes activos todavía.</div>') +
+          (noSuman.length ? '<div class="nota"><b>No se suma a</b> ' + E(lista(noSuman)) + ': ya ' + (noSuman.length === 1 ? 'trae' : 'traen') + ' lo que la promoción regala.</div>' : '') +
+          '<div class="nota">Un plan especial sigue llegando solo a su sector, con o sin promoción.</div></div>' +
+      '</div>' +
+      '<div class="cd lat" id="vista"><h3>' + IC('ojo', 16) + 'Así lo ve el cliente</h3>' + vistaCliente() + '</div></div>' +
+      '<div class="bar"><div class="fx"><span class="sm mut">' + (P.desde && P.hasta ? 'Se ofrece del ' + fecha(P.desde) + ' al ' + fecha(P.hasta) : 'Faltan las fechas') + ' · ' + (todos ? 'todos los planes' : nPl + (nPl === 1 ? ' plan' : ' planes')) + '</span></div>' +
+      '<div class="fx">' + (P.id && !cerrada ? '<button class="btn bad" id="pr-cerrar">' + IC('candado', 14) + ' Cerrar oferta</button>' : '') + '<button class="btn" id="pr-cancelar">' + IC('x', 14) + ' Cancelar</button><button class="btn pri" id="pr-guardar">' + IC('check', 14) + ' Guardar la promoción</button></div></div></div>';
+    enPromo();
+  }
+  function enPromo() {
+    var m = $('main');
+    var vista = function () { $('vista').innerHTML = '<h3>' + IC('ojo', 16) + 'Así lo ve el cliente</h3>' + vistaCliente(); };
+    m.oninput = function (e) {
+      var t = e.target, bi = t.closest('.ben');
+      if (t.tagName !== 'INPUT' || t.type === 'date' || t.type === 'checkbox') return;
+      if (t.hasAttribute('data-p')) P[t.getAttribute('data-p')] = t.value;
+      else if (t.hasAttribute('data-b') && bi) P.beneficios[Number(bi.getAttribute('data-i'))][t.getAttribute('data-b')] = t.value;
+      else return;
+      vista();
+    };
+    m.onchange = function (e) {
+      var t = e.target, bi = t.closest('.ben');
+      if (t.hasAttribute('data-p')) { P[t.getAttribute('data-p')] = t.value; if (t.type !== 'date') return; }
+      else if (t.hasAttribute('data-b') && bi) {
+        var b = P.beneficios[Number(bi.getAttribute('data-i'))], k = t.getAttribute('data-b');
+        b[k] = t.value;
+        if (t.tagName === 'INPUT') return;
+        if (k === 'itemId') { var it = cat(t.value); b.nombre = it ? it.nombre : ''; var fuera = limpiarChoques(); if (fuera.length) MK.aviso('Se quitó ' + lista(fuera) + ': ya trae ' + (b.nombre || 'ese servicio') + '.'); }
+      }
+      else if (t.hasAttribute('data-pl')) { var id = t.getAttribute('data-pl'), j = P.planes.indexOf(id); if (t.checked && j < 0) P.planes.push(id); if (!t.checked && j >= 0) P.planes.splice(j, 1); }
+      else return;
+      pintar();
+    };
+    m.onclick = function (e) {
+      var b = e.target.closest('button,a'); if (!b) return;
+      if (b.hasAttribute('data-volver') || b.id === 'pr-cancelar') cancelarPromo();
+      else if (b.hasAttribute('data-add')) {
+        var k = b.getAttribute('data-add');
+        if (k === 'gratis') { var ya = gratisIds(), it = D.catalogo.filter(function (c) { return c.activo && ya.indexOf(c.id) < 0; })[0]; P.beneficios.push({ tipo: k, itemId: it ? it.id : '', nombre: it ? it.nombre : '', cantidad: 1, cada: 'mes' }); var fuera = limpiarChoques(); if (fuera.length) MK.aviso('Se quitó ' + lista(fuera) + ': ya trae ese servicio.'); }
+        else P.beneficios.push(k === 'visitasExtra' ? { tipo: k, cantidad: 1 } : { tipo: k, precio: '' });
+        pintar();
+      }
+      else if (b.hasAttribute('data-qb')) { P.beneficios.splice(Number(b.closest('.ben').getAttribute('data-i')), 1); pintar(); }
+      else if (b.hasAttribute('data-dura')) { P.duracionMeses = Number(b.getAttribute('data-dura')); pintar(); }
+      else if (b.hasAttribute('data-todos')) { P.planes = b.getAttribute('data-todos') === '1' ? 'todos' : []; pintar(); }
+      else if (b.id === 'pr-guardar') guardarPromo(b);
+      else if (b.id === 'pr-cerrar') cerrarPromo();
+    };
+  }
+  function salirPromo() { P = null; S.v = 'tabs'; S.tab = 'planes'; ponerHash('planes'); pintar(); window.scrollTo(0, 0); }
+  function cancelarPromo() {
+    if (JSON.stringify(P) === P0) { salirPromo(); return; }
+    MK.hoja('<h2>¿Salir sin guardar?</h2><p class="muted" style="margin-top:6px">Se pierde lo que cambiaste en la promoción.</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir editando</button><button class="btn bad" id="b-perder">Salir sin guardar</button></div>');
+    $('b-perder').onclick = function () { MK.cerrarHoja(); salirPromo(); };
+  }
+  function faltaPromo() {
+    var f = [];
+    if (!String(P.nombre || '').trim()) f.push('falta el nombre');
+    if (!P.beneficios.length) f.push('falta al menos un beneficio');
+    P.beneficios.forEach(function (b) {
+      if (b.tipo === 'gratis' && !b.itemId) f.push('falta elegir el servicio o producto gratis');
+      if ((b.tipo === 'gratis' || b.tipo === 'visitasExtra') && !(Number(b.cantidad) > 0)) f.push('falta la cantidad en «' + BEN[b.tipo][0] + '»');
+      if ((b.tipo === 'kgAdicional' || b.tipo === 'precio') && (b.precio === '' || b.precio == null || !(Number(b.precio) >= 0))) f.push('falta el precio en «' + BEN[b.tipo][0] + '»');
+    });
+    var g = gratisIds(); if (g.length !== g.filter(function (x, i) { return g.indexOf(x) === i; }).length) f.push('el mismo servicio gratis está dos veces');
+    if (!P.desde) f.push('falta la fecha «desde»'); if (!P.hasta) f.push('falta la fecha «hasta»');
+    if (P.desde && P.hasta && P.hasta < P.desde) f.push('«hasta» es antes de «desde»');
+    if (!P.id && P.hasta && P.hasta < hoy()) f.push('«hasta» ya pasó');
+    if (P.planes !== 'todos' && !P.planes.length) f.push('falta elegir a qué planes se suma');
+    return f;
+  }
+  function guardarPromo(b) {
+    var f = faltaPromo();
+    if (f.length) { MK.aviso('Antes de guardar: ' + lista(f) + '.'); return; }
+    var pr = { id: P.id || '', nombre: String(P.nombre).trim(), duracionMeses: Number(P.duracionMeses) || 0, desde: P.desde, hasta: P.hasta, planes: P.planes === 'todos' ? 'todos' : P.planes.slice(), version: P.version || '',
+      beneficios: P.beneficios.map(function (x) {
+        if (x.tipo === 'gratis') return { tipo: 'gratis', itemId: x.itemId, nombre: x.nombre || (cat(x.itemId) || {}).nombre || '', cantidad: Number(x.cantidad) || 1, cada: x.cada || 'mes', meses: mesesDe(x.cada || 'mes') };
+        if (x.tipo === 'visitasExtra') return { tipo: 'visitasExtra', cantidad: Number(x.cantidad) || 1 };
+        return { tipo: x.tipo, precio: Number(x.precio) || 0 };
+      }) };
+    var nombre = pr.nombre, era = !!P.id;
+    MK.ocupado(b, true);
+    MK.llamar('api_guardarPromo', MK.pin, pr).then(function (r) {
+      PL.promos = r.promos || PL.promos; S.marcaPromo = r.id || pr.id; S.marca = '';
+      S.aviso = { c: 'vd', t: 'Promoción «' + nombre + '» guardada', x: era ? 'Los cambios valen para las propuestas nuevas. Lo ya enviado o firmado conserva su versión.' : 'Sale en «Sumar promoción» de las propuestas de clientes nuevos mientras esté activa.' };
+      P = null; S.v = 'tabs'; S.tab = 'planes'; ponerHash('planes'); pintar(); window.scrollTo(0, 0);
+      MK.aviso('Promoción guardada');
+    }, function () { MK.ocupado(b, false); });
+  }
+  function cerrarPromo() {
+    var nombre = JSON.parse(P0).nombre, id = P.id;
+    MK.confirmar('«' + nombre + '» deja de salir en las propuestas nuevas desde hoy, y las propuestas pendientes que la llevan vencen hoy. A los clientes que ya firmaron se les respeta el beneficio hasta el final.', function () {
+      MK.llamar('api_promoCerrar', MK.pin, id).then(function (r) {
+        PL.promos = r.promos || PL.promos; S.marcaPromo = id; S.marca = '';
+        S.aviso = { c: 'vd', t: 'Oferta «' + nombre + '» cerrada', x: 'Ya no sale en las propuestas nuevas. Al que firmó no se le corta nada.' };
+        P = null; S.v = 'tabs'; S.tab = 'planes'; ponerHash('planes'); pintar(); window.scrollTo(0, 0);
+        MK.aviso('Oferta cerrada');
+      }, function () {});
+    }, { titulo: '¿Cerrar la oferta?', boton: 'Cerrar oferta', peligro: true });
+  }
+
+  /* ═══════════ pestaña Reglas de base (lo que antes era el tarifario) ═══════════ */
+  var cambio = function (k) { return String(T[k]) !== String(T0[k]); };
+  var inp = function (k, v, w) { return '<input class="in n' + (cambio(k) ? ' ed' : '') + '" data-k="' + k + '" type="number" min="0" step="0.01" value="' + (v == null ? '' : v) + '"' + (w ? ' style="width:' + w + 'px;display:inline-block"' : '') + '>'; };
+  function tabReglas() {
+    var kg = T.kg.map(function (x, i) {
+      var desde = i ? T.kg[i - 1].hasta : 0, cam = !T0.kg[i] || Number(T0.kg[i].precio) !== Number(x.precio);
+      return '<tr data-i="' + i + '"><td style="white-space:nowrap">' + (desde || 0) + ' – ' + (x.hasta == null ? 'en adelante' : '<input class="in n" data-kg="hasta" type="number" min="1" value="' + x.hasta + '" style="width:80px;display:inline-block"> kg') + '</td>' +
+        '<td class="n"><span class="pre">B/.</span><input class="in n' + (cam ? ' ed' : '') + '" data-kg="precio" type="number" min="0" step="0.01" value="' + Number(x.precio).toFixed(2) + '" style="width:86px;display:inline-block"><span class="u">el kg</span></td><td class="x">' + (ED && x.hasta != null ? '<button class="ico bad" data-quitar-kg title="Quitar tramo">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
+    }).join('');
+    var zonas = D.zonas.map(function (z) { return '<div class="zn"><span>' + E(ZN[z] || z) + '</span><span><span class="pre">B/.</span><input class="in n' + (Number(T.zonas[z]) !== Number(T0.zonas[z]) ? ' ed' : '') + '" data-zona="' + E(z) + '" type="number" min="0" step="0.01" value="' + Number(T.zonas[z] || 0).toFixed(2) + '" style="width:80px;display:inline-block"></span></div>'; }).join('');
+    var pls = T.planes.map(function (p, i) {
+      var desde = i ? T.planes[i - 1].hasta : 0;
+      return '<tr data-i="' + i + '"><td style="white-space:nowrap">' + (p.hasta == null ? 'Más de ' + (desde || 0) + ' kg al mes' : (desde || 0) + ' – <input class="in n" data-pl="hasta" type="number" min="1" value="' + p.hasta + '" style="width:72px;display:inline-block"> kg al mes') + '</td>' +
+        '<td class="fl">' + IC('flecha', 14) + '</td><td><select class="sel" data-pl="frecuencia" style="max-width:190px">' + FRECS.map(function (f) { return '<option value="' + f[0] + '"' + (f[0] === p.frecuencia ? ' selected' : '') + '>' + FR[f[0]] + '</option>'; }).join('') + '</select></td>' +
+        '<td class="x">' + (ED && p.hasta != null ? '<button class="ico bad" data-quitar-pl title="Quitar regla">' + IC('basura', 14) + '</button>' : '') + '</td></tr>';
+    }).join('');
+    var km = Number(T.recargoDesdeKm) + 50, v = Number(T.zonas.INTERIOR) + 50 * Number(T.recargoKm), h = historial();
+    return '<div class="topReglas"><span class="sm mut">' + (T0.cambiadoPor ? 'Último cambio: ' + E(T0.cambiadoPor) + ' · ' + E(String(T0.cambiadoEn || '').slice(0, 16)) : 'Todavía no se ha guardado') + '</span><span class="sp"></span>' +
+        (ED ? '<button class="btn pri sm" id="guardar"' + (SUCIO ? '' : ' disabled') + '>' + IC('check', 14) + ' Guardar</button>' : '<span class="tg gr">Solo lectura</span>') + '</div>' +
+      (T0.ejemplo ? '<div class="aviso am" style="margin-bottom:14px">Estos números son de ejemplo. Cuando pongas los de ECOVSA y guardes, el sistema empieza a usarlos en las propuestas nuevas.</div>' : '') +
+      '<div class="dos"><div>' +
+      '<div class="cd"><h3>' + IC('moneda', 16) + 'Precio de referencia<span class="ult">Katherine las edita · cada cambio queda en el historial y le avisa al administrador</span></h3>' +
+      '<div class="reglas">' +
+        '<div class="rg"><div class="rl"><b>Precio del kilo</b><span>Según los kilos al mes de toda la cuenta. Más kilos, mejor precio.</span></div><div class="rv">' +
+          '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Kilos al mes</th><th class="n">Precio</th><th></th></tr></thead><tbody>' + kg + '</tbody></table></div>' +
+          (ED ? '<button class="add" id="mas-kg" style="margin-top:8px">' + IC('mas', 14) + ' Agregar tramo</button>' : '') +
+          '<div class="rw2" style="margin-top:8px"><span>Kilo adicional (lo que pase de los kilos del plan)</span><span><span class="pre">B/.</span>' + inp('kgAdicional', Number(T.kgAdicional || 0).toFixed(2), 86) + '</span></div></div></div>' +
+        '<div class="rg"><div class="rl"><b>Viaje por zona</b><span>Lo que cuesta llegar a la sede en cada visita.</span></div><div class="rv">' +
+          '<div class="zns">' + zonas + '</div>' +
+          '<div class="rw2" style="margin-top:8px"><span>Recargo del interior</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="pre">B/.</span>' + inp('recargoKm', Number(T.recargoKm || 0).toFixed(2), 76) + '<span class="u">por km, desde</span>' + inp('recargoDesdeKm', T.recargoDesdeKm, 64) + '<span class="u">km</span></span></div>' +
+          '<div class="nota" id="ej-km">Ejemplo: una sede del interior a ' + km + ' km paga ' + n2(T.zonas.INTERIOR) + ' + 50 km × ' + n2(T.recargoKm) + ' = ' + d2(v) + ' de viaje por visita.</div></div></div>' +
+        '<div class="rg"><div class="rl"><b>Mínimos</b><span>Si el cálculo de una visita da menos, se sugiere el mínimo.</span></div><div class="rv">' +
+          '<div class="rw2"><span>Visita en ruta</span><span><span class="pre">B/.</span>' + inp('minimoRuta', Number(T.minimoRuta || 0).toFixed(2), 86) + '</span></div>' +
+          '<div class="rw2"><span>Visita a solicitud (fuera de ruta)</span><span><span class="pre">B/.</span>' + inp('minimoSolicitud', Number(T.minimoSolicitud || 0).toFixed(2), 86) + '</span></div>' +
+          '<div class="rw2"><span>Visita única</span><span><span class="pre">B/.</span>' + inp('minimoUnica', Number(T.minimoUnica || 0).toFixed(2), 86) + '</span></div></div></div>' +
+      '</div></div>' +
+      '<div class="cd"><h3>' + IC('tarea', 16) + 'Plan sugerido</h3>' +
+      '<div class="reglas">' +
+        '<div class="rg"><div class="rl"><b>Frecuencia</b><span>Con los kilos al mes, el sistema sugiere cada cuánto se recoge.</span></div><div class="rv">' +
+          '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Si genera…</th><th></th><th>Se sugiere</th><th></th></tr></thead><tbody>' + pls + '</tbody></table></div>' +
+          (ED ? '<button class="add" id="mas-pl" style="margin-top:8px">' + IC('mas', 14) + ' Agregar regla</button>' : '') +
+          '<label class="chk" style="margin-top:12px"><input type="checkbox" id="anat"' + (T.anatomoSemanal ? ' checked' : '') + '> Con anatomopatológico, nunca menos que semanal</label></div></div>' +
+        '<div class="rg"><div class="rl"><b>Gran generador</b><span>Etiqueta de uso dentro del sistema. El cliente nunca la ve.</span></div><div class="rv">' +
+          '<div class="rw2"><span>Gran generador desde</span><span style="display:flex;gap:6px;align-items:center">' + inp('granDesdeKg', T.granDesdeKg, 80) + '<span class="u">kg al mes</span></span></div>' +
+          '<div class="nota">Un plan con estos kilos o más la lleva sola en la lista de planes. En la cuenta se suman los kilos de todas las sedes.</div></div></div>' +
+      '</div></div></div>' +
+      '<div class="cd lat"><h3>' + IC('reloj', 16) + 'Últimos cambios</h3><div class="his">' +
+        (h.length ? h.slice(0, 5).map(function (x) { return '<div class="h"><b>' + E(x.quien) + '</b> ' + E(x.que) + '<small>' + E(x.cuando) + '</small></div>'; }).join('') : '<div class="muted small">Sin cambios todavía.</div>') +
+        '</div><div class="avi az">' + IC('campana', 15) + '<div>Cada cambio queda en el historial y le llega aviso al administrador. Las propuestas ya enviadas conservan los precios con que salieron.</div></div>' +
+        '<button class="btn sm" style="margin-top:10px;width:100%;justify-content:center" id="verHis2">' + IC('reloj', 14) + ' Ver todo el historial</button></div></div>' +
+      (ED ? '<div class="guarda' + (SUCIO ? ' si' : '') + '" id="barGuarda"><span>' + IC('alerta', 16) + ' Hay cambios sin guardar</span><span style="flex:1"></span><button class="btn sm" id="descartar">Descartar</button><button class="btn pri sm" id="guardarB">' + IC('check', 14) + ' Guardar</button></div>' : '');
+  }
+  function ensuciar(t) {
+    SUCIO = true; var bg = $('barGuarda'); if (bg) bg.classList.add('si'); var g = $('guardar'); if (g) g.disabled = false;
+    if (t && t.classList && t.classList.contains('in')) t.classList.add('ed');
+    var e = $('ej-km'); if (e) { var km = Number(T.recargoDesdeKm) + 50, v = Number(T.zonas.INTERIOR) + 50 * Number(T.recargoKm); e.textContent = 'Ejemplo: una sede del interior a ' + km + ' km paga ' + n2(T.zonas.INTERIOR) + ' + 50 km × ' + n2(T.recargoKm) + ' = ' + d2(v) + ' de viaje por visita.'; }
+  }
+  function enReglas() {
+    var m = $('main');
+    if (!ED) { m.onclick = function (e) { var b = e.target.closest('button'); if (b && b.id === 'verHis2') verHistorial(); }; return; }
     m.oninput = m.onchange = function (e) {
       var t = e.target, tr = t.closest('tr[data-i]');
       if (t.hasAttribute('data-k')) T[t.getAttribute('data-k')] = t.value === '' ? null : Number(t.value);
       else if (t.hasAttribute('data-zona')) T.zonas[t.getAttribute('data-zona')] = Number(t.value) || 0;
       else if (t.hasAttribute('data-kg') && tr) T.kg[Number(tr.getAttribute('data-i'))][t.getAttribute('data-kg')] = Number(t.value) || 0;
-      else if (t.hasAttribute('data-pl') && tr) { var p = T.planes[Number(tr.getAttribute('data-i'))]; if (t.getAttribute('data-pl') === 'hasta') p.hasta = Number(t.value) || 0; else { p.frecuencia = t.value; p.visitas = (FRECS.filter(function (f) { return f[0] === t.value; })[0] || [0, 1])[1]; } }
+      else if (t.hasAttribute('data-pl') && tr) { var p = T.planes[Number(tr.getAttribute('data-i'))]; if (t.getAttribute('data-pl') === 'hasta') p.hasta = Number(t.value) || 0; else { p.frecuencia = t.value; p.visitas = visDe(t.value); } }
       else if (t.id === 'anat') T.anatomoSemanal = t.checked;
       else return;
-      SUCIO = true; if ($('est')) $('est').textContent = 'Hay cambios sin guardar'; ejemploKm();
-      if (e.type === 'change' && (t.getAttribute('data-kg') === 'hasta' || t.getAttribute('data-pl') === 'hasta')) pintar();
+      ensuciar(t);
+      if (e.type === 'change' && (t.getAttribute('data-kg') === 'hasta' || t.getAttribute('data-pl') === 'hasta')) { var y = window.scrollY; pintar(); window.scrollTo(0, y); }
     };
     m.onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      var tr = b.closest('tr');
-      if (b.id === 'mas-kg') { var ult = T.kg[T.kg.length - 2]; T.kg.splice(T.kg.length - 1, 0, { hasta: (ult ? ult.hasta : 0) + 100, precio: T.kg[T.kg.length - 1].precio }); SUCIO = true; pintar(); }
-      else if (b.hasAttribute('data-quitar-kg')) { T.kg.splice(Number(tr.getAttribute('data-i')), 1); SUCIO = true; pintar(); }
-      else if (b.id === 'mas-pl') { var u = T.planes[T.planes.length - 2]; T.planes.splice(T.planes.length - 1, 0, { hasta: (u ? u.hasta : 0) + 20, frecuencia: 'MENSUAL', visitas: 1 }); SUCIO = true; pintar(); }
-      else if (b.hasAttribute('data-quitar-pl')) { T.planes.splice(Number(tr.getAttribute('data-i')), 1); SUCIO = true; pintar(); }
-      else if (b.id === 'guardar' || b.id === 'guardar2') guardar(b);
-      else if (b.id === 'nuevo') editar(null);
-      else if (b.hasAttribute('data-editar')) editar(item(tr.getAttribute('data-id')));
-      else if (b.hasAttribute('data-activo')) { var it = item(tr.getAttribute('data-id')); guardarItem(Object.assign({}, it, { activo: !it.activo })); }
-      else if (b.hasAttribute('data-borrar')) { var ib = item(tr.getAttribute('data-id'));
-        MK.confirmar('Se borra «' + ib.nombre + '» del catálogo. Nunca se usó en una propuesta ni en una reposición.', function () {
-          MK.llamar('api_borrarCatalogoItem', MK.pin, ib.id).then(function (r) { D.catalogo = r.catalogo; MK.aviso('Borrado'); pintar(); }, function () {}); }, { boton: 'Borrar', peligro: true }); }
+      var tr = b.closest('tr'), y = window.scrollY, re = function () { SUCIO = true; pintar(); window.scrollTo(0, y); };
+      if (b.id === 'mas-kg') { var ult = T.kg[T.kg.length - 2]; T.kg.splice(T.kg.length - 1, 0, { hasta: (ult ? ult.hasta : 0) + 100, precio: T.kg[T.kg.length - 1].precio }); re(); }
+      else if (b.hasAttribute('data-quitar-kg')) { T.kg.splice(Number(tr.getAttribute('data-i')), 1); re(); }
+      else if (b.id === 'mas-pl') { var u = T.planes[T.planes.length - 2]; T.planes.splice(T.planes.length - 1, 0, { hasta: (u ? u.hasta : 0) + 20, frecuencia: 'MENSUAL', visitas: 1 }); re(); }
+      else if (b.hasAttribute('data-quitar-pl')) { T.planes.splice(Number(tr.getAttribute('data-i')), 1); re(); }
+      else if (b.id === 'descartar') { T = clon(T0); SUCIO = false; pintar(); window.scrollTo(0, y); MK.aviso('Cambios descartados'); }
+      else if (b.id === 'guardar' || b.id === 'guardarB') guardarReglas(b);
+      else if (b.id === 'verHis2') verHistorial();
     };
   }
-  function item(id) { return D.catalogo.filter(function (c) { return c.id === id; })[0]; }
-  function guardar(b) {
+  function crecientes(l) { for (var i = 1; i < l.length; i++) { if (l[i].hasta != null && l[i - 1].hasta != null && Number(l[i].hasta) <= Number(l[i - 1].hasta)) return false; } return l.every(function (x) { return x.hasta == null || Number(x.hasta) > 0; }); }
+  function guardarReglas(b) {
+    if (!crecientes(T.kg)) { MK.aviso('Los tramos del kilo deben ir de menor a mayor.'); return; }
+    if (!crecientes(T.planes)) { MK.aviso('Las reglas del plan sugerido deben ir de menor a mayor.'); return; }
     MK.ocupado(b, true);
     MK.api('api_guardarTarifario', MK.pin, T).then(function (r) {
       MK.ocupado(b, false);
       if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return; }
-      MK.aviso(r.sinCambios ? 'No había cambios' : 'Tarifario guardado'); cargar();
+      SUCIO = false;
+      MK.aviso(r.sinCambios ? 'No había cambios' : 'Reglas de base guardadas · se avisó al administrador'); cargar();
     }, function (e) { MK.ocupado(b, false); MK.aviso(e.message); });
   }
-  function guardarItem(it) {
-    return MK.llamar('api_guardarCatalogoItem', MK.pin, it).then(function (r) { D.catalogo = r.catalogo; MK.cerrarLado(); MK.aviso('Guardado'); pintar(); }, function () {});
+
+  /* ═══════════ pestaña Catálogo (igual que antes; más «Volver y agregarlo» desde una propuesta) ═══════════ */
+  function tabCatalogo() {
+    var filas = D.catalogo.map(function (c) {
+      var tipo = D.tipos[c.tipo] || (c.tipo === 'servicio' ? 'Servicio' : c.tipo === 'prestamo' ? 'Préstamo' : 'Producto');
+      return '<tr data-id="' + E(c.id) + '"><td><b>' + E(c.nombre) + '</b><div class="small muted">' + E(c.descripcion || '') + '</div></td>' +
+        '<td><span class="tg ' + (c.tipo === 'servicio' ? 'mo' : c.tipo === 'prestamo' ? 'az' : 'vd') + '">' + E(tipo) + '</span></td>' +
+        '<td class="small">' + (c.insumoId ? E(c.insumo) + '<div class="muted">quedan ' + E(c.stock) + (c.minimo && c.stock <= c.minimo ? ' · <b style="color:#a8262b">bajo el mínimo</b>' : '') + '</div>' : c.tipo === 'servicio' ? '—' : '<span class="muted">sin amarrar</span>') + '</td>' +
+        '<td class="n">' + (c.precio ? d2(c.precio) : '—') + '<div class="small muted">' + E(c.unidad || '') + '</div></td>' +
+        '<td class="small">' + E(D.quien[c.quien] || '') + '</td>' +
+        '<td><button class="sw' + (c.activo ? '' : ' off') + '" data-activo title="' + (c.activo ? 'Activo: sale en las propuestas' : 'Apagado: ya no sale en las propuestas nuevas') + '"' + (ED ? '' : ' disabled') + '></button></td>' +
+        '<td style="white-space:nowrap">' + (ED ? '<button class="ico" data-editar title="Editar">' + IC('lapiz', 14) + '</button>' + (c.usado ? '' : '<button class="ico bad" data-borrar title="Borrar (nunca se usó)">' + IC('basura', 14) + '</button>') : '') + '</td></tr>';
+    }).join('');
+    return '<div class="cd" id="catalogo"><h3>' + IC('caja', 16) + 'Servicios y productos<span style="flex:1"></span>' + (ED ? '<button class="btn sm pri" id="nuevo">' + IC('mas', 14) + ' Nuevo servicio o producto</button>' : '') + '</h3>' +
+      (D.catalogo.length ? '<div class="tbw" style="overflow-x:auto"><table class="t"><thead><tr><th>Nombre</th><th>Tipo</th><th>Del inventario</th><th class="n">Precio</th><th>Quién</th><th>Activo</th><th></th></tr></thead><tbody>' + filas + '</tbody></table></div>' : MK.vacio('Todavía no hay servicios ni productos.')) +
+      '<div class="nota">Apagado: ya no sale en las propuestas nuevas (las viejas lo conservan). Borrar solo se puede si nunca se usó. Un producto amarrado al inventario se descuenta cuando el conductor lo repone en la visita.</div></div>';
   }
+  function enCatalogo() {
+    $('main').onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var tr = b.closest('tr');
+      if (b.id === 'nuevo') editar(null);
+      else if (b.hasAttribute('data-editar')) editar(item(tr.getAttribute('data-id')));
+      else if (b.hasAttribute('data-activo')) { var it = item(tr.getAttribute('data-id')); guardarItem(Object.assign({}, it, { activo: !it.activo })); }
+      else if (b.hasAttribute('data-borrar')) { var ib = item(tr.getAttribute('data-id'));
+        MK.confirmar('Se borra «' + ib.nombre + '» del catálogo. Nunca se usó en una propuesta ni en una reposición.', function () {
+          MK.llamar('api_borrarCatalogoItem', MK.pin, ib.id).then(function (r) { D.catalogo = r.catalogo || D.catalogo; MK.aviso('Borrado'); pintar(); }, function () {}); }, { boton: 'Borrar', peligro: true }); }
+    };
+  }
+  function item(id) { return D.catalogo.filter(function (c) { return c.id === id; })[0]; }
+  function guardarItem(it) {
+    return MK.llamar('api_guardarCatalogoItem', MK.pin, it).then(function (r) { D.catalogo = r.catalogo || D.catalogo; MK.cerrarLado(); MK.aviso('Guardado'); pintar(); return r; }, function () {});
+  }
+  /* id del artículo recién guardado: el servidor lo devuelve (api 3.13); si no, se busca por nombre */
+  function idNuevo(r, d) { return (r && r.id) || (((r && r.catalogo) || []).filter(function (c) { return c.nombre === d.nombre; }).pop() || {}).id || ''; }
   function editar(it) {
-    it = it || { tipo: 'producto', quien: 'conductor', activo: true, unidad: 'unidad', precio: 0 };
-    var sel = function (id, obj, v) { return '<select class="sel" id="' + id + '">' + Object.keys(obj).map(function (k) { return '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + E(obj[k]) + '</option>'; }).join('') + '</select>'; };
-    var l = MK.lado('<h2 style="margin:0 0 4px">' + (it.id ? 'Editar' : 'Nuevo servicio o producto') + '</h2><p class="small muted">Sale en «Agregar servicio o producto» de cada propuesta.</p>' +
+    var nuevo = !it; it = it || { tipo: 'producto', quien: 'conductor', activo: true, unidad: 'unidad', precio: 0 };
+    var conPlan = nuevo && S.pendiente && !!A, conProp = nuevo && !conPlan && !!VOLVER;
+    var sel = function (id, obj, v) { return '<select class="sel" id="' + id + '">' + Object.keys(obj).map(function (k) { return '<option value="' + E(k) + '"' + (k === v ? ' selected' : '') + '>' + E(obj[k]) + '</option>'; }).join('') + '</select>'; };
+    MK.lado('<h2 style="margin:0 0 4px">' + (it.id ? 'Editar' : 'Nuevo servicio o producto') + '</h2><p class="small muted">Sale en «Agregar servicio o producto» de cada propuesta.</p>' +
       '<label class="lb" for="i-nom">NOMBRE</label><input class="in" id="i-nom" value="' + E(it.nombre || '') + '" placeholder="Ej. Bolsas rojas (paquete de 50)">' +
       '<label class="lb" for="i-des">DESCRIPCIÓN</label><input class="in" id="i-des" value="' + E(it.descripcion || '') + '">' +
       '<div class="grid g2" style="gap:10px"><div><label class="lb" for="i-tip">TIPO</label>' + sel('i-tip', D.tipos, it.tipo) + '</div><div><label class="lb" for="i-qui">QUIÉN LO HACE O LO ENTREGA</label>' + sel('i-qui', D.quien, it.quien) + '</div>' +
       '<div><label class="lb" for="i-pre">PRECIO DE REFERENCIA</label><input class="in" id="i-pre" type="number" min="0" step="0.01" value="' + (it.precio || '') + '"></div><div><label class="lb" for="i-uni">UNIDAD</label><input class="in" id="i-uni" value="' + E(it.unidad || '') + '" placeholder="unidad, por visita…"></div></div>' +
-      '<div id="i-invb"><label class="lb" for="i-inv">DEL INVENTARIO</label><select class="sel" id="i-inv"><option value="">— Sin amarrar —</option>' + D.insumos.map(function (x) { return '<option value="' + E(x.insumoId) + '"' + (x.insumoId === it.insumoId ? ' selected' : '') + '>' + E(x.descripcion) + ' · quedan ' + x.stock + '</option>'; }).join('') + '</select>' +
+      '<div id="i-invb"><label class="lb" for="i-inv">DEL INVENTARIO</label><select class="sel" id="i-inv"><option value="">— Sin amarrar —</option>' + D.insumos.map(function (x) { return '<option value="' + E(x.insumoId) + '"' + (x.insumoId === it.insumoId ? ' selected' : '') + '>' + E(x.descripcion) + ' · quedan ' + E(x.stock) + '</option>'; }).join('') + '</select>' +
       '<p class="small muted" style="margin-top:6px">Amarrado al inventario, lo que el conductor deja en la visita se descuenta solo.</p></div>' +
       '<label class="chk" style="margin-top:12px"><input type="checkbox" id="i-act"' + (it.activo !== false ? ' checked' : '') + '> Activo (sale en las propuestas nuevas)</label>' +
-      '<div class="row" style="margin-top:16px;gap:8px;justify-content:flex-end"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="i-ok">Guardar</button></div>');
+      (conPlan ? '<div class="aviso az small" style="margin-top:14px">«Volver y amarrarlo» lo guarda, te regresa al plan que estás armando y lo deja amarrado.</div>' : '') +
+      (conProp ? '<div class="aviso az small" style="margin-top:14px">«Volver y agregarlo» lo guarda, te regresa a la propuesta' + (DE ? ' de ' + E(DE) : '') + ' y lo deja agregado.</div>' : '') +
+      '<div class="row" style="margin-top:16px;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button>' +
+        (conPlan || conProp ? '<button class="btn" id="i-ok">Guardar</button><button class="btn pri" id="i-volver">' + IC('atras', 15) + (conPlan ? ' Volver y amarrarlo' : ' Volver y agregarlo') + '</button>' : '<button class="btn pri" id="i-ok">Guardar</button>') + '</div>');
     var ver = function () { $('i-invb').style.display = $('i-tip').value === 'servicio' ? 'none' : ''; }; $('i-tip').onchange = ver; ver();
+    var leer = function () { return { id: it.id || '', nombre: $('i-nom').value.trim(), descripcion: $('i-des').value.trim(), tipo: $('i-tip').value, quien: $('i-qui').value,
+      precio: Number($('i-pre').value) || 0, unidad: $('i-uni').value.trim(), insumoId: $('i-tip').value === 'servicio' ? '' : $('i-inv').value, activo: $('i-act').checked }; };
     $('i-ok').onclick = function () {
-      var d = { id: it.id || '', nombre: $('i-nom').value.trim(), descripcion: $('i-des').value.trim(), tipo: $('i-tip').value, quien: $('i-qui').value,
-        precio: Number($('i-pre').value) || 0, unidad: $('i-uni').value.trim(), insumoId: $('i-tip').value === 'servicio' ? '' : $('i-inv').value, activo: $('i-act').checked };
-      if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
+      var d = leer(); if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
       var b = this; MK.ocupado(b, true); guardarItem(d).then(function () { MK.ocupado(b, false); });
     };
+    if ($('i-volver')) $('i-volver').onclick = function () {
+      var d = leer(), b = this;
+      if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
+      if (!d.activo) { MK.aviso('Para ' + (conPlan ? 'amarrarlo al plan' : 'agregarlo a la propuesta') + ' tiene que estar activo.'); return; }
+      MK.ocupado(b, true);
+      MK.llamar('api_guardarCatalogoItem', MK.pin, d).then(function (r) {
+        D.catalogo = r.catalogo || D.catalogo;
+        var id = idNuevo(r, d);
+        if (conPlan) {
+          MK.cerrarLado();
+          if (id) amarrarItem(cat(id) || Object.assign({}, d, { id: id }));
+          S.pendiente = false; S.v = 'armar'; S.K = 2; ponerHash('planes'); pintar(); window.scrollTo(0, 0);
+          MK.aviso(id ? 'Quedó amarrado «' + d.nombre + '»' : 'Guardado. Amárralo con «Amarrar servicio o producto».');
+          return;
+        }
+        SUCIO = false;
+        location.href = VOLVER + (VOLVER.indexOf('?') >= 0 ? '&' : '?') + 'agregar=' + encodeURIComponent(id);
+      }, function () { MK.ocupado(b, false); });
+    };
   }
-  window.addEventListener('beforeunload', function (e) { if (SUCIO) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (SUCIO || cambiosA() || (P && JSON.stringify(P) !== P0)) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
 </body>

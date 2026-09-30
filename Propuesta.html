@@ -77,6 +77,8 @@ th{background:var(--azul-osc);color:#fff;padding:9px 10px;text-align:left;
   font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
 td{border:1px solid #d6d6d6;padding:9px 10px}
 td.n{text-align:right;white-space:nowrap}
+/* api 3.13: en el celular las tablas no se salen de la hoja */
+@media screen and (max-width:600px){td.n{white-space:normal}th,td{padding:7px 6px}}
 tr.tot td{background:#EEF5E4;font-weight:800;font-size:13.5px;color:var(--verde)}
 .pie-tabla{font-size:10.5px;color:#666;line-height:1.55;font-style:italic}
 
@@ -219,6 +221,85 @@ function seguir(cod){
     .api_propuesta(pin, COD);
 }
 
+/* ═══ api 3.13 · los textos fijos vienen del servidor ═══
+   Katherine los edita en Plantillas y ajustes › Propuesta y contrato; el servidor
+   los manda ya resueltos en prospecto.textos = {saludo, operativa, incluye:[…], pasos}
+   (de la copia guardada si la propuesta ya salió). Si no vienen —propuesta vieja o
+   servidor anterior— se usan los de siempre, que son estos. */
+var TXT_RESP={
+  saludo:"Cordial saludo:\n\nEn ECOVSA contamos con más de 5 años de experiencia y personal altamente calificado en el "+
+    "manejo integral de desechos hospitalarios peligrosos. Le garantizamos confiabilidad, regularidad "+
+    "y puntualidad, con total cumplimiento de la normativa sanitaria y ambiental vigente en Panamá, "+
+    "respaldando a su institución ante cualquier fiscalización. Para nosotros sería muy importante "+
+    "poder contar con ustedes como nuestros usuarios.",
+  operativa:{
+    unica:"Recolección, transporte, tratamiento y disposición final del material descrito a "+
+      "continuación, en una sola jornada coordinada con ustedes, con camión especializado y "+
+      "personal certificado.",
+    recurrente:"Servicio integral de recolección, transporte, tratamiento, trituración y disposición final de "+
+      "desechos punzocortantes, patológicos y biológico-infecciosos, con camión especializado y personal "+
+      "certificado."},
+  incluye:{
+    unica:["Recolección en la fecha coordinada, con camión y personal certificado."],
+    recurrente:["Recolección programada según la frecuencia acordada, con puntualidad garantizada.",
+      "Suministro de recipientes punzocortantes, para la correcta segregación de los desechos."],
+    comun:["Manifiesto de transporte en cada recolección, para la trazabilidad de sus residuos.",
+      "Certificado de tratamiento y disposición final, válido ante las autoridades sanitarias.",
+      "Tratamiento con tecnología verde que reduce el volumen y el impacto ambiental del residuo.",
+      "Cumplimiento de las normas oficiales de bioseguridad y manejo de desechos peligrosos."]},
+  pasos:{
+    unica:"Para programar el servicio solo necesitamos su confirmación y copia de su Aviso de "+
+      "Operación. La fecha se coordina con un mínimo de 48 horas de anticipación. Contáctenos al "+
+      "6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.",
+    recurrente:"Para iniciar el servicio solo necesitamos copia de su Aviso de Operación y los datos generales "+
+      "de su institución. Con gusto coordinamos una visita o su primera recolección. Contáctenos al "+
+      "6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle."}
+};
+function textosDe(p,UNICA){
+  var T=(p&&p.textos&&typeof p.textos==="object")?p.textos:{}, k=UNICA?"unica":"recurrente";
+  function hay(v){ return Array.isArray(v)?v.length>0:String(v==null?"":v).trim()!==""; }
+  return {
+    saludo: hay(T.saludo)?T.saludo:TXT_RESP.saludo,
+    operativa: hay(T.operativa)?T.operativa:TXT_RESP.operativa[k],
+    incluye: hay(T.incluye)?lineas(T.incluye):TXT_RESP.incluye[k].concat(TXT_RESP.incluye.comun),
+    pasos: hay(T.pasos)?T.pasos:TXT_RESP.pasos[k]
+  };
+}
+/* texto → html, en el formato del servidor: cada renglón es un párrafo; un renglón que
+   empieza con «- » es un punto de lista (viñeta); **negrita**. [[ ]] (marca de dato) no se ve. */
+function enLinea(t){ return esc(String(t).replace(/\[\[|\]\]/g,"")).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>"); }
+function parrafos(t){
+  var out=[], li=[];
+  function cl(){ if(li.length){ out.push('<ul class="notas">'+li.map(function(x){return "<li>"+enLinea(x)+"</li>";}).join("")+"</ul>"); li=[]; } }
+  String(t==null?"":t).split("\n").forEach(function(l){
+    var u=/^\s*-\s+(.*)$/.exec(l);
+    if(!l.trim()){ cl(); return; }
+    if(u){ li.push(u[1]); return; }
+    cl(); out.push("<p>"+enLinea(l)+"</p>");
+  });
+  cl();
+  return out.join("");
+}
+function lineas(t){ return (Array.isArray(t)?t:String(t==null?"":t).split("\n")).map(function(x){ return String(x).replace(/^\s*-\s+/,"").trim(); }).filter(Boolean); }
+/* la línea «Propuesta vigente hasta…» / «válida hasta…» ya puede venir del servidor */
+function esVigencia(t){ return /^\s*(\*\*)?\s*(esta\s+)?propuesta\s+(es\s+)?(vigente|v[aá]lida)\s+hasta/i.test(String(t||"")); }
+/* api 3.13 · Nota importante. notas_lista ya trae las líneas de la promoción; las que también
+   vienen en notas_promo se marcan en negrita (sin tachar nada). Si el servidor no trae la línea
+   de vigencia, se pone aquí; nunca dos veces. */
+function notasHtml(p, vence, vencePromo){
+  var L=(p.notas_lista||[]).slice(), P=(p.notas_promo||[]).map(function(x){ return String(x).trim(); });
+  var ya={}; L.forEach(function(t){ ya[String(t).trim()]=1; });
+  var faltan=P.filter(function(t){ return !ya[t]; });            // servidor que las manda solo aparte
+  L=faltan.concat(L);
+  var h='';
+  if(!L.some(esVigencia)) h+= vencePromo
+    ? '<li><b>Esta propuesta es válida hasta el '+esc(larga(vence))+', fecha en que cierra la promoción.</b></li>'
+    : '<li>Propuesta vigente hasta '+esc(larga(vence))+'.</li>';
+  return h+L.map(function(t){ var neg=p.promo&&(P.indexOf(String(t).trim())>=0||(esVigencia(t)&&/promoci/i.test(t))); return '<li>'+(neg?'<b>'+enLinea(t)+'</b>':enLinea(t))+'</li>'; }).join('');
+}
+/* servicios que se dan cada 2, 3 o 6 meses: se cobran repartidos en cada mes */
+var MESES_CADA={bimestre:2,trimestre:3,semestre:6};
+
 function pintar(p){
   if(DATOS && DATOS.empresa) DATOS_EMP=DATOS.empresa;
   var costo=Number(p["costo visita"])||0;
@@ -229,6 +310,10 @@ function pintar(p){
   var kg=Number(p["kg plan"])||0;
   var fProp=p["fecha propuesta"]||p["fecha contacto"]||DATOS.hoy;
   var vence=(DATOS&&DATOS.vence)||sumarDias(fProp, p["validez propuesta"]||30);
+  /* api 3.13: con promoción, la propuesta vence a más tardar cuando cierra la oferta */
+  var PROMO=p.promo||null, cierra=PROMO?String(p.venceOferta||PROMO.hasta||"").slice(0,10):"";
+  if(cierra && (!vence || cierra<vence)) vence=cierra;
+  var vencePromo=!!(cierra && vence===cierra);
 
   var atencion = p.contacto ? (p.contacto + (p.cargo ? " · "+p.cargo : "")) : "";
 
@@ -239,6 +324,7 @@ function pintar(p){
   var UNICA = !!p.visitaUnica;
   /* api 3.11: gran generador — una tabla por grupo de sedes y el total mensual */
   var GRAN = !!(p.gran && p.cuenta);
+  var TX = textosDe(p, UNICA);
 
   var html =
   DOCE.membrete({ empresa: emp(),
@@ -250,38 +336,22 @@ function pintar(p){
     '<div class="li">E. S. D.'+(atencion?' · Atención: '+esc(atencion):'')+'</div>'+
   '</div>'+
 
-  '<p>Cordial saludo:</p>'+
-  '<p>En ECOVSA contamos con más de 5 años de experiencia y personal altamente calificado en el '+
-  'manejo integral de desechos hospitalarios peligrosos. Le garantizamos confiabilidad, regularidad '+
-  'y puntualidad, con total cumplimiento de la normativa sanitaria y ambiental vigente en Panamá, '+
-  'respaldando a su institución ante cualquier fiscalización. Para nosotros sería muy importante '+
-  'poder contar con ustedes como nuestros usuarios.</p>'+
+  parrafos(TX.saludo)+
 
   '<div class="sec">Propuesta operativa</div>'+
+  parrafos(TX.operativa)+
   (UNICA
-    ? '<p>Recolección, transporte, tratamiento y disposición final del material descrito a '+
-      'continuación, en una sola jornada coordinada con ustedes, con camión especializado y '+
-      'personal certificado.</p>'+
-      (p.descripcionTrabajo
+    ? (p.descripcionTrabajo
         ? '<p><b>Trabajo a realizar:</b> '+esc(p.descripcionTrabajo)+'</p>' : '')+
       (p.cantidadEstimada
         ? '<p><b>Cantidad estimada:</b> '+esc(p.cantidadEstimada)+'</p>' : '')+
       (p.fechaTentativa
         ? '<p><b>Fecha tentativa:</b> '+esc(larga(p.fechaTentativa))+'</p>' : '')
-    : '<p>Servicio integral de recolección, transporte, tratamiento, trituración y disposición final de '+
-      'desechos punzocortantes, patológicos y biológico-infecciosos, con camión especializado y personal '+
-      'certificado.</p>')+
+    : '')+
 
   '<div class="sec">Nuestro servicio incluye</div>'+
   '<ul>'+
-    (UNICA
-      ? '<li>Recolección en la fecha coordinada, con camión y personal certificado.</li>'
-      : '<li>Recolección programada según la frecuencia acordada, con puntualidad garantizada.</li>'+
-        '<li>Suministro de recipientes punzocortantes, para la correcta segregación de los desechos.</li>')+
-    '<li>Manifiesto de transporte en cada recolección, para la trazabilidad de sus residuos.</li>'+
-    '<li>Certificado de tratamiento y disposición final, válido ante las autoridades sanitarias.</li>'+
-    '<li>Tratamiento con tecnología verde que reduce el volumen y el impacto ambiental del residuo.</li>'+
-    '<li>Cumplimiento de las normas oficiales de bioseguridad y manejo de desechos peligrosos.</li>'+
+    TX.incluye.filter(function(t){ return String(t||"").trim(); }).map(function(t){ return '<li>'+enLinea(t)+'</li>'; }).join('')+
   '</ul>'+
 
   '<div class="sec">Propuesta económica</div>'+
@@ -307,27 +377,20 @@ function pintar(p){
       '</tbody></table>'+
       '<div class="pie-tabla">El precio por visita incluye la recolección de hasta los kilogramos '+
       'indicados; el excedente se factura según la tarifa de kilogramo adicional. Precios en balboas '+
-      '(B/.), ITBMS incluido.</div>')+
+      '(B/.), ITBMS incluido.'+(PROMO?' Esta propuesta incluye la promoción «'+esc(PROMO.nombre||'')+'»: vea sus beneficios en la nota importante.':'')+'</div>')+
 
   /* Las notas las arma el servidor según el tipo de servicio, y si Katherine
      las editó para este cliente, manda lo que ella guardó. Antes vivían aquí
      escritas a mano y afirmaban un contrato a 12 meses incluso en las
      recolecciones de una sola visita. */
-  (!GRAN && p.servicios && p.servicios.lista && p.servicios.lista.length ? tablaServicios(p.servicios, UNICA) : '')+
+  (!GRAN && p.servicios && p.servicios.lista && p.servicios.lista.length ? tablaServicios(p.servicios, UNICA, PROMO) : '')+
   '<div class="sec">Nota importante</div>'+
   '<ul class="notas">'+
-    '<li>Propuesta vigente hasta '+esc(larga(vence))+'.</li>'+
-    (p.notas_lista||[]).map(function(t){ return '<li>'+esc(t)+'</li>'; }).join('')+
+    notasHtml(p, vence, vencePromo)+
   '</ul>'+
 
   '<div class="sec">Próximos pasos</div>'+
-  (UNICA
-    ? '<p>Para programar el servicio solo necesitamos su confirmación y copia de su Aviso de '+
-      'Operación. La fecha se coordina con un mínimo de 48 horas de anticipación. Contáctenos al '+
-      '6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.</p>'
-    : '<p>Para iniciar el servicio solo necesitamos copia de su Aviso de Operación y los datos generales '+
-      'de su institución. Con gusto coordinamos una visita o su primera recolección. Contáctenos al '+
-      '6264-1647 o escríbanos a info@ecovsa.com; será un placer atenderle.</p>')+
+  parrafos(TX.pasos)+
 
   '<div class="firma"><p>Atentamente,</p>'+
     '<div class="lin"><b>'+esc(p.asesor||(DATOS.usuario||{}).nombre||"")+'</b>Coord. Comercial · ECOVSA</div>'+
@@ -342,14 +405,23 @@ function pintar(p){
 }
 
 /* api 3.12 · servicios y productos de una propuesta de un solo punto */
-function tablaServicios(S, UNICA){
+function tablaServicios(S, UNICA, PROMO){
+  var durP=PROMO?Number(PROMO.duracionMeses!=null?PROMO.duracionMeses:PROMO.meses)||0:0;
+  var hayRep=false;
   return '<div class="sec" style="font-size:12.5px;margin-top:14px">Servicios y productos</div>'+
     '<table><thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio</th><th>'+(UNICA?'Total':'Al mes')+'</th></tr></thead><tbody>'+
-    S.lista.map(function(v){ var cant=v.cantidad==='solicitud'?'Por solicitud':v.cantidad+(UNICA?'':(v.cada==='visita'?' por visita':' al mes'));
-      return '<tr><td>'+esc(v.nombre)+'</td><td class="n">'+esc(cant)+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(v.precio):'Incluido')+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(v.total):'—')+'</td></tr>'; }).join('')+
+    S.lista.map(function(v){
+      /* api 3.13: lo de la promoción va «Sin costo» (sin tachar precio); lo que se da cada 2, 3 o 6 meses se cobra repartido al mes */
+      /* forma del servicio: modo 'incluido'|'cobrado', cada + meses (1|2|3|6), total ya repartido al mes; lo gratis de la promoción = incluido + dePromo */
+      var promo=v.dePromo===true||v.modo==='promo', mc=Number(v.meses)>1?Number(v.meses):(MESES_CADA[v.cada]||0);
+      if(mc) hayRep=hayRep||v.modo==='cobrado';
+      var cant=v.cantidad==='solicitud'?'Por solicitud':v.cantidad+(UNICA?'':(v.cada==='visita'?' por visita':mc?' cada '+mc+' meses':' al mes'))+(promo&&durP?', primeros '+durP+(durP===1?' mes':' meses'):'');
+      var alMes=v.modo==='cobrado'?(v.total!=null&&v.total!==''?Number(v.total):(Number(v.precio)||0)*(Number(v.cantidad)||1)/(mc||1)):0;
+      var precio=promo?'Sin costo':v.modo==='cobrado'?'B/. '+n2(v.precio)+(mc?' c/u':''):'Incluido';
+      return '<tr><td>'+esc(v.nombre)+'</td><td class="n">'+esc(cant)+'</td><td class="n">'+precio+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(alMes):'—')+'</td></tr>'; }).join('')+
     (S.total?'<tr class="tot"><td colspan="3">'+(UNICA?'SERVICIOS Y PRODUCTOS':'SERVICIOS Y PRODUCTOS AL MES')+'</td><td class="n">B/. '+n2(S.total)+'</td></tr>':'')+
     '</tbody></table>'+
-    '<div class="pie-tabla">'+(S.total?'Lo cobrado se factura aparte'+(UNICA?' junto con el servicio':' cada mes, más ITBMS')+'. ':'')+'Lo incluido va sin costo adicional.</div>';
+    '<div class="pie-tabla">'+(S.total?'Lo cobrado se factura aparte'+(UNICA?' junto con el servicio':' cada mes, más ITBMS')+'. ':'')+(hayRep&&!UNICA?'Lo que se da cada 2, 3 o 6 meses se cobra repartido en cada mes. ':'')+'Lo incluido va sin costo adicional.</div>';
 }
 /* api 3.11 · la propuesta de una cuenta con varias sedes */
 function frecDe(v){ v=Number(v)||0; return v>=8?'2 veces por semana':v>=4?'Semanal':v>=2?'Quincenal':v>=1?'Mensual':v>=0.5?'Bimestral':'Trimestral'; }

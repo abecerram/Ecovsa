@@ -7,10 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|docGuardarTexto|docVolverOriginal|docRestaurarFabrica|docVolverVersion|numeracionFijar|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
+<link rel="stylesheet" href="documento.css">
 <style>
 /* ── Plantillas y ajustes · opción A «Ajustes con menú lateral» ── */
 .sysbar .srch{min-width:0}  /* la barra del kit se desborda a 390 px sin esto */
@@ -116,6 +117,104 @@ textarea.ta{font:500 13.5px/1.5 Archivo,sans-serif;resize:vertical;min-height:22
   .tb.et td:first-child,.tb.et td.r{grid-column:1/-1;text-align:left}
   .tb.et td[data-l]::before{content:attr(data-l);display:block;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--muted2);margin:4px 0 3px}
 }
+/* ═══ api 3.13 · Propuesta y contrato ═══ */
+.tabs{align-items:center}
+.tabs .fab{border:0;background:none;display:inline-flex;align-items:center;gap:5px;font:600 12px Archivo,sans-serif;color:var(--muted2);cursor:pointer;padding:0 4px;white-space:nowrap}
+.tabs .fab:hover{color:var(--bad)}
+.numc{margin-bottom:14px}
+.numc h3 svg{color:var(--navy2)}
+.nc-g{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:stretch}
+.nc-f{border:1px dashed #c9d5e8;border-radius:12px;padding:10px 14px;background:#fafbfd}
+.lb2{font-size:10.5px;font-weight:700;letter-spacing:.8px;color:var(--muted2)}
+.cod{font:700 21px ui-monospace,Menlo,Consolas,monospace;color:var(--navy2);margin:3px 0 6px;letter-spacing:.5px}
+.cod i{font-style:normal;color:var(--muted2);margin:0 1px}
+.cod .a{border-bottom:3px solid #9db4d8}.cod .n{border-bottom:3px solid var(--amber)}.cod .v{border-bottom:3px solid #cfd7e3;color:var(--muted)}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted)}
+.leg span{display:inline-flex;align-items:center;gap:5px}
+.leg b{width:12px;height:3px;border-radius:2px;display:inline-block}
+.leg b.a{background:#9db4d8}.leg b.n{background:var(--amber)}.leg b.v{background:#cfd7e3}
+.numc .kpi{display:flex;flex-direction:column;gap:1px;justify-content:center;min-width:0}
+.numc .kpi>span{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2)}
+.numc .kpi b{font-size:19px;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:0;overflow-wrap:anywhere}
+.numc .kpi small{font-size:12px;color:var(--muted)}
+.numc .kpi.sig{border-color:#9db4d8;background:#f5f8fd}
+.numc .kpi.sig b{color:var(--navy2)}
+.libres{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12.5px;background:var(--amber-bg);border:1px solid var(--amber-line);color:#4d3a00;border-radius:10px;padding:8px 11px}
+.libres svg{flex:none;margin-top:2px}
+.libres.az{background:var(--info-bg);border-color:#c9d8f5;color:#1d3f86}
+.dc-g{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:16px;align-items:start}
+.bqs{padding:12px 12px 6px}
+.bqs h3{padding:2px 4px 0}
+.bq{border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:#fff}
+.bq.on{border-color:#9db4d8;box-shadow:0 0 0 3px #eaf0fa}
+.bq.auto.on{box-shadow:none;border-color:var(--amber)}
+.bq-h{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:9px 10px;font:600 13px Archivo,sans-serif;color:var(--ink);cursor:pointer;text-align:left}
+.bq-h:hover{background:var(--hover);border-radius:10px}
+.bq-h b{font-weight:700;min-width:0}
+.bq-h .sp{flex:1}
+.bq-h .chev{color:var(--muted2);display:grid;place-items:center;width:16px;flex:none;transition:transform .15s}
+.bq.on:not(.auto) .bq-h .chev{transform:rotate(90deg);color:var(--navy2)}
+.bq-h .tag{flex:none}.bq-h .tag svg{width:11px;height:11px}
+.bq-h .var2{font-size:11px;color:var(--muted2);font-weight:600;white-space:nowrap}
+.bq.auto{background:#fafbfd;border-style:dashed}
+.bq.auto .bq-h b{color:#4a5870}
+.bq-d{padding:0 12px 9px 34px;font-size:12px;color:var(--muted);margin-top:-3px}
+.bq-b{padding:4px 12px 12px}
+.bq-b .seg{margin:2px 0 8px}
+.pt2{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);vertical-align:1px;margin-left:3px;flex:none}
+textarea.ted{font:500 13.5px/1.55 Archivo,sans-serif;resize:vertical;min-height:130px;display:block}
+.dv{background:var(--info-bg);color:var(--navy2);border:1px solid #c9d8f5;border-radius:5px;padding:0 4px;font:600 12px ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+.sm2{font-size:12px;margin-top:8px;padding:8px 11px}
+.dc-pv{position:sticky;top:74px;min-width:0}
+.dc-pv .lb{margin-top:0}
+.docp{margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 3px 14px rgba(15,33,64,.08);padding:18px 20px;height:640px;overflow:auto;color:#1a1a1a;font-size:11.5px;line-height:1.58;position:relative}
+.docp .dm{margin-bottom:12px}
+.docp .dm-logo{width:50px;height:50px}.docp .dm-e b{font-size:13.5px}.docp .dm-e span{font-size:9px}.docp .dm-r b{font-size:13px}.docp .dm-r small,.docp .dm-r span{font-size:9px}
+.docp .dest{margin-bottom:10px}.docp .dest .se{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#777}
+.docp .dest .nom{font-size:13.5px;font-weight:800;color:var(--tm-navy2)}.docp .dest .li{font-size:10.5px;color:#555}
+.docp .sec{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--tm-azul,#1d4f91);margin:12px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--tm-lima,#8cc63f)}
+.docp p{margin-bottom:7px;text-align:justify}
+.docp ul{list-style:none;margin-bottom:7px}.docp ul li{padding-left:16px;position:relative;margin-bottom:3px}
+.docp ul li:before{content:"✓";position:absolute;left:0;color:var(--tm-verde-bandera,#2f7d3a);font-weight:900}
+.docp ul.notas li:before{content:"•";color:var(--tm-azul,#1d4f91)}
+.docp ol{padding-left:20px;margin-bottom:7px}.docp ol li{margin-bottom:2px}
+.docp table{width:100%;border-collapse:collapse;margin:6px 0 4px;font-size:10.5px}
+.docp th{background:var(--tm-navy2);color:#fff;padding:6px 7px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.5px}
+.docp td{border:1px solid #d6d6d6;padding:6px 7px}.docp td.n{text-align:right;white-space:nowrap}
+.docp tr.tot td{background:#EEF5E4;font-weight:800;color:var(--tm-verde,#2f7d3a)}
+.docp .pie-tabla{font-size:9.5px;color:#666;font-style:italic}
+.docp .firma .lin{border-top:1.5px solid #333;width:190px;padding-top:5px;margin-top:20px;font-size:10.5px}.docp .firma .lin b{display:block}
+.docp .firmas2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px;text-align:center;font-size:10.5px}
+.docp .firmas2>div{border-top:1px solid #333;padding-top:5px}
+.docp h1.ct{font-size:13px;text-align:center;text-transform:uppercase;color:var(--tm-navy2);margin:6px 0 2px;letter-spacing:.3px}
+.docp .numc2{text-align:center;font-weight:700;margin-bottom:10px;font-size:11px}
+.docp h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--tm-navy2);margin:10px 0 5px}
+.docp .cl{font-weight:800}
+.docp .vv{background:var(--info-bg);color:var(--navy2);border-radius:3px;padding:0 3px;font-weight:600}
+.vv.cfg{background:#f1ecfa!important;color:#5a3c8c!important}
+.pb{border-radius:6px;margin:0 -8px;padding:1px 8px;border:1.5px solid transparent}
+.pb.hl{border-color:var(--amber);background:#fffcf2}
+.dc-pv .chk2 .vv{background:var(--info-bg);color:var(--navy2);border-radius:3px;padding:0 5px;font-weight:600}
+.sel2{display:inline-block;width:22px;height:12px;border:1.5px solid var(--amber);background:#fffcf2;border-radius:3px;margin-left:8px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.cmp-t{border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.55;background:#fafbfd;color:#3d4a60;max-height:300px;overflow:auto;overflow-wrap:anywhere}
+.cmp-t.nuevo{background:#fff;border-color:#9db4d8;color:var(--ink)}
+.cmp ins{background:#e3f4dc;color:#1e5a2a;text-decoration:none;border-radius:3px;padding:0 2px;font-weight:600}
+.cmp del{background:var(--bad-bg);color:var(--bad)}
+.ck.ent{margin-top:12px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px}
+.ck.ent input{width:18px;height:18px}
+.hist .hev{position:relative;padding:0 0 18px}
+.hist .hev::before{content:"";position:absolute;left:-17px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--navy2)}
+.hist .hev.sis::before{border-color:var(--gris)}
+.hist .hev small{color:var(--muted);font-size:11.5px}
+.hist .hev p{font-size:13px;margin-top:2px;color:#3d4a60}
+.hist .hb{margin-top:3px;font-size:13px}
+.hist .hb .tag{font-size:10.5px;padding:1px 6px}
+.btn.on2{background:#eaf0fa;border-color:#9db4d8}
+.antes{margin-top:8px;border:1px solid var(--line);border-left:3px solid #9db4d8;border-radius:8px;background:#fafbfd;padding:8px 10px;font-size:12.5px;color:#3d4a60}
+.hoja .pref span{white-space:nowrap}
+@media(max-width:1100px){.dc-g{grid-template-columns:minmax(0,1fr)}.dc-pv{position:static}.nc-g{grid-template-columns:1fr 1fr}.nc-f{grid-column:1/-1}.docp{height:520px}}
+@media(max-width:600px){#dcTabs{flex-wrap:wrap}#dcTabs .fab{padding:6px 4px}.numc h3{flex-wrap:wrap}.nc-g{grid-template-columns:minmax(0,1fr)}.cmp{grid-template-columns:minmax(0,1fr)}.cod{font-size:18px}.docp{padding:14px 12px}.bq-h{flex-wrap:wrap}.bq-h .tag{margin-left:24px}}
 /* gerencia solo consulta: ve los ajustes pero no los cambia */
 body.solo-ver #ajGuardar,body.solo-ver #ajDesc,body.solo-ver #ajEstado,body.solo-ver #plNueva,body.solo-ver #plDup,body.solo-ver #plBorrar,body.solo-ver #plGuardar,body.solo-ver #plDeshacer,body.solo-ver #plCanc,body.solo-ver [data-rec],body.solo-ver [data-add],body.solo-ver [data-n],body.solo-ver #ajCuerpo .ib{display:none!important}
 body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver #ajCuerpo [data-v],body.solo-ver #ajCuerpo label.ck{pointer-events:none}
@@ -134,6 +233,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     ['listas', 'Fuentes y motivos', 'lista'],
     ['metas', 'Metas y alertas', 'tendencia'],
     ['plantillas', 'Plantillas', 'plantilla'],
+    ['documentos', 'Propuesta y contrato', 'contrato'],
     ['avisos', 'Notificaciones', 'campana'],
     ['firma', 'Firma, tono y agenda', 'lapiz'],
     ['espacio', 'Espacio de archivos', 'clip']
@@ -153,6 +253,8 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function set(o, k, v) { var i = k.indexOf('.'); if (i < 0) { o[k] = v; return; } var g = k.slice(0, i); o[g] = o[g] || {}; o[g][k.slice(i + 1)] = v; }
   function igual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
   function hayRec(k) { return REC && get(REC, k) !== undefined; }
+  /* api 3.13: sectores entra a la lista de «Fuentes y motivos» solo si el servidor ya los manda */
+  function listas() { return ['fuentes', 'motivosPerdida'].concat(AJ && Array.isArray(AJ.sectores) ? ['sectores'] : []); }
 
   /* ═══ Lo que cambió (clave → valor) ═══ */
   function cambios() {
@@ -162,14 +264,14 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
       var ks = Object.keys(Object.assign({}, AJ[g] || {}, ED[g] || {}));
       ks.forEach(function (e) { if (!igual((ED[g] || {})[e], (AJ[g] || {})[e])) out.push([g + '.' + e, ED[g][e]]); });
     });
-    ['fuentes', 'motivosPerdida'].forEach(function (k) { if (!igual(ED[k], AJ[k])) out.push([k, ED[k]]); });
+    listas().forEach(function (k) { if (!igual(ED[k], AJ[k])) out.push([k, ED[k]]); });
     ESCALARES.forEach(function (k) { if (!igual(ED[k], AJ[k])) out.push([k, ED[k]]); });
     return out;
   }
   function secDe(clave) {
     var r = clave.split('.')[0];
     if (r === 'probabilidades' || r === 'limitesDias') return 'etapas';
-    if (r === 'fuentes' || r === 'motivosPerdida') return 'listas';
+    if (r === 'fuentes' || r === 'motivosPerdida' || r === 'sectores') return 'listas';
     if (r === 'metaMensual' || r === 'diasRenovacion' || r === 'diasSinContacto') return 'metas';
     return 'firma';
   }
@@ -188,7 +290,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     var e = [];
     ABIERTAS.forEach(function (s) { var v = ED.probabilidades[s]; if (!(v >= 0 && v <= 100) || v !== Math.round(v)) e.push('La probabilidad de «' + s + '» debe ser un número entero de 0 a 100.'); });
     Object.keys(ED.limitesDias || {}).forEach(function (s) { var v = ED.limitesDias[s]; if (!(v >= 1 && v <= 180) || v !== Math.round(v)) e.push('Los días máximos de «' + s + '» deben ser de 1 a 180.'); });
-    [['fuentes', 'fuentes'], ['motivosPerdida', 'motivos de pérdida']].forEach(function (x) {
+    [['fuentes', 'fuentes'], ['motivosPerdida', 'motivos de pérdida'], ['sectores', 'sectores']].filter(function (x) { return listas().indexOf(x[0]) >= 0; }).forEach(function (x) {
       var l = ED[x[0]] || []; if (!l.length) e.push('La lista de ' + x[1] + ' no puede quedar vacía.');
       var vis = {}; l.forEach(function (v) { var k = String(v).trim().toLowerCase(); if (!k) e.push('Hay un renglón vacío en ' + x[1] + '.'); else if (vis[k]) e.push('«' + v + '» está repetido en ' + x[1] + '.'); vis[k] = 1; });
     });
@@ -271,8 +373,8 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
 
   /* ═══ Menú y cuerpo ═══ */
   function pintarMenu() {
-    var c = cambios(), sucias = {}; c.forEach(function (x) { sucias[secDe(x[0])] = 1; }); if (plSucia()) sucias.plantillas = 1;
-    var cnt = { etapas: ABIERTAS.length, listas: (ED.fuentes || []).length + (ED.motivosPerdida || []).length, plantillas: PL.length, avisos: NOTIF ? NOTIF.eventos.filter(function (e) { return e.activo; }).length + ' de ' + NOTIF.eventos.length : '' };
+    var c = cambios(), sucias = {}; c.forEach(function (x) { sucias[secDe(x[0])] = 1; }); if (plSucia()) sucias.plantillas = 1; if (docSucio()) sucias.documentos = 1;
+    var cnt = { etapas: ABIERTAS.length, listas: listas().reduce(function (s, k) { return s + (ED[k] || []).length; }, 0), plantillas: PL.length, avisos: NOTIF ? NOTIF.eventos.filter(function (e) { return e.activo; }).length + ' de ' + NOTIF.eventos.length : '' };
     document.getElementById('ajMenu').innerHTML = SECS.map(function (s) {
       return '<a class="' + (s[0] === SEC ? 'on' : '') + '" data-s="' + s[0] + '" href="#' + s[0] + '">' + MK.ic(s[2], 16) + MK.esc(s[1]) + (sucias[s[0]] ? '<span class="pt" title="Cambios sin guardar"></span>' : '') + (cnt[s[0]] !== undefined && cnt[s[0]] !== '' ? '<small>' + cnt[s[0]] + '</small>' : '') + '</a>';
     }).join('') + '<div class="pie">Cada cambio queda registrado con la fecha y quién lo hizo. Los valores con fondo amarillo aún no se han guardado.</div>';
@@ -280,6 +382,10 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   }
   function irA(s) {
     if (s === SEC) return;
+    if (SEC === 'documentos' && docSucio()) {
+      MK.confirmar('Hay un texto de la propuesta o del contrato sin guardar. ¿Salir sin guardarlo?', function () { DBORR = {}; ir(s); }, { titulo: 'Texto sin guardar', boton: 'Salir sin guardar', peligro: true });
+      return;
+    }
     if (SEC === 'plantillas' && plSucia()) {
       MK.confirmar('La plantilla «' + (PED.nombre || 'nueva') + '» tiene cambios sin guardar. ¿Salir sin guardarla?', function () { PED = PORIG ? cp(PORIG) : null; if (!PORIG) PSEL = ''; ir(s); }, { titulo: 'Plantilla sin guardar', boton: 'Salir sin guardar', peligro: true });
       return;
@@ -289,7 +395,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function ir(s) { SEC = s; try { history.replaceState(null, '', '#' + s); } catch (e) {} pintarMenu(); pintarSeccion(); if (innerWidth < 900) { var c = document.getElementById('ajCuerpo'); if (c) c.scrollIntoView({ block: 'start' }); } }
   function pintarSeccion() {
     var el = document.getElementById('ajCuerpo'); if (!el) return;
-    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, avisos: secAvisos, firma: secFirma, espacio: secEspacio }[SEC] || secEtapas)(el); }
+    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, documentos: secDocs, avisos: secAvisos, firma: secFirma, espacio: secEspacio }[SEC] || secEtapas)(el); }
     catch (e) { console.error(e); el.innerHTML = '<div class="aviso rj">No se pudo mostrar esta sección: ' + MK.esc(e.message) + '</div>'; }
   }
 
@@ -340,7 +446,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   /* ═══ 2 · Fuentes y motivos ═══ */
   function usos(k) {
     var u = {}; if (!OPS) return u;
-    OPS.forEach(function (p) { var v = String(k === 'fuentes' ? p.fuente || '' : p['motivo perdida'] || '').trim(); if (v) u[v.toLowerCase()] = (u[v.toLowerCase()] || 0) + 1; });
+    OPS.forEach(function (p) { var v = String(k === 'fuentes' ? p.fuente || '' : k === 'sectores' ? p.sector || '' : p['motivo perdida'] || '').trim(); if (v) u[v.toLowerCase()] = (u[v.toLowerCase()] || 0) + 1; });
     return u;
   }
   function secListas(el) {
@@ -352,11 +458,13 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
           return '<div class="it-l"><input class="in sm" data-l="' + k + '" data-i="' + i + '" value="' + MK.esc(x) + '" aria-label="' + MK.esc(tit) + ' ' + (i + 1) + '"><span class="u">' + (OPS ? n + ' ' + unidad : '') + '</span><button class="ib" type="button" title="Quitar" aria-label="Quitar ' + MK.esc(x) + '" data-q="' + k + '" data-i="' + i + '">' + MK.ic('x', 15) + '</button></div>';
         }).join('') + '</div>' +
         '<div class="row" style="margin-top:10px"><input class="in sm" id="add-' + k + '" placeholder="Agregar…" maxlength="60"><button class="btn sm" type="button" data-add="' + k + '">' + MK.ic('mas', 14) + 'Agregar</button></div>' +
-        (igual(ED[k], REC[k]) ? '<span class="recbox"><span style="color:var(--ok)">✓</span> Es la lista recomendada</span>' : '<span class="recbox">La lista recomendada tiene ' + REC[k].length + ': ' + MK.esc(REC[k].join(', ')) + '. <button type="button" class="btn gh sm" data-rec="' + k + '">' + MK.ic('renovar', 12) + 'Volver a ella</button></span>') +
+        (!Array.isArray(REC[k]) ? '' : igual(ED[k], REC[k]) ? '<span class="recbox"><span style="color:var(--ok)">✓</span> Es la lista recomendada</span>' : '<span class="recbox">La lista recomendada tiene ' + REC[k].length + ': ' + MK.esc(REC[k].join(', ')) + '. <button type="button" class="btn gh sm" data-rec="' + k + '">' + MK.ic('renovar', 12) + 'Volver a ella</button></span>') +
         '</div>';
     }
-    el.innerHTML = '<div class="sec-h"><div><h2>Fuentes y motivos de pérdida</h2><p>Las listas que se eligen al registrar una oportunidad (¿de dónde viene?) y al cerrarla como perdida (¿por qué?). Alimentan los reportes por fuente y de pérdidas. Cambiar un nombre aquí <b>no cambia</b> las oportunidades que ya lo tienen: esas conservan el nombre viejo.</p></div></div>' +
-      '<div class="grid g2">' + card('fuentes', 'Fuentes', '¿Cómo llegó el prospecto?', 'oport.') + card('motivosPerdida', 'Motivos de pérdida', 'Se piden al marcar una oportunidad como Rechazado.', 'usos') + '</div>';
+    var conSec = listas().indexOf('sectores') >= 0;
+    el.innerHTML = '<div class="sec-h"><div><h2>Fuentes y motivos de pérdida</h2><p>Las listas que se eligen al registrar una oportunidad (¿de dónde viene?' + (conSec ? ', ¿de qué sector es?' : '') + ') y al cerrarla como perdida (¿por qué?). Alimentan los reportes por fuente y de pérdidas' + (conSec ? '; el sector decide qué planes especiales se le ofrecen' : '') + '. Cambiar un nombre aquí <b>no cambia</b> las oportunidades que ya lo tienen: esas conservan el nombre viejo.</p></div></div>' +
+      '<div class="grid g2">' + card('fuentes', 'Fuentes', '¿Cómo llegó el prospecto?', 'oport.') + card('motivosPerdida', 'Motivos de pérdida', 'Se piden al marcar una oportunidad como Rechazado.', 'usos') +
+      (conSec ? card('sectores', 'Sectores', 'El sector del cliente. Los planes especiales solo se le ofrecen a su sector.', 'oport.') : '') + '</div>';
     [].forEach.call(el.querySelectorAll('input[data-l]'), function (inp) {
       var k = inp.getAttribute('data-l'), i = +inp.getAttribute('data-i');
       inp.classList.toggle('difiere', (AJ[k] || [])[i] !== ED[k][i]);
@@ -592,6 +700,437 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     }, function () {});
   }
 
+  /* ═══ 4b · Propuesta y contrato (api 3.13) ═══
+     Los textos fijos de la propuesta y del contrato, por bloques. Lo que va entre
+     llaves se llena solo con los datos de cada cliente y aquí no se edita.
+     Guardar pide «Entiendo»: el cambio queda para todas las propuestas (o contratos)
+     que se generen desde ese momento; lo ya enviado o firmado conserva su texto.
+     Cada cambio queda en el historial y al administrador le llega un aviso. */
+  var DTAB = 'propuesta';
+  var DOC = { propuesta: null, contrato: null }, DERR = { propuesta: '', contrato: '' }, DCARGA = {};
+  var DABRE = { propuesta: '', contrato: '' };
+  var DVAR = { propuesta: 'recurrente', contrato: '' };
+  var DBORR = {};                 // borradores sin guardar: 'doc|bloque|variante' → texto
+  var NUMS = { pro: null, ct: null };
+  var DMUESTRA = { propuesta: 'recurrente', contrato: '12' };
+  var HFILTRO = '';
+  var MARCA_FALTA = '[falta en Configuración › Datos de la empresa]';
+  /* Valores del cliente de ejemplo para la vista previa (100 % ficticios). Si el servidor
+     manda variables[].ejemplo, manda ese. */
+  var EJ = {
+    empresa: 'Clínica San Rafael', codigoPropuesta: 'PRO-26-014-001', fechaPropuesta: '28 de septiembre de 2026', plazo: '12', frecuencia: 'QUINCENAL',
+    kgIncluidos: '20', kgDesde: '21', tarifaKg: 'B/. 1.50', tarifaVisita: 'B/. 35.00', correoCliente: 'ana.prueba@ejemplo.com', telefonoCliente: '6000-0000',
+    direccion: 'Sede principal, Calle Prueba 00', horario: '8:00 a.m. a 5:00 p.m.', valorTotal: 'B/. 48.15', valorEnLetras: 'Cuarenta y ocho balboas con 15/100', contacto: 'Ana Prueba'
+  };
+  /* Estos salen de Configuración: en la vista previa se nombran, no se inventan */
+  var CFG = { datosBancarios: 'datos bancarios de Configuración', representanteLegal: 'representante legal de Configuración', correosNotificacion: 'correos de notificación de Configuración', correoEmpresa: 'correo de la empresa de Configuración', resolucion: 'resolución sanitaria de Configuración' };
+  var VAR_RESP = {
+    propuesta: [['empresa', 'Nombre del cliente'], ['codigoPropuesta', 'Código de la propuesta'], ['fechaPropuesta', 'Fecha de la propuesta'], ['plazo', 'Plazo del contrato (meses)'], ['frecuencia', 'Frecuencia del servicio'], ['kgIncluidos', 'Kg incluidos en el plan'], ['tarifaKg', 'Tarifa del kg adicional'], ['tarifaVisita', 'Tarifa de la visita adicional']],
+    contrato: [['empresa', 'Nombre del cliente'], ['codigoPropuesta', 'Código de la propuesta'], ['fechaPropuesta', 'Fecha de la propuesta'], ['plazo', 'Plazo del contrato (meses)'], ['frecuencia', 'Frecuencia del servicio'], ['direccion', 'Dirección y sucursales'], ['horario', 'Horario de recolección'], ['valorTotal', 'Valor con ITBMS'], ['valorEnLetras', 'Valor en letras'], ['correoCliente', 'Correo del cliente'], ['datosBancarios', 'Banco, titular y cuenta · de Configuración'], ['correosNotificacion', 'Correos de notificación · de Configuración'], ['representanteLegal', 'Representante legal · de Configuración'], ['resolucion', 'Resolución sanitaria']]
+  };
+
+  function dVars(doc) {
+    var d = DOC[doc], l = d && d.variables && d.variables.length ? d.variables : VAR_RESP[doc].map(function (x) { return { clave: x[0], ayuda: x[1] }; });
+    return l;
+  }
+  function dVar(doc, k) { return dVars(doc).filter(function (v) { return v.clave === k; })[0]; }
+  function dBloques() { return (DOC[DTAB] && DOC[DTAB].bloques) || []; }
+  function dBloque(doc, id) { return ((DOC[doc] && DOC[doc].bloques) || []).filter(function (b) { return b.id === id; })[0]; }
+  function dVariantes(b) { var v = (b.variantes || []).map(function (x) { return x.id; }); if (!v.length) v = Object.keys(b.textos || {}); return v.length ? v : ['']; }
+  function dVarDe(doc, b) { var vs = dVariantes(b); var q = vs.length > 1 ? DVAR[doc] : vs[0]; return vs.indexOf(q) >= 0 ? q : vs[0]; }
+  function dNombreVar(b, v) { var x = (b.variantes || []).filter(function (y) { return y.id === v; })[0]; return (x && x.nombre) || (v === 'recurrente' ? 'Servicio recurrente' : v === 'unica' ? 'Visita única' : ''); }
+  /* bloques que son una lista de puntos (incluye, notas, consideraciones) */
+  function esLista(b) { return !!(b && (b.lista || ['incluye', 'notas', 'consideraciones'].indexOf(b.id) >= 0)); }
+  function aTexto(t) { return Array.isArray(t) ? t.map(function (x) { return /^\s*-\s/.test(x) ? x : '- ' + x; }).join('\n') : String(t == null ? '' : t); }
+  function lineasLista(t) { return aTexto(t).split('\n').map(function (x) { return x.replace(/^\s*-\s+/, '').trim(); }).filter(Boolean); }
+  /* lo que se guarda es siempre una cadena, tal cual se escribió (el servidor resuelve «A || B» y {?variable}) */
+  function deTexto(b, v, s) {
+    s = String(s).replace(/\s+$/, '');
+    /* en un bloque de lista, cada renglón es un punto: si falta el «- », se pone */
+    if (esLista(b)) s = s.split('\n').filter(function (x) { return x.trim(); }).map(function (x) { return /^\s*-\s/.test(x) ? x : '- ' + x.trim(); }).join('\n');
+    return s;
+  }
+  function kB(doc, id, v) { return doc + '|' + id + '|' + v; }
+  function dGuardado(doc, b, v) { return ((b.textos || {})[v] || {}).texto; }
+  function dActual(doc, b, v) { var k = kB(doc, b.id, v); return DBORR[k] !== undefined ? DBORR[k] : dGuardado(doc, b, v); }
+  function dSucioB(doc, b, v) { var k = kB(doc, b.id, v); return DBORR[k] !== undefined && !igual(DBORR[k], dGuardado(doc, b, v)); }
+  function docSucio() { return Object.keys(DBORR).some(function (k) { var p = k.split('|'), b = dBloque(p[0], p[1]); return b && dSucioB(p[0], b, p[2]); }); }
+  function dEditado(b) { return dVariantes(b).filter(function (v) { return ((b.textos || {})[v] || {}).editado; }); }
+  function nEditados(doc) { return ((DOC[doc] && DOC[doc].bloques) || []).filter(function (b) { return !b.auto && dEditado(b).length; }).length; }
+  function puedeDoc() { var d = DOC[DTAB]; return !!(d && d.puedeEditar !== false) && !(MK.usuario && MK.usuario.rol === 'gerente'); }
+  function fechaHist(s) {
+    s = String(s || ''); var f = s.slice(0, 10), h = s.slice(11, 16);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return s;
+    var d = MK.dias(f, MK.hoy), hh = '';
+    if (h) { var p = h.split(':'), n = +p[0]; hh = (n % 12 || 12) + ':' + p[1] + (n < 12 ? ' a. m.' : ' p. m.'); }
+    return (d === 0 ? 'hoy' : d === 1 ? 'ayer' : MK.fecha(f)) + (hh ? ' · ' + hh : '');
+  }
+
+  /* ── formato de los textos (el del servidor): cada renglón es un párrafo; «- » al empezar
+        el renglón es un punto de lista (viñeta en la propuesta, numerado en el contrato);
+        **así** = negrita. Las llaves se pintan con fn. ── */
+  function marcado(t, fn, tipoLista) {
+    var out = [], li = [];
+    function inl(x) { return fn(x).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+    function cierra() { if (li.length) { out.push('<' + (tipoLista || 'ul') + '>' + li.map(function (x) { return '<li>' + inl(x) + '</li>'; }).join('') + '</' + (tipoLista || 'ul') + '>'); li = []; } }
+    String(t || '').split('\n').forEach(function (l) {
+      var u = /^\s*-\s+(.*)$/.exec(l);
+      if (!l.trim()) { cierra(); return; }
+      if (u) { li.push(u[1]); return; }
+      cierra(); out.push('<p>' + inl(l) + '</p>');
+    });
+    cierra();
+    return out.join('');
+  }
+  /* las llaves en la vista previa: dato del cliente de ejemplo, dato de Configuración o llave que no existe */
+  function llaves(doc) {
+    return function (x) {
+      return MK.esc(x).replace(/\{\??(\w+)\}/g, function (z, k) {
+        var v = dVar(doc, k);
+        if (!v) return '<span class="vbad">{' + MK.esc(k) + '} no existe</span>';
+        if (CFG[k]) return '<span class="vv cfg" title="' + MK.esc(v.ayuda || '') + '">' + MK.esc(CFG[k]) + '</span>';
+        var ej = v.ejemplo != null && v.ejemplo !== '' ? v.ejemplo : EJ[k];
+        return '<span class="vv" title="' + MK.esc(v.ayuda || '') + '">' + MK.esc(ej != null ? ej : '{' + k + '}') + '</span>';
+      });
+    };
+  }
+  function chipsLlaves(t, doc) { return MK.esc(t || '').replace(/\{\??(\w+)\}/g, function (z, k) { var v = dVar(doc, k); return '<span class="dv" title="' + MK.esc(v ? v.ayuda : '') + '">{' + MK.esc(k) + '}</span>'; }); }
+  function llavesMalas(doc, t) { var m = []; aTexto(t).replace(/\{\??(\w+)\}/g, function (z, k) { if (!dVar(doc, k) && m.indexOf(k) < 0) m.push(k); }); return m; }
+
+  /* ── carga ── */
+  function cargarDoc(doc, luego) {
+    if (DCARGA[doc]) return; DCARGA[doc] = 1;
+    MK.api('api_docTextos', MK.pin, doc).then(function (r) {
+      DCARGA[doc] = 0;
+      if (!r || !r.ok) { DERR[doc] = (r && r.error) || 'No se pudieron leer los textos.'; }
+      else { DERR[doc] = ''; DOC[doc] = r; if (r.numeracion) NUMS[doc === 'propuesta' ? 'pro' : 'ct'] = r.numeracion; }
+      if (luego) luego(); else if (SEC === 'documentos') secDocs(document.getElementById('ajCuerpo'));
+    }, function (e) { DCARGA[doc] = 0; DERR[doc] = 'Sin conexión: ' + e.message; if (SEC === 'documentos') secDocs(document.getElementById('ajCuerpo')); });
+  }
+  function recargarNum() {
+    MK.api('api_numeracion', MK.pin).then(function (r) { if (r && r.ok) { if (r.pro) NUMS.pro = r.pro; if (r.ct) NUMS.ct = r.ct; } if (SEC === 'documentos') secDocs(document.getElementById('ajCuerpo')); }, function () {});
+  }
+
+  /* ── numeración ── */
+  function partesCod(f) { var p = String(f || '').split('-'); return p.length === 4 ? p : null; }
+  function numeracionHtml() {
+    var pro = DTAB === 'propuesta', N = NUMS[pro ? 'pro' : 'ct'];
+    var h = '<div class="card numc"><h3>' + MK.ic('lista', 15) + ' Numeración de ' + (pro ? 'las propuestas' : 'los contratos') + '<span class="sp"></span>' +
+      (puedeDoc() && N ? '<button type="button" class="btn sm" id="dcNum">' + MK.ic('lapiz', 14) + 'Cambiar el siguiente número</button>' : '') + '</h3>';
+    if (!N) return h + '<div class="small muted">' + (DERR[DTAB] ? '' : 'Leyendo la numeración…') + '</div></div>';
+    var f = partesCod(N.formato) || (pro ? ['PRO', '26', '015', '001'] : ['CT', '26', '004', '015']);
+    var sig = String(N.siguiente || '');
+    h += '<div class="nc-g"><div class="nc-f"><div class="lb2">FORMATO</div><div class="cod"><span>' + MK.esc(f[0]) + '</span><i>-</i><span class="a">' + MK.esc(f[1]) + '</span><i>-</i><span class="n">' + MK.esc(f[2]) + '</span><i>-</i><span class="v">' + MK.esc(f[3]) + '</span></div>' +
+      '<div class="leg"><span><b class="a"></b>año</span><span><b class="n"></b>' + (pro ? 'número de la propuesta' : 'número del contrato · vuelve a 001 cada enero') + '</span><span><b class="v"></b>' + (pro ? 'versión · no se toca' : 'número de la propuesta de la que nace') + '</span></div></div>' +
+      '<div class="kpi"><span>Último usado</span><b class="num">' + MK.esc(N.ultimo ? N.ultimo.codigo : '—') + '</b><small>' + (N.ultimo ? MK.esc((N.ultimo.cliente || '') + (N.ultimo.fecha ? ' · ' + MK.fechaCorta(String(N.ultimo.fecha).slice(0, 10)) : '')) : 'Todavía ninguno este año') + '</small></div>' +
+      '<div class="kpi sig"><span>Siguiente</span><b class="num">' + MK.esc(pro ? sig : sig + '-···') + '</b><small>' +
+      (pro ? ((N.libres || []).length ? 'Número libre' + (N.luego ? ' · luego ' + MK.esc(N.luego) : '') : N.fijado ? 'Puesto a mano' : 'Sigue en orden') : 'Los tres últimos los pone la propuesta') + '</small></div></div>';
+    var L = N.libres || [];
+    if (pro || L.length) h += '<div class="libres">' + MK.ic('renovar', 14) + '<span>' + (L.length ? '<b>Números libres para volver a usar:</b> ' + L.map(function (x) { return MK.esc(x.codigo) + (x.borradoEn ? ' (borrad' + (pro ? 'a' : 'o') + ' el ' + MK.esc(MK.fechaCorta(String(x.borradoEn).slice(0, 10))) + ')' : ''); }).join(', ') + '. ' : 'No hay números libres. ') +
+      (pro ? 'Una propuesta borrada deja su número libre y la siguiente lo toma.' : 'Un contrato borrado deja su número libre y el siguiente lo toma.') + '</span></div>';
+    if (!pro) h += '<div class="libres az">' + MK.ic('candado', 14) + '<span>Se asigna solo al generar el contrato: ya no se escribe a mano. Los contratos de antes conservan el número que se les escribió.</span></div>';
+    return h + '</div>';
+  }
+  function dlgNumero() {
+    var pro = DTAB === 'propuesta', serie = pro ? 'pro' : 'ct', N = NUMS[serie]; if (!N) return;
+    var pre = pro ? 'PRO-' + (N.anio || '26') + '-' : 'CT-' + (N.anio || '26') + '-';
+    var L = N.libres || [], libres = L.map(function (x) { return Number(String(x.codigo).split('-')[2]); });
+    var ult = N.ultimo ? Number(String(N.ultimo.codigo).split('-')[2]) || 0 : 0, sigN = Number(String(N.siguiente).split('-')[2]) || 0, luegoN = N.luego ? Number(String(N.luego).split('-')[2]) || 0 : 0;
+    var alto = Math.max(ult, (L.length ? luegoN : sigN) - 1, 0);
+    var prop = ('00' + Math.min(999, alto + 1)).slice(-3);
+    MK.hoja('<h2>Cambiar el siguiente número</h2><p class="muted small" style="margin-top:2px">' + (pro ? 'Propuestas' : 'Contratos') + ' · formato ' + MK.esc(N.formato || '') + '</p>' +
+      '<div class="grid g2" style="gap:12px;margin-top:12px"><div class="kpi"><span>Último usado</span><b class="num" style="font-size:18px">' + MK.esc(N.ultimo ? N.ultimo.codigo : '—') + '</b><small class="muted">' + MK.esc(N.ultimo ? (N.ultimo.cliente || '') + (N.ultimo.fecha ? ' · ' + MK.fechaCorta(String(N.ultimo.fecha).slice(0, 10)) : '') : '') + '</small></div>' +
+      '<div class="kpi"><span>Siguiente hoy</span><b class="num" style="font-size:18px">' + MK.esc(pro ? N.siguiente : N.siguiente + '-···') + '</b><small class="muted">' + (pro ? (L.length ? 'número libre' : 'en orden') : 'el final lo pone la propuesta') + '</small></div></div>' +
+      (L.length ? '<div class="libres" style="margin-top:12px">' + MK.ic('renovar', 14) + '<span><b>Números libres para volver a usar:</b> ' + L.map(function (x) { return MK.esc(x.codigo); }).join(', ') + '. Mientras haya un número libre, ' + (pro ? 'la siguiente propuesta' : 'el siguiente contrato') + ' lo toma primero.</span></div>' : '') +
+      '<label class="lb" for="dcNn">NUEVO SIGUIENTE NÚMERO' + (L.length ? ' <span class="muted" style="font-weight:500">· se usa después de los números libres</span>' : '') + '</label><div class="row" style="gap:8px"><div class="pref" style="width:200px"><span>' + MK.esc(pre) + '</span><input class="in" id="dcNn" inputmode="numeric" maxlength="3" value="' + prop + '" autocomplete="off"></div><span class="muted">' + (pro ? '-001' : '-(propuesta)') + '</span></div>' +
+      '<div class="small" id="dcNmsg" style="margin-top:6px"></div>' +
+      '<div class="small muted" style="margin-top:3px">No se puede poner un número que ya está en uso.' + (pro ? ' La versión (-001) no se toca.' : ' Cada enero vuelve a 001.') + '</div>' +
+      '<div class="aviso am" style="margin-top:14px"><b>Este cambio queda en TODAS ' + (pro ? 'las propuestas' : 'los contratos') + ' que se generen desde hoy.</b> Lo ya enviado o firmado conserva el número con que salió.</div>' +
+      '<p class="small muted" style="margin-top:10px">' + MK.ic('reloj', 13) + ' Queda en el historial y al administrador le llega un aviso.</p>' +
+      '<label class="ck ent"><input type="checkbox" id="dcEnt2"> Entiendo</label>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="dcSi2" disabled>Guardar para todos</button></div>');
+    var inp = document.getElementById('dcNn'), c = document.getElementById('dcEnt2'), s = document.getElementById('dcSi2'), msg = document.getElementById('dcNmsg');
+    function val() {
+      var v = inp.value.replace(/\D/g, ''); if (v !== inp.value) inp.value = v;
+      var n = Number(v), ok = v !== '' && n >= 1 && n <= 999, uso = ok && n <= alto && libres.indexOf(n) < 0 && !(n === sigN && !L.length);
+      var cod = pre + ('00' + n).slice(-3);
+      if (!ok) { msg.style.color = 'var(--bad)'; msg.textContent = 'Escribe un número de 1 a 999.'; }
+      else if (uso) { msg.style.color = 'var(--bad)'; msg.textContent = cod + ' ya está en uso.'; }
+      else { msg.style.color = 'var(--ok)'; msg.textContent = '✓ ' + cod + ' está libre.' + (L.length ? ' Orden: ' + L.map(function (x) { return x.codigo; }).join(', ') + ' (libre) y luego ' + cod + '.' : ''); }
+      s.disabled = !(ok && !uso && c.checked);
+      return ok && !uso;
+    }
+    inp.oninput = val; c.onchange = val; val();
+    s.onclick = function () {
+      if (!val()) return;
+      MK.ocupado(s, true);
+      MK.api('api_numeracionFijar', MK.pin, serie, Number(inp.value), true).then(function (r) {
+        MK.ocupado(s, false);
+        if (!r || !r.ok) { msg.style.color = 'var(--bad)'; msg.textContent = (r && r.error) || 'No se pudo guardar.'; s.disabled = true; return; }
+        MK.cerrarHoja(); MK.aviso('Listo: ' + (pro ? 'la siguiente propuesta' : 'el siguiente contrato') + ' toma ' + (L.length ? L[0].codigo + ' (libre) y luego ' : '') + pre + ('00' + Number(inp.value)).slice(-3));
+        if (r.numeracion && r.numeracion.pro) { NUMS.pro = r.numeracion.pro; NUMS.ct = r.numeracion.ct; secDocs(document.getElementById('ajCuerpo')); } else recargarNum();
+      }, function (e) { MK.ocupado(s, false); msg.style.color = 'var(--bad)'; msg.textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+
+  /* ── bloques ── */
+  function bloqueHtml(b) {
+    var on = DABRE[DTAB] === b.id, est, ed = dEditado(b), vs = dVariantes(b);
+    if (b.auto) est = '<span class="tag t-gris">' + MK.ic('candado', 11) + ' Automático</span>';
+    else if (ed.length) { var t = (b.textos || {})[ed[0]] || {}; est = '<span class="tag t-warn">Editado' + (t.editadoPor ? ' por ' + MK.esc(String(t.editadoPor).split(' ')[0]) : '') + (t.editadoEn ? ' · ' + MK.esc(MK.fechaCorta(String(t.editadoEn).slice(0, 10))) : '') + '</span>'; }
+    else est = '<span class="tag t-ok">Original</span>';
+    var sucio = !b.auto && vs.some(function (v) { return dSucioB(DTAB, b, v); });
+    var h = '<div class="bq' + (on ? ' on' : '') + (b.auto ? ' auto' : '') + '" data-bq="' + MK.esc(b.id) + '"><button type="button" class="bq-h" data-abre="' + MK.esc(b.id) + '" aria-expanded="' + (on && !b.auto ? 'true' : 'false') + '">' +
+      '<span class="chev">' + MK.ic(b.auto ? 'candado' : 'flecha', 13) + '</span><b>' + MK.esc(b.titulo) + '</b>' + (vs.length > 1 ? '<span class="var2">' + vs.length + ' variantes</span>' : '') + (sucio ? '<span class="pt2" title="Cambios sin guardar"></span>' : '') + '<span class="sp"></span>' + est + '</button>';
+    if (b.auto) return h + '<div class="bq-d">' + chipsLlaves(b.descripcion, DTAB) + '</div></div>';
+    if (!on) return h + '</div>';
+    var v = dVarDe(DTAB, b), txt = dActual(DTAB, b, v), orig = ((b.textos || {})[v] || {}), lista = esLista(b), pe = puedeDoc();
+    h += '<div class="bq-b">';
+    if (vs.length > 1) h += '<div class="seg" id="dcVar">' + vs.map(function (x) { var e = ((b.textos || {})[x] || {}).editado || dSucioB(DTAB, b, x); return '<button type="button" data-vr="' + MK.esc(x) + '" class="' + (x === v ? 'on' : '') + '">' + MK.esc(dNombreVar(b, x)) + (e ? ' <span class="pt2"></span>' : '') + '</button>'; }).join('') + '</div>';
+    h += '<textarea class="in ted" id="dcTx" spellcheck="true" aria-label="Texto de ' + MK.esc(b.titulo) + '"' + (pe ? '' : ' readonly') + '>' + MK.esc(aTexto(txt)) + '</textarea>';
+    h += '<div class="small muted" style="margin-top:5px">' + (lista ? 'Un punto por renglón, empezando con «- ».' : 'Cada renglón es un párrafo. «- » al empezar el renglón lo vuelve un punto de lista' + (DTAB === 'contrato' ? ' (sale numerado)' : '') + '; **así** sale en negrita.') + '</div>';
+    if (b.descripcion) h += '<div class="aviso az sm2">' + chipsLlaves(b.descripcion, DTAB) + '</div>';
+    if (pe) h += '<div class="small muted" style="margin-top:9px">Datos que se llenan solos (no se editan). Toca uno para ponerlo donde está el cursor:</div><div class="vars">' +
+      dVars(DTAB).map(function (x) { return '<button type="button" data-v="' + MK.esc(x.clave) + '" title="' + MK.esc(x.ayuda || '') + '">{' + MK.esc(x.clave) + '}</button>'; }).join('') + '</div>';
+    h += '<div class="small" id="dcMsg" style="color:var(--bad);margin-top:6px"></div>';
+    if (pe) h += '<div class="pie-ed">' + (orig.editado ? '<button type="button" class="btn sm" id="dcOrig">' + MK.ic('renovar', 14) + 'Volver al texto original</button>' : '<span class="small muted">' + MK.ic('check', 13) + ' Es el texto original</span>') +
+      '<span class="sp"></span><button type="button" class="btn sm gh" id="dcDesh"' + (dSucioB(DTAB, b, v) ? '' : ' hidden') + '>Deshacer</button><button type="button" class="btn pri" id="dcGuardar"' + (dSucioB(DTAB, b, v) ? '' : ' disabled') + '>Guardar para todos</button></div>';
+    return h + '</div></div>';
+  }
+
+  /* ── vista previa con el cliente de ejemplo ── */
+  function membretePrev(legal, derecha) {
+    return '<div class="dm"><img class="dm-logo" src="logo-ecovsa.png" alt="ECOVSA"><div class="dm-e"><b>' + (legal ? 'ECOTERMO DE PANAMA S.A.' : 'ECOVSA') + '</b><span>' + (legal ? 'ECOVSA · ' : '') + 'Recolección, transporte y tratamiento de desechos hospitalarios</span><span class="muted">Membrete con los datos de Configuración</span></div>' +
+      (derecha ? '<div class="dm-r">' + derecha + '</div>' : '') + '</div>';
+  }
+  function prevTexto(doc, id) { var b = dBloque(doc, id); if (!b) return null; var v = doc === 'propuesta' && dVariantes(b).length > 1 ? DMUESTRA.propuesta : dVariantes(b)[0]; return dActual(doc, b, v); }
+  function prevPropuesta() {
+    var sel = DABRE.propuesta, f = llaves('propuesta'), uni = DMUESTRA.propuesta === 'unica';
+    function w(id, html) { return '<div class="pb' + (sel === id ? ' hl' : '') + '" data-pb="' + id + '">' + html + '</div>'; }
+    function lista(t, cls, primera) { return '<ul' + (cls ? ' class="' + cls + '"' : '') + '>' + (primera || '') + lineasLista(t).map(function (x) { return '<li>' + f(x).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>') + '</li>'; }).join('') + '</ul>'; }
+    var sal = prevTexto('propuesta', 'saludo'), ope = prevTexto('propuesta', 'operativa'), inc = prevTexto('propuesta', 'incluye'), nts = prevTexto('propuesta', 'notas'), pas = prevTexto('propuesta', 'pasos');
+    return membretePrev(false, '<small>Propuesta N°</small><b><span class="vv">' + EJ.codigoPropuesta + '</span></b><span>Panamá, <span class="vv">' + EJ.fechaPropuesta + '</span></span>') +
+      w('encabezado', '<div class="dest"><div class="se">Señores</div><div class="nom"><span class="vv">' + EJ.empresa + '</span></div><div class="li">E. S. D. · Atención: <span class="vv">Ana Prueba · Administradora</span></div></div>') +
+      (sal != null ? w('saludo', marcado(aTexto(sal), f)) : '') +
+      (ope != null ? w('operativa', '<div class="sec">Propuesta operativa</div>' + marcado(aTexto(ope), f) + (uni ? '<p><b>Trabajo a realizar:</b> <span class="vv">Retiro de material vencido</span></p><p><b>Cantidad estimada:</b> <span class="vv">120 kg</span></p>' : '')) : '') +
+      (inc != null ? w('incluye', '<div class="sec">Nuestro servicio incluye</div>' + lista(inc)) : '') +
+      w('economica', '<div class="sec">Propuesta económica</div><p>De acuerdo con el volumen de desechos a entregar, nuestra propuesta económica es la siguiente:</p>' +
+        (uni ? '<table><thead><tr><th>Concepto</th><th>Cantidad estimada</th><th>Precio</th><th>ITBMS</th><th>Total</th></tr></thead><tbody><tr><td>Retiro de material vencido</td><td class="n">120 kg</td><td class="n">B/. 180.00</td><td class="n">B/. 12.60</td><td class="n"><b>B/. 192.60</b></td></tr><tr class="tot"><td colspan="4">TOTAL DEL SERVICIO</td><td class="n">B/. 192.60</td></tr></tbody></table><div class="pie-tabla">El precio cubre únicamente el trabajo aquí descrito. Precios en balboas (B/.), ITBMS incluido.</div>'
+          : '<table><thead><tr><th>Frecuencia</th><th>Kg incluidos</th><th>Precio por visita</th><th>ITBMS</th><th>Total</th></tr></thead><tbody><tr><td>QUINCENAL</td><td class="n">20</td><td class="n">B/. 45.00</td><td class="n">B/. 3.15</td><td class="n"><b>B/. 48.15</b></td></tr><tr class="tot"><td colspan="4">TOTAL POR VISITA</td><td class="n">B/. 48.15</td></tr></tbody></table><div class="pie-tabla">El precio por visita incluye la recolección de hasta los kilogramos indicados; el excedente se factura según la tarifa de kilogramo adicional. Precios en balboas (B/.), ITBMS incluido.</div>')) +
+      (nts != null ? w('notas', '<div class="sec">Nota importante</div>' + lista(nts, 'notas', '<li>Propuesta vigente hasta <span class="vv">28 de octubre de 2026</span>.</li>')) : '') +
+      (pas != null ? w('pasos', '<div class="sec">Próximos pasos</div>' + marcado(aTexto(pas), f)) : '') +
+      w('firma', '<div class="firma"><p>Atentamente,</p><div class="lin"><b>' + MK.esc((MK.usuario || {}).nombre || 'Katherine Prueba') + '</b>Coord. Comercial · ECOVSA</div></div>');
+  }
+  function prevContrato() {
+    var sel = DABRE.contrato, f = llaves('contrato');
+    function w(id, html) { return '<div class="pb' + (sel === id ? ' hl' : '') + '" data-pb="' + id + '">' + html + '</div>'; }
+    var h = membretePrev(true) + '<h1 class="ct">Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1><div class="numc2">N.° <span class="vv">CT-26-004-014</span></div>';
+    h += w('partes', '<p>Entre los suscritos a saber, <span class="vv">Ana Prueba</span>, <span class="vv">mujer</span>, mayor de edad, nacionalidad <span class="vv">panameña</span>, identificada con Cédula de Identidad No. <span class="vv">0-000-000</span> en su calidad de representante legal de <span class="vv">' + EJ.empresa + '</span>, con RUC <span class="vv">0-000-000</span>, quien de ahora en adelante se denominará <b>EL CONTRATANTE</b>, por una parte y por la otra, ' + f('{representanteLegal}') + ', en su calidad de Representante Legal de la sociedad <b>ECOTERMO DE PANAMA S.A.</b>, quien en adelante se denominará <b>EL CONTRATISTA</b>…</p>');
+    var yaCl = false;
+    dBloques().forEach(function (b) {
+      if (b.auto) return;
+      var t = prevTexto('contrato', b.id);
+      if (esLista(b)) { h += w(b.id, '<h3>' + MK.esc(b.titulo) + '</h3><ol>' + lineasLista(t).map(function (x) { return '<li>' + f(x).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>') + '</li>'; }).join('') + '</ol>'); return; }
+      var cuerpo = marcado(aTexto(t), f, 'ol'), tit = '<span class="cl">' + MK.esc(String(b.titulo).replace(/\.\s*$/, '')) + '.</span> ';
+      cuerpo = /^<p>/.test(cuerpo) ? '<p>' + tit + cuerpo.slice(3) : '<p>' + tit + '</p>' + cuerpo;
+      h += (yaCl ? '' : '<h3>Cláusulas</h3>') + w(b.id, cuerpo); yaCl = true;
+    });
+    h += w('cierre', '<p style="margin-top:14px">Para constancia de LAS PARTES, se firma el presente contrato en la Ciudad de Panamá el _______________________.</p><div class="firmas2"><div>' + f('{representanteLegal}') + '<br>ECOTERMO DE PANAMA S.A.</div><div><span class="vv">ANA PRUEBA</span><br><span class="vv">' + EJ.empresa + '</span></div></div>');
+    return h;
+  }
+  function pintarPrev(sinMover) {
+    var p = document.getElementById('dcPrev'); if (!p) return;
+    var top = p.scrollTop;
+    p.innerHTML = DTAB === 'propuesta' ? prevPropuesta() : prevContrato();
+    if (sinMover) { p.scrollTop = top; return; }
+    var s = p.querySelector('.pb.hl'); if (s) p.scrollTop = Math.max(0, s.offsetTop - 60);
+  }
+
+  function secDocs(el) {
+    if (!el) return;
+    if (!DOC[DTAB] && !DERR[DTAB]) { cargarDoc(DTAB); }
+    var d = DOC[DTAB], pro = DTAB === 'propuesta';
+    var h = '<div class="sec-h"><div><h2>Propuesta y contrato</h2><p>Los textos fijos de la propuesta y del contrato, por bloques. Lo que va entre llaves (<span class="dv">{empresa}</span>, montos, plazo…) se llena solo con los datos de cada cliente y aquí no se edita. Al guardar se aplica desde ese momento, queda en el historial y al administrador le llega un aviso.</p></div><span class="sp"></span>' +
+      '<button type="button" class="btn sm" id="dcHist">' + MK.ic('reloj', 14) + 'Historial</button></div>' +
+      '<div class="tabs" id="dcTabs">' + ['propuesta', 'contrato'].map(function (t) { var n = nEditados(t); return '<button type="button" data-dt="' + t + '" class="' + (DTAB === t ? 'on' : '') + '">' + (t === 'propuesta' ? 'Propuesta' : 'Contrato') + (n ? '<span class="n">' + n + (n === 1 ? ' editado' : ' editados') + '</span>' : '') + '</button>'; }).join('') +
+      '<span class="sp"></span>' + (d && puedeDoc() ? '<button type="button" class="fab" id="dcFab">' + MK.ic('renovar', 13) + 'Restaurar todo de fábrica</button>' : '') + '</div>';
+    if (DERR[DTAB] && !d) { el.innerHTML = h + '<div class="aviso rj">' + MK.esc(DERR[DTAB]) + ' <a href="#" id="dcRe">Reintentar</a></div>'; activarDocs(el); return; }
+    h += numeracionHtml();
+    if (!d) { el.innerHTML = h + '<div class="card"><div class="cargando">Cargando los textos…</div></div>'; activarDocs(el); return; }
+    if (!puedeDoc()) h += '<div class="aviso az" style="margin-bottom:12px">Modo consulta: ves los textos; los cambia mercadeo o administración.</div>';
+    var B = d.bloques || [];
+    if (!DABRE[DTAB]) { var pri = B.filter(function (b) { return !b.auto; })[0]; if (pri) DABRE[DTAB] = pri.id; }
+    h += '<div class="dc-g"><div class="card bqs"><h3>' + (pro ? 'Bloques de la propuesta' : 'Consideraciones y cláusulas') + '<span class="sp"></span><span class="l muted">' + B.filter(function (b) { return !b.auto; }).length + ' se editan · ' + B.filter(function (b) { return b.auto; }).length + ' automáticos</span></h3>' +
+      B.map(bloqueHtml).join('') + '</div>' +
+      '<div class="dc-pv"><label class="lb" for="dcMu">VISTA PREVIA CON</label><select class="sel" id="dcMu">' +
+      (pro ? '<option value="recurrente"' + (DMUESTRA.propuesta === 'recurrente' ? ' selected' : '') + '>Clínica San Rafael · servicio recurrente</option><option value="unica"' + (DMUESTRA.propuesta === 'unica' ? ' selected' : '') + '>Clínica San Rafael · visita única</option>'
+        : '<option value="12">Clínica San Rafael · contrato de 12 meses</option>') + '</select>' +
+      '<div class="docp" id="dcPrev"></div>' +
+      '<div class="chk2"><span class="vv">así</span><span class="muted">se ve un dato que se llena solo</span><span class="vv cfg">así</span><span class="muted">uno de Configuración</span><span class="sel2"></span><span class="muted">el bloque abierto</span></div></div></div>';
+    el.innerHTML = h;
+    activarDocs(el);
+    pintarPrev();
+  }
+  function activarDocs(el) {
+    var x;
+    [].forEach.call(el.querySelectorAll('[data-dt]'), function (b) { b.onclick = function () { var t = b.getAttribute('data-dt'); if (t === DTAB) return; DTAB = t; secDocs(el); }; });
+    if ((x = document.getElementById('dcRe'))) x.onclick = function (e) { e.preventDefault(); DERR[DTAB] = ''; secDocs(el); };
+    if ((x = document.getElementById('dcHist'))) x.onclick = function () { HFILTRO = ''; panelHistorial(); };
+    if ((x = document.getElementById('dcNum'))) x.onclick = dlgNumero;
+    if ((x = document.getElementById('dcFab'))) x.onclick = dlgFabrica;
+    if ((x = document.getElementById('dcMu'))) x.onchange = function () { DMUESTRA[DTAB] = this.value; if (DTAB === 'propuesta' && dBloque('propuesta', DABRE.propuesta) && dVariantes(dBloque('propuesta', DABRE.propuesta)).indexOf(this.value) >= 0) { DVAR.propuesta = this.value; secDocs(el); return; } pintarPrev(); };
+    [].forEach.call(el.querySelectorAll('[data-abre]'), function (b) {
+      b.onclick = function () { var id = b.getAttribute('data-abre'), bq = dBloque(DTAB, id); if (bq && bq.auto) { DABRE[DTAB] = id; pintarPrev(); marcarAbierto(el); return; } DABRE[DTAB] = DABRE[DTAB] === id ? '' : id; secDocs(el); };
+    });
+    [].forEach.call(el.querySelectorAll('[data-vr]'), function (b) { b.onclick = function () { DVAR[DTAB] = b.getAttribute('data-vr'); if (DTAB === 'propuesta') DMUESTRA.propuesta = DVAR.propuesta; secDocs(el); }; });
+    var tx = document.getElementById('dcTx'); if (!tx) return;
+    var b = dBloque(DTAB, DABRE[DTAB]), v = dVarDe(DTAB, b);
+    var alto = function () { tx.style.height = 'auto'; tx.style.height = Math.min(Math.max(tx.scrollHeight + 2, 130), 560) + 'px'; };
+    alto();
+    tx.oninput = function () {
+      alto();
+      var k = kB(DTAB, b.id, v), val = deTexto(b, v, tx.value);
+      if (igual(val, dGuardado(DTAB, b, v))) delete DBORR[k]; else DBORR[k] = val;
+      var s = dSucioB(DTAB, b, v), g = document.getElementById('dcGuardar'), dz = document.getElementById('dcDesh');
+      if (g && !g._oc) g.disabled = !s; if (dz) dz.hidden = !s;
+      var bh = el.querySelector('.bq.on .bq-h'); if (bh) { var pt = bh.querySelector('.pt2'); if (s && !pt) bh.querySelector('.sp').insertAdjacentHTML('beforebegin', '<span class="pt2" title="Cambios sin guardar"></span>'); else if (!s && pt) pt.remove(); }
+      document.getElementById('dcMsg').textContent = '';
+      pintarPrev(true); pintarMenu();
+    };
+    [].forEach.call(el.querySelectorAll('.vars [data-v]'), function (bt) {
+      bt.onmousedown = function (e) { e.preventDefault(); };
+      bt.onclick = function () {
+        var k = '{' + bt.getAttribute('data-v') + '}', a = tx.selectionStart != null ? tx.selectionStart : tx.value.length, z = tx.selectionEnd != null ? tx.selectionEnd : a;
+        tx.value = tx.value.slice(0, a) + k + tx.value.slice(z); tx.focus(); tx.selectionStart = tx.selectionEnd = a + k.length;
+        tx.dispatchEvent(new Event('input'));
+      };
+    });
+    if ((x = document.getElementById('dcDesh'))) x.onclick = function () { delete DBORR[kB(DTAB, b.id, v)]; secDocs(el); pintarMenu(); };
+    if ((x = document.getElementById('dcGuardar'))) x.onclick = function () { dlgGuardar(b, v); };
+    if ((x = document.getElementById('dcOrig'))) x.onclick = function () { dlgOriginal(b, v); };
+  }
+  function marcarAbierto(el) { [].forEach.call(el.querySelectorAll('.bq'), function (q) { q.classList.toggle('on', q.getAttribute('data-bq') === DABRE[DTAB]); }); }
+
+  /* ── diálogos con «Entiendo» ── */
+  /* diferencia palabra por palabra (antes / ahora) */
+  function dif(a, b) {
+    var A = aTexto(a).split(/(\s+)/), Bw = aTexto(b).split(/(\s+)/), n = A.length, m = Bw.length;
+    if (n * m > 400000) return [MK.esc(aTexto(a)), MK.esc(aTexto(b))];
+    var L = []; for (var i = 0; i <= n; i++) { L.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--) for (var j = m - 1; j >= 0; j--) L[i][j] = A[i] === Bw[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var ra = '', rb = ''; i = 0; j = 0;
+    while (i < n && j < m) {
+      if (A[i] === Bw[j]) { ra += MK.esc(A[i]); rb += MK.esc(Bw[j]); i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) { ra += /^\s+$/.test(A[i]) ? A[i] : '<del>' + MK.esc(A[i]) + '</del>'; i++; }
+      else { rb += /^\s+$/.test(Bw[j]) ? Bw[j] : '<ins>' + MK.esc(Bw[j]) + '</ins>'; j++; }
+    }
+    while (i < n) { ra += /^\s+$/.test(A[i]) ? A[i] : '<del>' + MK.esc(A[i]) + '</del>'; i++; }
+    while (j < m) { rb += /^\s+$/.test(Bw[j]) ? Bw[j] : '<ins>' + MK.esc(Bw[j]) + '</ins>'; j++; }
+    return [ra.replace(/\n/g, '<br>'), rb.replace(/\n/g, '<br>')];
+  }
+  function dlgEntiendo(o) {
+    MK.hoja('<h2>' + MK.esc(o.titulo) + '</h2>' + (o.sub ? '<p class="muted small" style="margin-top:2px">' + o.sub + '</p>' : '') + (o.cuerpo || '') +
+      '<div class="aviso am" style="margin-top:14px">' + o.aviso + '</div>' +
+      '<p class="small muted" style="margin-top:10px">' + MK.ic('reloj', 13) + ' Queda en el historial con tu nombre y la hora. Al administrador le llega un aviso.</p>' +
+      '<label class="ck ent"><input type="checkbox" id="dcEnt"> Entiendo</label><div class="small" id="dcEmsg" style="color:var(--bad);margin-top:6px"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ' + (o.peligro ? 'bad' : 'pri') + '" id="dcSi" disabled>' + MK.esc(o.boton) + '</button></div>', { ancha: !!o.ancha });
+    var c = document.getElementById('dcEnt'), s = document.getElementById('dcSi'), m = document.getElementById('dcEmsg');
+    c.onchange = function () { s.disabled = !c.checked; };
+    s.onclick = function () {
+      if (!c.checked) return;
+      MK.ocupado(s, true);
+      o.llamar().then(function (r) {
+        MK.ocupado(s, false);
+        if (!r || !r.ok) { m.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        MK.cerrarHoja(); o.listo(r);
+      }, function (e) { MK.ocupado(s, false); m.textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  function cmpHtml(antes, ahora) {
+    var d = dif(antes, ahora);
+    return '<div class="cmp"><div><label class="lb">ANTES</label><div class="cmp-t">' + d[0] + '</div></div><div><label class="lb">AHORA</label><div class="cmp-t nuevo">' + d[1] + '</div></div></div>';
+  }
+  function nomDoc(doc, pl) { return doc === 'propuesta' ? (pl ? 'las propuestas' : 'Propuesta') : (pl ? 'los contratos' : 'Contrato'); }
+  function reponerBloque(doc, nb) {
+    var d = DOC[doc]; if (!d || !nb) return;
+    d.bloques = d.bloques.map(function (x) { return x.id === nb.id ? nb : x; });
+  }
+  function dlgGuardar(b, v) {
+    var doc = DTAB, ahora = dActual(doc, b, v), antes = dGuardado(doc, b, v), m = document.getElementById('dcMsg');
+    var mal = llavesMalas(doc, ahora);
+    if (mal.length) { if (m) m.textContent = 'Corrige: ' + mal.map(function (x) { return '{' + x + '}'; }).join(', ') + ' no existe. Usa los datos de la lista.'; return; }
+    if (!aTexto(ahora).trim()) { if (m) m.textContent = 'El texto no puede quedar vacío. Para volver al de fábrica usa «Volver al texto original».'; return; }
+    dlgEntiendo({ titulo: 'Guardar para todos', ancha: true, boton: 'Guardar para todos',
+      sub: MK.esc(nomDoc(doc)) + ' › <b>' + MK.esc(b.titulo) + '</b>' + (dVariantes(b).length > 1 ? ' · ' + MK.esc(dNombreVar(b, v)) : ''),
+      cuerpo: cmpHtml(antes, ahora),
+      aviso: '<b>Este cambio queda en TODAS ' + nomDoc(doc, 1) + ' que se generen desde hoy.</b> Lo ya enviado o firmado conserva el texto con que salió.',
+      llamar: function () { return MK.api('api_docGuardarTexto', MK.pin, doc, b.id, v, ahora, true); },
+      listo: function (r) {
+        delete DBORR[kB(doc, b.id, v)];
+        if (r.bloque) { reponerBloque(doc, r.bloque); secDocs(document.getElementById('ajCuerpo')); } else { DOC[doc] = null; cargarDoc(doc); }
+        pintarMenu(); MK.aviso('Guardado. ' + (doc === 'propuesta' ? 'Las propuestas nuevas ya salen' : 'Los contratos nuevos ya salen') + ' con este texto.');
+      } });
+  }
+  function dlgOriginal(b, v) {
+    var doc = DTAB, t = (b.textos || {})[v] || {};
+    dlgEntiendo({ titulo: 'Volver al texto original', ancha: true, boton: 'Volver al original',
+      sub: MK.esc(nomDoc(doc)) + ' › <b>' + MK.esc(b.titulo) + '</b>' + (dVariantes(b).length > 1 ? ' · ' + MK.esc(dNombreVar(b, v)) : ''),
+      cuerpo: cmpHtml(t.texto, t.original != null ? t.original : ''),
+      aviso: '<b>«' + MK.esc(b.titulo) + '» vuelve al texto de fábrica en TODAS ' + nomDoc(doc, 1) + ' que se generen desde hoy.</b> Lo ya enviado o firmado conserva el texto con que salió.',
+      llamar: function () { return MK.api('api_docVolverOriginal', MK.pin, doc, b.id, v, true); },
+      listo: function (r) {
+        delete DBORR[kB(doc, b.id, v)];
+        if (r.bloque) { reponerBloque(doc, r.bloque); secDocs(document.getElementById('ajCuerpo')); } else { DOC[doc] = null; cargarDoc(doc); }
+        pintarMenu(); MK.aviso('Listo: «' + b.titulo + '» volvió al texto original.');
+      } });
+  }
+  function dlgFabrica() {
+    var doc = DTAB, n = nEditados(doc);
+    dlgEntiendo({ titulo: 'Restaurar todo de fábrica', boton: 'Restaurar todo', peligro: true,
+      sub: MK.esc(nomDoc(doc)) + ' · ' + (n ? n + (n === 1 ? ' bloque editado' : ' bloques editados') : 'ningún bloque editado'),
+      cuerpo: '<p style="margin-top:10px;font-size:13.5px">Todos los bloques ' + (doc === 'propuesta' ? 'de la propuesta' : 'del contrato') + ' vuelven al texto de fábrica. La numeración no cambia.</p>',
+      aviso: '<b>Queda en TODAS ' + nomDoc(doc, 1) + ' que se generen desde hoy.</b> Lo ya enviado o firmado no cambia.',
+      llamar: function () { return MK.api('api_docRestaurarFabrica', MK.pin, doc, true); },
+      listo: function () {
+        Object.keys(DBORR).forEach(function (k) { if (k.indexOf(doc + '|') === 0) delete DBORR[k]; });
+        DOC[doc] = null; cargarDoc(doc); pintarMenu(); MK.aviso('Listo: ' + (doc === 'propuesta' ? 'la propuesta' : 'el contrato') + ' quedó con los textos de fábrica.');
+      } });
+  }
+
+  /* ── historial ── */
+  function panelHistorial() {
+    MK.lado('<h2 style="font-size:18px;margin-bottom:2px">Historial</h2><p class="small muted">Propuesta y contrato · textos y numeración</p>' + chipsHist() + '<div id="dcHl"><div class="cargando">Cargando…</div></div>');
+    activarChipsHist();
+    MK.api('api_docHistorial', MK.pin, HFILTRO).then(function (r) {
+      var el = document.getElementById('dcHl'); if (!el) return;
+      if (!r || !r.ok) { el.innerHTML = '<div class="aviso rj">' + MK.esc((r && r.error) || 'No se pudo leer el historial.') + '</div>'; return; }
+      var L = r.items || [];
+      el.innerHTML = (L.length ? '<div class="tl hist">' + L.map(function (x, i) {
+        var dn = x.doc === 'propuesta' ? 'Propuesta' : x.doc === 'contrato' ? 'Contrato' : 'Numeración', ant = aTexto(x.textoAnterior);
+        return '<div class="hev' + (x.doc === 'numeracion' ? ' sis' : '') + '"><small>' + MK.esc(fechaHist(x.cuando)) + ' · <b style="color:var(--ink)">' + MK.esc(x.quien || '') + '</b>' + (x.avisoAdmin ? ' · <span class="tag t-info" style="font-size:10.5px;padding:0 6px">aviso al administrador</span>' : '') + '</small>' +
+          '<div class="hb"><span class="tag t-gris">' + dn + '</span> <b>' + MK.esc(x.titulo || '') + '</b></div><p>' + chipsLlaves(x.resumen, x.doc === 'contrato' ? 'contrato' : 'propuesta') + '</p>' +
+          (ant || x.puedeVolver ? '<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">' + (ant ? '<button class="btn sm" data-hver="' + i + '">' + MK.ic('ojo', 13) + 'Ver texto anterior</button>' : '') +
+            (x.puedeVolver && puedeDocH(x.doc) ? '<button class="btn sm" data-hvol="' + i + '">' + MK.ic('renovar', 13) + 'Volver a esta versión</button>' : '') + '</div>' : '') +
+          (ant ? '<div class="antes" id="dcHa' + i + '" hidden><label class="lb" style="margin-top:0">TEXTO ANTERIOR</label>' + MK.esc(ant).replace(/\n/g, '<br>') + '</div>' : '') + '</div>';
+      }).join('') + '</div>' : MK.vacio('Todavía no hay cambios' + (HFILTRO ? ' en esta parte.' : '.'))) +
+        '<p class="small muted" style="margin-top:4px">«Volver a esta versión» pide la misma confirmación con «Entiendo» y también queda en el historial.</p>';
+      [].forEach.call(el.querySelectorAll('[data-hver]'), function (b) { b.onclick = function () { var a = document.getElementById('dcHa' + b.getAttribute('data-hver')); a.hidden = !a.hidden; b.classList.toggle('on2', !a.hidden); }; });
+      [].forEach.call(el.querySelectorAll('[data-hvol]'), function (b) { b.onclick = function () { dlgVolverVersion(L[+b.getAttribute('data-hvol')]); }; });
+    }, function (e) { var el = document.getElementById('dcHl'); if (el) el.innerHTML = '<div class="aviso rj">Sin conexión: ' + MK.esc(e.message) + '</div>'; });
+  }
+  function puedeDocH(doc) { var d = DOC[doc] || DOC.propuesta || DOC.contrato; return !(MK.usuario && MK.usuario.rol === 'gerente') && !(d && d.puedeEditar === false); }
+  function chipsHist() { return '<div class="row w" style="gap:6px;margin:12px 0 14px" id="dcHf">' + [['', 'Todo'], ['propuesta', 'Propuesta'], ['contrato', 'Contrato'], ['numeracion', 'Numeración']].map(function (x) { return '<button type="button" class="chip' + (HFILTRO === x[0] ? ' on' : '') + '" data-hf="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>'; }
+  function activarChipsHist() { [].forEach.call(document.querySelectorAll('#dcHf [data-hf]'), function (b) { b.onclick = function () { HFILTRO = b.getAttribute('data-hf'); panelHistorial(); }; }); }
+  function dlgVolverVersion(x) {
+    var doc = x.doc, b = dBloque(doc, x.bloque), actual = b ? ((b.textos || {})[x.variante] || {}).texto : '';
+    dlgEntiendo({ titulo: 'Volver a esta versión', ancha: true, boton: 'Volver a esta versión',
+      sub: MK.esc(nomDoc(doc)) + ' › <b>' + MK.esc(x.titulo || '') + '</b> · versión de ' + MK.esc(fechaHist(x.cuando)),
+      cuerpo: b ? cmpHtml(actual != null ? actual : '', x.textoAnterior) : '<label class="lb">TEXTO DE ESA VERSIÓN</label><div class="cmp-t nuevo">' + MK.esc(aTexto(x.textoAnterior)).replace(/\n/g, '<br>') + '</div>',
+      aviso: '<b>Este texto vuelve a quedar en TODAS ' + nomDoc(doc, 1) + ' que se generen desde hoy.</b> Lo ya enviado o firmado conserva el texto con que salió.',
+      llamar: function () { return MK.api('api_docVolverVersion', MK.pin, x.id, true); },
+      listo: function () { Object.keys(DBORR).forEach(function (k) { if (k.indexOf(doc + '|' + x.bloque + '|') === 0) delete DBORR[k]; }); DOC[doc] = null; cargarDoc(doc); panelHistorial(); MK.aviso('Listo: volvió el texto de esa versión.'); } });
+  }
+
   /* ═══ 5 · Notificaciones (igual que Alta › Notificaciones) ═══ */
   function secAvisos(el) {
     var h = '<div class="sec-h"><div><h2>Notificaciones</h2><p>A quién se le escribe cuando pasa cada cosa. El correo se abre ya redactado y lo mandas tú desde tu cuenta. Varios correos van separados por coma.</p></div></div>';
@@ -704,7 +1243,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     pintarMenu(); pintarSeccion(); pintarEstado();
   }
   function cabecera() {
-    return '<div class="ph"><div><h1>Plantillas y ajustes</h1><p>Reglas del embudo, listas, metas, mensajes, avisos y tu firma. Lo que cambies aquí se aplica en todo Mercadeo.</p></div><div class="sp"></div>' +
+    return '<div class="ph"><div><h1>Plantillas y ajustes</h1><p>Reglas del embudo, listas, metas, mensajes, propuesta y contrato, avisos y tu firma. Lo que cambies aquí se aplica en todo Mercadeo.</p></div><div class="sp"></div>' +
       '<span class="estado" id="ajEstado">Todo guardado</span><button class="btn gh sm" id="ajDesc" hidden>Descartar</button><button class="btn pri" id="ajGuardar" disabled>Guardar cambios</button></div>' +
       '<div class="aj"><nav class="subm" id="ajMenu" aria-label="Apartados"></nav><section id="ajCuerpo" style="min-width:0"><div class="cargando">Cargando…</div></section></div>';
   }
@@ -732,7 +1271,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     MK.api('api_urlApp').then(function (u) { URL_APP = typeof u === 'string' ? u : ''; if (SEC === 'plantillas') prevPl(); }, function () {});
   });
   window.addEventListener('mk:cambio', function () { cargar(true); OPS = null; CLI = null; cargarOps(); });
-  window.addEventListener('beforeunload', function (e) { if ((AJ && cambios().length) || plSucia()) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if ((AJ && cambios().length) || plSucia() || docSucio()) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
 </body>

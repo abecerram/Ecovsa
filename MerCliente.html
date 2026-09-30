@@ -352,13 +352,14 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     if (TAB === 'servicio') { p.insertAdjacentHTML('afterbegin', '<div id="rep-box"></div>'); pReponer(); }
   }
 
-  /* ═══ api 3.11: propuestas del cliente (nueva, misma sede o varias sedes) ═══ */
+  /* ═══ api 3.11: propuestas del cliente (nueva, misma sede o varias sedes) ═══
+     api 3.13: una sede no es gran generador. «Agregar otra sede» deja la cuenta con 2 sedes y sigue siendo cliente normal. */
   function nuevaPropuesta() {
     var c = R.cliente, fuera = ['mora', 'cierre', 'retiro', 'pausa'].indexOf(sit()) >= 0;
     var h = MK.hoja('<h2>Nueva propuesta · ' + E(c.nombre) + '</h2><p class="small muted">Queda amarrada a su ficha: no se duplica el cliente.' + (fuera ? ' Está fuera de servicio: la propuesta es su <b>reactivación</b>; al pasar a cartera vuelve a activo con su historial.' : '') + '</p>' +
       '<div class="mk-tipos">' +
       '<button type="button" data-t="misma"><span class="tag t-gris">MISMA SEDE</span><b>Propuesta para este punto</b><small>Parte de su plan actual' + (c.planKg ? ' (' + N(c.planKg) + ' kg · ' + E(titulo(c.frecuencia) || 'sin frecuencia') + ')' : '') + '. Precio por visita, como siempre.</small></button>' +
-      '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Cuenta de gran generador</b><small>Este punto más sus sucursales nuevas: sedes, precio por grupo, servicios, facturación y cobro.</small></button></div>' +
+      '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Agregar otra sede</b><small>Este punto más su sucursal nueva: queda como cuenta con 2 sedes, con su precio, servicios, facturación y cobro. Sigue siendo cliente normal: «gran generador» solo desde 100 kg al mes entre todas sus sedes.</small></button></div>' +
       '<div id="np-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
     [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
       b.onclick = function () {
@@ -378,7 +379,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       var L = r.propuestas || [];
       p.innerHTML = '<div class="card"><h3>' + IC('documento', 16) + 'Propuestas<span class="sp"></span>' + (puedeEditar() ? '<button class="btn sm pri" id="pp-nueva">' + IC('mas', 14) + 'Nueva propuesta</button>' : '') + '</h3>' +
         (L.length ? '<div class="tbw"><table class="tb"><thead><tr><th>Propuesta</th><th>Tipo</th><th>Etapa</th><th class="r">Valor al mes</th><th>Fecha</th><th></th></tr></thead><tbody>' + L.map(function (x) {
-          return '<tr><td><b>' + E(x.cod) + '</b><small style="display:block">' + E(x.empresa) + '</small></td><td>' + (x.gran ? '<span class="tag t-info">Gran generador · ' + x.sedes + ' sedes</span>' : '<span class="tag t-gris">Un punto</span>') + '</td>' +
+          return '<tr><td><b>' + E(x.cod) + '</b><small style="display:block">' + E(x.empresa) + '</small></td><td>' + (x.gran && x.sedes >= 2 ? '<span class="tag t-info">Cuenta con ' + x.sedes + ' sedes</span>' : '<span class="tag t-gris">Un punto</span>') + ((x.kgMes || 0) >= 100 ? ' <span class="tag t-ok">Gran generador</span>' : '') + '</td>' +
             '<td>' + MK.ETAPA_TAG(x.estado) + '</td><td class="r num">' + D(x.valor) + '</td><td>' + E(x.fecha ? MK.fecha(x.fecha) : '—') + '</td>' +
             '<td style="white-space:nowrap">' + (x.gran ? '<a class="btn sm" href="MerCuenta.html?id=' + encodeURIComponent(x.cod) + '">Cuenta</a> ' : '') + '<a class="btn sm" href="MerOportunidad.html?id=' + encodeURIComponent(x.cod) + '">Ficha</a></td></tr>';
         }).join('') + '</tbody></table></div>' : MK.vacio('Todavía no tiene propuestas registradas en el sistema.')) + '</div>';

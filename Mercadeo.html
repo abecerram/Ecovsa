@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|marcarAvisoPromo|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
@@ -140,7 +140,7 @@ a.it:hover{background:var(--hover)}
   .a-mas{padding-left:4px}
 }
 /* gerencia solo consulta: sin botones que escriben */
-body.solo-ver .a-ql,body.solo-ver [data-a="completar"],body.solo-ver .a-ev .acc,body.solo-ver a[data-a="editar"],body.solo-ver [data-a="nueva-tarea"],body.solo-ver [data-a="op-act"],body.solo-ver [data-a="op-tarea"],body.solo-ver [data-a="captura"]{display:none!important}
+body.solo-ver .a-ql,body.solo-ver [data-a="completar"],body.solo-ver .a-ev .acc,body.solo-ver a[data-a="editar"],body.solo-ver [data-a="nueva-tarea"],body.solo-ver [data-a="op-act"],body.solo-ver [data-a="op-tarea"],body.solo-ver [data-a="captura"],body.solo-ver [data-a="fp-manana"],body.solo-ver [data-a="fp-atendi"]{display:none!important}
 body.solo-ver .it[data-a="editar"]{cursor:default}
 </style>
 </head>
@@ -409,9 +409,32 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       '<button class="btn sm gh" data-a="nov-atendi" data-clave="' + esc(clave) + '" title="Ya está resuelto">Ya lo atendí</button>' +
       '<button class="btn sm gh" data-a="nov-noaplica" data-clave="' + esc(clave) + '" title="No es un problema; no vuelve a salir">No aplica</button>';
   }
+  /* api 3.13 · promociones que terminan: 15 días antes del fin del beneficio (o el último
+     día hábil antes). Cobros tiene el mismo aviso. Al llegar el fin, el sistema pasa solo
+     al cliente a su plan normal. */
+  var PQT = {};
+  function promosQueTerminan() {
+    var l = (D && D.promosQueTerminan) || (MK.base && MK.base.promosQueTerminan) || [];
+    PQT = {}; l.forEach(function (x) { x._id = String(x.id || x.beneficioId || (x.clienteId + ':' + x.promo)); PQT[x._id] = x; });
+    return l.filter(function (x) { return !OCULTAS['fp:' + x._id]; });
+  }
+  function diaMes(iso) { var f = iso ? String(iso).slice(0, 10) : ''; if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return f; return Number(f.slice(8)) + ' de ' + MK.MESES_L[Number(f.slice(5, 7)) - 1]; }
+  function desdeTxt(fin) {
+    var f = String(fin || '').slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return 'Después';
+    var s = MK.masDias(f, 1); return s.slice(8) === '01' ? 'Desde ' + MK.MESES_L[Number(s.slice(5, 7)) - 1] : 'Desde el ' + diaMes(s);
+  }
   function grupos() {
     var G = [], porCat = {};
     var vivas = (D.novedades || []).filter(function (n) { return !OCULTAS[n.clave]; });
+    var fp = promosQueTerminan();
+    if (fp.length) G.push({ k: 'fprom', t: 'Promociones que terminan', i: 'estrella', tag: 't-warn', items: fp.map(function (x) {
+      var d = Number(x.dias), fin = x.fin || x.termina, plan = x.planNormal || x.plan || '';
+      return { clave: 'fp:' + x._id, tag: '<span class="tag t-warn">' + (d === 0 ? 'hoy' : d === 1 ? 'mañana' : isFinite(d) ? 'en ' + d + ' días' : 'pronto') + '</span> ', tit: x.cliente,
+        sub: 'A ' + x.cliente + ' se le termina la promoción «' + (x.promo || '') + '» el ' + diaMes(fin) + '. ' + desdeTxt(fin) + ' se cobra con su plan normal' + (plan ? ' («' + plan + '»)' : '') + '. Cobros también tiene el aviso.',
+        acc: '<button class="btn sm pri" data-a="fp-abrir" data-fp="' + esc(x._id) + '">Abrir ficha</button><span class="sep"></span>' +
+          '<button class="btn sm gh" data-a="fp-manana" data-fp="' + esc(x._id) + '" title="Sale de la lista y vuelve mañana">Mañana</button>' +
+          '<button class="btn sm gh" data-a="fp-atendi" data-fp="' + esc(x._id) + '" title="Ya se habló con el cliente">Ya lo atendí</button>' };
+    }) });
     var form = vivas.filter(function (n) { return n.tipo === 'formulario'; });
     var dev = vivas.filter(function (n) { return n.tipo === 'devuelta'; });
     if (form.length) G.push({ k: 'form', t: 'Formularios recibidos', i: 'documento', tag: 't-info', items: form.map(function (n) {
@@ -463,6 +486,23 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     }).join('');
   }
 
+  function fpCerrar(id, como, btn) {
+    var x = PQT[id]; if (!x) return;
+    var fila = btn && btn.closest('.a-al'); if (fila) fila.classList.add('sale');
+    MK.api('api_marcarAvisoPromo', MK.pin, x.id || x.beneficioId || id, como === 'manana' ? 'manana' : 'atendido', 'mercadeo').then(function (r) {
+      if (!r || r.ok === false) throw new Error((r && r.error) || 'No se pudo cerrar el aviso.');
+      OCULTAS['fp:' + id] = 1;
+      if (Array.isArray(r.promosQueTerminan)) D.promosQueTerminan = r.promosQueTerminan;   // la lista al día que devuelve el servidor
+      MK.aviso(como === 'manana' ? 'Te lo vuelvo a mostrar mañana' : 'Marcado como atendido · queda en el historial');
+      pintarAlertas(); MK.cambio({ tipo: 'novedad' });
+    }).catch(function (e) { if (fila) fila.classList.remove('sale'); MK.aviso(e.message || 'Sin conexión: el aviso sigue ahí'); });
+  }
+  function fpAbrir(id, btn) {
+    var x = PQT[id]; if (!x) return;
+    if (x.clienteId) { MK.irCliente(x.clienteId); return; }
+    if (x.codigoPropuesta) { MK.irOportunidad(x.codigoPropuesta); return; }
+    buscarFicha(x.cliente, btn);
+  }
   function novCerrar(clave, como, btn) {
     var n = NOV[clave]; if (!n) return;
     var fila = btn && btn.closest('.a-al'); if (fila) fila.classList.add('sale');
@@ -618,7 +658,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     var a = b.getAttribute('data-a');
     var cont = b.closest('[data-id]'), t = cont ? TAR[cont.getAttribute('data-id')] : null;
     if (b.tagName === 'A') e.preventDefault();
-    if (SOLO_VER && ['completar', 'editar', 'nueva-tarea', 'captura', 'ql', 'op-act', 'op-tarea'].indexOf(a) >= 0) return;
+    if (SOLO_VER && ['completar', 'editar', 'nueva-tarea', 'captura', 'ql', 'op-act', 'op-tarea', 'fp-manana', 'fp-atendi'].indexOf(a) >= 0) return;
     if (a === 'ficha') { e.stopPropagation(); irRef(b.getAttribute('data-rt'), b.getAttribute('data-ref')); return; }
     if (a === 'completar' && t) { MK.completar(t); return; }
     if (a === 'editar' && t) { MK.tarea(t); return; }
@@ -628,6 +668,9 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     if (a === 'grp') { var g = b.parentNode, k = g.getAttribute('data-g'); g.classList.toggle('open'); if (g.classList.contains('open')) ABIERTOS[k] = 1; else delete ABIERTOS[k]; return; }
     if (a === 'vermas') { var k2 = b.closest('.a-grp').getAttribute('data-g'); VERMAS[k2] = !VERMAS[k2]; pintarAlertas(); return; }
     if (a === 'nov-abrir') { novAbrir(b.getAttribute('data-clave'), b); return; }
+    if (a === 'fp-abrir') { fpAbrir(b.getAttribute('data-fp'), b); return; }
+    if (a === 'fp-manana') { fpCerrar(b.getAttribute('data-fp'), 'manana', b); return; }
+    if (a === 'fp-atendi') { fpCerrar(b.getAttribute('data-fp'), 'atendi', b); return; }
     if (a === 'nov-manana') { novCerrar(b.getAttribute('data-clave'), 'manana', b); return; }
     if (a === 'nov-atendi') { novCerrar(b.getAttribute('data-clave'), 'atendi', b); return; }
     if (a === 'nov-noaplica') {

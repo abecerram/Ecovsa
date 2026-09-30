@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir|oportunidadPlan$|oportunidadPromo$|cuentaAFichaNormal$)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
@@ -270,6 +270,38 @@
 .srv-cat{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-top:10px}
 .srv-cat button{text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font:inherit;cursor:pointer;display:grid;gap:3px}
 .srv-cat button:hover{border-color:var(--navy)}.srv-cat small{color:var(--muted);font-size:12px}
+/* api 3.13 · plan de «Planes y tarifas» y promoción */
+.plan{position:relative;margin-bottom:6px}
+.plan-sel{width:100%;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;font:500 13.5px Archivo,sans-serif;color:var(--muted);cursor:pointer;text-align:left;min-width:0}
+.plan-sel>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plan-sel .cv{margin-left:auto;color:var(--muted2);font-size:12px}
+.plan-sel.on{border-color:var(--navy2);box-shadow:0 0 0 3px #e3ebf7;color:var(--ink)}
+.plan-sel:disabled{cursor:default;background:#f7f8fa}
+.plan-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(15,33,64,.2);z-index:30;overflow:hidden;max-height:70vh;overflow-y:auto}
+.plan-menu .hd2{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--muted2);text-transform:uppercase;background:#fafbfd;border-bottom:1px solid var(--line2)}
+.plan-menu .hd2 a{text-transform:none;letter-spacing:0;font-weight:600}
+.plan-menu button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 14px;width:100%;padding:10px 12px;border:0;border-bottom:1px solid var(--line2);background:#fff;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.plan-menu button:hover,.plan-menu button.on{background:var(--hover)}
+.plan-menu .nm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13.5px}
+.plan-menu .dt{font-size:12px;color:var(--muted);grid-column:1}
+.plan-menu .pr{grid-row:1/3;grid-column:2;text-align:right;align-self:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.plan-menu .pr small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
+.plan-menu button.sin{border-bottom:0;background:#fafbfd}
+.plan-menu button.sin .nm{color:var(--muted);font-weight:600}
+.plan-menu .oc{padding:7px 12px;font-size:11.5px;color:var(--muted2);background:#fafbfd;border-bottom:1px solid var(--line2);display:flex;gap:6px;align-items:center}
+.plan-ok{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid #c9d8f5;background:#f5f8fd;border-radius:9px;padding:8px 10px;font-size:12.5px;color:var(--muted)}
+.plan-ok b{color:var(--navy2);font-size:13px}
+.plan-ok a{margin-left:auto;display:inline-flex;gap:5px;align-items:center;font-weight:700}
+.plan-av{font-size:12px;color:#7a5600;background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:8px;padding:6px 9px;margin-top:6px;display:flex;gap:6px;align-items:flex-start}
+.promo{position:relative;margin-top:8px}
+.promo-add{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.promo-ok{border:1px solid var(--amber-line);background:var(--amber-bg);border-radius:9px;padding:9px 12px;font-size:12.5px}
+.promo-ok .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.promo-ok .h b{font-size:13px;color:#6b4a00}
+.promo-ok .h a{margin-left:auto;font-weight:700;display:inline-flex;gap:5px;align-items:center}
+.promo-ok ul{margin:6px 0 4px 18px;padding:0}.promo-ok li{margin:2px 0}
+.promo-ok .pi{color:var(--muted);font-size:12px}
+.hint2 .tag{font-size:11px;white-space:normal}
 </style>
 </head>
 <body class="mk">
@@ -292,6 +324,8 @@
   var NOTAS = [], NOTAS_EDIT = false, NOTAS_CAMBIO = false, NOTAS_AVISO = '';
   var TAB = /^#(documentos|contrato|propuesta|actividad)$/.test(location.hash || '') ? location.hash.slice(1) : 'resumen', TL_FILTRO = 'todo', REABIERTA = false, URL_APP = '', PLANTILLAS = null;
   var GLOW = [], ENVIANDO = {};
+  var PL = null, PLAN_MENU = false, PROMO_MENU = false;      /* api 3.13: planes y promociones que aplican (api_planesParaOportunidad) */
+  var AGREGAR = MK.param('agregar');                          /* api 3.13: de vuelta del catálogo con el artículo nuevo */
   var ROL = '', SUP = false, GER = false;
 
   var ETAPAS = ['Registrado', 'Formulario enviado', 'Formulario recibido', 'Propuesta enviada', 'En negociación', 'Contrato en proceso', 'Firmado', 'Pasado a cartera'];
@@ -305,7 +339,8 @@
     ['cargo', 'Cargo del representante', 'Representante legal'], ['genero representante', 'Género del representante', 'Representante legal'],
     ['nacionalidad representante', 'Nacionalidad del representante', 'Representante legal'], ['frecuencia', 'Frecuencia del servicio', 'Servicio'],
     ['costo visita', 'Costo por visita', 'Servicio'], ['kg plan', 'Kilogramos incluidos en el plan', 'Servicio'], ['tarifa kg adic', 'Tarifa del kilogramo adicional', 'Servicio'],
-    ['codigoPropuesta', 'Código de la propuesta', 'Servicio'], ['fecha propuesta', 'Fecha de la propuesta', 'Servicio'], ['n contrato', 'Número de contrato', 'Servicio']];
+    ['codigoPropuesta', 'Código de la propuesta', 'Servicio'], ['fecha propuesta', 'Fecha de la propuesta', 'Servicio']];
+  /* api 3.13: el N.º de contrato ya no se escribe ni se pide: se asigna solo al generar el contrato (CT-26-NNN-PPP) */
   var DONDE = { 'empresa': 'resumen', 'razon social': 'resumen', 'ruc': 'resumen', 'dv': 'resumen', 'sector': 'resumen', 'asesor': 'resumen', 'fuente': 'resumen', 'cierre esperado': 'resumen',
     'frecuencia': 'propuesta', 'costo visita': 'propuesta', 'kg plan': 'propuesta', 'tarifa kg adic': 'propuesta', 'tarifa visita adic': 'propuesta', 'validez propuesta': 'propuesta',
     'plazo contrato': 'propuesta', 'cantidadEstimada': 'propuesta', 'fechaTentativa': 'propuesta', 'descripcionTrabajo': 'propuesta',
@@ -428,7 +463,10 @@
         if (!NOTAS_EDIT && TARIFA_COLS.concat(['tipoServicio']).some(function (k) { return Object.prototype.hasOwnProperty.call(CAMBIOS, k); })) traerNotas('silencioso');
       }
       document.title = (OP.empresa || COD) + ' · Oportunidad · ECOVSA';
+      if (primera && AGREGAR) TAB = 'propuesta';
       pintar();
+      cargarPlanes();
+      if (primera && AGREGAR) agregarDelCatalogo();
     }, function (e) {
       if (!primera && D) { MK.aviso('Sin conexión: ' + e.message); return; }
       MK.error('main', 'Sin conexión: ' + e.message);
@@ -478,6 +516,8 @@
     else if (OP.ganada) t += '<span class="tag t-ok">' + IC('check', 12) + ' Ganada</span>';
     if (OP.excedido && OP.abierta) t += '<span class="tag t-warn">' + IC('reloj', 12) + ' Quieta ' + OP.diasEtapa + ' días (meta ' + OP.limiteDias + ')</span>';
     if (OP.porCompletar) t += '<span class="tag t-warn" title="Le falta: ' + E((OP.faltan || []).join(', ')) + '">Por completar</span>';
+    /* api 3.13: etiqueta interna por volumen (nunca sale en lo que ve el cliente) */
+    if (esGran()) t += '<span class="tag t-ok" title="Desde ' + umbralGran() + ' kg al mes sumando sus sedes, o con un plan de gran generador">Gran generador</span>';
     return t;
   }
 
@@ -511,7 +551,9 @@
     var acc = GER ? '<button class="btn sm" data-a="contrato">' + IC('contrato', 14) + ' Revisar contrato</button>'
       : '<button class="btn sm" data-a="actividad">' + IC('nota', 14) + ' Registrar actividad</button>' +
         (o.abierta && !bloqEtapa ? '<button class="btn sm" data-a="ganada">' + IC('estrella', 14) + ' Ganada</button><button class="btn sm" data-a="perdida">' + IC('x', 14) + ' Perdida</button>' +
-          (o.estado !== 'Stand-by' ? '<button class="btn sm" data-a="standby">' + IC('reloj', 14) + ' Stand-by</button>' : '') : '');
+          (o.estado !== 'Stand-by' ? '<button class="btn sm" data-a="standby">' + IC('reloj', 14) + ' Stand-by</button>' : '') : '') +
+        /* api 3.13: una sede es cliente normal; con otra sede pasa a «cuenta con 2 sedes» */
+        (!o.gran && !u && o.abierta && !bloqEtapa && !enContrato() ? '<button class="btn sm" data-a="pasar-gran">' + IC('edificio', 14) + ' Agregar otra sede</button>' : '');
     $('tarj').innerHTML = '<div class="hd"><div class="logo">' + E(MK.ini(o.empresa)) + '</div><div class="tt"><h1>' + E(o.empresa || '(sin nombre)') + '</h1><div class="sub">' + sub.join(' · ') + '</div>' +
       '<div class="tags"><span class="tag t-info">' + (u ? 'VISITA ÚNICA' : 'RECURRENTE') + '</span>' + (o.sector ? '<span class="tag t-gris">' + E(o.sector) + '</span>' : '') +
       (o.fuente ? '<span class="tag t-gris">' + IC('personas', 12) + ' ' + E(o.fuente) + '</span>' : '') + MK.ETAPA_TAG(o.estado) + tagsEstado() + '</div></div>' + mets + '</div>' +
@@ -548,16 +590,20 @@
     if (OP.estado === 'Pasado a cartera') h += '<div class="ban ok">' + IC('edificio', 18) + '<div class="bx"><b>Pasó a cartera</b><p>La solicitud de alta se armó con los datos de esta ficha. Operaciones la aprueba con su ubicación.' + (SUP || GER ? '' : ' La ficha ya no se modifica; si hay un error, pídele a supervisión que la reabra.') + '</p></div>' +
       (OP.clienteId ? '<button class="btn" onclick="MK.irCliente(\'' + E(OP.clienteId) + '\')">' + IC('edificio', 15) + ' Ver ficha del cliente</button>' : '') + '</div>';
     h = banRespuesta() + h;
-    /* api 3.11: gran generador — la cuenta con sus sedes se arma en su propia pantalla */
+    /* api 3.11: la cuenta con sus sedes se arma en su propia pantalla.
+       api 3.13: «Cuenta con N sedes» solo desde 2; «gran generador» es solo por volumen (100 kg al mes sumando sedes) */
     if (OP.gran) {
-      var cr = OP.cuentaResumen || {};
-      h = '<div class="ban info">' + IC('edificio', 18) + '<div class="bx"><b>Gran generador · ' + (cr.sedes || 0) + ' sede' + (cr.sedes === 1 ? '' : 's') + (cr.grupos > 1 ? ' en ' + cr.grupos + ' grupos' : '') + ' · ' + MK.dinero(OP.valor) + ' al mes</b>' +
-        '<p>Las sedes, el precio por grupo, los servicios y productos y la facturación se arman en la cuenta' + (cr.aceptadas != null ? ' · el cliente aceptó ' + cr.aceptadas + ' de ' + cr.sedes + ' sedes' : '') +
+      var cr = OP.cuentaResumen || {}, nS = Number(cr.sedes != null ? cr.sedes : OP.sedes) || 0, gg = OP.granGenerador || {};
+      var kgC = gg.kgMes != null ? Number(gg.kgMes) : cr.kgMes;
+      h = '<div class="ban info">' + IC('edificio', 18) + '<div class="bx"><b>' + (nS >= 2 ? 'Cuenta con ' + nS + ' sedes' : 'Cuenta') + (cr.grupos > 1 ? ' en ' + cr.grupos + ' grupos' : '') + ' · ' + MK.dinero(OP.valor) + ' al mes</b>' +
+        '<p>' + (kgC != null ? 'Entre todas suman ' + Math.round(kgC) + ' kg al mes' + (esGran() ? ': gran generador. ' : ' (gran generador desde ' + umbralGran() + ' kg). ') : '') +
+        'Las sedes, el precio por grupo, los servicios y productos y la facturación se arman en la cuenta' + (cr.aceptadas != null ? ' · el cliente aceptó ' + cr.aceptadas + ' de ' + nS + ' sedes' : '') +
         (cr.pagadores && cr.pagadores.length ? ' · paga ' + E(cr.pagadores.slice(0, 2).join(', ')) + (cr.pagadores.length > 2 ? ' y ' + (cr.pagadores.length - 2) + ' más' : '') : '') + '.</p></div>' +
         '<a class="btn pri" href="MerCuenta.html?id=' + encodeURIComponent(COD) + '">' + IC('lapiz', 15) + ' ' + (cerrada() || GER ? 'Ver la cuenta' : 'Editar sedes y precios') + '</a></div>' + h;
-    } else if (OP.sugerirGran && !GER) {
-      h = '<div class="ban warn">' + IC('alerta', 18) + '<div class="bx"><b>Sugerencia: pasarla a gran generador</b><p>Genera unos ' + Math.round(OP.kgMesEstimado || 0) + ' kg al mes (desde ' + ((OP.granDesde && OP.granDesde.kg) || 200) + ' kg o ' + ((OP.granDesde && OP.granDesde.sedes) || 2) + ' sedes se sugiere). Como cuenta puede tener sus sedes, precio por volumen, servicios y facturación por pagador. No se pierde lo escrito.</p></div>' +
-        '<button class="btn" data-a="pasar-gran">' + IC('edificio', 15) + ' Pasar a gran generador</button></div>' + h;
+    } else if (OP.granGenerador && OP.granGenerador.sugerido && !planEsGran() && !GER && !unica()) {
+      h = '<div class="ban warn">' + IC('alerta', 18) + '<div class="bx"><b>Sugerencia: gran generador por volumen</b><p>' + (OP.granGenerador.kgMes != null ? 'Su plan es de ' + Math.round(OP.granGenerador.kgMes) + ' kg al mes. ' : '') +
+        'Desde ' + umbralGran() + ' kg al mes, sumando todas sus sedes, se marca como gran generador al elegir el plan. Se sigue trabajando en esta ficha, con sus tarifas y servicios.</p></div>' +
+        '<button class="btn" data-tab="propuesta">' + IC('moneda', 15) + ' Ver el plan</button></div>' + h;
     }
     $('bans').innerHTML = h;
   }
@@ -724,16 +770,174 @@
 
   function dprog() { return '<div class="dprog">' + listaDocs().map(function (d) { return '<i class="' + (v(d[0]).toUpperCase() === 'SI' ? 'si' : '') + '" title="' + E(d[1]) + '"></i>'; }).join('') + '</div>'; }
 
+  /* ═══ api 3.13 · planes de «Planes y tarifas» y promociones ═══
+     El plan llena frecuencia, kilos, precio, kilo adicional y servicios (api_oportunidadPlan).
+     La promoción se SUMA al plan: solo clientes nuevos, una por propuesta (api_oportunidadPromo). */
+  var FREC_TX = { MENSUAL: 'Mensual', QUINCENAL: 'Quincenal', SEMANAL: 'Semanal', '2X SEMANA': '2 por semana', BIMESTRAL: 'Bimestral', TRIMESTRAL: 'Trimestral' };
+  var CADA_MESES = { bimestre: 2, trimestre: 3, semestre: 6 };
+  var CADA_TX = { mes: 'al mes', visita: 'en cada visita', bimestre: 'cada 2 meses', trimestre: 'cada 3 meses', semestre: 'cada 6 meses', solicitud: 'por solicitud' };
+  function umbralGran() { return (OP && OP.granGenerador && OP.granGenerador.umbral) || 100; }
+  function planEsGran() { var p = planActual(); return !!(p && p.gran); }
+  function esGran() { return !!(OP && ((OP.granGenerador && OP.granGenerador.sugerido) || planEsGran())); }
+  function cargarPlanes() {
+    if (!OP || OP.gran || unica()) { if (PL) { PL = null; } return; }
+    MK.api('api_planesParaOportunidad', MK.pin, COD).then(function (r) {
+      if (!r || !r.ok) return;                                   /* sin la API, la ficha sigue como antes (tarifas a mano) */
+      var antes = JSON.stringify(PL); PL = r;
+      if (antes === JSON.stringify(PL)) return;
+      pintarTarjeta(); pintarBans();
+      var act = document.activeElement;
+      if (TAB === 'propuesta' && !(act && act.closest && act.closest('#panel .fld'))) { var y = window.scrollY; pintarPanel(); window.scrollTo(0, y); }
+    }, function () {});
+  }
+  function planesLista() { return (PL && PL.planes) || []; }
+  function planActual() { var a = PL && PL.planActual; if (!a) return null; return Object.assign({}, a.snap || {}, { id: a.id || (a.snap && a.snap.id) }); }
+  function promoActual() { var a = PL && PL.promoActual; if (!a) return null; return Object.assign({}, a.snap || {}, { id: a.id || (a.snap && a.snap.id) }); }
+  function kgPlan(p) { return Number(p.kgIncluidos != null ? p.kgIncluidos : p.kg) || 0; }
+  function kgAdicDe(p) { return p.kgAdicional ? Number(p.kgAdicional) : (PL && PL.kgAdicionalBase ? Number(PL.kgAdicionalBase) : null); }
+  function durTx(m) { m = Number(m) || 0; return m ? m + (m === 1 ? ' mes' : ' meses') : 'todo el contrato'; }
+  function fCorta(iso) { return /^\d{4}-\d{2}-\d{2}/.test(iso || '') ? MK.fechaCorta(String(iso).slice(0, 10)) : ''; }
+  function chipPlan(p) {
+    return (p.tipo === 'especial' ? '<span class="tag t-info">Especial' + (p.sector ? ' · ' + E(p.sector) : '') + '</span>' : '<span class="tag t-gris">Regular</span>') +
+      (p.gran ? ' <span class="tag t-ok">Gran generador</span>' : '');
+  }
+  function srvPlanTx(p) {
+    return (p.servicios || []).map(function (x) { var n = String(x.nombre || ''); n = n.charAt(0).toLowerCase() + n.slice(1);
+      return CADA_MESES[x.cada] ? n + ' ' + CADA_TX[x.cada] : (x.cantidad || 1) + ' × ' + n + ' ' + (CADA_TX[x.cada] || 'al mes'); }).join(' + ');
+  }
+  function detPlan(p) {
+    var ka = kgAdicDe(p);
+    return (FREC_TX[p.frecuencia] || p.frecuencia || '') + (p.visitas > 1 ? ' (' + p.visitas + ' visitas)' : '') + ' · hasta ' + kgPlan(p) + ' kg al mes' +
+      ' · kilo adicional ' + (ka != null ? MK.dinero(ka) : 'el de base') + (p.kgAdicional ? '' : ' (base)') + (srvPlanTx(p) ? ' · incluye ' + srvPlanTx(p) : '');
+  }
+  /* promociones activas hoy que se suman a ese plan y no regalan algo que el plan ya trae */
+  function promosPara(p) {
+    if (!PL || !PL.clienteNuevo || !p) return [];
+    var trae = {}; (p.servicios || []).forEach(function (x) { trae[x.itemId] = 1; });
+    return (PL.promos || []).map(function (x) { return Object.assign({}, x, { id: x.id || x.promoId }); }).filter(function (x) {
+      var ids = x.planIds || (x.planes === 'todos' ? null : x.planes);
+      if (ids && ids.indexOf(p.id) < 0) return false;
+      if (x.estado && x.estado !== 'activa') return false;
+      if ((x.desde && MK.hoy < x.desde) || (x.hasta && MK.hoy > x.hasta)) return false;
+      return !(x.beneficios || []).some(function (b) { return b.tipo === 'gratis' && trae[b.itemId]; });
+    });
+  }
+  function benTx(b, p) {
+    var ka = p ? kgAdicDe(p) : null;
+    if (b.tipo === 'gratis') return (b.nombre || 'Servicio') + ' sin costo · ' + (b.cantidad || 1) + ' ' + (CADA_TX[b.cada] || 'al mes');
+    if (b.tipo === 'kgAdicional') return 'Kilo adicional a ' + MK.dinero(b.precio) + (ka != null ? ' (luego, ' + MK.dinero(ka) + ')' : '');
+    if (b.tipo === 'visitasExtra') return (b.cantidad || 1) + (Number(b.cantidad) === 1 ? ' visita extra' : ' visitas extra') + ' al mes sin costo';
+    if (b.tipo === 'precio') return 'Visita a ' + MK.dinero(b.precio) + (p ? ' (luego, ' + MK.dinero(p.precio) + ')' : '');
+    return b.texto || '';
+  }
+  function planHtml() {
+    if (!PL) return '';
+    var p = planActual(), L = planesLista();
+    var aviso = PL.sinSector ? '<div class="plan-av">' + IC('alerta', 13) + '<span>' + E(PL.avisoSector || 'Ponle sector a este cliente para ver sus planes especiales.') + ' <a href="#" data-ir="sector">Ponerle sector</a></span></div>' : '';
+    if (p && !PLAN_MENU) return '<div class="plan"><label class="lb">Plan</label><div class="plan-ok">' + IC('check', 14) + '<span>Del plan <b>«' + E(p.nombre) + '»</b></span>' + chipPlan(p) +
+      '<span>' + E(MK.dinero(p.precio) + ' por visita') + '</span>' + (ro() ? '' : '<a href="#" data-a="plan-abrir">' + IC('renovar', 13) + ' Cambiar plan</a>') + '</div>' + aviso + promoHtml(p) + '</div>';
+    var items = L.map(function (x) {
+      return '<button type="button" data-a="plan-elegir" data-id="' + E(x.id) + '"' + (p && p.id === x.id ? ' class="on"' : '') + '><span class="nm"><b>' + E(x.nombre) + '</b>' + chipPlan(x) + '</span>' +
+        '<span class="pr">' + MK.dinero(x.precio) + '<small>por visita</small></span><span class="dt">' + E(detPlan(x)) + '</span></button>';
+    }).join('');
+    var oc = Number(PL.ocultos) || 0;
+    return '<div class="plan"><label class="lb">Plan</label><button type="button" class="plan-sel' + (PLAN_MENU ? ' on' : '') + '" data-a="plan-abrir"' + (ro() ? ' disabled' : '') + '>' + IC('lista', 15) +
+      '<span>' + (p ? '<b>' + E(p.nombre) + '</b>' : 'Elegir un plan… se llenan solos frecuencia, kilos, precio y servicios') + '</span><span class="cv">▾</span></button>' +
+      (PLAN_MENU ? '<div class="plan-menu"><div class="hd2"><span>Planes para ' + E(String(PL.sector || v('sector') || 'este cliente').toLowerCase()) + ' · ' + L.length + '</span><a href="MerTarifario.html#planes">Armar planes en Planes y tarifas</a></div>' +
+        (items || '<div class="oc">No hay planes activos para este cliente.</div>') +
+        (oc ? '<div class="oc">' + IC('filtro', 13) + oc + (oc === 1 ? ' plan especial de otro sector no se muestra.' : ' planes especiales de otros sectores no se muestran.') + '</div>' : '') +
+        '<button type="button" class="sin" data-a="plan-elegir" data-id=""><span class="nm">Sin plan (a mano)</span><span class="dt">Frecuencia, kilos y precio se escriben a mano, como hoy.</span></button></div>' : '') + aviso + '</div>';
+  }
+  /* la promoción se SUMA al plan: un paquete de beneficios por unos meses (solo clientes nuevos, una por propuesta) */
+  function promoHtml(p) {
+    var x = promoActual();
+    if (x) {
+      var m = Number(x.duracionMeses) || 0, vp = venceProp();
+      return '<div class="promo"><div class="promo-ok"><div class="h">' + IC('estrella', 15) + '<span>Promoción sumada: <b>«' + E(x.nombre) + '»</b></span><span class="tag t-warn">' + durTx(m) + '</span>' +
+        (ro() ? '' : '<a href="#" data-a="promo-quitar">' + IC('x', 13) + ' Quitar</a>') + '</div>' +
+        '<ul>' + (x.beneficios || []).map(function (b) { return '<li>' + E(benTx(b, p)) + '</li>'; }).join('') + '</ul>' +
+        '<div class="pi">' + (m ? 'Durante los primeros ' + durTx(m) + ' de servicio. Después el cobro pasa solo al plan normal; 15 días antes se avisa a Mercadeo y a Cobros.' : 'Durante todo el contrato.') +
+        (x.hasta ? ' Se ofrece hasta el ' + fCorta(x.hasta) + (vp.promo ? ': la propuesta vence ese día.' : '.') : '') + '</div></div></div>';
+    }
+    if (!PL || !PL.clienteNuevo) return '';                     /* cliente con contrato: no se le suma promoción */
+    var L = promosPara(p);
+    var items = L.map(function (z) {
+      return '<button type="button" data-a="promo-sumar" data-id="' + E(z.id) + '"><span class="nm">' + IC('estrella', 14) + '<b>' + E(z.nombre) + '</b><span class="tag t-warn">dura ' + durTx(z.duracionMeses) + '</span>' +
+        (z.hasta ? '<span class="tag t-gris">se ofrece hasta ' + fCorta(z.hasta) + '</span>' : '') + '</span>' +
+        '<span class="pr">Sumar<small>al plan</small></span><span class="dt">' + E((z.beneficios || []).map(function (b) { return benTx(b, p); }).join(' · ')) + '</span></button>';
+    }).join('');
+    return '<div class="promo"><div class="promo-add">' + (ro() || !L.length ? '' : '<button type="button" class="btn sm' + (PROMO_MENU ? ' pri' : '') + '" data-a="promo-abrir">' + IC('estrella', 14) + ' Sumar promoción</button>') +
+      '<span class="small muted">' + (L.length ? L.length + (L.length === 1 ? ' activa para este plan' : ' activas para este plan') : 'Ninguna promoción activa para este plan') + '</span></div>' +
+      (PROMO_MENU && L.length ? '<div class="plan-menu"><div class="hd2"><span>Promociones activas para «' + E(p.nombre) + '» · ' + L.length + '</span><a href="MerTarifario.html#promociones">Armar promociones</a></div>' + items + '</div>' : '') + '</div>';
+  }
+  /* lo que Katherine cambió contra el plan se ve, no se esconde */
+  function difPlan(col) {
+    var p = planActual(); if (!p || !lleno(col)) return '';
+    var ref = { 'costo visita': Number(p.precio), 'kg plan': kgPlan(p), 'tarifa kg adic': kgAdicDe(p) }[col];
+    if (ref == null || !isFinite(ref)) return '';
+    var x = Number(v(col));
+    if (Math.abs(x - ref) < 0.005) return col === 'tarifa kg adic' ? promoKgTx() : '';
+    if (col === 'costo visita') { var pc = ref ? Math.round(Math.abs(x - ref) / ref * 100) : 0;
+      return '<span class="tag t-warn">Precio especial · ' + pc + ' % ' + (x < ref ? 'bajo' : 'sobre') + ' el plan (' + MK.dinero(ref) + ')</span>'; }
+    return '<span class="tag t-warn">Distinto al plan (' + (col === 'kg plan' ? ref + ' kg' : MK.dinero(ref)) + ')</span>' + (col === 'tarifa kg adic' ? ' ' + promoKgTx() : '');
+  }
+  function promoKgTx() {
+    var x = promoActual(), b = x && (x.beneficios || []).filter(function (z) { return z.tipo === 'kgAdicional'; })[0];
+    return b ? '<span class="tag t-warn">' + MK.dinero(b.precio) + ' los primeros ' + durTx(x.duracionMeses) + ' (promoción)</span>' : '';
+  }
+  /* con promoción, la propuesta vence cuando cierra la oferta (si es antes que la validez) */
+  function venceProp() {
+    var fp = OP['fecha propuesta'] || MK.hoy, val = Number(v('validez propuesta') || 30), f = MK.masDias(fp, val), x = promoActual();
+    return x && x.hasta && x.hasta < f ? { f: x.hasta, promo: x } : { f: f };
+  }
+  var COLS_PLAN = ['frecuencia', 'costo visita', 'kg plan', 'tarifa kg adic'];
+  function elegirPlan(id) {
+    PLAN_MENU = false; PROMO_MENU = false;
+    var p = planActual();
+    pintarPanel();
+    if (ro() || (p ? p.id : '') === id) return;
+    /* lo que el plan llena manda sobre lo escrito sin guardar en esos campos; lo demás se queda */
+    COLS_PLAN.forEach(function (k) { delete CAMBIOS[k]; });
+    var nuevo = planesLista().filter(function (x) { return x.id === id; })[0];
+    MK.api('api_oportunidadPlan', MK.pin, COD, id || null).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo poner el plan.'); pintarPanel(); return; }
+      if (NOTAS_EDIT) NOTAS_AVISO = 'Cambiaste el plan y las notas están editadas a mano: los números de las notas no se actualizaron. Revísalas, o usa <b>Volver a las estándar</b>.';
+      GLOW = id ? COLS_PLAN.slice() : [];
+      setTimeout(function () { GLOW = []; [].forEach.call(document.querySelectorAll('.fld.glow'), function (f) { f.classList.remove('glow'); }); }, 3000);
+      MK.aviso(id ? 'Plan «' + ((nuevo && nuevo.nombre) || '') + '»: se llenaron frecuencia, kilos, precio y servicios' : 'Sin plan: las tarifas se escriben a mano, como antes');
+      refrescarConPlanes();
+    }, function (e) { MK.aviso('Sin conexión: ' + e.message); pintarPanel(); });
+  }
+  function sumarPromo(id) {
+    PROMO_MENU = false; pintarPanel();
+    if (ro()) return;
+    MK.api('api_oportunidadPromo', MK.pin, COD, id || null).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo sumar la promoción.'); pintarPanel(); return; }
+      MK.aviso(id ? 'Promoción sumada' : 'Promoción quitada');
+      refrescarConPlanes();
+    }, function (e) { MK.aviso('Sin conexión: ' + e.message); pintarPanel(); });
+  }
+  /* primero los planes (lo que dice el plan y la promoción) y luego la ficha: así no se ve un instante con datos cruzados */
+  function refrescarConPlanes() {
+    MK.api('api_planesParaOportunidad', MK.pin, COD).then(function (r) { if (r && r.ok) PL = r; }, function () {})
+      .then(function () { MK.cambio({ tipo: 'oportunidad', codigo: COD }); });
+  }
+  document.addEventListener('click', function (e) {
+    if (!(PLAN_MENU || PROMO_MENU) || !e.target.closest) return;
+    if (e.target.closest('.plan-menu,[data-a="plan-abrir"],[data-a="promo-abrir"]')) return;
+    PLAN_MENU = false; PROMO_MENU = false; pintarPanel();
+  });
+
   /* PROPUESTA */
   function tabPropuesta() {
-    var u = unica(), o = OP;
-    var t = '<div class="fg">' +
+    var u = unica(), o = OP, vp = venceProp();
+    var t = (u || OP.gran ? '' : planHtml()) + '<div class="fg">' +
       (u ? '' : campo('frecuencia', 'Frecuencia', { ops: D.frecuencias || [] })) +
-      campo('costo visita', u ? 'Costo del servicio (B/.)' : 'Costo por visita (B/.)', { t: 'num' }) +
-      (u ? '' : campo('kg plan', 'Kg incluidos en el plan', { t: 'num' })) +
-      campo('tarifa kg adic', u ? 'Tarifa por kg excedente (B/.)' : 'Tarifa kg adicional (B/.)', { t: 'num' }) +
+      campo('costo visita', u ? 'Costo del servicio (B/.)' : 'Costo por visita (B/.)', { t: 'num', hint: u ? '' : difPlan('costo visita') }) +
+      (u ? '' : campo('kg plan', 'Kg incluidos en el plan', { t: 'num', hint: difPlan('kg plan') })) +
+      campo('tarifa kg adic', u ? 'Tarifa por kg excedente (B/.)' : 'Tarifa kg adicional (B/.)', { t: 'num', hint: u ? '' : difPlan('tarifa kg adic') }) +
       (u ? '' : campo('tarifa visita adic', 'Tarifa visita adicional (B/.)', { t: 'num' })) +
-      campo('validez propuesta', 'Validez de la propuesta (días)', { t: 'num', ph: '30' }) +
+      campo('validez propuesta', 'Validez de la propuesta (días)', { t: 'num', ph: '30', hint: vp.promo ? '<span class="tag t-warn">Vence el ' + fCorta(vp.f) + ': cierra la promoción</span>' : '' }) +
       (u ? '' : campo('plazo contrato', 'Plazo del contrato (meses)', { t: 'num', ro: especial(), hint: especial() ? 'Un servicio especial no lleva plazo.' : '' })) +
       (u ? campo('cantidadEstimada', 'Cantidad estimada', { t: 'num' }) + campo('fechaTentativa', 'Fecha tentativa', { t: 'date' }) +
         campo('descripcionTrabajo', 'Qué se va a recoger', { t: 'area', w2: true, ph: 'Describe el material y el trabajo. Sin esto, la cotización no se entiende sola dentro de seis meses.' }) : '') + '</div>' +
@@ -752,13 +956,16 @@
   /* ═══ api 3.12 · Servicios y productos: cualquier propuesta los puede llevar ═══ */
   var QUIEN_TX = { camion: 'Personal del camión', conductor: 'Conductor en la visita', mercadeo: 'Mercadeo', otro: 'Otro' };
   function serviciosCard() {
-    if (OP.gran) return card('Servicios y productos', '<p class="small muted">En un gran generador los servicios y productos van por grupo de sedes, en la cuenta.</p><a class="btn sm" style="margin-top:8px" href="MerCuenta.html?id=' + encodeURIComponent(COD) + '&paso=4">' + IC('lapiz', 14) + ' Abrir la cuenta</a>');
+    if (OP.gran) return card('Servicios y productos', '<p class="small muted">En una cuenta con sedes, los servicios y productos van por grupo de sedes, en la cuenta.</p><a class="btn sm" style="margin-top:8px" href="MerCuenta.html?id=' + encodeURIComponent(COD) + '&paso=4">' + IC('lapiz', 14) + ' Abrir la cuenta</a>');
     var S = D.servicios || { lista: [], total: 0 }, u = unica(), L = S.lista || [];
     var h = L.length ? '<table class="vt srv">' + L.map(function (x, i) {
-      var cant = x.cantidad === 'solicitud' ? 'por solicitud' : x.cantidad + (u ? '' : (x.cada === 'visita' ? ' en cada visita' : ' al mes'));
-      return '<tr><td><b>' + E(x.nombre) + '</b><small class="muted" style="display:block">' + E(QUIEN_TX[x.quien] || '') + (x.stock != null ? ' · quedan ' + E(x.stock) : '') + (x.activoCat === false ? ' · <span class="tag t-warn">apagado en el catálogo</span>' : '') + '</small></td>' +
+      var cant = x.cantidad === 'solicitud' ? 'por solicitud' : x.cantidad + (u ? '' : ' ' + (CADA_TX[x.cada] || 'al mes')), rep = !u && !!CADA_MESES[x.cada];
+      /* api 3.13: lo gratis de la promoción, sin costo y por sus meses */
+      if (x.dePromo) return '<tr><td><b>' + E(x.nombre) + '</b> <span class="tag t-warn">de la promoción</span><small class="muted" style="display:block">' + E(QUIEN_TX[x.quien] || '') + (promoActual() && promoActual().duracionMeses ? ' · los primeros ' + durTx(promoActual().duracionMeses) : '') + '</small></td>' +
+        '<td>' + E(cant) + '</td><td class="num" style="text-align:right"><span class="tag t-ok">Sin costo</span></td><td class="num" style="text-align:right">—</td>' + (ro() ? '' : '<td></td>') + '</tr>';
+      return '<tr><td><b>' + E(x.nombre) + '</b>' + (x.delPlan ? ' <span class="tag t-gris">del plan</span>' : '') + '<small class="muted" style="display:block">' + E(QUIEN_TX[x.quien] || '') + (x.stock != null ? ' · quedan ' + E(x.stock) : '') + (x.activoCat === false ? ' · <span class="tag t-warn">apagado en el catálogo</span>' : '') + '</small></td>' +
         '<td>' + E(cant) + '</td><td class="num" style="text-align:right">' + (x.modo === 'cobrado' ? MK.dinero(x.precio) + (u ? '' : ' c/u') : '<span class="tag t-info">Incluido</span>') + '</td>' +
-        '<td class="num" style="text-align:right">' + (x.modo === 'cobrado' ? '<b>' + MK.dinero(x.total) + '</b>' + (u ? '' : '<small class="muted" style="display:block">al mes</small>') : '—') + '</td>' +
+        '<td class="num" style="text-align:right">' + (x.modo === 'cobrado' ? '<b>' + MK.dinero(x.total) + '</b>' + (u ? '' : '<small class="muted" style="display:block">' + (rep ? 'al mes · repartida' : 'al mes') + '</small>') : '—') + '</td>' +
         (ro() ? '' : '<td style="white-space:nowrap"><button class="btn sm gh" data-a="srv-editar" data-i="' + i + '" title="Cambiar">' + IC('lapiz', 13) + '</button><button class="btn sm gh" data-a="srv-quitar" data-i="' + i + '" title="Quitar">' + IC('basura', 13) + '</button></td>') + '</tr>';
     }).join('') + '</table>' + (S.total ? '<div class="small" style="margin-top:8px;text-align:right">Cobrado ' + (u ? 'en el servicio' : 'al mes') + ': <b>' + MK.dinero(S.total) + '</b> · suma al valor de la oportunidad</div>' : '')
       : '<p class="small muted">Fumigación, recipientes punzocortantes, bolsas… lo que haya en el catálogo. Salen en la propuesta y, al pasar a cartera, el conductor repone los envases en la visita.</p>';
@@ -770,32 +977,61 @@
       if (b) MK.ocupado(b, false); D.servicios = r.servicios; MK.cerrarHoja(); MK.aviso('Servicios guardados'); MK.cambio({ tipo: 'servicios' });
     }, function () { if (b) MK.ocupado(b, false); });
   }
-  function srvListaBase() { return ((D.servicios && D.servicios.lista) || []).map(function (x) { return { catId: x.catId, nombre: x.nombre, tipo: x.tipo, cantidad: x.cantidad, cada: x.cada, modo: x.modo, precio: x.precio, insumoId: x.insumoId, quien: x.quien }; }); }
+  /* api 3.13: se conservan las marcas «del plan» y «de la promoción» al guardar la lista */
+  /* api 3.13 · de vuelta del catálogo (…&agregar=<id>): el artículo nuevo entra a la propuesta y se avisa */
+  function agregarDelCatalogo() {
+    var id = AGREGAR; AGREGAR = ''; MK.quitarParam(['agregar']);
+    if (GER || ro()) { MK.aviso('Esta propuesta ya no se modifica: no se agregó el artículo.'); return; }
+    if (OP.gran) { MK.aviso('En una cuenta con sedes, el artículo se agrega en la cuenta (paso 4).'); return; }
+    var c = (((D.servicios || {}).catalogo) || []).filter(function (z) { return z.id === id; })[0];
+    if (!c) { MK.aviso('No se encontró el artículo nuevo en el catálogo. Agrégalo con «Agregar» en Servicios y productos.'); return; }
+    var L = srvListaBase();
+    if (L.some(function (x) { return x.itemId === c.id; })) { MK.aviso('«' + c.nombre + '» ya estaba en la propuesta.'); return; }
+    L.push(srvDe(c));
+    MK.llamar('api_guardarServiciosOp', MK.pin, COD, L).then(function (r) {
+      D.servicios = r.servicios; MK.aviso('Se agregó «' + c.nombre + '» a la propuesta · ajusta cantidad y precio con el lápiz');
+      MK.cambio({ tipo: 'servicios' });
+      setTimeout(function () { var el = document.querySelector('#panel .srv'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 400);
+    }, function () {});
+  }
+  /* forma de un servicio (api 3.13): {itemId, nombre, modo, cantidad, cada, meses, precio, total, delPlan, dePromo}; catId = itemId por lo guardado antes.
+     «meses» es cada cuánto (1, 2, 3 o 6): lo no mensual se cobra repartido; la duración de lo gratis sale de la promoción. */
+  var MESES_DE = { visita: 1, mes: 1, bimestre: 2, trimestre: 3, semestre: 6, solicitud: 1 };
+  function srvNorm(x) { var id = x.itemId || x.catId || ''; return Object.assign({}, x, { itemId: id, catId: id, meses: MESES_DE[x.cada] || 1, delPlan: !!x.delPlan, dePromo: !!x.dePromo, modo: x.dePromo ? 'incluido' : x.modo }); }
+  function srvDe(c) { return srvNorm({ itemId: c.id, nombre: c.nombre, tipo: c.tipo, cantidad: 1, cada: 'mes', modo: c.tipo === 'servicio' && c.precio ? 'cobrado' : 'incluido', precio: c.precio || 0, insumoId: c.insumoId, quien: c.quien }); }
+  function srvListaBase() { return ((D.servicios && D.servicios.lista) || []).map(function (x) {
+    return srvNorm({ itemId: x.itemId || x.catId, nombre: x.nombre, tipo: x.tipo, cantidad: x.cantidad, cada: x.cada, modo: x.modo, precio: x.precio, insumoId: x.insumoId, quien: x.quien, delPlan: x.delPlan, dePromo: x.dePromo }); }); }
   function srvHoja(i) {
     var L = srvListaBase(), S = D.servicios || {}, u = unica();
     if (i == null) {
-      var ya = {}; L.forEach(function (x) { ya[x.catId] = 1; });
+      var ya = {}; L.forEach(function (x) { ya[x.itemId] = 1; });
       var C = (S.catalogo || []).filter(function (c) { return !ya[c.id]; });
-      var h = MK.hoja('<h2>Agregar servicio o producto</h2><p class="small muted">Del catálogo de ECOVSA. Lo que no esté se crea en Tarifario y catálogo.</p>' +
+      var h = MK.hoja('<h2>Agregar servicio o producto</h2><p class="small muted">Del catálogo de ECOVSA. Lo que no esté se crea en el catálogo de Planes y tarifas y se vuelve aquí.</p>' +
         (C.length ? '<div class="srv-cat">' + C.map(function (c) { return '<button type="button" data-cat="' + E(c.id) + '"><b>' + E(c.nombre) + '</b><small>' + E(c.tipo === 'servicio' ? 'Servicio' : c.tipo === 'prestamo' ? 'Préstamo' : 'Producto') + (c.stock != null ? ' · quedan ' + E(c.stock) : '') + (c.precio ? ' · ' + MK.dinero(c.precio) : '') + ' · ' + E(QUIEN_TX[c.quien] || '') + '</small></button>'; }).join('') + '</div>' : MK.vacio('Ya están todos los del catálogo.')) +
-        '<div class="pie"><a class="btn" href="MerTarifario.html#catalogo">Ir al catálogo</a><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true });
+        '<div class="pie"><a class="btn" id="sv-catalogo" href="' + E(MK.enlaceCatalogo('MerOportunidad.html?id=' + encodeURIComponent(COD), OP.empresa || COD)) + '">Ir al catálogo</a><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true });
+      /* api 3.13: se guarda lo que haya en pantalla y se va al catálogo; «Volver y agregarlo» regresa con &agregar=<id> */
+      h.querySelector('#sv-catalogo').onclick = function (e) {
+        e.preventDefault(); var url = this.getAttribute('href');
+        antesGuardar().then(function (ok) { if (ok) { CAMBIOS = {}; NOTAS_CAMBIO = false; location.href = url; } });
+      };
       [].forEach.call(h.querySelectorAll('[data-cat]'), function (b) { b.onclick = function () {
         var c = (S.catalogo || []).filter(function (z) { return z.id === b.getAttribute('data-cat'); })[0]; if (!c) return;
-        L.push({ catId: c.id, nombre: c.nombre, tipo: c.tipo, cantidad: 1, cada: 'mes', modo: c.tipo === 'servicio' && c.precio ? 'cobrado' : 'incluido', precio: c.precio || 0, insumoId: c.insumoId, quien: c.quien });
+        L.push(srvDe(c));
         D.servicios.lista = L; srvHoja(L.length - 1); }; });
       return;
     }
     var x = L[i]; if (!x) return;
     var h2 = MK.hoja('<h2>' + E(x.nombre) + '</h2>' +
       '<div class="grid g2" style="gap:10px"><div><label class="lb" for="sv-c">CANTIDAD</label><select class="sel" id="sv-c">' + ['1', '2', '3', '4', '5', '10', 'solicitud'].map(function (o) { return '<option value="' + o + '"' + (String(x.cantidad) === o ? ' selected' : '') + '>' + (o === 'solicitud' ? 'Por solicitud' : o) + '</option>'; }).join('') + '</select></div>' +
-      (u ? '' : '<div><label class="lb" for="sv-d">CADA</label><select class="sel" id="sv-d"><option value="mes"' + (x.cada !== 'visita' ? ' selected' : '') + '>Al mes</option><option value="visita"' + (x.cada === 'visita' ? ' selected' : '') + '>En cada visita</option></select></div>') +
+      (u ? '' : '<div><label class="lb" for="sv-d">CADA</label><select class="sel" id="sv-d">' + [['mes', 'Al mes'], ['visita', 'En cada visita'], ['bimestre', 'Cada 2 meses'], ['trimestre', 'Cada 3 meses'], ['semestre', 'Cada 6 meses']].map(function (o) {
+        return '<option value="' + o[0] + '"' + ((x.cada || 'mes') === o[0] || (o[0] === 'mes' && !CADA_TX[x.cada]) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>') +
       '<div><label class="lb" for="sv-m">EN LA PROPUESTA</label><select class="sel" id="sv-m"><option value="incluido"' + (x.modo !== 'cobrado' ? ' selected' : '') + '>Incluido</option><option value="cobrado"' + (x.modo === 'cobrado' ? ' selected' : '') + '>Cobrado aparte</option></select></div>' +
       '<div><label class="lb" for="sv-p">PRECIO (B/.)</label><input class="in" id="sv-p" type="number" min="0" step="0.01" value="' + (x.precio || '') + '"></div></div>' +
-      '<p class="small muted" style="margin-top:8px">Incluido: sale en la propuesta sin precio aparte. Cobrado: suma al valor' + (u ? ' del trabajo.' : ' del mes (precio × cantidad al mes).') + '</p>' +
+      '<p class="small muted" style="margin-top:8px">Incluido: sale en la propuesta sin precio aparte. Cobrado: suma al valor' + (u ? ' del trabajo.' : ' del mes (precio × cantidad al mes; lo que no es mensual se cobra repartido al mes).') + '</p>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="sv-ok">Guardar</button></div>');
     h2.querySelector('#sv-ok').onclick = function () {
       var c = $('sv-c').value; x.cantidad = c === 'solicitud' ? 'solicitud' : Number(c); x.cada = c === 'solicitud' ? 'solicitud' : ($('sv-d') ? $('sv-d').value : 'visita');
-      x.modo = $('sv-m').value; x.precio = Number($('sv-p').value) || 0;
+      x.modo = $('sv-m').value; x.precio = Number($('sv-p').value) || 0; x.meses = MESES_DE[x.cada] || 1;
       srvGuardar(L, this);
     };
   }
@@ -806,7 +1042,8 @@
     var h = '<p class="small muted">La propuesta imprimible sale con lo guardado en esta ficha: tarifas, notas y datos del cliente. Desde ahí se imprime o se manda por WhatsApp o correo.</p>' +
       '<div class="row w" style="margin-top:10px"><button class="btn pri" data-a="ver-propuesta">' + IC('imprimir', 15) + ' Generar propuesta</button>' +
       (GER ? '' : '<button class="btn" data-a="envio-propuesta">' + IC('check', 15) + ' Anotar que se envió</button>') + '</div>' +
-      (fp ? '<div class="small muted" style="margin-top:10px">Fecha de la propuesta: <b>' + MK.fechaLarga(fp) + '</b>' + (val ? ' · vigente hasta el ' + MK.fechaCorta(MK.masDias(fp, val)) : '') + '</div>' : '');
+      (fp ? '<div class="small muted" style="margin-top:10px">Fecha de la propuesta: <b>' + MK.fechaLarga(fp) + '</b>' + (val ? ' · vigente hasta el ' + MK.fechaCorta(venceProp().f) : '') + '</div>' : '') +
+      (venceProp().promo ? '<div class="small" style="margin-top:6px">' + IC('estrella', 13) + ' Vence cuando cierra la oferta de «' + E(venceProp().promo.nombre) + '», aunque la validez diga más días.</div>' : '');
     if (props.length) h += '<table class="vt" style="margin-top:10px">' + props.map(function (d) { return filaDoc(d, true); }).join('') + '</table>';
     return card('Propuesta imprimible', h, props.length ? '<span class="l muted">' + props.length + ' registrada' + (props.length > 1 ? 's' : '') + '</span>' : '');
   }
@@ -1288,7 +1525,7 @@
       (OP.estado !== 'Firmado' && OP.estado !== 'Pasado a cartera' ? '<p class="small muted" style="margin-top:8px">Se habilita en «Firmado».</p>' : ''));
     if (u) return '<div class="b2"><div class="stack">' + card('Contrato', '<div class="aviso az">Una <b>visita única</b> no lleva contrato, ni plazo, ni frecuencia. Con la propuesta aceptada (y firmada, si el cliente la firma) se pasa a «Firmado» y luego a cartera.</div>') + '</div><div class="stack">' + cartera + '</div></div>';
     var venc = vencimiento();
-    var datos = '<div class="fg">' + campo('n contrato', 'N.º de contrato', { req: 1 }) + campo('fecha contrato', 'Fecha del contrato', { t: 'date' }) + campo('inicio recoleccion', 'Inicio de recolección', { t: 'date' }) +
+    var datos = '<div class="fg">' + campo('n contrato', 'N.º de contrato', { ro: true, ph: 'Se asigna al generar el contrato', hint: lleno('n contrato') ? 'Se asigna solo al generar el contrato.' : '' }) + campo('fecha contrato', 'Fecha del contrato', { t: 'date' }) + campo('inicio recoleccion', 'Inicio de recolección', { t: 'date' }) +
       campo('plazo contrato', 'Plazo (meses)', { t: 'num', ro: especial() }) +
       campo('vencimiento', 'Vencimiento · se calcula', { ro: true, valor: venc ? MK.fechaLarga(venc) : '', id: 'venc', ph: 'Fecha del contrato + plazo' }) +
       campo('horario recoleccion', 'Horario de recolección') + campo('representante legal', 'Representante legal', { req: 1 }) + campo('cedula representante', 'Cédula del representante', { req: 1 }) +
@@ -1328,6 +1565,12 @@
       if (t.hasAttribute('data-nota')) { var i = +t.getAttribute('data-nota'); t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; var nv = t.value.replace(/\n/g, ' '); if (NOTAS[i] !== nv) { NOTAS[i] = nv; notaEditada(); } return; }
       var c = t.getAttribute('data-c'); if (!c || t.type === 'checkbox' || t.tagName === 'SELECT') return;
       setCampo(c, t.value, t);
+      /* api 3.13: la diferencia contra el plan se ve mientras se escribe */
+      if (PL && (c === 'costo visita' || c === 'kg plan' || c === 'tarifa kg adic')) {
+        var f = t.closest('.fld'), h = f && f.querySelector('.hint2'), d = difPlan(c);
+        if (d && !h) { h = document.createElement('div'); h.className = 'hint2'; f.appendChild(h); }
+        if (h) h.innerHTML = d;
+      }
     };
     m.onchange = function (e) {
       var t = e.target, c = t.getAttribute('data-c'); if (!c) return;
@@ -1388,8 +1631,15 @@
       case 'ganada': hojaEtapa('Firmado'); break;
       case 'perdida': hojaEtapa('Rechazado'); break;
       case 'standby': hojaEtapa('Stand-by'); break;
-      case 'pasar-gran': MK.confirmar('La oportunidad pasa a ser una cuenta con sedes. Lo que ya está escrito (contacto, kilos, frecuencia y precio) se lleva a la primera sede.', function () {
-          MK.llamar('api_pasarAGranGenerador', MK.pin, COD).then(function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, function () {}); }, { boton: 'Pasar a gran generador' }); break;
+      case 'pasar-gran': MK.confirmar('Queda como cuenta con 2 sedes: esta, con lo que ya está escrito (contacto, kilos, frecuencia y precio), y la sede nueva. Sigue siendo cliente normal: «gran generador» es solo desde ' + umbralGran() + ' kg al mes entre todas sus sedes.', function () {
+          antesGuardar().then(function (ok) { if (!ok) return;
+            MK.llamar('api_pasarAGranGenerador', MK.pin, COD).then(function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD) + '&paso=2'; }, function () {}); });
+        }, { titulo: 'Agregar otra sede', boton: 'Agregar otra sede' }); break;
+      case 'plan-abrir': if (!ro()) { PLAN_MENU = !PLAN_MENU; PROMO_MENU = false; pintarPanel(); } break;
+      case 'plan-elegir': elegirPlan(id || ''); break;
+      case 'promo-abrir': if (!ro()) { PROMO_MENU = !PROMO_MENU; PLAN_MENU = false; pintarPanel(); } break;
+      case 'promo-sumar': sumarPromo(id); break;
+      case 'promo-quitar': sumarPromo(''); break;
       case 'srv-agregar': srvHoja(null); break;
       case 'srv-editar': srvHoja(Number(el.getAttribute('data-i'))); break;
       case 'srv-quitar': (function () { var L = srvListaBase(), i = Number(el.getAttribute('data-i')), n = (L[i] || {}).nombre;

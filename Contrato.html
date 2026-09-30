@@ -55,6 +55,12 @@ h3{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px
 ol,ul{margin:0 0 10px 22px}
 li{margin-bottom:6px}
 .dato{background:#EEF5E4;padding:1px 5px;border-radius:3px;font-weight:700}
+/* api 3.13: dato de la empresa que falta en Configuración (se nota en pantalla y en papel) */
+.falta{background:#FDECEC;color:#A8262B;padding:1px 5px;border-radius:3px;font-weight:700}
+#notaBarra{display:flex;gap:6px;flex-wrap:wrap;flex-basis:100%;order:9}
+#notaBarra .nb{font-size:12.5px;font-weight:600;border-radius:8px;padding:6px 10px;line-height:1.4}
+#notaBarra .nb.ok{background:#EAF6E4;color:#1f6b2e}
+#notaBarra .nb.am{background:#FFF3D1;color:#6b5000}
 .firmas{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:52px}
 .firma{text-align:center;font-size:11px;line-height:1.7}
 .firma .lin{border-top:1px solid #111;padding-top:7px}
@@ -81,6 +87,7 @@ li{margin-bottom:6px}
 <div class="barra doc-barra no-imprimir">
     <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
     <div class="ti">Contrato de servicio</div>
+    <span id="notaBarra" style="display:none"></span>
     <button class="db-wa" onclick="compartirDoc()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>
     <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
@@ -114,6 +121,9 @@ var EMP_RESP={comercial:"ECOVSA",razonSocial:"ECOTERMO DE PANAMA S.A.",
   resolucion:"Resolución Sanitaria N° 1519 del 10 de diciembre de 2025",
   resolucionCorta:"Resolución Sanitaria N° 1519",
   decreto:"Decreto Ejecutivo 111 de 1999",formulario:""};
+/* 3.13 · El contrato es un documento legal: el cliente va con su RAZÓN SOCIAL.
+   El nombre comercial solo si la razón social está vacía (prospectos viejos). */
+function razonCliente(p){ return String((p&&(p["razon social"]||p.razonSocial))||"").trim() || String((p&&p.empresa)||"").trim(); }
 function emp(){ return DATOS_EMP || EMP_RESP; }
 /* La dirección ya nombra la ciudad; anteponerla daba "Panamá, Distrito Panamá". */
 function conCiudad(dir,ciudad){
@@ -196,7 +206,7 @@ function seguir(cod){
       if(r && r.incompleto){ pintarFaltantes(r); return; }
       if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar.")); return; }
       if(r.empresa) DATOS_EMP=r.empresa;
-      pintar(r.prospecto);
+      pintar(r.prospecto, r);
       $("aviso").style.display="none"; $("app").style.display="block";
     })
     .withFailureHandler(function(){ aviso("Sin conexión."); })
@@ -209,268 +219,342 @@ function pintarFaltantes(r){
     bloques+="<h4>"+esc(g)+"</h4><ul>"+
       r.faltan[g].map(function(f){return "<li>"+esc(f)+"</li>";}).join("")+"</ul>";
   }
+  /* api 3.13: también pueden faltar los datos de la empresa, que se completan en Configuración */
+  var grupos=Object.keys(r.faltan||{}), cfg=grupos.filter(function(g){ return /configuraci/i.test(g); }).length, ficha=grupos.length-cfg;
   aviso('<h2>El contrato no se puede generar todavía</h2>'+
-    '<div class="sub">Faltan datos obligatorios en la ficha de <b>'+esc(r.empresa||"")+
-    '</b>. Un contrato con campos vacíos no tiene validez legal, así que el sistema no lo emite.</div>'+
+    '<div class="sub">Faltan datos obligatorios'+(ficha?' en la ficha de <b>'+esc(r.empresa||"")+'</b>':'')+
+    '. Un contrato con campos vacíos no tiene validez legal, así que el sistema no lo emite.</div>'+
     '<div class="faltan">'+bloques+'</div>'+
-    '<p style="margin-top:16px;font-size:13px">Completa esos campos en la ficha del prospecto '+
+    '<p style="margin-top:16px;font-size:13px">'+(ficha?'Completa esos campos en la ficha del prospecto'+(cfg?'; ':' '):'')+
+    (cfg?'los datos de la empresa los completa el administrador en Configuración › Datos de la empresa; ':'')+
     'y vuelve a intentarlo.</p>');
 }
 
-function pintar(p){
+/* ═══ api 3.13 · textos del contrato y datos de la empresa ═══
+   · Las consideraciones y cláusulas las edita Mercadeo en Plantillas y ajustes ›
+     Propuesta y contrato. El servidor las manda ya llenas en prospecto.textosContrato
+     = {consideraciones:[…], clausulas:[{titulo, texto}]}, tal como quedaron al generar
+     el contrato. Si no vienen (servidor anterior), se usa el texto de siempre (abajo).
+   · El representante legal, el folio, la cuenta del banco y los correos de notificación
+     ya no están escritos aquí: vienen de Configuración › Datos de la empresa. Si faltan,
+     el contrato lo dice en su lugar y no se inventa nada.
+   · Formato (el del servidor): cada renglón es un párrafo; «- » al empezar el renglón es un
+     punto de lista (sale numerado); **negrita**; [[dato]] = dato llenado, resaltado. */
+var FALTA="[falta en Configuración › Datos de la empresa]";
+var FALTAN=[];
+function falta(que){ if(FALTAN.indexOf(que)<0) FALTAN.push(que); return '<span class="falta">'+esc(FALTA)+'</span>'; }
+function repLegal(){
+  var r=emp().representanteLegal;
+  if(typeof r==="string") r={nombre:r};
+  return r||{};
+}
+function textoBanco(){
+  var b=emp().datosBancarios;
+  if(b && typeof b==="object") b=(b.banco&&b.cuenta)?String(b.banco).toUpperCase()+", nombre de cuenta "+(b.titular||"")+", No. de cuenta "+b.cuenta+", tipo de cuenta "+(b.tipo||""):"";
+  return String(b||"").trim();
+}
+function correosNotif(){
+  var c=emp().correosNotificacion;
+  if(typeof c==="string") c=c.split(/[,;\/]/);
+  return (c||[]).map(function(x){return String(x).trim();}).filter(Boolean);
+}
+/* html de un texto con marcas */
+function enLinea(t){
+  return esc(t).replace(/\[\[([\s\S]*?)\]\]/g,function(x,v){ return '<span class="dato">'+v+'</span>'; })
+    .replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")
+    .split(esc(FALTA)).join('<span class="falta">'+esc(FALTA)+'</span>');
+}
+function bloques(t){
+  var out=[], li=[];
+  function cl(){ if(li.length){ out.push("<ol>"+li.map(function(x){return "<li>"+enLinea(x)+"</li>";}).join("")+"</ol>"); li=[]; } }
+  String(t==null?"":t).split("\n").forEach(function(l){
+    var u=/^\s*-\s+(.*)$/.exec(l);
+    if(!l.trim()){ cl(); return; }
+    if(u){ li.push(u[1]); return; }
+    cl(); out.push("<p>"+enLinea(l)+"</p>");
+  });
+  cl();
+  return out.join("");
+}
+function clausulaHtml(c){
+  var tit='<span class="cl">'+esc(String(c.titulo||"").replace(/\.\s*$/,""))+'.</span> ';
+  var h=bloques(c.texto);
+  return /^<p>/.test(h) ? '<p>'+tit+h.slice(3) : '<p>'+tit+'</p>'+h;
+}
+
+/* El texto de siempre (el del 3.12), para cuando el servidor no manda textosContrato */
+function textosRespaldo(p, V){
+  function r(t){ return String(t).replace(/\{(\w+)\}/g,function(x,k){ return V[k]; }); }
+  return {
+    consideraciones:[
+      'EL CONTRATANTE requiere la prestación del servicio de recolección y manejo de desechos '+
+      'hospitalarios, servicio que cumple EL CONTRATISTA, a carácter propio.',
+      'EL CONTRATISTA se dedica en forma habitual y profesional a prestar servicios no '+
+      'subordinados a favor de terceros y es el único responsable por la afiliación y pago de las '+
+      'prestaciones sociales y demás derechos y obligaciones correspondientes.',
+      'Los servicios descritos en este documento se prestan por parte del CONTRATISTA en forma '+
+      'independiente, autónoma y bajo su propia cuenta y riesgo. El CONTRATANTE reconoce y acepta que '+
+      'el presente Contrato no implica ningún tipo de exclusividad y por ende EL CONTRATISTA se reserva '+
+      'el derecho de celebrar contratos con terceros, incluso para los mismos servicios aquí contratados.',
+      r('Declara EL CONTRATISTA que los servicios a prestar están debidamente regulados y autorizados '+
+      'mediante la {resolucion}.')],
+    clausulas:[
+      {titulo:'Primera: Objeto del contrato', texto:r('EL CONTRATISTA se compromete a la '+
+      'prestación del servicio de recolección, separación, transporte, tratamiento, trituración y '+
+      'disposición final de los desechos hospitalarios peligrosos (basura hospitalaria), producidos '+
+      'exclusivamente por EL CONTRATANTE en las sucursales, puntos de acopio y frecuencias acordadas, '+
+      'de conformidad con la propuesta comercial No. {codigoPropuesta} fechada el '+
+      '{fechaPropuesta}, la cual forma parte integral del presente contrato, así como '+
+      'las estipulaciones contractuales.')},
+      {titulo:'Segunda: Frecuencia y horario de recolección', texto:r('EL CONTRATISTA se '+
+      'compromete a prestar el servicio objeto de este contrato de acuerdo con las siguientes '+
+      'sucursales, puntos de acopio, frecuencias y horarios: {direccion} · Horario: {horario}'+
+      ' · Frecuencia: {frecuencia}.\n\n'+
+      'La frecuencia y el horario de recolección podrán ser modificados, previo acuerdo entre LAS '+
+      'PARTES y considerando siempre tanto las necesidades operativas de EL CONTRATISTA como las de '+
+      'EL CONTRATANTE, a fin de garantizar la prestación eficiente y adecuada del servicio.')},
+      {titulo:'Tercera: Obligaciones de EL CONTRATISTA', texto:'Además de las obligaciones '+
+      'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
+      'especiales las siguientes:\n'+
+      '- Prestar los servicios contratados de manera profesional, oportuna y eficiente, cumpliendo '+
+      'con los estándares establecidos por el Ministerio de Salud (MINSA), conforme a los plazos, '+
+      'términos, estándares técnicos y de calidad aplicables de acuerdo con el objeto del Contrato.\n'+
+      '- Garantizar que la prestación de los Servicios se brinde utilizando los equipos, suministros '+
+      'y materiales adecuados, dando cumplimiento a los procedimientos, términos y condiciones '+
+      'previstos para el mismo.\n'+
+      '- Garantizar la validez y vigencia de los permisos, licencias, títulos y certificaciones, '+
+      'como también que se cuenta con los conocimientos técnicos y experiencia necesarios para la '+
+      'prestación del Servicio.\n'+
+      '- Garantizar la trazabilidad de los residuos peligrosos, desde su recolección hasta su '+
+      'disposición final, mediante registros firmados, bitácoras y certificaciones.\n'+
+      '- Utilizar personal capacitado en el manejo de residuos infecciosos y peligrosos, dotado con '+
+      'el equipo de protección personal (EPP) requerido.\n'+
+      '- Informar de manera inmediata cualquier situación que pueda retrasar, interrumpir o afectar '+
+      'la calidad de los Servicios y contar con un plan de contingencia que garantice la prestación de '+
+      'estos ante eventualidades que se presenten.\n'+
+      '- Presentar dentro de los 5 primeros días del mes, al correo del CONTRATANTE, la factura '+
+      'correspondiente a los servicios prestados en el mes inmediatamente anterior.\n'+
+      '- Informar de manera inmediata a EL CONTRATANTE cualquier modificación en los datos de '+
+      'contacto o facturación.\n'+
+      '- Expedir certificación referente al manejo dado a los residuos o desechos.\n'+
+      '- Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
+      'las normas legales.'},
+      {titulo:'Cuarta: Obligaciones del contratante', texto:'Además de las obligaciones '+
+      'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
+      'especiales las siguientes:\n'+
+      '- Cumplir con las actividades establecidas en las propuestas comerciales (Anexo 1).\n'+
+      '- Pagar oportunamente las facturas presentadas por EL CONTRATISTA en los términos y plazos '+
+      'convenidos en el presente contrato.\n'+
+      '- Entregar únicamente los residuos que han sido previamente declarados y aprobados, así como '+
+      'atender las instrucciones y requerimientos impartidos por EL CONTRATISTA y las autoridades para '+
+      'la prestación del servicio.\n'+
+      '- Garantizar que el empacado, embalado y etiquetado de sus residuos o desechos se realice '+
+      'conforme a los requisitos legales y los establecidos por EL CONTRATISTA, respetando de igual '+
+      'forma las normativas ambientales, de salud y seguridad establecidas.\n'+
+      '- Cumplir con la normativa establecida sobre la materia.\n'+
+      '- Atender de forma oportuna y eficiente todas las consultas y solicitudes que se puedan '+
+      'presentar en ocasión al Servicio.\n'+
+      '- Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
+      'las normas legales.'},
+      {titulo:'Quinta: Manejo y disposición de los desechos hospitalarios peligrosos', texto:
+      'Respecto de las principales obligaciones asumidas por cada una de LAS PARTES, se comprometen a:\n'+
+      '- EL CONTRATANTE, a garantizar que el empacado, embalado y etiquetado de sus residuos o '+
+      'desechos se realice conforme a los requisitos legales vigentes y los requerimientos de servicio '+
+      'establecidos por EL CONTRATISTA.\n'+
+      '- EL CONTRATISTA se compromete a retirar los desechos hospitalarios peligrosos en las '+
+      'instalaciones del CONTRATANTE para su transporte, tratamiento, trituración y disposición en '+
+      'autoclave (equipo de última tecnología encargado de vaporizar, esterilizar y pulverizar el '+
+      'material entregado), respetando las normativas ambientales, de salud y seguridad establecidas '+
+      'para tal fin.\n'+
+      '- LAS PARTES se comprometen a cumplir con las normas ambientales, sanitarias, de seguridad y '+
+      'salud ocupacional, así como con los acuerdos municipales vigentes y aplicables para la '+
+      'prestación del servicio objeto del presente contrato.\n\n'+
+      'En consecuencia, serán los únicos responsables ante las autoridades competentes del '+
+      'cumplimiento o incumplimiento de sus obligaciones.'},
+      {titulo:'Sexta: Valor', texto:r('El valor del presente contrato corresponde a la suma '+
+      'total de {valorEnLetras} ({valorTotal}) incluido el I.T.B.M.S., del servicio de '+
+      'recolección de desechos hospitalarios peligrosos según propuesta presentada y aprobada.\n'+
+      '- El kilogramo adicional a partir de {kgDesde} kg tendrá un costo de ({tarifaKg}) más I.T.B.M.S.\n'+
+      (p["tarifa visita adic"] ? '- Las visitas adicionales a la frecuencia contratada tendrán un '+
+        'costo de ({tarifaVisita}) más I.T.B.M.S.\n' : '')+
+      '- En caso de algún cambio en la programación, debe ser informado con un máximo de 48 horas '+
+      'de anticipación.')},
+      {titulo:'Parágrafo primero: Revisión de la facturación', texto:'La tarifa fija '+
+      ' del servicio  aquí acordado se incrementarán en igual proporción si se presenta un '+
+      'aumento en el costo que se cancela según la norma sanitaria de Panamá por la disposición final, '+
+      'salario mínimo, permisos, combustible u otros conceptos asociados con la prestación del servicio. '+
+      'De igual manera, cada vez que se proceda a prorrogar el siguiente contrato, LAS PARTES se '+
+      'comprometen a revisar las tarifas señaladas en esta cláusula, para lo cual EL CONTRATISTA '+
+      'presentará a EL CONTRATANTE, con treinta (30) días calendarios de anticipación a la terminación '+
+      'del contrato, el porcentaje del mismo, el cual guardará relación con la inflación certificada por '+
+      'la Contraloría General de la Nación para el año inmediatamente anterior, o por un aumento de las '+
+      'tarifas decretado por el Gobierno Nacional.'},
+      {titulo:'Parágrafo segundo: Pago del servicio', texto:r('EL CONTRATANTE se obliga a pagar '+
+      'a EL CONTRATISTA mediante transferencia ACH a {datosBancarios}, así como enviar comprobante de pago '+
+      'al correo electrónico {correoEmpresa}, la totalidad de la suma facturada , dentro de '+
+      'los primeros 5 días calendarios inmediatamente siguientes a su presentación al correo electrónico '+
+      '{correoCliente}. La factura expedida por EL CONTRATISTA prestará mérito ejecutivo ante la '+
+      'jurisdicción ordinaria, de acuerdo a las Leyes de la República de Panamá. De no recibir el pago '+
+      'dentro del periodo correspondiente, se procederá con la suspensión del servicio y/o un recargo '+
+      'del 10% de su facturación.')},
+      {titulo:'Séptima: Vigencia del contrato', texto:r('LAS PARTES acuerdan que este contrato '+
+      'tiene y tendrá una vigencia de {plazo} meses calendarios, prorrogables por el mismo tiempo. '+
+      'En caso de que EL CONTRATANTE decida no continuar con el servicio, deberá notificarlo con treinta '+
+      '(30) días de anticipación a la fecha de vencimiento del contrato; en caso de no notificar, se '+
+      'entenderá prorrogado por el mismo término inicial. En el caso de que EL CONTRATANTE decida '+
+      'culminar la relación comercial antes del plazo pactado, EL CONTRATISTA impondrá una penalización '+
+      'de un mes de facturación por los gastos incurridos.')},
+      {titulo:'Octava: Responsabilidad por daños o pérdidas del equipo', texto:'Convienen LAS '+
+      'PARTES que cualquier daño o pérdida, una vez entregado e instalado el equipo y sus complementos, '+
+      'a consecuencia de la inadecuada operación y/o la poca vigilancia hacia ellos o el personal, serán '+
+      'responsabilidad de EL CONTRATANTE, por lo que se verá obligado a cubrir los gastos de '+
+      'reparaciones y/o sustitución de los mismos.'},
+      {titulo:'Novena: Total entendimiento', texto:'El hecho de que una de LAS PARTES permita '+
+      'una o varias veces que la otra incumpla sus obligaciones, o las cumpla imperfectamente, o en '+
+      'forma distinta de la pactada, o no insista en el cumplimiento de tales obligaciones, o no ejerza '+
+      'oportunamente los derechos contractuales o legales que le correspondan, no reputará ni equivaldrá '+
+      'a ningún tipo de modificación del presente contrato, ni obstará en ningún caso para que dicha '+
+      'parte en el futuro reclame el fiel cumplimiento de las obligaciones que corren a cargo de la '+
+      'otra, o ejerza los derechos contractuales, legales y/o convencionales de los cuales sea titular. '+
+      'Las leyendas que aparecen como títulos o encabezados de los términos del presente contrato se han '+
+      'insertado para conveniencia y fácil referencia del lector, de forma tal que las mismas no tienen '+
+      'relevancia para efectos de la interpretación del contenido de los referidos términos.'},
+      {titulo:'Décima: Causales de terminación del contrato', texto:'El presente Contrato '+
+      'terminará por cualquiera de las siguientes causas:\n'+
+      '- Por la terminación de la duración del Contrato.\n'+
+      '- Por mutuo acuerdo entre LAS PARTES.\n'+
+      '- Por las demás contenidas en la ley.\n'+
+      '- Por incapacidad financiera, la cual se presume si se declara cualquiera de LAS PARTES en '+
+      'quiebra o se le abre concurso de acreedores, o es intervenida por autoridad competente.\n'+
+      '- Por fuerza mayor o caso fortuito como está descrito en la ley, siempre y cuando esto '+
+      'imposibilite la ejecución del Contrato, habiendo pasado 30 días calendario a partir de la fecha '+
+      'de los hechos que den lugar a la fuerza mayor o el caso fortuito.'},
+      {titulo:'Décima primera: Legislación aplicable y resolución de conflictos', texto:'Este '+
+      'Contrato y las relaciones entre LAS PARTES derivadas de la materia que constituye su objeto están '+
+      'sujetos y regulados por las leyes vigentes en la República de Panamá. En caso de surgir '+
+      'controversia, discrepancia o reclamación entre LAS PARTES relacionada con la interpretación, '+
+      'ejecución o cumplimiento del presente documento, LAS PARTES se comprometen a resolver dichas '+
+      'controversias de la siguiente manera:\n'+
+      '- **Negociación amistosa:** en primer lugar, LAS PARTES se comprometen a intentar resolver '+
+      'sus controversias mediante una negociación amistosa, en un plazo no mayor a 30 días hábiles '+
+      'siguientes a la fecha en que se comunique entre ellas el conflicto. LAS PARTES acuerdan reunirse '+
+      'de buena fe para dar una solución al motivo de controversia.\n'+
+      '- **Conciliación:** si transcurrido el plazo anterior LAS PARTES no logran un acuerdo, se '+
+      'someterán a un proceso de conciliación, el cual será llevado a cabo por un mediador designado de '+
+      'común acuerdo o, en su defecto, por el Centro de Conciliación y Arbitraje de Panamá. El proceso '+
+      'de conciliación deberá iniciarse dentro de los 15 días hábiles siguientes a la notificación de '+
+      'fracaso de las negociaciones amistosas y deberá concluir en un plazo máximo de 30 días hábiles '+
+      'siguientes a su inicio.\n\n'+
+      'De no llegar LAS PARTES a un acuerdo, podrán interponer sus acciones ante los Tribunales de '+
+      'Justicia competentes.'},
+      {titulo:'Décima segunda: Confidencialidad', texto:'LAS PARTES se comprometen a guardar '+
+      'completa reserva y estricta confidencialidad sobre toda la información intercambiada dentro de la '+
+      'etapa precontractual, contractual y postcontractual, incluyendo pero sin limitarse al presente '+
+      'Contrato, la Propuesta, los documentos Anexos y cualquier otra información compartida o revelada '+
+      'por medio escrito, electrónico, verbal o por cualquier otro medio conocido por el hombre (la '+
+      '"Información"). LAS PARTES mantendrán vigentes sus obligaciones respecto a la confidencialidad de '+
+      'esta cláusula durante la vigencia del contrato y hasta por tres (3) años después de la fecha de '+
+      'liquidación de este.'},
+      {titulo:'Décima tercera: Caso fortuito o fuerza mayor', texto:'Cualquier incumplimiento '+
+      'o demora en el cumplimiento de las obligaciones pactadas en el Contrato no generará '+
+      'responsabilidades para LAS PARTES si dicho incumplimiento o demora resulta de caso fortuito o '+
+      'fuerza mayor. Se entenderán como tales todas las eventualidades establecidas en el Código Civil '+
+      'fuera del control razonable de LAS PARTES, que no puedan ser previstas o que, si son previsibles, '+
+      'sean inevitables, que ocurran durante la vigencia de este Contrato y que impidan el cumplimiento '+
+      'de las obligaciones. Las anteriores incluyen, pero no se limitan a, desastres naturales como '+
+      'terremoto, tsunami, tormentas, deslizamientos de tierra o derrumbes, erupciones volcánicas o '+
+      'inundaciones; conflictos armados; huelgas, disturbios o asonadas; epidemias o pandemias que '+
+      'afecten gravemente a la población; y/o fallas a las infraestructuras físicas o tecnológicas que '+
+      'sean irresistibles o irreparables en un periodo mayor a los 30 días.'},
+      {titulo:'Décima cuarta: Domicilio contractual y notificaciones', texto:r('Para todos los '+
+      'efectos derivados del presente Contrato, se establece como domicilio contractual la Ciudad de '+
+      'Panamá, Panamá. Para que cualquier aviso o notificación entre LAS PARTES tenga validez, se '+
+      'enviará a las siguientes direcciones, a menos que cualquiera de LAS PARTES suministre por escrito '+
+      'una nueva dirección con una antelación no inferior a 10 días hábiles o comunes a la fecha del '+
+      'cambio de dirección. Toda notificación se tendrá como realizada y será efectiva una vez que quien '+
+      'envía el correo electrónico haya recibido confirmación de recibo por parte del destinatario. '+
+      'Salvo que se disponga expresamente lo contrario, las notificaciones se enviarán a:\n'+
+      '- EL CONTRATANTE, al correo electrónico {correoCliente} · Teléfono {telefonoCliente}\n'+
+      '- EL CONTRATISTA, al correo electrónico {correosNotificacion}')},
+      {titulo:'Décima quinta: Modificaciones', texto:'El presente contrato no podrá ser '+
+      'enmendado o modificado en forma alguna, a menos que dichas enmiendas o modificaciones se den con '+
+      'el consentimiento previo y expreso de LAS PARTES, manifestado por escrito. Cualquier modificación '+
+      'que se quiera hacer frente a las condiciones del Contrato deberá ser acordada y legalizada por '+
+      'LAS PARTES, cumpliendo las mismas formalidades establecidas para el Contrato.'}
+    ]};
+}
+
+function pintar(p, r){
   var costo=Number(p["costo visita"])||0;
   var itbms=Number(p.itbms); if(!isFinite(itbms)||itbms<=0) itbms=0.07;
   var total=Math.round(costo*(1+itbms)*100)/100;
   var plazo=p["plazo contrato"]||12;
   var firma=p["fecha contrato"]||"";
+  FALTAN=[];
+
+  /* ECOTERMO: su representante legal, desde Configuración */
+  var RL=repLegal(), nomRL=String(RL.nombre||"").trim();
+  var g=String(RL.genero||"").toUpperCase().charAt(0);
+  var repTxt = nomRL
+    ? (g==="F"?'la señora ':g==="M"?'el señor ':'')+'<b>'+esc(nomRL.toUpperCase())+'</b>, '+(g==="F"?'mujer, ':g==="M"?'varón, ':'')+'mayor de edad '+
+      'y de nacionalidad '+(RL.nacionalidad?esc(RL.nacionalidad):falta("la nacionalidad del representante legal"))+
+      ' con documento de Identidad No. '+(RL.documento?esc(RL.documento):falta("el documento del representante legal"))
+    : falta("el representante legal");
+  var folio=String(emp().folio||"").trim();
+  var banco=textoBanco(), correos=correosNotif();
+
+  /* datos que se llenan solos: [[ ]] los resalta como antes */
+  function M(v){ return "[["+String(v==null?"":v)+"]]"; }
+  var V={
+    codigoPropuesta:M(p.codigoPropuesta), fechaPropuesta:M(larga(p["fecha propuesta"])), direccion:M(p.direccion),
+    horario:M("8:00 a.m. a 5:00 p.m."), frecuencia:M(p.frecuencia), valorEnLetras:M(enLetras(total)), valorTotal:"B/. "+M(n2(total)),
+    kgDesde:M(Number(p["kg plan"])>0?Number(p["kg plan"])+1:""), tarifaKg:"B/. "+M(n2(p["tarifa kg adic"])), tarifaVisita:"B/. "+M(n2(p["tarifa visita adic"])),
+    correoCliente:M(p.correo), telefonoCliente:M(p.telefono), plazo:M(plazo), resolucion:emp().resolucion||"",
+    correoEmpresa:emp().correo||FALTA,
+    datosBancarios:banco||(falta("los datos bancarios"),FALTA),
+    correosNotificacion:correos.length?correos.join(" / "):(falta("los correos de notificación"),FALTA)
+  };
+  var TC=(p.textosContrato&&Array.isArray(p.textosContrato.clausulas)&&p.textosContrato.clausulas.length)?p.textosContrato:textosRespaldo(p,V);
+  if(p.textosContrato){
+    /* el texto ya viene lleno del servidor: si ahí dice que falta algo, también se avisa arriba */
+    var todo=JSON.stringify(p.textosContrato);
+    if(todo.indexOf(FALTA)>=0){ if(!banco) falta("los datos bancarios"); if(!correos.length) falta("los correos de notificación"); if(!nomRL) falta("el representante legal"); }
+  }
+  var cons=(Array.isArray(TC.consideraciones)?TC.consideraciones:String(TC.consideraciones||"").split("\n")).map(function(x){ return String(x).replace(/^\s*-\s+/,"").trim(); }).filter(Boolean);
 
   var html=
   DOCE.membrete({ empresa: emp(), modo: 'legal' })+
 
   '<h1>Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1>'+
-  '<div class="numc">N.° '+esc(p["n contrato"])+'</div>'+
+  '<div class="numc">N.° '+(p["n contrato"]?esc(p["n contrato"]):'<span class="falta">[sin número]</span>')+'</div>'+
 
   '<p>Entre los suscritos a saber, '+D(p["representante legal"])+', '+
   D(p["genero representante"])+', mayor de edad, nacionalidad '+
   D(p["nacionalidad representante"])+', identificado con Cédula de Identidad No. '+
-  D(p["cedula representante"])+' en su calidad de representante legal '+ 'de '+D(p.empresa)+
+  D(p["cedula representante"])+' en su calidad de representante legal '+ 'de '+D(razonCliente(p))+
   ', sociedad panameña, inscrita en el folio N.° '+D(p["folio registro"])+
   ' de la Sección Mercantil del Registro Público de Panamá, con RUC '+D(p.ruc)+
   ' DV '+D(p.dv)+', quien de ahora en adelante se denominará <b>EL CONTRATANTE</b>, '+
-  'por una parte y por la otra, el señor <b>FRANCISCO JAVIER MESA BURGOS</b>, varón, mayor de edad '+
-  'y de nacionalidad Colombiana con documento de Identidad No. BH199584, en su calidad de '+
-  'Representante Legal de la sociedad <b>ECOTERMO DE PANAMA S.A.</b>, que consta inscrita en '+
-  'Registro Público al folio Mercantil N.° 552789, con RUC '+esc(emp().ruc)+' DV '+esc(emp().dv)+', quien en '+
+  'por una parte y por la otra, '+repTxt+', en su calidad de '+
+  'Representante Legal de la sociedad <b>'+esc(emp().razonSocial||"ECOTERMO DE PANAMA S.A.")+'</b>, que consta inscrita en '+
+  'Registro Público al folio Mercantil N.° '+(folio?esc(folio):falta("el folio mercantil"))+', con RUC '+esc(emp().ruc)+' DV '+esc(emp().dv)+', quien en '+
   'adelante se denominará <b>EL CONTRATISTA</b>, y cuando actúen en conjunto se denominarán '+
   '<b>LAS PARTES</b>, han convenido en celebrar el presente contrato de prestación de servicios, '+
   'que se rige bajo las siguientes consideraciones y cláusulas:</p>'+
 
-  '<h3>Consideraciones</h3><ol>'+
-  '<li>EL CONTRATANTE requiere la prestación del servicio de recolección y manejo de desechos '+
-  'hospitalarios, servicio que cumple EL CONTRATISTA, a carácter propio.</li>'+
-  '<li>EL CONTRATISTA se dedica en forma habitual y profesional a prestar servicios no '+
-  'subordinados a favor de terceros y es el único responsable por la afiliación y pago de las '+
-  'prestaciones sociales y demás derechos y obligaciones correspondientes.</li>'+
-  '<li>Los servicios descritos en este documento se prestan por parte del CONTRATISTA en forma '+
-  'independiente, autónoma y bajo su propia cuenta y riesgo. El CONTRATANTE reconoce y acepta que '+
-  'el presente Contrato no implica ningún tipo de exclusividad y por ende EL CONTRATISTA se reserva '+
-  'el derecho de celebrar contratos con terceros, incluso para los mismos servicios aquí contratados.</li>'+
-  '<li>Declara EL CONTRATISTA que los servicios a prestar están debidamente regulados y autorizados '+
-  'mediante la '+esc(emp().resolucion)+'.</li>'+
-  '</ol>'+
+  '<h3>Consideraciones</h3><ol>'+cons.map(function(t){ return '<li>'+enLinea(t)+'</li>'; }).join('')+'</ol>'+
 
   '<h3>Cláusulas</h3>'+
-
-  '<p><span class="cl">Primera: Objeto del contrato.</span> EL CONTRATISTA se compromete a la '+
-  'prestación del servicio de recolección, separación, transporte, tratamiento, trituración y '+
-  'disposición final de los desechos hospitalarios peligrosos (basura hospitalaria), producidos '+
-  'exclusivamente por EL CONTRATANTE en las sucursales, puntos de acopio y frecuencias acordadas, '+
-  'de conformidad con la propuesta comercial No. '+D(p.codigoPropuesta)+' fechada el '+
-  D(larga(p["fecha propuesta"]))+', la cual forma parte integral del presente contrato, así como '+
-  'las estipulaciones contractuales.</p>'+
-
-  '<p><span class="cl">Segunda: Frecuencia y horario de recolección.</span> EL CONTRATISTA se '+
-  'compromete a prestar el servicio objeto de este contrato de acuerdo con las siguientes '+
-  'sucursales, puntos de acopio, frecuencias y horarios: '+D(p.direccion)+
-    ' · Horario: '+D("8:00 a.m. a 5:00 p.m.")+
-  ' · Frecuencia: '+D(p.frecuencia)+'.</p>'+
-  '<p>La frecuencia y el horario de recolección podrán ser modificados, previo acuerdo entre LAS '+
-  'PARTES y considerando siempre tanto las necesidades operativas de EL CONTRATISTA como las de '+
-  'EL CONTRATANTE, a fin de garantizar la prestación eficiente y adecuada del servicio.</p>'+
-
-  '<p><span class="cl">Tercera: Obligaciones de EL CONTRATISTA.</span> Además de las obligaciones '+
-  'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
-  'especiales las siguientes:</p><ol>'+
-  '<li>Prestar los servicios contratados de manera profesional, oportuna y eficiente, cumpliendo '+
-  'con los estándares establecidos por el Ministerio de Salud (MINSA), conforme a los plazos, '+
-  'términos, estándares técnicos y de calidad aplicables de acuerdo con el objeto del Contrato.</li>'+
-  '<li>Garantizar que la prestación de los Servicios se brinde utilizando los equipos, suministros '+
-  'y materiales adecuados, dando cumplimiento a los procedimientos, términos y condiciones '+
-  'previstos para el mismo.</li>'+
-  '<li>Garantizar la validez y vigencia de los permisos, licencias, títulos y certificaciones, '+
-  'como también que se cuenta con los conocimientos técnicos y experiencia necesarios para la '+
-  'prestación del Servicio.</li>'+
-  '<li>Garantizar la trazabilidad de los residuos peligrosos, desde su recolección hasta su '+
-  'disposición final, mediante registros firmados, bitácoras y certificaciones.</li>'+
-  '<li>Utilizar personal capacitado en el manejo de residuos infecciosos y peligrosos, dotado con '+
-  'el equipo de protección personal (EPP) requerido.</li>'+
-  '<li>Informar de manera inmediata cualquier situación que pueda retrasar, interrumpir o afectar '+
-  'la calidad de los Servicios y contar con un plan de contingencia que garantice la prestación de '+
-  'estos ante eventualidades que se presenten.</li>'+
-  '<li>Presentar dentro de los 5 primeros días del mes, al correo del CONTRATANTE, la factura '+
-  'correspondiente a los servicios prestados en el mes inmediatamente anterior.</li>'+
-  '<li>Informar de manera inmediata a EL CONTRATANTE cualquier modificación en los datos de '+
-  'contacto o facturación.</li>'+
-  '<li>Expedir certificación referente al manejo dado a los residuos o desechos.</li>'+
-  '<li>Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
-  'las normas legales.</li></ol>'+
-
-  '<p><span class="cl">Cuarta: Obligaciones del contratante.</span> Además de las obligaciones '+
-  'estipuladas en los documentos que hacen parte del contrato, se establecen como obligaciones '+
-  'especiales las siguientes:</p><ol>'+
-  '<li>Cumplir con las actividades establecidas en las propuestas comerciales (Anexo 1).</li>'+
-  '<li>Pagar oportunamente las facturas presentadas por EL CONTRATISTA en los términos y plazos '+
-  'convenidos en el presente contrato.</li>'+
-  '<li>Entregar únicamente los residuos que han sido previamente declarados y aprobados, así como '+
-  'atender las instrucciones y requerimientos impartidos por EL CONTRATISTA y las autoridades para '+
-  'la prestación del servicio.</li>'+
-  '<li>Garantizar que el empacado, embalado y etiquetado de sus residuos o desechos se realice '+
-  'conforme a los requisitos legales y los establecidos por EL CONTRATISTA, respetando de igual '+
-  'forma las normativas ambientales, de salud y seguridad establecidas.</li>'+
-  '<li>Cumplir con la normativa establecida sobre la materia.</li>'+
-  '<li>Atender de forma oportuna y eficiente todas las consultas y solicitudes que se puedan '+
-  'presentar en ocasión al Servicio.</li>'+
-  '<li>Las demás obligaciones que de la naturaleza del presente Contrato se deriven o impongan '+
-  'las normas legales.</li></ol>'+
-
-  '<p><span class="cl">Quinta: Manejo y disposición de los desechos hospitalarios peligrosos.</span> '+
-  'Respecto de las principales obligaciones asumidas por cada una de LAS PARTES, se comprometen a:</p><ol>'+
-  '<li>EL CONTRATANTE, a garantizar que el empacado, embalado y etiquetado de sus residuos o '+
-  'desechos se realice conforme a los requisitos legales vigentes y los requerimientos de servicio '+
-  'establecidos por EL CONTRATISTA.</li>'+
-  '<li>EL CONTRATISTA se compromete a retirar los desechos hospitalarios peligrosos en las '+
-  'instalaciones del CONTRATANTE para su transporte, tratamiento, trituración y disposición en '+
-  'autoclave (equipo de última tecnología encargado de vaporizar, esterilizar y pulverizar el '+
-  'material entregado), respetando las normativas ambientales, de salud y seguridad establecidas '+
-  'para tal fin.</li>'+
-  '<li>LAS PARTES se comprometen a cumplir con las normas ambientales, sanitarias, de seguridad y '+
-  'salud ocupacional, así como con los acuerdos municipales vigentes y aplicables para la '+
-  'prestación del servicio objeto del presente contrato.</li></ol>'+
-  '<p>En consecuencia, serán los únicos responsables ante las autoridades competentes del '+
-  'cumplimiento o incumplimiento de sus obligaciones.</p>'+
-
-  '<p><span class="cl">Sexta: Valor.</span> El valor del presente contrato corresponde a la suma '+
-  'total de '+D(enLetras(total))+' (B/. '+D(n2(total))+') incluido el I.T.B.M.S., del servicio de '+
-  'recolección de desechos hospitalarios peligrosos según propuesta presentada y aprobada.</p><ul>'+
-  '<li>El kilogramo adicional a partir de '+D(Number(p["kg plan"])>0?Number(p["kg plan"])+1:"")+' kg tendrá un costo de (B/. '+
-  D(n2(p["tarifa kg adic"]))+') más I.T.B.M.S.</li>'+
-  (p["tarifa visita adic"] ? '<li>Las visitas adicionales a la frecuencia contratada tendrán un '+
-    'costo de (B/. '+D(n2(p["tarifa visita adic"]))+') más I.T.B.M.S.</li>' : '')+
-  '<li>En caso de algún cambio en la programación, debe ser informado con un máximo de 48 horas '+
-  'de anticipación.</li></ul>'+
-
-  '<p><span class="cl">Parágrafo primero: Revisión de la facturación.</span> La tarifa fija '+
-  ' del servicio  aquí acordado se incrementarán en igual proporción si se presenta un '+
-  'aumento en el costo que se cancela según la norma sanitaria de Panamá por la disposición final, '+
-  'salario mínimo, permisos, combustible u otros conceptos asociados con la prestación del servicio. '+
-  'De igual manera, cada vez que se proceda a prorrogar el siguiente contrato, LAS PARTES se '+
-  'comprometen a revisar las tarifas señaladas en esta cláusula, para lo cual EL CONTRATISTA '+
-  'presentará a EL CONTRATANTE, con treinta (30) días calendarios de anticipación a la terminación '+
-  'del contrato, el porcentaje del mismo, el cual guardará relación con la inflación certificada por '+
-  'la Contraloría General de la Nación para el año inmediatamente anterior, o por un aumento de las '+
-  'tarifas decretado por el Gobierno Nacional.</p>'+
-
-  '<p><span class="cl">Parágrafo segundo: Pago del servicio.</span> EL CONTRATANTE se obliga a pagar '+
-  'a EL CONTRATISTA mediante transferencia ACH a BANCO BANISI, nombre de cuenta ECOTERMO DE PANAMA, '+
-  'S.A., No. de cuenta 100-070-31541, tipo de cuenta CORRIENTE, así como enviar comprobante de pago '+
-  'al correo electrónico info@ecovsa.com, la totalidad de la suma facturada , dentro de '+
-  'los primeros 5 días calendarios inmediatamente siguientes a su presentación al correo electrónico '+
-  D(p.correo)+'. La factura expedida por EL CONTRATISTA prestará mérito ejecutivo ante la '+
-  'jurisdicción ordinaria, de acuerdo a las Leyes de la República de Panamá. De no recibir el pago '+
-  'dentro del periodo correspondiente, se procederá con la suspensión del servicio y/o un recargo '+
-  'del 10% de su facturación.</p>'+
-
-  '<p><span class="cl">Séptima: Vigencia del contrato.</span> LAS PARTES acuerdan que este contrato '+
-  'tiene y tendrá una vigencia de '+D(plazo)+' meses calendarios, prorrogables por el mismo tiempo. '+
-  'En caso de que EL CONTRATANTE decida no continuar con el servicio, deberá notificarlo con treinta '+
-  '(30) días de anticipación a la fecha de vencimiento del contrato; en caso de no notificar, se '+
-  'entenderá prorrogado por el mismo término inicial. En el caso de que EL CONTRATANTE decida '+
-  'culminar la relación comercial antes del plazo pactado, EL CONTRATISTA impondrá una penalización '+
-  'de un mes de facturación por los gastos incurridos.</p>'+
-
-  '<p><span class="cl">Octava: Responsabilidad por daños o pérdidas del equipo.</span> Convienen LAS '+
-  'PARTES que cualquier daño o pérdida, una vez entregado e instalado el equipo y sus complementos, '+
-  'a consecuencia de la inadecuada operación y/o la poca vigilancia hacia ellos o el personal, serán '+
-  'responsabilidad de EL CONTRATANTE, por lo que se verá obligado a cubrir los gastos de '+
-  'reparaciones y/o sustitución de los mismos.</p>'+
-
-  '<p><span class="cl">Novena: Total entendimiento.</span> El hecho de que una de LAS PARTES permita '+
-  'una o varias veces que la otra incumpla sus obligaciones, o las cumpla imperfectamente, o en '+
-  'forma distinta de la pactada, o no insista en el cumplimiento de tales obligaciones, o no ejerza '+
-  'oportunamente los derechos contractuales o legales que le correspondan, no reputará ni equivaldrá '+
-  'a ningún tipo de modificación del presente contrato, ni obstará en ningún caso para que dicha '+
-  'parte en el futuro reclame el fiel cumplimiento de las obligaciones que corren a cargo de la '+
-  'otra, o ejerza los derechos contractuales, legales y/o convencionales de los cuales sea titular. '+
-  'Las leyendas que aparecen como títulos o encabezados de los términos del presente contrato se han '+
-  'insertado para conveniencia y fácil referencia del lector, de forma tal que las mismas no tienen '+
-  'relevancia para efectos de la interpretación del contenido de los referidos términos.</p>'+
-
-  '<p><span class="cl">Décima: Causales de terminación del contrato.</span> El presente Contrato '+
-  'terminará por cualquiera de las siguientes causas:</p><ol>'+
-  '<li>Por la terminación de la duración del Contrato.</li>'+
-  '<li>Por mutuo acuerdo entre LAS PARTES.</li>'+
-  '<li>Por las demás contenidas en la ley.</li>'+
-  '<li>Por incapacidad financiera, la cual se presume si se declara cualquiera de LAS PARTES en '+
-  'quiebra o se le abre concurso de acreedores, o es intervenida por autoridad competente.</li>'+
-  '<li>Por fuerza mayor o caso fortuito como está descrito en la ley, siempre y cuando esto '+
-  'imposibilite la ejecución del Contrato, habiendo pasado 30 días calendario a partir de la fecha '+
-  'de los hechos que den lugar a la fuerza mayor o el caso fortuito.</li></ol>'+
-
-  '<p><span class="cl">Décima primera: Legislación aplicable y resolución de conflictos.</span> Este '+
-  'Contrato y las relaciones entre LAS PARTES derivadas de la materia que constituye su objeto están '+
-  'sujetos y regulados por las leyes vigentes en la República de Panamá. En caso de surgir '+
-  'controversia, discrepancia o reclamación entre LAS PARTES relacionada con la interpretación, '+
-  'ejecución o cumplimiento del presente documento, LAS PARTES se comprometen a resolver dichas '+
-  'controversias de la siguiente manera:</p><ol>'+
-  '<li><b>Negociación amistosa:</b> en primer lugar, LAS PARTES se comprometen a intentar resolver '+
-  'sus controversias mediante una negociación amistosa, en un plazo no mayor a 30 días hábiles '+
-  'siguientes a la fecha en que se comunique entre ellas el conflicto. LAS PARTES acuerdan reunirse '+
-  'de buena fe para dar una solución al motivo de controversia.</li>'+
-  '<li><b>Conciliación:</b> si transcurrido el plazo anterior LAS PARTES no logran un acuerdo, se '+
-  'someterán a un proceso de conciliación, el cual será llevado a cabo por un mediador designado de '+
-  'común acuerdo o, en su defecto, por el Centro de Conciliación y Arbitraje de Panamá. El proceso '+
-  'de conciliación deberá iniciarse dentro de los 15 días hábiles siguientes a la notificación de '+
-  'fracaso de las negociaciones amistosas y deberá concluir en un plazo máximo de 30 días hábiles '+
-  'siguientes a su inicio.</li></ol>'+
-  '<p>De no llegar LAS PARTES a un acuerdo, podrán interponer sus acciones ante los Tribunales de '+
-  'Justicia competentes.</p>'+
-
-  '<p><span class="cl">Décima segunda: Confidencialidad.</span> LAS PARTES se comprometen a guardar '+
-  'completa reserva y estricta confidencialidad sobre toda la información intercambiada dentro de la '+
-  'etapa precontractual, contractual y postcontractual, incluyendo pero sin limitarse al presente '+
-  'Contrato, la Propuesta, los documentos Anexos y cualquier otra información compartida o revelada '+
-  'por medio escrito, electrónico, verbal o por cualquier otro medio conocido por el hombre (la '+
-  '"Información"). LAS PARTES mantendrán vigentes sus obligaciones respecto a la confidencialidad de '+
-  'esta cláusula durante la vigencia del contrato y hasta por tres (3) años después de la fecha de '+
-  'liquidación de este.</p>'+
-
-  '<p><span class="cl">Décima tercera: Caso fortuito o fuerza mayor.</span> Cualquier incumplimiento '+
-  'o demora en el cumplimiento de las obligaciones pactadas en el Contrato no generará '+
-  'responsabilidades para LAS PARTES si dicho incumplimiento o demora resulta de caso fortuito o '+
-  'fuerza mayor. Se entenderán como tales todas las eventualidades establecidas en el Código Civil '+
-  'fuera del control razonable de LAS PARTES, que no puedan ser previstas o que, si son previsibles, '+
-  'sean inevitables, que ocurran durante la vigencia de este Contrato y que impidan el cumplimiento '+
-  'de las obligaciones. Las anteriores incluyen, pero no se limitan a, desastres naturales como '+
-  'terremoto, tsunami, tormentas, deslizamientos de tierra o derrumbes, erupciones volcánicas o '+
-  'inundaciones; conflictos armados; huelgas, disturbios o asonadas; epidemias o pandemias que '+
-  'afecten gravemente a la población; y/o fallas a las infraestructuras físicas o tecnológicas que '+
-  'sean irresistibles o irreparables en un periodo mayor a los 30 días.</p>'+
-
-  '<p><span class="cl">Décima cuarta: Domicilio contractual y notificaciones.</span> Para todos los '+
-  'efectos derivados del presente Contrato, se establece como domicilio contractual la Ciudad de '+
-  'Panamá, Panamá. Para que cualquier aviso o notificación entre LAS PARTES tenga validez, se '+
-  'enviará a las siguientes direcciones, a menos que cualquiera de LAS PARTES suministre por escrito '+
-  'una nueva dirección con una antelación no inferior a 10 días hábiles o comunes a la fecha del '+
-  'cambio de dirección. Toda notificación se tendrá como realizada y será efectiva una vez que quien '+
-  'envía el correo electrónico haya recibido confirmación de recibo por parte del destinatario. '+
-  'Salvo que se disponga expresamente lo contrario, las notificaciones se enviarán a:</p><ul>'+
-  '<li>EL CONTRATANTE, al correo electrónico '+D(p.correo)+' · Teléfono '+D(p.telefono)+'</li>'+
-  '<li>EL CONTRATISTA, al correo electrónico kmezua@ecovsa.com / info@ecovsa.com</li></ul>'+
-
-  '<p><span class="cl">Décima quinta: Modificaciones.</span> El presente contrato no podrá ser '+
-  'enmendado o modificado en forma alguna, a menos que dichas enmiendas o modificaciones se den con '+
-  'el consentimiento previo y expreso de LAS PARTES, manifestado por escrito. Cualquier modificación '+
-  'que se quiera hacer frente a las condiciones del Contrato deberá ser acordada y legalizada por '+
-  'LAS PARTES, cumpliendo las mismas formalidades establecidas para el Contrato.</p>'+
+  TC.clausulas.map(clausulaHtml).join('')+
 
   '<p style="margin-top:18px">Para constancia de LAS PARTES, se firma el presente contrato en la '+
   'Ciudad de Panamá el '+(firma?D(larga(firma)):'_______________________')+'.</p>'+
 
   '<div class="firmas">'+
-    '<div class="firma"><div class="lin"><b>FRANCISCO J. MESA B.</b>BH199584<br>'+
-      'ECOTERMO DE PANAMA S.A.</div></div>'+
+    '<div class="firma"><div class="lin"><b>'+(nomRL?esc(nomRL.toUpperCase()):falta("el representante legal"))+'</b>'+esc(RL.documento||"")+'<br>'+
+      esc(emp().razonSocial||"ECOTERMO DE PANAMA S.A.")+'</div></div>'+
     '<div class="firma"><div class="lin"><b>'+esc(p["representante legal"])+'</b>'+
-      esc(p["cedula representante"])+'<br>'+esc(p.empresa)+'</div></div>'+
+      esc(p["cedula representante"])+'<br>'+esc(razonCliente(p))+'</div></div>'+
   '</div>'+
 
   '<div class="pie">'+esc(pieEmpresa())+
@@ -479,7 +563,12 @@ function pintar(p){
   esc(p.codigoPropuesta)+'.</div>';
 
   $("hoja").innerHTML=html;
-  document.title="Contrato "+p["n contrato"]+" · "+(p.empresa||"");
+  document.title="Contrato "+(p["n contrato"]||"")+" · "+(razonCliente(p)||"");
+  /* avisos para quien lo genera (no salen impresos) */
+  var n=$("notaBarra"), t=[];
+  if(r && r.nContratoNuevo && p["n contrato"]) t.push('<span class="nb ok">N.º asignado ahora: '+esc(p["n contrato"])+'</span>');
+  if(FALTAN.length) t.push('<span class="nb am">Falta en Configuración › Datos de la empresa: '+esc(FALTAN.join(", "))+'. Complétalo antes de imprimir.</span>');
+  if(n){ n.innerHTML=t.join(""); n.style.display=t.length?"":"none"; }
 }
 
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",arrancar);

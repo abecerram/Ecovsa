@@ -51,6 +51,9 @@
 .acc .rw.baja .nm b{color:var(--muted)}
 .acc .nm{min-width:0}.acc .nm b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acc .nm small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* api 3.13 · tocar el nombre abre la ficha completa (la fila sigue abriendo la vista previa) */
+.acc .nm a.ir-ficha{color:inherit;cursor:pointer}
+.acc .nm a.ir-ficha:hover,.acc .nm a.ir-ficha:focus-visible{color:var(--navy2);text-decoration:underline;text-underline-offset:3px}
 .acc .chev{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;border:1px solid var(--line);background:#fff;transition:transform .15s;color:var(--navy2)}
 .acc .chev.ab{transform:rotate(90deg)}
 .acc .act{display:flex;gap:4px;justify-content:flex-end}
@@ -535,6 +538,7 @@
       r.onclick = function (e) {
         var g = r.getAttribute('data-g'), id = r.getAttribute('data-id');
         var a = e.target.closest('[data-a]');
+        if (e.target.closest('a.ir-ficha')) { e.stopPropagation(); return; }   /* el nombre abre la ficha completa (el enlace hace el resto) */
         if (e.target.matches('input[type=checkbox]')) {
           if (e.target.hasAttribute('data-gsel')) { var on = e.target.checked; LISTA.forEach(function (x) { if (x.cuenta === g && pasa(x)) { if (on) ELEGIDOS[x.id] = 1; else delete ELEGIDOS[x.id]; } }); pintarLista(); }
           else { if (e.target.checked) ELEGIDOS[id] = 1; else delete ELEGIDOS[id]; r.classList.toggle('sel', e.target.checked); pintarBulk(); }
@@ -560,7 +564,7 @@
     var sel = SELEC && ELEGIDOS[c.id];
     return '<div class="rw' + (sub ? ' sub' : '') + (sel ? ' sel' : '') + (gs === 'baja' ? ' baja' : '') + '" data-id="' + E(c.id) + '"><span class="c1">' +
       (SELEC ? '<input type="checkbox"' + (sel ? ' checked' : '') + ' aria-label="Elegir ' + E(c.nombre) + '">' : (sub ? '<span class="muted">└</span>' : '<span class="av sm">' + E(MK.ini(c.nombre)) + '</span>')) + '</span>' +
-      '<div class="nm"><b title="' + E(c.nombre) + '">' + E(sub ? nombreCorto(c) : c.nombre) + '</b><small>' + E([titulo(c.region), titulo(c.frecuencia), c.contacto].filter(Boolean).join(' · ')) +
+      '<div class="nm"><b title="' + E(c.nombre) + '">' + (SELEC ? E(sub ? nombreCorto(c) : c.nombre) : '<a class="ir-ficha" href="MerCliente.html?id=' + encodeURIComponent(c.id) + '" title="Abrir la ficha de ' + E(c.nombre) + '">' + E(sub ? nombreCorto(c) : c.nombre) + '</a>') + '</b><small>' + E([titulo(c.region), titulo(c.frecuencia), c.contacto].filter(Boolean).join(' · ')) +
         (gs !== 'activo' ? ' · <b style="color:var(--' + (gs === 'baja' ? 'muted' : 'bad') + ');display:inline">' + E(SIT_TX[sitDe(c)]) + '</b>' : '') + (!sub && c.cuenta ? ' · cuenta ' + E(c.cuenta) : '') + '</small></div>' +
       '<div class="c3">' + kg + '</div>' +
       '<div class="c4">' + conT(c) + '<div class="kgtx">' + E(c.vencimiento ? MK.fechaCorta(c.vencimiento) : (c.contrato || '')) + '</div></div>' +

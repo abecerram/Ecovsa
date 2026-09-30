@@ -166,6 +166,7 @@ function vMiDia() {
     { e: 'Cobrado este mes', v: D(m.cobradoMes), s: m.pagosMes + ' pago' + (m.pagosMes === 1 ? '' : 's') + (m.mas90 ? ' · ' + D(m.mas90) + ' de más de 90 días' : '') },
     { e: 'Gestiones esta semana', v: m.gestionesSemana, s: m.cuentasSinGestion + ' cuenta' + (m.cuentasSinGestion === 1 ? '' : 's') + ' sin ninguna gestión', c: m.gestionesSemana ? '' : 'warn' }
   ]);
+  h += promosQueTerminan();
   var lista = hoy.slice(0, 12);
   h += '<div class="dia"><section class="card"><h3>Hoy toca <span class="sp"></span><span class="l muted">' + hoy.length + ' en total</span></h3>' +
     (lista.length ? lista.map(function (a, i) {
@@ -179,6 +180,45 @@ function vMiDia() {
       : MK.vacio('Nada para hoy. Buen día para revisar Conciliar pagos o Incobrables.')) + '</section>' +
     '<section class="card panel">' + (CTA ? panelCuenta(CTA) : MK.vacio('Toca una cuenta')) + '</section></div>';
   return h;
+}
+/* api 3.13 · promociones que terminan: 15 días antes del fin del beneficio (o el último día
+   hábil antes) Cobros lo ve, igual que Mercadeo. Al llegar el fin, el sistema pasa solo al
+   cliente a su plan normal y quita lo gratis: aquí se dice qué cambia en la factura. */
+var FP_OK = {};
+function fpId(x) { return String(x.id || x.beneficioId || (x.clienteId + ':' + x.promo)).replace(/[^\w:.\-]/g, ''); }
+function fpClave(x) {
+  if (x.clave && cu(x.clave)) return x.clave;
+  var c = (B().cuentas || []).filter(function (c) { return x.clienteId && (c.clienteIds || []).map(String).indexOf(String(x.clienteId)) >= 0; })[0] ||
+    (B().cuentas || []).filter(function (c) { return String(c.cliente).trim().toUpperCase() === String(x.cliente || '').trim().toUpperCase(); })[0];
+  return c ? c.clave : '';
+}
+function fpDiaMes(iso) { var f = String(iso || '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(f) ? Number(f.slice(8)) + ' de ' + MK.MESES_L[Number(f.slice(5, 7)) - 1] : f; }
+function promosQueTerminan() {
+  var L = (B().promosQueTerminan || []).filter(function (x) { return !FP_OK[fpId(x)]; });
+  if (!L.length) return '';
+  return '<section class="card" style="border-left:4px solid var(--amber);margin-bottom:14px"><h3>' + MK.ic('reloj', 16) + ' Promociones que terminan <span class="sp"></span><span class="l muted">' + L.length + '</span></h3>' +
+    L.map(function (x) {
+      var id = fpId(x), k = fpClave(x), fin = String(x.fin || x.termina || '').slice(0, 10), d = Number(x.dias), plan = x.planNormal || x.plan || '';
+      var sig = /^\d{4}-\d{2}-\d{2}$/.test(fin) ? MK.masDias(fin, 1) : '', mes = sig ? MK.MESES_L[Number(sig.slice(5, 7)) - 1] : '';
+      var desde = !sig ? 'Después' : sig.slice(8) === '01' ? 'Desde ' + mes : 'Desde el ' + fpDiaMes(sig);
+      var cambia = Array.isArray(x.cambia) ? x.cambia.filter(Boolean) : [];
+      return '<div class="fila" style="justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-top:1px solid var(--line2)"><div style="min-width:0;flex:1 1 320px"><b>' + MK.esc(x.cliente) + '</b> <span class="chipx warn">' + (d === 0 ? 'hoy' : d === 1 ? 'mañana' : isFinite(d) ? 'en ' + d + ' días' : 'pronto') + '</span>' +
+        '<div style="margin-top:3px">A ' + MK.esc(x.cliente) + ' se le termina la promoción «' + MK.esc(x.promo || '') + '» el ' + MK.esc(fpDiaMes(fin)) + '. ' + desde + ' se cobra con su plan normal' + (plan ? ' («' + MK.esc(plan) + '»)' : '') + '.</div>' +
+        '<div class="small muted" style="margin-top:3px">' + (cambia.length ? 'En la factura' + (mes ? ' de ' + MK.esc(mes) : '') + ': ' + MK.esc(cambia.join('; ')) + '.' : 'En la factura' + (mes ? ' de ' + MK.esc(mes) : '') + ' ya no sale lo gratis de la promoción.') + ' El sistema hace el cambio solo.</div></div>' +
+        '<div class="fila" style="flex:none">' + (k ? '<button class="btn sm" onclick="abrirCuenta(\'' + k + '\')">' + MK.ic('ojo', 15) + 'Ver cuenta</button>' : '') +
+        '<button class="btn sm escribe" onclick="fpEnterado(\'' + id + '\',this)">' + MK.ic('check', 15) + 'Enterado</button></div></div>';
+    }).join('') + '</section>';
+}
+function fpEnterado(id, btn) {
+  var x = (B().promosQueTerminan || []).filter(function (y) { return fpId(y) === id; })[0]; if (!x) return;
+  MK.ocupado(btn, true);
+  MK.api('api_marcarAvisoPromo', MK.pin, String(x.id || x.beneficioId || fpId(x)), 'enterado', 'cobros').then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || r.ok === false) { MK.aviso((r && r.error) || 'No se pudo marcar.'); return; }
+    FP_OK[fpId(x)] = 1;
+    if (Array.isArray(r.promosQueTerminan) && MK.base) MK.base.promosQueTerminan = r.promosQueTerminan;   // la lista al día que devuelve el servidor
+    MK.aviso('Enterado · ya no sale en tu día'); MK.repintar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message || 'Sin conexión'); });
 }
 function tocarTarea(k) { if (innerWidth <= 1100) { abrirCuenta(k); return; } CTA = k; MK.repintar(); }
 function panelCuenta(k) {
