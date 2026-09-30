@@ -94,7 +94,7 @@
 .gr span{font-size:12px;font-weight:700;color:var(--muted)}.gr b{font-size:22px}.gr small{font-size:11.5px;color:var(--muted2)}
 .gr.n{border-top:4px solid var(--ok)}.gr.y{border-top:4px solid var(--gris)}.gr.d{border-top:4px solid var(--amber)}.gr.s{border-top:4px solid var(--bad)}
 .gr.on{box-shadow:inset 0 0 0 2px var(--navy2)}
-.tipo{font-size:10.5px;font-weight:800;border-radius:5px;padding:2px 6px}.tipo.f{background:var(--info-bg);color:#2c56a8}.tipo.p{background:var(--ok-bg);color:#276b33}
+.tipo{font-size:10.5px;font-weight:800;border-radius:5px;padding:2px 6px}.tipo.f{background:var(--info-bg);color:#2c56a8}.tipo.p{background:var(--ok-bg);color:#276b33}.tipo.nc{background:var(--warn-bg,#fff4d6);color:#8a5a00}
 .est{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
 .est.n{background:var(--ok-bg);color:#276b33}.est.y{background:var(--line2);color:var(--muted)}.est.d{background:var(--warn-bg);color:#8a6300}.est.s{background:var(--bad-bg);color:#a8262b}
 .why{font-size:12px;color:#3d4a60}
@@ -1025,6 +1025,7 @@ function subirLote(inp) {
           /* api 3.7.1: el diario de cobros de Sage (Cash Receipts Journal) se lee tal como sale */
           var crudo = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
           if (crudo.length && esSage(crudo[0])) { leerSage(crudo, nombre, 'archivo'); return; }
+          if (crudo.length && esSageFac(crudo[0])) { leerSageFac(crudo, nombre, 'archivo'); return; }   // api 3.13.1
           var txt = XLSX.utils.sheet_to_csv(ws, { FS: '\t', rawNumbers: false, dateNF: 'dd/mm/yyyy' });
           LOTE = { txt: txt, archivo: nombre }; leerLote(true);
         } catch (x) { MK.aviso('No pude leer el Excel: ' + x.message); }
@@ -1052,6 +1053,7 @@ function leerLote(yaTengo) {
   var cab0 = partir(lineas[0]), cab = cab0.map(function (h) { return qa(h.trim().toLowerCase().replace(/[°º#.:]/g, '')).replace(/\s+/g, ' ').trim(); });
   /* api 3.7.1: si lo pegado es el diario de Sage, se lee con sus reglas (fechas mes/día/año) */
   if (esSage(cab0)) { leerSage(lineas.map(partir), archivo, 'pegado'); return; }
+  if (esSageFac(cab0)) { leerSageFac(lineas.map(partir), archivo, 'pegado'); return; }   // api 3.13.1
   var idx = {}; Object.keys(SIN).forEach(function (k) { idx[k] = cab.findIndex(function (h) { return SIN[k].indexOf(h) >= 0; }); });
   if (idx.monto < 0 || (idx.factura < 0 && idx.cliente < 0)) { MK.aviso('No encontré las columnas de monto y factura o cliente en la primera fila.'); return; }
   var NOM = { tipo: 'tipo', fecha: 'fecha', factura: 'n.º de factura', cliente: 'cliente', ruc: 'RUC', monto: 'monto', ref: 'referencia', metodo: 'método' };
@@ -1209,6 +1211,82 @@ function sageResumen() {
     (S.cuadra ? '<b style="color:var(--ok)">cuadra</b>' : '<b style="color:var(--bad)">no cuadra: no se carga nada hasta que contabilidad lo corrija</b>') + '</div>' +
     (S.raros.length ? '<div class="aviso am" style="margin-top:10px"><b>Para preguntarle a contabilidad · ' + S.raros.length + '</b><ul style="margin:6px 0 0 18px;padding:0">' + S.raros.map(function (t) { return '<li>' + MK.esc(t) + '</li>'; }).join('') + '</ul></div>' : '<div class="small muted" style="margin-top:6px">Nada raro en el archivo.</div>') + '</div>';
 }
+/* ═══ api 3.13.1 · LISTA DE FACTURAS DE SAGE (Invoice/CM #, Date, Name, Amnt Pre-Tax, Sales Tax, Amount, RUC, DV) ═══
+   Se lee tal como sale. Los números se toman tal cual (141 y 0000000141 son series distintas).
+   La fila «Total» y las vacías se ignoran. Un número repetido en el archivo con otro cliente o monto
+   no entra solo. Los montos negativos son notas de crédito: se amarran a la factura que corrigen
+   (mismo cliente y mismo monto, la más reciente abierta antes de la nota) y la rebajan. */
+function loteFila(n) { return (LOTE.filas || []).filter(function (x) { return x.n === n; })[0] || {}; }
+function cabSage(cab) { return (cab || []).map(function (h) { return qa(String(h || '').toLowerCase()).replace(/[^a-z]/g, ''); }); }
+function esSageFac(cab) {
+  var c = cabSage(cab);
+  return c.indexOf('invoicecm') >= 0 && c.indexOf('amount') >= 0 && (c.indexOf('name') >= 0 || c.indexOf('customer') >= 0);
+}
+function leerSageFac(rows, archivo, origen) {
+  var cab = cabSage(rows[0]);
+  var ix = function () { for (var i = 0; i < arguments.length; i++) { var j = cab.indexOf(arguments[i]); if (j >= 0) return j; } return -1; };
+  var I = { num: ix('invoicecm'), f: ix('date'), nom: ix('name', 'customer'), sub: ix('amntpretax', 'amountpretax'), tax: ix('salestax'), tot: ix('amount'), ruc: ix('ruc'), dv: ix('dv') };
+  var g = function (r, k) { return I[k] >= 0 ? r[I[k]] : ''; };
+  var ign = 0, L = [];
+  rows.slice(1).forEach(function (r, ri) {
+    var num = String(g(r, 'num') == null ? '' : g(r, 'num')).trim(), fe = g(r, 'f'), tot = sageMonto(g(r, 'tot')), nom = String(g(r, 'nom') || '').trim();
+    if (/^total/i.test(num) || (!num && !nom && !tot) || (!fe && !nom && /total/i.test(String(r.join ? r.join(' ') : '')))) { ign++; return; }
+    L.push({ fila: ri + 2, num: num, fecha: sageFecha(fe, origen), nom: nom, sub: sageMonto(g(r, 'sub')), tax: sageMonto(g(r, 'tax')), tot: tot, ruc: String(g(r, 'ruc') || '').trim(), dv: String(g(r, 'dv') || '').trim() });
+  });
+  if (!L.length) { MK.aviso('La lista de facturas no trae filas con número y monto.'); return; }
+  var F = B().facturas || [], porNum = {}; F.forEach(function (f) { porNum[f.factura] = f; });
+  var veces = {}; L.forEach(function (x) { if (x.num && x.tot > 0) (veces[x.num] = veces[x.num] || []).push(x); });
+  var filas = [];
+  /* primero las facturas */
+  L.forEach(function (x) {
+    if (x.tot < 0) return;
+    var r = { n: filas.length + 2, fila: x.fila, tipo: 'F', fecha: x.fecha, factura: x.num, cliente: x.nom, ruc: x.ruc, monto: x.tot, subtotal: x.sub, itbms: x.tax };
+    var cuE = cuentaDeLote(r.cliente, r.ruc); r.cuenta = cuE && cuE[0]; r.por = cuE && cuE[1];
+    if (!x.num) { r.g = 'd'; r.why = 'Factura sin número: revisa la fila en Sage'; filas.push(r); return; }
+    if (!r.fecha) { r.g = 'd'; r.why = 'Sin fecha: revisa la fila en Sage'; filas.push(r); return; }
+    if (!(x.tot > 0)) { r.g = 'd'; r.why = 'Sin monto: revisa la fila en Sage'; filas.push(r); return; }
+    var v = veces[x.num] || [];
+    if (v.length > 1) {
+      var mismos = v.every(function (y) { return kNom(y.nom) === kNom(x.nom) && Math.abs(y.tot - x.tot) < 0.01 && y.fecha === x.fecha; });
+      if (mismos && v[0] !== x) { r.g = 'y'; r.why = 'Repetida dentro del mismo archivo'; filas.push(r); return; }
+      if (!mismos) { r.g = 'd'; r.why = 'El número ' + x.num + ' viene ' + v.length + ' veces en el archivo (' + v.map(function (y) { return y.nom + ' ' + D(y.tot); }).join(' y ') + '). Confírmalo con contabilidad antes de cargarla.'; filas.push(r); return; }
+    }
+    clasF(r, porNum, F);
+    filas.push(r);
+  });
+  /* después las notas de crédito, cada una con la factura que rebaja */
+  var nuevas = filas.filter(function (r) { return r.tipo === 'F' && (r.g === 'n' || r.g === 's'); });
+  var usadas = {};
+  L.forEach(function (x) {
+    if (!(x.tot < 0)) return;
+    var m = Math.round(Math.abs(x.tot) * 100) / 100;
+    var r = { n: filas.length + 2, fila: x.fila, tipo: 'NC', fecha: x.fecha, factura: x.num, cliente: x.nom, ruc: x.ruc, monto: m };
+    var cuE = cuentaDeLote(r.cliente, r.ruc); r.cuenta = cuE && cuE[0]; r.por = cuE && cuE[1];
+    if (!x.num) { r.g = 'd'; r.why = 'Nota de crédito sin número: revisa la fila en Sage'; filas.push(r); return; }
+    var ya = F.filter(function (f) { return (f.notasCredito || []).some(function (q) { return String(q.nota) === x.num; }); })[0];
+    if (ya) { r.g = 'y'; r.why = 'Ya está: rebajó la ' + ya.factura + ' (' + (ya.cliente || '') + ')'; filas.push(r); return; }
+    var esDe = function (f, clave) {
+      if (r.cuenta && clave) return clave === r.cuenta.clave;
+      return (kRuc(r.ruc) && kRuc(f.ruc) === kRuc(r.ruc)) || kNom(f.cliente) === kNom(r.cliente) || kNom(f.razon || '') === kNom(r.cliente);
+    };
+    var cand = F.filter(function (f) { return esDe(f, f.clave) && Math.abs((f.totalOriginal || f.total) - m) < 0.01 && (!r.fecha || !f.fecha || f.fecha <= r.fecha) && !usadas[f.factura]; })
+      .map(function (f) { return { num: f.factura, fecha: f.fecha, cliente: f.cliente, abierta: f.saldo >= m - 0.01, nueva: false }; })
+      .concat(nuevas.filter(function (f) { return esDe(f, f.cuenta && f.cuenta.clave) && Math.abs(f.monto - m) < 0.01 && (!r.fecha || f.fecha <= r.fecha) && !usadas[f.factura]; })
+      .map(function (f) { return { num: f.factura, fecha: f.fecha, cliente: f.cuenta ? f.cuenta.cliente : f.cliente, abierta: true, nueva: true }; }));
+    var abiertas = cand.filter(function (c) { return c.abierta; }).sort(function (a, b) { return a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0; });
+    if (abiertas.length) {
+      var e = abiertas[0]; usadas[e.num] = 1; r.aplicaA = e.num; r.g = 'n';
+      r.why = 'Nota de crédito · rebaja la ' + e.num + (e.nueva ? ' (de este mismo archivo)' : '') + ' de ' + (e.cliente || r.cliente) + ' del ' + fdm(e.fecha) + (abiertas.length > 1 ? ' · había ' + abiertas.length + ' del mismo monto: se toma la más reciente' : '');
+    } else if (cand.length) { r.g = 'd'; r.why = 'La factura que corrige (' + cand.map(function (c) { return c.num; }).join(', ') + ') ya está pagada: la nota no rebaja nada. Pregúntale a contabilidad.'; }
+    else { r.g = 'd'; r.why = 'No encontré la factura que corrige (mismo cliente y monto de ' + D(m) + '). Se ajusta a mano.'; }
+    filas.push(r);
+  });
+  var nF = L.filter(function (x) { return x.tot >= 0; }).length, nN = L.length - nF;
+  LOTE = { txt: '', archivo: archivo, filas: filas, sageFac: { facturas: nF, notas: nN, ignoradas: ign },
+           cols: '<span>Lista de facturas de Sage <i>→ ' + nF + ' facturas' + (nN ? ' · ' + nN + ' notas de crédito' : '') + (ign ? ' · ' + ign + ' fila' + (ign === 1 ? '' : 's') + ' de total o vacías, ignoradas' : '') + '</i></span>',
+           leido: 'Lista de facturas de Sage · ' + filas.length + ' filas', f: 'todos' };
+  MK.repintar();
+}
 var GN = { n: ['Nuevas', 'se cargan'], y: ['Ya estaban', 'se ignoran'], d: ['Dudosas', 'alguien decide'], s: ['Sin cuenta', 'se cargan y van a Conciliar'] };
 function lotePintar() {
   var R = LOTE.filas, cnt = function (k) { return R.filter(function (r) { return r.g === k; }).length; };
@@ -1219,24 +1297,27 @@ function lotePintar() {
   return sageResumen() + '<div class="grupos" style="margin-top:14px">' + ['n', 'y', 'd', 's'].map(function (k) { return '<div class="gr ' + k + (LOTE.f === k ? ' on' : '') + '" onclick="LOTE.f=LOTE.f===\'' + k + '\'?\'todos\':\'' + k + '\';MK.repintar()"><span>' + GN[k][0] + '</span><b class="num">' + cnt(k) + '</b><small>' + GN[k][1] + '</small></div>'; }).join('') + '</div>' +
     '<div class="card"><h3>' + (LOTE.f === 'todos' ? 'Todas las filas' : GN[LOTE.f][0]) + '</h3>' +
     MK.tabla(['Fila', '', 'Fecha', 'Factura', 'Cliente en el lote', '>Monto', 'Resultado', 'Qué pasa'], L.map(function (r) {
-      return [r.n, '<span class="tipo ' + (r.tipo === 'F' ? 'f' : 'p') + '">' + (r.tipo === 'F' ? 'FACTURA' : 'PAGO') + '</span>', fdm(r.fecha) || '<span class="chipx warn">sin fecha</span>', MK.esc(r.factura || '—'), MK.esc(r.cliente || '—'), D(r.monto),
+      return [r.fila || r.n, '<span class="tipo ' + (r.tipo === 'F' ? 'f' : r.tipo === 'NC' ? 'nc' : 'p') + '">' + (r.tipo === 'F' ? 'FACTURA' : r.tipo === 'NC' ? 'NOTA DE CRÉDITO' : 'PAGO') + '</span>', fdm(r.fecha) || '<span class="chipx warn">sin fecha</span>', MK.esc(r.factura || '—'), MK.esc(r.cliente || '—'), D(r.monto),
         '<span class="est ' + r.g + '">' + { n: r.tipo === 'F' ? 'Nueva' : 'Nuevo', y: 'Ya estaba', d: 'Dudosa', s: 'Sin cuenta' }[r.g] + '</span>',
-        '<span class="why">' + MK.esc(r.why) + '</span>' + (r.g === 'd' && r.monto > 0 && r.fecha ? '<br><label class="small" style="cursor:pointer"><input type="checkbox" ' + (r.acepta ? 'checked' : '') + ' onchange="LOTE.filas[' + (r.n - 2) + '].acepta=this.checked;MK.repintar()"> cargarla igual</label>' : '')];
+        '<span class="why">' + MK.esc(r.why) + '</span>' + (r.g === 'd' && r.monto > 0 && r.fecha ? '<br><label class="small" style="cursor:pointer"><input type="checkbox" ' + (r.acepta ? 'checked' : '') + ' onchange="loteFila(' + r.n + ').acepta=this.checked;MK.repintar()"> cargarla igual</label>' : '')];
     })) +
     '<div class="ap" style="margin-top:10px"><div class="l"><span>Facturas que entran</span><b class="num">' + incluye.filter(function (r) { return r.tipo === 'F'; }).length + ' · ' + D(incluye.filter(function (r) { return r.tipo === 'F'; }).reduce(function (s, r) { return s + r.monto; }, 0)) + '</b></div>' +
     '<div class="l"><span>Pagos que entran</span><b class="num">' + incluye.filter(function (r) { return r.tipo === 'P'; }).length + ' · ' + D(incluye.filter(function (r) { return r.tipo === 'P'; }).reduce(function (s, r) { return s + r.monto; }, 0)) + '</b></div>' +
+    (R.some(function (r) { return r.tipo === 'NC'; }) ? '<div class="l"><span>Notas de crédito que entran</span><b class="num">' + incluye.filter(function (r) { return r.tipo === 'NC' && r.aplicaA; }).length + ' · ' + D(incluye.filter(function (r) { return r.tipo === 'NC' && r.aplicaA; }).reduce(function (s, r) { return s + r.monto; }, 0)) + '</b></div>' : '') +
     '<div class="l"><span>Todo el archivo</span><b class="num">facturas ' + D(sum('F', ['n', 'y', 'd', 's'])) + ' · pagos ' + D(sum('P', ['n', 'y', 'd', 's'])) + '</b></div></div>' +
     (LOTE.hecho ? '<div class="aviso vd" style="margin-top:12px"><b>' + MK.esc(LOTE.hecho) + '</b></div>' :
     '<div class="fila escribe" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="LOTE=null;MK.repintar()">Descartar</button><button class="btn pri" onclick="confirmarLote(this)"' + (incluye.length ? '' : ' disabled') + '>' + MK.ic('check', 16) + 'Cargar ' + incluye.length + ' fila' + (incluye.length === 1 ? '' : 's') + '</button></div>') + '</div>';
 }
 function confirmarLote(btn) {
   var R = LOTE.filas.filter(function (r) { return r.g === 'n' || r.g === 's' || (r.g === 'd' && r.acepta); });
-  var facs = R.filter(function (r) { return r.tipo === 'F'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, cliente: r.cuenta ? r.cuenta.cliente : r.cliente, razon: r.cuenta ? r.cuenta.razon : r.cliente, ruc: r.ruc || (r.cuenta ? r.cuenta.ruc : ''), monto: r.monto, clienteId: r.cuenta && r.cuenta.clienteIds ? r.cuenta.clienteIds[0] : '' }; });
+  var facs = R.filter(function (r) { return r.tipo === 'F'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, cliente: r.cuenta ? r.cuenta.cliente : r.cliente, razon: r.cuenta ? r.cuenta.razon : r.cliente, ruc: r.ruc || (r.cuenta ? r.cuenta.ruc : ''), monto: r.monto, clienteId: r.cuenta && r.cuenta.clienteIds ? r.cuenta.clienteIds[0] : '', subtotal: r.subtotal, itbms: r.itbms }; });
+  /* api 3.13.1: notas de crédito, cada una con la factura que rebaja */
+  var ncs = R.filter(function (r) { return r.tipo === 'NC' && r.aplicaA; }).map(function (r) { return { nota: r.factura, fecha: r.fecha, monto: r.monto, factura: r.aplicaA, cliente: r.cliente }; });
   if (LOTE.sage && !LOTE.sage.cuadra) { MK.aviso('El diario no cuadra: no se carga nada.'); return; }
   var pags = R.filter(function (r) { return r.tipo === 'P'; }).map(function (r) { return { factura: r.factura, fecha: r.fecha, monto: r.monto, referencia: r.ref, metodo: r.metodo, nota: r.nota || '', cliente: r.cuenta ? (r.cuenta.razon || r.cuenta.cliente) : r.cliente }; });
   MK.ocupado(btn, true, 'Cargando…');
-  MK.llamar('api_cobCargarLote', { archivo: LOTE.archivo, facturas: facs, pagos: pags }).then(function (r) {
-    LOTE.hecho = 'Lote ' + r.loteId + ' cargado: ' + r.facturas + ' facturas (' + D(r.totalFacturas) + ') y ' + r.pagos + ' pagos (' + D(r.totalPagos) + ').' + (r.saltadas && r.saltadas.length ? ' Se saltaron ' + r.saltadas.length + ' que ya estaban.' : '') + ' Se puede anular completo hoy mismo.';
+  MK.llamar('api_cobCargarLote', { archivo: LOTE.archivo, facturas: facs, pagos: pags, notas: ncs }).then(function (r) {
+    LOTE.hecho = 'Lote ' + r.loteId + ' cargado: ' + r.facturas + ' facturas (' + D(r.totalFacturas) + '), ' + r.pagos + ' pagos (' + D(r.totalPagos) + ')' + (r.notas ? ' y ' + r.notas + ' notas de crédito (' + D(r.totalNotas) + ')' : '') + '.' + (r.saltadas && r.saltadas.length ? ' Se saltaron ' + r.saltadas.length + ' que ya estaban.' : '') + ' Se puede anular completo hoy mismo.';
     MK.aviso('Lote ' + r.loteId + ' cargado'); recargar();
   }, function () { MK.ocupado(btn, false); });
 }
