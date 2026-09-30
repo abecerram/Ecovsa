@@ -720,10 +720,16 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   var EJ = {
     empresa: 'Clínica San Rafael', codigoPropuesta: 'PRO-26-014-001', fechaPropuesta: '28 de septiembre de 2026', plazo: '12', frecuencia: 'QUINCENAL',
     kgIncluidos: '20', kgDesde: '21', tarifaKg: 'B/. 1.50', tarifaVisita: 'B/. 35.00', correoCliente: 'ana.prueba@ejemplo.com', telefonoCliente: '6000-0000',
+    razonSocial: 'Clínica San Rafael, S.A.', nombreComercial: 'Clínica San Rafael',
+    repCliente: 'Ana Prueba', generoRepCliente: 'mujer', nacionalidadRepCliente: 'panameña', cedulaRepCliente: '0-000-000',
+    folioCliente: '000000', rucCliente: '0-000-000', dvCliente: '00', razonSocialEmpresa: 'ECOTERMO DE PANAMA S.A.',
     direccion: 'Sede principal, Calle Prueba 00', horario: '8:00 a.m. a 5:00 p.m.', valorTotal: 'B/. 48.15', valorEnLetras: 'Cuarenta y ocho balboas con 15/100', contacto: 'Ana Prueba'
   };
   /* Estos salen de Configuración: en la vista previa se nombran, no se inventan */
-  var CFG = { datosBancarios: 'datos bancarios de Configuración', representanteLegal: 'representante legal de Configuración', correosNotificacion: 'correos de notificación de Configuración', correoEmpresa: 'correo de la empresa de Configuración', resolucion: 'resolución sanitaria de Configuración' };
+  var CFG = { datosBancarios: 'datos bancarios de Configuración', representanteLegal: 'representante legal de Configuración', correosNotificacion: 'correos de notificación de Configuración', correoEmpresa: 'correo de la empresa de Configuración', resolucion: 'resolución sanitaria de Configuración',
+    repEmpresa: 'REPRESENTANTE LEGAL DE CONFIGURACIÓN', repEmpresaTrato: 'el señor / la señora', repEmpresaGenero: 'varón / mujer',
+    repEmpresaNacionalidad: 'nacionalidad de Configuración', repEmpresaDocumento: 'cédula de Configuración', folioEmpresa: 'folio de Configuración',
+    rucEmpresa: 'RUC de ECOVSA', dvEmpresa: 'DV' };
   var VAR_RESP = {
     propuesta: [['empresa', 'Nombre del cliente'], ['codigoPropuesta', 'Código de la propuesta'], ['fechaPropuesta', 'Fecha de la propuesta'], ['plazo', 'Plazo del contrato (meses)'], ['frecuencia', 'Frecuencia del servicio'], ['kgIncluidos', 'Kg incluidos en el plan'], ['tarifaKg', 'Tarifa del kg adicional'], ['tarifaVisita', 'Tarifa de la visita adicional']],
     contrato: [['empresa', 'Nombre del cliente'], ['codigoPropuesta', 'Código de la propuesta'], ['fechaPropuesta', 'Fecha de la propuesta'], ['plazo', 'Plazo del contrato (meses)'], ['frecuencia', 'Frecuencia del servicio'], ['direccion', 'Dirección y sucursales'], ['horario', 'Horario de recolección'], ['valorTotal', 'Valor con ITBMS'], ['valorEnLetras', 'Valor en letras'], ['correoCliente', 'Correo del cliente'], ['datosBancarios', 'Banco, titular y cuenta · de Configuración'], ['correosNotificacion', 'Correos de notificación · de Configuración'], ['representanteLegal', 'Representante legal · de Configuración'], ['resolucion', 'Resolución sanitaria']]
@@ -789,7 +795,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
         var v = dVar(doc, k);
         if (!v) return '<span class="vbad">{' + MK.esc(k) + '} no existe</span>';
         if (CFG[k]) return '<span class="vv cfg" title="' + MK.esc(v.ayuda || '') + '">' + MK.esc(CFG[k]) + '</span>';
-        var ej = v.ejemplo != null && v.ejemplo !== '' ? v.ejemplo : EJ[k];
+        var ej = v.ejemplo != null && v.ejemplo !== '' ? v.ejemplo : (doc === 'contrato' && k === 'empresa' ? EJ.razonSocial : EJ[k]);   // 3.13: en el contrato, la razón social
         return '<span class="vv" title="' + MK.esc(v.ayuda || '') + '">' + MK.esc(ej != null ? ej : '{' + k + '}') + '</span>';
       });
     };
@@ -960,11 +966,14 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function prevContrato() {
     var sel = DABRE.contrato, f = llaves('contrato');
     function w(id, html) { return '<div class="pb' + (sel === id ? ' hl' : '') + '" data-pb="' + id + '">' + html + '</div>'; }
-    var h = membretePrev(true) + '<h1 class="ct">Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1><div class="numc2">N.° <span class="vv">CT-26-004-014</span></div>';
-    h += w('partes', '<p>Entre los suscritos a saber, <span class="vv">Ana Prueba</span>, <span class="vv">mujer</span>, mayor de edad, nacionalidad <span class="vv">panameña</span>, identificada con Cédula de Identidad No. <span class="vv">0-000-000</span> en su calidad de representante legal de <span class="vv">' + EJ.empresa + '</span>, con RUC <span class="vv">0-000-000</span>, quien de ahora en adelante se denominará <b>EL CONTRATANTE</b>, por una parte y por la otra, ' + f('{representanteLegal}') + ', en su calidad de Representante Legal de la sociedad <b>ECOTERMO DE PANAMA S.A.</b>, quien en adelante se denominará <b>EL CONTRATISTA</b>…</p>');
+    var h = membretePrev(true) + '<h1 class="ct">Contrato de servicio de recolección de desechos hospitalarios peligrosos</h1><div class="numc2">N.° <span class="vv">' + MK.esc(((NUMS.ct && NUMS.ct.prefijo) || 'CNT') + '-26-004-014') + '</span></div>';
+    /* api 3.13.1 · «Las partes» se edita: la vista previa usa el texto del bloque */
+    var tPartes = dBloque('contrato', 'partes') && !dBloque('contrato', 'partes').auto ? prevTexto('contrato', 'partes') : null;
+    if (tPartes != null) h += w('partes', marcado(aTexto(tPartes), f));
+    else h += w('partes', '<p>Entre los suscritos a saber, <span class="vv">Ana Prueba</span>, <span class="vv">mujer</span>, mayor de edad, nacionalidad <span class="vv">panameña</span>, identificada con Cédula de Identidad No. <span class="vv">0-000-000</span> en su calidad de representante legal de <span class="vv">' + EJ.empresa + '</span>, con RUC <span class="vv">0-000-000</span>, quien de ahora en adelante se denominará <b>EL CONTRATANTE</b>, por una parte y por la otra, ' + f('{representanteLegal}') + ', en su calidad de Representante Legal de la sociedad <b>ECOTERMO DE PANAMA S.A.</b>, quien en adelante se denominará <b>EL CONTRATISTA</b>…</p>');
     var yaCl = false;
     dBloques().forEach(function (b) {
-      if (b.auto) return;
+      if (b.auto || b.id === 'partes') return;
       var t = prevTexto('contrato', b.id);
       if (esLista(b)) { h += w(b.id, '<h3>' + MK.esc(b.titulo) + '</h3><ol>' + lineasLista(t).map(function (x) { return '<li>' + f(x).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>') + '</li>'; }).join('') + '</ol>'); return; }
       var cuerpo = marcado(aTexto(t), f, 'ol'), tit = '<span class="cl">' + MK.esc(String(b.titulo).replace(/\.\s*$/, '')) + '.</span> ';
