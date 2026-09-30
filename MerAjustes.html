@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|docGuardarTexto|docVolverOriginal|docRestaurarFabrica|docVolverVersion|numeracionFijar|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|docGuardarTexto|docVolverOriginal|docRestaurarFabrica|docVolverVersion|numeracionFijar|numeracionFormato|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
@@ -816,9 +816,10 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function numeracionHtml() {
     var pro = DTAB === 'propuesta', N = NUMS[pro ? 'pro' : 'ct'];
     var h = '<div class="card numc"><h3>' + MK.ic('lista', 15) + ' Numeración de ' + (pro ? 'las propuestas' : 'los contratos') + '<span class="sp"></span>' +
+      (puedeDoc() && N && !pro ? '<button type="button" class="btn sm" id="dcFmt" style="margin-right:6px">' + MK.ic('lapiz', 14) + 'Cambiar el formato</button>' : '') +
       (puedeDoc() && N ? '<button type="button" class="btn sm" id="dcNum">' + MK.ic('lapiz', 14) + 'Cambiar el siguiente número</button>' : '') + '</h3>';
     if (!N) return h + '<div class="small muted">' + (DERR[DTAB] ? '' : 'Leyendo la numeración…') + '</div></div>';
-    var f = partesCod(N.formato) || (pro ? ['PRO', '26', '015', '001'] : ['CT', '26', '004', '015']);
+    var f = partesCod(N.formato) || (pro ? ['PRO', '26', '015', '001'] : [N.prefijo || 'CNT', '26', '004', '015']);
     var sig = String(N.siguiente || '');
     h += '<div class="nc-g"><div class="nc-f"><div class="lb2">FORMATO</div><div class="cod"><span>' + MK.esc(f[0]) + '</span><i>-</i><span class="a">' + MK.esc(f[1]) + '</span><i>-</i><span class="n">' + MK.esc(f[2]) + '</span><i>-</i><span class="v">' + MK.esc(f[3]) + '</span></div>' +
       '<div class="leg"><span><b class="a"></b>año</span><span><b class="n"></b>' + (pro ? 'número de la propuesta' : 'número del contrato · vuelve a 001 cada enero') + '</span><span><b class="v"></b>' + (pro ? 'versión · no se toca' : 'número de la propuesta de la que nace') + '</span></div></div>' +
@@ -831,9 +832,44 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     if (!pro) h += '<div class="libres az">' + MK.ic('candado', 14) + '<span>Se asigna solo al generar el contrato: ya no se escribe a mano. Los contratos de antes conservan el número que se les escribió.</span></div>';
     return h + '</div>';
   }
+  /* api 3.13.1 · formato del número de contrato: solo el prefijo (CNT…); año, número y -PPP los pone el sistema */
+  function dlgFormato() {
+    var N = NUMS.ct; if (!N) return;
+    var f = partesCod(N.formato) || [N.prefijo || 'CNT', String(N.anio || '26'), '001', '001'];
+    var pref0 = N.prefijo || f[0];
+    MK.hoja('<h2>Cambiar el formato del contrato</h2><p class="muted small" style="margin-top:2px">Se cambia el comienzo del número. El año y el número del contrato los pone el sistema, y el final es siempre el número de la propuesta.</p>' +
+      '<label class="lb" for="dcPf">FORMATO</label><div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><div class="pref" style="width:130px"><input class="in" id="dcPf" maxlength="6" value="' + MK.esc(pref0) + '" autocomplete="off" style="text-transform:uppercase;font-weight:700"></div>' +
+      '<span class="muted" style="font-weight:600">-' + MK.esc(f[1]) + '-NNN-</span><span class="tag t-gris">' + MK.ic('candado', 11) + ' PPP · número de la propuesta</span></div>' +
+      '<div class="small" id="dcPmsg" style="margin-top:8px"></div>' +
+      '<div class="small muted" style="margin-top:3px">Solo letras, de 1 a 6. Los números ya usados con CNT o CT cuentan igual: no se repiten.</div>' +
+      '<div class="aviso am" style="margin-top:14px"><b>Este cambio queda en TODOS los contratos que se generen desde hoy.</b> Los contratos ya generados conservan su número.</div>' +
+      '<p class="small muted" style="margin-top:10px">' + MK.ic('reloj', 13) + ' Queda en el historial y al administrador le llega un aviso.</p>' +
+      '<label class="ck ent"><input type="checkbox" id="dcEnt3"> Entiendo</label>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="dcSi3" disabled>Guardar para todos</button></div>');
+    var inp = document.getElementById('dcPf'), c = document.getElementById('dcEnt3'), s = document.getElementById('dcSi3'), msg = document.getElementById('dcPmsg');
+    function val() {
+      var v = inp.value.toUpperCase().replace(/[^A-Z]/g, ''); if (v !== inp.value) inp.value = v;
+      var ok = /^[A-Z]{1,6}$/.test(v);
+      if (!ok) { msg.style.color = 'var(--bad)'; msg.textContent = 'Escribe el prefijo: solo letras.'; }
+      else { msg.style.color = 'var(--ok)'; msg.textContent = 'Así saldrá el siguiente: ' + v + '-' + f[1] + '-' + String(N.siguiente || '').split('-').slice(-1)[0] + '-(propuesta)'; }
+      s.disabled = !(ok && c.checked && v !== pref0);
+      return ok;
+    }
+    inp.oninput = val; c.onchange = val; val();
+    s.onclick = function () {
+      if (!val()) return;
+      MK.ocupado(s, true);
+      MK.api('api_numeracionFormato', MK.pin, inp.value, true).then(function (r) {
+        MK.ocupado(s, false);
+        if (!r || !r.ok) { msg.style.color = 'var(--bad)'; msg.textContent = (r && r.error) || 'No se pudo guardar.'; s.disabled = true; return; }
+        MK.cerrarHoja(); MK.aviso('Listo: los contratos nuevos salen con ' + inp.value + '-AA-NNN-PPP');
+        if (r.ct) { NUMS.ct = r.ct; if (r.pro) NUMS.pro = r.pro; secDocs(document.getElementById('ajCuerpo')); } else recargarNum();
+      }, function (e) { MK.ocupado(s, false); msg.style.color = 'var(--bad)'; msg.textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
   function dlgNumero() {
     var pro = DTAB === 'propuesta', serie = pro ? 'pro' : 'ct', N = NUMS[serie]; if (!N) return;
-    var pre = pro ? 'PRO-' + (N.anio || '26') + '-' : 'CT-' + (N.anio || '26') + '-';
+    var pre = pro ? 'PRO-' + (N.anio || '26') + '-' : (N.prefijo || 'CNT') + '-' + (N.anio || '26') + '-';
     var L = N.libres || [], libres = L.map(function (x) { return Number(String(x.codigo).split('-')[2]); });
     var ult = N.ultimo ? Number(String(N.ultimo.codigo).split('-')[2]) || 0 : 0, sigN = Number(String(N.siguiente).split('-')[2]) || 0, luegoN = N.luego ? Number(String(N.luego).split('-')[2]) || 0 : 0;
     var alto = Math.max(ult, (L.length ? luegoN : sigN) - 1, 0);
@@ -977,6 +1013,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     if ((x = document.getElementById('dcRe'))) x.onclick = function (e) { e.preventDefault(); DERR[DTAB] = ''; secDocs(el); };
     if ((x = document.getElementById('dcHist'))) x.onclick = function () { HFILTRO = ''; panelHistorial(); };
     if ((x = document.getElementById('dcNum'))) x.onclick = dlgNumero;
+    if ((x = document.getElementById('dcFmt'))) x.onclick = dlgFormato;   // api 3.13.1
     if ((x = document.getElementById('dcFab'))) x.onclick = dlgFabrica;
     if ((x = document.getElementById('dcMu'))) x.onchange = function () { DMUESTRA[DTAB] = this.value; if (DTAB === 'propuesta' && dBloque('propuesta', DABRE.propuesta) && dVariantes(dBloque('propuesta', DABRE.propuesta)).indexOf(this.value) >= 0) { DVAR.propuesta = this.value; secDocs(el); return; } pintarPrev(); };
     [].forEach.call(el.querySelectorAll('[data-abre]'), function (b) {
