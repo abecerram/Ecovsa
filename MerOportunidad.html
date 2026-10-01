@@ -944,9 +944,9 @@
       '<div class="calc"><div><span>Valor cotizado</span><b>' + MK.dinero(v('costo visita') || 0) + '</b><em>Sale del costo. No se escribe a mano.</em></div>' +
       '<div><span>' + (u ? 'Valor del trabajo' : 'Valor mensual') + '</span><b>' + MK.dinero(o.valor) + '</b><em>' + (Object.keys(CAMBIOS).length ? 'Se recalcula al guardar.' : (u ? 'Costo × cantidad.' : 'Costo × visitas al mes.')) + '</em></div>' +
       '<div><span>Valor contratado</span><b>' + (o['valor contratado'] ? MK.dinero(o['valor contratado']) : '—') + '</b><em>Se llena solo cuando pasa a Firmado.</em></div></div>';
-    var fact = '<div class="fg">' + campo('retiene itbms', '¿Retiene ITBMS?', { ops: ['NO', 'SI'] }) + campo('facturacion', 'Facturación', { ops: [['POR PUNTO', 'Por punto'], ['AGRUPADA', 'Agrupada']] }) +
+    var fact = '<div class="fg">' + campo('retiene itbms', '¿Retiene ITBMS?', { ops: ['NO', 'SI', 'EXENTO'] }) + campo('facturacion', 'Facturación', { ops: [['POR PUNTO', 'Por punto'], ['AGRUPADA', 'Agrupada']] }) +
       campo('canal envio', 'Enviar facturas por', { ops: [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']] }) + '</div>' +
-      '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado.</span></div>';
+      '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS (el 3.5 % del subtotal) y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado. Los <b>exentos</b> no pagan ITBMS: su factura sale sin ITBMS.</span></div>';
     return '<div class="b2"><div class="stack">' + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
       serviciosCard() +
       card('Notas de la propuesta', '<div id="notas-box"></div>') + card('Para facturación', fact) + '</div>' +
