@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuestas · Mercadeo · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="mercadeo-kit.css">
+<script src="mercadeo-kit.js"></script>
+<style>
+/* ═══ Encuestas de satisfacción · bandeja de Mercadeo (api 3.16) ═══ */
+.sysbar .srch{min-width:0}
+.kp4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kp4 .kpi{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.kp4 .kpi em{display:block;margin:2px 0 0;font-weight:500;color:var(--muted2);font-size:11.5px;font-style:normal}
+.kp4 .kpi.on{border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2)}
+.fila{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 4px;border-top:1px solid var(--line2)}
+.fila:first-child{border-top:0}
+.fila b{font-size:14px;display:block}.fila small{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.fila .ac{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.prom{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.cmt{font-size:12.5px;color:var(--ink);margin-top:4px}
+.nt{background:var(--hover);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--muted);margin-top:12px}
+.rsp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:6px 14px;font-size:13px;margin-top:10px}
+.rsp span{color:var(--muted)}.rsp b{font-weight:600;word-break:break-word}
+.bus{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:#fff;color:var(--muted);max-width:340px;margin-bottom:10px}
+.bus input{border:0;outline:0;padding:8px 0;font:500 13.5px Archivo,sans-serif;flex:1;min-width:0;background:none;color:var(--ink)}
+@media(max-width:860px){.kp4{grid-template-columns:1fr 1fr}.fila{grid-template-columns:minmax(0,1fr)}.fila .ac{justify-content:flex-start}}
+</style>
+</head>
+<body class="mk">
+<script src="cargador.js" data-modulo="Mercadeo"></script>
+<div id="sysbar"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"><div class="cargando">Cargando…</div></main></div>
+<script>
+(function () {
+  var E = MK.esc, VISTA = 'por', B = null, Q = '';
+  var TIT = { quien: '¿Con quién tenemos el gusto?', general: 'En general, ¿cómo se siente?', puntual: '¿Llegamos cuando quedamos?', trato: '¿Cómo lo trata nuestro equipo?',
+    docs: 'Recibos, actas y certificados', contacto: '¿Qué tan fácil es ubicarnos?', limpio: '¿Su área queda limpia?', quejas: 'Si tuvo un problema, ¿cómo lo resolvimos?',
+    seguro: '¿Qué tan tranquilo está con el tratamiento legal?', compara: 'Frente a otros proveedores', nps: '¿Nos recomendaría? (0 a 10)', complica: 'Lo que más le complica',
+    cambiar: 'Una cosa que cambiaría', aviso: 'Cómo prefiere que le avisemos', sueno: 'Lo que le quita el sueño', otros: 'Lo que le pasó con otros proveedores',
+    conocio: '¿Cómo supo de ECOVSA?', valora: 'Lo que más valora', novedades: 'Por dónde quiere novedades', servicios: 'Le interesa conocer', contar: '¿Le escribimos para contarle más?', algo: 'Algo más' };
+  var SVC = { fumig: 'Fumigación', punzo: 'Contenedores para punzocortantes', solido: 'Desechos sólidos', especial: 'Servicios de una sola visita' };
+  function fc(f) { return f ? MK.fechaCorta(String(f).slice(0, 10)) : ''; }
+  function coma(n) { return n === null || n === undefined ? '—' : String(n).replace('.', ','); }
+  function cargar() {
+    MK.api('api_encBandeja', MK.pin).then(function (r) {
+      if (!r || !r.ok) { document.getElementById('main').innerHTML = '<div class="aviso rj">' + E((r && r.error) || 'No se pudo abrir.') + '</div>'; return; }
+      B = r; pintar();
+    }, function (e) { MK.error('main', 'Sin conexión: ' + e.message); });
+  }
+  function filtro(l) { var q = Q.trim().toLowerCase(); return q ? l.filter(function (x) { return String(x.cliente).toLowerCase().indexOf(q) >= 0; }) : l; }
+  function pintar() {
+    var K = B.kpis, puede = B.puedeEnviar;
+    var h = '<div class="ph"><div><h1>Encuestas de satisfacción</h1><p>A quién le toca, quién ya la recibió y qué respondió · F-VEN-07</p></div><div class="sp"></div>' +
+      '<a class="btn sm" href="MerAjustes.html#encuesta">' + MK.ic('ajustes', 15) + 'Cuándo le toca</a></div>' +
+      '<div class="kp4">' +
+      '<button class="kpi' + (VISTA === 'por' ? ' on' : '') + '" data-v="por"><span>Por enviar</span><b>' + K.porEnviar + '</b><em>' + (function () { var nu = B.porEnviar.filter(function (z) { return z.nunca; }).length, at = K.atrasadas - nu; return [nu ? nu + ' nunca la han recibido' : '', at ? at + ' atrasadas' : ''].filter(Boolean).join(' · ') || 'al día'; })() + '</em></button>' +
+      '<button class="kpi' + (VISTA === 'env' ? ' on' : '') + '" data-v="env"><span>Enviadas, sin responder</span><b>' + K.enviadas + '</b><em>' + (K.paraRecordar ? K.paraRecordar + ' para recordar' : 'ninguna para recordar') + '</em></button>' +
+      '<button class="kpi' + (VISTA === 'res' ? ' on' : '') + '" data-v="res"><span>Respondidas (3 meses)</span><b>' + K.respondidas + '</b><em>' + (K.promedio !== null ? 'promedio ' + coma(K.promedio) + ' / 5' : 'sin respuestas todavía') + '</em></button>' +
+      '<button class="kpi' + (VISTA === 'ate' ? ' on' : '') + '" data-v="ate"><span>Piden atención</span><b' + (K.atencion ? ' style="color:var(--bad)"' : '') + '>' + K.atencion + '</b><em>respuestas bajas o queja sin resolver</em></button>' +
+      '</div><div class="bus">' + MK.ic('buscar', 15) + '<input id="enc-q" placeholder="Buscar cliente…" value="' + E(Q) + '" autocomplete="off"></div>';
+    if (VISTA === 'por') {
+      var P = filtro(B.porEnviar);
+      h += '<div class="card">' + (P.length ? P.map(function (x) {
+        return '<div class="fila"><div><b><a href="MerCliente.html?id=' + encodeURIComponent(x.clienteId) + '">' + E(x.cliente) + '</a></b><small>' + (x.motivo === 'primera' ? 'Primera encuesta' : 'Encuesta periódica') + ' · ' + E(x.desde.replace(/(\d{4}-\d{2}-\d{2})/, function (m) { return fc(m); })) + '</small></div>' +
+          '<div><span class="tag ' + (x.nunca ? 't-info' : x.atrasada ? 't-warn' : 't-info') + '">' + (x.nunca ? 'nunca la ha recibido' : x.atrasada ? 'le tocaba el ' + fc(x.toca) : x.toca === B.hoy ? 'le toca hoy' : 'le toca el ' + fc(x.toca)) + '</span><small>' + E(x.contacto || 'sin contacto') + ' · ' + (x.telefono ? 'WhatsApp' : x.correo ? 'correo' : '<span style="color:var(--bad)">sin teléfono ni correo</span>') + '</small></div>' +
+          '<div class="ac">' + (puede ? '<button class="btn sm gh" data-saltar="' + E(x.clienteId) + '" title="Esta vez no; le vuelve a tocar más adelante">Saltar</button><button class="btn sm pri" data-enviar="' + E(x.clienteId) + '">' + MK.ic(x.telefono ? 'whatsapp' : 'correo', 14) + 'Enviar</button>' : '') + '</div></div>';
+      }).join('') : MK.vacio(Q ? 'Nadie con ese nombre.' : 'No le toca a nadie por ahora.')) + '</div>' +
+        '<div class="nt">«Enviar» abre WhatsApp o el correo con el mensaje y el enlace del cliente listos; tú lo revisas y lo mandas. Queda anotado en la actividad del cliente. «Saltar» la deja para el próximo turno.</div>';
+    }
+    if (VISTA === 'env') {
+      var V = filtro(B.enviadas);
+      h += '<div class="card">' + (V.length ? V.map(function (x, i) {
+        var va = x.progreso ? 'va en la pregunta ' + x.progreso + ' de ' + x.total : x.abierta ? 'la abrió, sin responder' : 'no la ha abierto';
+        return '<div class="fila"><div><b>' + E(x.cliente) + '</b><small>Enviada el ' + fc(x.enviada) + ' por ' + (x.canal === 'correo' ? 'correo' : 'WhatsApp') + (x.recordatorios ? ' · recordada ' + fc(x.ultimoRecordatorio) : '') + '</small></div>' +
+          '<div><span class="tag ' + (x.progreso || x.abierta ? 't-info' : 't-gris') + '">' + va + '</span>' + (x.recordar ? '<small style="color:#8a6300">ya pasaron ' + B.cfg.recordar + ' días</small>' : '') + '</div>' +
+          '<div class="ac"><button class="btn sm" data-copiar="' + i + '">' + MK.ic('enlace', 14) + 'Copiar enlace</button>' + (x.recordar && puede ? '<button class="btn sm pri" data-recordar="' + i + '">' + MK.ic('whatsapp', 14) + 'Recordar</button>' : '') + '</div></div>';
+      }).join('') : MK.vacio('Ninguna esperando respuesta.')) + '</div><div class="nt">El cliente puede dejarla a medias y seguir donde se quedó. El enlace muere cuando la envía.</div>';
+    }
+    if (VISTA === 'res' || VISTA === 'ate') {
+      var L = filtro(VISTA === 'ate' ? B.atencion : B.respondidas);
+      h += '<div class="card">' + (L.length ? L.map(function (x) {
+        var pide = x.atencion && !x.atendidaPor;
+        return '<div class="fila"><div><b>' + E(x.cliente) + (pide ? ' <span class="tag t-bad">pide atención</span>' : x.atencion ? ' <span class="tag t-ok">atendida</span>' : '') + '</b>' +
+          '<small>Respondió el ' + fc(x.respondida) + (x.nps !== null ? ' · recomendaría: ' + x.nps + ' de 10' : '') + (x.motivoAtencion && pide ? ' · ' + E(x.motivoAtencion) : '') + (x.atendidaPor ? ' · atendió ' + E(x.atendidaPor) : '') + '</small>' +
+          (x.comentario ? '<div class="cmt">«' + E(x.comentario) + '»</div>' : '') + '</div>' +
+          '<div class="prom" style="color:' + (x.promedio === null ? 'var(--muted)' : x.promedio < 3 ? 'var(--bad)' : x.promedio < 4 ? '#8a6300' : 'var(--ok)') + '">' + coma(x.promedio) + ' <small style="display:inline;font-size:12px;font-weight:600">/ 5</small></div>' +
+          '<div class="ac"><button class="btn sm" data-ver="' + E(x.encuestaId) + '">Ver respuestas</button>' + (pide && puede ? '<button class="btn sm pri" data-atender="' + E(x.encuestaId) + '">' + MK.ic('check', 14) + 'Ya lo atendí</button>' : '') + '</div></div>';
+      }).join('') : MK.vacio(VISTA === 'ate' ? 'Ninguna respuesta pide atención.' : 'Todavía no hay respuestas en los últimos 3 meses.')) + '</div>' +
+        '<div class="nt">Las que piden atención salen también en Mi día comercial. El análisis completo (pregunta por pregunta) está en Calidad › Satisfacción del cliente.</div>';
+    }
+    var m = document.getElementById('main'); m.innerHTML = h;
+    [].forEach.call(m.querySelectorAll('[data-v]'), function (b) { b.onclick = function () { VISTA = b.getAttribute('data-v'); pintar(); }; });
+    var qi = document.getElementById('enc-q'); qi.oninput = function () { Q = qi.value; var p = qi.selectionStart; pintar(); var n = document.getElementById('enc-q'); n.focus(); try { n.setSelectionRange(p, p); } catch (e) {} };
+    [].forEach.call(m.querySelectorAll('[data-enviar]'), function (b) { b.onclick = function () { MK.encEnviar(b.getAttribute('data-enviar'), { alEnviar: cargar }); }; });
+    [].forEach.call(m.querySelectorAll('[data-saltar]'), function (b) { b.onclick = function () {
+      var id = b.getAttribute('data-saltar'), x = B.porEnviar.filter(function (z) { return z.clienteId === id; })[0];
+      MK.confirmar('«' + (x ? x.cliente : '') + '» sale de «Por enviar» y le vuelve a tocar en ' + B.cfg.cada + ' meses.', function () {
+        MK.api('api_encSaltar', MK.pin, id).then(function (r) { if (r && r.ok) { MK.aviso('La dejamos para el próximo turno'); cargar(); } else MK.aviso((r && r.error) || 'No se pudo'); });
+      }, { titulo: '¿Saltar esta vez?', boton: 'Sí, saltar' }); }; });
+    [].forEach.call(m.querySelectorAll('[data-copiar]'), function (b) { b.onclick = function () { copiar(filtro(B.enviadas)[+b.getAttribute('data-copiar')].enlace); }; });
+    [].forEach.call(m.querySelectorAll('[data-recordar]'), function (b) { b.onclick = function () { MK.encRecordar(filtro(B.enviadas)[+b.getAttribute('data-recordar')], { alEnviar: cargar }); }; });
+    [].forEach.call(m.querySelectorAll('[data-ver]'), function (b) { b.onclick = function () { verRespuestas(b.getAttribute('data-ver')); }; });
+    [].forEach.call(m.querySelectorAll('[data-atender]'), function (b) { b.onclick = function () { atender(b.getAttribute('data-atender')); }; });
+  }
+  function copiar(t) {
+    var hoja = function () { MK.hoja('<h2>Enlace de la encuesta</h2><input class="in" id="cp-e" readonly value="' + E(t) + '"><div class="pie"><button class="btn pri" onclick="MK.cerrarHoja()">Listo</button></div>'); var i = document.getElementById('cp-e'); i.focus(); i.select(); };
+    try { navigator.clipboard.writeText(t).then(function () { MK.aviso('Enlace copiado'); }, hoja); } catch (e) { hoja(); }
+  }
+  function valor(k, v) {
+    if (Array.isArray(v)) return v.map(function (s) { return E(k === 'servicios' ? (SVC[s] || s) : s); }).join(' · ');
+    if (['general', 'trato', 'seguro'].indexOf(k) >= 0) return v + ' de 5 ' + ['', '(Nada bien)', '(Flojo)', '(Normal)', '(Bien)', '(¡Excelente!)'][v];
+    if (['puntual', 'contacto'].indexOf(k) >= 0) return v + ' estrella' + (v === 1 ? '' : 's');
+    return E(v);
+  }
+  window.verRespuestas = function (id) {
+    MK.lado('<div class="cargando">Cargando…</div>');
+    MK.api('api_encRespuestas', MK.pin, id).then(function (r) {
+      if (!r || !r.ok) { MK.lado('<div class="aviso rj">' + E((r && r.error) || 'No se pudo') + '</div>'); return; }
+      var x = r.encuesta, R = x.respuestas || {};
+      MK.lado('<h2 style="font-size:18px;margin-top:6px;padding-right:34px">' + E(x.cliente) + '</h2><div class="small muted">Respondió el ' + E(MK.fechaLarga(String(x.respondida).slice(0, 10))) + ' · promedio ' + coma(x.promedio) + ' / 5' + (x.nps !== null ? ' · recomendaría ' + x.nps + ' de 10' : '') + '</div>' +
+        (x.atencion ? '<div class="aviso ' + (x.atendidaPor ? 'vd' : 'rj') + '" style="margin-top:10px">' + (x.atendidaPor ? 'Atendida por ' + E(x.atendidaPor) + (x.notaAtencion ? ': «' + E(x.notaAtencion) + '»' : '') : 'Pide atención: ' + E(x.motivoAtencion)) + '</div>' : '') +
+        '<div class="rsp">' + Object.keys(TIT).filter(function (k) { return R[k] !== undefined && R[k] !== '' && !(Array.isArray(R[k]) && !R[k].length); }).map(function (k) { return '<span>' + E(TIT[k]) + '</span><b>' + valor(k, R[k]) + '</b>'; }).join('') + '</div>' +
+        '<p class="small muted" style="margin-top:14px">Lo que no aparece, el cliente prefirió no responderlo.</p>' +
+        '<div class="row w" style="margin-top:10px"><a class="btn sm" href="MerCliente.html?id=' + encodeURIComponent(x.clienteId) + '">Abrir la ficha</a></div>');
+    });
+  };
+  function atender(id) {
+    var x = B.atencion.filter(function (z) { return z.encuestaId === id; })[0] || {};
+    MK.hoja('<h2>Ya lo atendí</h2><p class="muted small">' + E(x.cliente || '') + ' · ' + E(x.motivoAtencion || '') + '</p>' +
+      '<label class="lb" for="at-n">QUÉ SE HIZO (OPCIONAL)</label><textarea class="in" id="at-n" rows="3" placeholder="Ej.: la llamé y le reenviamos los certificados"></textarea>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="at-ok">Marcar atendida</button></div>');
+    document.getElementById('at-ok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.api('api_encAtender', MK.pin, id, document.getElementById('at-n').value).then(function (r) {
+        MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+        MK.cerrarHoja(); MK.aviso('Marcada como atendida'); cargar();
+      }, function (e) { MK.ocupado(b, false); MK.aviso(e.message); });
+    };
+  }
+  MK.iniciar('encuestas', function () { var h = (location.hash || '').slice(1); if (['por', 'env', 'res', 'ate'].indexOf(h) >= 0) VISTA = h; cargar(); });
+})();
+</script>
+</body>
+</html>

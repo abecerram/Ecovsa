@@ -236,7 +236,8 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
     ['documentos', 'Propuesta y contrato', 'contrato'],
     ['avisos', 'Notificaciones', 'campana'],
     ['firma', 'Firma, tono y agenda', 'lapiz'],
-    ['espacio', 'Espacio de archivos', 'clip']
+    ['espacio', 'Espacio de archivos', 'clip'],
+    ['encuesta', 'Encuesta de satisfacción', 'estrella']   // api 3.16
   ];
   var ABIERTAS = ['Registrado', 'Formulario enviado', 'Formulario recibido', 'Propuesta enviada', 'En negociación', 'Contrato en proceso', 'Stand-by'];
   var ESCALARES = ['metaMensual', 'diasRenovacion', 'diasSinContacto', 'tono', 'firma', 'horaInicio', 'horaFin'];
@@ -395,7 +396,7 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
   function ir(s) { SEC = s; try { history.replaceState(null, '', '#' + s); } catch (e) {} pintarMenu(); pintarSeccion(); if (innerWidth < 900) { var c = document.getElementById('ajCuerpo'); if (c) c.scrollIntoView({ block: 'start' }); } }
   function pintarSeccion() {
     var el = document.getElementById('ajCuerpo'); if (!el) return;
-    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, documentos: secDocs, avisos: secAvisos, firma: secFirma, espacio: secEspacio }[SEC] || secEtapas)(el); }
+    try { ({ etapas: secEtapas, listas: secListas, metas: secMetas, plantillas: secPlantillas, documentos: secDocs, avisos: secAvisos, firma: secFirma, espacio: secEspacio, encuesta: secEncuesta }[SEC] || secEtapas)(el); }
     catch (e) { console.error(e); el.innerHTML = '<div class="aviso rj">No se pudo mostrar esta sección: ' + MK.esc(e.message) + '</div>'; }
   }
 
@@ -1233,6 +1234,56 @@ body.solo-ver #ajCuerpo [data-t],body.solo-ver #ajCuerpo [data-c],body.solo-ver 
         })();
       };
     }, function (err) { el.innerHTML = '<div class="aviso rj">Sin conexión: ' + MK.esc(err.message) + '</div>'; });
+  }
+  /* ═══ api 3.16 · Encuesta de satisfacción: cuándo le toca a cada cliente ═══ */
+  var ENC = null;
+  function secEncuesta(el) {
+    var cab = '<div class="sec-h"><div><h2>Encuesta de satisfacción</h2><p>Cuándo le toca a cada cliente. Es la encuesta F-VEN-07 (ISO 9001 · 9.1.2): se envía desde Mercadeo › Encuestas, el análisis está en Calidad y el resumen en Dirección.</p></div></div>';
+    if (!ENC) {
+      el.innerHTML = cab + '<div class="card"><div class="cargando">Cargando…</div></div>';
+      MK.api('api_encAjustes', MK.pin).then(function (r) { ENC = r || { ok: false }; if (SEC === 'encuesta') secEncuesta(el); }, function (e) { el.innerHTML = cab + '<div class="aviso rj">Sin conexión: ' + MK.esc(e.message) + '</div>'; });
+      return;
+    }
+    if (!ENC.ok) { el.innerHTML = cab + '<div class="aviso rj">' + MK.esc(ENC.error || 'No se pudo abrir.') + '</div>'; return; }
+    var c = ENC.cfg, dis = ENC.puede ? '' : ' disabled';
+    var num = function (id, v, suf, min, max) { return '<div class="row" style="gap:8px;align-items:center"><input class="in" id="' + id + '" type="number" min="' + min + '" max="' + max + '" value="' + MK.esc(v) + '" style="width:90px;text-align:center"' + dis + '><span class="small muted">' + suf + '</span></div>'; };
+    var sw = function (id, on) { return '<label class="sw"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + dis + '><i></i></label>'; };
+    var fila = function (t, p, campo) { return '<div class="fila-v"><div><h4>' + t + '</h4><p>' + p + '</p></div><div style="display:flex;align-items:center;justify-content:flex-end">' + campo + '</div></div>'; };
+    el.innerHTML = cab +
+      '<div class="card"><h3>' + MK.ic('calendario', 16) + 'Cuándo le toca</h3>' +
+      fila('Primera encuesta', 'Días después del primer servicio del cliente.', num('en-pri', c.primera, 'días', 1, 365)) +
+      fila('Después, cada', 'Meses desde la última respondida (o enviada, si no respondió; o saltada).', num('en-cada', c.cada, 'meses', 1, 24)) +
+      fila('Avisar con anticipación', 'Sale en «Por enviar» estos días antes de que le toque.', num('en-ant', c.anticipo, 'días', 0, 30)) +
+      fila('Recordar si no responde', 'Pasados estos días sale «Recordar» en Enviadas.', num('en-rec', c.recordar, 'días', 1, 60)) +
+      fila('Recordatorios como máximo', 'Para no insistir de más.', num('en-max', c.maxRecordar, 'veces', 0, 3)) +
+      fila('Clientes de visita única', 'Se les envía una sola, a los días de su servicio.', sw('en-uni', c.unica)) +
+      fila('Clientes suspendidos', 'Encendido: también les toca mientras estén suspendidos.', sw('en-sus', c.suspendidos)) +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><h3>' + MK.ic('alerta', 16) + 'Respuestas que piden atención</h3>' +
+      fila('Avisar cuando el promedio sea menor de', 'Sale en Mi día comercial y en la bandeja de Encuestas, hasta que alguien la marque como atendida.', num('en-baj', c.avisoBajo, 'de 5', 1, 5)) +
+      fila('También cuando', '«No se resolvió» en la pregunta de quejas, o recomendaría 6 o menos.', sw('en-ext', c.alertaExtra)) +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><h3>' + MK.ic('whatsapp', 16) + 'El mensaje</h3>' +
+      '<p class="small muted" style="margin-bottom:8px"><b>{enlace}</b> es el enlace único del cliente (muere cuando responde). También sirven {saludo}, {contacto} y {firma}.</p>' +
+      '<textarea class="in" id="en-msj" rows="6" maxlength="1200" style="width:100%"' + dis + '>' + MK.esc(c.mensaje) + '</textarea></div>' +
+      '<div class="small" id="en-err" style="color:var(--bad);margin-top:8px;text-align:right"></div>' +
+      (ENC.puede ? '<div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn" id="en-des">Descartar</button><button class="btn pri" id="en-ok">' + MK.ic('check', 15) + 'Guardar la encuesta</button></div>'
+        : '<div class="small muted" style="margin-top:8px">Solo Mercadeo, Supervisión y el administrador cambian estos valores.</div>') +
+      '<p class="small muted" style="margin-top:10px">Las preguntas del bloque «Para conocerle mejor» las arma Katherine según la campaña; eso va en un paquete aparte.</p>';
+    if (!ENC.puede) return;
+    document.getElementById('en-des').onclick = function () { ENC = null; secEncuesta(el); };
+    document.getElementById('en-ok').onclick = function () {
+      var b = this, v = function (id) { return document.getElementById(id).value; }, k = function (id) { return document.getElementById(id).checked; };
+      var d = { primera: v('en-pri'), cada: v('en-cada'), anticipo: v('en-ant'), recordar: v('en-rec'), maxRecordar: v('en-max'), unica: k('en-uni'), suspendidos: k('en-sus'),
+        avisoBajo: v('en-baj'), alertaExtra: k('en-ext'), mensaje: v('en-msj') };
+      var err = document.getElementById('en-err'); err.textContent = '';
+      MK.ocupado(b, true);
+      MK.api('api_encGuardarAjustes', MK.pin, d).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { err.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        MK.aviso(r.sinCambios ? 'No había cambios' : 'Guardado · cuenta desde hoy'); ENC = null; secEncuesta(el);
+      }, function (e) { MK.ocupado(b, false); err.textContent = e.message || 'Sin conexión'; });
+    };
   }
   function secFirma(el) {
     el.innerHTML = '<div class="sec-h"><div><h2>Firma, tono y agenda</h2><p>Cómo cierran tus mensajes, con qué saludo empiezan y qué horas muestra la Agenda.</p></div></div>' +

@@ -58,6 +58,7 @@
     { id: 'cliente', n: 'Ficha del cliente', i: 'persona', f: 'MerCliente.html', oculto: true },
     { id: 'documentos', n: 'Propuestas y contratos', i: 'contrato', f: 'MerDocumentos.html' },
     { id: 'entregables', n: 'Certificados y distintivos', i: 'sello', f: 'MerEntregables.html' },
+    { id: 'encuestas', n: 'Encuestas', i: 'estrella', f: 'MerEncuestas.html', b: 'encuestas' },   // api 3.16
     { g: 'ADMINISTRATIVO' },
     { id: 'compras', n: 'Solicitudes de compra', i: 'carrito', f: 'MerCompras.html', b: 'compras', bg: true },
     { g: 'ANÁLISIS' },
@@ -258,6 +259,7 @@
     if (p.b === 'oportunidades') return c.excedidas ? '<span class="n">' + c.excedidas + '</span>' : (c.oportunidades ? '<span class="n g">' + c.oportunidades + '</span>' : '');
     if (p.b === 'agenda') { var n = (c.tareasHoy || 0) + (c.atrasadas || 0); return n ? '<span class="n' + (c.atrasadas ? '' : ' g') + '">' + n + '</span>' : ''; }
     if (p.b === 'compras') return c.compras ? '<span class="n g">' + c.compras + '</span>' : '';
+    if (p.b === 'encuestas') return c.encuestas ? '<span class="n g" title="Encuestas que ya toca enviar y respuestas que piden atención">' + c.encuestas + '</span>' : '';   // api 3.16
     if (p.b === 'suspensiones') { var t = (c.suspensiones || 0) + (c.docsPorRevisar || 0); return t ? '<span class="n" title="Suspensiones que pidió Cobros y documentos que subieron los clientes">' + t + '</span>' : ''; }
     return '';
   }
@@ -606,6 +608,35 @@
         if (typeof o.alEnviar === 'function') { try { o.alEnviar(canal, d); } catch (e) { console.error(e); } }
       };
     });
+  };
+
+  /* ── api 3.16 · encuesta de satisfacción: enviarla o recordarla con el mensaje de siempre ── */
+  function encTexto(texto, contacto) {
+    var pila = String(contacto || '').trim().split(/\s+/)[0] || '';
+    return MK.rellenar(String(texto || '').replace(/,?\s*\{contacto\}/, pila ? ', ' + pila : ''), {});
+  }
+  MK.encEnviar = function (clienteId, op) {
+    op = op || {};
+    MK.api('api_encPreparar', MK.pin, clienteId).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo preparar la encuesta.'); return; }
+      MK.mensaje({ canal: r.telefono ? 'whatsapp' : 'correo', telefono: r.telefono, correo: r.correo, cuenta: r.cliente, contacto: r.contacto,
+        texto: encTexto(r.texto, r.contacto), ref: String(clienteId), refTipo: 'cli',
+        alEnviar: function (canal) {
+          MK.api('api_encMarcarEnviada', MK.pin, r.encuestaId, canal).then(function (x) {
+            if (x && x.ok) MK.aviso('Encuesta enviada a ' + r.cliente + ' · queda en «Enviadas»'); else if (x && x.error) MK.aviso(x.error);
+            if (op.alEnviar) op.alEnviar(); MK.cambio({ tipo: 'encuesta' });
+          }, function () {});
+        } });
+    }, function (e) { MK.aviso(e.message || 'Sin conexión'); });
+  };
+  MK.encRecordar = function (v, op) {
+    op = op || {};
+    var txt = '{saludo}, {contacto}. Le recordamos la encuesta de ECOVSA; son 2 minutos y puede seguir donde se quedó:\n' + v.enlace + '\n\nGracias.\n{firma}';
+    MK.mensaje({ canal: v.canal === 'correo' || !v.telefono ? 'correo' : 'whatsapp', telefono: v.telefono, correo: v.correo, cuenta: v.cliente, contacto: v.contacto,
+      texto: encTexto(txt, v.contacto), ref: String(v.clienteId), refTipo: 'cli',
+      alEnviar: function () {
+        MK.api('api_encMarcarEnviada', MK.pin, v.encuestaId, '', true).then(function () { MK.aviso('Recordatorio enviado'); if (op.alEnviar) op.alEnviar(); }, function () {});
+      } });
   };
 
   /* ── arranque ── */

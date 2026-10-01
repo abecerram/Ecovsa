@@ -27,6 +27,10 @@
 .secs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .secs a{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;background:#fff;padding:11px 12px;color:var(--ink);text-decoration:none;font-size:13px;font-weight:600}
 .secs a small{display:block;color:var(--muted);font-weight:500;font-size:11.5px}
+.q5 .f{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 40px;gap:10px;align-items:center;padding:8px 0;font-size:12.5px;border-top:1px solid var(--line2)}.q5 .f:first-child{border-top:0}
+.q5 .f small{display:block;color:var(--muted);font-size:11px}.q5 .st{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line2)}.q5 .st i{display:block;height:100%}
+.nuevo{font-size:10px;font-weight:800;background:var(--amber);color:#3d2a00;border-radius:5px;padding:1px 6px;margin-left:6px;letter-spacing:.3px}
+.cmt{border-left:3px solid var(--line);padding:4px 0 4px 12px;margin:10px 0;font-size:13px}.cmt small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}.cmt.bad{border-left-color:var(--bad)}
 @media(max-width:900px){.ruta{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){.ruta{grid-template-columns:repeat(2,minmax(0,1fr))}.ruta .e{min-height:0}.obra-c{flex-direction:column}}
 </style>
@@ -58,7 +62,7 @@ function pIni() {
     '<div class="hero"><span class="tag">Meta</span><h2>Certificación ISO 9001 en 2027</h2><p>Versión de la norma: 2026. Ruta propuesta, se ajusta con Gerencia.</p></div>' +
     '<div class="card"><h3>La ruta</h3><div class="ruta">' + ruta.map(function (r, k) { return '<div class="e ' + r[2] + '"><em>' + (k + 1) + '</em><b>' + r[0] + '</b>' + r[1] + '</div>'; }).join('') + '</div></div>' +
     '<div class="card"><h3>Secciones</h3><div class="secs">' + Object.keys(SECC).map(function (id) { var x = SECC[id];
-      return '<a href="#' + id + '" onclick="MK.ir(\'' + id + '\');return false">' + MK.ic(x[1], 18) + '<span>' + x[0] + '<small>Por construir</small></span></a>'; }).join('') + '</div></div>' +
+      return '<a href="#' + id + '" onclick="MK.ir(\'' + id + '\');return false">' + MK.ic(x[1], 18) + '<span>' + x[0] + '<small>' + (id === 'sat' ? 'Lista' : 'Por construir') + '</small></span></a>'; }).join('') + '</div></div>' +
     '</div>';
 }
 function pSec(id) {
@@ -66,6 +70,50 @@ function pSec(id) {
   return MK.cabeza(x[0], x[2]) +
     '<div class="card"><div class="obra-c"><div class="ic2">' + MK.ic(x[1], 22) + '</div><div><b>Por construir.</b>' +
     '<p>Esta sección está en la maqueta aprobada y se construye en su propio paquete. Aquí no se guarda nada todavía.</p></div></div></div>';
+}
+/* ═══ api 3.16 · Satisfacción del cliente (F-VEN-07 · cláusula 9.1.2) ═══ */
+var SAT = null, SAT_PER = 'tri';
+function satRango() {
+  var h = MK.hoy, m = Number(h.slice(5, 7)), y = h.slice(0, 4);
+  if (SAT_PER === 'ano') return [y + '-01-01', h];
+  if (SAT_PER === 'sem') return [MK.masDias(h, -182), h];
+  var q = Math.floor((m - 1) / 3) * 3 + 1; return [y + '-' + ('0' + q).slice(-2) + '-01', h];
+}
+function satPer(p) { SAT_PER = p; SAT = null; MK.repintar(); }
+function pSat() {
+  var cab = MK.cabeza('Satisfacción del cliente', 'Lo que dicen los clientes en la encuesta F-VEN-07 · lo pide la cláusula 9.1.2',
+    MK.chips([['tri', 'Este trimestre'], ['sem', 'Últimos 6 meses'], ['ano', 'Este año']], SAT_PER, 'satPer') +
+    '<a class="btn" href="MerEncuestas.html">' + MK.ic('whatsapp', 15) + ' Enviar encuestas</a>');
+  if (!SAT || SAT.per !== SAT_PER) {
+    var rg = satRango(); SAT = { per: SAT_PER, r: null };
+    MK.api('api_calSatisfaccion', MK.pinUso(), rg[0], rg[1]).then(function (r) { if (SAT.per === SAT_PER) { SAT.r = r || { ok: false }; if (MK.seccion === 'sat') MK.repintar(); } },
+      function (e) { SAT.r = { ok: false, error: e.message }; if (MK.seccion === 'sat') MK.repintar(); });
+  }
+  var r = SAT.r;
+  if (!r) return cab + '<div class="cargando">Cargando…</div>';
+  if (!r.ok) return cab + '<div class="aviso rj">' + MK.esc(r.error || 'No se pudo') + '</div>';
+  var K = r.kpis, coma = function (n) { return n === null || n === undefined ? '—' : String(n).replace('.', ','); };
+  var col = ['#d64045', '#e07b2a', '#d99a00', '#5aa64d', '#2f9e44'];
+  var h = cab + MK.kpis([
+    { e: 'Respuestas', v: K.respondidas, s: K.enviadas ? 'de ' + K.enviadas + ' enviadas' + (K.tasa !== null ? ' · ' + K.tasa + ' %' : '') : 'todavía no se envían' },
+    { e: 'Satisfacción general', v: coma(K.promedio) + (K.promedio !== null ? ' / 5' : ''), s: K.dif !== null ? (K.dif >= 0 ? 'sube ' : 'baja ') + coma(Math.abs(K.dif)) + ' vs. el periodo anterior' : 'promedio de las preguntas de 1 a 5', c: K.promedio === null ? '' : K.promedio >= 4 ? 'ok' : K.promedio >= 3 ? 'warn' : 'bad' },
+    { e: 'Nos recomendarían', v: K.nps === null ? '—' : (K.nps > 0 ? '+' : '') + K.nps, s: 'índice de −100 a +100 (NPS)', c: K.nps === null ? '' : K.nps >= 30 ? 'ok' : K.nps >= 0 ? 'warn' : 'bad' },
+    { e: 'Piden atención', v: K.atencion, s: 'sin atender todavía', c: K.atencion ? 'bad' : '' }], 4);
+  if (!K.respondidas) return h + '<div class="card"><div class="vacio">Todavía no hay respuestas en este periodo. Las encuestas se envían desde Mercadeo › Encuestas.</div></div>';
+  h += '<div class="g21"><div class="card"><h3>Pregunta por pregunta</h3><div class="q5">' + r.preguntas.map(function (q) {
+      var t = q.dist.reduce(function (a, b) { return a + b; }, 0);
+      return '<div class="f"><span>' + MK.esc(q.t) + (q.nueva ? '<span class="nuevo">NUEVA</span>' : '') + '<small>' + q.n + ' respuesta' + (q.n === 1 ? '' : 's') + '</small></span>' +
+        '<div class="st">' + (t ? q.dist.map(function (v, k) { return '<i style="width:' + (v / t * 100) + '%;background:' + col[k] + '"></i>'; }).join('') : '') + '</div><b class="num" style="text-align:right">' + coma(q.promedio) + '</b></div>';
+    }).join('') + '</div><div class="nota">Cada barra va de rojo (1) a verde (5). «NUEVA»: las tres que se agregaron el 1 oct (quejas, tranquilidad legal y comparación con otros proveedores).</div></div>' +
+    '<div class="pila">' +
+    (r.complica.length ? '<div class="card"><h3>Lo que más les complica</h3>' + MK.hbar(r.complica.slice(0, 8).map(function (c) { return { e: c.t, v: c.n }; })) + '</div>' : '') +
+    (r.comentarios.length ? '<div class="card"><h3>Comentarios</h3>' + r.comentarios.slice(0, 8).map(function (c) { return '<div class="cmt' + (c.atencion ? ' bad' : '') + '">«' + MK.esc(c.texto) + '»<small>' + MK.esc(c.cliente) + ' · ' + MK.esc(MK.fechaCorta(c.fecha)) + '</small></div>'; }).join('') + '</div>' : '') +
+    (r.atencion.length ? '<div class="card"><h3>Respuestas que pidieron atención</h3><div class="lst">' + r.atencion.slice(0, 8).map(function (a) {
+      return '<div class="it"><div class="tx"><b>' + MK.esc(a.cliente) + '</b><small>' + MK.esc(MK.fechaCorta(a.fecha)) + ' · ' + MK.esc(a.motivo) + (a.atendida ? ' · atendió ' + MK.esc(a.atendidaPor) + (a.nota ? ': «' + MK.esc(a.nota) + '»' : '') : '') + '</small></div>' + MK.tag(a.atendida ? 'Atendida' : 'Pendiente', a.atendida ? 'ok' : 'bad') + '</div>';
+    }).join('') + '</div><div class="nota">Cuando esté la sección de No conformidades, las que no se atiendan bien abrirán una acción correctiva.</div></div>' : '') +
+    '<div class="card"><h3>Cuándo se envía</h3><div class="small" style="line-height:1.6">A los <b>' + r.cfg.primera + ' días</b> del primer servicio y luego cada <b>' + r.cfg.cada + ' meses</b>. Recordatorio a los ' + r.cfg.recordar + ' días. Se cambia en Mercadeo › Plantillas y ajustes › Encuesta de satisfacción.</div></div>' +
+    '</div></div>';
+  return h;
 }
 MK.iniciar({
   modulo: 'Calidad',
@@ -79,7 +127,7 @@ MK.iniciar({
     { g: 'APOYO' }, { id: 'cap', n: 'Capacitación', i: 'personas' }, { id: 'prov', n: 'Proveedores', i: 'carrito' }, { id: 'equ', n: 'Equipos de medición', i: 'balanza' }
   ],
   pieMenu: '<a href="index.html">← Volver a los módulos</a>',
-  pintar: function (id) { document.getElementById('main').innerHTML = id === 'ini' ? pIni() : pSec(id); }
+  pintar: function (id) { document.getElementById('main').innerHTML = id === 'ini' ? pIni() : id === 'sat' ? pSat() : pSec(id); }
 });
 </script>
 </body>

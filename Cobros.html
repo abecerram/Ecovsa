@@ -243,7 +243,8 @@ function abrirCuenta(k) {
   var abiertas = F.filter(function (f) { return f.saldo > 0.009; }).sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; });
   var P = (B().pagos || []).filter(function (p) { return p.clave === k; });
   var G = (B().gestiones || []).filter(function (g) { return g.clave === k; });
-  var ev = G.map(function (g) { return { f: g.fecha, t: 'g', g: g }; }).concat(P.map(function (p) { return { f: p.fecha, t: 'p', p: p }; })).sort(function (a, b) { return a.f < b.f ? 1 : a.f > b.f ? -1 : 0; });
+  var NC = []; F.forEach(function (f) { ncDe(f).forEach(function (n) { NC.push({ f: n.fecha || f.fecha, t: 'n', n: n, fac: f }); }); });   // api 3.13.1
+  var ev = G.map(function (g) { return { f: g.fecha, t: 'g', g: g }; }).concat(P.map(function (p) { return { f: p.fecha, t: 'p', p: p }; })).concat(NC).sort(function (a, b) { return a.f < b.f ? 1 : a.f > b.f ? -1 : 0; });
   var pl = (B().planes || []).filter(function (x) { return x.clave === k && x.estado !== 'ANULADO'; }).slice(-1)[0];
   var p = c.paso;
   var puedeSusp = c.vencido > 0.009 && !c.suspensionPedida && c.situacion !== 'mora' && !c.sinFicha;
@@ -251,7 +252,7 @@ function abrirCuenta(k) {
   MK.lado('<span class="et">Cuenta</span><h2>' + MK.esc(c.cliente) + '</h2><div class="sub">' + MK.esc(c.razon || '') + (c.ruc ? ' · RUC ' + MK.esc(c.ruc) : '') + (c.puntos && c.puntos.length > 1 ? '<br>Puntos: ' + c.puntos.map(MK.esc).join(' · ') : '') + (c.esPagador ? (c.nombres && c.nombres.length ? '<br>Así aparece en contabilidad: ' + c.nombres.map(MK.esc).join(' · ') : '') : c.nombres && c.nombres.length > 1 ? '<br>En las facturas: ' + c.nombres.map(MK.esc).join(' · ') : '') + (c.pagaDesde ? '<br>Paga desde ' + MK.esc(c.pagaDesde) : '') + '</div>' +
     '<div class="fila">' + escChip(c.escalon) + (c.esPagador ? '<span class="chipx info">pagador · ' + MK.esc(MODO_PAG[c.modo] || 'una sola factura') + '</span>' : '') + (c.situacion === 'mora' ? '<span class="chipx bad">servicio suspendido</span>' : '') + (c.sinFicha ? '<span class="chipx warn">sin ficha de cliente</span>' : '') + (c.tipo === 'contrato' ? '<span class="chipx info">contrato</span>' : '') + chipTarde(c) + '</div>' +
     '<div style="margin-top:12px">' + MK.kpis([{ e: 'Debe', v: D(c.saldo), c: c.saldo ? 'bad' : '' }, { e: 'Vencido', v: D(c.vencido) }, { e: 'Mora', v: c.moraMax + ' d' }, { e: 'Último pago', v: c.ultimoPago ? fdm(c.ultimoPago) : 'nunca', s: c.diasSinPago != null ? 'hace ' + c.diasSinPago + ' días' : '' }], 4) + '</div>' +
-    bloqueSusp(c) + (c.cartaUltimo ? '<div class="small muted" style="margin:0 0 8px">' + MK.ic('documento', 14) + ' Carta de último aviso enviada el ' + fdm(c.cartaUltimo.fecha) + (c.cartaUltimo.limite ? ' · plazo hasta el ' + fdm(c.cartaUltimo.limite) : '') + '</div>' : '') +
+    bloqueAsignadas(c) + bloqueSusp(c) + (c.cartaUltimo ? '<div class="small muted" style="margin:0 0 8px">' + MK.ic('documento', 14) + ' Carta de último aviso enviada el ' + fdm(c.cartaUltimo.fecha) + (c.cartaUltimo.limite ? ' · plazo hasta el ' + fdm(c.cartaUltimo.limite) : '') + '</div>' : '') +
     (p && !(p.tipo === 'suspension' && c.suspension && c.suspension.abierta) ? '<div class="nota ' + (p.tono === 'bad' || p.tono === 'warn' ? 'am' : '') + '" style="margin-top:0"><b>Siguiente paso · ' + MK.esc(MK.cuando(p.fecha)) + '</b><br>' + MK.esc(p.texto) + '</div>' : '') +
     '<div class="acc2" style="margin-top:12px">' + (p ? btnCanal(p.canal, k) : '') +
       '<button class="btn sm escribe" onclick="mensaje(\'' + k + '\',\'whatsapp\')">' + MK.ic('whatsapp', 15) + 'WhatsApp</button>' +
@@ -261,14 +262,16 @@ function abrirCuenta(k) {
       (abiertas.length && !(pl && ['PROPUESTO', 'ACTIVO', 'ATRASADO'].indexOf(pl.estado) >= 0) ? '<button class="btn sm escribe" onclick="nuevoPlan(\'' + k + '\')">' + MK.ic('plan', 15) + 'Plan de pago</button>' : '') +
       '<button class="btn sm escribe" onclick="registrarPago(\'' + k + '\')">' + MK.ic('billete', 15) + 'Registrar pago</button>' +
       '<button class="btn sm escribe" onclick="contacto(\'' + k + '\')">' + MK.ic('lapiz', 15) + 'Contacto</button>' +
+      (c.sinFicha && !c.esPagador ? '<button class="btn sm escribe" onclick="elegirCliente(\'' + k + '\')">' + MK.ic('personas', 15) + 'Elegir el cliente</button>' : '') +
       (c.vencido > 0.009 && !(p && p.canal === 'carta') ? '<button class="btn sm escribe" onclick="carta(\'' + k + '\',\'ultimo\')">' + MK.ic('documento', 15) + 'Carta de último aviso</button>' : '') +
       (puedeSusp && !(p && p.canal === 'pedirSusp') ? '<button class="btn sm bad escribe" onclick="pedirSuspension(\'' + k + '\')">' + MK.ic('candado', 15) + 'Pedir suspensión</button>' : '') +
       (vencidas.length ? '<button class="btn sm escribe" onclick="incobrableCuenta(\'' + k + '\')">' + MK.ic('archivo', 15) + 'Pasar a incobrable</button>' : '') + '</div>' +
     '<div class="small muted" style="margin-top:10px">' + MK.ic('telefono', 14) + ' ' + MK.esc(c.telefono || 'sin teléfono') + ' · ' + MK.ic('correo', 14) + ' ' + MK.esc(c.correo || 'sin correo') + (c.contacto ? ' · ' + MK.esc(c.contacto) : '') + '</div>' +
     (pl ? '<h3 style="margin-top:18px">Plan de pago ' + MK.esc(pl.planId) + ' · ' + MK.esc(pl.estado.toLowerCase()) + '</h3>' + cuotasHtml(pl) : '') +
     '<h3 style="margin-top:18px">Facturas abiertas · ' + abiertas.length + '</h3>' +
-    MK.tabla(['Factura', 'Fecha', 'Vence', 'Días', '>Saldo'], abiertas.map(function (f) { return [MK.esc(f.factura), fdm(f.fecha), fdm(f.vencimiento), f.mora ? '<span class="chipx ' + (f.mora > 90 ? 'bad' : 'warn') + '">' + f.mora + '</span>' : '—', D(f.saldo)]; }), { vacio: 'No debe nada.' }) +
+    MK.tabla(['Factura', 'Fecha', 'Vence', 'Días', '>Saldo'], abiertas.map(function (f) { return [MK.esc(f.factura) + (ncDe(f).length ? '<small>con nota de crédito</small>' : ''), fdm(f.fecha), fdm(f.vencimiento), f.mora ? '<span class="chipx ' + (f.mora > 90 ? 'bad' : 'warn') + '">' + f.mora + '</span>' : '—', D(f.saldo)]; }), { vacio: 'No debe nada.' }) +
     '<h3 style="margin-top:18px">Todo lo que ha pasado</h3><div class="tl2">' + (ev.length ? ev.slice(0, 40).map(function (e) {
+      if (e.t === 'n') return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="p"></i><span><b>Nota de crédito ' + MK.esc(e.n.nota || '') + ' · −' + D(e.n.monto) + '</b> a la ' + MK.esc(e.fac.factura) + '<br><span class="muted small">la factura pasa de ' + D(e.fac.totalOriginal) + ' a ' + D(e.fac.total) + (e.n.lote ? ' · ' + MK.esc(e.n.lote) : '') + '</span></span></div>';
       if (e.t === 'p') return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="p"></i><span><b>Pago ' + D(e.p.monto) + '</b>' + (e.p.factura ? ' a la ' + MK.esc(e.p.factura) : ' sin factura') + (e.p.referencia ? ' · ' + MK.esc(e.p.referencia) : '') + (e.p.anulado ? ' <span class="chipx gris">anulado</span>' : '') + '</span></div>';
       var g = e.g, R = (B().resultados || {})[g.tipo];
       return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="' + (g.tipo === 'promete' ? 'w' : /niega|suspen|reclamo/.test(g.tipo) ? 'x' : '') + '"></i><span><b>' + MK.esc(R ? R.n : (g.resultado || g.canal || 'Gestión')) + '</b> · ' + MK.esc(g.canal) + (g.conQuien ? ' con ' + MK.esc(g.conQuien) : '') +
@@ -888,7 +891,7 @@ function vFacturas() {
   h += '<div style="margin-bottom:12px">' + MK.chips([['abiertas', 'Abiertas', g.abiertas.length], ['vencidas', 'Vencidas', g.vencidas.length], ['mes', 'Este mes', g.mes.length], ['pagadas', 'Pagadas', g.pagadas.length], ['incobrables', 'Incobrables', g.incobrables.length], ['todas', 'Todas', F.length]], FFAC, 'filtroFac') + '</div>';
   var LL = L.slice(0, 300); window._LLF = LL;
   h += MK.tabla(['Factura', 'Fecha', 'Cliente', 'Vence', 'Estado', '>Total', '>Cobrado', '>Saldo'], LL.map(function (f) {
-    return ['<b>' + MK.esc(f.factura) + '</b>' + (f.lote ? '<small>' + MK.esc(f.lote) + '</small>' : ''), fdm(f.fecha), MK.esc(f.cliente) + '<small>' + MK.esc(f.razon) + '</small>', fdm(f.vencimiento), '<span class="chipx ' + tono[f.estado] + '">' + f.estado.toLowerCase() + (f.mora ? ' · ' + f.mora + ' d' : '') + '</span>', D(f.total), D(f.cobrado), f.estado === 'INCOBRABLE' ? '<span class="muted">' + D(f.saldoReal) + '</span>' : D(f.saldo)];
+    return ['<b>' + MK.esc(f.factura) + '</b>' + (f.lote ? '<small>' + MK.esc(f.lote) + '</small>' : ''), fdm(f.fecha), MK.esc(f.cliente) + '<small>' + MK.esc(f.razon) + '</small>', fdm(f.vencimiento), '<span class="chipx ' + tono[f.estado] + '">' + f.estado.toLowerCase() + (f.mora ? ' · ' + f.mora + ' d' : '') + '</span>' + chipNC(f), D(f.total), D(f.cobrado), f.estado === 'INCOBRABLE' ? '<span class="muted">' + D(f.saldoReal) + '</span>' : D(f.saldo)];
   }), { clic: function (j) { return 'verFacturaBuscada(window._LLF[' + j + '])'; }, vacio: QFAC.trim() ? 'Ninguna factura con «' + MK.esc(QFAC.trim()) + '».' : 'Ninguna factura aquí.', pie: ['<b>' + L.length + '</b>', '', '', '', '', D(L.reduce(function (s, f) { return s + f.total; }, 0)), D(L.reduce(function (s, f) { return s + f.cobrado; }, 0)), D(L.reduce(function (s, f) { return s + f.saldo; }, 0))] });
   if (L.length > LL.length) h += '<div class="nota">Se ven las 300 más recientes; usa el buscador para las demás.</div>';
   if (QFAC.trim()) h = h.replace('<div style="margin-bottom:12px">', '<div class="nota" style="margin:0 0 10px">Buscando «' + MK.esc(QFAC.trim()) + '» en todas las facturas' + (enOtras ? ' · ' + enOtras + ' no son de «' + MK.esc(FFAC) + '»' : '') + '. Borra la búsqueda para volver a la pestaña.</div><div style="margin-bottom:12px">');
@@ -988,7 +991,7 @@ function cuentaDeLote(nombre, ruc) {
   var C = B().cuentas || [], r = kRuc(ruc), n = kNom(nombre);
   if (!r && !n) return null;
   var i, c;
-  for (i = 0; i < C.length; i++) { c = C[i]; if (r && (kRuc(c.ruc) === r || kRuc(c.rucFactura) === r)) return [c, 'RUC']; }
+  for (i = 0; i < C.length; i++) { c = C[i]; if (r && (kRuc(c.ruc) === r || kRuc(c.rucFactura) === r || (c.rucs || []).some(function (x) { return kRuc(x) === r; }))) return [c, 'RUC']; }
   for (i = 0; i < C.length; i++) { c = C[i]; if (n && kNom(c.razon) === n) return [c, 'razón social']; }
   for (i = 0; i < C.length; i++) { c = C[i]; if (n && ([c.cliente].concat(c.nombres || [], c.puntos || []).some(function (x) { return kNom(x) === n; }))) return [c, 'nombre comercial']; }
   for (i = 0; i < C.length; i++) { c = C[i]; if (n && n.length > 6 && kNom(c.cliente).indexOf(n) === 0) return [c, 'nombre comercial']; }
@@ -1331,6 +1334,7 @@ function anularLote(id) {
 function vConciliar() {
   var X = B().conciliar || [];
   var h = MK.cabeza('Conciliar pagos', 'Pagos que no amarran con una factura. Se busca la cuenta por RUC, razón social, nombre comercial o nombres aprendidos. El número de factura nunca se cambia solo: alguien confirma.');
+  h += sinClienteHtml();   // api 3.13.1
   if (!X.length) return h + '<div class="card">' + MK.vacio('Todo amarrado. No hay pagos por conciliar.') + '</div>';
   h += X.map(function (x, i) {
     var p = x.pago;
@@ -1384,7 +1388,7 @@ function vParaFacturar() {
   if (!PF_MES) PF_MES = MK.masMeses(MK.hoy.slice(0, 8) + '01', -1).slice(0, 7);
   var meses = [0, -1, -2].map(function (n) { return MK.masMeses(MK.hoy.slice(0, 8) + '01', n).slice(0, 7); }).reverse();
   var h = MK.cabeza('Para facturar', 'Lo que hay que facturar del mes, desde las recolecciones y el plan de cada cliente. Es el reporte que va a contabilidad.',
-    MK.chips(meses.map(function (m) { return [m, MK.mesNombre(m).replace(/^./, function (x) { return x.toUpperCase(); }) + (m === MK.hoy.slice(0, 7) ? ' (en curso)' : '')]; }), PF_MES, 'mesPF') + (PF && PF.mes === PF_MES && PF.r ? '<button class="btn" onclick="csvPF()">' + MK.ic('bajar', 16) + 'Descargar para contabilidad</button>' : ''));
+    MK.chips(meses.map(function (m) { return [m, MK.mesNombre(m).replace(/^./, function (x) { return x.toUpperCase(); }) + (m === MK.hoy.slice(0, 7) ? ' (en curso)' : '')]; }), PF_MES, 'mesPF') + (PF && PF.mes === PF_MES && PF.r ? '<button class="btn" onclick="imprimirPF()">' + MK.ic('imprimir', 16) + 'Imprimir</button><button class="btn" onclick="csvPF()">' + MK.ic('bajar', 16) + 'Descargar para contabilidad</button>' : ''));
   if (!PF || PF.mes !== PF_MES) {
     PF = { mes: PF_MES, r: null };
     var d1 = PF_MES + '-01', d2 = MK.masDias(MK.masMeses(d1, 1), -1);
@@ -1402,6 +1406,50 @@ function vParaFacturar() {
   return h;
 }
 function mesPF(m) { PF_MES = m; MK.repintar(); }
+/* El reporte «Para facturar» en una hoja para imprimir o guardar en PDF (mismos datos que la descarga) */
+function imprimirPF() {
+  var r = PF && PF.r; if (!r || !r.ok) return;
+  var E = B().empresa || {}, t = r.totales, U = MK.usuario || {};
+  var w = window.open('', '_blank'); if (!w) { MK.aviso('Permite las ventanas emergentes para ver el reporte.'); return; }
+  var es = MK.esc, d = function (v) { return 'B/. ' + MK.num(v, 2); };
+  var mes = MK.mesNombre(PF.mes).replace(/^./, function (x) { return x.toUpperCase(); });
+  var filas = r.lineas.map(function (l, i) {
+    return '<tr><td class="n">' + (i + 1) + '</td><td><b>' + es(l.titular) + '</b>' + (l.razon && l.razon !== l.titular ? '<br><small>' + es(l.razon) + '</small>' : '') +
+      (l.ruc ? '<br><small>RUC ' + es(l.ruc) + (l.dv ? ' DV ' + es(l.dv) : '') + '</small>' : '<br><small class="falta">sin RUC</small>') + '</td>' +
+      '<td><small>' + es(l.puntos.map(function (p) { return p.nombre; }).join(' · ')) + '</small></td>' +
+      '<td class="n">' + l.visitas + '</td><td class="n">' + MK.num(l.kg, 1) + '</td><td><small>' + es(l.detalleCobro) + '</small></td>' +
+      '<td class="n">' + d(l.subtotal) + '</td><td class="n">' + d(l.itbms) + '</td><td class="n"><b>' + d(l.total) + '</b></td>' +
+      '<td class="n">' + (l.retiene ? d(l.retiene) : '—') + '</td><td class="n">' + d(l.aCobrar) + '</td>' +
+      '<td><small>' + es((l.recibos || []).join(' ')) + '</small>' + (l.aviso ? '<br><span class="av">' + es(l.aviso) + '</span>' : '') + '</td></tr>';
+  }).join('');
+  var conAviso = r.lineas.filter(function (l) { return l.aviso; }).length;
+  w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Para facturar · ' + es(mes) + '</title><style>' +
+    '@page{size:letter landscape;margin:12mm}' +
+    'body{font:12px/1.4 Archivo,Arial,sans-serif;color:#141c2b;margin:20px auto;max-width:1060px;padding:0 16px}' +
+    '.enc{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #0f2a57;padding-bottom:10px;margin-bottom:12px}' +
+    'h1{font-size:19px;margin:0;color:#0f2a57}.enc small{color:#5b6a80}' +
+    '.res{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}.res div{border:1px solid #d8dee8;border-radius:8px;padding:7px 11px;min-width:130px}.res span{display:block;font-size:10.5px;color:#5b6a80;text-transform:uppercase;letter-spacing:.4px}.res b{font-size:15px}' +
+    'table{width:100%;border-collapse:collapse}th{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#5b6a80;text-align:left;border-bottom:1.5px solid #0f2a57;padding:6px 5px}' +
+    'td{border-bottom:1px solid #e3e8ef;padding:6px 5px;vertical-align:top}td small{color:#3d4a60}.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
+    'tr{page-break-inside:avoid}tfoot td{border-top:1.5px solid #0f2a57;border-bottom:0;font-weight:700}' +
+    '.av{display:inline-block;margin-top:3px;background:#fff3d6;color:#7a5200;border-radius:4px;padding:1px 6px;font-size:10.5px;font-weight:700}.falta{color:#b3261e}' +
+    '.firmas{display:flex;gap:30px;margin-top:46px}.firmas div{flex:1;border-top:1px solid #141c2b;padding-top:5px;font-size:11.5px}' +
+    '.pie{margin-top:14px;font-size:10.5px;color:#5b6a80}.bt{margin:18px 0}@media print{.bt{display:none}body{margin:0;max-width:none}}' +
+    '</style></head><body>' +
+    '<div class="enc"><div><h1>PARA FACTURAR · ' + es(mes.toUpperCase()) + '</h1><small>Lo que hay que facturar del mes, desde las recolecciones y el plan de cada cliente.</small></div>' +
+    '<div style="text-align:right"><b>' + es(E.razonSocial || 'ECOTERMO DE PANAMA S.A.') + '</b><br><small>' + es(E.comercial || 'ECOVSA') + (E.ruc ? ' · RUC ' + es(E.ruc) + (E.dv ? ' DV ' + es(E.dv) : '') : '') +
+    '<br>Preparado el ' + es(MK.fechaLarga(MK.hoy)) + (U.nombre ? ' · ' + es(U.nombre) : '') + '</small></div></div>' +
+    '<div class="res"><div><span>Titulares</span><b>' + t.titulares + '</b></div><div><span>Visitas</span><b>' + t.visitas + '</b></div><div><span>Kilos</span><b>' + MK.num(t.kg, 1) + '</b></div>' +
+    '<div><span>Subtotal</span><b>' + d(t.subtotal) + '</b></div><div><span>ITBMS</span><b>' + d(t.itbms) + '</b></div><div><span>Total a facturar</span><b>' + d(t.total) + '</b></div>' +
+    '<div><span>Se cobra</span><b>' + d(t.aCobrar) + '</b>' + (t.retenedores ? '<small> · ' + t.retenedores + ' retienen ' + d(t.retiene) + '</small>' : '') + '</div></div>' +
+    '<table><thead><tr><th class="n">#</th><th>Titular · razón social · RUC</th><th>Puntos</th><th class="n">Visitas</th><th class="n">Kg</th><th>Cobro</th><th class="n">Subtotal</th><th class="n">ITBMS</th><th class="n">Total</th><th class="n">Retiene</th><th class="n">A cobrar</th><th>Recibos · aviso</th></tr></thead>' +
+    '<tbody>' + filas + '</tbody><tfoot><tr><td></td><td>Total (' + t.titulares + ')</td><td></td><td class="n">' + t.visitas + '</td><td class="n">' + MK.num(t.kg, 1) + '</td><td></td><td class="n">' + d(t.subtotal) + '</td><td class="n">' + d(t.itbms) + '</td><td class="n">' + d(t.total) + '</td><td class="n">' + (t.retiene ? d(t.retiene) : '—') + '</td><td class="n">' + d(t.aCobrar) + '</td><td></td></tr></tfoot></table>' +
+    (conAviso ? '<div class="pie"><b>' + conAviso + (conAviso === 1 ? ' línea tiene' : ' líneas tienen') + ' aviso:</b> revisarlas antes de facturar.</div>' : '') +
+    '<div class="firmas"><div>Preparó · Cobros</div><div>Revisó</div><div>Recibió · Contabilidad (fecha)</div></div>' +
+    '<div class="pie">Mismo contenido que «Descargar para contabilidad». La factura la emite contabilidad en Sage.</div>' +
+    '<p class="bt"><button onclick="print()">Imprimir o guardar en PDF</button></p></body></html>');
+  w.document.close();
+}
 function csvPF() {
   var r = PF.r, q = function (v) { v = String(v == null ? '' : v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   var filas = [['Titular', 'Razón social', 'RUC', 'DV', 'Puntos', 'Visitas', 'Kg', 'Detalle', 'Subtotal', 'ITBMS', 'Total', 'Retiene', 'A cobrar', 'Recibos', 'Aviso']].concat(r.lineas.map(function (l) {
@@ -1502,13 +1550,86 @@ function verFacturaBuscada(f) {
   var tono = { PAGADA: 'ok', PARCIAL: 'warn', VENCIDA: 'bad', PENDIENTE: 'info', INCOBRABLE: 'gris' }[f.estado] || 'gris';
   MK.lado('<span class="et">Factura</span><h2>' + MK.esc(f.factura) + '</h2><div class="sub">' + MK.esc(f.cliente) + (f.razon ? ' · ' + MK.esc(f.razon) : '') + (f.ruc ? ' · RUC ' + MK.esc(f.ruc) : '') + '</div>' +
     '<div class="fila"><span class="chipx ' + tono + '">' + String(f.estado || '').toLowerCase() + (f.mora ? ' · ' + f.mora + ' días' : '') + '</span>' + (f.lote ? '<span class="chipx gris">' + MK.esc(f.lote) + '</span>' : '') + '</div>' +
-    '<div style="margin-top:12px">' + MK.kpis([{ e: 'Total', v: D(f.total), s: 'emitida ' + fdm(f.fecha) }, { e: 'Cobrado', v: D(f.cobrado), s: f.retenido > 0.009 ? 'retención ' + D(f.retenido) : '' },
+    '<div style="margin-top:12px">' + MK.kpis([{ e: 'Total', v: D(f.total), s: ncDe(f).length ? 'original ' + D(f.totalOriginal) : 'emitida ' + fdm(f.fecha) }, { e: 'Cobrado', v: D(f.cobrado), s: f.retenido > 0.009 ? 'retención ' + D(f.retenido) : '' },
       { e: 'Saldo', v: D(f.saldo), c: f.saldo > 0.009 ? 'bad' : '' }, { e: 'Vence', v: f.vencimiento ? fdm(f.vencimiento) : '—', s: f.concepto || '' }], 4) + '</div>' +
+    ncDetalle(f) +
     '<h3 style="margin:14px 0 6px;font-size:14px">Pagos de esta factura · ' + P.length + '</h3>' +
     (P.length ? MK.tabla(['Fecha', 'Método', 'Referencia', '>Monto'], P.map(function (p) { return [fdm(p.fecha), MK.esc(p.metodo || '—'), MK.esc(p.referencia || '') + (p.lote ? '<small>' + MK.esc(p.lote) + '</small>' : ''), D(p.monto)]; }))
               : '<div class="small muted">Sin pagos registrados.</div>') +
     '<div class="fila" style="justify-content:flex-end;margin-top:14px">' + (c ? '<button class="btn pri" onclick="abrirCuenta(\'' + f.clave + '\')">' + MK.ic('personas', 16) + 'Ver la cuenta de ' + MK.esc(c.cliente) + '</button>'
       : '<span class="small muted">Esta factura no amarra con ninguna cuenta: revísala en Conciliar pagos.</span>') + '</div>');
+}
+/* ═══════════ api 3.13.1 · NOTAS DE CRÉDITO (solo se muestran) ═══════════ */
+function ncDe(f) { return (f && f.notasCredito) || []; }
+function chipNC(f) { return ncDe(f).length ? ' <span class="chipx info">con nota de crédito</span>' : ''; }
+function ncDetalle(f) {
+  var N = ncDe(f); if (!N.length) return '';
+  var fila = function (a, b, x) { return '<div class="fila" style="justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line)' + (x || '') + '"><span>' + a + '</span><b class="num">' + b + '</b></div>'; };
+  return '<h3 style="margin:14px 0 6px;font-size:14px">Notas de crédito · ' + N.length + '</h3><div class="card" style="padding:6px 12px">' +
+    fila('Total original de la factura', D(f.totalOriginal)) +
+    N.map(function (n) { return fila('Nota de crédito <b>' + MK.esc(n.nota || '') + '</b> · ' + fdm(n.fecha) + (n.lote ? ' <small class="muted">' + MK.esc(n.lote) + '</small>' : ''), '−' + D(n.monto)); }).join('') +
+    fila('<b>Total que queda</b>', D(f.total), ';border-bottom:0') + '</div>';
+}
+
+/* ═══════════ api 3.13.1 · FACTURAS SIN CLIENTE REGISTRADO ═══════════
+   Sage a veces trae un RUC o un nombre que no está en ninguna ficha.
+   Cobros elige a qué cliente pertenecen; las siguientes entran solas. */
+function sinCliente() {
+  return (B().cuentas || []).filter(function (c) { return c.sinFicha && !c.esPagador && c.facturado > 0.009; })
+    .sort(function (a, b) { return b.saldo - a.saldo || b.facturado - a.facturado; });
+}
+function sinClienteHtml() {
+  var S = sinCliente(); if (!S.length) return '';
+  var nF = function (k) { return (B().facturas || []).filter(function (f) { return f.clave === k; }).length; };
+  return '<div class="card" style="margin-bottom:14px"><div class="fila" style="justify-content:space-between"><h3 style="margin:0">Facturas sin cliente registrado · ' + S.length + '</h3><span class="chipx warn">' + D(S.reduce(function (s, c) { return s + c.saldo; }, 0)) + ' por cobrar</span></div>' +
+    '<div class="small muted" style="margin:4px 0 10px">Sage las trajo con un RUC o un nombre que no coincide con ninguna ficha. Elige a qué cliente pertenecen: las siguientes con ese RUC o nombre entran solas.</div>' +
+    MK.tabla(['Como viene en Sage', 'RUC', '>Facturas', '>Saldo', ''], S.map(function (c) {
+      return [MK.esc(c.cliente) + (c.razon && c.razon !== c.cliente ? '<small>' + MK.esc(c.razon) + '</small>' : ''), MK.esc((c.rucs || []).join(' · ') || c.rucFactura || '—'), nF(c.clave), D(c.saldo),
+        '<button class="btn sm escribe" onclick="event.stopPropagation();elegirCliente(\'' + c.clave + '\')">' + MK.ic('personas', 15) + 'Elegir el cliente</button>'];
+    }), { clic: function (j) { return 'abrirCuenta(\'' + S[j].clave + '\')'; } }) + '</div>';
+}
+var EC = null;
+function palabras(t) { return String(t || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^A-Z0-9]+/).filter(function (w) { return w.length >= 3 && ['S.A', 'INC', 'CORP', 'DEL', 'LOS', 'LAS', 'PANAMA'].indexOf(w) < 0; }); }
+function elegirCliente(k) {
+  var c = cu(k); if (!c) return;
+  var FI = B().fichas || [];
+  var mias = palabras([c.cliente, c.razon].concat(c.nombres || []).join(' '));
+  var fq = {}; FI.forEach(function (x) { palabras(x.nombre + ' ' + x.razon).filter(function (w, i, l) { return l.indexOf(w) === i; }).forEach(function (w) { fq[w] = (fq[w] || 0) + 1; }); });
+  /* las palabras raras pesan más: «SAN RAFAEL» dice más que «CLÍNICA» */
+  var parecidos = FI.map(function (x) { var w = palabras(x.nombre + ' ' + x.razon).filter(function (y, i, l) { return l.indexOf(y) === i; }); return { x: x, p: w.filter(function (y) { return mias.indexOf(y) >= 0; }).reduce(function (s, y) { return s + 1 / fq[y]; }, 0) }; })
+    .filter(function (o) { return o.p > 0; }).sort(function (a, b) { return b.p - a.p; }).slice(0, 6).map(function (o) { return o.x; });
+  EC = { k: k, F: FI };
+  var it = function (x) { return '<div class="it" style="cursor:pointer" onclick="confirmarCliente(' + x.id + ')"><div class="tx"><b>' + MK.esc(x.nombre) + '</b><small>' + [x.razon, x.ruc ? 'RUC ' + x.ruc : 'sin RUC en la ficha'].filter(Boolean).map(function (t) { return MK.esc(t); }).join(' · ') + (x.estado && !/activo/i.test(x.estado) ? ' · ' + MK.esc(x.estado.toLowerCase()) : '') + '</small></div></div>'; };
+  var nf = (B().facturas || []).filter(function (f) { return f.clave === k; }).length;
+  MK.lado('<span class="et">Facturas sin cliente registrado</span><h2>¿De qué cliente son?</h2><div class="sub">' + nf + ' factura(s) de <b>' + MK.esc(c.cliente) + '</b>' + (c.razon && c.razon !== c.cliente ? ' · ' + MK.esc(c.razon) : '') + ((c.rucs || []).length ? ' · RUC ' + MK.esc(c.rucs.join(' · ')) : '') + ' · debe ' + D(c.saldo) + '</div>' +
+    '<div class="buscaCu"><input class="in" id="ec-q" placeholder="Busca el cliente: nombre, razón social o RUC" autocomplete="off" oninput="filtrarFicha()" autofocus><div class="res2" id="ec-r"></div></div>' +
+    (parecidos.length ? '<h3 style="margin:14px 0 6px;font-size:14px">Parecidos</h3><div class="lst">' + parecidos.map(it).join('') + '</div>' : '<div class="small muted" style="margin-top:10px">No encontré fichas parecidas: búscala por nombre o RUC.</div>') +
+    '<div class="nota" style="margin-top:14px">Se guarda el RUC y los nombres con que vienen estas facturas. Si te equivocas, se deshace desde la cuenta del cliente.</div>');
+}
+function filtrarFicha() {
+  var q = MK.val('ec-q').toUpperCase(), r = document.getElementById('ec-r');
+  if (q.length < 2) { r.innerHTML = ''; return; }
+  var qr = q.replace(/[^A-Z0-9]/g, '');
+  var l = EC.F.filter(function (x) { return (x.nombre + ' ' + x.razon).toUpperCase().indexOf(q) >= 0 || (qr.length >= 4 && String(x.ruc).toUpperCase().replace(/[^A-Z0-9]/g, '').indexOf(qr) >= 0); }).slice(0, 12);
+  r.innerHTML = l.map(function (x) { return '<a onclick="confirmarCliente(' + x.id + ')">' + MK.esc(x.nombre) + '<small>' + MK.esc(x.razon || '') + (x.ruc ? ' · RUC ' + MK.esc(x.ruc) : '') + '</small></a>'; }).join('') || '<a>Nada con eso</a>';
+}
+function confirmarCliente(id) {
+  var c = cu(EC.k), x = EC.F.filter(function (y) { return String(y.id) === String(id); })[0]; if (!c || !x) return;
+  MK.confirmar('Las facturas de «' + c.cliente + '»' + ((c.rucs || []).length ? ' (RUC ' + c.rucs.join(' · ') + ')' : '') + ' pasan a la cuenta de ' + x.nombre + '. Las siguientes que traigan ese RUC o nombre entran solas.', function () {
+    MK.llamar('api_cobAsignarCuenta', EC.k, x.id).then(function (r) { MK.cerrarLado(); MK.aviso((r && r.facturas) + ' factura(s) asignadas a ' + x.nombre); recargar(); });
+  }, { titulo: 'Asignar a ' + x.nombre, boton: 'Sí, asignar' });
+}
+function bloqueAsignadas(c) {
+  var A = c.asignadas || []; if (!A.length) return '';
+  return A.map(function (a) {
+    return '<div class="nota" style="margin:0 0 8px"><b>Facturas asignadas a mano</b> · ' + MK.esc([].concat(a.rucs.map(function (r) { return 'RUC ' + r; }), a.nombres).join(' · ')) +
+      '<br><span class="small muted">por ' + MK.esc(a.por || '—') + (a.en ? ' el ' + fdm(a.en) : '') + '</span> <button class="btn sm escribe" style="margin-left:6px" onclick="deshacerAsig(\'' + a.id + '\')">Deshacer</button></div>';
+  }).join('');
+}
+function deshacerAsig(id) {
+  MK.confirmar('Esas facturas vuelven a «Facturas sin cliente registrado» en Conciliar pagos. No se borra nada.', function () {
+    MK.llamar('api_cobDeshacerAsignacion', id).then(function () { MK.cerrarLado(); MK.aviso('Asignación deshecha'); recargar(); });
+  }, { titulo: 'Deshacer la asignación', boton: 'Sí, deshacer' });
 }
 function facOrden(f, q) { var n = sinCerosF(q), m = sinCerosF(f.factura); return m === n ? 0 : (m.indexOf(n) === 0 ? 1 : 2); }
 MK.iniciar({

@@ -343,6 +343,27 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     [].forEach.call(document.querySelectorAll('[data-ir]'), function (b) { b.onclick = function () { irA(b.getAttribute('data-ir')); }; });
   }
 
+
+  /* api 3.16 · la encuesta de satisfacción del cliente */
+  function encFicha() {
+    var el = document.getElementById('enc-ficha'); if (!el) return;
+    MK.api('api_encCliente', MK.pin, R.cliente.id).then(function (r) {
+      el = document.getElementById('enc-ficha'); if (!el || !r || !r.ok) return;
+      var u = r.ultima, t = r.toca, env = r.enviada;
+      if (!u && !t && !env && !r.proxima) { el.innerHTML = ''; return; }
+      var fc = function (f) { return MK.fechaCorta(String(f || '').slice(0, 10)); };
+      var prox = env ? ['Enviada el ' + fc(env.enviada), env.progreso ? 'va en la pregunta ' + env.progreso + ' de ' + env.total : env.abierta ? 'la abrió, sin responder' : 'no la ha abierto', false]
+        : t ? [(t.atrasada ? 'Le tocaba el ' : 'Le toca el ') + fc(t.toca), 'sale en «Encuestas por enviar»', t.atrasada]
+        : r.proxima ? ['Le toca el ' + fc(r.proxima), 'se avisa unos días antes', false] : ['—', '', false];
+      el.innerHTML = card('Encuesta de satisfacción' + (r.puedeEnviar && !env ? '<span class="sp"></span><button class="btn sm" id="enc-env">' + IC('whatsapp', 14) + 'Enviar ahora</button>' : ''), 'estrella',
+        '<div class="kv"><span>Última respuesta</span><b>' + (u ? (u.promedio !== null ? String(u.promedio).replace('.', ',') + ' / 5' : 'respondió') + ' <span class="small muted">· ' + E(fc(u.respondida)) + (u.nps !== null ? ' · recomendaría ' + u.nps + ' de 10' : '') + '</span>' : 'Todavía no ha respondido ninguna') + '</b>' +
+        '<span>Próxima</span><b' + (prox[2] ? ' style="color:var(--bad)"' : '') + '>' + E(prox[0]) + (prox[1] ? ' <span class="small muted">· ' + E(prox[1]) + '</span>' : '') + '</b>' +
+        (u && u.comentario ? '<span>Lo que dijo</span><b>«' + E(u.comentario) + '»</b>' : '') +
+        (u && u.atencion && !u.atendidaPor ? '<span>Atención</span><b style="color:var(--bad)">' + E(u.motivoAtencion) + ' · <a href="MerEncuestas.html#ate">atender</a></b>' : '') + '</div>' +
+        (u ? '<a href="MerEncuestas.html#res" class="small">Ver las respuestas →</a>' : ''));
+      var b = document.getElementById('enc-env'); if (b) b.onclick = function () { MK.encEnviar(R.cliente.id, { alEnviar: encFicha }); };
+    }, function () {});
+  }
   function pintarPanel() {
     var p = document.getElementById('panel'); if (!p) return;
     if (TAB === 'propuestas') { pPropuestas(p); return; }
@@ -350,6 +371,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     p.innerHTML = f();
     enlazarPanel(p);
     if (TAB === 'servicio') { p.insertAdjacentHTML('afterbegin', '<div id="rep-box"></div>'); pReponer(); }
+    if (TAB === 'resumen') encFicha();   // api 3.16
   }
 
   /* ═══ api 3.11: propuestas del cliente (nueva, misma sede o varias sedes) ═══
@@ -510,7 +532,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var n = R.tareas.filter(function (t) { return t.estado === 'pendiente'; }).length;
     return '<div class="a-g"><div class="col">' + card('Salud del cliente', 'estrella', pilares()) + card('Kilos recolectados por mes', 'grafico', grafico()) +
       card('Actividad reciente', 'reloj', linea(5) + '<a href="#" data-ir="actividad" class="small">Ver toda la actividad →</a>') + '</div>' +
-      '<div class="col">' + card('Tareas' + (n ? ' · ' + n + ' pendiente' + (n > 1 ? 's' : '') : ''), 'tarea', tareas()) + card('Identificación', 'edificio', ident()) + sucCompacto() + '</div></div>';
+      '<div class="col">' + card('Tareas' + (n ? ' · ' + n + ' pendiente' + (n > 1 ? 's' : '') : ''), 'tarea', tareas()) + card('Identificación', 'edificio', ident()) + '<div id="enc-ficha"></div>' + sucCompacto() + '</div></div>';
   }
   function pServicio() {
     var c = R.cliente, d = R.datos, V = R.servicio.visitas || [];

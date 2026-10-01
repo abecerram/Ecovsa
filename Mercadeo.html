@@ -211,7 +211,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       '<div class="card"><h3>Próximos días <span class="sp"></span><a href="MerAgenda.html">Ver agenda completa</a></h3><div id="i-sem"><div class="cargando">Cargando…</div></div></div>' +
       '</div>' +
       '<div class="a-col">' +
-      '<div id="i-susp"></div><div id="i-docs"></div>' +
+      '<div id="i-susp"></div><div id="i-docs"></div><div id="i-enc"></div>' +
       '<div class="card"><h3>Lo que te espera <span class="sp"></span><span class="l muted" id="i-alcount"></span></h3><div id="i-alertas"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Embudo <span class="sp"></span><a href="MerOportunidades.html">Abrir oportunidades</a></h3><div id="i-emb"><div class="cargando">Cargando…</div></div></div>' +
       '<div class="card"><h3>Mis solicitudes de compra <span class="sp"></span><a href="MerCompras.html">Ver todas</a></h3><div id="i-compras"><div class="cargando">Cargando…</div></div></div>' +
@@ -273,6 +273,27 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
         }).join('') + '<div class="small muted" style="margin-top:6px">Suspender, dar plazo o seguir cobrando: se decide en la ficha del cliente, con lo que Cobros ya hizo.</div></div>';
     }, function () {});
   }
+
+  /* api 3.16 · encuestas: respuestas que piden atención y las que ya toca enviar */
+  function cargarEnc() {
+    var el = $('i-enc'); if (!el) return;
+    MK.api('api_encBandeja', MK.pin).then(function (r) {
+      if (!r || !r.ok) return;
+      var P = r.porEnviar.filter(function (x) { return x.atrasada || x.toca === r.hoy; }), A = r.atencion, h = '';
+      if (A.length) h += '<div class="card" style="border-left:4px solid var(--bad)"><h3>' + MK.ic('alerta', 16) + ' Encuestas que piden atención <span class="sp"></span><span class="l muted">' + A.length + '</span></h3>' +
+        A.slice(0, 4).map(function (x) {
+          return '<div style="padding:9px 0;border-top:1px solid var(--line2)" class="row"><div style="flex:1;min-width:0"><b>' + esc(x.cliente) + '</b><div class="small muted">' + esc(x.motivoAtencion) + '</div>' +
+            (x.comentario ? '<div class="small" style="margin-top:3px">«' + esc(x.comentario) + '»</div>' : '') + '</div><a class="btn sm" href="MerEncuestas.html#ate">Atender</a></div>';
+        }).join('') + '</div>';
+      if (P.length) h += '<div class="card" style="border-left:4px solid var(--amber)"><h3>' + MK.ic('estrella', 16) + ' Encuestas por enviar <span class="sp"></span><span class="l muted">' + P.length + '</span></h3>' +
+        P.slice(0, 3).map(function (x) {
+          return '<div style="padding:9px 0;border-top:1px solid var(--line2)" class="row"><div style="flex:1;min-width:0"><b>' + esc(x.cliente) + '</b><div class="small muted">' + (x.motivo === 'primera' ? 'Primera encuesta' : 'Encuesta periódica') + (x.nunca ? ' · nunca la ha recibido' : x.atrasada ? ' · le tocaba el ' + esc(MK.fechaCorta(x.toca)) : ' · le toca hoy') + '</div></div>' +
+            (r.puedeEnviar ? '<button class="btn sm" data-enc="' + esc(x.clienteId) + '">' + MK.ic(x.telefono ? 'whatsapp' : 'correo', 14) + ' Enviar</button>' : '') + '</div>';
+        }).join('') + '<div class="small" style="margin-top:6px"><a href="MerEncuestas.html">Ver todas las encuestas</a> · se envían en dos toques, como cualquier mensaje.</div></div>';
+      el.innerHTML = h;
+      [].forEach.call(el.querySelectorAll('[data-enc]'), function (b) { b.onclick = function () { MK.encEnviar(b.getAttribute('data-enc'), { alEnviar: cargarEnc }); }; });
+    }, function () {});
+  }
   /* api 3.5.1 · Documentos que subieron los clientes y el espacio de archivos */
   function cargarDocs() {
     var el = $('i-docs'); if (!el) return;
@@ -303,7 +324,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     }, function () {});
   }
   function pintar() {
-    cargarSusp(); cargarDocs();
+    cargarSusp(); cargarDocs(); cargarEnc();
     pintarKpis(); pintarAgenda(); pintarSemana(); pintarAlertas(); pintarEmbudo(); pintarCompras(); pintarFeed();
   }
 

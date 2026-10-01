@@ -170,6 +170,15 @@ function vResumen() {
       spark((f.serie || []).map(function (x) { return x.utilidad; }), 'var(--z-fin)') +
       '<div class="du">' + (s.porPagar ? s.porPagar + ' solicitud(es) por pagar · ' + D(s.montoPorPagar) + (s.viejas ? ' · ' + s.viejas + ' con más de 7 días' : '') : 'Ninguna solicitud por pagar.') + '</div></article>';
   }
+
+  /* api 3.16: satisfacción de clientes (encuesta F-VEN-07) */
+  var SF = b.satisfaccion;
+  if (SF && (SF.respondidas || SF.enviadas || SF.atencion)) {
+    h += '<article style="--c:#6C3A96" onclick="location.href=\'MerEncuestas.html#res\'"><div class="zn">' + MK.ic('grafico', 15) + 'Satisfacción' + (SF.atencion ? '<span class="n">' + SF.atencion + '</span>' : '') + '</div>' +
+      '<div class="v num">' + (SF.promedio !== null ? String(SF.promedio).replace('.', ',') + ' / 5' : '—') + '</div><div class="s">' + SF.respondidas + ' respuesta' + (SF.respondidas === 1 ? '' : 's') + ' de ' + SF.enviadas + ' enviada' + (SF.enviadas === 1 ? '' : 's') + (SF.nps !== null ? ' · recomendarían ' + (SF.nps > 0 ? '+' : '') + SF.nps : '') + '</div>' +
+      (SF.dif !== null ? '<span class="cmp ' + (SF.dif > 0 ? 'bien' : SF.dif < 0 ? 'mal' : 'igual') + '">' + (SF.dif > 0 ? '▲ ' : SF.dif < 0 ? '▼ ' : '= ') + String(Math.abs(SF.dif)).replace('.', ',') + ' vs. periodo anterior</span>' : '') +
+      '<div class="du">' + (SF.atencion ? SF.atencion + ' respuesta' + (SF.atencion === 1 ? ' pide' : 's piden') + ' atención' : 'Ninguna respuesta pide atención.') + ' · el detalle está en Calidad</div></article>';
+  }
   h += '</div>';
 
   /* Te esperan: lo del vigía de cada zona + las solicitudes */
