@@ -44,7 +44,7 @@
        Apps Script lo que no conocía (y fallaba en silencio). Solo optimizar
        ruta sigue en Apps Script, hasta el paquete del mapa. */
     enSupabase: /^api_(?!optimizarRuta$)/,
-    version: 'puente 3.8',
+    version: 'puente 3.14',
     /* El recuadro de estado abajo a la derecha:
        'discreto' → solo aparece si algo anda mal (error, reintento o guardados en cola)
        'oculto'   → nunca aparece; la pantalla pinta su propio semáforo con el evento 'puente:estado'
@@ -231,7 +231,7 @@
       var d;
       try { d = JSON.parse(txt); }
       catch (e) { var e2 = new Error('La respuesta del servidor llegó incompleta.'); e2.reintentable = true; throw e2; }
-      if (!d.ok) { var e3 = new Error(d.error || 'Error del servidor'); e3.ms = d.ms; throw e3; }
+      if (!d.ok) { var e3 = new Error(d.error || 'Error del servidor'); e3.ms = d.ms; if (d.mantenimiento) e3.mantenimiento = d.mantenimiento; throw e3; }
       return d;
     });
   }
@@ -317,6 +317,16 @@
       else if (entregado !== j && !CONFIG.unaVez.test(fn)) entregar(ok, r, uo, fn);
     }, function (err) {
       reloj.fin(false, err.message, copia ? copia.t : null);
+      /* api 3.14: módulo en mantenimiento → se tapa la pantalla; un guardado queda en espera */
+      if (err.mantenimiento) {
+        if (esEsc && !CONFIG.sinCola.test(fn)) {
+          encolar(fn, args, id);
+          mant.tapa(err.mantenimiento);
+          entregarError(fail, new Error('El módulo está en mantenimiento: lo que guardaste quedó en espera y se enviará solo cuando vuelva.'), uo, fn);
+          return;
+        }
+        mant.tapa(err.mantenimiento);
+      }
       if (esEsc && err.reintentable && !CONFIG.sinCola.test(fn)) {
         encolar(fn, args, id);
         entregarError(fail, new Error('Sin conexión: el guardado quedó en cola y se enviará solo al volver la señal. No lo vuelvas a enviar.'), uo, fn);
@@ -346,7 +356,7 @@
       procesando = false; reloj.pintar(); procesarCola();
     }, function (err) {
       procesando = false;
-      if (err.reintentable) { reloj.pintar(); return; }   // sigue sin respuesta: se intenta luego
+      if (err.reintentable || err.mantenimiento) { reloj.pintar(); return; }   // sin respuesta o módulo apagado: se intenta luego
       var c2 = lsJSON('pnt:cola', []); var malo = c2.shift(); lsSet('pnt:cola', JSON.stringify(c2));
       var f = lsJSON('pnt:fallidos', []); malo.error = err.message; f.push(malo);
       lsSet('pnt:fallidos', JSON.stringify(f.slice(-50)));
@@ -485,6 +495,104 @@
     document.body.appendChild(p);
   }
 
+  /* ─────────────── api 3.14 · módulo en mantenimiento ───────────────
+     Cada pantalla de un módulo pregunta cada 45 s si su módulo sigue
+     encendido. Si el administrador lo apagó y esta persona no está en la
+     lista, se tapa la pantalla con el aviso. Al administrador y a los
+     probadores les sale una pastilla abajo a la izquierda. Si el
+     servidor rechaza un guardado por mantenimiento, el guardado queda en
+     la cola y se envía solo cuando el módulo vuelve. */
+  var mant = (function () {
+    /* Ojo: «Index.html» (Logística) e «index.html» (el lobby) son archivos distintos: se comparan tal cual */
+    var PAG_MOD = { 'Index.html': 'campo', 'Mercadeo.html': 'alta', 'Alta.html': 'alta', 'Planta.html': 'planta', 'Cobros.html': 'cobros',
+                    'Inicio.html': 'inicio', 'Panel.html': 'inicio', 'RZona.html': 'inicio', 'RPlanta.html': 'inicio', 'RCartera.html': 'inicio',
+                    'Administracion.html': 'admin', 'SolicitudPago.html': 'solicitud', 'Calidad.html': 'calidad' };
+    function modulo() {
+      if (CONFIG.modulo !== undefined) return CONFIG.modulo || '';
+      var f = decodeURIComponent(location.pathname.split('/').pop() || '');
+      if (PAG_MOD.hasOwnProperty(f)) return PAG_MOD[f];
+      if (/^Mer[A-Z][A-Za-z]+\.html$/.test(f)) return 'alta';
+      return '';
+    }
+    function pin() { var v = lsGet('ecovsa_pin'); if (!v) return ''; try { return JSON.parse(v); } catch (e) { return v; } }
+    function e(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    var LLAVE = '<svg viewBox="0 0 24 24" style="width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14.7 6.3a4 4 0 0 0 5 5L21 13l-8 8-3.5-3.5 8-8"/><path d="M14.7 6.3 13 4.6a4 4 0 0 0-5.4 5.4L3 14.6 6.4 18l4.6-4.6"/></svg>';
+    var FUENTE = "font-family:Archivo,system-ui,-apple-system,'Segoe UI',sans-serif;";
+    var tapaEl = null, pastEl = null, abiertaYa = false;
+
+    function tapa(info) {
+      if (!document.body) return;
+      if (!tapaEl) {
+        tapaEl = document.createElement('div');
+        tapaEl.id = 'pnt-mant';
+        tapaEl.setAttribute('role', 'alertdialog'); tapaEl.setAttribute('aria-modal', 'true');
+        tapaEl.style.cssText = 'position:fixed;inset:0;z-index:2147483500;display:flex;align-items:center;justify-content:center;padding:20px;' +
+          'background:rgba(11,31,64,.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);' + FUENTE;
+        document.body.appendChild(tapaEl);
+        try { document.body.style.overflow = 'hidden'; } catch (x) {}
+      }
+      abiertaYa = false;
+      var titulo = info.titulo || 'Este módulo';
+      var msj = String(info.mensaje || '');
+      var pre = (titulo + ' está en mantenimiento').toLowerCase();
+      if (msj.toLowerCase().indexOf(pre) === 0) msj = msj.slice(pre.length).replace(/^[\s.:,;-]+/, '');   // no repetir el título
+      var cola = lsJSON('pnt:cola', []).length;
+      tapaEl.innerHTML = '<div style="background:#fff;color:#0f2140;border-radius:16px;max-width:420px;width:100%;padding:28px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)">' +
+        '<div style="width:62px;height:62px;border-radius:50%;background:#fff6dc;color:#8a6300;display:grid;place-items:center;margin:0 auto 14px">' + LLAVE + '</div>' +
+        '<div style="font-size:19px;font-weight:800;line-height:1.25">' + e(titulo) + ' está en mantenimiento</div>' +
+        (msj ? '<div style="font-size:14px;color:#3d4a60;margin-top:8px;line-height:1.45">' + e(msj) + '</div>' : '') +
+        (info.regreso ? '<div style="font-size:14px;font-weight:700;color:#14306b;margin-top:10px">Vuelve: ' + e(info.regreso) + '</div>' : '') +
+        (cola ? '<div style="font-size:12.5px;color:#667489;margin-top:10px">Lo que estabas guardando quedó en espera y se enviará solo cuando vuelva.</div>' : '') +
+        '<button type="button" data-a="lobby" style="margin-top:18px;border:0;border-radius:10px;background:#14306b;color:#fff;font:700 14px Archivo,system-ui,sans-serif;padding:11px 18px;cursor:pointer">Volver a los módulos</button>' +
+        '</div>';
+      tapaEl.onclick = function (ev) { var a = ev.target.getAttribute && ev.target.getAttribute('data-a'); if (a === 'lobby') location.href = 'index.html'; if (a === 'cargar') location.reload(); };
+      quitarPastilla();
+    }
+    function abierta(titulo) {
+      if (!tapaEl || abiertaYa) return;
+      abiertaYa = true;
+      tapaEl.innerHTML = '<div style="background:#fff;color:#0f2140;border-radius:16px;max-width:420px;width:100%;padding:28px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)">' +
+        '<div style="font-size:19px;font-weight:800">' + e(titulo || 'El módulo') + ' ya está disponible</div>' +
+        '<div style="font-size:14px;color:#3d4a60;margin-top:8px">Vuelve a cargar la pantalla para seguir.</div>' +
+        '<button type="button" data-a="cargar" style="margin-top:18px;border:0;border-radius:10px;background:#2f9e44;color:#fff;font:700 14px Archivo,system-ui,sans-serif;padding:11px 18px;cursor:pointer">Volver a cargar</button></div>';
+    }
+    function pastilla(r) {
+      if (!document.body) return;
+      if (!pastEl) {
+        pastEl = document.createElement('div');
+        pastEl.id = 'pnt-mant-pastilla';
+        pastEl.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147482990;max-width:calc(100% - 24px);display:flex;gap:8px;align-items:center;' +
+          'background:#fff6dc;border:1px solid #f1dd9c;color:#6b4d00;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.12);' + FUENTE;
+        document.body.appendChild(pastEl);
+      }
+      var quien = (r.entran || []).join(', ');
+      pastEl.innerHTML = '<span aria-hidden="true">🔧</span><span><b>En mantenimiento.</b> Solo lo ven: ' + e(quien || 'el administrador') + '.</span>';
+      pastEl.title = 'Se enciende en Configuración › Encender y apagar';
+    }
+    function quitarPastilla() { if (pastEl) { pastEl.remove(); pastEl = null; } }
+
+    var mod = '', titulo = '', reloj_ = null, enCurso = false;
+    function revisar() {
+      if (!mod || enCurso || document.visibilityState === 'hidden') return;
+      var p = pin(); if (!p) return;
+      enCurso = true;
+      llamarServidor('api_mantEstado', [p, mod]).then(function (r) {
+        enCurso = false; if (!r || r.ok === false) return;
+        if (r.titulo) titulo = r.titulo;
+        if (r.abierto) { quitarPastilla(); abierta(titulo); return; }
+        if (r.entra) { pastilla(r); return; }
+        tapa(r);
+      }, function () { enCurso = false; });
+    }
+    function iniciar() {
+      mod = modulo(); if (!mod || window.top !== window) return;
+      setTimeout(revisar, 1500);
+      reloj_ = setInterval(revisar, 45000);
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') revisar(); });
+    }
+    return { tapa: tapa, revisar: revisar, iniciar: iniciar, modulo: modulo };
+  })();
+
   /* ─────────────── imitación de google.script.* ─────────────── */
   function corredor(ok, fail, uo) {
     var base = {
@@ -528,6 +636,7 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reloj.crear);
     else reloj.crear();
     window.addEventListener('online', procesarCola);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mant.iniciar); else mant.iniciar();   // api 3.14
     setInterval(procesarCola, 30000);
     setTimeout(procesarCola, 2000);
   }
@@ -541,7 +650,8 @@
     mediciones: resumenMediciones,
     limpiarCopias: function () { limpiarCopias(false); },
     procesarCola: procesarCola,
-    panel: abrirPanel
+    panel: abrirPanel,
+    mantenimiento: mant   // api 3.14
   };
   /* api 2.9 · El vigía de inactividad. Si en este navegador hay alguien con
      PIN guardado, se carga entrada.js: tras 15 minutos sin uso pregunta

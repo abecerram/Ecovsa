@@ -94,6 +94,29 @@ table.perm{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
   .reg .rr{grid-template-columns:minmax(0,1fr)}
   .candado{display:none}
 }
+/* ── api 3.14 · Encender y apagar módulos ── */
+.mods .m{display:grid;grid-template-columns:42px minmax(0,1.3fr) minmax(0,1.6fr) auto;gap:14px;align-items:center;padding:13px 4px;border-top:1px solid var(--line2)}.mods .m:first-child{border-top:0}
+.mods .ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--line2);color:var(--navy2)}
+.mods .m.obra .ico{background:rgba(245,179,1,.18);color:#8a6300}
+.mods .nm>b{display:block;font-size:14px}.mods .nm small{font-size:12px;color:var(--muted)}.mods .nm .dn{color:var(--ink)}
+.mods .quien{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.est2{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}.est2 button{border:0;background:#fff;font:700 12px Archivo,sans-serif;padding:7px 11px;cursor:pointer;color:var(--muted)}
+.est2 button.on{cursor:default}.est2 button.on.a{background:var(--ok-bg);color:#276b33}.est2 button.on.c{background:rgba(245,179,1,.22);color:#6b4d00}
+.persona{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px 3px 3px;font-size:12px;font-weight:600;color:var(--ink)}
+.persona i{width:22px;height:22px;border-radius:50%;background:var(--navy2);color:#fff;font-style:normal;font-size:10px;font-weight:800;display:grid;place-items:center}.persona.fijo i{background:#0b1f40}
+.prev3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:12px}
+.lob{background:linear-gradient(160deg,#0f2a57,#0b1f40);border-radius:14px;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lob .t{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px;color:#fff;font-size:12.5px;font-weight:700;display:flex;flex-direction:column;gap:6px;min-height:84px}
+.lob .t svg{width:22px;height:22px;stroke:#8fd46a}.lob .t.no{opacity:.55}.lob .t.no svg{stroke:#c9d6ea}
+.lob .t .s{font-size:10.5px;font-weight:800;background:rgba(245,179,1,.2);color:#FFD98A;border-radius:6px;padding:2px 6px;align-self:flex-start}
+.lob .avl{grid-column:1/-1;background:rgba(255,255,255,.1);color:#fff;border-radius:9px;padding:8px 11px;font-size:12px}
+.dentro{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg);position:relative}
+.dentro .bar{background:#0f2a57;color:#fff;padding:10px 14px;font-weight:800;font-size:13px;display:flex;gap:8px;align-items:center}
+.dentro .cu{padding:14px 14px 60px;display:grid;gap:8px}.dentro .cu i{display:block;height:12px;border-radius:6px;background:var(--line2)}
+.dentro .pst{position:absolute;left:10px;bottom:10px;right:10px;background:#fff6dc;border:1px solid #f1dd9c;color:#6b4d00;border-radius:999px;padding:6px 11px;font-size:12px}
+.tapa{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:20px;background:#fff}
+.tapa .ic2{width:56px;height:56px;border-radius:50%;background:#fff6dc;color:#8a6300;display:grid;place-items:center}.tapa b{font-size:15px}.tapa span{font-size:12.5px;color:var(--muted)}
+@media(max-width:900px){.mods .m{grid-template-columns:40px minmax(0,1fr)}.mods .quien,.mods .est2{grid-column:2}.prev3{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -737,11 +760,119 @@ function guardarEmpresa(btn) {
   }, function (e) { MK.ocupado(btn, false); m.textContent = e.message || 'Sin conexión'; });
 }
 
+
+/* ═══ ENCENDER Y APAGAR MÓDULOS (api 3.14) ═══
+   Apagar un módulo lo cierra para todos menos para el administrador y los
+   probadores. El servidor es el que cierra la puerta; aquí solo se decide. */
+var OBRA = null, OBRA_V = false, OBRA_T = null, OBRA_SEL = [];
+function cargarObra(silencio) {
+  if (OBRA_V) return; OBRA_V = true;
+  MK.api('api_cfgModulos', PIN).then(function (r) {
+    OBRA_V = false; OBRA = r || { ok: false };
+    if (MK.seccion === 'obra' && !obraHojaAbierta()) MK.repintar();
+    MK.contador('obra', OBRA.ok ? OBRA.modulos.filter(function (m) { return m.apagado; }).length : 0, 'am');
+  }, function () { OBRA_V = false; if (!silencio) { OBRA = { ok: false, error: 'Sin conexión' }; MK.repintar(); } });
+}
+function obraReloj() {
+  clearInterval(OBRA_T);
+  OBRA_T = setInterval(function () { if (MK.seccion === 'obra' && document.visibilityState !== 'hidden' && !obraHojaAbierta()) cargarObra(true); }, 30000);
+}
+function obraHojaAbierta() { var hj = document.getElementById('hoja'); return !!(hj && hj.classList.contains('si')); }
+function obraMod(id) { return ((OBRA && OBRA.modulos) || []).filter(function (m) { return m.id === id; })[0]; }
+function obraPersona(n, fijo, extra) {
+  return '<span class="persona' + (fijo ? ' fijo' : '') + '"><i>' + MK.esc(MK.ini(n)) + '</i>' + MK.esc(n) + (extra ? ' · ' + extra : '') + '</span>';
+}
+function vObra() {
+  var cab = MK.cabeza('Encender y apagar módulos', 'Apaga un módulo mientras trabajas en él: se cierra para todos, sale el aviso de mantenimiento y tus cambios no afectan a nadie. Lo enciendes y vuelve todo igual.');
+  if (!OBRA) { cargarObra(); obraReloj(); return cab + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
+  if (!OBRA.ok) return cab + '<div class="aviso am">' + MK.esc(OBRA.error || 'No se pudo consultar.') + ' <a href="#" onclick="OBRA=null;MK.repintar();return false">Reintentar</a></div>';
+  obraReloj();
+  var L = OBRA.modulos, off = L.filter(function (m) { return m.apagado; });
+  var h = cab + (off.length ? '<div class="aviso am" style="margin-bottom:14px">' + MK.ic('llaveInglesa', 16) + ' <b>En mantenimiento: ' + MK.esc(off.map(function (m) { return m.titulo; }).join(', ')) + '.</b> Solo entran tú y los probadores.</div>' : '');
+  h += '<div class="card"><div class="mods">' + L.map(function (m) {
+    var ap = m.apagado, dentro = (m.dentro || []).filter(function (d) { return !d.sigue; }).length;
+    return '<div class="m' + (ap ? ' obra' : '') + '"><div class="ico">' + MK.ic(OBRA_IC[m.id] || 'documento', 20) + '</div>' +
+      '<div class="nm"><b>' + MK.esc(m.titulo) + '</b><small>' + (ap ? 'En mantenimiento desde ' + MK.esc(fechaHora(m.desde)) + (m.regreso ? ' · vuelve: ' + MK.esc(m.regreso) : '')
+        : MK.esc(m.detalle) + (m.zona === 'aparte' ? ' · se entra desde otro módulo' : '')) +
+        (dentro ? ' · <b class="dn">' + dentro + ' dentro ahora</b>' : '') + '</small></div>' +
+      '<div class="quien">' + (ap ? '<span style="font-weight:700;color:var(--ink)">Entran:</span>' + obraPersona(MK.usuario.nombre, true) +
+          (m.entran || []).map(function (n) { return obraPersona(n, false, 'probador'); }).join('') +
+          '<button class="btn sm gh" onclick="obraApagar(\'' + m.id + '\')">' + MK.ic('mas', 13) + ' Probador</button>'
+        : 'Todos según «Módulos por rol»') + '</div>' +
+      '<div class="est2"><button class="a' + (!ap ? ' on' : '') + '" onclick="' + (ap ? 'obraEncender(\'' + m.id + '\')' : '') + '">Encendido</button>' +
+      '<button class="c' + (ap ? ' on' : '') + '" onclick="' + (ap ? '' : 'obraApagar(\'' + m.id + '\')') + '">En mantenimiento</button></div></div>';
+  }).join('') + '</div></div>';
+  if (OBRA.presencia === false) h += '<div class="nota" style="margin-top:10px">No se pudo consultar quién está dentro ahora. Apagar y encender funciona igual.</div>';
+  var ej = off[0] || L.filter(function (m) { return m.id === 'alta'; })[0] || L[0];
+  h += '<div class="prev3" style="margin-top:14px">' +
+    '<div class="card"><h3>1 · En el lobby</h3><div class="lob">' + L.filter(function (m) { return m.zona !== 'aparte'; }).map(function (m) {
+      return '<div class="t' + (m.apagado ? ' no' : '') + '">' + MK.ic(OBRA_IC[m.id] || 'documento', 22) + MK.esc(m.titulo) + (m.apagado ? '<span class="s">🔧 En mantenimiento</span>' : '') + '</div>'; }).join('') +
+      '<div class="avl">Al tocarlo: «' + MK.esc((ej.mensaje || ej.titulo + ' está en mantenimiento.') + (ej.regreso ? ' Vuelve: ' + String(ej.regreso).replace(/\.$/, '') + '.' : '')) + '»</div></div></div>' +
+    '<div class="card"><h3>2 · Al que estaba dentro</h3><div class="dentro"><div class="bar">' + MK.ic(OBRA_IC[ej.id] || 'documento', 16) + ' ' + MK.esc(ej.titulo) + '</div>' +
+      '<div class="tapa"><div class="ic2">' + MK.ic('llaveInglesa', 30) + '</div><b>' + MK.esc(ej.titulo) + ' está en mantenimiento</b><span>En menos de un minuto se le tapa la pantalla. Lo que estaba guardando queda en espera y se envía solo cuando vuelva.</span><span class="btn pri sm">Volver a los módulos</span></div></div></div>' +
+    '<div class="card"><h3>3 · A ti y a los probadores</h3><div class="dentro"><div class="bar">' + MK.ic(OBRA_IC[ej.id] || 'documento', 16) + ' ' + MK.esc(ej.titulo) + '</div>' +
+      '<div class="cu"><i style="width:40%"></i><i style="width:85%"></i><i style="width:70%"></i><i style="width:78%"></i></div>' +
+      '<div class="pst">🔧 <b>En mantenimiento.</b> Solo lo ven: tú' + ((ej.entran || []).length ? ', ' + MK.esc(ej.entran.join(', ')) : '') + '.</div></div></div>' +
+    '</div>' +
+    '<div class="nota">El enlace directo tampoco abre: el servidor le responde «en mantenimiento» a cualquiera que no esté en la lista. El conductor sigue con su ruta aunque Logística esté apagado. Lo que ve el cliente (formulario, propuesta, encuesta, recibos) no se apaga desde aquí. Cada cambio queda en el Historial.</div>';
+  return h;
+}
+var OBRA_IC = { inicio: 'brujula', campo: 'ruta', alta: 'maletin', planta: 'planta', cobros: 'moneda', certificados: 'sello', solicitud: 'factura', finanzas: 'billete', admin: 'llave', calidad: 'escudo' };
+function obraApagar(id) {
+  var m = obraMod(id); if (!m) return;
+  OBRA_SEL = (m.entran || []).slice();
+  var dentro = (m.dentro || []).filter(function (d) { return !d.sigue; });
+  var U = OBRA.usuarios || [];
+  MK.hoja('<h2>' + (m.apagado ? 'Mantenimiento de ' : 'Apagar ') + MK.esc(m.titulo) + (m.apagado ? '' : ' por mantenimiento') + '</h2>' +
+    '<p class="muted" style="font-size:13px;margin-top:6px">Se cierra para todos menos para ti y los probadores. Nadie más puede verlo ni registrar nada. No se borra ningún dato.</p>' +
+    (!m.apagado && dentro.length ? '<div class="aviso am" style="margin-top:12px"><b>' + dentro.length + (dentro.length === 1 ? ' persona está' : ' personas están') + ' dentro ahora.</b> En menos de un minuto les sale el aviso y la pantalla se tapa. Si estaban guardando algo, queda en espera y se envía solo cuando vuelvas a encender.</div>' +
+      '<div class="lst" style="margin-top:8px">' + dentro.map(function (p) { return '<div class="it"><div class="av">' + MK.esc(MK.ini(p.nombre)) + '</div><div class="tx"><b>' + MK.esc(p.nombre) + '</b><small>' + MK.esc(p.rol || '') + '</small></div></div>'; }).join('') + '</div>' : '') +
+    (id === 'campo' && !m.apagado ? '<div class="aviso az" style="margin-top:10px"><b>Los conductores en ruta siguen trabajando.</b> Su pantalla del camión no se apaga; el cierre es para la oficina de Logística.</div>' : '') +
+    '<label class="lb">QUIÉN MÁS PUEDE ENTRAR MIENTRAS TANTO</label><div class="row w" style="gap:6px;margin-bottom:6px">' + obraPersona(MK.usuario.nombre, true, 'siempre') + '</div>' +
+    '<div class="chips" id="obra-prob">' + U.map(function (u, i) { return '<button type="button" class="chip' + (OBRA_SEL.indexOf(u.nombre) >= 0 ? ' on' : '') + '" onclick="obraProb(' + i + ',this)">' + MK.esc(u.nombre) + ' <span class="n">' + MK.esc(u.rol) + '</span></button>'; }).join('') + '</div>' +
+    '<div class="f2"><div><label class="lb">AVISO QUE VERÁN LOS DEMÁS</label><input class="in" id="obra-msj" maxlength="200" value="' + MK.esc(m.mensaje || (m.titulo + ' está en mantenimiento. Estamos haciendo mejoras.')) + '"></div>' +
+    '<div><label class="lb">VUELVE (OPCIONAL)</label><input class="in" id="obra-reg" maxlength="60" placeholder="Ej.: hoy, 4:00 p. m." value="' + MK.esc(m.regreso || '') + '"></div></div>' +
+    '<div class="small" id="obra-err" style="color:var(--bad);margin-top:8px"></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn am" id="obra-si" onclick="obraConfirmar(\'' + id + '\',this)">' + MK.ic('pausa', 15) + (m.apagado ? ' Guardar cambios' : ' Apagar y cerrar') + '</button></div>', { fija: true });
+}
+function obraProb(i, el) {
+  var u = (OBRA.usuarios || [])[i]; if (!u) return;
+  var k = OBRA_SEL.indexOf(u.nombre);
+  if (k >= 0) OBRA_SEL.splice(k, 1); else OBRA_SEL.push(u.nombre);
+  el.classList.toggle('on', k < 0);
+}
+function obraConfirmar(id, btn) {
+  var e = document.getElementById('obra-err'); e.textContent = '';
+  MK.ocupado(btn, true);
+  MK.api('api_cfgModuloEstado', PIN, id, { apagar: true, entran: OBRA_SEL, mensaje: MK.val('obra-msj'), regreso: MK.val('obra-reg') }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { e.textContent = (r && r.error) || 'No se pudo.'; return; }
+    var m = obraMod(id); MK.cerrarHoja();
+    MK.aviso((m ? m.titulo : 'El módulo') + ' quedó en mantenimiento · se cierra para los demás en menos de un minuto');
+    OBRA = null; recargar();
+  }, function (x) { MK.ocupado(btn, false); e.textContent = x.message || 'Sin conexión'; });
+}
+function obraEncender(id) {
+  var m = obraMod(id); if (!m) return;
+  MK.hoja('<h2>Encender ' + MK.esc(m.titulo) + '</h2><p class="muted" style="font-size:13px;margin-top:6px">Vuelve a abrir para todos según «Módulos por rol». Los que lo tenían abierto ven «ya está disponible» en menos de un minuto; lo que quedó en espera se envía solo.</p>' +
+    '<div class="small" id="obra-err" style="color:var(--bad);margin-top:8px"></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ok" onclick="obraOn(\'' + id + '\',this)">Encender</button></div>');
+}
+function obraOn(id, btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgModuloEstado', PIN, id, { apagar: false }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { document.getElementById('obra-err').textContent = (r && r.error) || 'No se pudo.'; return; }
+    var m = obraMod(id); MK.cerrarHoja(); MK.aviso((m ? m.titulo : 'El módulo') + ' encendido');
+    OBRA = null; recargar();
+  }, function (x) { MK.ocupado(btn, false); document.getElementById('obra-err').textContent = x.message || 'Sin conexión'; });
+}
+
 /* ═══ HISTORIAL ═══ */
 function vHistorial() {
   var H = B().historial || [];
   var l = H.filter(function (h) { return FH === 'todo' || h.seccion === FH; });
-  var secs = ['Usuarios', 'Módulos', 'Reglas', 'Seguridad', 'Cobros', 'Funciones', 'Empresa'];
+  var secs = ['Usuarios', 'Módulos', 'Encender y apagar', 'Reglas', 'Seguridad', 'Cobros', 'Funciones', 'Empresa'];
   return MK.cabeza('Historial', 'Todo lo que se hace en Configuración, con quién y cuándo. No se puede borrar.') +
     '<div class="card"><div style="margin-bottom:10px">' + MK.chips([['todo', 'Todo', H.length]].concat(secs.map(function (s) { return [s, s, H.filter(function (h) { return h.seccion === s; }).length]; })), FH, 'filtroH') + '</div>' +
     MK.tabla(['Fecha', 'Quién', 'Qué'], l.map(function (h) { return ['<span class="hisf">' + MK.esc(MK.dmy(h.fecha.slice(0, 10)) + ' ' + h.fecha.slice(11)) + '</span>', MK.esc(h.quien), '<b style="font-weight:600">' + MK.esc(h.accion) + '</b>' + (h.detalle ? '<small>' + MK.esc(h.detalle) + '</small>' : '')]; }), { vacio: 'Todavía no hay nada: el historial empezó con esta versión.' }) + '</div>';
@@ -769,6 +900,7 @@ MK.iniciar({
     { g: 'CONFIGURACIÓN' },
     { id: 'usu', n: 'Usuarios', i: 'personas' },
     { id: 'perm', n: 'Módulos por rol', i: 'tabla' },
+    { id: 'obra', n: 'Encender y apagar', i: 'pausa' },
     { id: 'reg', n: 'Reglas de solicitudes', i: 'reglas' },
     { id: 'cob', n: 'Escalera de cobro', i: 'escalera' },
     { id: 'inc', n: 'Incidencias en ruta', i: 'alerta' },
@@ -790,11 +922,11 @@ MK.iniciar({
     if (aj && aj.pedirPinConfig === false) { PIN = MK.pin; return true; }
     puerta(); return false;
   },
-  alCargar: function (b) { usarBase(b); },
+  alCargar: function (b) { usarBase(b); if (!OBRA) cargarObra(true); },
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });
