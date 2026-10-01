@@ -466,7 +466,7 @@
     var K = S.K, titulo = !A.id ? 'Armar plan nuevo' : A.estado === 'borrador' ? 'Seguir armando «' + (A.nombre || 'Plan sin nombre') + '»' : 'Editar «' + A.nombre + '»';
     var up = Number((A.usos || {}).propuestas) || 0;
     $('main').innerHTML = '<div class="w44">' +
-      '<div class="crumb2"><a data-volver>Planes y tarifas</a> / <a data-volver>Planes</a> · <b>' + (A.id ? E(A.nombre || 'borrador') : 'plan nuevo') + '</b></div>' +
+      MK.ruta([{ t: 'Planes y tarifas', attr: 'data-volver' }, { t: 'Planes', attr: 'data-volver' }, { t: A.id ? (A.nombre || 'borrador') : 'Plan nuevo' }]) +
       '<h1>' + E(titulo) + (T0.ejemplo ? ' <span class="ejemplo">NÚMEROS DE EJEMPLO</span>' : '') + '</h1>' +
       '<div class="lead">' + (existente() ? 'Los cambios valen para las propuestas nuevas. Las propuestas enviadas y los contratos firmados conservan el plan con que salieron' + (up ? ' (' + up + (up === 1 ? ' propuesta' : ' propuestas') + ')' : '') + '.'
         : 'Arma el plan paso a paso. «Guardar y salir» lo deja como <b>borrador</b>: no se ofrece en las propuestas hasta guardarlo completo.') + '</div>' +
@@ -760,7 +760,7 @@
     var nPl = todos ? lpl.length - noSuman.length : P.planes.length;
     var es = P.id ? estadoPromo(JSON.parse(P0)) : null, cerrada = es && es[0] === 'gr', nom0 = P.id ? JSON.parse(P0).nombre : '';
     $('main').innerHTML = '<div class="w44">' +
-      '<div class="crumb2"><a data-volver>Planes y tarifas</a> / <a data-volver>Promociones</a> · <b>' + (P.id ? E(nom0) : 'promoción nueva') + '</b></div>' +
+      MK.ruta([{ t: 'Planes y tarifas', attr: 'data-volver' }, { t: 'Promociones', attr: 'data-volver' }, { t: P.id ? nom0 : 'Promoción nueva' }]) +
       '<h1>' + (P.id ? 'Editar promoción' : 'Armar promoción') + (es ? ' <span class="tg ' + es[0] + '">' + E(es[1]) + '</span>' : '') + '</h1>' +
       '<div class="lead">Un paquete de beneficios que se suma a un plan. No cambia el plan: al terminar el beneficio, el cobro vuelve solo al plan normal.</div>' +
       (P.id ? '<div class="aviso az avisoTop">' + IC('alerta', 16) + '<div>Lo que cambies vale para las propuestas nuevas. Las propuestas enviadas y los clientes que firmaron conservan la versión con que salieron.</div></div>' : '') +

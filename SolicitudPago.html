@@ -1154,9 +1154,49 @@ function anotarGasto(){
     .api_cajaGasto(PIN,d);
 }
 
+/* api 3.15 · ventana de ECOVSA (en vez de la gris del navegador «ecovsaapp.com dice»).
+   op: { titulo, texto (html), boton, peligro, campo: {etiqueta, placeholder, obligatorio}, alAceptar(valor) } */
+function ventana_(op){
+  var v=document.getElementById("vt-ecovsa"); if(v) v.parentNode.removeChild(v);
+  if(!document.getElementById("vt-ecovsa-css")){
+    var st=document.createElement("style"); st.id="vt-ecovsa-css";
+    st.textContent="#vt-ecovsa{position:fixed;inset:0;z-index:2147483000;background:rgba(36,29,11,.45);display:flex;align-items:center;justify-content:center;padding:16px}"+
+      "#vt-ecovsa .c{background:#fff;color:var(--tinta);border-radius:var(--radio,16px);padding:20px;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.28)}"+
+      "#vt-ecovsa h3{margin:0 0 6px;font-size:17px}#vt-ecovsa .t{font-size:13.5px;color:var(--gris);line-height:1.5;margin-bottom:14px}"+
+      "#vt-ecovsa label{display:block;font-size:12px;font-weight:700;color:var(--gris);margin-bottom:5px}"+
+      "#vt-ecovsa textarea{width:100%;box-sizing:border-box;min-height:70px;border:1.5px solid var(--borde);border-radius:10px;padding:9px 10px;font:inherit;font-size:14px;resize:vertical}"+
+      "#vt-ecovsa textarea:focus{outline:none;border-color:var(--verde)}#vt-ecovsa .er{color:var(--rojo);font-size:12px;margin-top:5px;display:none}"+
+      "#vt-ecovsa .p{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#vt-ecovsa .p .btn{padding:10px 16px;font-size:13px}"+
+      "#vt-ecovsa .p .btn.pel{background:var(--rojo);color:#fff;box-shadow:none}";
+    document.head.appendChild(st);
+  }
+  v=document.createElement("div"); v.id="vt-ecovsa";
+  v.innerHTML='<div class="c" role="dialog" aria-modal="true" aria-labelledby="vt-tit"><h3 id="vt-tit">'+esc(op.titulo||"")+'</h3><div class="t">'+(op.texto||"")+'</div>'+
+    (op.campo?'<label for="vt-campo">'+esc(op.campo.etiqueta||"")+'</label><textarea id="vt-campo" placeholder="'+esc(op.campo.placeholder||"")+'"></textarea><div class="er" id="vt-er">Escribe el motivo para seguir.</div>':'')+
+    '<div class="p"><button type="button" class="btn sec" data-a="no">Cancelar</button><button type="button" class="btn'+(op.peligro?' pel':'')+'" data-a="si">'+esc(op.boton||"Continuar")+'</button></div></div>';
+  document.body.appendChild(v);
+  var campo=document.getElementById("vt-campo");
+  setTimeout(function(){ (campo||v.querySelector('[data-a="si"]')).focus(); },60);
+  function cerrar(){ document.removeEventListener("keydown",tecla); if(v.parentNode) v.parentNode.removeChild(v); }
+  function tecla(e){ if(e.key==="Escape") cerrar(); }
+  document.addEventListener("keydown",tecla);
+  v.addEventListener("click",function(e){
+    var a=e.target.getAttribute&&e.target.getAttribute("data-a");
+    if(e.target===v||a==="no"){ cerrar(); return; }
+    if(a!=="si") return;
+    var val=campo?campo.value.trim():true;
+    if(campo&&op.campo.obligatorio&&!val){ document.getElementById("vt-er").style.display="block"; campo.focus(); return; }
+    cerrar(); if(op.alAceptar) op.alAceptar(val);
+  });
+}
+
 function anularGasto(id){
-  var motivo=prompt("¿Por qué se anula? Queda escrito en el arqueo.");
-  if(motivo===null) return;
+  ventana_({ titulo:"Anular el gasto", boton:"Anular", peligro:true,
+    texto:"El gasto no se borra: queda con quién lo anuló y por qué.",
+    campo:{ etiqueta:"¿Por qué se anula? Queda escrito en el arqueo.", placeholder:"Ej.: se anotó dos veces", obligatorio:false },
+    alAceptar:function(motivo){ anularGastoSi_(id,motivo); } });
+}
+function anularGastoSi_(id,motivo){
   sinMsg();
   google.script.run
     .withSuccessHandler(function(r){
@@ -1170,9 +1210,12 @@ function anularGasto(id){
 
 function cerrarCaja(){
   if(!CAJA) return;
-  if(!confirm("Cerrar "+CAJA.periodo+" por B/. "+CAJA.total.toFixed(2)+".\n\n"+
-              "Se genera el arqueo y se crea la solicitud de reposición. "+
-              "Después de cerrar no se pueden agregar ni anular gastos de este período.")) return;
+  ventana_({ titulo:"Cerrar "+CAJA.periodo, boton:"Cerrar el período",
+    texto:"Total: <b>B/. "+CAJA.total.toFixed(2)+"</b>.<br><br>Se genera el arqueo y se crea la solicitud de reposición. "+
+          "Después de cerrar no se pueden agregar ni anular gastos de este período.",
+    alAceptar:cerrarCajaSi_ });
+}
+function cerrarCajaSi_(){
   sinMsg();
   $("cj-cerrar").disabled=true;
   google.script.run

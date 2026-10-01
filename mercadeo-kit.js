@@ -232,6 +232,20 @@
   MK.quitarParam = function (claves) {
     try { var u = new URL(location.href); [].concat(claves).forEach(function (k) { u.searchParams.delete(k); }); history.replaceState(null, '', u.pathname.split('/').pop() + (u.search || '') + (u.hash || '')); } catch (e) {}
   };
+  /* api 3.15 · ruta tipo carpetas (como el explorador de Windows).
+     partes: [{t:'Clientes', href:'MerClientes.html'}, {t:'CUENTA'}, {t:'NOMBRE'}] · la última es donde estás (verde).
+     {t, attr:'data-volver'} = enlace sin href que la pantalla atiende por su cuenta. */
+  MK.ruta = function (partes) {
+    var CARP = '<svg class="rc" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.4l2 2h8.6A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>';
+    var SEP = '<svg class="sp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+    var ult = partes.length - 1;
+    return '<nav class="ruta" aria-label="Ruta">' + CARP + partes.map(function (p, i) {
+      if (i === ult) return '<span class="act" aria-current="page">' + MK.esc(p.t) + '</span>';
+      if (p.href) return '<a href="' + MK.esc(p.href) + '">' + MK.esc(p.t) + '</a>';
+      if (p.attr) return '<a ' + p.attr + ' role="button" tabindex="0">' + MK.esc(p.t) + '</a>';
+      return '<span class="txt">' + MK.esc(p.t) + '</span>';
+    }).join(SEP) + '</nav>';
+  };
   MK.irOportunidad = function (cod) { location.href = 'MerOportunidad.html?id=' + encodeURIComponent(cod); };
   MK.irCliente = function (id) { location.href = 'MerCliente.html?id=' + encodeURIComponent(id); };
   MK.ocupado = function (btn, si, texto) {
@@ -251,6 +265,7 @@
     return PAGINAS.map(function (p) {
       if (p.g) return '<div class="grp">' + p.g + '</div>';
       if (p.oculto && p.id !== pag) return '';
+      if (p.oculto) return '<a class="on" aria-current="page" style="cursor:default" title="Estás aquí">' + MK.ic(p.i, 17) + MK.esc(p.n) + '</a>';   // api 3.15: marcada y sin enlace (antes abría la pantalla sin decir cuál)
       if (p.accion === 'captura' && MK.usuario && MK.usuario.rol === 'gerente') return '';
       var href = p.f ? ' href="' + p.f + '"' : ' onclick="MK.captura();return false"';
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';

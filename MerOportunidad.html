@@ -436,7 +436,7 @@
 
   function sinId() {
     document.title = 'Ficha de oportunidad · ECOVSA';
-    $('main').innerHTML = '<div class="crumb"><a href="MerOportunidades.html">Oportunidades</a> / <span>Ficha</span></div>' +
+    $('main').innerHTML = MK.ruta([{ t: 'Oportunidades', href: 'MerOportunidades.html' }, { t: 'Ficha' }]) +
       '<div class="card" style="max-width:620px"><h3>' + IC('alerta', 15) + ' Falta la oportunidad</h3><p>Esta ficha se abre desde una oportunidad. Elige una en la lista o crea una nueva.</p>' +
       '<div class="row w" style="margin-top:14px"><a class="btn pri" href="MerOportunidades.html">' + IC('embudo', 15) + ' Ir a Oportunidades</a>' +
       (GER ? '' : '<button class="btn" onclick="MK.captura()">' + IC('mas', 15) + ' Nueva oportunidad</button>') + '</div></div>';
@@ -447,7 +447,7 @@
     MK.api('api_crmOportunidad', MK.pin, COD).then(function (r) {
       if (!r || !r.ok) {
         if (!primera && D) { MK.aviso((r && r.error) || 'No se pudo actualizar la ficha.'); return; }
-        $('main').innerHTML = '<div class="crumb"><a href="MerOportunidades.html">Oportunidades</a> / <span>' + E(COD) + '</span></div>' +
+        $('main').innerHTML = MK.ruta([{ t: 'Oportunidades', href: 'MerOportunidades.html' }, { t: COD }]) +
           '<div class="aviso rj">' + E((r && r.error) || 'No se pudo abrir la oportunidad.') + ' <a href="MerOportunidades.html">Volver a Oportunidades</a></div>';
         return;
       }
@@ -476,7 +476,7 @@
   /* ═════════ pintar ═════════ */
   function pintar() {
     var y = window.scrollY;
-    $('main').innerHTML = '<div class="crumb"><a href="MerOportunidades.html">Oportunidades</a> / <span>' + E(COD) + '</span></div>' +
+    $('main').innerHTML = MK.ruta([{ t: 'Oportunidades', href: 'MerOportunidades.html' }, { t: COD }]) +
       '<div class="card tarj" id="tarj"></div><div id="bans"></div><div class="tabs" id="tabs" role="tablist"></div><div id="panel"></div>';
     pintarTarjeta(); pintarBans(); pintarTabs(); pintarPanel(); pintarGuardar();
     activarPanel();

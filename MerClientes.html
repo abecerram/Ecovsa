@@ -722,8 +722,13 @@
       var linea = est === 'APROBADA' ? 'Aprobada' + (s.procesadaEn ? ' el ' + MK.fecha(s.procesadaEn) : '') + (s.procesadaPor ? ' · la revisó ' + s.procesadaPor : '')
         : est === 'DEVUELTA' ? 'Te la devolvieron' + (s.procesadaEn ? ' el ' + MK.fecha(s.procesadaEn) : '') + (s.procesadaPor ? ' · ' + s.procesadaPor : '')
         : 'Esperando revisión' + (s.diasEsperando ? ' · ' + s.diasEsperando + (s.diasEsperando === 1 ? ' día' : ' días') : ' · enviada hoy');
-      var cli = est === 'APROBADA' ? LISTA.filter(function (c) { return norm(c.nombre) === norm(s.empresa); })[0] : null;
-      return '<div class="sol ' + cls + '"><div class="top"><div style="flex:1;min-width:200px"><b>' + E(s.empresa) + '</b><div class="det">Enviada el ' + E(MK.fecha(s.fechaSolicitud)) + ' · ' + E(titulo(s.frecuencia) || '—') + (s.zona ? ' · ' + E(titulo(s.zona)) : '') + (s.codigoPropuesta ? ' · desde ' + E(s.codigoPropuesta) : ' · alta directa') + '</div>' +
+      /* api 3.15: además del nombre, se busca por RUC y por razón social (las altas directas a veces entran con otro nombre) */
+      var cli = est === 'APROBADA' ? (LISTA.filter(function (c) { return norm(c.nombre) === norm(s.empresa); })[0] ||
+        (s.ruc ? LISTA.filter(function (c) { return norm(c.ruc) === norm(s.ruc); })[0] : null) ||
+        (s.razonSocial ? LISTA.filter(function (c) { return norm(c.razon) === norm(s.razonSocial); })[0] : null)) : null;
+      /* api 3.15: sin frecuencia = servicio de una sola vez → «visita única» en vez de la raya */
+      var frec = titulo(s.frecuencia) || (norm(s.tipoServicio) === 'visita unica' || norm(s.frecuencia) === 'servicio especial' || s.codigoPropuesta ? 'Visita única' : 'Sin frecuencia');
+      return '<div class="sol ' + cls + '"><div class="top"><div style="flex:1;min-width:200px"><b>' + E(s.empresa) + '</b><div class="det">Enviada el ' + E(MK.fecha(s.fechaSolicitud)) + ' · ' + E(frec) + (s.zona ? ' · ' + E(titulo(s.zona)) : '') + (s.codigoPropuesta ? ' · desde ' + E(s.codigoPropuesta) : ' · alta directa') + '</div>' +
         '<div class="det">' + E(linea) + '</div></div>' + tag + '</div>' +
         (est === 'DEVUELTA' && s._reenviada ? '<div class="det" style="margin-top:6px">Se corrigió y se volvió a enviar el ' + E(MK.fecha(s._reenviada)) + '. Motivo de entonces: «' + E(s.motivo || 'sin motivo') + '»</div>' : '') +
         (est === 'DEVUELTA' && !s._reenviada ? '<div class="mot"><b>Motivo:</b> «' + E(s.motivo || 'Sin motivo anotado') + '»</div>' : '') +
