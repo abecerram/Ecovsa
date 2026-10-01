@@ -300,11 +300,13 @@ function notasHtml(p, vence, vencePromo){
 /* servicios que se dan cada 2, 3 o 6 meses: se cobran repartidos en cada mes */
 var MESES_CADA={bimestre:2,trimestre:3,semestre:6};
 
+var EXENTO=false;   /* api 3.16.1: cliente exento de ITBMS */
 function pintar(p){
   if(DATOS && DATOS.empresa) DATOS_EMP=DATOS.empresa;
   var costo=Number(p["costo visita"])||0;
   var itbms=Number(p.itbms);
   if(!isFinite(itbms)||itbms<=0) itbms=0.07;          // 7% por defecto
+  EXENTO=!!p.exento; if(EXENTO) itbms=0;             // api 3.16.1: exento de ITBMS
   var imp=Math.round(costo*itbms*100)/100;
   var total=Math.round((costo+imp)*100)/100;
   var kg=Number(p["kg plan"])||0;
@@ -361,23 +363,23 @@ function pintar(p){
         '<th>ITBMS</th><th>Total</th></tr></thead><tbody>'+
         '<tr><td>'+esc(p.descripcionTrabajo||"Recolección única")+'</td>'+
           '<td class="n">'+esc(p.cantidadEstimada||"—")+'</td>'+
-          '<td class="n">B/. '+n2(costo)+'</td><td class="n">B/. '+n2(imp)+'</td>'+
+          '<td class="n">B/. '+n2(costo)+'</td><td class="n">'+(EXENTO?'Exento':'B/. '+n2(imp))+'</td>'+
           '<td class="n"><b>B/. '+n2(total)+'</b></td></tr>'+
         '<tr class="tot"><td colspan="4">TOTAL DEL SERVICIO</td>'+
           '<td class="n">B/. '+n2(total)+'</td></tr>'+
       '</tbody></table>'+
       '<div class="pie-tabla">El precio cubre únicamente el trabajo aquí descrito. '+
-      'Precios en balboas (B/.), ITBMS incluido.</div>'
+      'Precios en balboas (B/.), '+(EXENTO?'exento de ITBMS':'ITBMS incluido')+'.</div>'
     : '<table><thead><tr><th>Frecuencia</th><th>Kg incluidos</th><th>Precio por visita</th>'+
         '<th>ITBMS</th><th>Total</th></tr></thead><tbody>'+
         '<tr><td>'+esc(p.frecuencia||"—")+'</td><td class="n">'+(kg||"—")+'</td>'+
-          '<td class="n">B/. '+n2(costo)+'</td><td class="n">B/. '+n2(imp)+'</td>'+
+          '<td class="n">B/. '+n2(costo)+'</td><td class="n">'+(EXENTO?'Exento':'B/. '+n2(imp))+'</td>'+
           '<td class="n"><b>B/. '+n2(total)+'</b></td></tr>'+
         '<tr class="tot"><td colspan="4">TOTAL POR VISITA</td><td class="n">B/. '+n2(total)+'</td></tr>'+
       '</tbody></table>'+
       '<div class="pie-tabla">El precio por visita incluye la recolección de hasta los kilogramos '+
       'indicados; el excedente se factura según la tarifa de kilogramo adicional. Precios en balboas '+
-      '(B/.), ITBMS incluido.'+(PROMO?' Esta propuesta incluye la promoción «'+esc(PROMO.nombre||'')+'»: vea sus beneficios en la nota importante.':'')+'</div>')+
+      '(B/.), '+(EXENTO?'exento de ITBMS':'ITBMS incluido')+'.'+(PROMO?' Esta propuesta incluye la promoción «'+esc(PROMO.nombre||'')+'»: vea sus beneficios en la nota importante.':'')+'</div>')+
 
   /* Las notas las arma el servidor según el tipo de servicio, y si Katherine
      las editó para este cliente, manda lo que ella guardó. Antes vivían aquí
@@ -421,7 +423,7 @@ function tablaServicios(S, UNICA, PROMO){
       return '<tr><td>'+esc(v.nombre)+'</td><td class="n">'+esc(cant)+'</td><td class="n">'+precio+'</td><td class="n">'+(v.modo==='cobrado'?'B/. '+n2(alMes):'—')+'</td></tr>'; }).join('')+
     (S.total?'<tr class="tot"><td colspan="3">'+(UNICA?'SERVICIOS Y PRODUCTOS':'SERVICIOS Y PRODUCTOS AL MES')+'</td><td class="n">B/. '+n2(S.total)+'</td></tr>':'')+
     '</tbody></table>'+
-    '<div class="pie-tabla">'+(S.total?'Lo cobrado se factura aparte'+(UNICA?' junto con el servicio':' cada mes, más ITBMS')+'. ':'')+(hayRep&&!UNICA?'Lo que se da cada 2, 3 o 6 meses se cobra repartido en cada mes. ':'')+'Lo incluido va sin costo adicional.</div>';
+    '<div class="pie-tabla">'+(S.total?'Lo cobrado se factura aparte'+(UNICA?' junto con el servicio':(EXENTO?' cada mes':' cada mes, más ITBMS'))+'. ':'')+(hayRep&&!UNICA?'Lo que se da cada 2, 3 o 6 meses se cobra repartido en cada mes. ':'')+'Lo incluido va sin costo adicional.</div>';
 }
 /* api 3.11 · la propuesta de una cuenta con varias sedes */
 function frecDe(v){ v=Number(v)||0; return v>=8?'2 veces por semana':v>=4?'Semanal':v>=2?'Quincenal':v>=1?'Mensual':v>=0.5?'Bimestral':'Trimestral'; }
@@ -444,8 +446,8 @@ function tablaGran(c){
   });
   h+='<table style="margin-top:12px"><tbody>'+
     '<tr><td>Subtotal mensual · '+c.sedes+' sede'+(c.sedes===1?'':'s')+'</td><td class="n">B/. '+n2(c.subtotal)+'</td></tr>'+
-    '<tr><td>ITBMS 7 %</td><td class="n">B/. '+n2(c.itbms)+'</td></tr>'+
-    '<tr class="tot"><td>TOTAL MENSUAL</td><td class="n">B/. '+n2(c.total)+'</td></tr></tbody></table>'+
+    (EXENTO?'<tr><td>ITBMS</td><td class="n">Exento</td></tr>':'<tr><td>ITBMS 7 %</td><td class="n">B/. '+n2(c.itbms)+'</td></tr>')+
+    '<tr class="tot"><td>TOTAL MENSUAL</td><td class="n">B/. '+n2(EXENTO?c.subtotal:c.total)+'</td></tr></tbody></table>'+
     '<div class="pie-tabla">Facturación: '+esc(FAC[c.facturacion]||FAC.consolidada)+'. El precio de recolección incluye hasta los kilogramos indicados por grupo; el excedente se factura a B/. '+n2(c.kgAdicional)+' el kilogramo. Precios en balboas (B/.).'+(c.plazo?' Contrato de '+c.plazo+' meses.':'')+'</div>';
   return h;
 }

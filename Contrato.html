@@ -487,6 +487,7 @@ function textosRespaldo(p, V){
 function pintar(p, r){
   var costo=Number(p["costo visita"])||0;
   var itbms=Number(p.itbms); if(!isFinite(itbms)||itbms<=0) itbms=0.07;
+  if(p.exento) itbms=0;   // api 3.16.1: exento de ITBMS
   var total=Math.round(costo*(1+itbms)*100)/100;
   var plazo=p["plazo contrato"]||12;
   var firma=p["fecha contrato"]||"";
@@ -515,6 +516,12 @@ function pintar(p, r){
     correosNotificacion:correos.length?correos.join(" / "):(falta("los correos de notificación"),FALTA)
   };
   var TC=(p.textosContrato&&Array.isArray(p.textosContrato.clausulas)&&p.textosContrato.clausulas.length)?p.textosContrato:textosRespaldo(p,V);
+  /* api 3.16.1: cliente exento de ITBMS → sin «más I.T.B.M.S.» y «exento de I.T.B.M.S.» en el valor */
+  if(p.exento){
+    var sinIt=function(t){ return String(t).replace(/,?\s*incluido el I\.?T\.?B\.?M\.?S\.?/gi,', exento de I.T.B.M.S.').replace(/\s*\(?más\s+(el\s+)?I\.?T\.?B\.?M\.?S\)?/gi,'').replace(/\s+\./g,'.'); };
+    var limpiar=function(o){ if(typeof o==='string') return sinIt(o); if(Array.isArray(o)) return o.map(limpiar); if(o&&typeof o==='object'){ var r={}; Object.keys(o).forEach(function(k){ r[k]=limpiar(o[k]); }); return r; } return o; };
+    TC=limpiar(TC);
+  }
   if(p.textosContrato){
     /* el texto ya viene lleno del servidor: si ahí dice que falta algo, también se avisa arriba */
     var todo=JSON.stringify(p.textosContrato);

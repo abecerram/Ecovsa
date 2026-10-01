@@ -956,7 +956,7 @@ function resumenProp(){
       c.grupos.map(function (g) { return r(esc(g.nombre) + '<br><small style="color:var(--mu,#667489)">' + g.sedes.length + ' sede' + (g.sedes.length === 1 ? '' : 's') + (g.aSolicitud ? ' · a solicitud' : '') + '</small>', dinero(g.total) + ' al mes'); }).join('') +
       (c.plazo ? r('Contrato', esc(c.plazo) + ' meses') : '') +
       r('Incluye', 'recibo digital, certificado<br>y distintivo con QR por sede') +
-      '<div class="rw tot"><span>Total mensual</span><b>' + dinero(c.subtotal) + ' <small>+ ITBMS</small></b></div></div>';
+      '<div class="rw tot"><span>Total mensual</span><b>' + dinero(c.subtotal) + (p.exento ? ' <small>exento de ITBMS</small>' : ' <small>+ ITBMS</small>') + '</b></div></div>';
   }
   var frec = p.frecuencia ? (FREC_TXT[p.frecuencia] ? FREC_TXT[p.frecuencia][0].toLowerCase() : p.frecuencia.toLowerCase()) : '';
   return '<div class="pp"><div class="hd"><small>PROPUESTA ' + esc(p.cod || TOKEN) + '</small><b>' + (p.unica ? 'Recolección de una sola vez' : 'Recolección de desechos hospitalarios') + '</b></div>' +
@@ -969,7 +969,7 @@ function resumenProp(){
     /* api 3.12: sus servicios y productos */
     (E.servicios && E.servicios.lista && E.servicios.lista.length ? E.servicios.lista.map(function (v) {
       return r(esc(v.nombre), v.modo === 'cobrado' ? dinero(v.total) + (p.unica ? '' : ' al mes') : 'incluido'); }).join('') : '') +
-    '<div class="rw tot"><span>' + (p.unica ? 'Costo del servicio' : 'Costo por visita') + '</span><b>' + dinero(p.costo) + ' <small>+ ITBMS</small></b></div></div>';
+    '<div class="rw tot"><span>' + (p.unica ? 'Costo del servicio' : 'Costo por visita') + '</span><b>' + dinero(p.costo) + (p.exento ? ' <small>exento de ITBMS</small>' : ' <small>+ ITBMS</small>') + '</b></div></div>';
 }
 function urlPropuesta(){ return 'Propuesta.html?token=' + encodeURIComponent(TOKEN) + '&k=' + encodeURIComponent(K); }
 function pPropuesta(){
