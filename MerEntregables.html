@@ -135,7 +135,7 @@
   body{background:#fff;padding:0}
   #dist-imprimir{display:block!important}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  @page{ size:8.5in 11in; margin:0 }
+  html,body{background:#fff!important}   #dist-imprimir .tarj{zoom:.94;margin:0 auto}   @page{ size:8.5in 11in; margin:.25in }
 }
 
 /* barra del kit: que el buscador no empuje la página en celular */
@@ -554,7 +554,7 @@ var QR = (function(){
         '<div id="d-res"></div><div id="d-sin"></div>' +
         '<div class="row w" style="margin-bottom:10px"><div class="seg" id="d-f"><button data-v="falta" class="on">Por entregar</button><button data-v="listo">Entregados</button><button data-v="">Todos</button></div>' +
         '<label class="srch-in" style="flex:1;min-width:180px">' + MK.ic('buscar', 15) + '<input id="d-q" placeholder="Buscar cliente, N° o código" autocomplete="off"></label></div>' +
-        '<div class="row w" style="margin-bottom:10px"><button class="btn sm" id="d-todos">Marcar todos</button><button class="btn sm" id="d-ning">Ninguno</button><div class="sp"></div><button class="btn pri" id="d-imp">' + MK.ic('imprimir', 15) + ' Imprimir seleccionados</button></div>' +
+        '<div class="row w" style="margin-bottom:10px"><button class="btn sm" id="d-todos">Marcar todos</button><button class="btn sm" id="d-ning">Ninguno</button><div class="sp"></div><label class="small muted" style="display:flex;gap:6px;align-items:center;margin-right:8px">Tamaño <select id="d-tam" style="font:inherit;padding:6px 8px;border:1px solid #d3ddea;border-radius:8px"><option value="carta">Hoja carta</option><option value="media">Media carta (5½ × 8½)</option></select></label><button class="btn pri" id="d-imp">' + MK.ic('imprimir', 15) + ' Imprimir seleccionados</button></div>' +
         '<div id="d-aviso"></div><div class="tbw"><table class="tb dist-t" id="d-tabla"></table></div>' +
         '<p class="small muted" style="margin-top:10px">El distintivo se entrega al cliente cuando firma. Su QR abre una pantalla de solo lectura donde ve su servicio: frecuencia, última visita, mes de la próxima y el total retirado. Cada uno lleva su propio código: no sirve el de otro cliente.</p>' +
       '</div><div class="a-prev"><div class="prev-h"><span class="t">DISTINTIVO</span></div><div class="card" id="d-prev"></div></div></div></div>' +
@@ -567,7 +567,7 @@ var QR = (function(){
     $('d-q').oninput = pintarDist;
     $('d-todos').onclick = function () { distFiltrados().forEach(function (c) { ASEL[c.id] = true; }); pintarDist(); };
     $('d-ning').onclick = function () { distFiltrados().forEach(function (c) { delete ASEL[c.id]; }); pintarDist(); };
-    $('d-imp').onclick = function () { imprimirDistintivos(Object.keys(ASEL).filter(function (k) { return ASEL[k]; })); };
+    $('d-imp').onclick = function () { imprimirDistintivos(Object.keys(ASEL).filter(function (k) { return ASEL[k]; })); };     tamDistIni_();
     var h = (location.hash || '').replace('#', ''); verTab(h === 'distintivos' ? 'dist' : h === 'sugeridos' ? 'sug' : 'cert', true);
   }
   function verTab(t, sinHash) {
@@ -924,7 +924,7 @@ var QR = (function(){
     im.src = LOGO_URL;
     setTimeout(function () { if (LOGO_OK === null) { LOGO_OK = false; cb(false); } }, 6000);
   }
-  function imprimirDistintivos(ids, boton) {
+  /* Tamaño del distintivo al imprimir: hoja carta o media carta (5½ × 8½, un distintivo por media hoja). Se recuerda en este equipo. */   function tamDist_() {     var s = document.getElementById('d-tam'), v = s ? s.value : 'carta';     try { localStorage.setItem('eco_dist_tam', v); } catch (e) {}     document.getElementById('dist-imprimir').classList.toggle('media', v === 'media');     var st = document.getElementById('pag-dist');     if (!st) { st = document.createElement('style'); st.id = 'pag-dist'; document.head.appendChild(st); }     st.textContent = v === 'media' ? '@media print{#dist-imprimir.media .tarj{zoom:.585;margin:1.3in auto 0}} @page{size:5.5in 8.5in;margin:.25in}' : '';   }   function tamDistIni_() { var s = document.getElementById('d-tam'); if (s) try { s.value = localStorage.getItem('eco_dist_tam') || 'carta'; } catch (e) {} }   window.tamDist_ = tamDist_; window.tamDistIni_ = tamDistIni_;   function imprimirDistintivos(ids, boton) {
     if (!DIST) return;
     var sel = DIST.clientes.filter(function (c) { return ids.indexOf(c.id) >= 0; });
     if (!sel.length) { avisoDist('Marca al menos un cliente para imprimir.', true); return; }
