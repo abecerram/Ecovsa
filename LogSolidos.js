@@ -210,7 +210,7 @@
     if (!t) { t = document.createElement('div'); t.className = 'rb-tabs mk-no'; m.appendChild(t); }
     var s = D.modo === 'sol';
     t.innerHTML = '<button type="button" class="' + (s ? '' : 'on') + '" data-r="pel">' + ic('alerta') + 'Peligrosos</button><button type="button" class="s ' + (s ? 'on' : '') + '" data-r="sol">' + ic('basura') + 'Sólidos</button>';
-    t.onclick = function (ev) { var b = ev.target.closest('button'); if (b) cambiarModo(b.getAttribute('data-r')); };
+    t.onclick = function (ev) { ev.stopPropagation(); var b = ev.target.closest('button'); if (b) cambiarModo(b.getAttribute('data-r')); };
     document.body.classList.toggle('rb-sol', s);
   }
   function cambiarModo(r, sinIr) {
