@@ -1190,7 +1190,7 @@ function revisarLogo(cb){
   setTimeout(function(){ if(LOGO_OK===null){ LOGO_OK=false; cb(false); } }, 6000);
 }
 
-function imprimirDistintivos(){
+/* Tamaño del distintivo al imprimir: hoja carta o media carta (5½ × 8½, un distintivo por media hoja). Se recuerda en este equipo. */ function tamDist_() {   var s = document.getElementById('d-tam'), v = s ? s.value : 'carta';   try { localStorage.setItem('eco_dist_tam', v); } catch (e) {}   document.getElementById('dist-imprimir').classList.toggle('media', v === 'media');   var st = document.getElementById('pag-dist');   if (!st) { st = document.createElement('style'); st.id = 'pag-dist'; document.head.appendChild(st); }   st.textContent = v === 'media' ? '@media print{#dist-imprimir.media .tarj{zoom:.585;margin:1.3in auto 0}} @page{size:5.5in 8.5in;margin:.25in}' : ''; } function tamDistIni_() { var s = document.getElementById('d-tam'); if (s) try { s.value = localStorage.getItem('eco_dist_tam') || 'carta'; } catch (e) {} } tamDistIni_(); function imprimirDistintivos(){
   if(!DIST) return;
   var sel = DIST.clientes.filter(function(c){ return DIST_SEL[c.id]; });
   if(!sel.length){ avisoDist("Marca al menos un cliente para imprimir.", true); return; }
