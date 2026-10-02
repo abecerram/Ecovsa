@@ -136,6 +136,47 @@
   .sc-par.ok .n{background:#2f9e44;color:#fff}.sc-par.mal .n{background:#d64045;color:#fff}.sc-par.on .n{background:#14306b;color:#fff}
   .sc-par .t{flex:1;min-width:0}.sc-par small{display:block;color:#5B6880;font-size:12px}
   #hub-solidos{cursor:pointer}
+  /* 3.17.2 · turno, interruptor de sucursal, días a la vista, mapa en una sola pantalla */
+  .sv-chip.t-dia{background:#FFF4D6;color:#7a5200}.sv-chip.t-noche{background:#E3E9F6;color:#14306b}
+  .sv-tn{display:inline-flex;border:1.5px solid #d3ddea;border-radius:10px;overflow:hidden}
+  .sv-tn button{border:0;background:#fff;padding:7px 12px;font:800 12.5px Archivo,sans-serif;color:#5b6a80;cursor:pointer}
+  .sv-tn button.on{background:#14306b;color:#fff}.sv-tn button[disabled]{cursor:default;opacity:.7}
+  .sv-hint{font-size:11.5px;font-weight:700;color:#8a6300;margin-top:4px;max-width:260px;line-height:1.35;text-transform:none;letter-spacing:0}
+  .sv-hint.r{color:#b42318}
+  .sv-est{display:flex;gap:12px;align-items:center;border-radius:12px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #b8dca0;background:#f1f9eb}
+  .sv-est.off{border-color:#d3ddea;background:#f4f6f9}
+  .sv-est .tx{flex:1;min-width:0}.sv-est .tx b{display:block;font:900 15px Archivo,sans-serif;color:#2F6B0A}.sv-est.off .tx b{color:#3d4a60}
+  .sv-est .tx small{display:block;font-size:12.5px;color:#3d4a60;margin-top:2px}
+  .sv-sw{position:relative;flex:none;width:58px;height:32px;border-radius:999px;border:0;background:#2f9e44;cursor:pointer;padding:0}
+  .sv-sw::after{content:'';position:absolute;top:4px;left:30px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s}
+  .sv-sw.off{background:#aab4c3}.sv-sw.off::after{left:4px}
+  .sv-est .mot{margin-top:8px}.sv-est .mot input{width:100%;box-sizing:border-box;border:1.5px solid #d3ddea;border-radius:9px;padding:8px 10px;font:600 13px inherit}
+  .sv-dl{display:inline-flex;gap:2px}.sv-dl i{font-style:normal;font:800 10px Archivo,sans-serif;width:17px;height:17px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:#eef1f5;color:#a3adbd}
+  .sv-dl i.on{background:#14306b;color:#fff}
+  .sv-pz{display:inline-block;margin-top:4px}
+  .pl-ban.g{background:#f4f6f9;border-color:#d3ddea;color:#3d4a60}
+  .sv-why{font-size:13px;color:#3d4a60;line-height:1.5;padding:10px 4px}.sv-why b{color:#0f2140}.sv-why button{margin-top:8px}
+  .sv-mv{display:grid;grid-template-columns:290px minmax(0,1fr);gap:12px;height:var(--mvh,560px);min-height:420px;margin-top:8px}
+  .sv-mv-lado{display:flex;flex-direction:column;min-height:0;background:#fff;border:1px solid #e1e6ee;border-radius:14px;overflow:hidden}
+  .sv-mv-hojas{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-bottom:1px solid #eef1f5}
+  .sv-mv-hojas button{display:inline-flex;align-items:center;gap:5px;border:1.5px solid #d3ddea;background:#fff;border-radius:999px;padding:4px 10px;font:800 12px Archivo,sans-serif;color:#3d4a60;cursor:pointer}
+  .sv-mv-hojas button.on{border-color:#14306b;background:#14306b;color:#fff}
+  .sv-mv-hojas i{display:inline-block;width:9px;height:9px;border-radius:50%}
+  .sv-mv-lista{flex:1;overflow:auto;padding:4px 10px 10px}
+  .sv-mv-g{font:900 11px Archivo,sans-serif;text-transform:uppercase;letter-spacing:.4px;color:#5b6a80;margin:10px 0 4px}
+  .sv-mv-p{display:flex;gap:8px;align-items:center;padding:6px 4px;border-radius:8px;cursor:pointer;font-size:12.5px}
+  .sv-mv-p:hover{background:#f1f5fb}.sv-mv-p .n{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font:900 10.5px Archivo,sans-serif}
+  .sv-mv-p .t{flex:1;min-width:0}.sv-mv-p b{display:block;color:#0f2140;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sv-mv-p small{color:#667489}
+  .sv-mv-p.sin{opacity:.6;cursor:default}
+  .sv-mv-mapa{position:relative;min-height:0;border:1px solid #e1e6ee;border-radius:14px;overflow:hidden;background:#eef1f5}
+  .sv-mv-mapa #dso-mapa{position:absolute;inset:0}
+  .sv-mv-bar{position:absolute;top:10px;right:10px;z-index:500;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .sv-mv-bar button{border:1.5px solid #c4d2e6;background:#fff;border-radius:9px;padding:6px 10px;font:800 12px Archivo,sans-serif;color:#14306b;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .sv-mv-bar button.on{background:#14306b;color:#fff;border-color:#14306b}
+  .sv-mv-tip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:500;background:rgba(15,33,64,.82);color:#fff;font:700 12px Archivo,sans-serif;padding:6px 12px;border-radius:999px;pointer-events:none;transition:opacity .2s}
+  .sv-mv-tip.no{opacity:0}
+  .sv-mv-mapa.full{position:fixed;inset:0;z-index:9000;border-radius:0}
+  @media (max-width:860px){.sv-mv{grid-template-columns:1fr;height:auto}.sv-mv-lado{max-height:220px;order:2}.sv-mv-mapa{height:62vh}}
   section[id^="pantalla-s-"]{color:var(--ini-tinta)}body.es-sup section[id^="pantalla-s-"]{max-width:1320px}
   `;
   var st = document.createElement('style'); st.id = 'dso-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -161,7 +202,36 @@
   var SERV = { bolsas: 'Cuenta bolsas', caja: 'Caja llena (roll-off)', granel: 'Carga a mano' };
   var EST = { borrador: ['g', 'Borrador'], publicada: ['', 'Publicada · falta la revisión'], por_firmar: ['r', 'Esperando tu firma'], en_ruta: ['', 'En ruta'], cerrada: ['v', 'Cerrada'], no_sale: ['r', 'No sale'], anulada: ['g', 'Anulada'] };
   function chipEst(s) { var x = EST[s] || ['g', s]; return '<span class="sv-chip ' + x[0] + '">' + x[1] + '</span>'; }
-  function diasTxt(d) { var a = String(d || '').split(',').map(Number).filter(Boolean); if (a.length === 7) return 'Todas las noches'; if (!a.length) return 'Cuando avisa'; return a.map(function (n) { return DIAS[n % 7]; }).join(', '); }
+  function diasTxt(d) { var a = String(d || '').split(',').map(Number).filter(Boolean); if (a.length === 7) return 'Todos los días'; if (!a.length) return 'Cuando avisa'; return a.map(function (n) { return DIAS[n % 7]; }).join(', '); }
+
+  /* 3.17.2 · día o noche (lo elegido; en hojas viejas, según la hora de salida) */
+  var TURNO = { dia: ['☀️', 'Día', 'de día', '07:00'], noche: ['🌙', 'Noche', 'de noche', '21:30'] };
+  function turnoDe(h) { if (h && (h.turno === 'dia' || h.turno === 'noche')) return h.turno; var m = minDe(h && h.salida); return m != null && m >= 300 && m < 1080 ? 'dia' : 'noche'; }
+  function chipTurno(t) { var x = TURNO[t] || TURNO.noche; return '<span class="sv-chip t-' + (TURNO[t] ? t : 'noche') + '">' + x[0] + ' ' + x[1] + '</span>'; }
+  function rutaTit(h) { return turnoDe(h) === 'dia' ? 'Mi ruta de hoy' : 'Mi ruta de esta noche'; }
+  /* días de frecuencia a la vista: L M X J V S D */
+  function diasLetras(d) { var a = String(d || '').split(',').map(Number); return '<span class="sv-dl" title="' + e(diasTxt(d)) + '">' + ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(function (l, i) { return '<i class="' + (a.indexOf(i + 1) >= 0 ? 'on' : '') + '">' + l + '</i>'; }).join('') + '</span>'; }
+  /* 3.17.2 · lista de conductores: primero los de sólidos (rubro en Configuración › Usuarios o Equipos de trabajo), aparte los de peligrosos */
+  function condLista() { var B = D.base || {}; return B.conductoresInfo || (B.conductores || []).map(function (n) { return { nombre: n, grupo: 'solidos', usuario: true }; }); }
+  function condOpts(sel) {
+    var L = condLista(), s = L.filter(function (c) { return c.grupo === 'solidos'; }), o = L.filter(function (c) { return c.grupo !== 'solidos'; });
+    if (sel && !L.some(function (c) { return c.nombre === sel; })) s = [{ nombre: sel, grupo: 'solidos', usuario: false }].concat(s);
+    var op = function (c) { return '<option value="' + e(c.nombre) + '"' + (c.nombre === sel ? ' selected' : '') + '>' + e(c.nombre) + (c.usuario ? '' : ' · sin usuario') + '</option>'; };
+    return '<option value="">Elige…</option>' + (s.length ? '<optgroup label="Conductores de sólidos">' + s.map(op).join('') + '</optgroup>' : '') + (o.length ? '<optgroup label="Conductores de peligrosos">' + o.map(op).join('') + '</optgroup>' : '');
+  }
+  function condNota(sel) {
+    var L = condLista(), c = L.filter(function (x) { return x.nombre === sel; })[0];
+    if (!sel) return L.some(function (x) { return x.grupo === 'solidos'; }) ? '' : '<div class="sv-hint">Todavía no hay conductores de sólidos: márcalos como «Sólidos» en Configuración › Usuarios.</div>';
+    if (!c) return '<div class="sv-hint r">Ya no está entre los conductores activos.</div>';
+    if (!c.usuario) return '<div class="sv-hint r">Sin usuario en el sistema: no verá la hoja en su celular. Créalo en Configuración › Usuarios como conductor de sólidos.</div>';
+    if (c.grupo !== 'solidos') return '<div class="sv-hint">Es conductor de peligrosos. Si va a trabajar en sólidos, márcalo como «Sólidos» en Configuración › Usuarios.</div>';
+    return '';
+  }
+  /* unidades: todas las activas, primero las del tipo elegido, cada una con su tipo */
+  function uniOpts(sel, tipo) {
+    var L = ((D.base || {}).unidades || []).filter(function (u) { return u.estado === 'activa' || u.unidadId === sel; }).slice().sort(function (a, b) { return (a.tipo === tipo ? 0 : 1) - (b.tipo === tipo ? 0 : 1) || (a.nombre < b.nombre ? -1 : 1); });
+    return '<option value="">Elige…</option>' + L.map(function (u) { return '<option value="' + e(u.unidadId) + '"' + (u.unidadId === sel ? ' selected' : '') + '>' + e(u.nombre + (u.placa ? ' · ' + u.placa : '') + ' · ' + (TIPOS[u.tipo] || TIPOS.compactador)[1]) + '</option>'; }).join('');
+  }
 
   /* llamada al servidor con promesa */
   function S(fn) {
@@ -197,7 +267,7 @@
     con: { hoja: null, esSolidos: false, vista: '', idx: -1, borr: {} }
   };
   var MENU_PEL = null;
-  var MENU_SOL = [['Operación'], ['s-hub', '🏠', 'Inicio'], ['s-plan', '🛠️', 'Planificar rutas'], ['s-mapa', '🗺️', 'Mapa de la noche'], ['s-agenda', '🗓️', 'Calendario'],
+  var MENU_SOL = [['Operación'], ['s-hub', '🏠', 'Inicio'], ['s-plan', '🛠️', 'Planificar rutas'], ['s-mapa', '🗺️', 'Mapa de rutas'], ['s-agenda', '🗓️', 'Calendario'],
     ['s-salidas', '📋', 'Salidas y hojas de ruta', 'dsoSal'], ['s-cierre', '📊', 'Cierre de rutas'], ['s-cli', '👥', 'Clientes de sólidos', 'dsoCli'], ['s-rell', '🏭', 'Relleno · tickets', 'dsoRel'],
     ['Administración'], ['s-flota', '🚚', 'Flota de sólidos'], ['s-equipos', '👤', 'Equipos de trabajo'], ['s-cajas', '📦', 'Cajas roll-off', 'dsoCaj']];
   var PANTALLAS = {};
@@ -297,9 +367,9 @@
       var es = estNoche(h), pct = h.paradas.length ? Math.round(h.atendidas / h.paradas.length * 100) : 0;
       var sub = (h.conductor || 'Sin conductor') + (h.ayudantes && h.ayudantes.length ? ' + ' + h.ayudantes.length + ' ayudante' + (h.ayudantes.length > 1 ? 's' : '') : '') + ' · ' + h.atendidas + ' de ' + h.paradas.length + ' paradas' +
         (h.tipo === 'rolloff' ? ' · ' + h.paradas.filter(function (p) { return p.cajaLevanta; }).length + ' cajas' : ' · ' + N(h.bolsas) + ' bolsas');
-      return '<div class="ini-sr" style="display:grid;grid-template-columns:minmax(0,1fr) 150px 80px;gap:14px;align-items:center;cursor:pointer" onclick="DSO.irHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')"><b>' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) +
+      return '<div class="ini-sr" style="display:grid;grid-template-columns:minmax(0,1fr) 150px 80px;gap:14px;align-items:center;cursor:pointer" onclick="DSO.irHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')"><b>' + chipTurno(turnoDe(h)) + ' ' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) +
         '<small style="display:block;font-weight:600;color:var(--ini-gris);font-size:12px;margin-top:2px">' + e(sub) + (h.fecha !== I.fecha ? ' · desde ' + fCorta(h.fecha) : '') + '</small></b><div class="ini-mini"><i style="width:' + pct + '%"></i></div><span class="e" style="color:' + es[1] + ';text-align:right">' + es[0] + '</span></div>';
-    }).join('') : '<div class="sv-vacio"><b>No hay hojas de ruta para esta noche</b>Arma la noche en «Planificar rutas».' + (puede() ? '<div style="margin-top:10px"><button class="pl-btn v" onclick="DSO.mostrar(\'s-plan\')">Planificar la noche →</button></div>' : '') + '</div>';
+    }).join('') : '<div class="sv-vacio"><b>No hay hojas de ruta para hoy</b>Ármalas en «Planificar rutas».' + (puede() ? '<div style="margin-top:10px"><button class="pl-btn v" onclick="DSO.mostrar(\'s-plan\')">Planificar rutas →</button></div>' : '') + '</div>';
     var kp = [[N(k.toneladas, 1) + ' t', 'al relleno', k.tickets + ' ticket' + (k.tickets === 1 ? '' : 's'), 's-rell'], [N(k.bolsas), 'bolsas contadas', 'compactador', 's-cierre'], [N(k.cajas), 'cajas cambiadas', 'roll-off', 's-cajas'],
       [k.cumplidas + '%', 'paradas cumplidas', k.sinHacer ? k.sinHacer + ' sin hacer' : 'todas hechas', 's-cierre'], [N(k.km), 'km recorridos', 'según el odómetro', 's-cierre']];
     var prox = I.proximos.map(function (p) {
@@ -310,9 +380,9 @@
       return '<div class="ini-al" style="cursor:pointer" onclick="DSO.atender(' + i + ')"><span class="dot ' + (a.tono || '') + '"></span><div><b>' + e(a.titulo) + '</b><span>' + e(a.detalle) + '</span><span class="ac' + (a.tono === 'r' ? ' p' : '') + '">' + e(a.accion) + ' →</span></div></div>';
     }).join('') : '<div class="sv-vacio" style="padding:14px 4px"><b>Todo en orden</b>Nada de sólidos espera por ti.</div>';
     var sinBase = !B.unidades.length || !B.clientes.length;
-    pintar(s, '<div class="ini"><div class="ini-grid"><div><div class="ini-hola">' + hola + '<span>' + fLarga(I.fecha) + ' · sólidos · ' + (abiertas ? abiertas + ' ruta' + (abiertas > 1 ? 's' : '') + ' esta noche' : 'sin rutas abiertas') + '</span></div>' +
+    pintar(s, '<div class="ini"><div class="ini-grid"><div><div class="ini-hola">' + hola + '<span>' + fLarga(I.fecha) + ' · sólidos · ' + (abiertas ? abiertas + ' ruta' + (abiertas > 1 ? 's' : '') + ' abierta' + (abiertas > 1 ? 's' : '') : 'sin rutas abiertas') + '</span></div>' +
       (sinBase ? '<div class="pl-ban a"><span>Para empezar: registra ' + (!B.unidades.length ? '<b>las unidades</b> en «Flota de sólidos»' : '') + (!B.unidades.length && !B.clientes.length ? ' y ' : '') + (!B.clientes.length ? '<b>los clientes y sus puntos de recolección</b> en «Clientes de sólidos»' : '') + '.</span><span class="sp"></span><button onclick="DSO.mostrar(\'' + (!B.unidades.length ? 's-flota' : 's-cli') + '\')">Ir →</button></div>' : '') +
-      '<div class="ini-bloque"><div class="ini-bt"><h3>Operación de esta noche · en vivo</h3><button class="x" onclick="DSO.mostrar(\'s-salidas\')">Toca una ruta para ver su hoja</button></div><div class="ini-sem">' + noche + '</div></div>' +
+      '<div class="ini-bloque"><div class="ini-bt"><h3>Operación de hoy · en vivo</h3><button class="x" onclick="DSO.mostrar(\'s-salidas\')">Toca una ruta para ver su hoja</button></div><div class="ini-sem">' + noche + '</div></div>' +
       '<div class="ini-bloque"><div class="ini-bt"><h3>Indicadores · últimos 7 días</h3></div><div class="ini-kpis">' + kp.map(function (x) { return '<button onclick="DSO.mostrar(\'' + x[3] + '\')"><b>' + x[0] + '</b><span>' + x[1] + '</span><em>' + e(x[2]) + '</em></button>'; }).join('') + '</div></div>' +
       '<div class="ini-bloque"><div class="ini-bt"><h3>Lo que viene esta semana</h3><button class="x" onclick="DSO.mostrar(\'s-agenda\')">Abrir calendario →</button></div><div class="ini-sem">' + prox + '</div></div></div>' +
       '<aside class="ini-aten"><h3>Requiere tu atención <span style="color:var(--ini-rojo)">' + (I.atencion.length || '') + '</span></h3>' + at + '</aside></div></div>');
@@ -327,27 +397,28 @@
     if (a.ir === 'salidas') { var h = D.ini.noche.filter(function (x) { return x.hojaId === a.hojaId; })[0]; D.irHoja(a.hojaId, h ? h.fecha : D.fecha); return; }
     if (a.ir === 'relleno') { D.rellTab = 'f'; mostrar('s-rell'); return; }
     if (a.ir === 'clientes') { var p = (D.base.puntos || []).filter(function (x) { return x.puntoId === a.puntoId; })[0]; D.cliSel = p ? p.clienteId : null; mostrar('s-cli'); return; }
-    if (a.ir === 'plan') { D.fecha = hoy(); mostrar('s-plan'); return; }
+    if (a.ir === 'plan') { D.fecha = a.fecha || hoy(); D.editor = null; D._abrirHoja = a.hojaId || null; mostrar('s-plan'); return; }
   };
 
   /* ═══ Planificar rutas ═══ */
   PANTALLAS['s-plan'] = function (s) {
     D.fecha = D.fecha || hoy();
-    cargando(s, 'Armando la noche…');
+    cargando(s, 'Cargando el planificador…');
     Promise.all([base(), S('api_dsoDia', PIN, D.fecha)]).then(function (r) {
       D.dia = r[1];
-      if (!D.editor || D.editor.fecha !== D.fecha) elegirHoja(null, true);
+      if (D._abrirHoja && D.dia.hojas.some(function (x) { return x.hojaId === D._abrirHoja; })) { D.editor = editorDe(D.dia.hojas.filter(function (x) { return x.hojaId === D._abrirHoja; })[0]); D._abrirHoja = null; }
+      else if (!D.editor || D.editor.fecha !== D.fecha) elegirHoja(null, true);
       else if (D.editor.hojaId) { var h = D.dia.hojas.filter(function (x) { return x.hojaId === D.editor.hojaId; })[0]; if (h && !D.editor.sucio) D.editor = editorDe(h); }
       pintarPlan(s);
     }).catch(falla);
   };
   function editorDe(h) {
-    return { fecha: h.fecha, hojaId: h.hojaId, rutaId: h.rutaId, nombre: h.nombre, tipo: h.tipo, unidadId: h.unidadId, conductor: h.conductor, ayudantes: (h.ayudantes || []).slice(), salida: h.salida, relleno: h.relleno,
+    return { fecha: h.fecha, hojaId: h.hojaId, rutaId: h.rutaId, nombre: h.nombre, tipo: h.tipo, unidadId: h.unidadId, conductor: h.conductor, ayudantes: (h.ayudantes || []).slice(), salida: h.salida, relleno: h.relleno, turno: turnoDe(h),
       paradas: h.paradas.map(function (p) { return p.puntoId; }), estado: h.estado, sucio: false };
   }
   function editorNuevo() {
     var B = D.base, u = B.unidades.filter(function (x) { return x.estado === 'activa' && x.tipo === 'compactador'; })[0] || B.unidades.filter(function (x) { return x.estado === 'activa'; })[0] || {};
-    return { fecha: D.fecha, hojaId: '', rutaId: '', nombre: 'Ruta de sólidos', tipo: u.tipo || 'compactador', unidadId: u.unidadId || '', conductor: u.conductor || '', ayudantes: (u.ayudantes || []).slice(), salida: '21:30', relleno: B.ajustes.rellenos[0] || '', paradas: [], estado: 'borrador', sucio: false };
+    return { fecha: D.fecha, hojaId: '', rutaId: '', nombre: 'Ruta de sólidos', tipo: u.tipo || 'compactador', unidadId: u.unidadId || '', conductor: u.conductor || '', ayudantes: (u.ayudantes || []).slice(), salida: '21:30', turno: 'noche', relleno: B.ajustes.rellenos[0] || '', paradas: [], estado: 'borrador', sucio: false };
   }
   function elegirHoja(id, sinPintar) {
     var h = id ? D.dia.hojas.filter(function (x) { return x.hojaId === id; })[0] : (sinPintar ? D.dia.hojas.filter(function (x) { return ['borrador', 'publicada'].indexOf(x.estado) >= 0; })[0] || D.dia.hojas[0] : null);
@@ -375,21 +446,21 @@
     });
     var grupos = ['compactador', 'rolloff', 'rejilla'].map(function (t) { return [t, cands.filter(function (p) { return p.unidadTipo === t; })]; }).filter(function (g) { return g[1].length; });
     var ed = editable();
+    var pz = (Dd.pausados || []);
     var izq = '<div class="pl-card pl-col-toca"><div class="pl-ch"><h3>A quién le toca el ' + fCorta(D.fecha).split(' ')[0] + '</h3><button class="x" onclick="DSO.planAgregarMarcados()"' + (ed ? '' : ' disabled') + '>Agregar marcados</button></div>' +
       '<input class="pl-busca" placeholder="🔍 Buscar en los clientes de sólidos…" value="' + e(D.planQ || '') + '" oninput="DSO.planBuscar(this.value)">' +
+      (pz.length ? '<div class="pl-ban g" style="margin:0 12px 8px"><span>' + (pz.length === 1 ? 'Hay <b>1 sucursal pausada</b> que no sale aquí' : 'Hay <b>' + pz.length + ' sucursales pausadas</b> que no salen aquí') + '</span><span class="sp"></span><button onclick="DSO.verPausadas()">Ver</button></div>' : '') +
       '<div class="pl-fil">' + [['toca', 'Les toca'], ['todos', 'Todos'], ['compactador', 'Compactador'], ['rolloff', 'Roll-off'], ['rejilla', 'Rejilla']].map(function (f) { return '<button class="' + (fil === f[0] ? 'on' : '') + '" onclick="DSO.planFiltro(\'' + f[0] + '\')">' + f[1] + '</button>'; }).join('') + '</div>' +
       (grupos.length ? grupos.map(function (g) {
         return '<div class="pl-gr">' + (TIPOS[g[0]][1]) + ' · ' + (g[0] === 'compactador' ? 'cuentan bolsas' : g[0] === 'rolloff' ? 'cambio de caja' : 'carga a mano') + ' <span>' + g[1].length + '</span></div>' + g[1].map(function (p) {
           var c = C[p.clienteId] || {}, t = leToca[p.puntoId];
-          var fx = chipTipo(p.unidadTipo) + ' <i>' + e(SERV[p.servicio] || '') + (p.horaDesde ? ' · recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : '') + '</i>' + (t && t.cajaLlena ? ' <i class="r">Caja llena avisada</i>' : t ? ' <i class="v">Le toca esta noche</i>' : '');
+          var fx = chipTipo(p.unidadTipo) + ' <i>' + e(SERV[p.servicio] || '') + (p.horaDesde ? ' · recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : '') + '</i>' + (t && t.cajaLlena ? ' <i class="r">Caja llena avisada</i>' : t ? ' <i class="v">Le toca este día</i>' : '');
           return '<div class="pl-cand"><input type="checkbox" class="c2-ck dso-ck" data-p="' + e(p.puntoId) + '"' + (ed ? '' : ' disabled') + '><div class="nm"><b><span class="pl-dot ' + (t ? 'tocan' : 'busca') + '"></span>' + e(p.nombre) + '</b><span>' + e(c.nombre || '') + (p.kgBolsa ? ' · ≈ ' + N(p.kgBolsa, 1) + ' kg por bolsa' : '') + '</span><div class="fx">' + fx + '</div></div>' +
             (ed ? '<button class="add" title="Agregar a la hoja" onclick="DSO.planAgregar(\'' + e(p.puntoId) + '\')">＋</button>' : '') + '</div>';
         }).join('');
-      }).join('') : '<div class="pl-vacio">' + (B.puntos.length ? (fil === 'toca' ? 'A nadie más le toca esta noche. Mira «Todos» para agregar un punto fuera de su frecuencia.' : 'Nada con ese filtro.') : 'Todavía no hay puntos de recolección. Regístralos en «Clientes de sólidos».') + '</div>') + '</div>';
+      }).join('') : (B.puntos.length ? porQueVacio(fil, q) : '<div class="pl-vacio">Todavía no hay sucursales (puntos de recolección). Regístralas en «Clientes de sólidos».</div>')) + '</div>';
 
     var un = U[E.unidadId] || {};
-    var unidades = B.unidades.filter(function (u) { return u.estado === 'activa' && u.tipo === E.tipo; });
-    var conds = B.conductores.slice(); if (E.conductor && conds.indexOf(E.conductor) < 0) conds.unshift(E.conductor);
     var ayud = B.equipo.filter(function (x) { return x.activo && x.puesto !== 'conductor'; });
     var paradas = E.paradas.map(function (id, i) {
       var p = P[id] || { nombre: id }, c = C[p.clienteId] || {};
@@ -400,11 +471,13 @@
     var cap = [[E.paradas.length + '', 'paradas'], [nCajas ? nCajas + ' caja' + (nCajas > 1 ? 's' : '') : '—', 'roll-off a cambiar'], [un.capacidadT ? N(un.capacidadT) + ' t' : (un.capacidadYd3 ? N(un.capacidadYd3) + ' yd³' : '—'), 'capacidad de la unidad'], [E.salida || '—', 'salida']];
     var tabs = '<div class="pl-rtabs">' + Dd.hojas.map(function (h) { return '<button class="' + (h.hojaId === E.hojaId ? 'on' : '') + '" onclick="DSO.elegirHoja(\'' + e(h.hojaId) + '\')">' + e(h.nombre || h.hojaId) + ' ' + chipEst(h.estado) + '</button>'; }).join('') +
       (puede() ? '<button class="' + (!E.hojaId ? 'on' : '') + '" onclick="DSO.elegirHoja(\'\')">＋ Hoja nueva</button>' : '') + '</div>';
-    var der = '<div class="pl-card pl-col-ruta">' + tabs + '<div class="pl-ch"><h3>' + (E.hojaId ? 'Hoja ' + e(E.hojaId) : 'Hoja nueva') + ' · ' + fCorta(D.fecha) + ' · noche</h3><div style="display:flex;gap:8px;align-items:center">' + (E.sucio ? '<span class="pl-est suc">sin guardar</span>' : '') + chipEst(E.estado) + '</div></div>' +
+    var der = '<div class="pl-card pl-col-ruta">' + tabs + '<div class="pl-ch"><h3>' + (E.hojaId ? 'Hoja ' + e(E.hojaId) : 'Hoja nueva') + ' · ' + fCorta(D.fecha) + ' · ' + TURNO[E.turno][2] + '</h3><div style="display:flex;gap:8px;align-items:center">' + (E.sucio ? '<span class="pl-est suc">sin guardar</span>' : '') + chipEst(E.estado) + '</div></div>' +
+      (E.estado === 'borrador' && (E.hojaId || E.paradas.length) ? '<div class="pl-ban a" style="margin:0 14px 10px"><span><b>Borrador</b> · ' + e(E.conductor || 'el conductor') + ' todavía no la ve en su celular. Cuando esté lista, toca «✓ Publicar al equipo».</span></div>' : '') +
       '<div class="tp2"><div class="lbl">Tipo de unidad</div>' + Object.keys(TIPOS).map(function (t) { return '<button class="op' + (t === E.tipo ? ' on' : '') + '"' + (ed ? ' onclick="DSO.planCampo(\'tipo\',\'' + t + '\')"' : ' disabled') + '><span class="ico">' + TIPOS[t][2] + '</span><span><b>' + TIPOS[t][1] + '</b><small>' + TIPOS[t][3] + '</small></span></button>'; }).join('') + '</div>' +
-      '<div class="pl-cfg"><div><small>Nombre</small><input value="' + e(E.nombre) + '" onchange="DSO.planCampo(\'nombre\',this.value)"' + (ed ? '' : ' disabled') + ' style="width:150px"></div>' +
-      '<div><small>Unidad</small><select onchange="DSO.planCampo(\'unidadId\',this.value)"' + (ed ? '' : ' disabled') + '><option value="">Elige…</option>' + unidades.map(function (u) { return '<option value="' + e(u.unidadId) + '"' + (u.unidadId === E.unidadId ? ' selected' : '') + '>' + e(u.nombre + (u.placa ? ' · ' + u.placa : '')) + '</option>'; }).join('') + '</select></div>' +
-      '<div><small>Conductor</small><select onchange="DSO.planCampo(\'conductor\',this.value)"' + (ed ? '' : ' disabled') + '><option value="">Elige…</option>' + conds.map(function (c) { return '<option' + (c === E.conductor ? ' selected' : '') + '>' + e(c) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="pl-cfg"><div><small>Turno</small><div class="sv-tn">' + ['dia', 'noche'].map(function (t) { return '<button type="button" class="' + (E.turno === t ? 'on' : '') + '"' + (ed ? ' onclick="DSO.planCampo(\'turno\',\'' + t + '\')"' : ' disabled') + '>' + TURNO[t][0] + ' ' + TURNO[t][1] + '</button>'; }).join('') + '</div></div>' +
+      '<div><small>Nombre</small><input value="' + e(E.nombre) + '" onchange="DSO.planCampo(\'nombre\',this.value)"' + (ed ? '' : ' disabled') + ' style="width:150px"></div>' +
+      '<div><small>Unidad</small><select onchange="DSO.planCampo(\'unidadId\',this.value)"' + (ed ? '' : ' disabled') + '>' + uniOpts(E.unidadId, E.tipo) + '</select>' + (un.tipo && un.tipo !== E.tipo ? '<div class="sv-hint">Es ' + TIPOS[un.tipo][1].toLowerCase() + ': la hoja pasa a ese tipo.</div>' : '') + '</div>' +
+      '<div><small>Conductor</small><select onchange="DSO.planCampo(\'conductor\',this.value)"' + (ed ? '' : ' disabled') + '>' + condOpts(E.conductor) + '</select>' + condNota(E.conductor) + '</div>' +
       '<div><small>Salida</small><input type="time" value="' + e(E.salida) + '" onchange="DSO.planCampo(\'salida\',this.value)"' + (ed ? '' : ' disabled') + '></div></div>' +
       '<div class="pl-cfg" style="padding-top:0"><div style="flex:1 1 100%"><small>Ayudantes del equipo · no entran al sistema; el conductor confirma que vinieron</small><div class="sv-eq">' +
       (ayud.length ? ayud.map(function (a) { var on = E.ayudantes.indexOf(a.personaId) >= 0; return '<span class="' + (on ? 'on' : '') + '"' + (ed ? ' onclick="DSO.planAyudante(\'' + e(a.personaId) + '\')"' : '') + '>' + e(a.nombre) + '<small>' + (a.protocoloEstado === 'firmado' ? 'protocolo al día' : 'protocolo pendiente') + '</small></span>'; }).join('') : '<small style="text-transform:none">Regístralos en «Equipos de trabajo».</small>') + '</div></div>' +
@@ -419,7 +492,8 @@
         (E.hojaId ? '<button class="pl-btn" onclick="DSO.irHoja(\'' + e(E.hojaId) + '\',\'' + D.fecha + '\')">Ver en Salidas y hojas →</button>' : '')) + '</div></div>';
 
     var faltan = Dd.rutas.filter(function (r) { return !r.yaTieneHoja; });
-    var h = '<div class="pl-tt"><div><h1>Planificar rutas · sólidos</h1><div class="sub">' + fLarga(D.fecha) + ' · rutas de noche</div></div><span class="sp"></span>' +
+    var nT = { dia: 0, noche: 0 }; Dd.hojas.forEach(function (x) { nT[turnoDe(x)]++; });
+    var h = '<div class="pl-tt"><div><h1>Planificar rutas · sólidos</h1><div class="sub">' + fLarga(D.fecha) + ' · ' + (Dd.hojas.length ? [nT.dia ? nT.dia + ' de día' : '', nT.noche ? nT.noche + ' de noche' : ''].filter(Boolean).join(' y ') : 'rutas de día o de noche') + '</div></div><span class="sp"></span>' +
       '<button class="pl-btn" onclick="DSO.rutasFijas()">🔁 Rutas fijas · ' + B.rutas.filter(function (r) { return r.activa; }).length + '</button>' +
       '<button class="pl-btn" onclick="DSO.planDia(-1)">◀</button><input type="date" value="' + D.fecha + '" onchange="DSO.planIr(this.value)"><button class="pl-btn" onclick="DSO.planDia(1)">▶</button></div>' +
       '<div class="pl-dias">' + Dd.dias.map(function (d) { return '<button class="' + (d.fecha === D.fecha ? 'on' : '') + (d.hojas ? '' : ' vac') + '" onclick="DSO.planIr(\'' + d.fecha + '\')"><b>' + fCorta(d.fecha) + '</b>' + (d.hojas ? d.hojas + ' hoja' + (d.hojas > 1 ? 's' : '') : 'sin hoja') + '</button>'; }).join('') + '</div>' +
@@ -427,6 +501,24 @@
       '<div class="pl-grid">' + izq + der + '</div>';
     pintar(s, h);
   }
+  function porQueVacio(fil, q) {
+    var Dd = D.dia, pz = (Dd.pausados || []).filter(function (p) { return p.leToca; }).length;
+    if (q || (fil !== 'toca' && fil !== 'todos')) return '<div class="pl-vacio">Nada con ese filtro.</div>';
+    var r = [];
+    if (fil === 'toca') {
+      r.push('Ninguna sucursal más tiene marcado este día.');
+      if (Dd.noLeToca) r.push('<b>' + Dd.noLeToca + '</b> en servicio no tiene' + (Dd.noLeToca > 1 ? 'n' : '') + ' marcado este día: tócalas en «Todos» para sumarlas igual.');
+    } else r.push('Todas las sucursales en servicio ya están en una hoja de este día.');
+    if (pz) r.push('<b>' + pz + '</b> sucursal' + (pz > 1 ? 'es' : '') + ' que hoy le' + (pz > 1 ? 's' : '') + ' tocaría está' + (pz > 1 ? 'n' : '') + ' <b>pausada' + (pz > 1 ? 's' : '') + '</b>.');
+    return '<div class="sv-why">' + r.join('<br>') + '<div>' + (fil === 'toca' && Dd.noLeToca ? '<button class="pl-btn" onclick="DSO.planFiltro(\'todos\')">Ver todas las sucursales</button> ' : '') + (pz ? '<button class="pl-btn" onclick="DSO.verPausadas()">Ver las pausadas</button>' : '') + '</div></div>';
+  }
+  D.verPausadas = function () {
+    var C = mapa(D.base.clientes, 'clienteId'), L = (D.dia && D.dia.pausados) || [];
+    modal('Sucursales pausadas', L.length ? '<div class="sv-list">' + L.map(function (p) {
+      return '<div class="it"><div class="tx"><b>' + e(p.nombre) + '</b><small>' + e((C[p.clienteId] || {}).nombre || '') + ' · pausada' + (p.desde ? ' desde ' + fCorta(p.desde) : '') + (p.motivo ? ' · ' + e(p.motivo) : '') + '</small></div>' +
+        (puede() ? '<button class="pl-btn v" onclick="DSO.puntoEstado(\'' + e(p.puntoId) + '\',true,\'plan\')">Poner en servicio</button>' : '') + '</div>';
+    }).join('') + '</div>' : '<div class="sv-vacio">No hay sucursales pausadas.</div>', '<button class="pl-btn" data-x>Cerrar</button>');
+  };
   D.planBuscar = function (v) { D.planQ = v; clearTimeout(D._tq); D._tq = setTimeout(function () { var s = seccion('s-plan'), pos = s.querySelector('.pl-busca'); pintarPlan(s); var b = s.querySelector('.pl-busca'); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 250); };
   D.planFiltro = function (f) { D.planFil = f; pintarPlan(seccion('s-plan')); };
   D.planIr = function (f) { if (!f) return; if (D.editor && D.editor.sucio && D._confirmaDia !== f) { D._confirmaDia = f; aviso('Tienes cambios sin guardar. Toca otra vez para cambiar de día.'); return; } D._confirmaDia = null; D.fecha = f; D.editor = null; mostrar('s-plan'); };
@@ -434,7 +526,8 @@
   D.planCampo = function (k, v) {
     var E = D.editor; E[k] = v; E.sucio = true;
     if (k === 'tipo') { var u = D.base.unidades.filter(function (x) { return x.estado === 'activa' && x.tipo === v; })[0]; E.unidadId = u ? u.unidadId : ''; if (u && u.conductor) E.conductor = u.conductor; if (u) E.ayudantes = (u.ayudantes || []).slice(); }
-    if (k === 'unidadId') { var u2 = mapa(D.base.unidades, 'unidadId')[v]; if (u2 && u2.conductor) E.conductor = u2.conductor; if (u2 && u2.ayudantes && u2.ayudantes.length) E.ayudantes = u2.ayudantes.slice(); }
+    if (k === 'unidadId') { var u2 = mapa(D.base.unidades, 'unidadId')[v]; if (u2 && u2.tipo && u2.tipo !== E.tipo) E.tipo = u2.tipo; if (u2 && u2.conductor) E.conductor = u2.conductor; if (u2 && u2.ayudantes && u2.ayudantes.length) E.ayudantes = u2.ayudantes.slice(); }
+    if (k === 'turno') { var o = v === 'dia' ? 'noche' : 'dia'; if (!E.salida || E.salida === TURNO[o][3]) E.salida = TURNO[v][3]; }
     pintarPlan(seccion('s-plan'));
   };
   D.planAyudante = function (id) { var a = D.editor.ayudantes, i = a.indexOf(id); if (i >= 0) a.splice(i, 1); else a.push(id); D.editor.sucio = true; pintarPlan(seccion('s-plan')); };
@@ -457,8 +550,9 @@
     var E = D.editor;
     if (!E.paradas.length) { aviso('La hoja no tiene paradas'); return; }
     if (publicar && (!E.unidadId || !E.conductor)) { aviso('Para publicar elige la unidad y el conductor'); return; }
-    S('api_dsoGuardarHoja', PIN, { hojaId: E.hojaId, fecha: E.fecha, rutaId: E.rutaId, nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes, salida: E.salida, relleno: E.relleno, paradas: E.paradas, publicar: !!publicar })
-      .then(function (r) { aviso(publicar ? 'Publicada: el conductor ya la ve en su celular' : 'Borrador guardado'); D.editor.hojaId = r.hojaId; D.editor.sucio = false; mostrar('s-plan'); }).catch(falla);
+    var ci = condLista().filter(function (c) { return c.nombre === E.conductor; })[0];
+    S('api_dsoGuardarHoja', PIN, { hojaId: E.hojaId, fecha: E.fecha, rutaId: E.rutaId, nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes, salida: E.salida, turno: E.turno, relleno: E.relleno, paradas: E.paradas, publicar: !!publicar })
+      .then(function (r) { aviso(publicar ? (ci && !ci.usuario ? 'Publicada · ojo: ' + E.conductor + ' no tiene usuario y no la verá en su celular' : 'Publicada: ' + (E.conductor || 'el conductor') + ' ya la ve en su celular') : 'Borrador guardado · el conductor todavía no la ve'); D.editor.hojaId = r.hojaId; D.editor.sucio = false; mostrar('s-plan'); }).catch(falla);
   };
   D.planAnular = function () {
     modal('Anular la hoja ' + D.editor.hojaId, '<p style="margin:0;font-size:14px">La hoja deja de verse en el celular del conductor. Queda en el historial como anulada.</p>',
@@ -470,19 +564,19 @@
     S('api_dsoCrearHojas', PIN, D.fecha, ids).then(function (r) { aviso(r.creadas.length + ' hoja(s) creada(s) en borrador'); D.editor = null; mostrar('s-plan'); }).catch(falla);
   };
 
-  /* rutas fijas: la plantilla de cada noche */
+  /* rutas fijas: la plantilla de cada día que sale */
   D.rutasFijas = function () {
     var B = D.base, U = mapa(B.unidades, 'unidadId');
     var L = B.rutas.length ? '<div class="sv-list">' + B.rutas.map(function (r) {
-      return '<div class="it" onclick="DSO.rutaEditar(\'' + e(r.rutaId) + '\')"><div class="tx"><b>' + e(r.nombre) + ' ' + chipTipo(r.tipo) + (r.activa ? '' : ' <span class="sv-chip g">pausada</span>') + '</b><small>' + e(r.rutaId) + ' · ' + diasTxt(r.dias) + ' · sale ' + e(r.salida || '—') + ' · ' + r.paradas.length + ' paradas · ' + e((U[r.unidadId] || {}).nombre || 'sin unidad') + ' · ' + e(r.conductor || 'sin conductor') + '</small></div><span class="sv-chip">Editar</span></div>';
+      return '<div class="it" onclick="DSO.rutaEditar(\'' + e(r.rutaId) + '\')"><div class="tx"><b>' + e(r.nombre) + ' ' + chipTurno(turnoDe(r)) + ' ' + chipTipo(r.tipo) + (r.activa ? '' : ' <span class="sv-chip g">pausada</span>') + '</b><small>' + e(r.rutaId) + ' · ' + diasTxt(r.dias) + ' · sale ' + e(r.salida || '—') + ' · ' + r.paradas.length + ' paradas · ' + e((U[r.unidadId] || {}).nombre || 'sin unidad') + ' · ' + e(r.conductor || 'sin conductor') + '</small></div><span class="sv-chip">Editar</span></div>';
     }).join('') + '</div>' : '<div class="sv-vacio"><b>Todavía no hay rutas fijas</b>Arma una hoja y toca «Guardar como ruta fija», o crea una aquí.</div>';
-    modal('Rutas fijas de sólidos', L + '<div class="sv-nota">Una ruta fija es la plantilla de cada noche: en el planificador, «Crear sus hojas» copia sus paradas, unidad y equipo a la hoja del día.</div>',
+    modal('Rutas fijas de sólidos', L + '<div class="sv-nota">Una ruta fija es la plantilla de los días que sale: en el planificador, «Crear sus hojas» copia sus paradas, unidad y equipo a la hoja del día.</div>',
       puede() ? '<button class="pl-btn" data-x>Cerrar</button><button class="pl-btn v" onclick="DSO.rutaEditar(\'\')">＋ Ruta fija</button>' : '<button class="pl-btn" data-x>Cerrar</button>');
   };
-  D.rutaDesdeHoja = function () { var E = D.editor; D._rutaBorr = { rutaId: '', nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes.slice(), dias: String(new Date(D.fecha + 'T12:00:00Z').getUTCDay() || 7), salida: E.salida, relleno: E.relleno, paradas: E.paradas.slice(), activa: true }; rutaForm(); };
+  D.rutaDesdeHoja = function () { var E = D.editor; D._rutaBorr = { rutaId: '', nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes.slice(), dias: String(new Date(D.fecha + 'T12:00:00Z').getUTCDay() || 7), salida: E.salida, turno: E.turno, relleno: E.relleno, paradas: E.paradas.slice(), activa: true }; rutaForm(); };
   D.rutaEditar = function (id) {
     var r = D.base.rutas.filter(function (x) { return x.rutaId === id; })[0];
-    D._rutaBorr = r ? JSON.parse(JSON.stringify(r)) : { rutaId: '', nombre: '', tipo: 'compactador', unidadId: '', conductor: '', ayudantes: [], dias: '1,2,3,4,5,6,7', salida: '21:30', relleno: D.base.ajustes.rellenos[0] || '', paradas: [], activa: true };
+    D._rutaBorr = r ? JSON.parse(JSON.stringify(r)) : { rutaId: '', nombre: '', tipo: 'compactador', unidadId: '', conductor: '', ayudantes: [], dias: '1,2,3,4,5,6,7', salida: '21:30', turno: 'noche', relleno: D.base.ajustes.rellenos[0] || '', paradas: [], activa: true };
     rutaForm();
   };
   function rutaForm() {
@@ -490,8 +584,9 @@
     var puntos = B.puntos.filter(function (p) { return p.activo; }).sort(function (a, b) { return (r.paradas.indexOf(a.puntoId) + 1 || 999) - (r.paradas.indexOf(b.puntoId) + 1 || 999) || (a.nombre < b.nombre ? -1 : 1); });
     var html = '<div class="dso-f"><label class="w">Nombre<input id="rf-nom" value="' + e(r.nombre) + '" placeholder="Ej. RS-01 · Restaurantes noche"></label>' +
       '<label>Tipo de unidad<select id="rf-tipo">' + Object.keys(TIPOS).map(function (t) { return '<option value="' + t + '"' + (t === r.tipo ? ' selected' : '') + '>' + TIPOS[t][1] + '</option>'; }).join('') + '</select></label>' +
-      '<label>Unidad<select id="rf-uni"><option value="">Elige…</option>' + B.unidades.filter(function (u) { return u.estado === 'activa'; }).map(function (u) { return '<option value="' + e(u.unidadId) + '"' + (u.unidadId === r.unidadId ? ' selected' : '') + '>' + e(u.nombre) + ' · ' + TIPOS[u.tipo][1] + '</option>'; }).join('') + '</select></label>' +
-      '<label>Conductor<select id="rf-con"><option value="">Elige…</option>' + B.conductores.concat(r.conductor && B.conductores.indexOf(r.conductor) < 0 ? [r.conductor] : []).map(function (c) { return '<option' + (c === r.conductor ? ' selected' : '') + '>' + e(c) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Unidad<select id="rf-uni">' + uniOpts(r.unidadId, r.tipo) + '</select></label>' +
+      '<label>Conductor<select id="rf-con">' + condOpts(r.conductor) + '</select>' + condNota(r.conductor) + '</label>' +
+      '<label>Turno<select id="rf-tur">' + ['dia', 'noche'].map(function (t) { return '<option value="' + t + '"' + (turnoDe(r) === t ? ' selected' : '') + '>' + TURNO[t][0] + ' ' + TURNO[t][1] + '</option>'; }).join('') + '</select></label>' +
       '<label>Salida<input id="rf-sal" type="time" value="' + e(r.salida) + '"></label>' +
       '<label class="w">Días que sale' + diasHtml(r.dias) + '</label>' +
       '<label class="w">Paradas, en orden · marca las que lleva<div id="rf-par" style="max-height:260px;overflow:auto;border:1.5px solid #d3ddea;border-radius:9px;padding:4px 8px;text-transform:none;letter-spacing:0">' +
@@ -500,53 +595,119 @@
     modal(r.rutaId ? 'Ruta fija ' + r.rutaId : 'Ruta fija nueva', html, '<button class="pl-btn" onclick="DSO.rutasFijas()">Volver</button><button class="pl-btn v" onclick="DSO.rutaGuardar()">Guardar</button>');
   }
   D.rutaMarca = function (ck) { var r = D._rutaBorr, id = ck.getAttribute('data-p'), i = r.paradas.indexOf(id); if (ck.checked && i < 0) r.paradas.push(id); if (!ck.checked && i >= 0) r.paradas.splice(i, 1); leerRutaForm(); rutaForm(); };
-  function leerRutaForm() { var r = D._rutaBorr; r.nombre = val('rf-nom'); r.tipo = val('rf-tipo'); r.unidadId = val('rf-uni'); r.conductor = val('rf-con'); r.salida = val('rf-sal'); r.dias = diasSel($i('dso-fondo')); r.activa = !!($i('rf-act') && $i('rf-act').checked); }
+  function leerRutaForm() { var r = D._rutaBorr; r.nombre = val('rf-nom'); r.tipo = val('rf-tipo'); r.unidadId = val('rf-uni'); r.conductor = val('rf-con'); r.salida = val('rf-sal'); r.turno = val('rf-tur') || turnoDe(r); r.dias = diasSel($i('dso-fondo')); r.activa = !!($i('rf-act') && $i('rf-act').checked); }
   D.rutaGuardar = function () {
     leerRutaForm(); var r = D._rutaBorr;
     S('api_dsoGuardar', PIN, 'ruta', r).then(function () { aviso('Ruta fija guardada'); return recargarBase(); }).then(function () { D.rutasFijas(); if (D.modo === 'sol' && window.INI_TAB === 's-plan') { var s = seccion('s-plan'); S('api_dsoDia', PIN, D.fecha).then(function (d) { D.dia = d; pintarPlan(s); }); } }).catch(falla);
   };
 
-  /* ═══ Mapa de la noche ═══ */
+  /* ═══ Mapa de rutas (3.17.2: cabe en una sola pantalla, con herramientas para recorrerlo) ═══ */
   var COLORES = ['#14306b', '#2f9e44', '#d9480f', '#7048e8', '#0c8599', '#c2255c', '#e8590c'];
   PANTALLAS['s-mapa'] = function (s) {
     D.fecha = D.fecha || hoy();
     cargando(s, 'Cargando el mapa…');
     Promise.all([base(), S('api_dsoDia', PIN, D.fecha)]).then(function (r) {
       D.dia = r[1]; var Dd = D.dia;
-      var ley = Dd.hojas.map(function (h, i) { return '<span><i style="background:' + COLORES[i % COLORES.length] + '"></i>' + e(h.nombre || h.hojaId) + ' · ' + h.paradas.length + ' paradas</span>'; }).join('') +
-        (Dd.candidatos.length ? '<span><i style="background:#adb5bd"></i>Le toca y no está en ninguna hoja · ' + Dd.candidatos.length + '</span>' : '') + '<span><i style="background:#F5B301"></i>Donde marcó «Llegué» (GPS)</span>';
-      pintar(s, '<div class="pl-tt"><div><h1>Mapa de la noche · sólidos</h1><div class="sub">' + fLarga(D.fecha) + ' · ' + Dd.hojas.length + ' hoja(s)</div></div><span class="sp"></span>' +
+      if (D.mapaFecha !== D.fecha) { D.mapaSel = -1; D.mapaFecha = D.fecha; }
+      if (D.mapaCand == null) D.mapaCand = true;
+      var chips = '<button class="' + (D.mapaSel < 0 ? 'on' : '') + '" onclick="DSO.mapaHoja(-1)">Todas</button>' + Dd.hojas.map(function (h, i) {
+        return '<button class="' + (D.mapaSel === i ? 'on' : '') + '" onclick="DSO.mapaHoja(' + i + ')"><i style="background:' + COLORES[i % COLORES.length] + '"></i>' + e(h.nombre || h.hojaId) + ' ' + TURNO[turnoDe(h)][0] + '</button>';
+      }).join('');
+      pintar(s, '<div class="pl-tt"><div><h1>Mapa de rutas · sólidos</h1><div class="sub">' + fLarga(D.fecha) + ' · ' + Dd.hojas.length + ' hoja' + (Dd.hojas.length === 1 ? '' : 's') + '</div></div><span class="sp"></span>' +
         '<button class="pl-btn" onclick="DSO.mapaDia(-1)">◀</button><input type="date" value="' + D.fecha + '" onchange="DSO.mapaIr(this.value)"><button class="pl-btn" onclick="DSO.mapaDia(1)">▶</button></div>' +
-        '<div class="sv-ley">' + ley + '</div><div id="dso-mapa" class="sv-mapa"></div>' +
-        '<div class="sv-nota">El número es el orden de la parada en su hoja. Si el «Llegué» quedó a más de ' + D.base.ajustes.distanciaLejos + ' m del punto guardado, se ve la línea punteada entre los dos.</div>');
-      setTimeout(dibujarMapa, 60);
+        '<div class="sv-mv" id="dso-mv"><div class="sv-mv-lado"><div class="sv-mv-hojas">' + chips + '</div><div class="sv-mv-lista" id="dso-mv-lista"></div></div>' +
+        '<div class="sv-mv-mapa" id="dso-mv-mapa"><div id="dso-mapa"></div><div class="sv-mv-bar">' +
+        '<button type="button" onclick="DSO.mapaVerTodo()" title="Ver todas las paradas">⤢ Ver todo</button>' +
+        (Dd.candidatos.length ? '<button type="button" class="' + (D.mapaCand ? 'on' : '') + '" onclick="DSO.mapaCandidatos()" title="Sucursales a las que les toca y no están en ninguna hoja">Sin hoja · ' + Dd.candidatos.length + '</button>' : '') +
+        '<button type="button" onclick="DSO.mapaCompleto()" title="Pantalla completa">⛶ Pantalla completa</button></div>' +
+        '<div class="sv-mv-tip" id="dso-mv-tip">Haz clic en el mapa para acercar con la rueda del mouse</div></div></div>' +
+        '<div class="sv-ley"><span><i style="background:#2f9e44"></i>Recolectada</span><span><i style="background:#d64045"></i>Con incidencia</span><span><i style="background:#adb5bd"></i>Le toca y no está en ninguna hoja</span><span><i style="background:#F5B301"></i>Donde marcó «Llegué» (GPS)</span><span>El número es el orden de la parada en su hoja · línea roja punteada: «Llegué» a más de ' + D.base.ajustes.distanciaLejos + ' m del punto</span></div>');
+      pintarListaMapa();
+      setTimeout(function () { altoMapa(); dibujarMapa(); }, 40);
     }).catch(falla);
   };
   D.mapaIr = function (f) { if (f) { D.fecha = f; mostrar('s-mapa'); } };
   D.mapaDia = function (n) { D.mapaIr(masDias(D.fecha, n)); };
+  /* el mapa ocupa lo que queda de la pantalla: sin subir ni bajar */
+  function altoMapa() {
+    var mv = $i('dso-mv'); if (!mv) return;
+    var top = mv.getBoundingClientRect().top + (window.scrollY || 0), ley = 54;
+    mv.style.setProperty('--mvh', Math.max(420, Math.round(window.innerHeight - top - ley)) + 'px');
+    if (D._mapa) D._mapa.invalidateSize();
+  }
+  window.addEventListener('resize', function () { if (window.INI_TAB === 's-mapa') altoMapa(); });
+  function pintarListaMapa() {
+    var Dd = D.dia, L = $i('dso-mv-lista'); if (!L) return;
+    var h = Dd.hojas.map(function (x, i) {
+      if (D.mapaSel >= 0 && D.mapaSel !== i) return '';
+      var col = COLORES[i % COLORES.length];
+      return '<div class="sv-mv-g">' + e(x.nombre || x.hojaId) + ' · ' + e(x.conductor || 'sin conductor') + '</div>' + x.paradas.map(function (p, j) {
+        var c = p.atendida ? '#2f9e44' : p.inc ? '#d64045' : col;
+        return '<div class="sv-mv-p' + (p.lat ? '' : ' sin') + '"' + (p.lat ? ' onclick="DSO.mapaParada(' + i + ',' + j + ')"' : ' title="Sin ubicación guardada"') + '><span class="n" style="background:' + c + '">' + (j + 1) + '</span><div class="t"><b>' + e(p.nombre) + '</b><small>' + (p.llegada ? 'llegó ' + e(p.llegada) : p.lat ? (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : 'pendiente') : 'sin ubicación') + '</small></div></div>';
+      }).join('');
+    }).join('');
+    if (D.mapaSel < 0 && D.mapaCand && Dd.candidatos.length) h += '<div class="sv-mv-g">Le toca y no está en ninguna hoja</div>' + Dd.candidatos.map(function (p, j) {
+      return '<div class="sv-mv-p' + (p.lat ? '' : ' sin') + '"' + (p.lat ? ' onclick="DSO.mapaCandIr(' + j + ')"' : '') + '><span class="n" style="background:#adb5bd">·</span><div class="t"><b>' + e(p.nombre) + '</b><small>' + (p.lat ? 'sin hoja' : 'sin ubicación') + '</small></div></div>';
+    }).join('');
+    L.innerHTML = h || '<div class="sv-vacio" style="padding:14px 4px"><b>Sin paradas</b>Este día no tiene hojas de ruta.</div>';
+  }
   function dibujarMapa() {
     if (typeof L === 'undefined' || !$i('dso-mapa')) { aviso('El mapa no cargó'); return; }
     if (D._mapa) { try { D._mapa.remove(); } catch (er) {} }
-    var m = D._mapa = L.map('dso-mapa').setView([8.99, -79.52], 11);
+    /* acercar en pasos cortos; la rueda solo después de hacer clic en el mapa (así no se descontrola) */
+    var m = D._mapa = L.map('dso-mapa', { zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 160, scrollWheelZoom: false }).setView([8.99, -79.52], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
-    var todos = [];
+    L.control.scale({ imperial: false }).addTo(m);
+    var tip = $i('dso-mv-tip');
+    m.on('click', function () { m.scrollWheelZoom.enable(); if (tip) tip.classList.add('no'); });
+    m.on('mouseout', function () { m.scrollWheelZoom.disable(); if (tip) tip.classList.remove('no'); });
+    D._capas = []; D._mk = []; D._cand = L.layerGroup(); D._candMk = [];
     D.dia.hojas.forEach(function (h, i) {
-      var col = COLORES[i % COLORES.length], linea = [];
+      var col = COLORES[i % COLORES.length], linea = [], g = L.layerGroup(); D._capas.push(g); D._mk.push([]);
       h.paradas.forEach(function (p, j) {
-        if (!p.lat) return;
-        var ll = [p.lat, p.lng]; linea.push(ll); todos.push(ll);
-        L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="sv-num" style="background:' + (p.atendida ? '#2f9e44' : p.inc ? '#d64045' : col) + '">' + (j + 1) + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) })
-          .bindPopup('<b>' + e(p.nombre) + '</b><br>' + e(h.nombre || h.hojaId) + ' · parada ' + (j + 1) + (p.llegada ? '<br>Llegó ' + e(p.llegada) + (p.dist != null ? ' · a ' + p.dist + ' m' : '') : '') + (p.bolsas ? '<br>' + p.bolsas + ' bolsas' : '') + (p.inc ? '<br>' + e(p.inc) : '')).addTo(m);
+        if (!p.lat) { D._mk[i].push(null); return; }
+        var ll = [p.lat, p.lng]; linea.push(ll);
+        var mk = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="sv-num" style="background:' + (p.atendida ? '#2f9e44' : p.inc ? '#d64045' : col) + '">' + (j + 1) + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) })
+          .bindPopup('<b>' + e(p.nombre) + '</b><br>' + e(h.nombre || h.hojaId) + ' · parada ' + (j + 1) + (p.llegada ? '<br>Llegó ' + e(p.llegada) + (p.dist != null ? ' · a ' + p.dist + ' m' : '') : '') + (p.bolsas ? '<br>' + p.bolsas + ' bolsas' : '') + (p.inc ? '<br>' + e(p.inc) : ''));
+        mk.addTo(g); D._mk[i].push(mk);
         if (p.gps && p.gps[0]) {
-          L.circleMarker(p.gps, { radius: 5, color: '#8A6300', fillColor: '#F5B301', fillOpacity: 1, weight: 1 }).addTo(m); todos.push(p.gps);
-          if (p.lejos) L.polyline([ll, p.gps], { color: '#d64045', weight: 2, dashArray: '5 5' }).addTo(m);
+          L.circleMarker(p.gps, { radius: 5, color: '#8A6300', fillColor: '#F5B301', fillOpacity: 1, weight: 1 }).addTo(g);
+          if (p.lejos) L.polyline([ll, p.gps], { color: '#d64045', weight: 2, dashArray: '5 5' }).addTo(g);
         }
       });
-      if (linea.length > 1) L.polyline(linea, { color: col, weight: 3, opacity: .7 }).addTo(m);
+      if (linea.length > 1) L.polyline(linea, { color: col, weight: 3, opacity: .7 }).addTo(g);
     });
-    D.dia.candidatos.forEach(function (p) { if (p.lat) { L.circleMarker([p.lat, p.lng], { radius: 6, color: '#868e96', fillColor: '#adb5bd', fillOpacity: .9, weight: 1 }).bindPopup('<b>' + e(p.nombre) + '</b><br>Le toca y no está en ninguna hoja').addTo(m); todos.push([p.lat, p.lng]); } });
-    if (todos.length) m.fitBounds(todos, { padding: [30, 30], maxZoom: 15 });
+    D.dia.candidatos.forEach(function (p) { var mk = null; if (p.lat) { mk = L.circleMarker([p.lat, p.lng], { radius: 6, color: '#868e96', fillColor: '#adb5bd', fillOpacity: .9, weight: 1 }).bindPopup('<b>' + e(p.nombre) + '</b><br>Le toca y no está en ninguna hoja'); mk.addTo(D._cand); } D._candMk.push(mk); });
+    capasMapa(true);
   }
+  function capasMapa(ajustar) {
+    var m = D._mapa; if (!m) return;
+    D._capas.forEach(function (g, i) { if (D.mapaSel < 0 || D.mapaSel === i) g.addTo(m); else m.removeLayer(g); });
+    if (D.mapaSel < 0 && D.mapaCand) D._cand.addTo(m); else m.removeLayer(D._cand);
+    if (ajustar) D.mapaVerTodo();
+  }
+  D.mapaVerTodo = function () {
+    var m = D._mapa; if (!m) return; var pts = [];
+    D._capas.forEach(function (g, i) { if (D.mapaSel < 0 || D.mapaSel === i) g.eachLayer(function (l) { if (l.getLatLng) pts.push(l.getLatLng()); }); });
+    if (D.mapaSel < 0 && D.mapaCand) D._cand.eachLayer(function (l) { pts.push(l.getLatLng()); });
+    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 15 });
+  };
+  D.mapaHoja = function (i) {
+    D.mapaSel = i;
+    [].forEach.call(document.querySelectorAll('#dso-mv .sv-mv-hojas button'), function (b, k) { b.classList.toggle('on', k === i + 1); });
+    pintarListaMapa(); capasMapa(true);
+  };
+  D.mapaCandidatos = function () { D.mapaCand = !D.mapaCand; mostrar('s-mapa'); };
+  D.mapaParada = function (i, j) { var mk = D._mk[i] && D._mk[i][j]; if (!mk || !D._mapa) return; D._mapa.flyTo(mk.getLatLng(), 17, { duration: .6 }); setTimeout(function () { mk.openPopup(); }, 650); };
+  D.mapaCandIr = function (j) { var mk = D._candMk[j]; if (!mk || !D._mapa) return; D._mapa.flyTo(mk.getLatLng(), 17, { duration: .6 }); setTimeout(function () { mk.openPopup(); }, 650); };
+  D.mapaCompleto = function () {
+    var c = $i('dso-mv-mapa'); if (!c) return;
+    var fin = function () { setTimeout(function () { if (D._mapa) D._mapa.invalidateSize(); }, 120); };
+    if (document.fullscreenElement) { document.exitFullscreen().then(fin, fin); return; }
+    if (c.classList.contains('full')) { c.classList.remove('full'); fin(); return; }
+    if (c.requestFullscreen) c.requestFullscreen().then(fin, function () { c.classList.add('full'); fin(); }); else { c.classList.add('full'); fin(); }
+  };
+  document.addEventListener('fullscreenchange', function () { if (D._mapa) setTimeout(function () { D._mapa.invalidateSize(); }, 120); });
 
   /* ═══ Calendario ═══ */
   PANTALLAS['s-agenda'] = function (s) {
@@ -633,7 +794,7 @@
       (tk ? '<div class="sv-h">Tickets del relleno</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>Ticket</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">Lleno</th><th class="n">Vacío</th><th class="n">Neto kg</th><th>Foto</th></tr></thead><tbody>' + tk + '</tbody></table></div>' : '') +
       '<div class="sv-btns">' + (['borrador', 'publicada'].indexOf(est) >= 0 && puede() ? '<button class="pl-btn" onclick="DSO.irPlanHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')">Editar en el planificador</button>' : '') +
       (h.atendidas || h.paradas.some(function (p) { return p.llegada; }) ? '<button class="pl-btn" onclick="DSO.enlaces(\'' + e(h.hojaId) + '\')">🔗 Recibos para el cliente</button>' : '') + '</div>' +
-      (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la noche: revisión, salida firmada, paradas, ticket del relleno y regreso.</div>' : '') +
+      (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la ruta: revisión, salida firmada, paradas, ticket del relleno y regreso.</div>' : '') +
       '<div class="sv-nota">Llegada a más de ' + h.distanciaLejos + ' m del punto guardado: sale en rojo. Llegada fuera de la hora en que el local recibe: la hora sale en rojo.</div></div>';
   }
   D.irPlanHoja = function (id, f) { D.fecha = f; D.editor = null; mostrar('s-plan'); setTimeout(function () { if (D.dia && D.dia.hojas.some(function (x) { return x.hojaId === id; })) D.elegirHoja(id); }, 900); };
@@ -705,9 +866,9 @@
           '<td class="n">' + f.atendidas + '/' + f.paradas + (f.incidencias ? '<small>' + f.incidencias + ' incidencia(s)</small>' : '') + '</td><td class="n">' + (f.bolsas ? N(f.bolsas) : '') + (f.cajas ? '<small>' + f.cajas + ' caja(s)</small>' : '') + '</td>' +
           '<td class="n">' + (f.neto ? N(f.neto) : (f.sinTicket ? '<span class="sv-chip r">falta ticket</span>' : '')) + '</td><td class="n">' + e(f.salida) + '</td><td class="n">' + e(f.regreso) + '</td><td class="n">' + (f.km != null ? N(f.km) : '') + '</td><td>' + chipEst(f.estado) + (f.lejos ? ' <span class="sv-chip ro">' + f.lejos + ' lejos</span>' : '') + '</td></tr>';
       }).join('');
-      pintar(s, '<div class="cr-tt"><div><h1>Cierre de rutas · sólidos</h1><div class="sub">Lo que pasó cada noche: paradas, bolsas, peso en báscula y kilómetros</div></div><span class="sp"></span>' +
+      pintar(s, '<div class="cr-tt"><div><h1>Cierre de rutas · sólidos</h1><div class="sub">Lo que pasó en cada ruta: paradas, bolsas, peso en báscula y kilómetros</div></div><span class="sp"></span>' +
         '<input type="date" value="' + D.cieDesde + '" onchange="DSO.cieRango(this.value,null)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"> a <input type="date" value="' + D.cieHasta + '" onchange="DSO.cieRango(null,this.value)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"></div>' +
-        '<div class="pl-card sv-scroll">' + (F.length ? '<table class="sv-tb"><thead><tr><th>Noche</th><th>Ruta</th><th>Conductor</th><th class="n">Paradas</th><th class="n">Bolsas</th><th class="n">Kg báscula</th><th class="n">Salió</th><th class="n">Regresó</th><th class="n">Km</th><th>Estado</th></tr></thead><tbody>' + filas +
+        '<div class="pl-card sv-scroll">' + (F.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Ruta</th><th>Conductor</th><th class="n">Paradas</th><th class="n">Bolsas</th><th class="n">Kg báscula</th><th class="n">Salió</th><th class="n">Regresó</th><th class="n">Km</th><th>Estado</th></tr></thead><tbody>' + filas +
           '<tr class="tot"><td></td><td>Total · ' + F.length + ' hoja(s)</td><td></td><td class="n">' + tot.a + '/' + tot.p + '</td><td class="n">' + N(tot.b) + '</td><td class="n">' + N(tot.k) + '</td><td></td><td></td><td class="n">' + N(tot.km) + '</td><td></td></tr></tbody></table>' : '<div class="sv-vacio"><b>No hay rutas en esas fechas</b></div>') + '</div>');
     }).catch(falla);
   };
@@ -734,22 +895,24 @@
       var tipos = []; act.forEach(function (p) { if (tipos.indexOf(p.unidadTipo) < 0) tipos.push(p.unidadTipo); });
       var serv = []; act.forEach(function (p) { if (serv.indexOf(SERV[p.servicio]) < 0) serv.push(SERV[p.servicio]); });
       var fr = []; act.forEach(function (p) { var t = diasTxt(p.dias); if (fr.indexOf(t) < 0) fr.push(t); });
-      var pend = pts.filter(function (p) { return p.ubicPendiente; }).length, es = ESTC[c.estado] || ['g', c.estado];
-      return '<tr class="clic' + (c.clienteId === D.cliSel ? ' sel' : '') + '" onclick="DSO.cliVer(\'' + e(c.clienteId) + '\')"><td><b>' + e(c.nombre) + '</b><small>' + act.length + ' punto' + (act.length === 1 ? '' : 's') + ' de recolección' + (pend ? ' · <span class="sv-no">' + pend + ' ubicación por revisar</span>' : '') + '</small></td><td>' + tipos.map(chipTipo).join(' ') + '</td><td>' + e(serv.join(', ')) + '</td><td>' + e(fr.length > 1 ? 'Varía por punto' : fr[0] || '—') + '</td><td><small style="color:#0f2140">' + e(cobroTxt(c.cobro)) + '</small></td><td><span class="sv-chip ' + es[0] + '">' + es[1] + '</span></td></tr>';
+      var pend = pts.filter(function (p) { return p.ubicPendiente; }).length, es = ESTC[c.estado] || ['g', c.estado], npz = pts.length - act.length;
+      return '<tr class="clic' + (c.clienteId === D.cliSel ? ' sel' : '') + '" onclick="DSO.cliVer(\'' + e(c.clienteId) + '\')"><td><b>' + e(c.nombre) + '</b><small>' + act.length + ' sucursal' + (act.length === 1 ? '' : 'es') + ' en servicio' + (npz ? ' · <span class="sv-no">' + npz + ' pausada' + (npz > 1 ? 's' : '') + '</span>' : '') + (pend ? ' · <span class="sv-no">' + pend + ' ubicación por revisar</span>' : '') + '</small></td><td>' + tipos.map(chipTipo).join(' ') + '</td><td>' + e(serv.join(', ')) + '</td><td>' + e(fr.length > 1 ? 'Varía por punto' : fr[0] || '—') + '</td><td><small style="color:#0f2140">' + e(cobroTxt(c.cobro)) + '</small></td><td><span class="sv-chip ' + es[0] + '">' + es[1] + '</span></td></tr>';
     }).join('');
     var det = '';
     var c = B.clientes.filter(function (x) { return x.clienteId === D.cliSel; })[0];
     if (c) {
       var pts = B.puntos.filter(function (p) { return p.clienteId === c.clienteId; });
-      det = '<div class="pl-card sv-pad" style="margin-top:14px"><div class="pl-ch" style="padding:0 0 8px"><h3>' + e(c.nombre) + ' · ' + e(c.clienteId) + '</h3>' + (puede() ? '<div style="display:flex;gap:8px"><button class="pl-btn" onclick="DSO.cliForm(\'' + e(c.clienteId) + '\')">Editar cliente</button><button class="pl-btn v" onclick="DSO.puntoForm(\'\',\'' + e(c.clienteId) + '\')">＋ Punto de recolección</button></div>' : '') + '</div>' +
+      det = '<div class="pl-card sv-pad" style="margin-top:14px"><div class="pl-ch" style="padding:0 0 8px"><h3>' + e(c.nombre) + ' · ' + e(c.clienteId) + '</h3>' + (puede() ? '<div style="display:flex;gap:8px"><button class="pl-btn" onclick="DSO.cliForm(\'' + e(c.clienteId) + '\')">Editar cliente</button><button class="pl-btn v" onclick="DSO.puntoForm(\'\',\'' + e(c.clienteId) + '\')">＋ Sucursal</button></div>' : '') + '</div>' +
         '<div class="sv-g2" style="font-size:13px"><div><div class="sv-ck"><span>Razón social</span><b>' + e(c.razonSocial || '—') + '</b></div><div class="sv-ck"><span>RUC</span><b>' + e(c.ruc || '—') + '</b></div><div class="sv-ck"><span>Contacto</span><b>' + e([c.contacto, c.telefono].filter(Boolean).join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Correo</span><b>' + e(c.correo || '—') + '</b></div></div>' +
         '<div><div class="sv-ck"><span>Plan vendido</span><b style="text-align:right">' + e(cobroTxt(c.cobro)) + '</b></div><div class="sv-ck"><span>ITBMS</span><b>' + (c.retieneItbms === 'EXENTO' ? 'Exento' : c.retieneItbms === 'SI' ? '7 % · agente retenedor' : '7 %') + '</b></div>' + (c.notas ? '<div class="sv-nota">' + e(c.notas) + '</div>' : '') + '</div></div>' +
-        '<div class="sv-h">Puntos de recolección</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>Punto</th><th>Servicio</th><th>Frecuencia</th><th>Recibe</th><th>Ubicación</th><th></th></tr></thead><tbody>' +
+        '<div class="sv-h">Sucursales · puntos de recolección</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>Sucursal</th><th>Estado</th><th>Servicio</th><th>Días</th><th>Recibe</th><th>Ubicación</th><th></th></tr></thead><tbody>' +
         (pts.length ? pts.map(function (p) {
-          return '<tr><td><b>' + e(p.nombre) + '</b><small>' + e(p.direccion) + (p.nota ? ' · ' + e(p.nota) : '') + '</small></td><td>' + chipTipo(p.unidadTipo) + ' <small>' + e(SERV[p.servicio]) + (p.cajaId ? ' · caja ' + e(p.cajaId) : '') + '</small></td><td>' + e(diasTxt(p.dias)) + '</td><td>' + (p.horaDesde ? e(p.horaDesde) + '–' + e(p.horaHasta) : '—') + '</td>' +
+          var est = p.activo ? '<span class="sv-chip v">● En servicio</span>' + (puede() ? '<br><button class="pl-btn sv-pz" onclick="DSO.pausar(\'' + e(p.puntoId) + '\')">Pausar…</button>' : '')
+            : '<span class="sv-chip g">⏸ Pausada</span><small>' + (p.pausaDesde ? 'desde ' + e(fCorta(p.pausaDesde)) : '') + (p.pausaMotivo ? ' · ' + e(p.pausaMotivo) : '') + '</small>' + (puede() ? '<button class="pl-btn v sv-pz" onclick="DSO.puntoEstado(\'' + e(p.puntoId) + '\',true)">Poner en servicio</button>' : '');
+          return '<tr' + (p.activo ? '' : ' style="background:#fafbfc"') + '><td><b>' + e(p.nombre) + '</b><small>' + e(p.direccion) + (p.nota ? ' · ' + e(p.nota) : '') + '</small></td><td>' + est + '</td><td>' + chipTipo(p.unidadTipo) + ' <small>' + e(SERV[p.servicio]) + (p.cajaId ? ' · caja ' + e(p.cajaId) : '') + '</small></td><td>' + diasLetras(p.dias) + '</td><td>' + (p.horaDesde ? e(p.horaDesde) + '–' + e(p.horaHasta) : '—') + '</td>' +
             '<td>' + (p.lat ? '<span class="sv-ok">✓ guardada</span>' : '<span class="sv-no">sin ubicación</span>') + (p.ubicPendiente ? '<small class="sv-no">El conductor mandó otra desde la puerta (' + e(p.ubicPendiente.por || '') + ')</small>' + (puede() ? '<button class="pl-btn" onclick="DSO.ubic(\'' + e(p.puntoId) + '\',true)">Aprobar</button> <button class="pl-btn" onclick="DSO.ubic(\'' + e(p.puntoId) + '\',false)">Descartar</button>' : '') : '') + '</td>' +
-            '<td>' + (p.activo ? '' : '<span class="sv-chip g">inactivo</span> ') + (puede() ? '<button class="pl-btn" onclick="DSO.puntoForm(\'' + e(p.puntoId) + '\')">Editar</button>' : '') + '</td></tr>';
-        }).join('') : '<tr><td colspan="6"><div class="sv-vacio">Sin puntos todavía.</div></td></tr>') + '</tbody></table></div></div>';
+            '<td>' + (puede() ? '<button class="pl-btn" onclick="DSO.puntoForm(\'' + e(p.puntoId) + '\')">Editar</button>' : '') + '</td></tr>';
+        }).join('') : '<tr><td colspan="7"><div class="sv-vacio">Sin sucursales todavía.</div></td></tr>') + '</tbody></table></div></div>';
     }
     pintar(s, '<div class="cr-tt"><div><h1>Clientes de sólidos</h1><div class="sub">' + B.clientes.length + ' cliente' + (B.clientes.length === 1 ? '' : 's') + ' · cada uno con su servicio, su frecuencia y su unidad, según el plan que se le vendió</div></div><span class="sp"></span>' + (puede() ? '<button class="pl-btn v" onclick="DSO.cliForm(\'\')">＋ Cliente</button>' : '') + '</div>' +
       '<div class="pl-card sv-scroll">' + (B.clientes.length ? '<table class="sv-tb"><thead><tr><th>Cliente</th><th>Unidad</th><th>Cómo se atiende</th><th>Frecuencia</th><th>Plan vendido</th><th>Estado</th></tr></thead><tbody>' + filas + '</tbody></table>' : '<div class="sv-vacio"><b>Todavía no hay clientes de sólidos</b>Registra el primero con «＋ Cliente».</div>') + '</div>' + det +
@@ -776,14 +939,14 @@
   };
   D.puntoForm = function (id, cliId) {
     var B = D.base, p = B.puntos.filter(function (x) { return x.puntoId === id; })[0] || { clienteId: cliId, servicio: 'bolsas', unidadTipo: 'compactador', dias: '1,2,3,4,5,6,7', activo: true, horaDesde: '', horaHasta: '' };
-    D._ll = p.lat ? [p.lat, p.lng] : null;
-    modal(id ? 'Punto ' + p.nombre : 'Punto de recolección nuevo', '<div class="dso-f"><label class="w">Nombre del punto<input id="pf-nom" value="' + e(p.nombre || '') + '" placeholder="Ej. Sucursal Vía España"></label>' +
+    D._ll = p.lat ? [p.lat, p.lng] : null; D._pfAct = p.activo !== false; D._pfMot = p.pausaMotivo || '';
+    modal(id ? p.nombre : 'Sucursal nueva · punto de recolección', '<div id="pf-est">' + estHtml() + '</div><div class="dso-f"><label class="w">Nombre de la sucursal<input id="pf-nom" value="' + e(p.nombre || '') + '" placeholder="Ej. Sucursal Vía España"></label>' +
       '<label class="w">Dirección<input id="pf-dir" value="' + e(p.direccion || '') + '"></label>' +
       '<label class="w">Cómo llegar al punto (lo ve el conductor)<input id="pf-nota" value="' + e(p.nota || '') + '" placeholder="Ej. callejón de servicio, portón gris, tocar timbre"></label>' +
       '<label>Servicio<select id="pf-serv">' + Object.keys(SERV).map(function (k) { return '<option value="' + k + '"' + (k === p.servicio ? ' selected' : '') + '>' + SERV[k] + '</option>'; }).join('') + '</select></label>' +
       '<label>Unidad que lo atiende<select id="pf-uni">' + Object.keys(TIPOS).map(function (k) { return '<option value="' + k + '"' + (k === p.unidadTipo ? ' selected' : '') + '>' + TIPOS[k][1] + '</option>'; }).join('') + '</select></label>' +
       '<label>Recibe desde<input id="pf-hd" type="time" value="' + e(p.horaDesde || '') + '"></label><label>Recibe hasta<input id="pf-hh" type="time" value="' + e(p.horaHasta || '') + '"></label>' +
-      '<label>Caja asignada (roll-off)<input id="pf-caja" value="' + e(p.cajaId || '') + '" placeholder="Ej. C-04"></label><label><span><input type="checkbox" id="pf-act"' + (p.activo ? ' checked' : '') + '> Activo</span></label>' +
+      '<label>Caja asignada (roll-off)<input id="pf-caja" value="' + e(p.cajaId || '') + '" placeholder="Ej. C-04"></label>' +
       '<label class="w">Frecuencia · días que le toca' + diasHtml(p.dias) + '</label>' +
       '<label class="w">Ubicación del punto de recolección · pega un enlace de Google Maps o «8.97, -79.52», o toca el mapa<input id="pf-ll" value="' + (D._ll ? D._ll.join(', ') : '') + '" oninput="DSO.puntoLeer(this.value)"></label></div><div id="pf-mapa" style="height:230px;border-radius:12px;margin-top:8px;border:1px solid #e1e6ee"></div>',
       '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.puntoGuardar(\'' + e(id) + '\',\'' + e(p.clienteId) + '\')">Guardar</button>');
@@ -799,8 +962,26 @@
   D.puntoLeer = function (t) { var m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/[?&](?:q|query|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || String(t).match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/); if (m) D.puntoPin([Number(m[1]), Number(m[2])], true); };
   D.puntoGuardar = function (id, cli) {
     S('api_dsoGuardar', PIN, 'punto', { puntoId: id, clienteId: cli, nombre: val('pf-nom'), direccion: val('pf-dir'), nota: val('pf-nota'), servicio: val('pf-serv'), unidadTipo: val('pf-uni'), horaDesde: val('pf-hd'), horaHasta: val('pf-hh'),
-      cajaId: val('pf-caja'), activo: !!$i('pf-act').checked, dias: diasSel($i('dso-fondo')), lat: D._ll ? D._ll[0] : '', lng: D._ll ? D._ll[1] : '' })
-      .then(function () { cerrarModal(); aviso('Punto guardado'); D.cliSel = cli; mostrar('s-cli'); }).catch(falla);
+      cajaId: val('pf-caja'), activo: D._pfAct, pausaMotivo: D._pfAct ? '' : (val('pf-mot') || D._pfMot), dias: diasSel($i('dso-fondo')), lat: D._ll ? D._ll[0] : '', lng: D._ll ? D._ll[1] : '' })
+      .then(function () { cerrarModal(); aviso(D._pfAct ? 'Sucursal guardada · en servicio' : 'Sucursal guardada · pausada: no sale en el planificador'); D.cliSel = cli; mostrar('s-cli'); }).catch(falla);
+  };
+  /* 3.17.2 · en servicio / pausada: un interruptor grande, solo cambia al tocarlo */
+  function estHtml() {
+    var on = D._pfAct;
+    return '<div class="sv-est' + (on ? '' : ' off') + '"><div class="tx"><b>' + (on ? '● En servicio' : '⏸ Pausada') + '</b><small>' + (on ? 'Sale en el planificador los días marcados abajo.' : 'No sale en el planificador hasta que la vuelvas a poner en servicio.') + '</small>' +
+      (on ? '' : '<div class="mot"><input id="pf-mot" value="' + e(D._pfMot) + '" placeholder="Motivo (opcional): cerrada por remodelación, suspendida por pago…" oninput="DSO._pfMotivo(this.value)"></div>') + '</div>' +
+      '<button type="button" class="sv-sw' + (on ? '' : ' off') + '" onclick="DSO.pfEstado()" aria-pressed="' + on + '" aria-label="' + (on ? 'Pausar la sucursal' : 'Poner en servicio') + '"></button></div>';
+  }
+  D.pfEstado = function () { D._pfAct = !D._pfAct; var x = $i('pf-est'); if (x) x.innerHTML = estHtml(); };
+  D._pfMotivo = function (v) { D._pfMot = v; };
+  D.pausar = function (id) {
+    var p = D.base.puntos.filter(function (x) { return x.puntoId === id; })[0]; if (!p) return;
+    modal('Pausar ' + p.nombre, '<p style="margin:0 0 10px;font-size:14px">La sucursal deja de salir en el planificador hasta que la vuelvas a poner en servicio. No se borra nada.</p><div class="dso-f"><label class="w">Motivo (opcional)<input id="pz-mot" placeholder="Ej. cerrada por remodelación"></label></div>',
+      '<button class="pl-btn" data-x>Volver</button><button class="pl-btn v" style="background:#5b6a80" onclick="DSO.puntoEstado(\'' + e(id) + '\',false)">Pausar la sucursal</button>');
+  };
+  D.puntoEstado = function (id, activo, desde) {
+    S('api_dsoGuardar', PIN, 'puntoEstado', { puntoId: id, activo: activo, motivo: activo ? '' : val('pz-mot') })
+      .then(function () { cerrarModal(); aviso(activo ? 'Sucursal en servicio: ya sale en el planificador' : 'Sucursal pausada'); D.base = null; if (desde === 'plan') mostrar('s-plan'); else mostrar('s-cli'); }).catch(falla);
   };
   D.ubic = function (id, si) { S('api_dsoAprobarUbicacion', PIN, id, si).then(function () { aviso(si ? 'Ubicación aprobada' : 'Ubicación descartada'); mostrar('s-cli'); }).catch(falla); };
 
@@ -827,7 +1008,7 @@
         }).join('') + '</tbody></table><div class="sv-nota">Compactador: el peso del ticket se reparte según las bolsas de cada punto. <b>Roll-off: el ticket es de una sola caja, así que todo el peso es de ese cliente.</b></div></div>' : '<div></div>';
       cuerpo = '<div class="sv-g21" style="grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)">' + izq + der + '</div>';
     } else {
-      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Noche</th><th>Hoja</th><th class="n">Paradas sin ticket</th><th>Estado</th></tr></thead><tbody>' + R.faltan.map(function (f) {
+      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Hoja</th><th class="n">Paradas sin ticket</th><th>Estado</th></tr></thead><tbody>' + R.faltan.map(function (f) {
         return '<tr class="clic" onclick="DSO.irHoja(\'' + e(f.hojaId) + '\',\'' + f.fecha + '\')"><td>' + fCorta(f.fecha) + '</td><td><b>' + e(f.nombre) + '</b><small>' + e(f.hojaId) + '</small></td><td class="n">' + f.paradas + '</td><td>' + chipEst(f.estado) + '</td></tr>';
       }).join('') + '</tbody></table>' : '<div class="sv-vacio"><b>No falta ningún ticket</b>Todas las paradas atendidas tienen su peso de báscula.</div>') + '</div>' +
         '<div class="sv-nota am">Una parada atendida sin ticket no tiene peso: en el cobro por tonelada no suma hasta que aparezca el ticket.</div>';
@@ -1002,13 +1183,13 @@
   function pintarTarjeta() {
     var op = $i('hub-operador'), h = C.hoja, t = $i('hub-solidos');
     if (!op) return;
-    if (!h) { if (t) t.remove(); op.style.display = ''; return; }
+    if (!h) { if (t) t.remove(); op.style.display = 'block'; return; }
     if (!t) { t = document.createElement('div'); t.id = 'hub-solidos'; t.className = 'tb'; t.style.display = 'block'; op.parentNode.insertBefore(t, op); }
     var pelVacia = !(window.RUTA && RUTA.paradas && RUTA.paradas.length);
-    op.style.display = pelVacia && C.esSolidos ? 'none' : '';
+    op.style.display = pelVacia && C.esSolidos ? 'none' : 'block';
     var n = pasoDe(h), hechas = h.paradas.filter(function (p) { return p.salida; }).length;
     var btn = { 0: 'Empezar la revisión del camión →', 1: h.estado === 'no_sale' ? 'Ver por qué no sale →' : 'Esperando la firma de salida…', 2: 'Seguir mi ruta →', 3: 'Ir al relleno · ticket →', 4: 'Regresar y cerrar la ruta →', 5: 'Ruta cerrada · ver resumen' }[n];
-    t.innerHTML = '<div class="tb-et">Mi ruta de esta noche · sólidos</div><div class="tb-t1">' + e(h.nombre || h.hojaId) + ' · ' + h.paradas.length + ' paradas</div>' +
+    t.innerHTML = '<div class="tb-et">' + rutaTit(h) + ' · sólidos</div><div class="tb-t1">' + e(h.nombre || h.hojaId) + ' · ' + h.paradas.length + ' paradas</div>' +
       '<div class="tb-t2">' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + (h.salida ? ' · sale ' + e(h.salida) : '') + (h.ayudantesNombres.length ? ' · con ' + e(h.ayudantesNombres.join(' y ')) : '') + (n >= 2 && n < 5 ? ' · ' + hechas + ' de ' + h.paradas.length + ' hechas' : '') + '</div>' + pasos(n) +
       '<button class="tb-go" style="margin-top:14px" onclick="event.stopPropagation();DSO.conAbrir()">' + btn + '</button>';
     t.onclick = function () { D.conAbrir(); };
@@ -1073,7 +1254,7 @@
     cSec('<div class="hub-saludo">Hoja de ruta <b>' + e(h.hojaId) + '</b></div><div class="grid-mosaicos"><div class="tb" style="display:block"><div class="tb-et">' + (ns ? 'Logística decidió' : 'Revisión enviada') + '</div><div class="tb-t1">' + (ns ? 'Esta ruta no sale' : 'Esperando la salida') + '</div>' +
       '<div class="tb-t2">' + (ns ? e(h.firmada ? h.firmada.por + ': ' + h.firmada.nota : '') : 'Logística revisa tu revisión y firma la hoja de salida. Te avisamos aquí.') + '</div>' + pasos(1) +
       (h.revision ? '<div style="margin-top:14px;background:rgba(255,255,255,.12);border-radius:12px;padding:12px;font-size:13px;font-weight:700">' + (ns ? '' : '⏳ ') + 'Revisión: ' + (h.revision.items.length - h.revision.fallas) + ' de ' + h.revision.items.length + ' bien' + (h.revision.equipo && h.revision.equipo.length ? ' · equipo ' + (h.revision.equipo.every(function (q) { return q.presente && q.epp; }) ? 'completo' : 'incompleto') : '') + '</div>' : '') + '</div></div>' +
-      '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + ' Tu hoja de esta noche</div>' + [['Unidad', (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad], ['Equipo', h.ayudantesNombres.join(' · ') || '—'], ['Paradas', h.paradas.length + ''], ['Relleno', h.relleno || '—'], ['Salida', ns ? 'no sale' : 'por firmar']].map(function (f) { return '<div class="jv-fila"><b>' + f[0] + '</b><span>' + e(f[1]) + '</span></div>'; }).join('') + '</div>' +
+      '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + (turnoDe(h) === 'dia' ? ' Tu hoja de hoy' : ' Tu hoja de esta noche') + '</div>' + [['Unidad', (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad], ['Equipo', h.ayudantesNombres.join(' · ') || '—'], ['Paradas', h.paradas.length + ''], ['Relleno', h.relleno || '—'], ['Salida', ns ? 'no sale' : 'por firmar']].map(function (f) { return '<div class="jv-fila"><b>' + f[0] + '</b><span>' + e(f[1]) + '</span></div>'; }).join('') + '</div>' +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');
     clearInterval(C._poll);
     if (!ns) C._poll = setInterval(function () {
@@ -1100,7 +1281,7 @@
       var c = p.salida ? (p.atendida ? 'ok' : 'mal') : (k === i ? 'on' : '');
       return '<div class="sc-par ' + c + '" onclick="DSO.abrirParada(' + k + ')"><span class="n">' + (k + 1) + '</span><div class="t"><b>' + e(p.nombre) + '</b><small>' + (p.salida ? (p.atendida ? (p.servicio === 'caja' ? 'caja ' + e(p.cajaLevanta || '') : N(p.bolsas) + ' bolsas') : e(p.inc || 'no se recolectó')) + ' · ' + e(p.llegada) + '–' + e(p.salida) : (p.llegada ? 'llegaste ' + e(p.llegada) : (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : e(SERV[p.servicio] || '')))) + '</small></div><span>›</span></div>';
     }).join('');
-    cSec(nav('Mi ruta de esta noche', 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' hechas', '',
+    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' hechas', '',
       '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>ticket' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
       sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga al relleno y registra el ticket de báscula.' : 'Regresa al patio y cierra la ruta.') + '</p></div>' : '') +
       (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir al relleno · ticket de báscula' : 'El camión está lleno · ir al relleno') + '</button>' : '') +
@@ -1140,7 +1321,7 @@
   function vLejos(i, r) {
     C.vista = 'lejos';
     var p = C.hoja.paradas[i];
-    cSec(nav('Mi ruta de esta noche', 'ruta') + heroHoja('Parada ' + (i + 1) + ' de ' + C.hoja.paradas.length, e(p.nombre), 'Llegada anotada ' + e(r.llegada)) +
+    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja('Parada ' + (i + 1) + ' de ' + C.hoja.paradas.length, e(p.nombre), 'Llegada anotada ' + e(r.llegada)) +
       '<div class="jv-card" style="margin-top:12px;border:2px solid #F5B301"><div class="jv-tit">' + ic('alerta') + ' Estás lejos del punto de recolección</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 10px">El GPS dice que estás a ' + N(r.dist) + ' m del punto guardado de este cliente.</p>' +
       '<button class="sc-btn" onclick="DSO.mandarUbic(' + i + ')">Estoy en la puerta · enviar mi ubicación</button><div style="font-size:12px;color:#5B6880;margin:6px 2px 0">Llega a Logística para aprobarla. La ficha no cambia hasta que la aprueben.</div>' +
       '<button class="sc-btn sec" onclick="DSO.abrirParada(' + i + ')">Seguir igual</button><div style="font-size:12px;color:#5B6880;margin:6px 2px 0">Queda marcada «lejos del punto» en la hoja de ruta.</div></div>');
@@ -1174,7 +1355,7 @@
         '<div class="jv-card"><div class="sc-lbl">¿Cómo estaba el contenedor?</div>' + seg('contenedor', ['Vacío', 'Medio', 'Lleno', 'Desbordado']) + '<div style="margin-top:10px">' + fotoBtn + '</div></div>' +
         '<div class="jv-card"><div class="sc-lbl">¿Algo pasó? (opcional)</div><div class="sc-inc">' + ['Mal separada', 'Bolsa rota / derrame', 'Material no permitido', 'Otro'].map(function (x) { return '<button type="button" class="' + (b.inc === x ? 'on' : '') + '" onclick="DSO.parCampo(\'inc\',\'' + e(x) + '\',true)">' + e(x) + '</button>'; }).join('') + '</div></div>';
     }
-    cSec(nav('Mi ruta de esta noche', 'ruta') + heroHoja('Parada ' + (i + 1) + ' de ' + h.paradas.length + (p.horaHasta ? ' · recibe hasta ' + e(p.horaHasta) : ''), e(p.nombre), e(p.nota || p.direccion || ''),
+    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja('Parada ' + (i + 1) + ' de ' + h.paradas.length + (p.horaHasta ? ' · recibe hasta ' + e(p.horaHasta) : ''), e(p.nombre), e(p.nota || p.direccion || ''),
       '<div class="jv-est' + (p.lejos ? ' am' : '') + '">✓ Llegaste ' + e(p.llegada) + (p.dist != null ? ' · a ' + N(p.dist) + ' m del punto de recolección' : ' · sin GPS') + '</div>') +
       '<div class="sc-seg" style="grid-template-columns:1fr 1fr;margin:12px 0"><button type="button" class="' + (b.atendida ? 'on' : '') + '" onclick="DSO.parCampo(\'atendida\',true)">Recolecté</button><button type="button" class="' + (!b.atendida ? 'on' : '') + '" onclick="DSO.parCampo(\'atendida\',false)">No pude recolectar</button></div>' +
       cuerpo + '<button class="sc-btn" id="sc-listo" onclick="DSO.parListo()"' + (b.subiendo ? ' disabled' : '') + '>' + (ya ? 'Guardar cambios' : 'Listo · salgo de esta parada') + '</button>' +
@@ -1267,7 +1448,7 @@
   function vFin() {
     C.vista = 'fin';
     var h = C.hoja, ci = h.cierre || {};
-    cSec(nav('Mi ruta de esta noche', 'ruta') + heroHoja('Ruta cerrada · ' + e(ci.hora || ''), e(h.nombre) + ' terminada', fLarga(h.fecha),
+    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja('Ruta cerrada · ' + e(ci.hora || ''), e(h.nombre) + ' terminada', fLarga(h.fecha),
       '<div class="jv-kp"><div><b>' + h.atendidas + '/' + h.paradas.length + '</b><span>paradas</span></div><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + N(h.netoTotal) + '</b><span>kg en báscula</span></div></div>' +
       '<div class="jv-est">✓ ' + h.viajes.length + ' ticket(s) guardado(s)' + (ci.km != null ? ' · ' + N(ci.km) + ' km' : '') + '</div>') +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');

@@ -409,7 +409,7 @@ function pintar(r){
   var qrSvg = r.verificar ? QR.svg(r.verificar) : "";
   var h="<div class='cert'><div class='fr'><i></i><i></i><i></i></div><img class='agua' src='logo-ecovsa.png' alt=''>"+(r.estado==="REEMPLAZADO"?"<div class='reemp'>REEMPLAZADO</div>":"")+"<div class='in'>"+
     "<div class='mem'><img src='logo-ecovsa.png' alt='ECOVSA'><div class='em'><b>"+esc(E.comercial)+"</b><small>Recolección, transporte, tratamiento y disposición final<br>de desechos hospitalarios peligrosos</small></div>"+
-    "<div class='fo'><small>CERTIFICADO N.°</small><b>"+esc(r.folio)+"</b><small style='margin-top:4px'>Emitido el "+F(r.emitido)+"</small></div></div>"+
+    "<div class='fo'><small>CERTIFICADO N.°</small><b>"+esc(r.numero||r.folio)+"</b><small style='margin-top:4px'>Emitido el "+F(r.emitido)+"</small></div></div>"+
     "<h1>Certificado de servicio</h1><div class='sub'>Gestor autorizado de desechos peligrosos</div>"+
     "<p class='txt'><b>"+esc(E.razonSocial)+"</b>, que opera bajo el nombre comercial <b>"+esc(E.comercial)+"</b>, empresa autorizada por el Ministerio de Salud de la República de Panamá para la recolección, transporte, tratamiento y disposición final de desechos hospitalarios peligrosos, <b>certifica</b> que presta sus servicios al siguiente cliente:</p>"+
     "<div class='datos'><div class='w'><small>Razón social</small><b>"+esc(c.razonSocial)+"</b></div><div><small>RUC</small><b>"+ruc+"</b></div><div><small>Frecuencia</small><b>"+esc(c.frecuencia||"—")+"</b></div>"+
@@ -422,8 +422,8 @@ function pintar(r){
       "<div class='firma'><b>"+esc(r.representante||"Representante legal")+"</b>"+(r.representante?"<small>Representante legal</small>":"")+"<small>"+esc(E.razonSocial)+"</small></div></div>"+
       (qrSvg?"<a class='qrb' href='"+esc(r.verificar)+"' target='_blank' rel='noopener'>"+qrSvg+"<b>Verificar servicio</b><small>clientes.ecovsaapp.com</small></a>":"")+"</div></div>"+
     "<div class='pie'><b>"+esc(E.razonSocial)+"</b> · RUC "+esc(E.ruc)+(E.dv?" DV "+esc(E.dv):"")+" · "+esc(E.direccion)+"<br>Tel. "+esc(E.telefono)+(E.whatsapp?" · WhatsApp "+esc(E.whatsapp):"")+" · "+esc(E.correo)+" · Código del formato: "+esc((r.empresa&&r.empresa.formulario)||"por asignar")+"</div></div>";
-  $("marco").innerHTML=h; $("t-fo").textContent="· "+r.folio;
-  $("nota").innerHTML = r.estado==="REEMPLAZADO" ? "<div class='nota-p'>Este certificado fue reemplazado por el "+esc(r.reemplazadoPor||"más reciente")+". Pida el vigente a "+esc(E.comercial)+".</div>"
+  $("marco").innerHTML=h; $("t-fo").textContent="· N.° "+(r.numero||r.folio);
+  $("nota").innerHTML = r.estado==="REEMPLAZADO" ? "<div class='nota-p'>Este certificado fue reemplazado por uno emitido después. Pida el vigente a "+esc(E.comercial)+".</div>"
     : (r.servicioHoy!=="activo" ? "<div class='nota-p'>Hoy el servicio no está activo. El QR muestra el estado del día.</div>" : "");
   $("aviso").style.display="none"; $("app").style.display="block"; ajustar();
 }
