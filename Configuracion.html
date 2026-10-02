@@ -891,6 +891,135 @@ function vEntrada() {
     '<div class="nota">Se llama «Configuración» para no confundirlo con el módulo Administración (inventario, activos, equipos y vehículos). Si pierdes tu PIN, nadie más entra aquí: conviene dar de alta un segundo administrador cuando se pueda.</div></div></div>';
 }
 
+/* ═══════════ api 3.17 · PORTAL DE CLIENTES (solo el administrador) ═══════════
+   Todo pedido de acceso llega aquí. Dar acceso es como dar de alta un usuario:
+   la invitación va al WhatsApp de la ficha, sirve una vez y vence en 48 h. */
+var PTL = null, PTL_V = false, PTL_T = 'ped', PTL_F = 'todas';
+function ptlCargar() { PTL_V = true; return MK.api('api_ptlAdmin', PIN).then(function (r) { PTL_V = false; PTL = r || { ok: false }; MK.repintar(); }, function () { PTL_V = false; PTL = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+function ptlEst(a) { return a.estado === 'activo' ? '<span class="tag t-ok">Activo</span>' : '<span class="tag t-warn">Invitado</span>'; }
+function vPortal() {
+  var cab = MK.cabeza('Portal de clientes', 'Los accesos de los clientes a su portal (recibos, certificados, facturas y pedidos). Solo el administrador los da, los renueva y los quita.');
+  if (!PTL) { if (!PTL_V) ptlCargar(); return cab + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
+  if (!PTL.ok) return cab + '<div class="aviso am">' + MK.esc(PTL.error || 'No se pudo') + ' <a href="#" onclick="PTL=null;MK.repintar();return false">Reintentar</a></div>';
+  var R = PTL.resumen, pend = PTL.pedidos.filter(function (p) { return p.estado === 'pendiente'; });
+  var h = cab + MK.kpis([{ e: 'Accesos activos', v: R.accesos, s: 'personas que ya crearon su PIN' }, { e: 'Invitados', v: R.invitados, s: 'falta que creen su PIN' }, { e: 'Pedidos', v: R.pendientes, s: R.pendientes ? 'esperan tu respuesta' : 'nada pendiente', c: R.pendientes ? 'warn' : '' }, { e: 'Cuentas', v: R.cuentas, s: R.sedes + ' sedes activas' }]);
+  h += '<div style="margin:14px 0 12px">' + MK.chips([['ped', 'Pedidos', pend.length], ['cli', 'Clientes y sedes'], ['ent', 'Entrega de distintivos'], ['his', 'Historial'], ['aj', 'Ajustes']], PTL_T, 'ptlTab') + '</div>';
+  if (PTL_T === 'ped') {
+    var L = PTL.pedidos.slice(0, 80), TT = { activar: 'Activar mi acceso', olvide: 'Olvidé mi PIN', alta: 'Acceso nuevo (lo pide el corporativo)', baja: 'Quitar un acceso (lo pide el corporativo)' };
+    h += '<div class="card">' + (L.length ? L.map(function (p) {
+      var c = ptlSede(p.clienteId);
+      return '<div class="fila" style="padding:10px 0;border-top:1px solid #eef1f5;align-items:flex-start"><div style="flex:1;min-width:0"><b>' + MK.esc(TT[p.tipo] || p.tipo) + ' · ' + MK.esc(p.nombre) + (p.cargo ? ' (' + MK.esc(p.cargo) + ')' : '') + '</b>' +
+        '<div class="small muted">' + MK.esc(p.pedidoId) + ' · ' + MK.esc(c ? c.nombre : p.razonSocial) + ' · ' + MK.esc(p.creadoEn) + ' · ' + MK.esc(p.creadoPor) + (p.nota ? ' · «' + MK.esc(p.nota) + '»' : '') + (p.telefono ? ' · cel. ' + MK.esc(p.telefono) : '') + '</div>' +
+        (p.estado !== 'pendiente' ? '<div class="small" style="margin-top:3px">' + (p.estado === 'aprobado' ? '<span class="tag t-ok">Aprobado</span>' : '<span class="tag t-gris">Rechazado</span>') + ' ' + MK.esc(p.atendidoPor) + (p.respuesta ? ' · ' + MK.esc(p.respuesta) : '') + '</div>' : '') + '</div>' +
+        (p.estado === 'pendiente' ? '<div class="fila" style="gap:6px"><button class="btn sm pri" onclick="ptlPedido(\'' + MK.esc(p.pedidoId) + '\',true,this)">' + MK.ic('check', 14) + 'Aprobar</button><button class="btn sm" onclick="ptlRechazar(\'' + MK.esc(p.pedidoId) + '\')">Rechazar</button></div>' : '') + '</div>';
+    }).join('') : MK.vacio('No hay pedidos.')) + '</div><div class="nota">«Aprobar» arma la invitación y abre WhatsApp al número de la ficha del cliente, nunca a uno que escriba quien pide. En «Olvidé mi PIN», el PIN anterior deja de servir.</div>';
+  } else if (PTL_T === 'cli') {
+    var C = PTL.cuentas.filter(function (c) {
+      var n = c.corp.length + c.sedes.reduce(function (s, x) { return s + x.accesos.length; }, 0);
+      return PTL_F === 'todas' || (PTL_F === 'macro' && c.macro) || (PTL_F === 'micro' && !c.macro) || (PTL_F === 'sin' && !n) || (PTL_F === 'atraso' && c.semaforo !== 'verde');
+    });
+    h += '<div style="margin-bottom:10px">' + MK.chips([['todas', 'Todas'], ['macro', 'Macro'], ['micro', 'Micro'], ['sin', 'Sin acceso'], ['atraso', 'Con atraso']], PTL_F, 'ptlFiltro') + '</div>';
+    h += C.length ? C.map(function (c, ci) {
+      var fa = function (a) { return '<div class="fila" style="gap:8px;padding:5px 0"><span style="flex:1;min-width:0">' + MK.esc(a.nombre) + (a.cargo ? ' <span class="muted small">· ' + MK.esc(a.cargo) + '</span>' : '') + ' ' + ptlEst(a) + (a.ultimoIngreso ? ' <span class="muted small">entró ' + MK.esc(a.ultimoIngreso.slice(0, 10)) + '</span>' : '') + '</span>' +
+        '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',false,this)">' + (a.estado === 'activo' ? 'Enlace nuevo' : 'Reenviar') + '</button>' + (a.estado === 'activo' ? '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',true,this)">PIN nuevo</button>' : '') + '<button class="btn sm gh bad" onclick="ptlQuitar(\'' + a.accesoId + '\',\'' + MK.esc(a.nombre) + '\')">Quitar</button></div>'; };
+      return '<div class="card" style="margin-bottom:10px"><div class="fila" style="justify-content:space-between;align-items:flex-start"><div><b>' + MK.esc(c.razonSocial) + '</b> ' + (c.macro ? '<span class="tag t-info">Macro · ' + c.sedes.length + ' sedes</span>' : '<span class="tag t-gris">Micro</span>') + ' ' +
+        (c.semaforo === 'verde' ? '<span class="tag t-ok">Al día</span>' : '<span class="tag t-warn">Con atraso</span>') + '</div>' + (c.macro ? '<button class="btn sm" onclick="ptlInvitar(\'corp\',' + ci + ')">' + MK.ic('alta', 14) + 'Encargado de la cuenta</button>' : '') + '</div>' +
+        (c.corp.length ? '<div class="small muted" style="margin-top:6px">CUENTA COMPLETA</div>' + c.corp.map(fa).join('') : '') +
+        c.sedes.map(function (s, si) { return '<div style="border-top:1px solid #eef1f5;margin-top:8px;padding-top:8px"><div class="fila" style="justify-content:space-between"><span><b style="font-weight:600">' + MK.esc(s.nombre) + '</b> <span class="muted small">' + MK.esc(s.contacto || '') + (s.telefono ? ' · ' + MK.esc(s.telefono) : ' · sin WhatsApp en la ficha') + (s.distintivo ? ' · distintivo ' + MK.esc(MK.fechaCorta ? MK.fechaCorta(s.distintivo) : s.distintivo) : '') + '</span></span>' +
+          '<button class="btn sm gh" onclick="ptlInvitar(\'' + (c.macro ? 'sede' : 'micro') + '\',' + ci + ',' + si + ')">' + MK.ic('alta', 14) + 'Invitar</button></div>' + s.accesos.map(fa).join('') + '</div>'; }).join('') + '</div>';
+    }).join('') : '<div class="card">' + MK.vacio('Nada con ese filtro.') + '</div>';
+  } else if (PTL_T === 'ent') {
+    var M = PTL.cuentas.filter(function (c) { return c.macro; }), m = PTL.cuentas.filter(function (c) { return !c.macro; });
+    var fila = function (c) { var i = PTL.cuentas.indexOf(c), hechas = c.sedes.filter(function (s) { return s.distintivo; }).length;
+      return '<div class="fila" style="padding:8px 0;border-top:1px solid #eef1f5"><span style="flex:1;min-width:0"><b style="font-weight:600">' + MK.esc(c.razonSocial) + '</b> <span class="muted small">' + c.sedes.length + ' sede' + (c.sedes.length === 1 ? '' : 's') + ' · ' + hechas + ' entregado' + (hechas === 1 ? '' : 's') + '</span>' +
+        (c.semaforo !== 'verde' ? ' <span class="tag t-warn">llevar estado de cuenta y plan de pago</span>' : '') + '</span><button class="btn sm' + (hechas < c.sedes.length ? ' pri' : '') + '" onclick="ptlEntrega(' + i + ')">Registrar entrega</button></div>'; };
+    h += '<div class="grid g2" style="gap:12px;align-items:start"><div class="card"><h3>Ola 1 · Macro</h3>' + (M.map(fila).join('') || MK.vacio('Sin cuentas macro.')) + '</div><div class="card"><h3>Ola 2 · Micro</h3>' + (m.map(fila).join('') || MK.vacio('—')) + '</div></div>' +
+      '<div class="card" style="margin-top:12px"><h3>Constancias</h3>' + (PTL.entregas.length ? PTL.entregas.map(function (e) { return '<div class="fila" style="padding:7px 0;border-top:1px solid #eef1f5"><span style="flex:1">' + MK.esc(e.folio) + ' · <b style="font-weight:600">' + MK.esc(e.razonSocial) + '</b> <span class="muted small">' + MK.esc(e.fecha) + ' · recibió ' + MK.esc(e.recibe) + ' · ' + MK.esc(e.por) + '</span></span><a class="btn sm gh" href="' + MK.esc(e.url) + '" target="_blank" rel="noopener">Ver</a></div>'; }).join('') : MK.vacio('Todavía no hay entregas.')) + '</div>' +
+      '<div class="nota">«Registrar entrega» se hace en el celular, en el establecimiento: lo entregado, quién recibe, su firma en la pantalla y «Firmar y activar acceso». Sale la constancia con el QR «Active su portal»: el cliente lo escanea ahí mismo y crea su PIN.</div>';
+  } else if (PTL_T === 'his') {
+    h += '<div class="card">' + (PTL.historial.length ? MK.tabla(['Cuándo', 'Quién', 'Qué', 'Detalle'], PTL.historial.map(function (x) { return [MK.esc(x.en), MK.esc(x.quien), MK.esc(x.accion), '<span class="small">' + MK.esc(x.detalle) + '</span>']; })) : MK.vacio('Sin movimientos.')) + '</div>';
+  } else {
+    h += '<div class="card reg"><h3>Dirección del portal</h3><div class="rr"><div class="rt"><b>Enlace de las invitaciones</b><span>Mientras clientes.ecovsaapp.com no esté listo, las invitaciones abren ecovsaapp.com/Portal.html. Cuando esté, cámbiala a https://clientes.ecovsaapp.com/Portal.html</span></div>' +
+      '<div style="width:380px;max-width:100%"><input class="in" id="ptl-url" value="' + MK.esc(PTL.url) + '"></div></div><div class="fila" style="justify-content:flex-end;margin-top:10px"><button class="btn pri" onclick="ptlGuardarUrl(this)">Guardar</button></div></div>';
+  }
+  return h;
+}
+function ptlTab(t) { PTL_T = t; MK.repintar(); }
+function ptlFiltro(f) { PTL_F = f; MK.repintar(); }
+function ptlSede(id) { var r = null; (PTL.cuentas || []).forEach(function (c) { c.sedes.forEach(function (s) { if (s.clienteId === id) r = s; }); }); return r; }
+function ptlResultado(r, titulo) {
+  if (r.yaActivo) { MK.aviso('Esa persona ya tiene su acceso activo.'); return; }
+  MK.lado('<h2>' + MK.esc(titulo || 'Invitación lista') + '</h2><div class="sub">Sirve una sola vez y vence el ' + MK.esc(r.vence || '') + '.</div>' +
+    '<label class="lb">Mensaje</label><textarea class="in" rows="7" readonly style="width:100%">' + MK.esc(r.texto || '') + '</textarea>' +
+    '<div class="pie2">' + (r.wa ? '<a class="btn pri" href="' + MK.esc(r.wa) + '" target="_blank" rel="noopener">' + MK.ic('whatsapp', 16) + 'Abrir WhatsApp</a>' : '') + '<button class="btn" onclick="ptlCopiar()">Copiar el mensaje</button><button class="btn" onclick="MK.cerrarLado()">Listo</button></div>');
+  window._ptlTxt = r.texto || '';
+}
+function ptlCopiar() { var t = window._ptlTxt || ''; if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { MK.aviso('Copiado'); }, function () {}); }
+function ptlPedido(id, si, b, nota) {
+  MK.ocupado(b, true);
+  MK.api('api_ptlPedido', PIN, id, si, nota || '').then(function (r) { MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.cerrarHoja && MK.cerrarHoja(); if (si && r.url) ptlResultado(r); else MK.aviso(si ? 'Aprobado' : 'Rechazado'); ptlCargar(); }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+}
+function ptlRechazar(id) {
+  MK.hoja('<h2>Rechazar el pedido</h2><label class="lb">Motivo (queda en el historial)</label><input class="in" id="ptl-nota"><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="ptl-no">Rechazar</button></div>');
+  document.getElementById('ptl-no').onclick = function () { ptlPedido(id, false, this, MK.val('ptl-nota')); };
+}
+function ptlInvitar(nivel, ci, si) {
+  var c = PTL.cuentas[ci], s = si != null ? c.sedes[si] : null;
+  MK.lado('<h2>' + (nivel === 'corp' ? 'Encargado de la cuenta' : 'Invitar a ' + MK.esc(s.nombre)) + '</h2><div class="sub">' + MK.esc(c.razonSocial) + (nivel === 'corp' ? ' · ve todas las sedes, facturas y pide accesos para su equipo' : nivel === 'sede' ? ' · sede de un macro: sin facturas' : '') + '</div>' +
+    '<label class="lb">Nombre</label><input class="in" id="pi-n"><label class="lb">Cargo</label><input class="in" id="pi-c" placeholder="' + (nivel === 'corp' ? 'Gerente, CEO…' : 'Administradora, encargada…') + '">' +
+    '<label class="lb">WhatsApp</label><input class="in" id="pi-t" value="' + MK.esc(s ? s.telefono : (c.sedes[0] || {}).telefono || '') + '" inputmode="tel"><div class="small muted" style="margin-top:4px">Sale de la ficha del cliente. Cámbialo solo si lo confirmaste con el cliente.</div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="pi-ok">' + MK.ic('check', 16) + 'Crear la invitación</button></div>');
+  document.getElementById('pi-ok').onclick = function () {
+    var b = this; MK.ocupado(b, true);
+    MK.api('api_ptlInvitar', PIN, { nivel: nivel, clienteId: s ? s.clienteId : '', razonSocial: c.razonSocial, nombre: MK.val('pi-n'), cargo: MK.val('pi-c'), telefono: MK.val('pi-t') }).then(function (r) {
+      MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } ptlResultado(r); ptlCargar();
+    }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+  };
+}
+function ptlReenviar(id, reiniciar, b) {
+  var hacer = function () { MK.ocupado(b, true); MK.api('api_ptlReenviar', PIN, id, !!reiniciar).then(function (r) { MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } ptlResultado(r, reiniciar ? 'PIN nuevo' : 'Invitación'); ptlCargar(); }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); }); };
+  if (reiniciar) MK.confirmar('Su PIN actual deja de servir y recibe una invitación para crear uno nuevo.', hacer, { titulo: '¿Dar un PIN nuevo?', boton: 'Sí, PIN nuevo' }); else hacer();
+}
+function ptlQuitar(id, nom) {
+  MK.confirmar(nom + ' ya no podrá entrar al portal. Queda en el historial.', function () { MK.api('api_ptlQuitar', PIN, id).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('Acceso quitado'); ptlCargar(); }); }, { titulo: '¿Quitar el acceso?', boton: 'Quitar', peligro: true });
+}
+function ptlGuardarUrl(b) { MK.ocupado(b, true); MK.api('api_ptlAjustes', PIN, { url: MK.val('ptl-url') }).then(function (r) { MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('Guardado'); ptlCargar(); }); }
+/* Entrega del distintivo con firma de recibido */
+var PTL_FIRMA = null;
+function ptlEntrega(ci) {
+  var c = PTL.cuentas[ci];
+  MK.lado('<h2>Registrar entrega</h2><div class="sub">' + MK.esc(c.razonSocial) + '</div>' +
+    '<label class="lb">Sedes que reciben su distintivo</label><div id="pe-s">' + c.sedes.map(function (s) { return '<label class="fila small" style="gap:8px;padding:3px 0;cursor:pointer"><input type="checkbox" value="' + MK.esc(s.clienteId) + '"' + (s.distintivo ? '' : ' checked') + '> ' + MK.esc(s.nombre) + (s.distintivo ? ' <span class="muted">(ya entregado)</span>' : '') + '</label>'; }).join('') + '</div>' +
+    '<label class="lb">Lo que se entrega</label><div id="pe-k">' + PTL.kit.map(function (k) { return '<label class="fila small" style="gap:8px;padding:3px 0;cursor:pointer"><input type="checkbox" checked value="' + MK.esc(k) + '"> ' + MK.esc(k) + '</label>'; }).join('') + '</div>' +
+    '<div class="f2"><div><label class="lb">Quién recibe</label><input class="in" id="pe-r"></div><div><label class="lb">Cargo</label><input class="in" id="pe-c"></div></div>' +
+    '<label class="lb">WhatsApp (para su acceso)</label><input class="in" id="pe-t" value="' + MK.esc((c.sedes[0] || {}).telefono || '') + '" inputmode="tel">' +
+    '<label class="lb">Firma de quien recibe</label><div style="border:1.5px dashed #c4d2e6;border-radius:12px;height:150px;position:relative;background:#fbfcfe;touch-action:none"><canvas id="pe-f" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>' +
+    '<div class="fila" style="justify-content:space-between;margin-top:4px"><span class="small muted">Firme con el dedo</span><button class="btn sm gh" onclick="ptlFirmaBorrar()">Borrar firma</button></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="pe-ok">' + MK.ic('check', 16) + 'Firmar y activar acceso</button></div>');
+  setTimeout(function () {
+    var cv = document.getElementById('pe-f'); if (!cv) return; var r = cv.getBoundingClientRect(), k = window.devicePixelRatio || 1;
+    cv.width = r.width * k; cv.height = r.height * k; var x = cv.getContext('2d'); x.scale(k, k); x.lineWidth = 2.4; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = '#0f2140';
+    var dib = false, n = 0, p = function (e) { var b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+    cv.onpointerdown = function (e) { dib = true; n++; var q = p(e); x.beginPath(); x.moveTo(q[0], q[1]); cv.setPointerCapture(e.pointerId); e.preventDefault(); };
+    cv.onpointermove = function (e) { if (!dib) return; var q = p(e); x.lineTo(q[0], q[1]); x.stroke(); };
+    cv.onpointerup = cv.onpointercancel = function () { dib = false; };
+    PTL_FIRMA = { cv: cv, n: function () { return n; }, borrar: function () { x.clearRect(0, 0, cv.width, cv.height); n = 0; } };
+  }, 80);
+  document.getElementById('pe-ok').onclick = function () {
+    var b = this, sed = [].map.call(document.querySelectorAll('#pe-s input:checked'), function (i) { return i.value; }), kit = [].map.call(document.querySelectorAll('#pe-k input:checked'), function (i) { return i.value; });
+    if (!PTL_FIRMA || !PTL_FIRMA.n()) { MK.aviso('Falta la firma de quien recibe'); return; }
+    var c2 = document.createElement('canvas'); c2.width = 600; c2.height = Math.round(600 * PTL_FIRMA.cv.height / PTL_FIRMA.cv.width); var g = c2.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c2.width, c2.height); g.drawImage(PTL_FIRMA.cv, 0, 0, c2.width, c2.height);
+    MK.ocupado(b, true, 'Guardando…');
+    MK.api('api_ptlEntrega', PIN, { clienteIds: sed, kit: kit, recibe: MK.val('pe-r'), cargo: MK.val('pe-c'), telefono: MK.val('pe-t'), firma: c2.toDataURL('image/jpeg', .7), nivel: c.macro ? 'corp' : 'micro' }).then(function (r) {
+      MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+      MK.lado('<h2>Entrega registrada · ' + MK.esc(r.folio) + '</h2><div class="sub">Abre la constancia y muéstrale el QR «Active su portal»: lo escanea y crea su PIN ahí mismo.</div>' +
+        '<div class="pie2" style="justify-content:flex-start;flex-wrap:wrap"><a class="btn pri" href="' + MK.esc(r.url) + '" target="_blank" rel="noopener">Abrir la constancia</a>' + (r.invitacion && r.invitacion.wa ? '<a class="btn" href="' + MK.esc(r.invitacion.wa) + '" target="_blank" rel="noopener">' + MK.ic('whatsapp', 16) + 'Mandar la invitación por WhatsApp</a>' : '') + '<button class="btn" onclick="MK.cerrarLado()">Listo</button></div>');
+      ptlCargar();
+    }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+  };
+}
+function ptlFirmaBorrar() { if (PTL_FIRMA) PTL_FIRMA.borrar(); }
+
 MK.iniciar({
   modulo: 'Configuración',
   base: 'api_cfgBase',
@@ -907,6 +1036,7 @@ MK.iniciar({
     { id: 'seg', n: 'Seguridad', i: 'candado' },
     { id: 'fun', n: 'Funciones', i: 'ajustes' },
     { id: 'emp', n: 'Datos de la empresa', i: 'maletin' },
+    { id: 'ptl', n: 'Portal de clientes', i: 'personas' },
     { id: 'his', n: 'Historial', i: 'historial' },
     { id: 'rb', n: 'Registro de borrados', i: 'basura' },
     { id: 'prb', n: 'Datos de prueba', i: 'filtro' },
@@ -926,7 +1056,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, ptl: vPortal, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });

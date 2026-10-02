@@ -121,6 +121,15 @@
 .tarj .ini span{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.6px;
   text-transform:uppercase;color:#5A7A22}
 .tarj .ini b{display:block;font-size:15px;font-weight:800;color:#2F4D0B;margin-top:2px}
+
+/* api 3.17 · el distintivo cabe en la hoja carta: antes el pie azul se salía y se cortaba.
+   Mismo diseño, un poco más junto; bajo el QR, la dirección del portal. */
+.tarj .cu{padding:14px 62px 0}.tarj .lg{width:136px;height:128px;margin:10px 0 0}.tarj h2{font-size:27px;margin-top:6px}
+.tarj .le{font-size:14.5px;margin-top:8px}.tarj .cj{margin-top:14px;padding:18px 30px 12px}.tarj .qr{width:182px;height:182px;margin:0 auto 6px}
+.tarj .url{font-size:12.5px;font-weight:600;letter-spacing:1.6px;color:#98A2B3;margin:0 auto 8px;display:inline-block}
+.tarj .sb{margin-top:6px}.tarj .sd{margin-top:12px;padding-top:12px}.tarj .ini{margin-top:8px;padding:6px 12px}
+.tarj .pe{padding:16px 30px 14px}.tarj .pe .a{font-size:17px}.tarj .pe .b{font-size:16px;margin-top:5px}.tarj .pe .dir{margin-top:6px}
+.tarj .pe .res{margin-top:6px;padding-top:6px}.tarj .pe .c{margin-top:8px}.tarj .pe .cod{margin-top:8px}
 @media print{
   body>*:not(#dist-imprimir){display:none!important}
   body{background:#fff;padding:0}
@@ -715,6 +724,8 @@ var QR = (function(){
       if (!r || !r.ok) { $('d-tabla').innerHTML = '<tbody><tr><td>' + MK.vacio((r && r.error) || 'No se pudo cargar.') + '</td></tr></tbody>'; return; }
       DIST = r; if (r.empresa) DIST_EMP = r.empresa;
       pintarDist(); contadores();
+      /* api 3.17 · el certificado de servicio de cada cliente */
+      MK.api('api_certServEstado', MK.pin).then(function (x) { if (x && x.ok) { CSERV = x.clientes; pintarPrevDist(); } }, function () {});
     }, function () { $('d-tabla').innerHTML = '<tbody><tr><td><div class="aviso rj">Sin conexión con el servidor.</div></td></tr></tbody>'; });
   }
   function distFiltrados() {
@@ -756,6 +767,29 @@ var QR = (function(){
     [].forEach.call(t.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { imprimirDistintivos([b.getAttribute('data-p')], b); }; });
     pintarPrevDist();
   }
+  /* ═══ api 3.17 · Certificado de servicio (se entrega al inicio, junto con el distintivo) ═══ */
+  var CSERV = null;
+  function certServHTML(c) {
+    var x = CSERV && CSERV[c.id]; if (!x) return '';
+    var fila = function (t, v, tipo) {
+      var est = v ? (v.desactualizado ? '<span class="tag t-warn">Desactualizado</span><small>la ficha cambió: vence el ' + esc(MK.fechaCorta(x.vence)) + '</small>' : '<span class="tag t-ok">' + esc(v.folio) + '</span><small>vigente hasta ' + esc(MK.fechaCorta(v.vence)) + '</small>') : '<span class="tag t-warn">Sin emitir</span>';
+      return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--linea,#e1e6ee)"><div style="text-align:left"><b style="font-weight:600;font-size:13px">' + t + '</b><div>' + est + '</div></div><div class="row" style="gap:6px">' +
+        (v ? '<a class="btn sm gh" href="' + esc(v.url) + '" target="_blank" rel="noopener">' + MK.ic('ojo', 14) + ' Ver</a>' : '') +
+        (x.falta ? '' : '<button class="btn sm' + (!v || v.desactualizado ? ' pri' : '') + '" data-cs="' + tipo + '">' + (v ? 'Emitir uno nuevo' : 'Emitir') + '</button>') + '</div></div>';
+    };
+    return '<div class="card" style="margin-top:14px;padding:10px 12px;text-align:left"><div class="prev-h" style="margin:0 0 4px"><span class="t">CERTIFICADO DE SERVICIO</span></div>' +
+      '<div class="small muted" style="margin-bottom:6px">Se entrega al inicio, con el distintivo. Dice desde cuándo y hasta cuándo el cliente tiene servicio (fin del contrato).</div>' +
+      (x.falta ? '<div class="nota warn" style="margin-bottom:6px">' + esc(x.falta) + ' <a href="MerCliente.html?id=' + encodeURIComponent(c.id) + '">Completar en la ficha</a></div>' : '') +
+      fila(x.macro ? 'De esta sede' : 'Del establecimiento', x.sede, 'sede') + (x.macro ? fila('De la cuenta · ' + x.sedes + ' sedes', x.cuenta, 'cuenta') : '') + '</div>';
+  }
+  function emitirCertServ(id, tipo, b) {
+    MK.ocupado(b, true, 'Emitiendo…');
+    MK.api('api_certServEmitir', MK.pin, id, tipo).then(function (r) {
+      if (!r || !r.ok) { MK.ocupado(b, false); MK.aviso((r && r.error) || 'No se pudo emitir.'); return; }
+      MK.aviso('Certificado ' + r.folio + ' emitido'); window.open(r.url, '_blank');
+      return MK.api('api_certServEstado', MK.pin).then(function (x) { if (x && x.ok) CSERV = x.clientes; pintarPrevDist(); });
+    }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión.'); });
+  }
   function pintarPrevDist(destino) {
     var c = porIdD(ADIST), el = destino || $('d-prev'); if (!el) return;
     if (!c) { el.innerHTML = MK.vacio('Elige un cliente para ver su distintivo.'); return; }
@@ -766,6 +800,8 @@ var QR = (function(){
       '<div class="row w" style="justify-content:center;margin-top:12px"><button class="btn sm" data-dp="imp">' + MK.ic('imprimir', 14) + ' Imprimir</button>' +
       (DIST.url ? '<a class="btn sm" href="' + esc(enlaceCliente(c)) + '" target="_blank" rel="noopener">' + MK.ic('ojo', 14) + ' Lo que abre el QR</a>' : '') +
       (c.entregado ? '' : '<button class="btn sm pri" data-dp="ent">' + MK.ic('check', 14) + ' Marcar entregado</button>') + '</div>';
+    el.insertAdjacentHTML('beforeend', certServHTML(c));
+    [].forEach.call(el.querySelectorAll('[data-cs]'), function (b) { b.onclick = function () { emitirCertServ(c.id, b.getAttribute('data-cs'), b); }; });
     el.querySelector('[data-dp="imp"]').onclick = function () { imprimirDistintivos([c.id], this); };
     var en = el.querySelector('[data-dp="ent"]'); if (en) en.onclick = function () { MK.cerrarLado(); entregar(c.id); };
     ajustarMini();
@@ -838,6 +874,7 @@ var QR = (function(){
           'documentada de cada retiro.</div>'+
         '<div class="cj">'+
           '<div class="qr">'+QR.svg(enlaceCliente(c))+'</div>'+
+          '<div class="url">clientes.ecovsaapp.com</div>'+
           '<div class="ct">Escanee para ver su servicio</div>'+
           '<div class="sb">Consulte su frecuencia, su última visita y el total<br>'+
             'retirado de su establecimiento, en cualquier momento.</div>'+

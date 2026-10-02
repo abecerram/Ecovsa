@@ -49,13 +49,15 @@
   function ic(n) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || '') + '</svg>'; }
   function membrete(o) {
     o = o || {}; var e = emp(o.empresa), legal = o.modo === 'legal';
-    var lin1 = legal ? e.comercial + ' · Recolección, transporte y tratamiento de desechos hospitalarios' : 'Recolección, transporte y tratamiento de desechos hospitalarios';
+    /* api 3.17: o.linea cambia el servicio (desechos sólidos) y o.franja el texto de la franja */
+    var serv = o.linea || 'Recolección, transporte y tratamiento de desechos hospitalarios';
+    var lin1 = legal ? e.comercial + ' · ' + serv : serv;
     var lin2 = 'RUC ' + e.ruc + (e.dv ? ' DV ' + e.dv : '') + ' · ' + e.direccion;
     var lin3 = 'Tel. ' + e.telefono + (e.whatsapp ? ' · WhatsApp ' + e.whatsapp : '') + ' · ' + e.correo;
     return '<div class="dm"><img class="dm-logo" src="logo-ecovsa.png" alt="ECOVSA"><div class="dm-e"><b>' + esc(legal ? e.razonSocial : e.comercial) + '</b>' +
       '<span>' + esc(lin1) + '</span><span>' + esc(lin2) + '</span><span>' + esc(lin3) + '</span></div>' +
       (o.derecha ? '<div class="dm-r">' + o.derecha + '</div>' : '') + '</div>' +
-      '<div class="dm-res"><span class="ok">Empresa registrada ante el Ministerio de Salud · ' + esc(e.resolucion) + '</span>' +
+      '<div class="dm-res"><span class="ok">' + esc(o.franja || 'Empresa registrada ante el Ministerio de Salud · ' + e.resolucion) + '</span>' +
       (o.codigo ? '<span>' + esc(o.codigo) + '</span>' : '') + '</div>';
   }
   /* api 3.5.2 · mientras se abre el documento: el emblema que se arma en

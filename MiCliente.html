@@ -28,7 +28,9 @@ button{font-family:inherit}
 .emb .fl{position:absolute;inset:0;transform-origin:49.375% 48.98%}
 .emb .fl.gira{animation:vuelta 1.8s cubic-bezier(.25,.7,.25,1)}
 @keyframes vuelta{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-.hC .wm{margin-top:8px;line-height:1}.hC .wm img{width:132px;height:auto;display:inline-block}
+.emb2{width:118px;height:118px;margin:0 auto;cursor:pointer}.emb2 .eco-lg{width:118px!important;height:118px!important;box-shadow:0 0 0 8px rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.35)}
+.acc2{margin:12px 14px 0;display:grid;gap:8px}.acc2 .btn small{display:block;font-weight:500;font-size:11.5px;opacity:.85}.acc2 .btn{flex-direction:column;gap:2px}
+.hC .wm{margin-top:10px;line-height:1}.hC .wm img{width:132px;height:auto;display:inline-block}
 .hC .tg{font-size:10px;letter-spacing:2.4px;color:#8fd46a;font-weight:700;margin-top:5px}
 .fC{background:#fff;margin:-32px 14px 0;border-radius:16px;padding:12px 14px;text-align:center;position:relative;box-shadow:0 8px 22px rgba(15,33,64,.14)}
 .fC .n{font-size:20px;font-weight:800;color:var(--navy)}.fC small{color:var(--mu);font-size:12.5px}
@@ -167,7 +169,7 @@ function falla(t,p){ $("app").innerHTML='<div class="centro"><div style="font-si
 
 /* ── navegación ── */
 function ir(v){
-  if((v==="mio"||v==="recibos"||v==="recibo") && !LLAVE) v="clave";
+  if(v==="portal"||v==="clave"||((v==="mio"||v==="recibos"||v==="recibo") && !LLAVE)){ location.href=urlPortal(""); return; }
   V=v;
   var h={ver:vVer,clave:vClave,mio:vMio,recibos:vRecibos,recibo:vRecibo}[v]();
   $("app").innerHTML=h; window.scrollTo(0,0);
@@ -182,21 +184,27 @@ function ir(v){
 function estado(){
   var r=PUB;
   if(r.estadoServicio==="baja") return {sello:"FUERA DE SERVICIO", cls:"fuera", gris:true, pill:"Fuera de servicio", nota:"Este establecimiento ya no cuenta con el servicio de ECOVSA"+(r.fechaBaja?" · desde "+r.fechaBaja:""), sinHora:true, icono:"x"};
-  if(r.estadoServicio==="apagado"||r.suspendido) return {sello:"VERIFICACIÓN NO DISPONIBLE", cls:"off", gris:true, pill:"", nota:"Consulte el estado de este servicio con ECOVSA", sinHora:true, icono:"off"};
+  if(r.estadoServicio==="apagado"||r.suspendido) return {sello:"EN PAUSA · CONSULTE CON ECOVSA", cls:"off", gris:true, pill:"", nota:"Consulte el estado de este servicio con ECOVSA", sinHora:true, icono:"off"};
   if(!r.contratoVigente) return {sello:"CONTRATO POR RENOVAR", gris:true, pill:"Contrato por renovar", nota:"Escríbanos para renovar su servicio."};
   return {sello:"SERVICIO VIGENTE", gris:false, pill:"Cliente con servicio vigente", nota:""};
 }
 
 function cab(){
   var g=YA_GIRO?"":" gira"; YA_GIRO=true; var e=estado();
-  return '<div class="hC"><div class="emb" onclick="girar(this)" title="ECOVSA"><div class="e3">'+
+  /* api 3.17 · el emblema en su círculo blanco, armándose (las mismas piezas de la cortina); al tocarlo se arma otra vez */
+  var emb = window.ECOCARGA ? '<div class="emb2" onclick="armar(this)" title="ECOVSA">'+ECOCARGA.logo(118,{arma:!!g})+'</div>' :
+      '<div class="emb" onclick="girar(this)" title="ECOVSA"><div class="e3">'+
       '<img src="entrada-globo.png" alt=""><img src="entrada-bio.png" alt="">'+
-      '<div class="fl'+g+'"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div></div>'+
+      '<div class="fl'+g+'"><img src="entrada-flecha-a.png" alt=""><img src="entrada-flecha-b.png" alt=""></div></div></div>';
+  return '<div class="hC">'+emb+
       '<div class="wm"><img src="ecovsa-letras.png" alt="ECOVSA"></div><div class="tg">ECOLOGÍA · VIDA · SALUD</div></div>'+
     '<div class="fC"><div class="n">'+esc(PUB.establecimiento)+'</div><small>Cliente N.º '+esc(PUB.codigoCliente)+'</small><br>'+
       (e.pill?'<span class="ok'+(e.gris?' gris':'')+'">● '+esc(e.pill)+'</span>':'')+'</div>'+
-    '<div class="tab"><button data-t="ver" class="'+(V==="ver"?"on":"")+'">Verificación</button><button data-t="mio" class="'+(V!=="ver"?"on":"")+'">Mi servicio 🔒</button></div>';
+    '<div class="tab"><button data-t="ver" class="'+(V==="ver"?"on":"")+'">Verificación</button><button data-t="portal" class="'+(V!=="ver"?"on":"")+'">Mi portal 🔒</button></div>';
 }
+function armar(el){ if(window.ECOCARGA) el.innerHTML=ECOCARGA.logo(118,{arma:true}); }
+/* api 3.17 · el portal de clientes (entra con su PIN de 6 números) */
+function urlPortal(p){ return "Portal.html?cli="+encodeURIComponent(CLI)+"&cod="+encodeURIComponent(COD)+(p?"&p="+p:""); }
 function girar(el){ var a=el.querySelector(".fl"); a.classList.remove("gira"); void a.offsetWidth; a.classList.add("gira"); }
 function barra(t,s,atras){ return '<div class="bar2"><button onclick="ir(\''+atras+'\')" aria-label="Volver">←</button><div><b>'+esc(t)+'</b>'+(s?'<small>'+esc(s)+'</small>':'')+'</div></div>'; }
 
@@ -219,7 +227,9 @@ function vVer(){
       chk(true,"Tratamiento autorizado", E.resolucion||"Resolución Sanitaria vigente")+
       (r.proximaMes?chk(true,"Próxima visita","Durante "+r.proximaMes+" · la fecha exacta se coordina con el establecimiento"):"")+
     '</div>')+
-    '<div style="margin:0 14px"><a class="btn wa" href="https://wa.me/50762641647" target="_blank" rel="noopener">WhatsApp ECOVSA · 6264-1647</a></div>'+
+    (r.estadoServicio!=="baja"?'<div class="acc2"><a class="btn pri" href="'+urlPortal("")+'">¿Es el encargado? Entrar a su portal<small>Recibos, certificados, facturas y pedidos · con su PIN</small></a>'+
+      '<a class="btn" href="'+urlPortal("activar")+'">Primera vez: activar mi acceso</a></div>':'')+
+    '<div style="margin:12px 14px 0"><a class="btn wa" href="https://wa.me/50762641647" target="_blank" rel="noopener">WhatsApp ECOVSA · 6264-1647</a></div>'+
     '<div class="pie">'+legal()+'</div>';
   return h;
 }

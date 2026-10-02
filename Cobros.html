@@ -1403,7 +1403,25 @@ function vParaFacturar() {
   h += MK.tabla(['Titular', 'Puntos', 'Visitas', '>Kg', 'Cobro', '>Subtotal', '>ITBMS', '>Total', 'Aviso'], r.lineas.map(function (l) {
     return ['<b>' + MK.esc(l.titular) + '</b>' + (l.ruc ? '<small>RUC ' + MK.esc(l.ruc) + '</small>' : ''), l.puntos.length, l.visitas, MK.num(l.kg, 1), MK.esc(l.detalleCobro), D(l.subtotal), D(l.itbms), D(l.total), l.aviso ? '<span class="chipx warn">' + MK.esc(l.aviso) + '</span>' : ''];
   }), { pie: ['<b>Total</b>', '', t.visitas, MK.num(t.kg, 1), '', D(t.subtotal), D(t.itbms), D(t.total), ''] });
-  return h;
+  return h + solidosPF();
+}
+/* api 3.17 · Desechos sólidos: su propio plan (cuota por sucursal + visita + tonelada + mínimo), aparte de peligrosos */
+function solidosPF() {
+  if (!PF.solPedido) {
+    PF.solPedido = true; var m = PF.mes;
+    MK.api('api_dsoParaFacturar', MK.pin, m).then(function (r) { if (PF.mes === m) { PF.sol = r; if (MK.seccion === 'pfac') MK.repintar(); } }, function () {});
+    return '';
+  }
+  var r = PF.sol;
+  if (!r || r.ok === false || !r.filas || !r.filas.length) return '';
+  var raiz = location.href.replace(/[^/]*([?#].*)?$/, '');
+  /* los clientes en prueba se ven, pero no suman ni van a contabilidad */
+  var tot = r.filas.filter(function (f) { return f.factura !== false; }).reduce(function (a, f) { a.v += f.visitas; a.kg += f.kg; a.s += f.subtotal; a.i += f.itbms; a.t += f.total; return a; }, { v: 0, kg: 0, s: 0, i: 0, t: 0 });
+  return '<h3 style="margin:22px 0 4px">Desechos sólidos</h3><div class="small muted" style="margin-bottom:8px">Su propio plan: cuota mensual por sucursal + por visita + por tonelada pesada en báscula, con el mínimo del mes. El reporte de cada cliente se abre con su enlace.</div>' +
+    MK.tabla(['Cliente', 'Puntos', 'Visitas', '>Kg', 'Cobro', '>Subtotal', '>ITBMS', '>Total', 'Reporte'], r.filas.map(function (f) {
+      return ['<b>' + MK.esc(f.nombre) + '</b>' + (f.ruc ? '<small>RUC ' + MK.esc(f.ruc) + '</small>' : '') + (f.aviso ? '<br><span class="chipx warn">' + MK.esc(f.aviso) + '</span>' : ''), f.puntos, f.visitas, MK.num(f.kg, 0), '<small>' + MK.esc(f.lineas.map(function (l) { return l.concepto; }).join(' + ')) + '</small>',
+        D(f.subtotal), D(f.itbms) + (f.retencion ? '<small>retiene ' + D(f.retencion) + '</small>' : ''), D(f.total), '<a class="btn sm" href="' + MK.esc(raiz + f.enlaceReporte) + '" target="_blank" rel="noopener">Ver</a>'];
+    }), { pie: ['<b>Total sólidos</b>', '', tot.v, MK.num(tot.kg, 0), '', D(tot.s), D(tot.i), D(tot.t), ''] });
 }
 function mesPF(m) { PF_MES = m; MK.repintar(); }
 /* El reporte «Para facturar» en una hoja para imprimir o guardar en PDF (mismos datos que la descarga) */
@@ -1454,6 +1472,10 @@ function csvPF() {
   var r = PF.r, q = function (v) { v = String(v == null ? '' : v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   var filas = [['Titular', 'Razón social', 'RUC', 'DV', 'Puntos', 'Visitas', 'Kg', 'Detalle', 'Subtotal', 'ITBMS', 'Total', 'Retiene', 'A cobrar', 'Recibos', 'Aviso']].concat(r.lineas.map(function (l) {
     return [l.titular, l.razon, l.ruc, l.dv, l.puntos.map(function (p) { return p.nombre; }).join(' / '), l.visitas, l.kg, l.detalleCobro, l.subtotal, l.itbms, l.total, l.retiene, l.aCobrar, l.recibos.join(' '), l.aviso];
+  }));
+  /* api 3.17 · los clientes de desechos sólidos, aparte, en el mismo archivo */
+  if (PF.sol && PF.sol.filas && PF.sol.filas.filter(function (f) { return f.factura !== false; }).length) filas = filas.concat([[], ['DESECHOS SÓLIDOS']], PF.sol.filas.filter(function (f) { return f.factura !== false; }).map(function (f) {
+    return [f.nombre, f.razonSocial, f.ruc, '', f.puntos + ' punto(s)', f.visitas, f.kg, f.lineas.map(function (l) { return l.concepto; }).join(' + '), f.subtotal, f.itbms, f.total, f.retencion, Math.round((f.total - f.retencion) * 100) / 100, f.tickets + ' ticket(s)', f.aviso || ''];
   }));
   var blob = new Blob(['﻿' + filas.map(function (f) { return f.map(q).join(','); }).join('\n')], { type: 'text/csv;charset=utf-8' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'para_facturar_' + PF.mes + '.csv'; document.body.appendChild(a); a.click(); a.remove();
