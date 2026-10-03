@@ -6,6 +6,10 @@
      mismas piezas de diseño (pl-*, ini-*, cr-*, fl-*).
    - Conductor: si tiene una hoja de ruta de sólidos, le sale arriba su
      tarjeta y el recorrido: revisión → firma → paradas → relleno → cierre.
+   - api 3.18: el conductor de sólidos tiene su propio inicio (seis accesos:
+     mapa, relleno y tickets, revisión, jornada, rutas hechas, próximas) y ya
+     no ve los accesos de peligrosos. En celular, la pestaña «Peligrosos |
+     Sólidos» de Logística va en su propia franja debajo de la barra.
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -18,6 +22,33 @@
   .rb-tabs button.on.s{background:#8fd46a;color:#0f2a57}
   body.rb-sol header .barra-top{box-shadow:inset 0 -3px 0 #8fd46a}
   @media (max-width:640px){.rb-tabs{margin-left:6px}.rb-tabs button{padding:5px 8px;font-size:11.5px}.rb-tabs button .mki{display:none}}
+  /* api 3.18 · en celular la pestaña va en su propia franja, debajo de la barra */
+  .rb-tira{display:flex;background:#0f2a57;padding:6px 12px 9px;position:relative;z-index:19}
+  .rb-tira .rb-tabs{margin:0;display:flex;width:100%;background:rgba(255,255,255,.10)}
+  .rb-tira .rb-tabs button{flex:1;justify-content:center;padding:9px 6px;font-size:13.5px}
+  .rb-tira .rb-tabs button .mki{display:inline-block;width:15px;height:15px}
+  body.rb-sol .rb-tira{box-shadow:inset 0 -3px 0 #8fd46a}
+  /* api 3.18 · inicio propio del conductor de sólidos */
+  body.cond-sol #pantalla-hub > .grid-mosaicos:not(.dso-mos) > .mosaico-item{display:none!important}
+  .dso-mos{margin-top:10px}
+  .dso-mos .mosaico-item{position:relative}
+  .dso-mos .mosaico-icono svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .dso-tg{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:900;border-radius:6px;padding:2px 7px;background:#eaf6e4;color:#2f6b0a;align-self:flex-start}
+  .dso-tg.w{background:#FFF4D6;color:#8a6300}
+  .dso-libre{display:block;grid-column:1/-1;background:#fff;border:1px solid #dfe5ee;border-radius:20px;padding:16px;box-shadow:0 2px 10px rgba(20,48,107,.05)}
+  .dso-libre .k{font-size:10.5px;letter-spacing:1.3px;font-weight:900;color:#5c6a80;text-transform:uppercase}
+  .dso-libre h3{margin:4px 0 6px;font-size:18px;color:#0f2a57}
+  .dso-libre p{margin:0;font-size:13px;color:#5c6a80;line-height:1.45}
+  .dsv .fi{display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px solid #eef1f5;font-size:13px;font-weight:700;color:#0f2140}
+  .dsv .fi:first-of-type{border-top:0}.dsv .fi>span{flex:1;min-width:0}.dsv .fi>span.est,.dsv .fi>span.n{flex:none}.dsv .fi small{display:block;font-size:11px;color:#7a879a;font-weight:600}
+  .dsv .fi b{font-weight:900;color:#0f2a57;white-space:nowrap}.dsv .fi .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;background:#eef1f5;color:#0f2a57;flex:none}
+  .dsv .est{font-size:10.5px;font-weight:900;border-radius:6px;padding:2px 7px;white-space:nowrap}
+  .dsv .est.h{background:#eaf6e4;color:#2f6b0a}.dsv .est.p{background:#eef1f5;color:#5c6a80}.dsv .est.s{background:#fdecea;color:#b42318}.dsv .est.a{background:#FFF4D6;color:#8a6300}.dsv .est.b{background:#e8effb;color:#14306b}
+  .dsv .hint{margin:4px 0 12px;font-size:12px;color:#5c6a80;line-height:1.45;border-left:3px solid #0f2a57;padding:2px 0 2px 9px}
+  .dsv .vac{padding:14px 4px;color:#5c6a80;font-size:13px}
+  .dsv-mapa{height:240px;border-radius:12px;overflow:hidden;margin-bottom:10px;background:#dfe9f3}
+  .dsv-pin{width:24px;height:24px;border-radius:50%;border:2px solid #0f2a57;display:grid;place-items:center;font:900 11px Archivo,sans-serif;background:#fff;color:#0f2a57;box-shadow:0 2px 4px rgba(0,0,0,.25)}
+  .dsv-pin.h{background:#2f9e44;color:#fff}.dsv-pin.s{background:#c0392b;color:#fff}.dsv-pin.a{background:#F5B301;color:#0f2140}
   .sv-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:#E8F0FA;color:#1b4a86;font-style:normal;letter-spacing:.2px;white-space:nowrap}
   .sv-chip.ro{background:#FFF1D6;color:#8A6300}.sv-chip.rj{background:#F1EBFC;color:#6D3FC4}.sv-chip.v{background:#E7F3DD;color:#2F6B0A}.sv-chip.r{background:#FDECEA;color:#B42318}.sv-chip.g{background:#eef1f5;color:#5b6a80}
   .sv-eq{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:38px}
@@ -275,14 +306,21 @@
   /* ── pestaña Peligrosos | Sólidos ── */
   function pintarPestana() {
     var m = document.querySelector('.mk-marca'); if (!m) return;
-    var t = m.querySelector('.rb-tabs');
-    if (!sup()) { if (t) t.remove(); return; }
-    if (!t) { t = document.createElement('div'); t.className = 'rb-tabs mk-no'; m.appendChild(t); }
+    var t = document.querySelector('.rb-tabs'), tira = $i('rb-tira');
+    if (!sup()) { if (t) t.remove(); if (tira) tira.remove(); return; }
+    if (!t) { t = document.createElement('div'); t.className = 'rb-tabs mk-no'; }
+    /* api 3.18 · en celular va en su propia franja debajo de la barra; en la computadora, en la barra */
+    var cel = window.matchMedia && matchMedia('(max-width: 640px)').matches, hd = document.querySelector('header');
+    if (cel && hd) {
+      if (!tira) { tira = document.createElement('div'); tira.id = 'rb-tira'; tira.className = 'rb-tira mk-no'; hd.parentNode.insertBefore(tira, hd.nextSibling); }
+      if (t.parentNode !== tira) tira.appendChild(t);
+    } else { if (t.parentNode !== m) m.appendChild(t); if (tira) tira.remove(); }
     var s = D.modo === 'sol';
     t.innerHTML = '<button type="button" class="' + (s ? '' : 'on') + '" data-r="pel">' + ic('alerta') + 'Peligrosos</button><button type="button" class="s ' + (s ? 'on' : '') + '" data-r="sol">' + ic('basura') + 'Sólidos</button>';
     t.onclick = function (ev) { ev.stopPropagation(); var b = ev.target.closest('button'); if (b) cambiarModo(b.getAttribute('data-r')); };
     document.body.classList.toggle('rb-sol', s);
   }
+  var RB_T = null; window.addEventListener('resize', function () { clearTimeout(RB_T); RB_T = setTimeout(function () { if (sup()) pintarPestana(); }, 150); });
   function cambiarModo(r, sinIr) {
     if (r !== 'sol') r = 'pel';
     if (!MENU_PEL) MENU_PEL = window.MENU_SUP.slice();
@@ -1183,8 +1221,12 @@
   function pintarTarjeta() {
     var op = $i('hub-operador'), h = C.hoja, t = $i('hub-solidos');
     if (!op) return;
-    if (!h) { if (t) t.remove(); op.style.display = 'block'; return; }
-    if (!t) { t = document.createElement('div'); t.id = 'hub-solidos'; t.className = 'tb'; t.style.display = 'block'; op.parentNode.insertBefore(t, op); }
+    if (!h) {
+      /* api 3.18 · el conductor de sólidos sin hoja: «Hoy no tiene ruta» con su próxima ruta */
+      if (C.esSolidos && !(window.RUTA && RUTA.paradas && RUTA.paradas.length)) { pintarLibre(op, t); pintarInicioSol(); return; }
+      if (t) t.remove(); op.style.display = 'block'; pintarInicioSol(); return; }
+    if (!t) { t = document.createElement('div'); t.id = 'hub-solidos'; op.parentNode.insertBefore(t, op); }
+    t.className = 'tb'; t.style.display = 'block';
     var pelVacia = !(window.RUTA && RUTA.paradas && RUTA.paradas.length);
     op.style.display = pelVacia && C.esSolidos ? 'none' : 'block';
     var n = pasoDe(h), hechas = h.paradas.filter(function (p) { return p.salida; }).length;
@@ -1193,6 +1235,7 @@
       '<div class="tb-t2">' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + (h.salida ? ' · sale ' + e(h.salida) : '') + (h.ayudantesNombres.length ? ' · con ' + e(h.ayudantesNombres.join(' y ')) : '') + (n >= 2 && n < 5 ? ' · ' + hechas + ' de ' + h.paradas.length + ' hechas' : '') + '</div>' + pasos(n) +
       '<button class="tb-go" style="margin-top:14px" onclick="event.stopPropagation();DSO.conAbrir()">' + btn + '</button>';
     t.onclick = function () { D.conAbrir(); };
+    pintarInicioSol();
   }
 
   /* pantalla propia del conductor */
@@ -1453,6 +1496,139 @@
       '<div class="jv-est">✓ ' + h.viajes.length + ' ticket(s) guardado(s)' + (ci.km != null ? ' · ' + N(ci.km) + ' km' : '') + '</div>') +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');
   }
+
+
+  /* ═════════ api 3.18 · INICIO PROPIO DEL CONDUCTOR DE SÓLIDOS ═════════
+     Seis accesos con sus rutas (api_dsoMisRutas, solo lectura): mapa de la
+     ruta, relleno y tickets, revisión de la unidad, jornada, rutas hechas y
+     próximas. Los accesos de peligrosos no se le muestran. */
+  var MR = { r: null, t: 0 };
+  var SVG = {
+    mapa: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    rel: '<path d="M3 20h18"/><path d="M5 20V11l5 3V11l5 3V7h4v13"/><path d="M8 17h1M12 17h1M16 17h1"/>',
+    rev: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v3h6V3"/><path d="m9 13 2 2 4-4"/>',
+    jor: '<path d="M5 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14"/><path d="M4 20h12"/><path d="M8 8h4"/><path d="M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
+    his: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+    cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+  };
+  function sv(k) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (SVG[k] || '') + '</svg>'; }
+  function soloSol() { return esCond() && C.esSolidos && !(window.RUTA && RUTA.paradas && RUTA.paradas.length); }
+  function traerMis(forzar) {
+    if (!forzar && MR.r && Date.now() - MR.t < 60000) return Promise.resolve(MR.r);
+    if (MR._v) return MR._v;
+    MR._v = S('api_dsoMisRutas', PIN).then(function (r) { MR.r = r; MR.t = Date.now(); MR._v = null; return r; }, function (er) { MR._v = null; throw er; });
+    return MR._v;
+  }
+  function rutas() { return (MR.r && MR.r.rutas) || []; }
+  function proximas() { var h = hoy(); return rutas().filter(function (r) { return r.fecha >= h && r.estado !== 'cerrada' && r.estado !== 'no_sale'; }).sort(function (a, b) { return (a.fecha + (a.salida || '')).localeCompare(b.fecha + (b.salida || '')); }); }
+  function hechasMes() { var m = hoy().slice(0, 7); return rutas().filter(function (r) { return r.estado === 'cerrada' && r.fecha.slice(0, 7) === m; }); }
+  function pintarLibre(op, t) {
+    if (!t) { t = document.createElement('div'); t.id = 'hub-solidos'; op.parentNode.insertBefore(t, op); }
+    t.className = 'dso-libre'; t.onclick = null; op.style.display = 'none';
+    var pr = proximas().filter(function (r) { return r.fecha > hoy() || r.estado === 'publicada'; })[0];
+    t.innerHTML = '<div class="k">Mi ruta de hoy · sólidos</div><h3>Hoy no tiene ruta asignada</h3><p>' +
+      (pr ? 'Su próxima ruta es el <b>' + e(fLarga(pr.fecha).toLowerCase()) + (pr.salida ? ', ' + e(pr.salida) : '') + '</b> · ' + e(pr.nombre || pr.hojaId) + ' · ' + pr.paradas + ' paradas' + (pr.unidad ? ' · ' + (TIPOS[pr.tipo] || TIPOS.compactador)[1] + ' ' + e(pr.unidad) : '') + '. ' : (MR.r ? 'Todavía no tiene rutas publicadas. ' : '')) +
+      'Si Logística le asigna una, le aparece aquí.</p>';
+    if (!MR.r) traerMis().then(function () { if ($i('hub-solidos') === t && !C.hoja) pintarLibre(op, t); }, function () {});
+  }
+  function pintarInicioSol() {
+    var hub = $i('pantalla-hub'); if (!hub) return;
+    var solo = soloSol(), m = $i('hub-dso-mos');
+    document.body.classList.toggle('cond-sol', !!solo);
+    if (!solo) { if (m) m.remove(); return; }
+    if (!m) { var g = hub.querySelector('.grid-mosaicos'); if (!g) return; m = document.createElement('div'); m.id = 'hub-dso-mos'; m.className = 'grid-mosaicos dso-mos'; g.parentNode.insertBefore(m, g.nextSibling); }
+    var h = C.hoja, uni = h ? (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + h.unidad : '';
+    var faltaTk = h && h.estado === 'en_ruta' && h.sinTicket > 0, revPend = h && h.estado === 'publicada';
+    var T = [['mapa', 'i38-te', 'mapa', 'Mapa de mi ruta', h ? 'Mis paradas de hoy en el mapa' : 'Mis paradas en el mapa', ''],
+      ['tickets', 'i38-ve', 'rel', 'Relleno y tickets', 'Mis tickets de báscula', faltaTk ? '<span class="dso-tg w">Falta el de hoy</span>' : ''],
+      ['revs', '', 'rev', 'Revisión de mi unidad', h && h.unidad ? 'Lista del ' + e(uni) : 'Mis revisiones', revPend ? '<span class="dso-tg w">Pendiente hoy</span>' : ''],
+      ['jor', 'i38-na', 'jor', 'Jornada de mi unidad', 'Km y combustible' + (h && h.unidad ? ' del ' + e(h.unidad) : ''), ''],
+      ['hechas', 'i38-mo', 'his', 'Mis rutas hechas', 'Lo que he trabajado este mes', ''],
+      ['prox', 'i38-am', 'cal', 'Mis próximas rutas', 'Las que me tocan', '']];
+    m.innerHTML = T.map(function (x) {
+      return '<div class="mosaico-item" role="button" tabindex="0" data-v="' + x[0] + '" onclick="DSO.misVer(this.getAttribute(\'data-v\'))"><div class="mosaico-top"><div class="mosaico-icono ' + x[1] + '">' + sv(x[2]) + '</div></div><div><div class="mosaico-tit">' + x[3] + '</div><div class="mosaico-sub">' + x[4] + '</div>' + x[5] + '</div></div>';
+    }).join('');
+    if (!MR.r) traerMis().then(function () {}, function () {});
+  }
+  function fila(izq, sub, der) { return '<div class="fi"><span>' + izq + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (der || '') + '</div>'; }
+  function estRuta(r) {
+    if (r.estado === 'cerrada') return '<span class="est h">hecha</span>';
+    if (r.estado === 'en_ruta') return '<span class="est b">en ruta</span>';
+    if (r.estado === 'por_firmar') return '<span class="est a">por firmar</span>';
+    if (r.estado === 'no_sale') return '<span class="est s">no sale</span>';
+    return r.fecha === hoy() ? '<span class="est a">' + (turnoDe(r) === 'dia' ? 'hoy' : 'esta noche') + '</span>' : '<span class="est p">publicada</span>';
+  }
+  function hora(iso) { var m = /T(\d{2}:\d{2})/.exec(String(iso || '')); return m ? m[1] : ''; }
+  var VISTAS = {
+    mapa: ['Mapa de mi ruta', 'ruta', function () {
+      var h = C.hoja;
+      if (!h) { var pr = proximas()[0]; return '<div class="jv-card"><div class="vac">Hoy no tiene una hoja de sólidos abierta. ' + (pr ? 'Su próxima ruta es el ' + e(fLarga(pr.fecha).toLowerCase()) + ' · ' + e(pr.nombre || pr.hojaId) + '.' : '') + ' El mapa sale cuando Logística publique su hoja.</div></div>'; }
+      if (!h.paradas.length) return '<div class="jv-card"><div class="vac">Su hoja ' + e(h.nombre || h.hojaId) + ' no tiene paradas.</div></div>';
+      var sig = -1; h.paradas.some(function (p, i) { if (!p.salida) { sig = i; return true; } return false; });
+      var est = function (p, i) { return p.salida ? (p.atendida ? ['h', 'hecha'] : ['s', 'sin acceso']) : (i === sig ? ['a', 'siguiente'] : ['p', 'pendiente']); };
+      var conGps = h.paradas.filter(function (p) { return p.lat && p.lng; }).length;
+      return '<div class="jv-card">' + (conGps && window.L ? '<div class="dsv-mapa" id="dsv-mapa"></div>' : '<div class="hint">Las paradas de esta hoja todavía no tienen su ubicación guardada; aquí va la lista en orden.</div>') +
+        h.paradas.map(function (p, i) { var x = est(p, i); return '<div class="fi"><span class="n">' + (i + 1) + '</span><span>' + e(p.nombre) + (p.direccion ? '<small>' + e(p.direccion) + '</small>' : '') + '</span><span class="est ' + x[0] + '">' + x[1] + '</span></div>'; }).join('') + '</div>';
+    }, function () {
+      var h = C.hoja, d = $i('dsv-mapa'); if (!h || !d || !window.L) return;
+      var sig = -1; h.paradas.some(function (p, i) { if (!p.salida) { sig = i; return true; } return false; });
+      var mp = L.map(d, { zoomControl: true }); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mp);
+      var pts = [];
+      h.paradas.forEach(function (p, i) { if (!(p.lat && p.lng)) return; var ll = [Number(p.lat), Number(p.lng)]; pts.push(ll);
+        var c = p.salida ? (p.atendida ? 'h' : 's') : (i === sig ? 'a' : '');
+        L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="dsv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(mp).bindPopup('<b>' + e(p.nombre) + '</b>'); });
+      if (pts.length > 1) { L.polyline(pts, { color: '#0b4f93', weight: 3, dashArray: '6 5' }).addTo(mp); mp.fitBounds(pts, { padding: [24, 24] }); } else mp.setView(pts[0], 16);
+      setTimeout(function () { mp.invalidateSize(); }, 200);
+    }],
+    tickets: ['Relleno y tickets', 'camion', function () {
+      var L2 = [], h = C.hoja;
+      rutas().forEach(function (r) { r.tickets.forEach(function (t) { L2.push({ t: t, r: r }); }); });
+      var falta = h && h.estado === 'en_ruta' && h.sinTicket > 0;
+      return '<div class="jv-card"><div class="jv-tit">Mis tickets de báscula</div>' +
+        (falta ? fila('Hoy · ' + e(h.nombre || h.hojaId), h.sinTicket + ' parada(s) sin ticket', '<span class="est a">falta</span>') : '') +
+        (L2.length ? L2.map(function (x) { return fila(e(x.t.ticket || 's/n'), e(fCorta(x.r.fecha)) + ' · ' + e(x.r.nombre || x.r.hojaId) + (x.t.relleno ? ' · ' + e(x.t.relleno) : ''), '<b>' + N(x.t.neto) + ' kg</b>'); }).join('') : (falta ? '' : '<div class="vac">Todavía no tiene tickets en estas semanas.</div>')) + '</div>' +
+        '<div class="hint">Cada ticket lleva su foto. Si falta uno, aparece aquí en ámbar.</div>' + (falta ? '<button class="sc-btn" onclick="DSO.conAbrir(\'rell\')">Registrar el ticket del relleno</button>' : '');
+    }],
+    revs: ['Revisión de mi unidad', 'lista', function () {
+      var h = C.hoja, R = rutas().filter(function (r) { return r.revision; });
+      var pend = h && h.estado === 'publicada';
+      return '<div class="jv-card"><div class="jv-tit">Mis revisiones</div>' +
+        (pend ? fila('Hoy · ' + e((TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad), e(h.nombre || h.hojaId), '<span class="est a">pendiente</span>') : '') +
+        (R.length ? R.map(function (r) { var v = r.revision, f = v.fallas;
+          return fila(e(fCorta(r.fecha)) + ' · ' + e((TIPOS[r.tipo] || TIPOS.compactador)[1] + ' ' + r.unidad), (r.firma ? 'Firmó ' + e(r.firma.por) + (hora(r.firma.en) ? ' ' + hora(r.firma.en) : '') + (r.firma.decision === 'no_sale' ? ' · no salió' : '') : 'sin firma aún') + (f && v.fallasTxt.length ? ' · ' + e(v.fallasTxt.join(', ')) : ''),
+            '<span class="est ' + (f ? 'a' : 'h') + '">' + (f ? f + ' falla' + (f > 1 ? 's' : '') : (v.puntos - f) + ' de ' + v.puntos + ' bien') + '</span>'); }).join('') : (pend ? '' : '<div class="vac">Todavía no tiene revisiones en estas semanas.</div>')) + '</div>' +
+        (pend ? '<button class="sc-btn" onclick="DSO.conAbrir(\'rev\')">Hacer la revisión de hoy</button>' : '');
+    }],
+    jor: ['Jornada de mi unidad', 'camion', function () {
+      var h0 = hoy(), d7 = masDias(h0, -6), sem = rutas().filter(function (r) { return r.fecha >= d7 && r.fecha <= h0; });
+      var km = sem.reduce(function (s, r) { return s + (r.cierre && Number(r.cierre.km) > 0 ? Number(r.cierre.km) : 0); }, 0);
+      var min = sem.reduce(function (s, r) { if (!r.cierre || !r.salida || !r.cierre.hora) return s; var a = minDe(r.salida), b = minDe(r.cierre.hora); if (a == null || b == null) return s; var d = b - a; if (d < 0) d += 1440; return s + d; }, 0);
+      var ult = rutas().filter(function (r) { return r.cierre && r.cierre.odometro; })[0], uni = (C.hoja && C.hoja.unidad) || (ult && ult.unidad) || (rutas()[0] && rutas()[0].unidad) || '';
+      return '<div class="jv-card"><div class="jv-tit">' + (uni ? 'Unidad ' + e(uni) + ' · ' : '') + 'esta semana</div>' +
+        fila('Rutas hechas', '', '<b>' + sem.filter(function (r) { return r.estado === 'cerrada'; }).length + '</b>') + fila('Km recorridos', 'de los cierres de ruta', '<b>' + N(km) + ' km</b>') +
+        fila('Horas de ruta', 'de la salida al regreso', '<b>' + Math.floor(min / 60) + ' h ' + (min % 60) + ' min</b>') +
+        fila('Último odómetro', ult ? e(fCorta(ult.fecha)) : '', '<b>' + (ult ? N(ult.cierre.odometro) : '—') + '</b>') + fila('Tanque al llegar', ult ? e(fCorta(ult.fecha)) : '', '<b>' + (ult && ult.cierre.tanque ? e(ult.cierre.tanque) : '—') + '</b>') + '</div>' +
+        '<div class="hint">El combustible se carga en «Jornada y flota», como siempre.</div><button class="sc-btn sec" onclick="mostrarTab(\'jornada\')">Abrir Jornada y flota</button>';
+    }],
+    hechas: ['Mis rutas hechas', 'reloj', function () {
+      var H = hechasMes();
+      return '<div class="jv-card"><div class="jv-tit">' + e(MESESL[Number(hoy().slice(5, 7)) - 1].replace(/^./, function (c) { return c.toUpperCase(); })) + '</div>' +
+        (H.length ? H.map(function (r) { return fila(e(fCorta(r.fecha)) + ' · ' + e(r.nombre || r.hojaId), r.atendidas + ' de ' + r.paradas + ' paradas · ' + N(r.bolsas) + ' bolsas' + (r.sinAcceso ? ' · ' + r.sinAcceso + ' sin acceso' : ''), '<b>' + (r.neto ? N(r.neto) + ' kg' : '—') + '</b>'); }).join('') : '<div class="vac">Todavía no ha cerrado rutas este mes.</div>') + '</div>';
+    }],
+    prox: ['Mis próximas rutas', 'calendario', function () {
+      var P = proximas();
+      return '<div class="jv-card"><div class="jv-tit">Las que me tocan</div>' +
+        (P.length ? P.map(function (r) { return fila(e(fCorta(r.fecha)) + (r.salida ? ' · ' + e(r.salida) : ''), e(r.nombre || r.hojaId) + ' · ' + r.paradas + ' paradas' + (r.unidad ? ' · ' + e(r.unidad) : ''), estRuta(r)); }).join('') : '<div class="vac">No tiene rutas publicadas en los próximos días.</div>') + '</div>' +
+        '<div class="hint">Solo ve las que Logística ya publicó.</div>';
+    }]
+  };
+  D.misVer = function (v) {
+    var x = VISTAS[v]; if (!x) return;
+    var pinta = function () { cSec(nav(x[0], x[1]) + '<div class="dsv">' + x[2]() + '</div><button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button><div style="height:20px"></div>'); if (x[3]) x[3](); };
+    if (MR.r) pinta(); else cSec(nav(x[0], x[1]) + '<div class="jv-card"><div class="vac">Consultando sus rutas…</div></div>');
+    traerMis(true).then(pinta, function (er) { if (!MR.r) falla(er); });
+  };
+  D.misRutas = function () { return MR.r; };
 
   /* ── arranque ── */
   function arrancar() {
