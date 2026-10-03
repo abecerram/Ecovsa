@@ -254,29 +254,25 @@ function abrirCuenta(k) {
     '<div style="margin-top:12px">' + MK.kpis([{ e: 'Debe', v: D(c.saldo), c: c.saldo ? 'bad' : '' }, { e: 'Vencido', v: D(c.vencido) }, { e: 'Mora', v: c.moraMax + ' d' }, { e: 'Último pago', v: c.ultimoPago ? fdm(c.ultimoPago) : 'nunca', s: c.diasSinPago != null ? 'hace ' + c.diasSinPago + ' días' : '' }], 4) + '</div>' +
     bloqueAsignadas(c) + bloqueSusp(c) + (c.cartaUltimo ? '<div class="small muted" style="margin:0 0 8px">' + MK.ic('documento', 14) + ' Carta de último aviso enviada el ' + fdm(c.cartaUltimo.fecha) + (c.cartaUltimo.limite ? ' · plazo hasta el ' + fdm(c.cartaUltimo.limite) : '') + '</div>' : '') +
     (p && !(p.tipo === 'suspension' && c.suspension && c.suspension.abierta) ? '<div class="nota ' + (p.tono === 'bad' || p.tono === 'warn' ? 'am' : '') + '" style="margin-top:0"><b>Siguiente paso · ' + MK.esc(MK.cuando(p.fecha)) + '</b><br>' + MK.esc(p.texto) + '</div>' : '') +
-    '<div class="acc2" style="margin-top:12px">' + (p ? btnCanal(p.canal, k) : '') +
+    '<div class="bar319"><div class="acc2" style="margin-top:0">' + (p ? btnCanal(p.canal, k) : '') +
       '<button class="btn sm escribe" onclick="mensaje(\'' + k + '\',\'whatsapp\')">' + MK.ic('whatsapp', 15) + 'WhatsApp</button>' +
       '<button class="btn sm escribe" onclick="mensaje(\'' + k + '\',\'correo\')">' + MK.ic('correo', 15) + 'Correo</button>' +
       '<button class="btn sm escribe" onclick="anotar(\'' + k + '\')">' + MK.ic('check', 15) + 'Anotar resultado</button>' +
       '<button class="btn sm escribe" onclick="anotar(\'' + k + '\',\'promete\')">' + MK.ic('calendario', 15) + 'Promesa</button>' +
-      (abiertas.length && !(pl && ['PROPUESTO', 'ACTIVO', 'ATRASADO'].indexOf(pl.estado) >= 0) ? '<button class="btn sm escribe" onclick="nuevoPlan(\'' + k + '\')">' + MK.ic('plan', 15) + 'Plan de pago</button>' : '') +
       '<button class="btn sm escribe" onclick="registrarPago(\'' + k + '\')">' + MK.ic('billete', 15) + 'Registrar pago</button>' +
+      '<button class="btn sm" onclick="masCuenta(this)">' + MK.ic('menu', 15) + 'Más</button></div><div class="acc2" id="mas319" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line,#e1e6ee)">' +
+      (abiertas.length && !(pl && ['PROPUESTO', 'ACTIVO', 'ATRASADO'].indexOf(pl.estado) >= 0) ? '<button class="btn sm escribe" onclick="nuevoPlan(\'' + k + '\')">' + MK.ic('plan', 15) + 'Plan de pago</button>' : '') +
       '<button class="btn sm escribe" onclick="contacto(\'' + k + '\')">' + MK.ic('lapiz', 15) + 'Contacto</button>' +
       (c.sinFicha && !c.esPagador ? '<button class="btn sm escribe" onclick="elegirCliente(\'' + k + '\')">' + MK.ic('personas', 15) + 'Elegir el cliente</button>' : '') +
       (c.vencido > 0.009 && !(p && p.canal === 'carta') ? '<button class="btn sm escribe" onclick="carta(\'' + k + '\',\'ultimo\')">' + MK.ic('documento', 15) + 'Carta de último aviso</button>' : '') +
       (puedeSusp && !(p && p.canal === 'pedirSusp') ? '<button class="btn sm bad escribe" onclick="pedirSuspension(\'' + k + '\')">' + MK.ic('candado', 15) + 'Pedir suspensión</button>' : '') +
       (vencidas.length ? '<button class="btn sm escribe" onclick="incobrableCuenta(\'' + k + '\')">' + MK.ic('archivo', 15) + 'Pasar a incobrable</button>' : '') + '</div>' +
-    '<div class="small muted" style="margin-top:10px">' + MK.ic('telefono', 14) + ' ' + MK.esc(c.telefono || 'sin teléfono') + ' · ' + MK.ic('correo', 14) + ' ' + MK.esc(c.correo || 'sin correo') + (c.contacto ? ' · ' + MK.esc(c.contacto) : '') + '</div>' +
+    '<div class="small muted" style="margin-top:8px">' + MK.ic('telefono', 14) + ' ' + MK.esc(c.telefono || 'sin teléfono') + ' · ' + MK.ic('correo', 14) + ' ' + MK.esc(c.correo || 'sin correo') + (c.contacto ? ' · ' + MK.esc(c.contacto) : '') + '</div></div>' +
+    historiaHtml319(k, historia319(k, F, P, G, NC, pl)) +
     (pl ? '<h3 style="margin-top:18px">Plan de pago ' + MK.esc(pl.planId) + ' · ' + MK.esc(pl.estado.toLowerCase()) + '</h3>' + cuotasHtml(pl) : '') +
     '<h3 style="margin-top:18px">Facturas abiertas · ' + abiertas.length + '</h3>' +
     MK.tabla(['Factura', 'Fecha', 'Vence', 'Días', '>Saldo'], abiertas.map(function (f) { return [MK.esc(f.factura) + (ncDe(f).length ? '<small>con nota de crédito</small>' : ''), fdm(f.fecha), fdm(f.vencimiento), f.mora ? '<span class="chipx ' + (f.mora > 90 ? 'bad' : 'warn') + '">' + f.mora + '</span>' : '—', D(f.saldo)]; }), { vacio: 'No debe nada.' }) +
-    '<h3 style="margin-top:18px">Todo lo que ha pasado</h3><div class="tl2">' + (ev.length ? ev.slice(0, 40).map(function (e) {
-      if (e.t === 'n') return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="p"></i><span><b>Nota de crédito ' + MK.esc(e.n.nota || '') + ' · −' + D(e.n.monto) + '</b> a la ' + MK.esc(e.fac.factura) + '<br><span class="muted small">la factura pasa de ' + D(e.fac.totalOriginal) + ' a ' + D(e.fac.total) + (e.n.lote ? ' · ' + MK.esc(e.n.lote) : '') + '</span></span></div>';
-      if (e.t === 'p') return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="p"></i><span><b>Pago ' + D(e.p.monto) + '</b>' + (e.p.factura ? ' a la ' + MK.esc(e.p.factura) : ' sin factura') + (e.p.referencia ? ' · ' + MK.esc(e.p.referencia) : '') + (e.p.anulado ? ' <span class="chipx gris">anulado</span>' : '') + '</span></div>';
-      var g = e.g, R = (B().resultados || {})[g.tipo];
-      return '<div class="e"><span class="d">' + fdm(e.f) + '</span><i class="' + (g.tipo === 'promete' ? 'w' : /niega|suspen|reclamo/.test(g.tipo) ? 'x' : '') + '"></i><span><b>' + MK.esc(R ? R.n : (g.resultado || g.canal || 'Gestión')) + '</b> · ' + MK.esc(g.canal) + (g.conQuien ? ' con ' + MK.esc(g.conQuien) : '') +
-        (g.seCompromete ? ' · prometió ' + D(g.montoPrometido) + ' para el ' + fdm(g.fechaPrometida) : '') + (g.notas ? '<br><span class="muted">' + MK.esc(g.notas) + '</span>' : '') + '<br><span class="muted small">' + MK.esc(g.hechoPor) + '</span></span></div>';
-    }).join('') : MK.vacio('Nadie ha gestionado esta cuenta todavía.')) + '</div>', { ancho: true });
+    '', { ancho: true });   // api 3.19: la historia completa va arriba (historiaHtml319)
 }
 var MODO_PAG = { consolidada: 'una sola factura', sede: 'factura por sede', grupo: 'factura por grupo' };
 function contacto(k) {
@@ -786,8 +782,10 @@ function cargarPagadores(forzar) {
 }
 function vPagadores() {
   var trabaja = B().permiso === 'trabaja';
-  var h = MK.cabeza('Pagadores', 'Quién paga cuando un cliente tiene varias sedes. La cuenta se cobra al pagador y las cartas van solo a su contacto de cobro, nunca a una sede.',
-    trabaja ? '<button class="btn pri" onclick="editarPagador()">' + MK.ic('mas', 16) + 'Nuevo pagador</button>' : '');
+  var defM = trabaja && defineMer();   // api 3.19: la forma de facturar la define Mercadeo
+  var h = MK.cabeza('Quién paga', 'Para clientes con varias sedes: quién recibe la factura, si es una sola o una por sede, y a quién van los cobros. Lo define Mercadeo al armar la cuenta con el cliente.',
+    defM ? '<button class="btn pri" onclick="editarPagador()">' + MK.ic('mas', 16) + 'Nuevo pagador</button>' : '');
+  if (!defM) h += '<div class="nota" style="margin-bottom:14px">' + MK.ic('candado', 15) + ' La forma de facturar es parte de lo que el cliente aceptó con Mercadeo, por eso aquí no se cambia: se le pide a Mercadeo. Cobros sí actualiza el contacto de cobro y cómo aparece en contabilidad.</div>';
   if (!PAGD) { cargarPagadores(); return h + '<div class="cargando">Cargando pagadores…</div>'; }
   var L = PAGD.pagadores || [];
   h += '<div class="card"><h3>Pagadores · ' + L.length + '</h3>' +
@@ -798,14 +796,14 @@ function vPagadores() {
         p.sedes.length + p.clientesNombres.filter(function (n) { return !p.sedes.some(function (s) { return s.nombre.toUpperCase() === n.toUpperCase(); }); }).length,
         MK.esc(p.contacto || '—') + (p.correo ? '<small>' + MK.esc(p.correo) + '</small>' : '<small style="color:var(--bad)">sin correo de cobro</small>'),
         c ? D(c.saldo) : '<span class="muted">—</span>',
-        '<span style="white-space:nowrap">' + (c ? '<button class="btn sm" onclick="event.stopPropagation();abrirCuenta(\'P' + p.pagadorId + '\')">' + MK.ic('ojo', 14) + 'Cuenta</button> ' : '') + (trabaja ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'' + p.pagadorId + '\')">' + MK.ic('lapiz', 14) + 'Editar</button>' : '') + '</span>'];
+        '<span style="white-space:nowrap">' + (c ? '<button class="btn sm" onclick="event.stopPropagation();abrirCuenta(\'P' + p.pagadorId + '\')">' + MK.ic('ojo', 14) + 'Cuenta</button> ' : '') + (defM ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'' + p.pagadorId + '\')">' + MK.ic('lapiz', 14) + 'Editar</button>' : trabaja ? '<button class="btn sm" onclick="event.stopPropagation();editarContactoPag(\'' + p.pagadorId + '\')">' + MK.ic('lapiz', 14) + 'Contacto</button> <button class="btn sm" onclick="event.stopPropagation();pedirMercadeo(\'cambio\',\'' + p.pagadorId + '\')">Pedir un cambio</button>' : '') + '</span>'];
     }), { vacio: 'Todavía no hay pagadores. Las cuentas se agrupan por RUC, como antes.' }) + '</div>';
   var S = PAGD.sugerencias || [];
   if (S.length) h += '<div class="card"><h3>Mismo RUC, varias sedes, sin pagador <span class="sp"></span><span class="l muted">' + S.length + '</span></h3>' +
-    '<div class="nota" style="margin:0 0 10px">Si pagan todo junto, créale su pagador: la cuenta toma su nombre y su contacto de cobro.</div>' +
+    '<div class="nota" style="margin:0 0 10px">' + (defM ? 'Si pagan todo junto, créale su pagador: la cuenta toma su nombre y su contacto de cobro.' : 'Nadie ha dicho cómo se les factura. Mientras tanto se cobran juntas por RUC. Pídele a Mercadeo que lo defina.') + '</div>' +
     MK.tabla(['RUC', 'Razón social', 'Sedes', ''], S.map(function (x, i) {
       return [MK.esc(x.ruc), MK.esc(x.razon || '—'), x.sedes.length + '<small>' + MK.esc(x.sedes.slice(0, 4).map(function (s) { return s.nombre; }).join(' · ')) + (x.sedes.length > 4 ? '…' : '') + '</small>',
-        trabaja ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'\',' + i + ')">' + MK.ic('mas', 14) + 'Crear pagador</button>' : ''];
+        defM ? '<button class="btn sm" onclick="event.stopPropagation();editarPagador(\'\',' + i + ')">' + MK.ic('mas', 14) + 'Crear pagador</button>' : trabaja ? '<button class="btn sm pri" onclick="event.stopPropagation();pedirMercadeo(\'definir\',' + i + ')">Pedir a Mercadeo que lo defina</button>' : ''];
     })) + '</div>';
   return h;
 }
@@ -859,9 +857,9 @@ function vDeudores() {
   };
   var L = FDEU.indexOf('esc:') === 0 ? deben.filter(function (c) { return c.escalon === FDEU.slice(4); }) : (f[FDEU] || deben);
   if (QDEU) { var q = QDEU.toUpperCase(); L = L.filter(function (c) { return (c.cliente + ' ' + c.razon + ' ' + c.ruc).toUpperCase().indexOf(q) >= 0; }); }
-  var h = MK.cabeza('Deudores', 'Una fila por contribuyente (RUC). Toca una fila para abrir la cuenta.',
+  var h = MK.cabeza('Clientes con saldo', 'Una fila por contribuyente (RUC). Toca una fila para abrir la cuenta.',
     '<input class="in" id="q-deu" style="width:220px" placeholder="Buscar…" value="' + MK.esc(QDEU) + '" oninput="QDEU=this.value;clearTimeout(window._td);window._td=setTimeout(MK.repintar,250)">');
-  h += '<div style="margin-bottom:12px">' + MK.chips([['deben', 'Deben', f.deben.length], ['sinGestion', 'Sin gestionar', f.sinGestion.length], ['sinContacto', 'Sin contacto', f.sinContacto.length], ['promesas', 'Promesas', f.promesas.length], ['planes', 'Con plan', f.planes.length], ['todas', 'Todas', f.todas.length]].concat(FDEU.indexOf('esc:') === 0 ? [[FDEU, (escD(FDEU.slice(4)) || {}).n || '', L.length]] : []), FDEU, 'filtroDeu') + '</div>';
+  h += '<div style="margin-bottom:12px">' + MK.chips([['deben', 'Con saldo', f.deben.length], ['sinGestion', 'Sin gestionar', f.sinGestion.length], ['sinContacto', 'Sin contacto', f.sinContacto.length], ['promesas', 'Promesas', f.promesas.length], ['planes', 'Con plan', f.planes.length], ['todas', 'Todas', f.todas.length]].concat(FDEU.indexOf('esc:') === 0 ? [[FDEU, (escD(FDEU.slice(4)) || {}).n || '', L.length]] : []), FDEU, 'filtroDeu') + '</div>';
   h += '<div class="dtab">' + MK.tabla(['Cuenta', 'Escalón', 'Facturas', 'Mora', 'Último pago', 'Última gestión', 'Contacto', '>Saldo'], L.map(function (c) {
     return ['<b>' + MK.esc(c.cliente) + '</b><small>' + MK.esc(c.razon || '') + '</small>', escChip(c.escalon), c.abiertas, c.moraMax ? '<span class="chipx ' + (c.moraMax > 90 ? 'bad' : 'warn') + '">' + c.moraMax + ' d</span>' : '—',
       c.ultimoPago ? fdm(c.ultimoPago) : 'nunca', c.ultimaGestion ? fdm(c.ultimaGestion.fecha) + '<small>' + MK.esc(c.ultimaGestion.canal) + '</small>' : '<span class="chipx gris">nunca</span>',
@@ -962,7 +960,7 @@ function guardarPago(btn) {
   var rep = Object.keys(RP.rep).filter(function (k) { return RP.rep[k] > 0; }).map(function (k) { return { factura: k, monto: RP.rep[k] }; });
   MK.ocupado(btn, true);
   MK.llamar('api_cobRegistrarPago', { clave: RP.k, monto: RP.monto, fecha: RP.fecha, metodo: RP.metodo, referencia: RP.ref, reparto: rep })
-    .then(function (r) { MK.cerrarLado(); MK.aviso('Pago registrado' + (r.aFavor > 0.009 ? ' · ' + D(r.aFavor) + ' a favor' : '')); recargar(); }, function () { MK.ocupado(btn, false); });
+    .then(function (r) { MK.cerrarLado(); MK.aviso('Pago registrado' + (r.aFavor > 0.009 ? ' · ' + D(r.aFavor) + ' a favor' : '')); bznTrasPago(); recargar(); }, function () { MK.ocupado(btn, false); });
 }
 
 /* ═══════════ CARGAR LOTE ═══════════
@@ -1677,24 +1675,26 @@ MK.iniciar({
       return num ? fs.concat(out) : out.concat(fs);
     }
   },
+  /* api 3.19: menú de 12; Por vencer, Clientes, Incobrables y Por conciliar pasan a pestañas (las direcciones viejas siguen abriendo) */
   paginas: [
     { g: 'COBROS' },
     { id: 'midia', n: 'Mi día', i: 'hoy' },
-    { id: 'pv', n: 'Por vencer', i: 'reloj' },
+    { id: 'buzon', n: 'Buzón', i: 'correo' },
+    { id: 'cartera', n: 'Cartera', i: 'suma' },
     { id: 'seg', n: 'Seguimientos', i: 'agenda' },
     { id: 'planes', n: 'Planes de pago', i: 'plan' },
-    { id: 'esc', n: 'Cómo cobramos', i: 'escalera' },
-    { id: 'cartera', n: 'Cartera', i: 'suma' },
-    { id: 'deudores', n: 'Deudores', i: 'personas' },
-    { id: 'pagadores', n: 'Pagadores', i: 'maletin' },
     { g: 'DOCUMENTOS' },
     { id: 'facturas', n: 'Facturas', i: 'factura' },
     { id: 'pagos', n: 'Pagos', i: 'billete' },
-    { id: 'lote', n: 'Cargar lote', i: 'subir' },
-    { id: 'conc', n: 'Conciliar pagos', i: 'enlace' },
     { id: 'pfac', n: 'Para facturar', i: 'calendario' },
-    { g: 'CARTERA INACTIVA' },
-    { id: 'inco', n: 'Incobrables', i: 'archivo' }
+    { g: 'AJUSTES DE COBRO' },
+    { id: 'pagadores', n: 'Quién paga', i: 'maletin' },
+    { id: 'lote', n: 'Importar de Sage', i: 'subir' },
+    { id: 'esc', n: 'Cómo cobramos', i: 'escalera' },
+    { id: 'deudores', n: 'Clientes con saldo', i: 'personas', oculto: true },
+    { id: 'pv', n: 'Por vencer', i: 'reloj', oculto: true },
+    { id: 'conc', n: 'Conciliar pagos', i: 'enlace', oculto: true },
+    { id: 'inco', n: 'Incobrables', i: 'archivo', oculto: true }
   ],
   pieMenu: '¿Buscas la pantalla anterior? <a href="CobrosAnterior.html">Abrir</a>',
   alCargar: function (b) {
@@ -1708,13 +1708,296 @@ MK.iniciar({
     var pv = (b.facturas || []).filter(function (f) { return f.paraVencer != null && f.saldo > 0.009 && f.paraVencer <= 7; }).length;
     MK.contadores.pv = pv ? { n: pv, t: 'g' } : null;
     MK.contadores.inco = null;
+    contar319(b);   // api 3.19
   },
   pintar: function (id) {
     var V = { pagadores: vPagadores, midia: vMiDia, pv: vPorVencer, seg: vSeguimientos, planes: vPlanes, esc: vEscalera, cartera: vCartera, deudores: vDeudores, facturas: vFacturas, pagos: vPagos, lote: vLote, conc: vConciliar, pfac: vParaFacturar, inco: vIncobrables };
+    V.buzon = vBuzon;   // api 3.19
     if (!MK.base) return;
-    document.getElementById('main').innerHTML = (V[id] || vMiDia)();
+    var h = pintar319(id, V); if (h === null) return;
+    document.getElementById('main').innerHTML = h;
   }
 });
+
+</script>
+<script>
+/* ═══════════ api 3.19 · REDISEÑO DE COBROS, FASE 1 ═══════════
+   · Menú de 12 opciones: lo que sale del menú queda como pestaña y las direcciones
+     viejas (#deudores, #pv, #conc, #inco) abren su lugar nuevo.
+   · Buzón: lo que llega del portal (comprobantes y «Necesito ayuda con mi pago").
+     Usa los pendientes de Cobros (api_pendientes / api_cerrarPendiente): el portal lee
+     su estado. Al rechazar, lo único que va a notaCierre es el mensaje PARA EL CLIENTE.
+   · Historia de la cuenta: una sola línea de tiempo y la barra de acciones arriba.
+   · Quién paga: lo define Mercadeo; Cobros consulta, cambia el contacto de cobro y
+     «Así aparece en contabilidad», y pide cambios a Mercadeo. */
+var TAB = { cartera: 'clientes', facturas: 'pv', pagos: 'reg' };
+var PESTANAS = {
+  cartera:  [['resumen', 'Resumen', 'cartera'], ['clientes', 'Clientes', 'deudores'], ['inco', 'Incobrables', 'inco']],
+  facturas: [['pv', 'Por vencer', 'pv'], ['todas', 'Todas las facturas', 'facturas']],
+  pagos:    [['reg', 'Registrados', 'pagos'], ['conc', 'Por conciliar', 'conc']]
+};
+var VIEJO = { deudores: ['cartera', 'clientes'], inco: ['cartera', 'inco'], pv: ['facturas', 'pv'], conc: ['pagos', 'conc'] };
+function pestanas(id) {
+  var T = PESTANAS[id], cnt = { inco: null, pv: (MK.contadores || {}).pv, conc: (MK.contadores || {}).conc };
+  return '<div class="pst319">' + T.map(function (x) {
+    var n = cnt[x[0]];
+    return '<button class="' + (TAB[id] === x[0] ? 'on' : '') + '" onclick="TAB[\'' + id + '\']=\'' + x[0] + '\';MK.repintar()">' + x[1] + (n && n.n ? ' <span class="chipx warn">' + n.n + '</span>' : '') + '</button>';
+  }).join('') + '</div>';
+}
+function pintar319(id, V) {
+  if (VIEJO[id]) { TAB[VIEJO[id][0]] = VIEJO[id][1]; MK.ir(VIEJO[id][0], true); return null; }
+  var T = PESTANAS[id];
+  if (T) { var t = T.filter(function (x) { return x[0] === TAB[id]; })[0] || T[0]; return pestanas(id) + V[t[2]](); }
+  return (V[id] || vMiDia)();
+}
+function contar319(b) {
+  var C = MK.contadores = MK.contadores || {};
+  C.facturas = C.pv || null; C.pagos = C.conc || null;
+  contarBuzon();
+  cargarBuzon();
+}
+(function () {
+  var s = document.createElement('style');
+  s.textContent = '.pst319{display:flex;gap:4px;border-bottom:2px solid var(--line,#e1e6ee);margin:-4px 0 16px;overflow-x:auto}' +
+    '.pst319 button{border:0;background:none;padding:10px 14px;font:700 13.5px Archivo,Arial,sans-serif;cursor:pointer;white-space:nowrap;color:var(--muted,#667489);border-bottom:3px solid transparent;margin-bottom:-2px}' +
+    '.pst319 button.on{color:var(--navy2,#14306b);border-bottom-color:var(--navy2,#14306b)}' +
+    '.bar319{position:sticky;top:-1px;z-index:3;background:var(--card,#fff);margin:12px -4px 0;padding:10px 4px;border-bottom:1px solid var(--line,#e1e6ee)}' +
+    '.kpi.sel319{box-shadow:0 0 0 2px var(--navy2,#14306b);background:#e8effb}' +
+    '.bzn{margin-bottom:10px}.bzn.nuevo{border-left:4px solid #3b6fd4}.bzn.ayuda{border-left:4px solid #d99a00;background:#fffdf5}' +
+    '.h319 .e{display:flex;gap:10px;padding-bottom:10px}.h319 .o{width:20px;height:20px;border-radius:6px;flex:none;color:#fff;display:flex;align-items:center;justify-content:center}' +
+    '.h319 .dia{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted,#667489);text-transform:uppercase;margin:12px 0 6px 30px}';
+  document.head.appendChild(s);
+})();
+
+/* ── BUZÓN ── */
+var BZN = { cargado: false, cargando: false, lista: [], filtro: 'nuevos' };
+var BZN_TIPOS = ['portalComprobante', 'portalAyudaPago'];
+var BZN_CERR = ['resuelto', 'descartado'];
+var BZN_MOT = {
+  dias:   ['Unos días más', 'Anotar la promesa', 'calendario', function (k) { anotar(k, 'promete'); }],
+  partes: ['Pagarlo en partes', 'Armar plan de pago', 'plan', function (k) { nuevoPlan(k); }],
+  duda:   ['Tengo una duda con la factura', 'Anotarlo como reclamo', 'alerta', function (k) { anotar(k, 'reclamo'); }]
+};
+var BZN_EST = { nuevo: ['nuevo', 'info'], abierto: ['en revisión', 'warn'], enviado: ['en revisión', 'warn'], pospuesto: ['en revisión', 'warn'], resuelto: ['atendido', 'ok'], descartado: ['rechazado', 'gris'] };
+function cuentaDeCliente(id) {
+  id = String(id || '').trim();
+  var c = (B().cuentas || []).filter(function (x) { return (x.clienteIds || []).map(String).indexOf(id) >= 0; })[0];
+  return c ? c.clave : '';
+}
+function cargarBuzon() {
+  if (BZN.cargando || !MK.base) return;
+  var run = window.google && google.script && google.script.run; if (!run) return;
+  BZN.cargando = true;
+  /* El puente entrega primero la copia local y después lo nuevo del servidor: se pintan las dos */
+  run.withSuccessHandler(function (r) {
+    BZN.cargando = false;
+    if (!r || !r.ok) return;
+    BZN.lista = (r.pendientes || []).filter(function (p) { return BZN_TIPOS.indexOf(p.tipo) >= 0; }).map(function (p) {
+      var c = {}; try { c = JSON.parse(p.contenido || '{}') || {}; } catch (e) {}
+      p.c = c; p.k = cuentaDeCliente(c.clienteId); return p;
+    });
+    BZN.cargado = true; contarBuzon(); MK.pintarMenu();
+    if (MK.seccion === 'buzon') MK.repintar();
+  }).withFailureHandler(function () { BZN.cargando = false; }).api_pendientes(MK.pinUso(), 'cobros', true);
+}
+function bznAbiertos() { return BZN.lista.filter(function (p) { return BZN_CERR.indexOf(p.estado) < 0; }); }
+function contarBuzon() { var n = bznAbiertos().length; (MK.contadores = MK.contadores || {}).buzon = n ? { n: n, t: 'am' } : null; }
+function bznP(id) { return BZN.lista.filter(function (p) { return p.pendienteId === id; })[0]; }
+function bznCli(p) { var c = p.k ? cu(p.k) : null; return c ? c.cliente : String(p.titulo || '').split(' · ').slice(1).join(' · ') || 'Cliente'; }
+function bznFiltro(f) { BZN.filtro = f; MK.repintar(); }
+function bznLista() {
+  var f = BZN.filtro, A = BZN.lista;
+  var L = f === 'atendidos' ? A.filter(function (p) { return BZN_CERR.indexOf(p.estado) >= 0; })
+    : bznAbiertos().filter(function (p) { return f === 'comp' ? p.tipo === 'portalComprobante' : f === 'ayuda' ? p.tipo === 'portalAyudaPago' : true; });
+  return L.slice().sort(function (a, b) {
+    var pa = a.tipo === 'portalAyudaPago' ? 0 : 1, pb = b.tipo === 'portalAyudaPago' ? 0 : 1;
+    return f === 'atendidos' ? (a.atendidoEn < b.atendidoEn ? 1 : -1) : (pa - pb || (a.fecha < b.fecha ? 1 : -1));
+  }).slice(0, f === 'atendidos' ? 40 : 200);
+}
+function vBuzon() {
+  var h = MK.cabeza('Buzón', 'Lo que llega de los clientes. Por ahora, del portal: comprobantes de pago y pedidos de ayuda con su pago. Toca un cuadro para ver solo eso.');
+  if (!BZN.cargado) { cargarBuzon(); return h + '<div class="cargando">Cargando el buzón…</div>'; }
+  var A = bznAbiertos();
+  var T = [['nuevos', 'Por atender', 'nuevos y en revisión', A.length, 'warn'],
+           ['comp', 'Comprobantes', 'por confirmar', A.filter(function (p) { return p.tipo === 'portalComprobante'; }).length, ''],
+           ['ayuda', 'Piden ayuda', 'con su pago', A.filter(function (p) { return p.tipo === 'portalAyudaPago'; }).length, 'bad'],
+           ['atendidos', 'Atendidos', 'los últimos', BZN.lista.length - A.length, '']];
+  var k = MK.kpis(T.map(function (x) { return { e: x[1], v: x[3], s: x[2], c: x[3] && x[4] ? x[4] : '', ir: "bznFiltro('" + x[0] + "')" }; }));
+  h += k.split('onclick="bznFiltro(\'' + BZN.filtro + '\')"').join('onclick="bznFiltro(\'' + BZN.filtro + '\')" data-sel="1"').replace(/<div class="kpi([^"]*)"([^>]*data-sel="1")/, '<div class="kpi$1 sel319"$2');
+  var L = bznLista();
+  h += L.length ? L.map(bznTarjeta).join('') : '<div class="card">' + MK.vacio(BZN.filtro === 'atendidos' ? 'Todavía no hay nada atendido.' : 'Todo atendido. No hay nada nuevo del portal.') + '</div>';
+  return h + '<div class="nota" style="margin-top:12px">El cliente ve en su portal cómo va lo que mandó: Recibido · En revisión · Aplicado · Rechazado. Al rechazar, lo único que él ve es el mensaje que le escribas.</div>';
+}
+function bznTarjeta(p) {
+  var c = p.c || {}, est = BZN_EST[p.estado] || BZN_EST.nuevo, abierto = BZN_CERR.indexOf(p.estado) < 0;
+  var fac = String(c.facturas || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  var head = '<div class="fila" style="gap:6px;flex-wrap:wrap;align-items:center"><span class="chipx ok">' + MK.ic('enlace', 13) + ' Portal</span>' +
+    (p.tipo === 'portalAyudaPago' ? '<span class="chipx warn">pide ayuda con su pago</span>' : '<span class="chipx info">comprobante</span>') +
+    '<b>' + MK.esc(bznCli(p)) + '</b><span class="small muted">· ' + MK.esc(c.quien || '') + ' · ' + fdm(p.fecha) + ' · ' + MK.esc(p.referencia || '') + '</span>' +
+    '<span class="chipx ' + est[1] + '">' + est[0] + '</span></div>';
+  var cuerpo, acc = '';
+  if (p.tipo === 'portalAyudaPago') {
+    var m = BZN_MOT[c.motivo] || BZN_MOT.dias;
+    cuerpo = '<div class="fila" style="gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center"><span style="font-size:14px"><b>Motivo:</b> ' + MK.esc(c.motivoTxt || m[0]) + '</span><span class="chipx gris">' + MK.ic('persona', 13) + ' la atiende una persona</span></div>' +
+      (c.nota ? '<div style="margin-top:6px;font-size:13.5px">«' + MK.esc(c.nota) + '»</div>' : '') +
+      '<div class="small" style="margin-top:6px">Facturas vencidas: ' + (fac.length ? fac.map(MK.esc).join(' · ') : '—') + (c.total ? ' · <b>total ' + D(c.total) + '</b>' : '') + '</div>' +
+      (c.telefono ? '<div class="small" style="margin-top:3px">' + MK.ic('telefono', 13) + ' Llamarle al <b>' + MK.esc(c.telefono) + '</b></div>' : '');
+    if (abierto) acc = (c.telefono ? '<a class="btn sm tel" href="tel:' + String(c.telefono).replace(/\D/g, '') + '" onclick="bznAbrir(\'' + p.pendienteId + '\')">' + MK.ic('telefono', 15) + 'Llamar</a>' : '') +
+      (p.k ? '<button class="btn sm pri escribe" onclick="bznMotivo(\'' + p.pendienteId + '\')">' + MK.ic(m[2], 15) + m[1] + '</button>' : '') +
+      '<button class="btn sm escribe" onclick="bznAtendido(\'' + p.pendienteId + '\')">' + MK.ic('check', 15) + 'Ya lo atendí</button>' +
+      '<button class="btn sm escribe" onclick="bznRechazar(\'' + p.pendienteId + '\')">Descartar</button>';
+  } else {
+    cuerpo = '<div style="margin-top:8px;font-size:14px"><b>' + (c.monto ? D(c.monto) : 'Sin monto escrito') + '</b>' + (fac.length ? ' · facturas ' + fac.map(MK.esc).join(' · ') : ' · no marcó facturas') + (c.referencia ? ' · ref. ' + MK.esc(c.referencia) : '') + '</div>';
+    if (abierto) acc = (c.archivoId ? '<button class="btn sm" onclick="bznVer(\'' + p.pendienteId + '\')">' + MK.ic('ojo', 15) + 'Ver comprobante</button>' : '') +
+      (p.k ? '<button class="btn sm pri escribe" onclick="bznPago(\'' + p.pendienteId + '\')">' + MK.ic('billete', 15) + 'Registrar el pago</button>' : '') +
+      '<button class="btn sm escribe" onclick="bznRechazar(\'' + p.pendienteId + '\')">Rechazar</button>';
+  }
+  if (!abierto && p.notaCierre) cuerpo += '<div class="small muted" style="margin-top:6px">' + (p.estado === 'descartado' ? 'Mensaje que vio el cliente: ' : 'Nota: ') + MK.esc(p.notaCierre || '') + ' · ' + MK.esc(p.atendidoPor || '') + '</div>';
+  if (!p.k) cuerpo += '<div class="small" style="margin-top:6px;color:var(--bad,#d64045)">No encontré su cuenta en la cartera: revísalo en Pagos › Por conciliar.</div>';
+  if (p.k) acc += '<button class="btn sm" onclick="abrirCuenta(\'' + p.k + '\')">' + MK.ic('flecha', 15) + 'Ver cuenta</button>';
+  return '<div class="card bzn' + (abierto && p.tipo === 'portalAyudaPago' ? ' ayuda' : abierto ? ' nuevo' : '') + '"><div class="fila" style="justify-content:space-between;gap:10px;align-items:flex-start"><div style="flex:1;min-width:240px">' + head + cuerpo + '</div>' +
+    (acc ? '<div class="acc2" style="flex-direction:column;align-items:stretch;min-width:180px">' + acc + '</div>' : '') + '</div></div>';
+}
+function bznEstado(id, estado, nota) {
+  return MK.api('api_cerrarPendiente', MK.pinUso(), id, estado, nota || '', 0).then(function (r) {
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo actualizar.'); return r; }
+    var p = bznP(id); if (p) { p.estado = r.estado; p.notaCierre = nota || ''; p.atendidoPor = (B().usuario || {}).nombre || ''; p.atendidoEn = MK.hoy; }
+    contarBuzon(); MK.pintarMenu(); if (MK.seccion === 'buzon') MK.repintar();
+    return r;
+  });
+}
+function bznAbrir(id) { var p = bznP(id); if (p && p.estado === 'nuevo') bznEstado(id, 'abierto', ''); }
+function bznVer(id) {
+  var p = bznP(id); if (!p) return; bznAbrir(id);
+  var w = window.open('', '_blank');
+  if (w) { try { w.document.write('<title>Abriendo…</title><p style="font:14px Archivo,sans-serif;color:#667489;padding:24px">Abriendo el comprobante…</p>'); } catch (e) {} }
+  MK.api('api_arcVer', MK.pinUso(), p.c.archivoId).then(function (r) {
+    if (!r || !r.ok || !r.url) { if (w) w.close(); MK.aviso((r && r.error) || 'No se pudo abrir.'); return; }
+    if (w) w.location.href = r.url; else location.href = r.url;
+  }, function (e) { if (w) w.close(); MK.aviso('Sin conexión: ' + e.message); });
+}
+/* Registrar el pago: el formulario de siempre, ya con el monto y las facturas que marcó el cliente.
+   Al guardarse el pago, el comprobante queda «Aplicado» para el cliente. */
+var BZN_PAGO = null;
+function bznPago(id) {
+  var p = bznP(id); if (!p || !p.k) return; bznAbrir(id);
+  BZN_PAGO = id; registrarPago(p.k);
+  if (typeof RP === 'object' && RP && RP.k === p.k) {
+    var fac = String(p.c.facturas || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean), rest = Number(p.c.monto) || 0;
+    RP.monto = rest; RP.ref = String(p.c.referencia || ''); RP.rep = {};
+    (RP.F || []).forEach(function (f) { if (fac.indexOf(String(f.factura)) >= 0 && rest > 0.009) { var x = Math.min(rest, f.saldo); RP.rep[f.factura] = Math.round(x * 100) / 100; rest -= x; } });
+    if (typeof pintarPago === 'function') pintarPago();
+  }
+}
+function bznTrasPago() {
+  if (!BZN_PAGO) return; var id = BZN_PAGO; BZN_PAGO = null;
+  bznEstado(id, 'resuelto', 'Pago aplicado').then(function () { MK.aviso('Pago registrado · el cliente ya lo ve como aplicado'); });
+}
+function bznMotivo(id) { var p = bznP(id); if (!p || !p.k) return; bznAbrir(id); (BZN_MOT[p.c.motivo] || BZN_MOT.dias)[3](p.k); }
+function bznAtendido(id) {
+  var p = bznP(id); if (!p) return;
+  MK.confirmar('Queda como atendido y el cliente vuelve a poder pedir ayuda desde su portal si la necesita.', function () {
+    bznEstado(id, 'resuelto', 'Nuestro equipo lo atendió').then(function (r) { if (r && r.ok) MK.aviso('Atendido'); });
+  }, { titulo: 'Marcar como atendido', boton: 'Sí, ya lo atendí' });
+}
+var BZN_MSJ = ['El monto del comprobante no coincide con la factura.', 'No se ve bien la referencia ni la fecha del pago.', 'El comprobante es de otra empresa.', 'Ese pago ya estaba aplicado.'];
+function bznRechazar(id) {
+  var p = bznP(id); if (!p) return; bznAbrir(id);
+  var ayuda = p.tipo === 'portalAyudaPago';
+  MK.lado('<span class="et">' + (ayuda ? 'Descartar el pedido' : 'Rechazar el comprobante') + '</span><h2>' + MK.esc(bznCli(p)) + '</h2>' +
+    '<div class="sub">' + (ayuda ? 'Pidió ayuda con su pago · ' : 'Comprobante · ' + (p.c.monto ? D(p.c.monto) + ' · ' : '')) + MK.esc(p.referencia || '') + '</div>' +
+    '<label class="lb">Mensaje para el cliente</label>' +
+    '<div class="nota am" style="margin:0 0 8px">' + MK.ic('alerta', 15) + ' Esto lo ve el cliente en su portal, tal cual lo escribas. No pongas notas internas aquí.</div>' +
+    (ayuda ? '' : '<div class="fila" style="gap:6px;flex-wrap:wrap;margin-bottom:6px">' + BZN_MSJ.map(function (t, i) { return '<button class="btn sm" onclick="document.getElementById(\'bz-msj\').value=BZN_MSJ[' + i + ']+\' Por favor, súbalo de nuevo.\'">' + MK.esc(t.replace(/\.$/, '')) + '</button>'; }).join('') + '</div>') +
+    '<textarea class="in" id="bz-msj" rows="3" style="width:100%" maxlength="400" placeholder="Por ejemplo: el monto no coincide con la factura. Por favor, súbalo de nuevo."></textarea>' +
+    '<label class="lb">Nota interna <span class="muted">(opcional · solo la ve Cobros)</span></label>' +
+    '<textarea class="in" id="bz-int" rows="2" style="width:100%" maxlength="300" placeholder="Queda en la historia de la cuenta"></textarea>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri escribe" onclick="bznRechazarGuardar(\'' + id + '\',this)">' + (ayuda ? 'Descartar' : 'Rechazar') + '</button></div>');
+}
+function bznRechazarGuardar(id, btn) {
+  var p = bznP(id), msj = String((document.getElementById('bz-msj') || {}).value || '').trim(), nota = String((document.getElementById('bz-int') || {}).value || '').trim();
+  if (msj.length < 10) { MK.aviso('Escribe el mensaje para el cliente: le explica qué pasó.'); return; }
+  MK.ocupado(btn, true);
+  bznEstado(id, 'descartado', msj).then(function (r) {
+    if (!r || !r.ok) { MK.ocupado(btn, false); return; }
+    MK.cerrarLado();
+    if (nota && p && p.k) MK.llamar('api_cobAnotar', { clave: p.k, tipo: 'enviado', canal: 'portal', notas: (p.tipo === 'portalAyudaPago' ? 'Pedido de ayuda descartado' : 'Comprobante rechazado') + ' · ' + p.referencia + ' · ' + nota }).then(function () { recargar(); }, function () {});
+    MK.aviso(p && p.tipo === 'portalAyudaPago' ? 'Descartado' : 'Rechazado · el cliente ve tu mensaje en su portal');
+  }, function () { MK.ocupado(btn, false); });
+}
+
+/* ── HISTORIA DE LA CUENTA ── */
+var H319 = { k: '', fil: 'todo', ver: false };
+var H_ORIG = { sage: ['Sage', '#6b7280', 'factura'], cobros: ['Cobros', '#14306b', 'check'], pagos: ['Pagos', '#c9a400', 'billete'], portal: ['Portal', '#2f9e44', 'enlace'], planes: ['Planes de pago', '#d99a00', 'plan'] };
+var H_GRUPO = { cobro: ['cobros', 'planes'], pagos: ['pagos', 'sage'], portal: ['portal'] };
+function historia319(k, F, P, G, NC, pl) {
+  var E = [];
+  F.forEach(function (f) { E.push({ f: f.fecha, o: 'sage', b: 'Factura ' + f.factura + ' · ' + D(f.total), d: 'Llegó con la importación de Sage' + (f.mora ? ' · hoy lleva ' + f.mora + ' días vencida' : '') }); });
+  P.forEach(function (p) { E.push({ f: p.fecha, o: 'pagos', b: 'Pago ' + D(p.monto) + (p.factura ? ' a la ' + p.factura : ' sin factura'), d: (p.referencia ? 'Ref. ' + p.referencia : '') + (p.anulado ? ' · anulado' : ''), x: p.anulado }); });
+  NC.forEach(function (e) { E.push({ f: e.f, o: 'sage', b: 'Nota de crédito ' + (e.n.nota || '') + ' · −' + D(e.n.monto) + ' a la ' + e.fac.factura, d: 'La factura pasa de ' + D(e.fac.totalOriginal) + ' a ' + D(e.fac.total) }); });
+  G.forEach(function (g) { var R = (B().resultados || {})[g.tipo];
+    E.push({ f: g.fecha, o: 'cobros', b: (R ? R.n : (g.resultado || g.canal || 'Gestión')) + ' · ' + (g.canal || '') + (g.conQuien ? ' con ' + g.conQuien : ''), d: (g.seCompromete ? 'Prometió ' + D(g.montoPrometido) + ' para el ' + fdm(g.fechaPrometida) + '. ' : '') + (g.notas || ''), por: g.hechoPor, w: g.tipo === 'promete', x: /niega|suspen|reclamo/.test(g.tipo) }); });
+  if (pl) (pl.cuotas || []).filter(function (q) { return /pagad/i.test(q.estado || ''); }).forEach(function (q) { E.push({ f: q.fecha, o: 'planes', b: 'Cuota ' + (q.n || '') + ' del plan ' + pl.planId + ' · pagada', d: D(q.monto) }); });
+  BZN.lista.filter(function (p) { return p.k === k; }).forEach(function (p) {
+    var c = p.c || {}, ay = p.tipo === 'portalAyudaPago';
+    E.push({ f: p.fecha, o: 'portal', b: ay ? 'Pidió ayuda con su pago · ' + (c.motivoTxt || '') : 'Subió un comprobante' + (c.monto ? ' · ' + D(c.monto) : ''), d: ay ? (c.nota || '') : (c.facturas ? 'Facturas ' + c.facturas : ''), chip: (BZN_EST[p.estado] || BZN_EST.nuevo)[0], por: c.quien, bz: 1 });
+    if (BZN_CERR.indexOf(p.estado) >= 0 && p.atendidoEn) E.push({ f: p.atendidoEn, o: 'portal', b: (p.estado === 'descartado' ? (ay ? 'Pedido de ayuda descartado' : 'Comprobante rechazado') : (ay ? 'Pedido de ayuda atendido' : 'Comprobante aplicado')), d: p.estado === 'descartado' ? 'El cliente vio: «' + (p.notaCierre || '') + '»' : '', por: p.atendidoPor, chip: 'vino del Buzón' });
+  });
+  return E.sort(function (a, b) { return String(a.f) < String(b.f) ? 1 : String(a.f) > String(b.f) ? -1 : 0; });
+}
+function historiaHtml319(k, E) {
+  if (H319.k !== k) { H319.k = k; H319.fil = 'todo'; H319.ver = false; }
+  var cuenta = function (g) { return g === 'todo' ? E.length : E.filter(function (e) { return H_GRUPO[g].indexOf(e.o) >= 0; }).length; };
+  var L = H319.fil === 'todo' ? E : E.filter(function (e) { return H_GRUPO[H319.fil].indexOf(e.o) >= 0; });
+  var ver = H319.ver ? L : L.slice(0, 6), dia = '';
+  var h = '<h3 style="margin-top:16px">Historia de la cuenta</h3><div class="fila" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">' +
+    [['todo', 'Todo'], ['cobro', 'Cobro'], ['pagos', 'Facturas y pagos'], ['portal', 'Portal']].map(function (x) { return '<button class="chip' + (H319.fil === x[0] ? ' on' : '') + '" onclick="H319.fil=\'' + x[0] + '\';H319.ver=false;abrirCuenta(\'' + k + '\')">' + x[1] + ' · ' + cuenta(x[0]) + '</button>'; }).join('') + '</div><div class="h319">';
+  ver.forEach(function (e) {
+    var o = H_ORIG[e.o], d = fdm(e.f);
+    if (d !== dia) { h += '<div class="dia">' + d + '</div>'; dia = d; }
+    h += '<div class="e"><span class="o" style="background:' + (e.x ? '#d64045' : e.w ? '#d99a00' : o[1]) + '">' + MK.ic(o[2], 12) + '</span><div style="flex:1;min-width:0"><b style="font-size:13.5px">' + MK.esc(e.b) + '</b>' + (e.chip ? ' <span class="chipx info">' + MK.esc(e.chip) + '</span>' : '') +
+      (e.d ? '<div class="small" style="margin-top:2px">' + MK.esc(e.d) + '</div>' : '') + '<div class="small muted">' + o[0] + (e.por ? ' · ' + MK.esc(e.por) : '') + (e.bz ? ' · <a href="#" onclick="MK.cerrarLado();MK.ir(\'buzon\');return false">abrir en el Buzón</a>' : '') + '</div></div></div>';
+  });
+  if (!L.length) h += MK.vacio(H319.fil === 'todo' ? 'Nadie ha gestionado esta cuenta todavía.' : 'Nada en este filtro.');
+  h += '</div>';
+  if (L.length > 6) h += '<div style="text-align:center;margin:2px 0 6px"><button class="btn sm" onclick="H319.ver=!H319.ver;abrirCuenta(\'' + k + '\')">' + (H319.ver ? 'Ver menos' : MK.ic('historial', 15) + 'Ver toda la historia · ' + L.length) + '</button></div>';
+  return h;
+}
+function masCuenta(b) { var m = document.getElementById('mas319'); if (m) { m.style.display = m.style.display === 'none' ? 'flex' : 'none'; } }
+
+/* ── QUIÉN PAGA ── */
+function defineMer() { return ['mercadeo', 'supervisor', 'admin'].indexOf(String((B().usuario || {}).rol || '').toLowerCase()) >= 0; }
+function editarContactoPag(id) {
+  var p = ((PAGD && PAGD.pagadores) || []).filter(function (x) { return x.pagadorId === id; })[0]; if (!p) return;
+  MK.lado('<span class="et">Quién paga</span><h2>' + MK.esc(p.nombre) + '</h2><div class="sub">' + MK.esc(MODO_PAG[p.modo] || p.modo) + ' · cómo se factura lo define Mercadeo</div>' +
+    '<label class="lb">Contacto de cobro</label><input class="in" id="qp-con" value="' + MK.esc(p.contacto || '') + '">' +
+    '<label class="lb">Correo de cobro</label><input class="in" id="qp-cor" value="' + MK.esc(p.correo || '') + '">' +
+    '<label class="lb">Teléfono</label><input class="in" id="qp-tel" value="' + MK.esc(p.telefono || '') + '">' +
+    '<label class="lb">Así aparece en contabilidad <span class="muted">(nombres en Sage, uno por línea)</span></label><textarea class="in" id="qp-nf" rows="3" style="width:100%">' + MK.esc((p.nombresFactura || []).join('\n')) + '</textarea>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri escribe" onclick="guardarContactoPag(\'' + id + '\',this)">' + MK.ic('check', 15) + 'Guardar</button></div>');
+}
+function guardarContactoPag(id, btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_guardarPagador', { pagadorId: id, contacto: MK.val('qp-con'), correo: MK.val('qp-cor'), telefono: MK.val('qp-tel'), nombresFactura: String((document.getElementById('qp-nf') || {}).value || '').split('\n') })
+    .then(function () { MK.cerrarLado(); MK.aviso('Guardado'); PAGD = null; recargar(); MK.repintar(); }, function () { MK.ocupado(btn, false); });
+}
+function pedirMercadeo(tipo, i) {
+  var x = tipo === 'definir' ? ((PAGD && PAGD.sugerencias) || [])[i] : ((PAGD && PAGD.pagadores) || []).filter(function (p) { return p.pagadorId === i; })[0];
+  if (!x) return;
+  var nombre = tipo === 'definir' ? (x.razon || x.ruc) : x.nombre;
+  MK.lado('<span class="et">Pedir a Mercadeo</span><h2>' + MK.esc(nombre) + '</h2><div class="sub">' + (tipo === 'definir' ? 'Varias sedes con el mismo RUC y nadie ha dicho cómo se les factura.' : 'La forma de facturar es parte de lo que el cliente aceptó con Mercadeo.') + '</div>' +
+    '<label class="lb">' + (tipo === 'definir' ? 'Algo que Mercadeo deba saber <span class="muted">(opcional)</span>' : 'Qué hay que cambiar') + '</label><textarea class="in" id="pm-nota" rows="3" style="width:100%" maxlength="400"></textarea>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri escribe" onclick="pedirMercadeoGuardar(\'' + tipo + '\',\'' + String(i).replace(/'/g, '') + '\',this)">Enviar a Mercadeo</button></div>');
+}
+function pedirMercadeoGuardar(tipo, i, btn) {
+  var x = tipo === 'definir' ? ((PAGD && PAGD.sugerencias) || [])[Number(i)] : ((PAGD && PAGD.pagadores) || []).filter(function (p) { return p.pagadorId === i; })[0];
+  if (!x) return;
+  var d = tipo === 'definir' ? { tipo: 'definir', nombre: x.razon || x.ruc, ruc: x.ruc, clienteIds: (x.sedes || []).map(function (s) { return s.id || s.clienteId; }).filter(Boolean) }
+    : { tipo: 'cambio', nombre: x.nombre, pagadorId: x.pagadorId, ruc: x.ruc };
+  d.nota = String((document.getElementById('pm-nota') || {}).value || '').trim();
+  MK.ocupado(btn, true);
+  MK.llamar('api_cobPedirMercadeo', d).then(function (r) { MK.cerrarLado(); MK.aviso(r && r.ya ? 'Ya estaba pedido: sigue en la bandeja de Mercadeo' : 'Enviado a la bandeja de Mercadeo'); }, function () { MK.ocupado(btn, false); });
+}
 
 </script>
 </body>
