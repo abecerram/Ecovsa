@@ -937,7 +937,12 @@ function vPortal() {
       var fa = function (a) { return '<div class="fila" style="gap:8px;padding:5px 0"><span style="flex:1;min-width:0">' + MK.esc(a.nombre) + (a.cargo ? ' <span class="muted small">· ' + MK.esc(a.cargo) + '</span>' : '') + ' ' + ptlEst(a) + (a.ultimoIngreso ? ' <span class="muted small">entró ' + MK.esc(a.ultimoIngreso.slice(0, 10)) + '</span>' : '') + '</span>' +
         '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',false,this)">' + (a.estado === 'activo' ? 'Enlace nuevo' : 'Reenviar') + '</button>' + (a.estado === 'activo' ? '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',true,this)">PIN nuevo</button>' : '') + '<button class="btn sm gh bad" onclick="ptlQuitar(\'' + a.accesoId + '\',\'' + MK.esc(a.nombre) + '\')">Quitar</button></div>'; };
       return '<div class="card" style="margin-bottom:10px"><div class="fila" style="justify-content:space-between;align-items:flex-start"><div><b>' + MK.esc(c.razonSocial) + '</b> ' + (c.macro ? '<span class="tag t-info">Macro · ' + c.sedes.length + ' sedes</span>' : '<span class="tag t-gris">Micro</span>') + ' ' +
-        (c.semaforo === 'verde' ? '<span class="tag t-ok">Al día</span>' : '<span class="tag t-warn">Con atraso</span>') + '</div>' + (c.macro ? '<button class="btn sm" onclick="ptlInvitar(\'corp\',' + ci + ')">' + MK.ic('alta', 14) + 'Encargado de la cuenta</button>' : '') + '</div>' +
+        (c.semaforo === 'verde' ? '<span class="tag t-ok">Al día</span>' : '<span class="tag t-warn">Con atraso</span>') +
+        /* api 3.22 · prórroga del bloqueo por pago */
+        (c.prorroga ? ' <span class="tag t-info" title="' + MK.esc('Motivo: ' + c.prorroga.motivo + ' · la dio ' + c.prorroga.por) + '">Prórroga hasta el ' + MK.esc(ptlFecha(c.prorroga.hasta)) + '</span>' : '') + '</div>' +
+        '<div class="fila" style="gap:6px;flex-wrap:wrap;justify-content:flex-end">' +
+        (c.prorroga ? '<button class="btn sm gh" onclick="ptlQuitarProrroga(' + ci + ')">Quitar la prórroga</button>' : (c.semaforo !== 'verde' && !c.suspendida ? '<button class="btn sm" onclick="ptlProrroga(' + ci + ')">' + MK.ic('reloj', 14) + 'Dar prórroga</button>' : '')) +
+        (c.macro ? '<button class="btn sm" onclick="ptlInvitar(\'corp\',' + ci + ')">' + MK.ic('alta', 14) + 'Encargado de la cuenta</button>' : '') + '</div></div>' +
         (c.corp.length ? '<div class="small muted" style="margin-top:6px">CUENTA COMPLETA</div>' + c.corp.map(fa).join('') : '') +
         c.sedes.map(function (s, si) { return '<div style="border-top:1px solid #eef1f5;margin-top:8px;padding-top:8px"><div class="fila" style="justify-content:space-between"><span><b style="font-weight:600">' + MK.esc(s.nombre) + '</b> <span class="muted small">' + MK.esc(s.contacto || '') + (s.telefono ? ' · ' + MK.esc(s.telefono) : ' · sin WhatsApp en la ficha') + (s.distintivo ? ' · distintivo ' + MK.esc(MK.fechaCorta ? MK.fechaCorta(s.distintivo) : s.distintivo) : '') + '</span></span>' +
           '<button class="btn sm gh" onclick="ptlInvitar(\'' + (c.macro ? 'sede' : 'micro') + '\',' + ci + ',' + si + ')">' + MK.ic('alta', 14) + 'Invitar</button></div>' + s.accesos.map(fa).join('') + '</div>'; }).join('') + '</div>';
@@ -972,6 +977,28 @@ function ptlCopiar() { var t = window._ptlTxt || ''; if (navigator.clipboard) na
 function ptlPedido(id, si, b, nota) {
   MK.ocupado(b, true);
   MK.api('api_ptlPedido', PIN, id, si, nota || '').then(function (r) { MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.cerrarHoja && MK.cerrarHoja(); if (si && r.url) ptlResultado(r); else MK.aviso(si ? 'Aprobado' : 'Rechazado'); ptlCargar(); }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+}
+/* api 3.22 · PRÓRROGA del bloqueo por pago: el administrador la da cuando hay un acuerdo fuera del sistema */
+function ptlFecha(iso) { var M = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], s = String(iso || ''); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? Number(s.slice(8)) + ' ' + M[Number(s.slice(5, 7)) - 1] + ' ' + s.slice(0, 4) : s; }
+function ptlProrroga(ci) {
+  var c = PTL.cuentas[ci], dias = 7;
+  MK.hoja('<h2>Dar prórroga · ' + MK.esc(c.razonSocial) + '</h2>' +
+    '<p class="muted" style="font-size:13px;margin-top:6px">Mientras dure, su portal y el QR la tratan como al día: se abren sus certificados y no ve el aviso de atraso. Cobros sigue viendo la deuda. Al vencer vuelve sola.</p>' +
+    '<label class="lb">¿Por cuántos días?</label><div class="fila" id="pro-d" style="gap:6px;flex-wrap:wrap">' + [7, 15, 30].map(function (n) { return '<button type="button" class="btn sm' + (n === 7 ? ' pri' : '') + '" data-d="' + n + '">' + n + ' días</button>'; }).join('') +
+    '<input class="in" id="pro-n" type="number" min="1" max="90" placeholder="Otro" style="width:90px"></div>' +
+    '<label class="lb">Motivo (queda en el historial)</label><input class="in" id="pro-m" maxlength="200" placeholder="Ej. acuerdo verbal con el gerente: paga el 15">' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pro-b">Dar prórroga</button></div>');
+  var caja = document.getElementById('pro-d');
+  caja.onclick = function (e) { var b = e.target.closest('button[data-d]'); if (!b) return; dias = Number(b.getAttribute('data-d')); document.getElementById('pro-n').value = ''; caja.querySelectorAll('button').forEach(function (x) { x.classList.toggle('pri', x === b); }); };
+  document.getElementById('pro-b').onclick = function () {
+    var b = this, n = Number(MK.val('pro-n')) || dias;
+    MK.ocupado(b, true);
+    MK.api('api_ptlProrroga', PIN, { clienteId: c.clienteId, dias: n, motivo: MK.val('pro-m') }).then(function (r) { MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.cerrarHoja(); MK.aviso('Prórroga hasta el ' + ptlFecha(r.prorroga.hasta)); ptlCargar(); }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+  };
+}
+function ptlQuitarProrroga(ci) {
+  var c = PTL.cuentas[ci];
+  MK.confirmar('El portal y el QR de ' + c.razonSocial + ' vuelven a aplicar el bloqueo por pago desde ahora. Queda en el historial.', function () { MK.api('api_ptlQuitarProrroga', PIN, c.clienteId).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('Prórroga quitada'); ptlCargar(); }); }, { titulo: '¿Quitar la prórroga?', boton: 'Quitar', peligro: true });
 }
 function ptlRechazar(id) {
   MK.hoja('<h2>Rechazar el pedido</h2><label class="lb">Motivo (queda en el historial)</label><input class="in" id="ptl-nota"><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="ptl-no">Rechazar</button></div>');
