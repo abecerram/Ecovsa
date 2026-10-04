@@ -1051,6 +1051,7 @@ MK.iniciar({
     { id: 'fun', n: 'Funciones', i: 'ajustes' },
     { id: 'emp', n: 'Datos de la empresa', i: 'maletin' },
     { id: 'ptl', n: 'Portal de clientes', i: 'personas' },
+    { id: 'ia', n: 'Conexión de IA', i: 'enlace' },   // api 3.20
     { id: 'his', n: 'Historial', i: 'historial' },
     { id: 'rb', n: 'Registro de borrados', i: 'basura' },
     { id: 'prb', n: 'Datos de prueba', i: 'filtro' },
@@ -1070,10 +1071,62 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, ptl: vPortal, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
+    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, ptl: vPortal, ia: vIA, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });
+</script>
+<script>
+/* ═══════════ api 3.20 · CONFIGURACIÓN › CONEXIÓN DE IA ═══════════
+   Solo el administrador. La clave se pega aquí, se prueba en el servidor y se guarda allá:
+   nunca vuelve a esta pantalla (solo «termina en ••••1234»). */
+var IAC = null, IAC_V = false;
+function vIA() {
+  var cab = MK.cabeza('Conexión de IA', 'La clave del proveedor de IA que usa la Asistente de Cobros. Se guarda en el servidor: nadie la puede volver a ver, ni siquiera tú.');
+  if (!IAC) {
+    if (!IAC_V) { IAC_V = true; iaLeer(); }
+    return cab + '<div class="card"><div class="vacio">Consultando…</div></div>';
+  }
+  if (!IAC.ok) return cab + '<div class="aviso am">' + MK.esc(IAC.error || 'No se pudo consultar.') + '</div>';
+  var P = IAC.proveedores || [], sel = IAC.proveedor || 'gemini', mod = (P.filter(function (p) { return p.id === sel; })[0] || {}).modelo || '';
+  var h = cab;
+  h += '<div class="card"><div class="fila" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div>' +
+    (IAC.proveedor ? '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#e3f4e8;color:#1f7a3a;font-weight:700;font-size:12px">conectada</span> <b>' + MK.esc(IAC.proveedorN) + '</b> · clave que termina en <b class="num">••••' + MK.esc(IAC.termina) + '</b> · modelo ' + MK.esc(IAC.modelo) +
+      '<div class="small muted" style="margin-top:4px">La puso ' + MK.esc(IAC.por || '—') + (IAC.en ? ' el ' + MK.esc(IAC.en) : '') + '</div>'
+      : '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#fff1cc;color:#8a5a00;font-weight:700;font-size:12px">sin conectar</span> La Asistente de Cobros no funciona hasta que pongas una clave.') + '</div>' +
+    (IAC.proveedor ? '<button class="btn sm bad" onclick="iaQuitar()">Quitar la conexión</button>' : '') + '</div></div>';
+  h += '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">' + (IAC.proveedor ? 'Cambiar la clave' : 'Conectar') + '</h3>' +
+    '<label class="lb">Proveedor</label><select class="in" id="iac-prov" onchange="iaModeloDe(this.value)">' + P.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + MK.esc(p.n) + '</option>'; }).join('') + '</select>' +
+    '<label class="lb">Modelo</label><input class="in" id="iac-mod" value="' + MK.esc(IAC.proveedor === sel && IAC.modelo ? IAC.modelo : mod) + '" autocomplete="off">' +
+    '<label class="lb">Clave</label><input class="in" id="iac-cla" type="password" autocomplete="new-password" spellcheck="false" placeholder="Pega aquí la clave">' +
+    '<div class="nota" style="margin:10px 0">' + MK.ic('candado', 15) + ' Al tocar «Probar y guardar», el servidor hace una prueba corta con el proveedor. Si la clave sirve, la guarda; si no, no guarda nada. Gemini gratis: los datos van sin nombres de clientes (modo anónimo fijo).</div>' +
+    '<button class="btn pri" onclick="iaGuardar(this)">' + MK.ic('check', 16) + 'Probar y guardar</button></div>';
+  return h;
+}
+/* el puente entrega primero la copia local y después lo fresco: se usan los dos */
+function iaLeer() {
+  google.script.run.withSuccessHandler(function (r) { IAC_V = false; IAC = r || { ok: false }; if (MK.seccion === 'ia') MK.repintar(); })
+    .withFailureHandler(function () { IAC_V = false; IAC = { ok: false, error: 'Sin conexión.' }; MK.repintar(); }).api_iaConexion(PIN);
+}
+function iaModeloDe(id) { var p = ((IAC && IAC.proveedores) || []).filter(function (x) { return x.id === id; })[0]; if (p) document.getElementById('iac-mod').value = p.modelo; }
+function iaGuardar(btn) {
+  var cla = (document.getElementById('iac-cla') || {}).value || '';
+  if (cla.trim().length < 20) { MK.aviso('Pega la clave completa.'); return; }
+  MK.ocupado(btn, true, 'Probando…');
+  MK.api('api_iaGuardarConexion', PIN, { proveedor: MK.val('iac-prov'), modelo: MK.val('iac-mod'), clave: cla.trim() }).then(function (r) {
+    MK.ocupado(btn, false); var el = document.getElementById('iac-cla'); if (el) el.value = '';
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+    var p = r.prueba || {};
+    if (!p.ok) { MK.aviso(p.error || 'La clave no pasó la prueba. No se guardó nada.'); return; }
+    MK.aviso('Conectada · ' + p.proveedorN + ' · termina en ••••' + p.termina); IAC = { ok: true, proveedor: MK.val('iac-prov'), proveedorN: p.proveedorN, termina: p.termina, modelo: p.modelo, por: 'tú', en: 'hoy', proveedores: IAC.proveedores }; MK.repintar(); iaLeer();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+}
+function iaQuitar() {
+  MK.confirmar('La Asistente de Cobros deja de funcionar hasta que pongas otra clave.', function () {
+    MK.api('api_iaGuardarConexion', PIN, { quitar: true }).then(function (r) { MK.aviso(r && r.ok ? 'Conexión quitada' : (r && r.error) || 'No se pudo.'); IAC.proveedor = ''; MK.repintar(); iaLeer(); });
+  }, { titulo: 'Quitar la conexión de IA', boton: 'Sí, quitarla' });
+}
+
 </script>
 </body>
 </html>

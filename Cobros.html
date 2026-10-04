@@ -1652,6 +1652,7 @@ function deshacerAsig(id) {
   }, { titulo: 'Deshacer la asignación', boton: 'Sí, deshacer' });
 }
 function facOrden(f, q) { var n = sinCerosF(q), m = sinCerosF(f.factura); return m === n ? 0 : (m.indexOf(n) === 0 ? 1 : 2); }
+MK.ICONOS.asistente = '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.6-1.8 2.5-4 2.5h-2.5"/>';   // api 3.20
 MK.iniciar({
   modulo: 'Cobros',
   base: 'api_cobBase',
@@ -1679,6 +1680,7 @@ MK.iniciar({
   paginas: [
     { g: 'COBROS' },
     { id: 'midia', n: 'Mi día', i: 'hoy' },
+    { id: 'asis', n: 'Asistente IA', i: 'asistente' },   // api 3.20
     { id: 'buzon', n: 'Buzón', i: 'correo' },
     { id: 'cartera', n: 'Cartera', i: 'suma' },
     { id: 'seg', n: 'Seguimientos', i: 'agenda' },
@@ -1709,10 +1711,12 @@ MK.iniciar({
     MK.contadores.pv = pv ? { n: pv, t: 'g' } : null;
     MK.contadores.inco = null;
     contar319(b);   // api 3.19
+    cargarIA();     // api 3.20
   },
   pintar: function (id) {
     var V = { pagadores: vPagadores, midia: vMiDia, pv: vPorVencer, seg: vSeguimientos, planes: vPlanes, esc: vEscalera, cartera: vCartera, deudores: vDeudores, facturas: vFacturas, pagos: vPagos, lote: vLote, conc: vConciliar, pfac: vParaFacturar, inco: vIncobrables };
     V.buzon = vBuzon;   // api 3.19
+    V.asis = vAsis;     // api 3.20
     if (!MK.base) return;
     var h = pintar319(id, V); if (h === null) return;
     document.getElementById('main').innerHTML = h;
@@ -1997,6 +2001,135 @@ function pedirMercadeoGuardar(tipo, i, btn) {
   d.nota = String((document.getElementById('pm-nota') || {}).value || '').trim();
   MK.ocupado(btn, true);
   MK.llamar('api_cobPedirMercadeo', d).then(function (r) { MK.cerrarLado(); MK.aviso(r && r.ya ? 'Ya estaba pedido: sigue en la bandeja de Mercadeo' : 'Enviado a la bandeja de Mercadeo'); }, function () { MK.ocupado(btn, false); });
+}
+
+</script>
+<script>
+/* ═══════════ api 3.20 · ASISTENTE IA DE COBROS (fase 3) ═══════════
+   Tablero (reglas fijas, sin IA), «Pregúntale a [nombre]» (conversa con IA) y Ajustes (solo
+   administrador). La asistente nunca envía: redacta, y la persona revisa y envía. */
+MK.ICONOS.asistente = '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.6-1.8 2.5-4 2.5h-2.5"/>';
+var IA = { aj: null, cargando: false, pest: 'tablero', chat: [], pensando: false };
+function iaAvatar(t) { t = t || 38; return '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + t + 'px;height:' + t + 'px;border-radius:' + Math.round(t * 0.28) + 'px;background:linear-gradient(135deg,#14306b,#3b6fd4);color:#fff;flex:none">' + MK.ic('asistente', Math.round(t * 0.6)) + '</span>'; }
+function iaNombre() { return (IA.aj && IA.aj.nombre) || 'tu asistente'; }
+function cargarIA() {
+  var run = window.google && google.script && google.script.run; if (!run || IA.cargando) return;
+  IA.cargando = true;
+  run.withSuccessHandler(function (r) { IA.cargando = false; if (r && r.ok) { IA.aj = r; MK.pintarMenu(); if (MK.seccion === 'asis') MK.repintar(); } })
+    .withFailureHandler(function () { IA.cargando = false; }).api_iaAjustes(MK.pinUso());
+}
+function vAsis() {
+  if (!IA.aj) { cargarIA(); return MK.cabeza('Asistente IA', '') + '<div class="cargando">Cargando…</div>'; }
+  var A = IA.aj, tabs = [['tablero', 'Tablero'], ['chat', 'Pregúntale a ' + iaNombre()]];
+  if (A.esAdmin) tabs.push(['ajustes', 'Ajustes']);
+  if (!A.esAdmin && IA.pest === 'ajustes') IA.pest = 'tablero';
+  var h = MK.cabeza((A.nombre ? A.nombre + ' · ' : '') + 'Asistente IA', 'Te ayuda a ordenar el día y a redactar los mensajes. Nunca envía nada: tú revisas y envías.', MK.chips(tabs, IA.pest, 'iaPest'));
+  if (!A.conectada) h += '<div class="aviso am">' + MK.ic('alerta', 16) + ' La asistente todavía no está conectada. ' + (A.esAdmin ? '<a href="Configuracion.html#ia">Conéctala en Configuración › Conexión de IA</a>.' : 'El administrador la conecta en Configuración.') + '</div>';
+  else if (!A.encendida) h += '<div class="aviso am">' + MK.ic('pausa', 16) + ' La asistente está apagada.' + (A.esAdmin ? ' Enciéndela en Ajustes.' : '') + '</div>';
+  else h += '<div class="small muted" style="margin:-6px 0 12px">Trabajando con ' + MK.esc(A.proveedorN) + (A.proveedor === 'gemini' ? ' · los clientes le llegan sin nombres (modo anónimo)' : '') + '</div>';
+  return h + (IA.pest === 'chat' ? vIAChat() : IA.pest === 'ajustes' ? vIAAjustes() : vIATablero());
+}
+function iaPest(p) { IA.pest = p; MK.repintar(); }
+function iaLista() {
+  return (B().cuentas || []).filter(function (c) { return c.paso && c.saldo > 0.009 && c.paso.fecha <= MK.hoy; })
+    .sort(function (a, b) { return (b.vencido || 0) - (a.vencido || 0); }).slice(0, 25);
+}
+function vIATablero() {
+  var L = iaLista(), A = IA.aj, puede = A.conectada && A.encendida, bz = typeof bznAbiertos === 'function' ? bznAbiertos().length : 0;
+  var h = '<div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">' + iaAvatar(40) + '<div><b>' + (A.nombre ? 'Hola, soy ' + MK.esc(A.nombre) + '.' : 'Hola.') + '</b> Hoy hay <b>' + L.length + '</b> cuenta' + (L.length === 1 ? '' : 's') + ' con un paso pendiente' + (bz ? ' y <b>' + bz + '</b> cosa' + (bz === 1 ? '' : 's') + ' del portal en el <a href="#" onclick="MK.ir(\'buzon\');return false">Buzón</a>' : '') + '.' +
+    (puede ? ' Toca «Que lo escriba ella» y te dejo el mensaje listo para revisar.' : '') + '</div></div>';
+  if (!L.length) return h + '<div class="card">' + MK.vacio('Nada pendiente para hoy.') + '</div>';
+  return h + L.map(function (c) {
+    var tuyo = c.grande || c.reclamo;
+    return '<div class="card" style="margin-bottom:10px"><div class="fila" style="justify-content:space-between;gap:10px;align-items:flex-start"><div style="flex:1;min-width:220px">' +
+      '<div class="fila" style="gap:6px;flex-wrap:wrap;align-items:center"><b>' + MK.esc(c.cliente) + '</b>' + escChip(c.escalon) + '<span class="num">' + D(c.saldo) + '</span>' + (c.grande ? '<span class="chipx info">cuenta grande</span>' : '') + (c.reclamo ? '<span class="chipx bad">reclamo</span>' : '') + '</div>' +
+      '<div class="small" style="margin-top:4px">' + MK.esc(c.paso.texto) + (c.vencido > 0.009 ? ' · vencido ' + D(c.vencido) + ' · ' + c.moraMax + ' días' : '') + '</div>' +
+      (tuyo ? '<div class="small" style="margin-top:4px;color:var(--navy2,#14306b)">' + iaAvatar(16) + ' Este caso es tuyo: lo decides tú.</div>' : '') + '</div>' +
+      '<div class="acc2" style="flex-direction:column;align-items:stretch;min-width:170px">' +
+      (puede && !tuyo ? '<button class="btn sm pri" onclick="iaRedactar(\'' + c.clave + '\')">' + MK.ic('asistente', 15) + 'Que lo escriba ella</button>' : '') +
+      '<button class="btn sm" onclick="abrirCuenta(\'' + c.clave + '\')">' + MK.ic('flecha', 15) + 'Lo hago yo</button></div></div></div>';
+  }).join('');
+}
+var IAR = null;
+function iaRedactar(k, tono, canal) {
+  var c = cu(k); if (!c) return;
+  IAR = { k: k, tono: tono || 'cordial', canal: canal || (c.paso && c.paso.canal === 'correo' ? 'correo' : 'whatsapp'), texto: '', cargando: true, error: '' };
+  iaPintarR();
+  MK.api('api_iaRedactar', MK.pinUso(), { clave: k, tono: IAR.tono, canal: IAR.canal }).then(function (r) {
+    if (!IAR || IAR.k !== k) return;
+    IAR.cargando = false;
+    if (!r || !r.ok) { IAR.error = (r && r.error) || 'No se pudo.'; }
+    else if (!r.texto || !r.texto.ok) { IAR.error = (r.texto && r.texto.error) || 'La IA no respondió. Intenta de nuevo.'; }
+    else { IAR.texto = r.texto.texto; IAR.tel = r.telefono; IAR.correo = r.correo; IAR.cliente = r.cliente; }
+    iaPintarR();
+  }, function (e) { if (IAR) { IAR.cargando = false; IAR.error = 'Sin conexión: ' + e.message; iaPintarR(); } });
+}
+function iaPintarR() {
+  var R = IAR; if (!R) return; var c = cu(R.k) || {};
+  var tonos = [['cordial', 'Cordial'], ['firme', 'Firme'], ['formal', 'Formal']], canales = [['whatsapp', 'WhatsApp'], ['correo', 'Correo']];
+  var tel = String(R.tel || c.whatsapp || c.telefono || '').replace(/\D/g, ''); if (tel.length === 8) tel = '507' + tel;
+  var h = '<span class="et">' + MK.esc(iaNombre()) + ' · borrador</span><h2>' + MK.esc(c.cliente || '') + '</h2><div class="sub">' + MK.esc((c.paso && c.paso.texto) || '') + '</div>' +
+    '<div class="fila" style="gap:6px;flex-wrap:wrap;margin:6px 0">' + tonos.map(function (t) { return '<button class="chip' + (R.tono === t[0] ? ' on' : '') + '" onclick="iaRedactar(\'' + R.k + '\',\'' + t[0] + '\',IAR.canal)">' + t[1] + '</button>'; }).join('') +
+    '<span style="width:10px"></span>' + canales.map(function (t) { return '<button class="chip' + (R.canal === t[0] ? ' on' : '') + '" onclick="iaRedactar(\'' + R.k + '\',IAR.tono,\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div>';
+  if (R.cargando) h += '<div class="cargando">' + MK.esc(iaNombre()) + ' está escribiendo…</div>';
+  else if (R.error) h += '<div class="aviso am">' + MK.esc(R.error) + '</div>';
+  else h += '<textarea class="in" id="iar-txt" rows="9" style="width:100%">' + MK.esc(R.texto) + '</textarea>' +
+    '<div class="nota" style="margin-top:8px">Revísalo y cámbialo si quieres. No se envía solo: lo envías tú.</div>' +
+    '<div class="pie2" style="flex-wrap:wrap;gap:6px">' +
+    (R.canal === 'whatsapp' && tel ? '<button class="btn pri" onclick="iaEnviar(\'wa\')">' + MK.ic('whatsapp', 15) + 'Abrir WhatsApp</button>' : '') +
+    (R.canal === 'correo' && (R.correo || c.correo) ? '<button class="btn pri" onclick="iaEnviar(\'mail\')">' + MK.ic('correo', 15) + 'Abrir correo</button>' : '') +
+    '<button class="btn" onclick="iaEnviar(\'copiar\')">Copiar</button>' +
+    '<button class="btn" onclick="iaAnotarEnviado()">' + MK.ic('check', 15) + 'Ya lo envié</button></div>';
+  MK.lado(h);
+}
+function iaEnviar(como) {
+  var t = String((document.getElementById('iar-txt') || {}).value || ''), c = cu(IAR.k) || {};
+  if (como === 'copiar') { try { navigator.clipboard.writeText(t); MK.aviso('Copiado'); } catch (e) { MK.aviso('No se pudo copiar'); } return; }
+  if (como === 'wa') { var tel = String(IAR.tel || c.whatsapp || c.telefono || '').replace(/\D/g, ''); if (tel.length === 8) tel = '507' + tel; window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(t), '_blank'); }
+  if (como === 'mail') window.open('mailto:' + encodeURIComponent(IAR.correo || c.correo || '') + '?subject=' + encodeURIComponent('Estado de cuenta · ' + (c.cliente || '')) + '&body=' + encodeURIComponent(t), '_blank');
+}
+function iaAnotarEnviado() {
+  var k = IAR.k, canal = IAR.canal;
+  MK.llamar('api_cobAnotar', { clave: k, tipo: 'enviado', canal: canal, notas: 'Mensaje redactado con ' + iaNombre() + ' (' + IAR.tono + ')' }).then(function () { MK.cerrarLado(); IAR = null; MK.aviso('Anotado como enviado'); recargar(); }, function () {});
+}
+function vIAChat() {
+  var A = IA.aj, puede = A.conectada && A.encendida;
+  var h = '<div class="card"><div id="ia-chat" style="display:flex;flex-direction:column;gap:10px;max-height:56vh;overflow:auto;padding:4px">';
+  if (!IA.chat.length) h += '<div class="fila" style="gap:10px;align-items:flex-start">' + iaAvatar(30) + '<div class="small" style="background:#eef3fb;border-radius:12px;padding:10px 12px;max-width:80%">Pregúntame lo que necesites de la cartera: quién debe más, a quién conviene llamar hoy, cómo va una cuenta o cómo decirle algo a un cliente con tacto.</div></div>';
+  IA.chat.forEach(function (m) {
+    h += m.de === 'yo' ? '<div style="align-self:flex-end;background:var(--navy2,#14306b);color:#fff;border-radius:12px;padding:9px 12px;max-width:80%;white-space:pre-wrap;font-size:13.5px">' + MK.esc(m.t) + '</div>'
+      : '<div class="fila" style="gap:10px;align-items:flex-start">' + iaAvatar(30) + '<div style="background:' + (m.error ? '#fff4d6' : '#eef3fb') + ';border-radius:12px;padding:9px 12px;max-width:80%;white-space:pre-wrap;font-size:13.5px">' + MK.esc(m.t) + '</div></div>';
+  });
+  if (IA.pensando) h += '<div class="fila" style="gap:10px">' + iaAvatar(30) + '<div class="small muted" style="padding:9px 0">' + MK.esc(iaNombre()) + ' está pensando…</div></div>';
+  h += '</div><div class="fila" style="gap:8px;margin-top:10px"><textarea class="in" id="ia-q" rows="2" style="flex:1" placeholder="' + (puede ? 'Escríbele a ' + MK.esc(iaNombre()) + '…' : 'La asistente no está disponible') + '"' + (puede ? '' : ' disabled') + ' onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();iaPreguntar();}"></textarea>' +
+    '<button class="btn pri" onclick="iaPreguntar()"' + (puede && !IA.pensando ? '' : ' disabled') + '>Enviar</button></div>' +
+    '<div class="small muted" style="margin-top:6px">Solo conversa contigo: no envía nada a ningún cliente.' + (A.proveedor === 'gemini' ? ' A Gemini los clientes le llegan como códigos, sin nombres.' : '') + '</div></div>';
+  setTimeout(function () { var el = document.getElementById('ia-chat'); if (el) el.scrollTop = el.scrollHeight; }, 0);
+  return h;
+}
+function iaPreguntar() {
+  var q = String((document.getElementById('ia-q') || {}).value || '').trim(); if (!q || IA.pensando) return;
+  IA.chat.push({ de: 'yo', t: q }); IA.pensando = true; MK.repintar();
+  MK.api('api_iaPreguntar', MK.pinUso(), { mensajes: IA.chat.filter(function (m) { return !m.error; }).slice(-12) }).then(function (r) {
+    IA.pensando = false;
+    var R = r && r.ok ? r.respuesta : null;
+    if (R && R.ok) IA.chat.push({ de: 'ella', t: R.texto });
+    else IA.chat.push({ de: 'ella', t: (R && R.error) || (r && r.error) || 'No pude responder. Intenta de nuevo.', error: true });
+    MK.repintar(); setTimeout(function () { var el = document.getElementById('ia-q'); if (el) el.focus(); }, 0);
+  }, function (e) { IA.pensando = false; IA.chat.push({ de: 'ella', t: 'Sin conexión: ' + e.message, error: true }); MK.repintar(); });
+}
+function vIAAjustes() {
+  var A = IA.aj;
+  return '<div class="card"><h3 style="margin-top:0">Ajustes de la asistente</h3>' +
+    '<label class="lb">Nombre</label><input class="in" id="iaa-nom" maxlength="40" value="' + MK.esc(A.nombre || '') + '" placeholder="El nombre con que firma: «[Nombre] · Asistente de ECOVSA»">' +
+    '<label class="lb">Estado</label><select class="in" id="iaa-enc"><option value="1"' + (A.encendida ? ' selected' : '') + '>Encendida</option><option value="0"' + (A.encendida ? '' : ' selected') + '>Apagada</option></select>' +
+    '<label class="lb">Respuestas</label><select class="in" id="iaa-mod"><option value="rapida"' + (A.modo !== 'equilibrada' ? ' selected' : '') + '>Rápidas y cortas</option><option value="equilibrada"' + (A.modo === 'equilibrada' ? ' selected' : '') + '>Más completas</option></select>' +
+    '<div class="nota" style="margin:10px 0">La clave del proveedor se pone en <a href="Configuracion.html#ia">Configuración › Conexión de IA</a>. ' + (A.conectada ? 'Hoy: ' + MK.esc(A.proveedorN) + '.' : 'Todavía no está conectada.') + ' Tope: 250 consultas al día.</div>' +
+    '<button class="btn pri" onclick="iaGuardarAjustes(this)">' + MK.ic('check', 16) + 'Guardar</button></div>';
+}
+function iaGuardarAjustes(btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_iaGuardarAjustes', { nombre: MK.val('iaa-nom'), encendida: MK.val('iaa-enc') === '1', modo: MK.val('iaa-mod') }).then(function () { IA.aj = null; MK.aviso('Guardado'); cargarIA(); MK.repintar(); }, function () { MK.ocupado(btn, false); });
 }
 
 </script>
