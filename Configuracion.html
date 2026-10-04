@@ -1095,6 +1095,7 @@ function vIA() {
       '<div class="small muted" style="margin-top:4px">La puso ' + MK.esc(IAC.por || '—') + (IAC.en ? ' el ' + MK.esc(IAC.en) : '') + '</div>'
       : '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#fff1cc;color:#8a5a00;font-weight:700;font-size:12px">sin conectar</span> La Asistente de Cobros no funciona hasta que pongas una clave.') + '</div>' +
     (IAC.proveedor ? '<button class="btn sm bad" onclick="iaQuitar()">Quitar la conexión</button>' : '') + '</div></div>';
+  if (IAC.ultimo) h += '<div class="aviso am" style="margin-top:14px;white-space:pre-wrap"><b>No se guardó la clave.</b> ' + MK.esc(IAC.ultimo).split(' | ').join('\n') + '</div>';   // api 3.21
   h += '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">' + (IAC.proveedor ? 'Cambiar la clave' : 'Conectar') + '</h3>' +
     '<label class="lb">Proveedor</label><select class="in" id="iac-prov" onchange="iaModeloDe(this.value)">' + P.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + MK.esc(p.n) + '</option>'; }).join('') + '</select>' +
     '<label class="lb">Modelo</label><input class="in" id="iac-mod" value="' + MK.esc(IAC.proveedor === sel && IAC.modelo ? IAC.modelo : mod) + '" autocomplete="off">' +
@@ -1117,8 +1118,9 @@ function iaGuardar(btn) {
     MK.ocupado(btn, false); var el = document.getElementById('iac-cla'); if (el) el.value = '';
     if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
     var p = r.prueba || {};
-    if (!p.ok) { MK.aviso(p.error || 'La clave no pasó la prueba. No se guardó nada.'); return; }
-    MK.aviso('Conectada · ' + p.proveedorN + ' · termina en ••••' + p.termina); IAC = { ok: true, proveedor: MK.val('iac-prov'), proveedorN: p.proveedorN, termina: p.termina, modelo: p.modelo, por: 'tú', en: 'hoy', proveedores: IAC.proveedores }; MK.repintar(); iaLeer();
+    if (!p.ok) { IAC.ultimo = p.error || 'La clave no pasó la prueba. No se guardó nada.'; MK.repintar(); return; }   // api 3.21: el motivo queda a la vista
+    IAC.ultimo = '';
+    MK.aviso('Conectada · ' + p.proveedorN + ' · termina en ••••' + p.termina + (p.cambioModelo ? ' · con el modelo ' + p.modelo : '')); IAC = { ok: true, proveedor: MK.val('iac-prov'), proveedorN: p.proveedorN, termina: p.termina, modelo: p.modelo, por: 'tú', en: 'hoy', proveedores: IAC.proveedores }; MK.repintar(); iaLeer();
   }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
 }
 function iaQuitar() {
