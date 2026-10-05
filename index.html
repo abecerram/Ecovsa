@@ -75,6 +75,18 @@ body{background:var(--l-bg)!important;color:var(--l-ink);font-family:'Archivo',s
 .it .ac button:hover{background:#f1f5fb}.it .ac button[disabled]{opacity:.5}
 .it.mio .tx{font-weight:700}.it.mio .tx small{white-space:normal}
 .it.sig .tx{font-weight:600;color:#44536a}
+/* api 3.23 · lo que espera al administrador, en la franja azul */
+.adm{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16)}
+.adm h3{margin:0 0 8px;font-size:10.5px;font-weight:800;letter-spacing:1.4px;color:#9fe08a;display:flex;align-items:center;gap:7px}
+.adm h3 svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.adm .ch{display:flex;flex-wrap:wrap;gap:8px}
+.adm button{display:flex;align-items:center;gap:8px;font:600 12.5px Archivo,sans-serif;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 13px 7px 10px;cursor:pointer;text-align:left}
+.adm button:hover{background:rgba(255,255,255,.18)}.adm button b{font-size:14px;font-weight:800}
+.adm button i{width:9px;height:9px;border-radius:50%;flex:none}.adm button.r{border-color:rgba(255,140,120,.75);background:rgba(220,60,40,.22)}
+.adm button .ar{opacity:.7;margin-left:2px}
+.it .tx b.tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;background:#fde2dd;color:#b3261e}
+.it .tx b.tag.a{background:#fff1cc;color:#8a5a00}
+@media(max-width:860px){.adm button{font-size:12px;padding:6px 11px 6px 9px}}
 .mods{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .m{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid var(--l-line);border-radius:14px;padding:18px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;color:inherit;min-height:150px;width:100%;transition:border-color .15s,box-shadow .15s,transform .15s}
 .m:hover{border-color:#9db4d8;box-shadow:0 8px 22px rgba(15,33,64,.09);transform:translateY(-1px)}
@@ -200,14 +212,21 @@ function pintar(r){
   mods=mods.filter(function(m){ return m.id===idT; }).concat(mods.filter(function(m){ return m.id!==idT; }));
   var mT=modulo(idT), nomT=mT?mT.titulo:"";
   var todoRol=(rol==="gerente"||rol==="admin");
-  var G=r.grupos||null, P, nP, nU;
+  var G=r.grupos||null, P, nP, nU, admH="";
   if(G){
     /* api 3.7.1: si el espacio de archivos pasa del aviso, sale primero en «Lo tuyo» */
     var E=r.espacio, eb=E?((E.real&&E.real.bytes!=null)?E.real.bytes:E.registrado):0;
     if(E && eb>=E.aviso){ var mb=Math.round(eb/1048576); G.tuyo=[{nivel:eb>=E.limite*0.95?"r":"a",tipo:"espacio",ir:"config",titulo:"El espacio de archivos va en "+mb+" MB de "+(E.limite>=1073741824?Math.round(E.limite/1073741824)+" GB":Math.round(E.limite/1048576)+" MB"),texto:"Es el límite del plan gratis de Supabase. Toca para ver en qué se está usando."}].concat(G.tuyo||[]); }
     /* api 3.12: equipos bloqueados por intentos de PIN y pedidos de PIN nuevo (solo el administrador) */
     var SG=r.seguridad; if(SG && SG.abiertos){ var ped=SG.pedidos||[]; G.tuyo=[{nivel:"r",tipo:"seguridad",ir:"config",titulo:SG.bloqueos?(SG.bloqueos===1?"Un equipo quedó bloqueado por intentos de PIN":SG.bloqueos+" equipos o redes bloqueados por intentos de PIN"):(ped.length===1?ped[0]+" pide un PIN nuevo":ped.length+" personas piden un PIN nuevo"),texto:(SG.bloqueos&&ped.length?(ped.length===1?ped[0]+" pide un PIN nuevo. ":ped.length+" piden un PIN nuevo. "):"")+"Toca para verlo en Configuración › Seguridad."}].concat(G.tuyo||[]); }
-    var gT=(G.tuyo||[]).slice(0,4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
+    /* api 3.23: lo que espera al administrador (portal de clientes) sale en «Lo tuyo» y en la franja azul */
+    var AD=(r.admin||[]).map(function(a){ return {nivel:a.nivel,tipo:a.tipo,ir:"config",titulo:a.titulo,texto:a.texto,etq:a.etq||"",n:a.n,chip:a.chip}; });
+    if(AD.length){ G.tuyo=AD.concat(G.tuyo||[]); var pesoT={r:0,a:1,g:2}; G.tuyo=G.tuyo.map(function(p,i){ return [p,i]; }).sort(function(x,y){ return ((pesoT[x[0].nivel]||0)-(pesoT[y[0].nivel]||0))||(x[1]-y[1]); }).map(function(x){ return x[0]; }); }
+    if(SG && SG.abiertos){ var pd=(SG.pedidos||[]).length; if(SG.bloqueos) AD.push({nivel:"r",tipo:"seguridad",n:SG.bloqueos,chip:SG.bloqueos===1?"equipo bloqueado":"equipos bloqueados"}); if(pd) AD.push({nivel:"r",tipo:"seguridad",n:pd,chip:pd===1?"PIN nuevo":"PIN nuevos"}); }
+    AD.sort(function(x,y){ return (x.nivel==="r"?0:1)-(y.nivel==="r"?0:1); });
+    admH=(rol==="admin"&&AD.length)?'<div class="adm"><h3><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>PARA USTED COMO ADMINISTRADOR</h3><div class="ch">'+
+      AD.map(function(a){ return '<button class="'+(a.nivel==="r"?"r":"a")+'" onclick="irTipo(\''+a.tipo+'\')"><i style="background:'+(a.nivel==="r"?"#ff8a75":"#f5b301")+'"></i><span><b>'+esc(a.n)+'</b> '+esc(a.chip)+'</span><span class="ar">›</span></button>'; }).join("")+'</div></div>':"";
+    var gT=(G.tuyo||[]).slice(0,rol==="admin"?7:4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
     ESPERA=gT.concat(gM,gS); P=ESPERA;
     var mios=(G.tuyo||[]).concat(G.modulo||[]);
     nP=mios.length; nU=mios.filter(function(p){ return p.nivel==="r"; }).length;
@@ -224,7 +243,7 @@ function pintar(r){
    '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,window._US)"><span>'+esc(nombre)+' · '+esc(r.usuario.rotulo)+'</span><div class="av">'+esc(ini)+'</div></div><button class="bt" onclick="salir()">Salir</button></div>'+
    '<div class="lw"><div class="ban '+fondoElegido()+'"><div class="f"></div><h1>'+sal+', '+esc(primer)+'</h1><p>'+esc(fecha)+' · '+esc(subt)+'</p>'+
      (r.kpis&&r.kpis.length?'<div class="kp">'+r.kpis.map(function(k){ return '<div><b class="num">'+esc(k.v)+'</b><span>'+esc(k.e)+(k.d?' <em class="'+(k.malo?'malo':'')+'">'+esc(k.d)+'</em>':'')+'</span></div>'; }).join("")+'</div>':'')+
-   '</div><div class="gr">'+
+   admH+'</div><div class="gr">'+
    '<div class="box"><h2>'+(mods.length>1?"MÓDULOS <span>"+mods.length+" disponibles</span>":"TU MÓDULO")+'</h2><div class="mods">'+
      mods.map(function(m){ var e=(r.estados||{})[m.id], mant=m.estado==="mantenimiento", obra=m.estado==="construccion"||(mant&&m.cerrado), tu=m.id===idT;
        /* api 3.14: módulo apagado por mantenimiento. Al administrador y a los probadores sí les abre */
@@ -247,7 +266,7 @@ function esperaGrupos(gT,gM,gS,nomT){
     var i=k++, ac='';
     if(p.tipo==="rcd") ac='<div class="ac"><button onclick="event.stopPropagation();rcdAcc('+i+',\'hecho\',this)">Hecho</button><button onclick="event.stopPropagation();rcdAcc('+i+',\'manana\',this)">Mañana</button></div>';
     else if(p.tipo==="borrador") ac='<div class="ac"><button onclick="event.stopPropagation();irPend('+i+')">Abrir</button></div>';
-    return '<div class="it '+(cls||'')+'" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div>'+ac+'</div>';
+    return '<div class="it '+(cls||'')+'" onclick="irPend('+i+')"><i class="dot" style="background:'+PUNTO[p.nivel]+'"></i><div class="tx">'+esc(p.titulo)+(p.etq?'<b class="tag'+(p.nivel==="a"?" a":"")+'">'+esc(String(p.etq).toUpperCase())+'</b>':'')+(p.texto?'<small title="'+esc(p.texto)+'">'+esc(p.texto)+'</small>':'')+'</div>'+ac+'</div>';
   };
   var pri=true, cab=function(t){ var x='<div class="grp'+(pri?' pri':'')+'">'+t+' <i></i></div>'; pri=false; return x; };
   if(gT.length) h+=cab('LO TUYO')+gT.map(function(p){ return uno(p,'mio'); }).join("");
@@ -268,11 +287,13 @@ function modulo(id){ return (TAB&&TAB.modulos||[]).filter(function(m){ return m.
 function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
   /* api 3.7: la ruta en borrador o la ficha del cliente se abren directo */
   if(p.tipo==="espacio"){ navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html#esp"); return; }
-  if(p.tipo==="seguridad"){ navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html#seg"); return; }
+  if(p.tipo==="seguridad"||/^ptl/.test(p.tipo||"")){ irTipo(p.tipo); return; }
   var ir=null; if(p.tipo==="borrador") ir={tab:"plan",fecha:p.fecha}; else if(p.tipo==="rcd"&&p.clienteId&&p.ir==="campo") ir={tab:"cli2",cli:p.clienteId};
   else if(p.tipo==="rcd"&&p.rtipo==="ruta"&&p.ref) ir={tab:"plan",fecha:String(p.ref).split("|")[0]}; else if(p.tipo==="rcd"&&p.rtipo==="camion"&&p.ref) ir={tab:"flota",placa:p.ref};
   if(ir){ ir.t=Date.now(); try{ localStorage.setItem("eco_ir",JSON.stringify(ir)); }catch(e){} }
   if(m && m.permitido && m.estado!=="construccion") abrir(p.ir); else avisar("Esto lo atiende otro módulo."); }
+/* api 3.23: cada asunto del administrador abre directo su pestaña de Configuración */
+function irTipo(tipo){ var H={seguridad:"#seg",ptlPed:"#ptl-ped",ptlInv:"#ptl-venc",ptlPro:"#ptl-pro"}; navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html"+(H[tipo]||"#ptl")); }
 function avisarMant(id){ var m=modulo(id); avisar((m&&m.aviso)||"Este módulo está en mantenimiento."); }
 function avisar(t){ var a=$("aviso"); a.textContent=t; a.style.display="block"; clearTimeout(window._av); window._av=setTimeout(function(){ a.style.display="none"; },3600); }
 

@@ -234,7 +234,7 @@
     CAMBIOS = true; clearTimeout(tCalc);
     var enK = K;
     tCalc = setTimeout(function () {
-      MK.api('api_calcularCuentaGran', MK.pin, C).then(function (r) { if (r && r.ok && enK === K) { CAL = r.calculo; if (despues) despues(); } }, function () {});
+      MK.api('api_calcularCuentaGran', MK.pin, C, COD).then(function (r) { if (r && r.ok && enK === K) { CAL = r.calculo; if (despues) despues(); } }, function () {});
     }, 350);
   }
 
@@ -628,7 +628,7 @@
       '<div><label class="l" for="r-pla">Plazo del contrato</label><select class="sel" id="r-pla">' + [6, 12, 24, 36].map(function (m) { return '<option value="' + m + '"' + (Number(C.plazo) === m ? ' selected' : '') + '>' + m + ' meses</option>'; }).join('') + '</select></div>' +
       '<div><label class="l">Facturación</label><div style="padding:9px 0;font-weight:700">' + E(FAC[C.facturacion][0]) + '</div></div></div>' +
       '<label class="l" style="margin-top:12px">Documentos que se le piden (una sola vez por RUC)</label><div class="fx">' + docs.map(function (d) { return '<label class="chip' + (C.documentos.indexOf(d[0]) >= 0 ? ' on' : '') + '"><input type="checkbox" data-doc="' + E(d[0]) + '"' + (C.documentos.indexOf(d[0]) >= 0 ? ' checked' : '') + ' style="display:none">' + E(d[1]) + '</label>'; }).join('') + '</div></div></div>' +
-      '<div class="lat"><div class="cd"><h3>' + IC('billete', 16) + 'Total mensual</h3><div class="rw"><span>Subtotal</span><b>' + d2(CAL.subtotal) + '</b></div><div class="rw"><span>ITBMS 7 %</span><b>' + d2(CAL.itbms) + '</b></div><div class="big"><span>TOTAL</span><span>' + d2(CAL.total) + '</span></div>' +
+      '<div class="lat"><div class="cd"><h3>' + IC('billete', 16) + 'Total mensual</h3><div class="rw"><span>Subtotal</span><b>' + d2(CAL.subtotal) + '</b></div><div class="rw"><span>' + (CAL.exento ? 'ITBMS · cliente exento' : 'ITBMS 7 %') + '</span><b>' + d2(CAL.itbms) + '</b></div><div class="big"><span>TOTAL</span><span>' + d2(CAL.total) + '</span></div>' +
       (alDia.length ? '<div class="avi am">' + IC('alerta', 16) + '<div>Antes de enviar: ' + E(alDia.join('; ')) + '.</div></div>' : '') +
       '<div style="display:grid;gap:8px;margin-top:12px"><a class="btn" href="Propuesta.html?cod=' + encodeURIComponent(COD) + '" target="_blank" id="r-ver">' + IC('ojo', 14) + ' Ver la propuesta impresa</a>' +
       '<button class="btn pri" id="r-env" data-rw>' + IC('correo', 14) + ' Enviar por correo con su enlace</button></div>' +

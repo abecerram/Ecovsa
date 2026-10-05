@@ -909,8 +909,11 @@ function vEntrada() {
    Todo pedido de acceso llega aquí. Dar acceso es como dar de alta un usuario:
    la invitación va al WhatsApp de la ficha, sirve una vez y vence en 48 h. */
 var PTL = null, PTL_V = false, PTL_T = 'ped', PTL_F = 'todas';
+/* api 3.23: desde el tablero, #ptl-ped (pedidos), #ptl-venc (invitaciones vencidas) y #ptl-pro (con prórroga) abren su pestaña */
+(function () { var m = String(location.hash || '').match(/^#ptl-(ped|venc|pro|cli)$/); if (!m) return; PTL_T = m[1] === 'ped' ? 'ped' : 'cli'; if (m[1] === 'venc' || m[1] === 'pro') PTL_F = m[1];
+  try { history.replaceState(null, '', location.pathname + location.search + '#ptl'); } catch (e) {} })();
 function ptlCargar() { PTL_V = true; return MK.api('api_ptlAdmin', PIN).then(function (r) { PTL_V = false; PTL = r || { ok: false }; MK.repintar(); }, function () { PTL_V = false; PTL = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
-function ptlEst(a) { return a.estado === 'activo' ? '<span class="tag t-ok">Activo</span>' : '<span class="tag t-warn">Invitado</span>'; }
+function ptlEst(a) { return a.estado === 'activo' ? '<span class="tag t-ok">Activo</span>' : a.vencida ? '<span class="tag t-warn">Invitación vencida</span>' : '<span class="tag t-warn">Invitado</span>'; }   // api 3.23
 function vPortal() {
   var cab = MK.cabeza('Portal de clientes', 'Los accesos de los clientes a su portal (recibos, certificados, facturas y pedidos). Solo el administrador los da, los renueva y los quita.');
   if (!PTL) { if (!PTL_V) ptlCargar(); return cab + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
@@ -930,9 +933,10 @@ function vPortal() {
   } else if (PTL_T === 'cli') {
     var C = PTL.cuentas.filter(function (c) {
       var n = c.corp.length + c.sedes.reduce(function (s, x) { return s + x.accesos.length; }, 0);
-      return PTL_F === 'todas' || (PTL_F === 'macro' && c.macro) || (PTL_F === 'micro' && !c.macro) || (PTL_F === 'sin' && !n) || (PTL_F === 'atraso' && c.semaforo !== 'verde');
+      return PTL_F === 'todas' || (PTL_F === 'macro' && c.macro) || (PTL_F === 'micro' && !c.macro) || (PTL_F === 'sin' && !n) || (PTL_F === 'atraso' && c.semaforo !== 'verde') ||
+        (PTL_F === 'pro' && !!c.prorroga) || (PTL_F === 'venc' && c.sedes.reduce(function (L, x) { return L.concat(x.accesos); }, c.corp.slice()).some(function (a) { return a.vencida; }));   // api 3.23
     });
-    h += '<div style="margin-bottom:10px">' + MK.chips([['todas', 'Todas'], ['macro', 'Macro'], ['micro', 'Micro'], ['sin', 'Sin acceso'], ['atraso', 'Con atraso']], PTL_F, 'ptlFiltro') + '</div>';
+    h += '<div style="margin-bottom:10px">' + MK.chips([['todas', 'Todas'], ['macro', 'Macro'], ['micro', 'Micro'], ['sin', 'Sin acceso'], ['atraso', 'Con atraso'], ['pro', 'Con prórroga'], ['venc', 'Invitación vencida']], PTL_F, 'ptlFiltro') + '</div>';
     h += C.length ? C.map(function (c, ci) {
       var fa = function (a) { return '<div class="fila" style="gap:8px;padding:5px 0"><span style="flex:1;min-width:0">' + MK.esc(a.nombre) + (a.cargo ? ' <span class="muted small">· ' + MK.esc(a.cargo) + '</span>' : '') + ' ' + ptlEst(a) + (a.ultimoIngreso ? ' <span class="muted small">entró ' + MK.esc(a.ultimoIngreso.slice(0, 10)) + '</span>' : '') + '</span>' +
         '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',false,this)">' + (a.estado === 'activo' ? 'Enlace nuevo' : 'Reenviar') + '</button>' + (a.estado === 'activo' ? '<button class="btn sm gh" onclick="ptlReenviar(\'' + a.accesoId + '\',true,this)">PIN nuevo</button>' : '') + '<button class="btn sm gh bad" onclick="ptlQuitar(\'' + a.accesoId + '\',\'' + MK.esc(a.nombre) + '\')">Quitar</button></div>'; };
