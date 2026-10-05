@@ -802,6 +802,8 @@ var QR = (function(){
       (DIST.url ? '<a class="btn sm" href="' + esc(enlaceCliente(c)) + '" target="_blank" rel="noopener">' + MK.ic('ojo', 14) + ' Lo que abre el QR</a>' : '') +
       (c.entregado ? '' : '<button class="btn sm pri" data-dp="ent">' + MK.ic('check', 14) + ' Marcar entregado</button>') + '</div>';
     el.insertAdjacentHTML('beforeend', certServHTML(c));
+    /* Hoja de bienvenida del cliente nuevo: se imprime y se entrega con su Certificado de Servicio. Solo lleva el nombre y la frecuencia. */
+    if (c.activo) el.insertAdjacentHTML('beforeend', '<div class="card" style="margin-top:14px;padding:10px 12px;text-align:left"><div class="prev-h" style="margin:0 0 4px"><span class="t">HOJA DE BIENVENIDA</span></div><div class="small muted" style="margin-bottom:8px">Para el cliente nuevo: se imprime y se entrega junto con su Certificado de Servicio. No lleva precios ni fecha de visita.</div><a class="btn sm" href="HojaBienvenida.html?n=' + encodeURIComponent(c.nombre) + '&f=' + encodeURIComponent(c.frecuencia || '') + '" target="_blank" rel="noopener">' + MK.ic('imprimir', 14) + ' Abrir para imprimir</a></div>');
     [].forEach.call(el.querySelectorAll('[data-cs]'), function (b) { b.onclick = function () { emitirCertServ(c.id, b.getAttribute('data-cs'), b); }; });
     el.querySelector('[data-dp="imp"]').onclick = function () { imprimirDistintivos([c.id], this); };
     var en = el.querySelector('[data-dp="ent"]'); if (en) en.onclick = function () { MK.cerrarLado(); entregar(c.id); };
