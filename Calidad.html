@@ -11,65 +11,762 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="modulo-kit.css">
 <script src="modulo-kit.js"></script>
+<script src="archivos.js"></script>
 <style>
-/* ── Calidad · sistema de gestión de la calidad (ISO 9001) · api 3.14 ──
-   Nace apagado (Configuración › Encender y apagar). Las secciones se van
-   llenando por partes, cada una con su maqueta aprobada. */
+/* ── Calidad · sistema de gestión de la calidad (ISO 9001) ──
+   api 3.14: nace apagado (Configuración › Encender y apagar).
+   api 3.24 · parte 1: Inicio como guía hacia la certificación (meta, ruta,
+   % del camino, lo que te toca, lo que falta, informe de avance en Word) y
+   Documentos (el listado maestro F-CAL-03 vivo: subir PDF y Word, versiones,
+   leído y entendido, Excel). Ajustes: quién ve qué (solo el administrador). */
 .ruta{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:6px}
-.ruta .e{border-radius:10px;padding:9px 9px 8px;background:var(--line2);font-size:11.5px;color:var(--muted);line-height:1.3;min-height:74px;display:flex;flex-direction:column;gap:3px}
+.ruta .e{border-radius:10px;padding:9px 9px 8px;background:var(--line2);font-size:11.5px;color:var(--muted);line-height:1.3;min-height:84px;display:flex;flex-direction:column;gap:3px;border:0;text-align:left;font-family:inherit}
 .ruta .e b{font-size:12.5px;color:var(--ink)}.ruta .e em{font-style:normal;font-weight:800;font-size:10.5px;letter-spacing:.4px}
+.ruta .e small{margin-top:auto;font-size:10.5px;font-weight:700}
+.ruta .e.hecho{background:var(--ok-bg)}.ruta .e.hecho b{color:#1e5a2a}.ruta .e.hecho small{color:#1e5a2a}
 .ruta .e.on{background:var(--navy2);color:#c9d6ea}.ruta .e.on b{color:#fff}
-.hero{background:linear-gradient(135deg,#0f2a57,#17407f);color:#fff;border-radius:14px;padding:18px 20px}
+.ruta .e.tarde{background:var(--warn-bg);color:#6b4d00;box-shadow:inset 0 0 0 1.5px var(--warn)}.ruta .e.tarde b{color:#5a4000}
+.ruta .e.on.tarde{background:var(--navy2);color:#ffd970}
+.ruta button.e{cursor:pointer}.ruta button.e:hover{filter:brightness(.97)}
+.hero{background:linear-gradient(135deg,#0f2a57,#17407f);color:#fff;border-radius:14px;padding:18px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .hero h2{font-size:20px;margin-top:6px}.hero p{color:#c9d6ea;font-size:13px;margin-top:3px}.hero .tag{background:rgba(255,255,255,.14);color:#fff}
+.hero .sp{flex:1}.hero .big{font-size:40px;font-weight:800;line-height:1;text-align:right}.hero .big small{font-size:13px;color:#c9d6ea;font-weight:600;display:block;margin-top:4px}
+.hero .barra{height:7px;border-radius:5px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:10px;max-width:420px}.hero .barra i{display:block;height:100%;background:linear-gradient(90deg,#86B62C,#c5e89a);border-radius:5px}
 .obra-c{display:flex;gap:14px;align-items:flex-start}
 .obra-c .ic2{width:46px;height:46px;border-radius:12px;background:rgba(245,179,1,.18);color:#8a6300;display:grid;place-items:center;flex:none}
 .obra-c b{font-size:14.5px;display:block}.obra-c p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
 .secs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .secs a{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;background:#fff;padding:11px 12px;color:var(--ink);text-decoration:none;font-size:13px;font-weight:600}
 .secs a small{display:block;color:var(--muted);font-weight:500;font-size:11.5px}
+.it2{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line2)}.it2:first-child{border-top:0}
+.it2>svg{flex:none;color:var(--navy2)}.it2 .tx{flex:1;min-width:0}.it2 .tx b{font-size:13.5px;display:block}.it2 .tx small{color:var(--muted);font-size:12px;display:block;margin-top:2px}
+.it2 .cd{font-weight:800;font-size:12px;color:var(--navy2);white-space:nowrap}
+.gr-t{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:14px 0 2px}.gr-t:first-child{margin-top:0}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line2);font-size:13px}.chk:first-child{border-top:0}
+.chk input{width:17px;height:17px;margin-top:1px;flex:none;accent-color:var(--ok)}.chk.hecha span{color:var(--muted);text-decoration:line-through}
+.chk small{display:block;color:var(--muted);font-size:11.5px;text-decoration:none}
+.cod{font-weight:800;white-space:nowrap}
+.tb td small{display:block;color:var(--muted);font-size:11.5px}
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.filtros .sp{flex:1}
+.filtros .in{max-width:240px}
+.ver-t{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.vs{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+.vs .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.vs .h b{font-size:13.5px}.vs p{font-size:12.5px;color:var(--muted);margin-top:4px}
+.mt{width:100%;border-collapse:collapse;font-size:12.5px}.mt th,.mt td{border-bottom:1px solid var(--line2);padding:7px 6px;text-align:center}.mt th:first-child,.mt td:first-child{text-align:left}
+.mt th{font-size:11px;color:var(--muted);font-weight:700}.mt input{width:17px;height:17px;accent-color:var(--navy2)}
+.prs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.prs button{border:1px solid var(--line);background:#fff;border-radius:16px;padding:4px 10px;font:600 12px Archivo,sans-serif;color:var(--muted);cursor:pointer}
+.prs button.on{background:var(--navy2);border-color:var(--navy2);color:#fff}
+.sv-l{max-height:46vh;overflow:auto;border:1px solid var(--line2);border-radius:10px;margin-top:10px}
+.sv-l .f{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 10px;border-top:1px solid var(--line2);font-size:12.5px}.sv-l .f:first-child{border-top:0}
+.sv-l .f small{display:block;color:var(--muted);font-size:11px}
 .q5 .f{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 40px;gap:10px;align-items:center;padding:8px 0;font-size:12.5px;border-top:1px solid var(--line2)}.q5 .f:first-child{border-top:0}
 .q5 .f small{display:block;color:var(--muted);font-size:11px}.q5 .st{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line2)}.q5 .st i{display:block;height:100%}
 .nuevo{font-size:10px;font-weight:800;background:var(--amber);color:#3d2a00;border-radius:5px;padding:1px 6px;margin-left:6px;letter-spacing:.3px}
 .cmt{border-left:3px solid var(--line);padding:4px 0 4px 12px;margin:10px 0;font-size:13px}.cmt small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}.cmt.bad{border-left-color:var(--bad)}
 @media(max-width:900px){.ruta{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:600px){.ruta{grid-template-columns:repeat(2,minmax(0,1fr))}.ruta .e{min-height:0}.obra-c{flex-direction:column}}
+@media(max-width:600px){.ruta{grid-template-columns:repeat(2,minmax(0,1fr))}.ruta .e{min-height:0}.obra-c{flex-direction:column}.hero .big{text-align:left}
+  .filtros .in{max-width:none}.sv-l .f{grid-template-columns:76px minmax(0,1fr)}.sv-l .f>:last-child{grid-column:1/-1}}
 </style>
 </head>
 <body>
 <div id="sysbar"></div><div class="mtabs" id="mtabs"></div><div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"></main></div>
 <script>
-/* Qué va en cada sección (de la maqueta aprobada, DISENO_calidad.md) */
+/* Qué va en cada sección todavía por construir (de la maqueta aprobada, DISENO_calidad.md) */
 var SECC = {
-  doc:  ['Documentos', 'libro', 'El listado maestro vivo (F-CAL-03): la versión vigente de cada documento, quién lo aprobó y quién ya lo leyó. Pedir un cambio (F-CAL-04).'],
   frm:  ['Formularios', 'documento', 'Todos los formularios en un solo lugar. Los que ya viven en otro módulo abren su pantalla; los de calidad se llenan aquí.'],
   nc:   ['No conformidades', 'alerta', 'Reportar algo que salió mal, buscar la causa (5 porqués), corregir y verificar que no se repita (F-CAL-05).'],
   rie:  ['Riesgos y oportunidades', 'escudo', 'Qué puede salir mal y qué podemos aprovechar, con su plan y su dueño (F-CAL-08).'],
   aud:  ['Auditorías', 'check', 'Programa anual de auditorías internas y del organismo certificador, con sus hallazgos (F-CAL-06).'],
   obj:  ['Objetivos e indicadores', 'tendencia', 'Los objetivos de la calidad (DG-CAL-03) medidos con lo que el sistema ya registra.'],
-  sat:  ['Satisfacción del cliente', 'grafico', 'Resultados de la encuesta F-VEN-07: pregunta por pregunta, lo que más les complica y los comentarios.'],
   rev:  ['Revisión por la dirección', 'brujula', 'Las entradas que pide la norma, listas para el acta de Gerencia (F-CAL-07).'],
   cap:  ['Capacitación', 'personas', 'Quién está preparado para qué y cuándo se le capacitó (F-ADM-06).'],
   prov: ['Proveedores', 'carrito', 'Evaluación anual de los proveedores que afectan el servicio (F-ADM-07).'],
   equ:  ['Equipos de medición', 'balanza', 'Calibración de báscula, autoclave e incubadora, con aviso antes de vencer (F-PLA-08).']
 };
-function pIni() {
-  var ruta = [['Diagnóstico', 'oct 2026', 'on'], ['Base del sistema', 'nov–dic', ''], ['Documentar y capacitar', 'ene–feb 2027', ''], ['Operar con registros', 'mar–may', ''],
-    ['Auditoría interna', 'jun', ''], ['Revisión por la dirección', 'jun', ''], ['Etapa 1 · organismo', 'jul', ''], ['Etapa 2 · certificado', 'ago–sep', '']];
-  return MK.cabeza('Calidad', 'Sistema de gestión de la calidad · ISO 9001:2026 · donde todos consultan los procedimientos y llenan los formularios') +
-    '<div class="pila">' +
-    '<div class="card"><div class="obra-c"><div class="ic2">' + MK.ic('llaveInglesa', 22) + '</div><div><b>Este módulo se está construyendo por partes.</b>' +
-      '<p>Cada sección se abre cuando su parte esté lista y probada. Mientras tanto el módulo sigue en mantenimiento: solo lo ven el administrador y los probadores (Configuración › Encender y apagar).</p></div></div></div>' +
-    '<div class="hero"><span class="tag">Meta</span><h2>Certificación ISO 9001 en 2027</h2><p>Versión de la norma: 2026. Ruta propuesta, se ajusta con Gerencia.</p></div>' +
-    '<div class="card"><h3>La ruta</h3><div class="ruta">' + ruta.map(function (r, k) { return '<div class="e ' + r[2] + '"><em>' + (k + 1) + '</em><b>' + r[0] + '</b>' + r[1] + '</div>'; }).join('') + '</div></div>' +
-    '<div class="card"><h3>Secciones</h3><div class="secs">' + Object.keys(SECC).map(function (id) { var x = SECC[id];
-      return '<a href="#' + id + '" onclick="MK.ir(\'' + id + '\');return false">' + MK.ic(x[1], 18) + '<span>' + x[0] + '<small>' + (id === 'sat' ? 'Lista' : 'Por construir') + '</small></span></a>'; }).join('') + '</div></div>' +
-    '</div>';
-}
 function pSec(id) {
-  var x = SECC[id] || SECC.doc;
+  var x = SECC[id] || SECC.frm;
   return MK.cabeza(x[0], x[2]) +
     '<div class="card"><div class="obra-c"><div class="ic2">' + MK.ic(x[1], 22) + '</div><div><b>Por construir.</b>' +
     '<p>Esta sección está en la maqueta aprobada y se construye en su propio paquete. Aquí no se guarda nada todavía.</p></div></div></div>';
+}
+
+/* ═══ api 3.24 · piezas comunes ═══ */
+var CAL_EST = { vigente: ['Vigente', 'ok'], sistema: ['En el sistema', 'ok'], externo: ['Externo', 'info'], por_aprobar: ['Por aprobar', 'warn'],
+  borrador: ['En borrador', 'gris'], falta: ['Falta', 'bad'], obsoleto: ['Obsoleto', 'gris'] };
+var CAL_AREAS = { VEN: 'Mercadeo', LOG: 'Logística', PLA: 'Planta', ADM: 'Administración', CAL: 'Gerencia y calidad', EXT: 'Externos' };
+var CAL_TIPOS = { PO: 'Política', DG: 'Documento general', PL: 'Plan', PR: 'Procedimiento', IT: 'Instructivo', F: 'Formulario o registro', DE: 'Documento externo' };
+var CAL_LISTO = { vigente: 1, sistema: 1, externo: 1 };
+var MES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function C() { return (MK.base && MK.base.cal) || {}; }
+function PU() { return C().puede || {}; }
+function estTag(e) { var x = CAL_EST[e] || [e, 'gris']; return MK.tag(x[0], x[1]); }
+function mesTx(ym) { return /^\d{4}-\d{2}$/.test(ym || '') ? MES_C[Number(ym.slice(5, 7)) - 1] + ' ' + ym.slice(0, 4) : ''; }
+function rango(a, b) {
+  if (!a) return '';
+  if (!b || a === b) return mesTx(a);
+  if (a.slice(0, 4) === b.slice(0, 4)) return MES_C[Number(a.slice(5, 7)) - 1] + '–' + mesTx(b);
+  return mesTx(a) + ' – ' + mesTx(b);
+}
+function js(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+/* Algo cambió: se vuelve a pedir la base (Inicio) y el listado */
+function calRecargar() { DOCS = null; return MK.recargar(); }
+/* Abrir un archivo firmado: la pestaña se abre antes de pedirlo (si no, el navegador la bloquea) */
+function calAbrir(codigo, clase, versionId) {
+  var w = null; try { w = window.open('', '_blank'); if (w) w.document.write('<p style="font:15px Archivo,sans-serif;padding:20px;color:#14306b">Abriendo ' + MK.esc(codigo) + '…</p>'); } catch (e) { w = null; }
+  MK.llamar('api_calVer', codigo, clase || 'pdf', versionId || '').then(function (r) {
+    if (clase === 'editable') { if (w) w.close(); var a = document.createElement('a'); a.href = r.url; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove(); return; }
+    if (w) w.location.href = r.url; else location.href = r.url;
+  }, function () { if (w) w.close(); });
+}
+
+/* ═══ Inicio: la guía hacia la certificación ═══ */
+function pIni() {
+  var c = C(), P = PU();
+  var der = (P.informe ? '<button class="btn" onclick="calInforme(this)">' + MK.ic('bajar', 15) + ' Informe de avance</button>' : '') +
+    (P.editar ? '<button class="btn" onclick="calEditarRuta()">' + MK.ic('lapiz', 15) + ' Cambiar la meta y la ruta</button>' : '');
+  var h = MK.cabeza('Calidad', 'Sistema de gestión de la calidad · ISO 9001 · aquí se ve hacia dónde vamos, dónde está cada documento y qué le toca a cada quien', der);
+  if (!c.cargado) {
+    return h + '<div class="card"><div class="obra-c"><div class="ic2">' + MK.ic('libro', 22) + '</div><div><b>Falta cargar el listado maestro (F-CAL-03).</b>' +
+      '<p>' + (P.ajustes ? 'Se cargan los 58 códigos del listado al 4 oct 2026 con su estado, la ruta propuesta y las tareas que no son documentos. No pisa nada que ya exista.' :
+      'El administrador hace la carga inicial. Cuando esté, aquí verás la meta, la ruta y lo que te toca.') + '</p>' +
+      (P.ajustes ? '<div style="margin-top:12px"><button class="btn pri" onclick="calCargaInicial(this)">' + MK.ic('subir', 15) + ' Hacer la carga inicial</button></div>' : '') +
+      '</div></div></div>';
+  }
+  var A = c.avance, K = c.conteos, E = c.etapas || [], act = E.filter(function (e) { return e.actual; })[0];
+  var tarde = E.filter(function (e) { return e.atrasada; }).length;
+  h += '<div class="pila">';
+  /* la meta y el % */
+  h += '<div class="hero"><div style="flex:1;min-width:240px"><span class="tag">Meta</span><h2>' + MK.esc(c.meta.texto) + ' · ' + MK.esc(mesTx(c.meta.mes)) + '</h2>' +
+    '<p>' + (act ? 'Hoy vamos en: <b style="color:#fff">' + MK.esc(act.nombre) + '</b>' + (act.atrasada ? ' · <b style="color:#ffd970">atrasada</b>' : '') : 'Todas las etapas están hechas') +
+    ' · ' + A.etapasHechas + ' de ' + A.etapasTotal + ' etapas hechas · ' + K.listos + ' de ' + K.total + ' documentos listos</p>' +
+    '<div class="barra"><i style="width:' + Math.max(2, A.total) + '%"></i></div></div>' +
+    '<div class="big">' + A.total + ' %<small>del camino recorrido</small></div></div>';
+  /* la ruta */
+  h += '<div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">La ruta</h3><span class="sp"></span>' +
+    (P.falta ? '<button class="btn gh sm" onclick="calHistorial()">' + MK.ic('historial', 14) + ' Historial</button>' : '') + '</div><div class="ruta">' +
+    E.map(function (e, k) {
+      var cl = e.hecha ? 'hecho' : (e.actual ? 'on' : '') + (e.atrasada ? ' tarde' : '');
+      var pie = e.hecha ? '✓ Hecha' : e.atrasada ? 'Atrasada' : (P.falta && e.pendientes ? e.pendientes + ' pendiente' + (e.pendientes === 1 ? '' : 's') : e.actual ? 'En curso' : '');
+      var tag = P.falta ? 'button' : 'div';
+      return '<' + tag + ' class="e ' + cl + '"' + (P.falta ? ' onclick="calEtapa(\'' + e.id + '\')"' : '') + '><em>' + (k + 1) + '</em><b>' + MK.esc(e.nombre) + '</b>' + MK.esc(rango(e.desde, e.hasta)) +
+        (pie ? '<small>' + MK.esc(pie) + '</small>' : '') + '</' + tag + '>';
+    }).join('') + '</div>' +
+    '<div class="nota">El % sale solo: la mitad por las etapas hechas (' + A.etapasHechas + ' de ' + A.etapasTotal + ') y la mitad por los documentos listos (' + K.listos + ' de ' + K.total + ').' +
+    (tarde ? ' En ámbar: ' + (tarde === 1 ? 'una etapa pasó su fecha' : tarde + ' etapas pasaron su fecha') + ' sin marcarse como hecha.' : '') +
+    (P.falta ? ' Toque una etapa para ver lo que exige.' : '') + '</div></div>';
+  /* los números del listado */
+  h += MK.kpis([
+    { e: 'Documentos listos', v: K.listos + ' <small style="display:inline;font-size:14px">de ' + K.total + '</small>', s: K.faltan + ' faltan', c: 'ok', ir: "calIrDocs('listos')" },
+    { e: 'Por aprobar', v: K.por_aprobar, s: 'esperan a Gerencia', c: K.por_aprobar ? 'warn' : '', ir: P.falta ? "calIrDocs('por_aprobar')" : '' },
+    { e: 'En borrador', v: K.borrador, s: 'se están escribiendo', ir: P.falta ? "calIrDocs('borrador')" : '' },
+    { e: 'Faltan por crear', v: K.falta, s: 'todavía no existen', c: K.falta ? 'bad' : '', ir: P.falta ? "calIrDocs('falta')" : '' }], 4);
+  /* lo que te toca + dónde está todo */
+  h += '<div class="g21"><div class="card"><h3>Lo que te toca</h3>' + calToca() + '</div>' +
+    '<div class="card"><h3>Dónde está todo</h3>' + calBasicos() + '</div></div>';
+  if (P.falta && c.falta) h += calFalta();
+  return h + '</div>';
+}
+function calToca() {
+  var c = C(), h = '';
+  (c.toca || []).forEach(function (d) {
+    h += '<div class="it2">' + MK.ic('libro', 18) + '<div class="tx"><b>Leer ' + MK.esc(d.codigo) + ' · ' + MK.esc(d.nombre) + '</b><small>Versión ' + d.version + ' · al terminar, marque «Leído y entendido»</small></div>' +
+      '<button class="btn sm pri" onclick="calFicha(\'' + d.codigo + '\')">Leer</button></div>';
+  });
+  if (c.miArea && !(c.puede || {}).falta) {   /* quien ve «Lo que falta» completo ya lo tiene abajo */
+    var n = c.miArea.docs.length + c.miArea.tareas.length;
+    if (n) {
+      h += '<div class="gr-t" style="margin-top:' + (h ? 14 : 0) + 'px">De ' + MK.esc(c.areaNombre) + ' · en preparación</div>';
+      c.miArea.docs.forEach(function (d) {
+        h += '<div class="it2"><span class="cd">' + MK.esc(d.codigo) + '</span><div class="tx"><b>' + MK.esc(d.nombre) + '</b><small>' + MK.esc(d.responsable || '') + '</small></div>' + estTag(d.estado) +
+          '<button class="btn sm gh" onclick="calFicha(\'' + d.codigo + '\')">Ver</button></div>';
+      });
+      c.miArea.tareas.forEach(function (t) {
+        h += '<div class="it2">' + MK.ic('check', 18) + '<div class="tx"><b>' + MK.esc(t.texto) + '</b><small>' + MK.esc(t.responsable || 'Tarea de la ruta') + '</small></div></div>';
+      });
+    }
+  }
+  return h || '<div class="vacio">Estás al día: no tienes documentos por leer.</div>';
+}
+function calBasicos() {
+  var c = C(), h = '';
+  (c.basicos || []).forEach(function (d) {
+    h += '<div class="it2">' + MK.ic('documento', 18) + '<div class="tx"><b>' + MK.esc(d.nombre) + '</b><small>' + MK.esc(d.codigo) + (d.listo ? ' · versión ' + d.version : ' · en preparación') + '</small></div>' +
+      (d.listo ? '<button class="btn sm" onclick="calAbrir(\'' + d.codigo + '\',\'pdf\')">' + MK.ic('ojo', 14) + ' Abrir</button>' : MK.tag('En preparación', 'gris')) + '</div>';
+  });
+  h += '<div class="it2">' + MK.ic('libro', 18) + '<div class="tx"><b>Todos los documentos vigentes</b><small>Procedimientos, instructivos y formularios con su versión</small></div><button class="btn sm" onclick="MK.ir(\'doc\')">Ver</button></div>';
+  h += '<div class="it2">' + MK.ic('alerta', 18) + '<div class="tx"><b>Reportar algo que salió mal</b><small>Se abre con la sección de No conformidades</small></div>' + MK.tag('Pronto', 'gris') + '</div>';
+  return h;
+}
+/* «Lo que falta» completo, por etapa (responsable de calidad, Gerencia y administrador) */
+function calFalta() {
+  var c = C(), P = PU(), F = c.falta, E = c.etapas || [], h = '';
+  var nd = F.docs.length, nt = F.tareas.length;
+  var grupos = E.map(function (e) { return { id: e.id, n: e.nombre, r: rango(e.desde, e.hasta), d: F.docs.filter(function (d) { return d.etapa === e.id; }), t: F.tareas.filter(function (t) { return t.etapa === e.id; }) }; });
+  var sin = F.docs.filter(function (d) { return !E.some(function (e) { return e.id === d.etapa; }); });
+  if (sin.length) grupos.push({ id: '', n: 'Sin etapa asignada', r: '', d: sin, t: [] });
+  h += '<div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">Lo que falta</h3><span class="sp"></span><span class="small muted">' + nd + ' documento' + (nd === 1 ? '' : 's') + ' · ' + nt + ' tarea' + (nt === 1 ? '' : 's') + '</span></div>';
+  grupos.forEach(function (g) {
+    if (!g.d.length && !g.t.length) return;
+    h += '<div class="gr-t" style="margin-top:14px">' + MK.esc(g.n) + (g.r ? ' · ' + MK.esc(g.r) : '') + '</div>';
+    g.d.forEach(function (d) {
+      h += '<div class="it2" style="cursor:pointer" onclick="calFicha(\'' + d.codigo + '\')"><span class="cd" style="min-width:74px">' + MK.esc(d.codigo) + '</span><div class="tx"><b>' + MK.esc(d.nombre) + '</b><small>' + MK.esc(d.responsable || '') + '</small></div>' + estTag(d.estado) + '</div>';
+    });
+    g.t.forEach(function (t) { h += calChkTarea(t, P.editar); });
+  });
+  if (!nd && !nt) h += '<div class="vacio">No falta nada en el listado ni en las tareas.</div>';
+  return h + '</div>';
+}
+function calChkTarea(t, puede) {
+  return '<label class="chk' + (t.hecha ? ' hecha' : '') + '"><input type="checkbox"' + (t.hecha ? ' checked' : '') + (puede ? ' onchange="calTareaHecha(\'' + t.tareaId + '\',this.checked)"' : ' disabled') + '>' +
+    '<span>' + MK.esc(t.texto) + '<small>' + MK.esc([t.area ? CAL_AREAS[t.area] : '', t.responsable, t.hecha && t.hechaPor ? 'hecha por ' + t.hechaPor + (t.hechaEn ? ' · ' + t.hechaEn.slice(0, 10) : '') : ''].filter(Boolean).join(' · ') || 'Tarea') + '</small></span></label>';
+}
+function calIrDocs(e) { FIL.e = e; FIL.a = 't'; FIL.q = ''; MK.ir('doc'); }
+function calCargaInicial(btn) {
+  MK.ocupado(btn, true, 'Cargando…');
+  MK.llamar('api_calCargaInicial').then(function (r) { MK.aviso(r.sinCambios ? 'El listado ya estaba cargado' : 'Listo: ' + r.documentos + ' documentos y ' + r.tareas + ' tareas'); calRecargar(); }, function () { MK.ocupado(btn, false); });
+}
+function calTareaHecha(id, si) { MK.llamar('api_calTarea', { tareaId: id, hecha: !!si }).then(function () { calRecargar(); }, function () { calRecargar(); }); }
+
+/* Una etapa: lo que exige (documentos y tareas) */
+function calEtapa(id) {
+  var c = C(), P = PU(), e = (c.etapas || []).filter(function (x) { return x.id === id; })[0]; if (!e) return;
+  var h = '<h2>' + MK.esc(e.nombre) + '</h2><div class="sub">' + MK.esc(rango(e.desde, e.hasta)) + ' · ' +
+    (e.hecha ? 'hecha' + (e.hechaPor ? ' · marcó ' + MK.esc(e.hechaPor) + (e.hechaEn ? ' el ' + MK.esc(e.hechaEn.slice(0, 10)) : '') : '') : e.atrasada ? '<b style="color:#8a6300">pasó su fecha y no está hecha</b>' : e.actual ? 'en curso' : 'por venir') +
+    ' · ' + e.avance + ' % de lo que exige</div>';
+  if (P.editar) h += '<div class="row w" style="margin-bottom:12px"><button class="btn ' + (e.hecha ? '' : 'ok') + '" onclick="calMarcarEtapa(\'' + e.id + '\',' + (!e.hecha) + ',this)">' + MK.ic(e.hecha ? 'renovar' : 'check', 15) + (e.hecha ? ' Volver a pendiente' : ' Marcar la etapa como hecha') + '</button></div>';
+  h += '<div class="card"><h3>Documentos que exige</h3>' + ((e.docs || []).length ? e.docs.map(function (d) {
+    return '<div class="it2" style="cursor:pointer" onclick="calFicha(\'' + d.codigo + '\')"><span class="cd" style="min-width:74px">' + MK.esc(d.codigo) + '</span><div class="tx"><b>' + MK.esc(d.nombre) + '</b></div>' + estTag(d.estado) + '</div>';
+  }).join('') : '<div class="vacio">Esta etapa no exige documentos del listado.</div>') + '</div><div style="height:12px"></div>';
+  h += '<div class="card"><h3>Tareas que no son documentos</h3>' + ((e.tareas || []).length ? e.tareas.map(function (t) { return calChkTarea(t, P.editar) +
+      (P.editar ? '<div style="text-align:right;margin:-4px 0 4px"><button class="btn gh sm" onclick="calQuitarTarea(\'' + t.tareaId + '\')">Quitar</button></div>' : ''); }).join('') : '<div class="vacio">Sin tareas.</div>') +
+    (P.editar ? '<div class="f2" style="margin-top:10px"><div><label class="lb">Tarea nueva</label><input class="in" id="ct-tx" maxlength="300" placeholder="Qué hay que hacer"></div>' +
+      '<div><label class="lb">Área</label><select class="in" id="ct-ar">' + ['CAL', 'VEN', 'LOG', 'PLA', 'ADM'].map(function (a) { return '<option value="' + a + '">' + CAL_AREAS[a] + '</option>'; }).join('') + '</select></div></div>' +
+      '<label class="lb">Responsable (opcional)</label><input class="in" id="ct-rs" maxlength="80">' +
+      '<div style="text-align:right;margin-top:10px"><button class="btn pri" onclick="calNuevaTarea(\'' + e.id + '\',this)">' + MK.ic('mas', 15) + ' Agregar</button></div>' : '') + '</div>';
+  MK.lado(h, { ancho: true });
+}
+function calMarcarEtapa(id, hecha, btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_calGuardarRuta', { etapas: [{ id: id, hecha: hecha }] }).then(function () { MK.aviso(hecha ? 'Etapa marcada como hecha' : 'La etapa vuelve a estar pendiente'); calRecargar().then(function () { calEtapa(id); }); }, function () { MK.ocupado(btn, false); });
+}
+function calNuevaTarea(etapa, btn) {
+  var tx = MK.val('ct-tx'); if (!tx) { MK.aviso('Escriba qué hay que hacer'); return; }
+  MK.ocupado(btn, true);
+  MK.llamar('api_calTarea', { texto: tx, etapa: etapa, area: MK.val('ct-ar'), responsable: MK.val('ct-rs') }).then(function () { MK.aviso('Tarea agregada'); calRecargar().then(function () { calEtapa(etapa); }); }, function () { MK.ocupado(btn, false); });
+}
+function calQuitarTarea(id) {
+  MK.confirmar('La tarea sale de la ruta. Queda en el historial como «quitada»; no se borra.', function () {
+    MK.llamar('api_calTarea', { tareaId: id, quitar: true }).then(function () { MK.aviso('Tarea quitada'); MK.cerrarLado(); calRecargar(); });
+  }, { titulo: '¿Quitar esta tarea?', boton: 'Quitar' });
+}
+/* Cambiar la meta y la ruta (responsable de calidad y administrador) */
+function calEditarRuta() {
+  var c = C();
+  var h = '<h2>La meta y la ruta</h2><div class="sub">Cada cambio queda en el historial con quién lo hizo y cuándo.</div>' +
+    '<div class="card"><h3>Meta</h3><div class="f2"><div><label class="lb">Qué queremos lograr</label><input class="in" id="cr-mt" maxlength="80" value="' + MK.esc(c.meta.texto) + '"></div>' +
+    '<div><label class="lb">Para cuándo</label><input class="in" type="month" id="cr-mm" value="' + MK.esc(c.meta.mes) + '"></div></div></div><div style="height:12px"></div>' +
+    '<div class="card"><h3>Etapas</h3>' + (c.etapas || []).map(function (e, k) {
+      return '<div style="padding:8px 0;border-top:' + (k ? '1px solid var(--line2)' : '0') + '"><div class="f2"><div><label class="lb">' + (k + 1) + ' · Nombre</label><input class="in" id="cr-n' + k + '" maxlength="60" value="' + MK.esc(e.nombre) + '"></div>' +
+        '<div class="f2"><div><label class="lb">Desde</label><input class="in" type="month" id="cr-d' + k + '" value="' + MK.esc(e.desde) + '"></div><div><label class="lb">Hasta</label><input class="in" type="month" id="cr-h' + k + '" value="' + MK.esc(e.hasta) + '"></div></div></div>' +
+        '<label class="chk" style="border:0;padding-bottom:0"><input type="checkbox" id="cr-x' + k + '"' + (e.hecha ? ' checked' : '') + '><span>Hecha</span></label></div>';
+    }).join('') + '</div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="calGuardarRuta(this)">Guardar</button></div>';
+  MK.lado(h, { ancho: true });
+}
+function calGuardarRuta(btn) {
+  var c = C(), d = { meta: { texto: MK.val('cr-mt'), mes: MK.val('cr-mm') }, etapas: (c.etapas || []).map(function (e, k) {
+    return { id: e.id, nombre: MK.val('cr-n' + k), desde: MK.val('cr-d' + k), hasta: MK.val('cr-h' + k), hecha: document.getElementById('cr-x' + k).checked };
+  }) };
+  MK.ocupado(btn, true);
+  MK.llamar('api_calGuardarRuta', d).then(function (r) { MK.aviso(r.sinCambios ? 'Sin cambios' : 'Ruta guardada'); MK.cerrarLado(); calRecargar(); }, function () { MK.ocupado(btn, false); });
+}
+function calHistorial() {
+  MK.lado('<h2>Historial de Calidad</h2><div class="sub">Quién cambió qué. Nada se borra.</div><div id="ch-l"><div class="cargando">Cargando…</div></div>', { ancho: true });
+  MK.llamar('api_calHistorial').then(function (r) {
+    var el = document.getElementById('ch-l'); if (!el) return;
+    el.innerHTML = r.historial.length ? '<div class="tl">' + r.historial.map(function (x) { return '<div class="ev"><small>' + MK.esc(x.en) + ' · ' + MK.esc(x.por) + '</small><p><b>' + MK.esc(x.que) + '</b>' + (x.detalle ? '\n' + MK.esc(x.detalle) : '') + '</p></div>'; }).join('') + '</div>' : MK.vacio('Todavía no hay cambios.');
+  });
+}
+/* ═══ Documentos: el listado maestro F-CAL-03 vivo ═══ */
+var DOCS = null, DOCS_PIDIENDO = false, FIL = { e: 't', a: 't', q: '' };
+function calDocs(forzar) {
+  if (DOCS && !forzar) return;
+  if (DOCS_PIDIENDO) return;
+  DOCS_PIDIENDO = true;
+  MK.api('api_calDocs', MK.pinUso()).then(function (r) { DOCS_PIDIENDO = false; DOCS = r || { ok: false }; if (MK.seccion === 'doc') MK.repintar(); },
+    function (e) { DOCS_PIDIENDO = false; DOCS = { ok: false, error: e.message }; if (MK.seccion === 'doc') MK.repintar(); });
+}
+function calFiltrados() {
+  var q = FIL.q.toLowerCase();
+  return DOCS.docs.filter(function (d) {
+    if (FIL.e === 't' && d.estado === 'obsoleto') return false;
+    if (FIL.e === 'listos' && !CAL_LISTO[d.estado]) return false;
+    if (FIL.e !== 't' && FIL.e !== 'listos' && d.estado !== FIL.e) return false;
+    if (FIL.a !== 't' && d.area !== FIL.a) return false;
+    if (q && (d.codigo + ' ' + d.nombre + ' ' + (d.responsable || '')).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  }).sort(function (a, b) { return calOrden(a) < calOrden(b) ? -1 : 1; });
+}
+/* Orden del listado: por área (como el Word) y dentro, por tipo y número */
+function calOrden(d) {
+  var A = ['VEN', 'LOG', 'PLA', 'ADM', 'CAL', 'EXT'], T = ['PO', 'DG', 'PL', 'PR', 'IT', 'F', 'DE'];
+  return A.indexOf(d.area) + '-' + ('0' + T.indexOf(d.tipo)).slice(-2) + '-' + d.codigo.slice(-2);
+}
+function calFil(k, v) { FIL[k] = v; MK.repintar(); }
+function pDoc() {
+  var P = PU();
+  var der = (DOCS && DOCS.ok ? '<button class="btn" onclick="calExcel()">' + MK.ic('tabla', 15) + ' Excel</button>' : '') +
+    (P.subir ? '<button class="btn" onclick="calSubirVarios()">' + MK.ic('subir', 15) + ' Subir varios</button><button class="btn pri" onclick="calNuevoDoc()">' + MK.ic('mas', 15) + ' Documento nuevo</button>' : '');
+  calDocs();
+  if (!DOCS) return MK.cabeza('Documentos', 'El listado maestro (F-CAL-03)', der) + '<div class="cargando">Cargando…</div>';
+  if (!DOCS.ok) return MK.cabeza('Documentos', 'El listado maestro (F-CAL-03)') + '<div class="aviso rj">' + MK.esc(DOCS.error || 'No se pudo') + '</div>';
+  var K = DOCS.conteos, L = DOCS.docs;
+  var h = MK.cabeza('Documentos', 'El listado maestro (F-CAL-03) · <b>' + K.listos + ' de ' + K.total + ' listos · ' + K.faltan + ' faltan</b>', der);
+  if (!DOCS.cargado) return h + '<div class="card">' + MK.vacio('El listado todavía no se ha cargado. Lo hace el administrador desde Inicio.') + '</div>';
+  var n = function (f) { return L.filter(f).length; };
+  var est = [['t', 'Todos', n(function (d) { return d.estado !== 'obsoleto'; })], ['listos', 'Listos', n(function (d) { return CAL_LISTO[d.estado]; })]];
+  if (P.falta || P.area) {
+    [['por_aprobar', 'Por aprobar'], ['borrador', 'En borrador'], ['falta', 'Falta']].forEach(function (x) { var c = n(function (d) { return d.estado === x[0]; }); if (c || P.falta) est.push([x[0], x[1], c]); });
+    var ob = n(function (d) { return d.estado === 'obsoleto'; }); if (ob) est.push(['obsoleto', 'Obsoletos', ob]);
+  }
+  var ar = [['t', 'Todas las áreas']].concat(['VEN', 'LOG', 'PLA', 'ADM', 'CAL', 'EXT'].map(function (a) { return [a, CAL_AREAS[a], n(function (d) { return d.area === a && d.estado !== 'obsoleto'; })]; }));
+  h += '<div class="filtros">' + MK.chips(est, FIL.e, "calFil.bind(null,'e')") + '<span class="sp"></span><input class="in" id="cd-q" placeholder="Buscar código o nombre" value="' + MK.esc(FIL.q) + '" oninput="calFil(\'q\',this.value)"></div>' +
+    '<div class="filtros">' + MK.chips(ar, FIL.a, "calFil.bind(null,'a')") + '</div>';
+  var F = calFiltrados();
+  h += MK.tabla(['Código', 'Documento', 'Versión', 'Estado', 'Responsable', P.falta ? 'Leído por' : 'Leído'], F.map(function (d) {
+    var lec = P.falta ? (d.lectura ? d.lectura.leyeron + ' de ' + d.lectura.deben : '<span class="muted">—</span>') :
+      (d.debeLeer ? (d.leido ? MK.tag('Leído', 'ok') : MK.tag('Por leer', 'warn')) : '<span class="muted">—</span>');
+    return ['<span class="cod">' + MK.esc(d.codigo) + '</span>', MK.esc(d.nombre) + '<small>' + MK.esc(CAL_TIPOS[d.tipo] || '') + (d.enPreparacion ? ' · hay una versión nueva en preparación' : '') + '</small>',
+      d.estado === 'falta' ? '—' : 'v' + d.version + (d.mes ? '<small>' + MK.esc(d.mes) + '</small>' : ''), estTag(d.estado), MK.esc(d.responsable || ''), lec];
+  }), { clic: function (j) { return "calFicha('" + F[j].codigo + "')"; }, vacio: 'Nada con este filtro.' });
+  h += '<div class="nota">' + (P.subir ? 'Usted sube el PDF (lo que ve el equipo) y el Word o Excel editable (solo lo bajan quienes manejan el listado). Al publicar una versión vigente, la anterior queda obsoleta y guardada: nunca se borra.' :
+    'Toque un documento para leerlo. Los que dicen «Por leer» le tocan a usted: al terminar, marque «Leído y entendido».') +
+    ' «En el sistema»: el formato ya se llena o se imprime desde el sistema con su código.</div>';
+  return h;
+}
+
+/* La ficha de un documento */
+function calFicha(codigo) {
+  MK.lado('<h2>' + MK.esc(codigo) + '</h2><div id="cf-c"><div class="cargando">Cargando…</div></div>', { ancho: true });
+  MK.llamar('api_calDoc', codigo).then(function (r) {
+    var el = document.getElementById('cf-c'); if (!el) return;
+    var d = r.doc, P = r.puede;
+    var h = '<div class="sub" style="margin-top:-2px"><b style="color:var(--ink);font-size:15px">' + MK.esc(d.nombre) + '</b><br>' + MK.esc(CAL_TIPOS[d.tipo] || '') + ' · ' + MK.esc(CAL_AREAS[d.area] || '') +
+      (d.estado !== 'falta' ? ' · versión ' + d.version + (d.mes ? ' / ' + MK.esc(d.mes) : '') : '') + '</div>';
+    h += '<div class="row w" style="margin-bottom:12px;align-items:center">' + estTag(d.estado) +
+      (d.hayPdf && (CAL_LISTO[d.estado] || P.falta || P.subir || P.area) ? '<button class="btn pri" onclick="calAbrir(\'' + d.codigo + '\',\'pdf\')">' + MK.ic('ojo', 15) + ' Leer el PDF</button>' : '') +
+      (d.debeLeer && !d.leido ? '<button class="btn ok" onclick="calLeido(\'' + d.codigo + '\',this)">' + MK.ic('check', 15) + ' Leído y entendido</button>' : '') +
+      (d.debeLeer && d.leido ? MK.tag('Usted ya lo leyó', 'ok') : '') +
+      (P.subir && d.hayEditable ? '<button class="btn" onclick="calAbrir(\'' + d.codigo + '\',\'editable\')">' + MK.ic('bajar', 15) + ' Bajar el editable</button>' : '') + '</div>';
+    if (P.subir) h += '<div class="row w" style="margin-bottom:12px">' + (d.estado !== 'obsoleto' ? '<button class="btn" onclick="calSubirVersion(\'' + d.codigo + '\')">' + MK.ic('subir', 15) + ' Subir archivo</button>' : '') +
+      '<button class="btn gh" onclick="calEditarDoc(\'' + d.codigo + '\')">' + MK.ic('lapiz', 15) + ' Cambiar la ficha</button></div>';
+    if (d.estado === 'sistema') h += '<div class="aviso az" style="margin-bottom:12px">Este formato se llena o se imprime desde el sistema con su código. Si sube un PDF, queda como muestra para consultar.</div>';
+    if (d.enPreparacion) h += '<div class="aviso am" style="margin-bottom:12px">Hay una versión nueva en preparación. El equipo sigue viendo la vigente hasta que se publique.</div>';
+    if (d.estado === 'obsoleto' && d.motivoObsoleto) h += '<div class="aviso rj" style="margin-bottom:12px">Obsoleto: ' + MK.esc(d.motivoObsoleto) + '</div>';
+    var et = (C().etapas || []).filter(function (e) { return e.id === d.etapa; })[0];
+    h += '<div class="ap" style="background:#fafbfd;border-color:var(--line)">' +
+      '<div class="l"><span>Responsable</span><b>' + MK.esc(d.responsable || '—') + '</b></div>' +
+      '<div class="l"><span>Lo deben leer</span><b>' + MK.esc(calLectoresTx(d.lectores)) + '</b></div>' +
+      (et ? '<div class="l"><span>Etapa de la ruta</span><b>' + MK.esc(et.nombre) + '</b></div>' : '') +
+      (d.cambiadoEn ? '<div class="l"><span>Último cambio</span><b>' + MK.esc(d.cambiadoEn) + ' · ' + MK.esc(d.cambiadoPor || '') + '</b></div>' : '') +
+      (d.notas ? '<div class="l"><span>Notas</span><b style="text-align:right">' + MK.esc(d.notas) + '</b></div>' : '') + '</div>';
+    if (r.lectura) {
+      var L = r.lectura, tot = L.leyeron.length + L.faltan.length;
+      h += '<div style="height:12px"></div><div class="card"><h3>Leído y entendido · ' + L.leyeron.length + ' de ' + tot + '</h3>' + (tot ? '<div class="lst">' +
+        L.leyeron.map(function (p) { return '<div class="it"><div class="tx"><b>' + MK.esc(p.nombre) + '</b><small>' + MK.esc(p.en) + '</small></div>' + MK.tag('Leído', 'ok') + '</div>'; }).join('') +
+        L.faltan.map(function (p) { return '<div class="it"><div class="tx"><b>' + MK.esc(p) + '</b><small>todavía no</small></div>' + MK.tag('Pendiente', 'warn') + '</div>'; }).join('') + '</div>' :
+        MK.vacio(d.hayPdf ? 'Nadie lo tiene que leer.' : 'Se cuenta cuando haya una versión vigente con PDF.')) + '</div>';
+    }
+    h += '<div style="height:12px"></div><div class="card"><h3>Versiones</h3>' + (r.versiones.length ? r.versiones.map(function (v) {
+      var tono = v.estado === 'vigente' ? 'ok' : v.estado === 'borrador' ? 'gris' : 'gris';
+      var et2 = { vigente: 'Vigente', obsoleto: 'Obsoleta', borrador: 'Borrador', reemplazado: 'Reemplazado' }[v.estado] || v.estado;
+      return '<div class="vs"><div class="h"><b>Versión ' + v.version + (v.mes ? ' / ' + MK.esc(v.mes) : '') + '</b>' + MK.tag(et2, tono) + '<span class="sp" style="flex:1"></span>' +
+        (v.hayPdf ? '<button class="btn sm" onclick="calAbrir(\'' + d.codigo + '\',\'pdf\',\'' + v.versionId + '\')">PDF</button>' : '') +
+        (P.subir && v.hayEditable ? '<button class="btn sm" onclick="calAbrir(\'' + d.codigo + '\',\'editable\',\'' + v.versionId + '\')">Editable</button>' : '') + '</div>' +
+        '<p>Subió ' + MK.esc(v.subidoPor) + ' · ' + MK.esc(v.subidoEn) + (v.obsoletoEn ? ' · obsoleta desde ' + MK.esc(v.obsoletoEn.slice(0, 10)) : '') + (v.nota ? '<br>«' + MK.esc(v.nota) + '»' : '') + '</p></div>';
+    }).join('') : MK.vacio('Todavía no se ha subido ningún archivo.')) + '</div>';
+    el.innerHTML = h;
+  }, function () { var el = document.getElementById('cf-c'); if (el) el.innerHTML = MK.vacio('No se pudo abrir.'); });
+}
+function calLectoresTx(l) {
+  l = String(l || ''); if (!l) return 'Se consulta cuando hace falta';
+  if (l.toLowerCase() === 'todos') return 'Todo el equipo';
+  return l.split(',').map(function (a) { return CAL_AREAS[a.trim()] || a; }).join(', ');
+}
+function calLeido(codigo, btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_calLeido', codigo).then(function () { MK.aviso('Gracias: quedó anotado que lo leyó'); calRecargar(); calFicha(codigo); }, function () { MK.ocupado(btn, false); });
+}
+
+/* Subir el PDF y/o el editable de un documento */
+var CAL_MIME = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', doc: 'application/msword', xls: 'application/vnd.ms-excel' };
+function calMime(f) { var e = String(f.name || '').toLowerCase().split('.').pop(); return CAL_MIME[e] || f.type || ''; }
+function calClase(f) { var m = calMime(f); return m === CAL_MIME.pdf ? 'pdf' : (m && m !== CAL_MIME.pdf && /officedocument|msword|ms-excel/.test(m)) ? 'editable' : ''; }
+function calSubirVersion(codigo) {
+  var d = DOCS && DOCS.docs ? DOCS.docs.filter(function (x) { return x.codigo === codigo; })[0] : null;
+  var est0 = d && (d.estado === 'por_aprobar' || d.estado === 'borrador') ? d.estado : d && CAL_LISTO[d.estado] ? 'vigente' : 'borrador';
+  MK.hoja('<h2>Subir archivo · ' + MK.esc(codigo) + '</h2><p class="muted" style="margin-top:4px">El PDF es lo que ve el equipo. El Word o Excel queda guardado para quien maneja el listado.</p>' +
+    '<label class="lb">PDF</label><input class="in" type="file" id="sv-pdf" accept=".pdf,application/pdf">' +
+    '<label class="lb">Word o Excel editable</label><input class="in" type="file" id="sv-edi" accept=".docx,.xlsx,.doc,.xls">' +
+    '<label class="lb">Cómo queda</label><select class="in" id="sv-est">' + [['borrador', 'En borrador'], ['por_aprobar', 'Por aprobar'], ['vigente', 'Vigente (aprobado) · la versión anterior queda obsoleta']].map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === est0 ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+    '<label class="lb">Nota (opcional)</label><input class="in" id="sv-nota" maxlength="300" placeholder="Por ejemplo: aprobado por Gerencia el 5 oct">' +
+    '<div id="sv-pr" class="small muted" style="margin-top:10px"></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="sv-ok" onclick="calSubirUno(\'' + codigo + '\')">Subir</button></div>', { fija: true });
+}
+function calSubirUno(codigo) {
+  var fp = (document.getElementById('sv-pdf').files || [])[0], fe = (document.getElementById('sv-edi').files || [])[0];
+  if (!fp && !fe) { MK.aviso('Elija el PDF, el editable o los dos'); return; }
+  if (fp && calClase(fp) !== 'pdf') { MK.aviso('El primer archivo debe ser PDF'); return; }
+  if (fe && calClase(fe) !== 'editable') { MK.aviso('El editable debe ser Word o Excel'); return; }
+  var btn = document.getElementById('sv-ok'), pr = document.getElementById('sv-pr');
+  MK.ocupado(btn, true, 'Subiendo…');
+  calSubirArchivos(codigo, fp, fe, MK.val('sv-est'), MK.val('sv-nota'), function (t) { if (pr) pr.textContent = t; }).then(function (r) {
+    MK.cerrarHoja(); MK.aviso(r.estado === 'vigente' ? 'Publicado: versión ' + r.version : 'Archivo guardado'); calRecargar(); calFicha(codigo);
+  }, function (e) { MK.ocupado(btn, false); if (pr) pr.textContent = ''; MK.aviso(e.message || 'No se pudo subir'); });
+}
+/* pedir subida → subir al espacio de archivos → avisar que está listo */
+function calSubirArchivos(codigo, fp, fe, estado, nota, avance) {
+  var L = []; if (fp) L.push({ clase: 'pdf', f: fp }); if (fe) L.push({ clase: 'editable', f: fe });
+  return MK.api('api_calPedirSubida', MK.pinUso(), codigo, L.map(function (x) { return { clase: x.clase, nombre: x.f.name, mime: calMime(x.f), tamano: x.f.size }; })).then(function (r) {
+    if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo preparar la subida');
+    var ids = {}, i = 0;
+    var sig = function () {
+      if (i >= r.archivos.length) return Promise.resolve();
+      var a = r.archivos[i++], x = L.filter(function (z) { return z.clase === a.clase; })[0];
+      ids[a.clase] = a.archivoId;
+      return ARCH.subir(a.subida, { blob: x.f, meta: { nombre: x.f.name, mime: calMime(x.f), tamano: x.f.size } }, function (pc) { avance && avance('Subiendo ' + x.f.name + ' · ' + pc + ' %'); }).then(sig);
+    };
+    return sig().then(function () {
+      avance && avance('Guardando…');
+      return MK.api('api_calSubidaLista', MK.pinUso(), codigo, ids, { estado: estado, nota: nota });
+    }).then(function (z) { if (!z || !z.ok) throw new Error((z && z.error) || 'No se pudo guardar'); return z; });
+  });
+}
+
+/* Cambiar la ficha (nombre, responsable, estado, etapa, lectores, notas) */
+var CAL_LECT = [['todos', 'Todo el equipo'], ['VEN', 'Mercadeo'], ['LOG', 'Logística'], ['PLA', 'Planta'], ['ADM', 'Administración'], ['CAL', 'Gerencia y calidad']];
+function calFormDoc(d, nuevo) {
+  var lec = String(d.lectores || '').toUpperCase().split(','), E = C().etapas || [];
+  var estados = nuevo ? [['falta', 'Falta (todavía no existe)'], ['borrador', 'En borrador'], ['por_aprobar', 'Por aprobar'], ['sistema', 'En el sistema'], ['externo', 'Externo']] :
+    d.estado === 'obsoleto' ? [['obsoleto', 'Obsoleto (no vuelve; su número no se reutiliza)']] :
+    [['borrador', 'En borrador'], ['por_aprobar', 'Por aprobar']].concat(d.estado === 'vigente' ? [['vigente', 'Vigente']] : [], [['sistema', 'En el sistema'], ['externo', 'Externo'], ['falta', 'Falta'], ['obsoleto', 'Obsoleto (sale del listado activo)']]);
+  return (nuevo ? '<div class="f2"><div><label class="lb">Código</label><input class="in" id="ed-cod" maxlength="12" placeholder="PR-LOG-02" style="text-transform:uppercase"></div><div></div></div>' +
+      '<div class="small muted" style="margin-top:4px">TIPO-ÁREA-NÚMERO. Tipos: PO, DG, PL, PR, IT, F. Áreas: VEN, LOG, PLA, ADM, CAL. Externos: DE-NN. Un número no se vuelve a usar.</div>' : '') +
+    '<label class="lb">Nombre</label><input class="in" id="ed-nom" maxlength="160" value="' + MK.esc(d.nombre || '') + '">' +
+    (nuevo ? '' : '<label class="lb">Responsable</label><input class="in" id="ed-res" maxlength="80" value="' + MK.esc(d.responsable || '') + '">') +
+    '<div class="f2"><div><label class="lb">Estado</label><select class="in" id="ed-est" onchange="var m=document.getElementById(\'ed-mot-w\');if(m)m.hidden=this.value!==\'obsoleto\'">' + estados.map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === d.estado ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
+    '<div><label class="lb">Etapa de la ruta</label><select class="in" id="ed-eta"><option value="">—</option>' + E.map(function (e) { return '<option value="' + e.id + '"' + (e.id === d.etapa ? ' selected' : '') + '>' + MK.esc(e.nombre) + '</option>'; }).join('') + '</select></div></div>' +
+    '<div id="ed-mot-w" hidden><label class="lb">Por qué queda obsoleto</label><input class="in" id="ed-mot" maxlength="300"></div>' +
+    '<label class="lb">Lo deben leer (para «leído y entendido»)</label><div class="prs" id="ed-lec">' + CAL_LECT.map(function (o) {
+      return '<button type="button" data-v="' + o[0] + '" class="' + (lec.indexOf(o[0].toUpperCase()) >= 0 ? 'on' : '') + '" onclick="calLecTog(this)">' + o[1] + '</button>'; }).join('') + '</div>' +
+    '<div class="small muted" style="margin-top:4px">Sin marcar: se consulta cuando hace falta (formularios y externos).' + (nuevo || d.estado === 'vigente' ? '' : ' Para dejarlo vigente, publique su PDF con «Subir archivo».') + '</div>' +
+    '<label class="lb">Notas</label><input class="in" id="ed-not" maxlength="400" value="' + MK.esc(d.notas || '') + '">';
+}
+function calLecTog(b) {
+  var w = document.getElementById('ed-lec');
+  if (b.getAttribute('data-v') === 'todos') { var on = !b.classList.contains('on'); w.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); }); if (on) b.classList.add('on'); }
+  else { b.classList.toggle('on'); var t = w.querySelector('[data-v="todos"]'); if (t) t.classList.remove('on'); }
+}
+function calLecVal() { return Array.prototype.map.call(document.querySelectorAll('#ed-lec button.on'), function (b) { return b.getAttribute('data-v'); }).join(','); }
+function calEditarDoc(codigo) {
+  MK.llamar('api_calDoc', codigo).then(function (r) {
+    var d = r.doc;
+    MK.hoja('<h2>Ficha · ' + MK.esc(codigo) + '</h2><p class="muted" style="margin-top:4px">El código no cambia. Cada cambio queda en el historial.</p>' + calFormDoc(d, false) +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ed-ok" onclick="calGuardarFicha(\'' + codigo + '\')">Guardar</button></div>', { ancha: true });
+  });
+}
+function calGuardarFicha(codigo) {
+  var btn = document.getElementById('ed-ok'); MK.ocupado(btn, true);
+  MK.llamar('api_calGuardarDoc', { codigo: codigo, nombre: MK.val('ed-nom'), responsable: MK.val('ed-res'), estado: MK.val('ed-est'), etapa: MK.val('ed-eta'), lectores: calLecVal(), notas: MK.val('ed-not'), motivoObsoleto: MK.val('ed-mot') })
+    .then(function (r) { MK.cerrarHoja(); MK.aviso(r.sinCambios ? 'Sin cambios' : 'Ficha guardada'); calRecargar(); calFicha(codigo); }, function () { MK.ocupado(btn, false); });
+}
+function calNuevoDoc() {
+  MK.hoja('<h2>Documento nuevo en el listado</h2>' + calFormDoc({ estado: 'falta' }, true) +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ed-ok" onclick="calCrearDoc()">Agregar al listado</button></div>', { ancha: true });
+}
+function calCrearDoc() {
+  var cod = MK.val('ed-cod').toUpperCase(), btn = document.getElementById('ed-ok'); MK.ocupado(btn, true);
+  MK.llamar('api_calGuardarDoc', { codigo: cod, nuevo: true, nombre: MK.val('ed-nom'), estado: MK.val('ed-est'), etapa: MK.val('ed-eta'), lectores: calLecVal(), notas: MK.val('ed-not') })
+    .then(function (r) { MK.cerrarHoja(); MK.aviso(r.codigo + ' agregado'); calRecargar(); calFicha(r.codigo); }, function () { MK.ocupado(btn, false); });
+}
+
+/* Subir varios: se eligen muchos archivos y cada uno va a su código por el nombre
+   (por ejemplo «PO-CAL-01_Politica_de_calidad.docx» → PO-CAL-01) */
+var SV = null;
+function calSubirVarios() {
+  SV = { grupos: [] };
+  MK.hoja('<h2>Subir varios</h2><p class="muted" style="margin-top:4px">Elija los PDF y los Word o Excel juntos. Cada archivo va a su documento por el código al principio del nombre (por ejemplo <b>PO-CAL-01_Politica.docx</b>).</p>' +
+    '<label class="lb">Archivos</label><input class="in" type="file" id="sv-m" multiple accept=".pdf,.docx,.xlsx,.doc,.xls" onchange="calSvLeer(this.files)">' +
+    '<div id="sv-l"></div><div id="sv-pr" class="small muted" style="margin-top:10px"></div>' +
+    '<div class="pie"><button class="btn" id="sv-x" onclick="MK.cerrarHoja()">Cerrar</button><button class="btn pri" id="sv-ok" onclick="calSvSubir()" disabled>Subir</button></div>', { ancha: true, fija: true });
+}
+function calSvLeer(files) {
+  var porCod = {}, sobran = [], mapa = {};
+  (DOCS && DOCS.docs || []).forEach(function (d) { mapa[d.codigo] = d; });
+  Array.prototype.forEach.call(files || [], function (f) {
+    var m = /^((?:PO|DG|PL|PR|IT|F)-(?:VEN|LOG|PLA|ADM|CAL)-\d{2}|DE-\d{2})(?![0-9])/i.exec(String(f.name).trim());
+    var cl = calClase(f);
+    if (!m || !cl) { sobran.push([f.name, !m ? 'el nombre no empieza con un código' : 'no es PDF, Word ni Excel']); return; }
+    var c = m[1].toUpperCase();
+    if (!mapa[c]) { sobran.push([f.name, c + ' no está en el listado']); return; }
+    if (mapa[c].estado === 'obsoleto') { sobran.push([f.name, c + ' está obsoleto']); return; }
+    var g = porCod[c] = porCod[c] || { codigo: c, doc: mapa[c] };
+    if (g[cl]) { sobran.push([f.name, 'ya hay otro ' + (cl === 'pdf' ? 'PDF' : 'editable') + ' para ' + c]); return; }
+    if (f.size > 10 * 1024 * 1024) { sobran.push([f.name, 'pesa más de 10 MB']); return; }
+    g[cl] = f;
+  });
+  SV.grupos = Object.keys(porCod).sort().map(function (c) {
+    var g = porCod[c], e = g.doc.estado;
+    g.estado = (e === 'por_aprobar' || e === 'borrador') ? e : 'borrador';   /* nunca publica solo: lo vigente se publica uno por uno */
+    return g;
+  });
+  var tx = { borrador: 'En borrador', por_aprobar: 'Por aprobar', vigente: 'Vigente' };
+  document.getElementById('sv-l').innerHTML = (SV.grupos.length ? '<div class="sv-l">' + SV.grupos.map(function (g, i) {
+    return '<div class="f" id="sv-f' + i + '"><span class="cod">' + g.codigo + '</span><span>' + MK.esc(g.doc.nombre) + '<small>' + [g.pdf ? 'PDF' : '', g.editable ? 'editable' : ''].filter(Boolean).join(' + ') + ' · queda: ' + tx[g.estado] + '</small></span><span class="st">' + MK.tag('Listo para subir', 'gris') + '</span></div>';
+  }).join('') + '</div>' : '') +
+    (sobran.length ? '<div class="aviso am" style="margin-top:10px"><b>' + sobran.length + ' archivo' + (sobran.length === 1 ? '' : 's') + ' no se van a subir:</b><br>' + sobran.map(function (s) { return MK.esc(s[0]) + ' — ' + MK.esc(s[1]); }).join('<br>') + '</div>' : '');
+  document.getElementById('sv-ok').disabled = !SV.grupos.length;
+  document.getElementById('sv-ok').textContent = SV.grupos.length ? 'Subir ' + SV.grupos.length + ' documento' + (SV.grupos.length === 1 ? '' : 's') : 'Subir';
+}
+function calSvSubir() {
+  var btn = document.getElementById('sv-ok'), pr = document.getElementById('sv-pr'), i = 0, bien = 0, mal = 0;
+  MK.ocupado(btn, true, 'Subiendo…'); document.getElementById('sv-m').disabled = true;
+  var marca = function (k, t, tono) { var f = document.getElementById('sv-f' + k); if (f) f.querySelector('.st').innerHTML = MK.tag(t, tono); };
+  var sig = function () {
+    if (i >= SV.grupos.length) {
+      pr.textContent = bien + ' subido' + (bien === 1 ? '' : 's') + (mal ? ' · ' + mal + ' con problema (vea la lista)' : '') + '.';
+      btn.textContent = 'Listo'; document.getElementById('sv-x').textContent = 'Cerrar'; calRecargar(); return;
+    }
+    var k = i++, g = SV.grupos[k];
+    marca(k, 'Subiendo…', 'info');
+    calSubirArchivos(g.codigo, g.pdf, g.editable, g.estado, 'Carga de archivos', function (t) { pr.textContent = (k + 1) + ' de ' + SV.grupos.length + ' · ' + t; })
+      .then(function () { bien++; marca(k, 'Subido', 'ok'); }, function (e) { mal++; marca(k, 'No: ' + (e.message || 'error').slice(0, 60), 'bad'); }).then(sig);
+  };
+  sig();
+}
+/* ═══ Ajustes: quién ve qué (solo el administrador) ═══
+   No es permanente: se cambia aquí cuando se quiera, con historial.
+   La entrada al módulo por rol sigue en Configuración › Permisos. */
+var AJ = null;
+function pAju() {
+  var P = PU();
+  if (!P.ajustes) return MK.cabeza('Ajustes de Calidad') + '<div class="card">' + MK.vacio('Solo el administrador entra aquí.') + '</div>';
+  if (!AJ) {
+    AJ = { r: null };
+    MK.api('api_calAjustes', MK.pinUso()).then(function (r) { AJ.r = r || { ok: false }; if (r && r.ok) AJ.v = JSON.parse(JSON.stringify(r.ver)); if (MK.seccion === 'aju') MK.repintar(); },
+      function (e) { AJ.r = { ok: false, error: e.message }; if (MK.seccion === 'aju') MK.repintar(); });
+  }
+  var h = MK.cabeza('Ajustes de Calidad', 'Quién ve qué dentro de Calidad. Se puede cambiar cuando quiera; cada cambio queda en el historial.');
+  if (!AJ.r) return h + '<div class="cargando">Cargando…</div>';
+  if (!AJ.r.ok) return h + '<div class="aviso rj">' + MK.esc(AJ.r.error || 'No se pudo') + '</div>';
+  var R = AJ.r, V = AJ.v;
+  h += '<div class="pila">';
+  h += '<div class="card"><h3>Responsable de calidad</h3><p class="small muted" style="margin-bottom:8px">Ve y hace todo en Calidad, igual que el administrador: cambia la meta y la ruta, sube documentos y saca el informe.</p>' +
+    '<select class="in" style="max-width:360px" onchange="AJ.v.responsable=this.value"><option value="">Sin nombrar todavía</option>' + R.usuarios.map(function (u) {
+      return '<option value="' + MK.esc(u.nombre) + '"' + (u.nombre === V.responsable ? ' selected' : '') + '>' + MK.esc(u.nombre) + ' · ' + MK.esc(MK.ROLES[u.rol] || u.rol) + '</option>'; }).join('') + '</select></div>';
+  h += '<div class="card"><h3>Por rol</h3><div class="small muted" style="margin-bottom:8px">Todos los que entran a Calidad ven la meta, el % y la etapa; la política, el alcance, el mapa de procesos y los objetivos; los documentos vigentes y lo que les toca leer. Esto es lo de más:</div>' +
+    '<div class="tbw"><table class="mt"><thead><tr><th>Qué más ve o hace</th>' + R.roles.map(function (r) { return '<th>' + MK.esc(r.n) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    R.items.map(function (it) {
+      return '<tr><td>' + MK.esc(it[1]) + '</td>' + R.roles.map(function (r) {
+        return '<td><input type="checkbox"' + (V.roles[it[0]].indexOf(r.id) >= 0 ? ' checked' : '') + ' onchange="ajRol(\'' + it[0] + '\',\'' + r.id + '\',this.checked)"></td>'; }).join('') + '</tr>';
+    }).join('') + '</tbody></table></div>' +
+    '<div class="nota">El administrador y el responsable de calidad tienen todo. «Ve» en Configuración › Permisos no deja cambiar nada aunque aquí esté marcado.</div></div>';
+  h += '<div class="card"><h3>Excepciones por persona</h3><div class="small muted">Además de su rol, estas personas también tienen:</div>' + R.items.map(function (it) {
+    return '<label class="lb">' + MK.esc(it[1]) + '</label><div class="prs">' + R.usuarios.map(function (u) {
+      return '<button type="button" class="' + (V.personas[it[0]].indexOf(u.nombre) >= 0 ? 'on' : '') + '" data-n="' + MK.esc(u.nombre) + '" onclick="ajPersona(\'' + it[0] + '\',this.getAttribute(\'data-n\'),this)">' + MK.esc(u.nombre) + '</button>'; }).join('') + '</div>';
+  }).join('') + '</div>';
+  h += '<div class="card"><h3>Área de cada rol</h3><div class="small muted" style="margin-bottom:8px">Con «Borradores y pendientes de su área», cada rol ve los de esta área.</div><div class="f2">' + R.roles.map(function (r) {
+    return '<div><label class="lb">' + MK.esc(r.n) + '</label><select class="in" onchange="AJ.v.areaDeRol[\'' + r.id + '\']=this.value"><option value="">Ninguna</option>' + ['VEN', 'LOG', 'PLA', 'ADM', 'CAL'].map(function (a) {
+      return '<option value="' + a + '"' + (V.areaDeRol[r.id] === a ? ' selected' : '') + '>' + CAL_AREAS[a] + '</option>'; }).join('') + '</select></div>'; }).join('') + '</div></div>';
+  h += '<div style="text-align:right"><button class="btn" onclick="AJ=null;MK.repintar()">Deshacer</button> <button class="btn pri" onclick="ajGuardar(this)">Guardar los ajustes</button></div></div>';
+  return h;
+}
+function ajRol(k, r, si) { var l = AJ.v.roles[k], i = l.indexOf(r); if (si && i < 0) l.push(r); if (!si && i >= 0) l.splice(i, 1); }
+function ajPersona(k, n, b) { var l = AJ.v.personas[k], i = l.indexOf(n); if (i < 0) { l.push(n); b.classList.add('on'); } else { l.splice(i, 1); b.classList.remove('on'); } }
+function ajGuardar(btn) {
+  MK.ocupado(btn, true);
+  MK.llamar('api_calGuardarAjustes', { roles: AJ.v.roles, personas: AJ.v.personas, responsable: AJ.v.responsable, areaDeRol: AJ.v.areaDeRol })
+    .then(function (r) { MK.aviso(r.sinCambios ? 'Sin cambios' : 'Ajustes guardados'); AJ = null; calRecargar(); }, function () { MK.ocupado(btn, false); });
+}
+/* ═══ Archivos de Office armados en la pantalla (sin librerías de afuera) ═══
+   Un .zip sin comprimir es un .xlsx o un .docx válido: Excel y Word lo abren
+   sin avisos. Se usa para el listado en Excel y el informe de avance en Word. */
+var OF = (function () {
+  var T = null;
+  function crc(b) {
+    if (!T) { T = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; T[n] = c >>> 0; } }
+    var x = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) x = T[(x ^ b[i]) & 0xFF] ^ (x >>> 8); return (x ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zip(arch) {
+    var enc = new TextEncoder(), partes = [], central = [], off = 0;
+    var u16 = function (v) { return [v & 255, (v >>> 8) & 255]; }, u32 = function (v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; };
+    arch.forEach(function (a) {
+      var nom = enc.encode(a.n), dat = typeof a.d === 'string' ? enc.encode(a.d) : a.d, c = crc(dat);
+      var cab = [].concat([0x50, 0x4b, 3, 4], u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(c), u32(dat.length), u32(dat.length), u16(nom.length), u16(0));
+      partes.push(new Uint8Array(cab), nom, dat);
+      central.push(new Uint8Array([].concat([0x50, 0x4b, 1, 2], u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(c), u32(dat.length), u32(dat.length),
+        u16(nom.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(off))), nom);
+      off += cab.length + nom.length + dat.length;
+    });
+    var tam = central.reduce(function (s, x) { return s + x.length; }, 0);
+    var fin = new Uint8Array([].concat([0x50, 0x4b, 5, 6], u16(0), u16(0), u16(arch.length), u16(arch.length), u32(tam), u32(off), u16(0)));
+    return new Blob(partes.concat(central, [fin]));
+  }
+  function x(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function bajar(blob, nombre, mime) {
+    var b = new Blob([blob], { type: mime }), u = URL.createObjectURL(b), a = document.createElement('a');
+    a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+  }
+  /* Excel: filas = [[...]], la primera es el encabezado; anchos en caracteres */
+  function xlsx(nombre, hoja, filas, anchos) {
+    var col = function (i) { var s = ''; i++; while (i) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+    var sh = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+      '<cols>' + (anchos || []).map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols><sheetData>' +
+      filas.map(function (f, r) { return '<row r="' + (r + 1) + '">' + f.map(function (v, c) {
+        var ref = col(c) + (r + 1), st = r === 0 ? ' s="1"' : ' s="2"';
+        return typeof v === 'number' ? '<c r="' + ref + '"' + st + '><v>' + v + '</v></c>' : '<c r="' + ref + '" t="inlineStr"' + st + '><is><t xml:space="preserve">' + x(v) + '</t></is></c>';
+      }).join('') + '</row>'; }).join('') + '</sheetData><autoFilter ref="A1:' + col(filas[0].length - 1) + filas.length + '"/></worksheet>';
+    var st = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<fonts count="2"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts>' +
+      '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF14306B"/></patternFill></fill></fills>' +
+      '<borders count="2"><border/><border><bottom style="thin"><color rgb="FFE1E6EE"/></bottom></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+    var b = zip([
+      { n: '[Content_Types].xml', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+      { n: '_rels/.rels', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+      { n: 'xl/workbook.xml', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + x(hoja).slice(0, 31) + '" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">\'' + x(hoja).slice(0, 31) + '\'!$A$1:$' + col(filas[0].length - 1) + '$' + filas.length + '</definedName></definedNames></workbook>' },
+      { n: 'xl/_rels/workbook.xml.rels', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+      { n: 'xl/worksheets/sheet1.xml', d: sh },
+      { n: 'xl/styles.xml', d: st }
+    ]);
+    bajar(b, nombre, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  }
+  /* Word: piezas sencillas → document.xml */
+  var W = {
+    p: function (txt, o) {
+      o = o || {};
+      var pp = '<w:pPr>' + (o.estilo ? '<w:pStyle w:val="' + o.estilo + '"/>' : '') + (o.borde ? '<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="4" w:color="' + o.borde + '"/></w:pBdr>' : '') +
+        '<w:spacing w:before="' + (o.antes || 0) + '" w:after="' + (o.despues == null ? 80 : o.despues) + '"/>' + (o.centro ? '<w:jc w:val="center"/>' : '') + '</w:pPr>';
+      var runs = (Array.isArray(txt) ? txt : [[txt, o]]).map(function (r) { return W.r(r[0], Object.assign({}, o, r[1] || {})); }).join('');
+      return '<w:p>' + pp + runs + '</w:p>';
+    },
+    r: function (t, o) {
+      o = o || {};
+      return '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' + (o.b ? '<w:b/>' : '') + (o.i ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') +
+        '<w:sz w:val="' + (o.sz || 20) + '"/></w:rPr><w:t xml:space="preserve">' + x(t) + '</w:t></w:r>';
+    },
+    /* filas = [[celda, ...]]; celda = texto o {t, b, fondo, color}; anchos en twips */
+    tabla: function (filas, anchos, cab) {
+      var tot = anchos.reduce(function (a, b) { return a + b; }, 0);
+      return '<w:tbl><w:tblPr><w:tblW w:w="' + tot + '" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D3DDEA"/><w:bottom w:val="single" w:sz="4" w:color="D3DDEA"/><w:insideH w:val="single" w:sz="4" w:color="E1E6EE"/></w:tblBorders>' +
+        '<w:tblCellMar><w:top w:w="50" w:type="dxa"/><w:left w:w="90" w:type="dxa"/><w:bottom w:w="50" w:type="dxa"/><w:right w:w="90" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' +
+        anchos.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>' +
+        filas.map(function (f, i) {
+          var esCab = cab && i === 0;
+          return '<w:tr>' + (esCab ? '<w:trPr><w:tblHeader/></w:trPr>' : '') + f.map(function (c, j) {
+            if (c === null) return '';
+            var o = typeof c === 'object' ? c : { t: c }, fondo = esCab ? '14306B' : o.fondo;
+            return '<w:tc><w:tcPr><w:tcW w:w="' + (o.span ? anchos.slice(j, j + o.span).reduce(function (a, b) { return a + b; }, 0) : anchos[j]) + '" w:type="dxa"/>' + (o.span ? '<w:gridSpan w:val="' + o.span + '"/>' : '') +
+              (fondo ? '<w:shd w:val="clear" w:color="auto" w:fill="' + fondo + '"/>' : '') + '</w:tcPr>' +
+              W.p(o.t, { b: esCab || o.b, color: esCab ? 'FFFFFF' : o.color, sz: o.sz || 18, despues: 0 }) + '</w:tc>';
+          }).join('') + '</w:tr>';
+        }).join('') + '</w:tbl>';
+    }
+  };
+  function docx(nombre, cuerpo, pie) {
+    var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>' + cuerpo +
+      '<w:sectPr><w:footerReference w:type="default" r:id="rIdPie"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="500" w:footer="500" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    var ftr = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:jc w:val="center"/></w:pPr>' +
+      W.r(pie || '', { sz: 15, color: '8A96A8' }) + W.r('   ·   Página ', { sz: 15, color: '8A96A8' }) +
+      '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="8A96A8"/><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:sz w:val="15"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:color w:val="8A96A8"/><w:sz w:val="15"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:sz w:val="15"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>';
+    var b = zip([
+      { n: '[Content_Types].xml', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>' },
+      { n: '_rels/.rels', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+      { n: 'word/_rels/document.xml.rels', d: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdPie" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>' },
+      { n: 'word/document.xml', d: doc },
+      { n: 'word/footer1.xml', d: ftr }
+    ]);
+    bajar(b, nombre, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }
+  return { zip: zip, xlsx: xlsx, docx: docx, W: W, bajar: bajar };
+})();
+
+/* El listado en Excel (lo que esta persona ve con los filtros de ahora) */
+function calExcel() {
+  var P = PU(), F = calFiltrados();
+  var cab = ['Código', 'Documento', 'Tipo', 'Área', 'Versión', 'Mes', 'Estado', 'Responsable', 'Lo deben leer'].concat(P.falta ? ['Leído por'] : []);
+  var filas = [cab].concat(F.map(function (d) {
+    return [d.codigo, d.nombre, CAL_TIPOS[d.tipo] || d.tipo, CAL_AREAS[d.area] || d.area, d.estado === 'falta' ? '' : d.version, d.mes || '', (CAL_EST[d.estado] || [d.estado])[0], d.responsable || '', calLectoresTx(d.lectores)]
+      .concat(P.falta ? [d.lectura ? d.lectura.leyeron + ' de ' + d.lectura.deben : ''] : []);
+  }));
+  OF.xlsx('ECOVSA_Listado_maestro_' + MK.hoy + '.xlsx', 'Listado maestro', filas, [11, 46, 20, 18, 8, 9, 14, 30, 22, 10]);
+}
+
+/* Informe de avance en Word: foto del día. Lleva «Informe de avance», sin código:
+   no es un documento controlado del sistema. */
+function calInforme(btn) {
+  MK.ocupado(btn, true, 'Armando…');
+  MK.llamar('api_calInforme').then(function (r) {
+    MK.ocupado(btn, false);
+    var W = OF.W, AZ = '14306B', GR = '5B6880', h = '';
+    var A = r.avance, K = r.conteos, act = r.etapas.filter(function (e) { return !e.hecha; })[0];
+    var fecha = MK.fechaLarga(r.hoy).replace(/^./, function (c) { return c.toUpperCase(); });
+    h += W.p([['ECOVSA', { b: true, color: AZ, sz: 30 }], ['   ·   Ecología · Vida · Salud', { color: '86B62C', sz: 16, b: true }]], { despues: 40 });
+    h += W.p('Informe de avance · Camino a la certificación ISO 9001', { b: true, sz: 34, color: '0F2140', despues: 40, borde: '86B62C' });
+    h += W.p(fecha + ' · lo preparó ' + r.por + (r.responsable ? ' · responsable de calidad: ' + r.responsable : ''), { color: GR, sz: 18, despues: 240 });
+    h += W.p('Es una foto del día: lo que muestra el sistema hoy. No es un documento controlado.', { i: true, color: GR, sz: 17, despues: 200 });
+    /* 1. Dónde estamos */
+    h += W.p('1. Dónde estamos', { b: true, sz: 26, color: AZ, antes: 120, despues: 100 });
+    h += W.tabla([
+      [{ t: 'Meta', b: true, fondo: 'EEF2F7' }, r.meta.texto + ' · ' + mesTx(r.meta.mes)],
+      [{ t: 'Camino recorrido', b: true, fondo: 'EEF2F7' }, { t: A.total + ' %', b: true, color: '2F6B0A', sz: 22 }],
+      [{ t: 'Etapa actual', b: true, fondo: 'EEF2F7' }, act ? act.nombre + ' (' + rango(act.desde, act.hasta) + ')' + (act.atrasada ? ' · atrasada' : '') : 'Todas las etapas están hechas'],
+      [{ t: 'Etapas hechas', b: true, fondo: 'EEF2F7' }, A.etapasHechas + ' de ' + A.etapasTotal],
+      [{ t: 'Documentos listos', b: true, fondo: 'EEF2F7' }, K.listos + ' de ' + K.total + ' · ' + K.vigente + ' vigentes, ' + K.sistema + ' en el sistema, ' + K.externo + ' externos'],
+      [{ t: 'Por hacer', b: true, fondo: 'EEF2F7' }, K.por_aprobar + ' por aprobar · ' + K.borrador + ' en borrador · ' + K.falta + ' por crear']
+    ], [2800, 7280]);
+    h += W.p('El % sale solo: la mitad por las etapas hechas y la mitad por los documentos listos (vigentes, en el sistema o externos).', { color: GR, sz: 16, antes: 60, despues: 160 });
+    /* 2. La ruta */
+    h += W.p('2. La ruta', { b: true, sz: 26, color: AZ, antes: 120, despues: 100 });
+    h += W.tabla([['#', 'Etapa', 'Cuándo', 'Cómo va', 'Avance']].concat(r.etapas.map(function (e, k) {
+      var est = e.hecha ? { t: 'Hecha', color: '2F6B0A', b: true } : e.atrasada ? { t: 'Atrasada', color: 'B07800', b: true } : !e.hecha && act && act.id === e.id ? { t: 'En curso', color: AZ, b: true } : 'Por venir';
+      return [String(k + 1), e.nombre, rango(e.desde, e.hasta), est, e.avance + ' %'];
+    })), [500, 3900, 2300, 1900, 1480], true);
+    /* 3. Los documentos */
+    h += W.p('3. Los documentos (listado maestro F-CAL-03)', { b: true, sz: 26, color: AZ, antes: 240, despues: 100 });
+    h += W.p('Código: TIPO-ÁREA-NÚMERO. Un documento lleva un solo código, los números no se reutilizan y lo viejo queda obsoleto, no se borra.', { color: GR, sz: 17, despues: 100 });
+    var filas = [['Código', 'Documento', 'Versión', 'Cómo está']];
+    ['VEN', 'LOG', 'PLA', 'ADM', 'CAL', 'EXT'].forEach(function (a) {
+      var L = r.docs.filter(function (d) { return d.area === a; }).sort(function (x, y) { return calOrden(x) < calOrden(y) ? -1 : 1; });
+      if (!L.length) return;
+      filas.push([{ t: CAL_AREAS[a] + (a !== 'EXT' ? ' (' + a + ')' : ''), b: true, fondo: 'EEF2F7', color: AZ, span: 4 }, null, null, null]);
+      L.forEach(function (d) {
+        var e = (CAL_EST[d.estado] || [d.estado])[0], col = CAL_LISTO[d.estado] ? '2F6B0A' : d.estado === 'falta' ? 'C0392B' : d.estado === 'por_aprobar' ? 'B07800' : GR;
+        filas.push([{ t: d.codigo, b: true }, d.nombre, d.estado === 'falta' ? '—' : 'v' + d.version + (d.mes ? ' / ' + d.mes : ''), { t: e, color: col, b: !CAL_LISTO[d.estado] }]);
+      });
+    });
+    h += W.tabla(filas, [1500, 5300, 1500, 1780], true);
+    /* 4. Lo que falta */
+    h += W.p('4. Lo que falta', { b: true, sz: 26, color: AZ, antes: 240, despues: 100 });
+    r.etapas.forEach(function (e) {
+      var d = (e.docs || []).filter(function (x) { return !x.listo; }), t = (e.tareas || []).filter(function (x) { return !x.hecha; });
+      if (!d.length && !t.length) return;
+      h += W.p(e.nombre + ' · ' + rango(e.desde, e.hasta), { b: true, sz: 20, color: '0F2140', antes: 100, despues: 40 });
+      d.forEach(function (x) { h += W.p([['☐  ', {}], [x.codigo + ' ', { b: true }], [x.nombre + ' — ' + (CAL_EST[x.estado] || [x.estado])[0].toLowerCase(), {}]], { sz: 19, despues: 30 }); });
+      t.forEach(function (x) { h += W.p([['☐  ', {}], [x.texto, {}], [x.responsable ? ' · ' + x.responsable : '', { color: GR }]], { sz: 19, despues: 30 }); });
+    });
+    var sueltos = r.docs.filter(function (d) { return !CAL_LISTO[d.estado] && !r.etapas.some(function (e) { return (e.docs || []).some(function (x) { return x.codigo === d.codigo; }); }); });
+    if (sueltos.length) {
+      h += W.p('Otros documentos que no están listos', { b: true, sz: 20, color: '0F2140', antes: 100, despues: 40 });
+      sueltos.forEach(function (x) { h += W.p([['☐  ', {}], [x.codigo + ' ', { b: true }], [x.nombre + ' — ' + (CAL_EST[x.estado] || [x.estado])[0].toLowerCase(), {}]], { sz: 19, despues: 30 }); });
+    }
+    h += W.p('ECOTERMO DE PANAMA S.A. · ECOVSA', { color: GR, sz: 16, antes: 300, centro: true });
+    OF.docx('ECOVSA_Informe_de_avance_ISO_9001_' + r.hoy + '.docx', h, 'ECOVSA · Informe de avance · ' + MK.dmy(r.hoy));
+  }, function () { MK.ocupado(btn, false); });
 }
 /* ═══ api 3.16 · Satisfacción del cliente (F-VEN-07 · cláusula 9.1.2) ═══ */
 var SAT = null, SAT_PER = 'tri';
@@ -124,10 +821,19 @@ MK.iniciar({
     { g: 'DOCUMENTOS' }, { id: 'doc', n: 'Documentos', i: 'libro' }, { id: 'frm', n: 'Formularios', i: 'documento' },
     { g: 'MEJORA' }, { id: 'nc', n: 'No conformidades', i: 'alerta' }, { id: 'rie', n: 'Riesgos y oportunidades', i: 'escudo' }, { id: 'aud', n: 'Auditorías', i: 'check' },
     { g: 'DESEMPEÑO' }, { id: 'obj', n: 'Objetivos e indicadores', i: 'tendencia' }, { id: 'sat', n: 'Satisfacción del cliente', i: 'grafico' }, { id: 'rev', n: 'Revisión por la dirección', i: 'brujula' },
-    { g: 'APOYO' }, { id: 'cap', n: 'Capacitación', i: 'personas' }, { id: 'prov', n: 'Proveedores', i: 'carrito' }, { id: 'equ', n: 'Equipos de medición', i: 'balanza' }
+    { g: 'APOYO' }, { id: 'cap', n: 'Capacitación', i: 'personas' }, { id: 'prov', n: 'Proveedores', i: 'carrito' }, { id: 'equ', n: 'Equipos de medición', i: 'balanza' },
+    { g: 'AJUSTES' }, { id: 'aju', n: 'Quién ve qué', i: 'candado' }
   ],
   pieMenu: '<a href="index.html">← Volver a los módulos</a>',
-  pintar: function (id) { document.getElementById('main').innerHTML = id === 'ini' ? pIni() : id === 'sat' ? pSat() : pSec(id); }
+  /* Ajustes solo aparece en el menú del administrador; «Por leer» lleva su número */
+  alCargar: function (b) {
+    var c = (b && b.cal) || {}, P = c.puede || {};
+    if (!P.ajustes) MK.op.paginas = MK.op.paginas.filter(function (p) { return p.id !== 'aju' && p.g !== 'AJUSTES'; });
+    MK.contadores.ini = (c.toca || []).length ? { n: c.toca.length, t: 'am' } : null;
+  },
+  pintar: function (id) {
+    document.getElementById('main').innerHTML = id === 'ini' ? pIni() : id === 'doc' ? pDoc() : id === 'aju' ? pAju() : id === 'sat' ? pSat() : pSec(id);
+  }
 });
 </script>
 </body>
