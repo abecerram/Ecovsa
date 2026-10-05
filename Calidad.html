@@ -60,6 +60,8 @@
 .sv-l{max-height:46vh;overflow:auto;border:1px solid var(--line2);border-radius:10px;margin-top:10px}
 .sv-l .f{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 10px;border-top:1px solid var(--line2);font-size:12.5px}.sv-l .f:first-child{border-top:0}
 .sv-l .f small{display:block;color:var(--muted);font-size:11px}
+.prev{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#525659;margin-bottom:12px}.prev iframe{display:block;width:100%;height:62vh;border:0;background:#fff}.prev>.cargando,.prev>.vacio{background:#fff}.prev>.small{background:#fff;padding:6px 10px;margin:0!important}
+@media(max-width:700px){.prev{background:none;border:0}}
 .q5 .f{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 40px;gap:10px;align-items:center;padding:8px 0;font-size:12.5px;border-top:1px solid var(--line2)}.q5 .f:first-child{border-top:0}
 .q5 .f small{display:block;color:var(--muted);font-size:11px}.q5 .st{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line2)}.q5 .st i{display:block;height:100%}
 .nuevo{font-size:10px;font-weight:800;background:var(--amber);color:#3d2a00;border-radius:5px;padding:1px 6px;margin-left:6px;letter-spacing:.3px}
@@ -115,10 +117,38 @@ function calRecargar() { DOCS = null; return MK.recargar(); }
 function calAbrir(codigo, clase, versionId) {
   var w = null; try { w = window.open('', '_blank'); if (w) w.document.write('<p style="font:15px Archivo,sans-serif;padding:20px;color:#14306b">Abriendo ' + MK.esc(codigo) + '…</p>'); } catch (e) { w = null; }
   MK.llamar('api_calVer', codigo, clase || 'pdf', versionId || '').then(function (r) {
-    if (clase === 'editable') { if (w) w.close(); var a = document.createElement('a'); a.href = r.url; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove(); return; }
     if (w) w.location.href = r.url; else location.href = r.url;
   }, function () { if (w) w.close(); });
 }
+/* Descargar (PDF o Word/Excel) con su nombre: código, versión y título */
+function calBajar(codigo, clase, versionId, btn) {
+  if (btn) MK.ocupado(btn, true, 'Preparando…');
+  MK.llamar('api_calVer', codigo, clase || 'pdf', versionId || '', true).then(function (r) {
+    if (btn) MK.ocupado(btn, false);
+    var a = document.createElement('a'); a.href = r.url; a.download = r.nombre; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+  }, function () { if (btn) MK.ocupado(btn, false); });
+}
+/* Dónde vive cada formato que se llena o se imprime desde el sistema («Ver dónde vive») */
+var CAL_DONDE = {
+  'F-VEN-01': ['Mercadeo › Oportunidades', 'MerOportunidades.html'], 'F-VEN-02': ['Mercadeo › Propuestas y contratos', 'MerDocumentos.html'],
+  'F-VEN-03': ['Mercadeo › Propuestas y contratos', 'MerDocumentos.html'], 'F-VEN-04': ['Mercadeo › Certificados y distintivos', 'MerEntregables.html'],
+  'F-VEN-05': ['Mercadeo › Clientes', 'MerClientes.html'], 'F-VEN-06': ['Logística › Inspecciones técnicas', 'Index.html'],
+  'F-VEN-07': ['Mercadeo › Encuestas', 'MerEncuestas.html'], 'F-VEN-08': ['Mercadeo › Certificados y distintivos', 'MerEntregables.html'],
+  'F-VEN-09': ['Configuración › Portal de clientes', 'Configuracion.html'],
+  'F-LOG-01': ['Logística › Recibos', 'Index.html'], 'F-LOG-02': ['Planta › Cuarentena y despacho', 'Planta.html#cua'],
+  'F-LOG-03': ['Logística › Reportar una incidencia (celular del conductor)', 'Index.html'], 'F-LOG-04': ['Logística › Jornada y Flota', 'Index.html'],
+  'F-LOG-05': ['Logística › Jornada y Flota › Fallas de la flota', 'Index.html'], 'F-LOG-06': ['Logística › Jornada y Flota', 'Index.html'],
+  'F-LOG-07': ['Logística › Combustible', 'Index.html'],
+  'F-PLA-01': ['Planta › Recepción · actas', 'Planta.html#rec'], 'F-PLA-02': ['Planta › Recepción · actas', 'Planta.html#rec'],
+  'F-PLA-03': ['Planta › Reporte mensual', 'Planta.html#rep'], 'F-PLA-04': ['Planta › Tratamiento · ciclos', 'Planta.html#tra'],
+  'F-PLA-05': ['Planta › Verificación biológica', 'Planta.html#bio'], 'F-PLA-06': ['Planta › Mantenimiento de equipos', 'Planta.html#mto'],
+  'F-PLA-07': ['Planta › Consumibles', 'Planta.html#con'],
+  'F-ADM-01': ['Finanzas › Solicitudes de pago', 'Finanzas.html'], 'F-ADM-02': ['Finanzas › Caja menuda', 'Finanzas.html'],
+  'F-ADM-03': ['Planta y Logística › Requisiciones', 'Planta.html#req'], 'F-ADM-04': ['Cobros › Seguimientos', 'Cobros.html#seg'],
+  'F-ADM-05': ['Cobros › Cartera', 'Cobros.html#cartera'],
+  'F-CAL-01': ['Certificados', 'Certificado.html'], 'F-CAL-02': ['Mercadeo › Informe al MINSA', 'MerMinsa.html']
+};
+function calDonde(codigo) { var x = CAL_DONDE[codigo]; if (x) window.open(x[1], '_blank'); }
 
 /* ═══ Inicio: la guía hacia la certificación ═══ */
 function pIni() {
@@ -354,14 +384,19 @@ function calFicha(codigo) {
     var d = r.doc, P = r.puede;
     var h = '<div class="sub" style="margin-top:-2px"><b style="color:var(--ink);font-size:15px">' + MK.esc(d.nombre) + '</b><br>' + MK.esc(CAL_TIPOS[d.tipo] || '') + ' · ' + MK.esc(CAL_AREAS[d.area] || '') +
       (d.estado !== 'falta' ? ' · versión ' + d.version + (d.mes ? ' / ' + MK.esc(d.mes) : '') : '') + '</div>';
-    h += '<div class="row w" style="margin-bottom:12px;align-items:center">' + estTag(d.estado) +
-      (d.hayPdf && (CAL_LISTO[d.estado] || P.falta || P.subir || P.area) ? '<button class="btn pri" onclick="calAbrir(\'' + d.codigo + '\',\'pdf\')">' + MK.ic('ojo', 15) + ' Leer el PDF</button>' : '') +
+    var vePdf = d.hayPdf && (CAL_LISTO[d.estado] || P.falta || P.subir || P.area), bajaEdi = d.hayEditable && (P.subir || d.bajaEditable), donde = CAL_DONDE[d.codigo];
+    h += '<div class="row w" style="margin-bottom:10px;align-items:center">' + estTag(d.estado) +
       (d.debeLeer && !d.leido ? '<button class="btn ok" onclick="calLeido(\'' + d.codigo + '\',this)">' + MK.ic('check', 15) + ' Leído y entendido</button>' : '') +
-      (d.debeLeer && d.leido ? MK.tag('Usted ya lo leyó', 'ok') : '') +
-      (P.subir && d.hayEditable ? '<button class="btn" onclick="calAbrir(\'' + d.codigo + '\',\'editable\')">' + MK.ic('bajar', 15) + ' Bajar el editable</button>' : '') + '</div>';
+      (d.debeLeer && d.leido ? MK.tag('Usted ya lo leyó', 'ok') : '') + '</div>';
+    if (vePdf || bajaEdi || donde) h += '<div class="row w" style="margin-bottom:12px">' +
+      (vePdf ? '<button class="btn pri" onclick="calBajar(\'' + d.codigo + '\',\'pdf\',\'\',this)">' + MK.ic('bajar', 15) + ' Descargar PDF</button>' : '') +
+      (bajaEdi ? '<button class="btn" onclick="calBajar(\'' + d.codigo + '\',\'editable\',\'\',this)">' + MK.ic('bajar', 15) + (d.tipo === 'F' ? ' Formato en blanco (Word o Excel)' : ' Bajar el editable') + '</button>' : '') +
+      (donde ? '<button class="btn gh" onclick="calDonde(\'' + d.codigo + '\')">' + MK.ic('enlace', 15) + ' Ver dónde vive</button>' : '') + '</div>';
     if (P.subir) h += '<div class="row w" style="margin-bottom:12px">' + (d.estado !== 'obsoleto' ? '<button class="btn" onclick="calSubirVersion(\'' + d.codigo + '\')">' + MK.ic('subir', 15) + ' Subir archivo</button>' : '') +
       '<button class="btn gh" onclick="calEditarDoc(\'' + d.codigo + '\')">' + MK.ic('lapiz', 15) + ' Cambiar la ficha</button></div>';
-    if (d.estado === 'sistema') h += '<div class="aviso az" style="margin-bottom:12px">Este formato se llena o se imprime desde el sistema con su código. Si sube un PDF, queda como muestra para consultar.</div>';
+    if (d.estado === 'sistema') h += '<div class="aviso az" style="margin-bottom:12px">Este formato se llena o se imprime desde el sistema' + (donde ? ' en <b>' + MK.esc(donde[0]) + '</b>' : '') + '. ' + (d.hayPdf ? 'Aquí se ve una muestra con datos ficticios.' : 'Todavía no tiene su muestra en PDF.') + '</div>';
+    /* vista previa: el PDF vigente se ve aquí mismo (en el celular, botón para abrirlo) */
+    if (vePdf) h += '<div class="prev" id="cf-prev"><div class="cargando">Cargando la vista previa…</div></div>';
     if (d.enPreparacion) h += '<div class="aviso am" style="margin-bottom:12px">Hay una versión nueva en preparación. El equipo sigue viendo la vigente hasta que se publique.</div>';
     if (d.estado === 'obsoleto' && d.motivoObsoleto) h += '<div class="aviso rj" style="margin-bottom:12px">Obsoleto: ' + MK.esc(d.motivoObsoleto) + '</div>';
     var et = (C().etapas || []).filter(function (e) { return e.id === d.etapa; })[0];
@@ -383,11 +418,23 @@ function calFicha(codigo) {
       var et2 = { vigente: 'Vigente', obsoleto: 'Obsoleta', borrador: 'Borrador', reemplazado: 'Reemplazado' }[v.estado] || v.estado;
       return '<div class="vs"><div class="h"><b>Versión ' + v.version + (v.mes ? ' / ' + MK.esc(v.mes) : '') + '</b>' + MK.tag(et2, tono) + '<span class="sp" style="flex:1"></span>' +
         (v.hayPdf ? '<button class="btn sm" onclick="calAbrir(\'' + d.codigo + '\',\'pdf\',\'' + v.versionId + '\')">PDF</button>' : '') +
-        (P.subir && v.hayEditable ? '<button class="btn sm" onclick="calAbrir(\'' + d.codigo + '\',\'editable\',\'' + v.versionId + '\')">Editable</button>' : '') + '</div>' +
+        (P.subir && v.hayEditable ? '<button class="btn sm" onclick="calBajar(\'' + d.codigo + '\',\'editable\',\'' + v.versionId + '\',this)">Editable</button>' : '') + '</div>' +
         '<p>Subió ' + MK.esc(v.subidoPor) + ' · ' + MK.esc(v.subidoEn) + (v.obsoletoEn ? ' · obsoleta desde ' + MK.esc(v.obsoletoEn.slice(0, 10)) : '') + (v.nota ? '<br>«' + MK.esc(v.nota) + '»' : '') + '</p></div>';
     }).join('') : MK.vacio('Todavía no se ha subido ningún archivo.')) + '</div>';
     el.innerHTML = h;
+    if (vePdf) calVistaPrevia(d.codigo);
   }, function () { var el = document.getElementById('cf-c'); if (el) el.innerHTML = MK.vacio('No se pudo abrir.'); });
+}
+function calVistaPrevia(codigo) {
+  var el = document.getElementById('cf-prev'); if (!el) return;
+  if (window.matchMedia && window.matchMedia('(max-width: 700px)').matches) {
+    el.innerHTML = '<button class="btn w" onclick="calAbrir(\'' + codigo + '\',\'pdf\')">' + MK.ic('ojo', 15) + ' Ver el PDF</button>'; return;
+  }
+  MK.api('api_calVer', MK.pinUso(), codigo, 'pdf', '').then(function (r) {
+    var e2 = document.getElementById('cf-prev'); if (!e2) return;
+    if (!r || !r.ok) { e2.innerHTML = MK.vacio((r && r.error) || 'No se pudo cargar la vista previa.'); return; }
+    e2.innerHTML = '<iframe src="' + MK.esc(r.url) + '#view=FitH" title="Vista previa de ' + MK.esc(codigo) + '"></iframe><div class="small muted" style="margin-top:4px">¿No se ve? <a href="#" onclick="calAbrir(\'' + codigo + '\',\'pdf\');return false">Ábralo en otra pestaña</a>.</div>';
+  }, function () { var e2 = document.getElementById('cf-prev'); if (e2) e2.innerHTML = MK.vacio('Sin conexión.'); });
 }
 function calLectoresTx(l) {
   l = String(l || ''); if (!l) return 'Se consulta cuando hace falta';
@@ -520,12 +567,12 @@ function calSvLeer(files) {
   });
   SV.grupos = Object.keys(porCod).sort().map(function (c) {
     var g = porCod[c], e = g.doc.estado;
-    g.estado = (e === 'por_aprobar' || e === 'borrador') ? e : 'borrador';   /* nunca publica solo: lo vigente se publica uno por uno */
+    g.estado = (e === 'por_aprobar' || e === 'borrador') ? e : (e === 'sistema' || e === 'externo') && g.pdf ? 'vigente' : 'borrador';   /* las muestras del sistema y los externos se publican; lo demás entra como borrador */
     return g;
   });
   var tx = { borrador: 'En borrador', por_aprobar: 'Por aprobar', vigente: 'Vigente' };
   document.getElementById('sv-l').innerHTML = (SV.grupos.length ? '<div class="sv-l">' + SV.grupos.map(function (g, i) {
-    return '<div class="f" id="sv-f' + i + '"><span class="cod">' + g.codigo + '</span><span>' + MK.esc(g.doc.nombre) + '<small>' + [g.pdf ? 'PDF' : '', g.editable ? 'editable' : ''].filter(Boolean).join(' + ') + ' · queda: ' + tx[g.estado] + '</small></span><span class="st">' + MK.tag('Listo para subir', 'gris') + '</span></div>';
+    return '<div class="f" id="sv-f' + i + '"><span class="cod">' + g.codigo + '</span><span>' + MK.esc(g.doc.nombre) + '<small>' + [g.pdf ? 'PDF' : '', g.editable ? 'editable' : ''].filter(Boolean).join(' + ') + ' · queda: ' + (g.doc.estado === 'sistema' ? 'muestra a la vista de todos' : g.doc.estado === 'externo' ? 'copia a la vista de todos' : tx[g.estado]) + '</small></span><span class="st">' + MK.tag('Listo para subir', 'gris') + '</span></div>';
   }).join('') + '</div>' : '') +
     (sobran.length ? '<div class="aviso am" style="margin-top:10px"><b>' + sobran.length + ' archivo' + (sobran.length === 1 ? '' : 's') + ' no se van a subir:</b><br>' + sobran.map(function (s) { return MK.esc(s[0]) + ' — ' + MK.esc(s[1]); }).join('<br>') + '</div>' : '');
   document.getElementById('sv-ok').disabled = !SV.grupos.length;
