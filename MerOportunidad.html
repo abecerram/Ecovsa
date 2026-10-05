@@ -1848,9 +1848,13 @@
       MK.llamar('api_revisarContrato', MK.pin, COD).then(function (r) {
         var url = 'Contrato.html?cod=' + encodeURIComponent(COD);
         if (r.listo) {
+          var puedeAct = !GER && !cerrada() && String((OP && OP['doc contrato firmado']) || '').toUpperCase() !== 'SI';   // api 3.25
           MK.hoja('<h2>El contrato está completo</h2><p class="small muted" style="margin-top:6px">Tiene los ' + REQ.length + ' datos y los 5 documentos que pide. Se abre listo para imprimir y firmar.</p>' +
-            '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><a class="btn pri" id="ct-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
+            (puedeAct ? '<p class="small muted" style="margin-top:8px">¿Cambiaste el texto en Plantillas y ajustes o algún dato de la ficha? Un contrato ya generado sigue con lo de antes hasta que lo actualices.</p>' : '') +
+            '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button>' + (puedeAct ? '<button class="btn" id="ct-act">Actualizar al texto vigente</button>' : '') +
+            '<a class="btn pri" id="ct-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
           $('ct-abrir').onclick = function () { MK.cerrarHoja(); };
+          if ($('ct-act')) $('ct-act').onclick = function () { actualizarContrato(this, url); };
           return;
         }
         var g = r.faltan || {};
@@ -1863,6 +1867,36 @@
         };
       }, function () {});
     });
+  }
+
+  /* api 3.25 · vuelve a tomar el texto del contrato (mismo número; solo si no está firmado) */
+  function actualizarContrato(btn, url) {
+    MK.ocupado(btn, true, 'Revisando…');
+    MK.llamar('api_actualizarTextoContrato', MK.pin, COD, false).then(function (r) {
+      MK.ocupado(btn, false);
+      if (r.sinFoto || r.sinCambios) {
+        MK.hoja('<h2>' + (r.sinFoto ? 'Este contrato todavía no se ha generado' : 'El contrato ya está al día') + '</h2><p class="small muted" style="margin-top:6px">' +
+          (r.sinFoto ? 'Al abrirlo por primera vez sale con el texto vigente.' : 'Tiene el mismo texto que Plantillas y ajustes y los datos de la ficha. No hay nada que actualizar.') + '</p>' +
+          '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><a class="btn pri" id="ca-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
+        $('ca-abrir').onclick = function () { MK.cerrarHoja(); };
+        return;
+      }
+      MK.hoja('<h2>Actualizar el contrato ' + E(r.nContrato || '') + '</h2>' +
+        '<p class="small muted" style="margin-top:6px">Se generó el ' + E(r.tomadaEn ? MK.fechaLarga(String(r.tomadaEn).slice(0, 10)) : '—') + ' (versión ' + E(r.version) + '). Con el texto vigente cambia:</p>' +
+        '<ul style="margin:8px 0 0 18px;font-size:13px">' + r.cambios.map(function (c) { return '<li>' + E(c) + '</li>'; }).join('') + '</ul>' +
+        '<div class="aviso am" style="margin-top:12px">Conserva el mismo número. Si ya imprimiste o enviaste el contrato, vuelve a imprimirlo: el anterior deja de valer. La versión anterior queda en el historial de Plantillas y ajustes.</div>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ca-ok">Actualizar</button></div>');
+      $('ca-ok').onclick = function () {
+        var b = this; MK.ocupado(b, true, 'Actualizando…');
+        MK.llamar('api_actualizarTextoContrato', MK.pin, COD, true).then(function (x) {
+          MK.ocupado(b, false);
+          MK.hoja('<h2>Contrato actualizado ✓</h2><p class="small muted" style="margin-top:6px">' + E(x.nContrato || '') + ' ahora va en la versión ' + E(x.version) + ', con el texto vigente.</p>' +
+            '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><a class="btn pri" id="ca-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
+          $('ca-abrir').onclick = function () { MK.cerrarHoja(); };
+          MK.cambio({ tipo: 'contrato' });
+        }, function () { MK.ocupado(b, false); });
+      };
+    }, function () { MK.ocupado(btn, false); });
   }
 
   /* ═════════ inspección ═════════ */
@@ -2108,7 +2142,7 @@
       '<label class="lb">CANAL</label>' + MK.chips('canal', [['correo', IC('correo', 14) + ' Correo'], ['whatsapp', IC('whatsapp', 14) + ' WhatsApp'], ['entregado', 'En mano']], 'correo') +
       '<label class="lb" for="ep-a">ENVIADA A</label>' + selectContactos('ep-a', 'correo') +
       '<label class="lb" for="ep-v">VÁLIDA HASTA</label><input class="in" type="date" id="ep-v" value="' + MK.masDias(MK.hoy, Number(v('validez propuesta') || 30)) + '">' +
-      (prev ? '<label class="chk" style="margin-top:12px"><input type="checkbox" id="ep-nv"> Es una versión nueva (cambió el precio o las notas) · hoy va en v' + prev.version + '</label>' : '') +
+      (prev ? '<label class="chk" style="margin-top:12px"><input type="checkbox" id="ep-nv"> Es una versión nueva (cambió el precio, las notas o el texto) · hoy va en v' + prev.version + '</label>' : '') +
       (iA >= 0 && iA < 3 ? '<div class="aviso az" style="margin-top:10px">La etapa pasa sola a «Propuesta enviada».</div>' : '') +
       (D.enlace && D.enlace.propuestaEnlace ? '<div class="aviso vd" style="margin-top:10px">Al anotarlo, el cliente también la ve en su enlace y puede aceptarla, rechazarla o dejarla para más adelante hasta la fecha de vigencia.</div>' : '') +
       (hayCambios() ? '<div class="aviso am" style="margin-top:10px">Primero se guardan tus cambios de la ficha.</div>' : '') +
