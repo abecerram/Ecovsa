@@ -88,13 +88,65 @@ li{margin-bottom:6px}
     <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
     <div class="ti">Contrato de servicio</div>
     <span id="notaBarra" style="display:none"></span>
+    <button id="btnAct" hidden onclick="actAbrir()" title="Volver a tomar el texto vigente de Plantillas y ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg><span>Actualizar texto</span></button>
     <button class="db-wa" onclick="compartirDoc()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>
     <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
+<!-- api 3.25.1 · actualizar el contrato al texto vigente (no se imprime) -->
+<div id="actFondo" class="no-imprimir" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(15,33,64,.45);align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.25);font:14px/1.5 Archivo,system-ui,sans-serif;color:#1b2430">
+    <div id="actCuerpo"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button onclick="actCerrar()" style="font:700 13px Archivo,system-ui;border:1px solid #cfd8e3;background:#fff;color:#14306b;border-radius:9px;padding:8px 14px;cursor:pointer">Cancelar</button>
+      <button id="actOk" onclick="actConfirmar()" style="font:700 13px Archivo,system-ui;border:0;background:#14306b;color:#fff;border-radius:9px;padding:8px 14px;cursor:pointer">Actualizar</button>
+    </div>
+  </div>
+</div>
+
 <script>
+/* ═══ api 3.25.1 · «Actualizar texto»: vuelve a tomar el texto vigente con el mismo número.
+   Mercadeo, supervisor y administrador; un contrato firmado solo lo rehace el administrador, con motivo.
+   El servidor vuelve a revisar todo: aquí solo se decide si se muestra el botón. */
+var ACT={pin:"",firmado:false,r:null};
+function actPreparar(r){
+  var rol=String((r.usuario&&r.usuario.rol)||"").toLowerCase(), p=r.prospecto||{};
+  ACT.firmado=["Firmado","Pasado a cartera"].indexOf(String(p.estado||"").trim())>=0 || String(p["doc contrato firmado"]||"").toUpperCase()==="SI";
+  try{ ACT.pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ ACT.pin=""; }
+  var puede=["mercadeo","supervisor","admin"].indexOf(rol)>=0 && (!ACT.firmado || rol==="admin");
+  var b=document.getElementById("btnAct"); if(b){ b.hidden=!puede; if(ACT.firmado) b.querySelector("span").textContent="Rehacer contrato"; }
+}
+function actCuerpo(h,conOk){ document.getElementById("actCuerpo").innerHTML=h; var ok=document.getElementById("actOk"); ok.style.display=conOk?"":"none"; ok.disabled=false; document.getElementById("actFondo").style.display="flex"; }
+function actCerrar(){ document.getElementById("actFondo").style.display="none"; }
+function actAbrir(){
+  actCuerpo("<b>Revisando qué cambia…</b>",false);
+  google.script.run.withSuccessHandler(function(r){
+    if(!r||!r.ok){ actCuerpo("<b>No se pudo</b><p>"+esc((r&&r.error)||"Intenta de nuevo.")+"</p>",false); return; }
+    if(r.sinFoto||r.sinCambios){ actCuerpo("<b>El contrato ya está al día</b><p style='color:#556'>Tiene el mismo texto que Plantillas y ajustes. No hay nada que actualizar.</p>",false); return; }
+    ACT.r=r;
+    actCuerpo("<div style='font-size:17px;font-weight:800'>"+(r.firmado?"Rehacer":"Actualizar")+" el contrato "+esc(r.nContrato||"")+"</div>"+
+      "<p style='color:#556;margin:6px 0 0'>Versión "+esc(r.version)+(r.tomadaEn?" · tomada el "+esc(String(r.tomadaEn).slice(0,10)):"")+". Con el texto vigente cambia:</p>"+
+      "<ul style='margin:8px 0 0 18px'>"+r.cambios.map(function(c){ return "<li>"+esc(c)+"</li>"; }).join("")+"</ul>"+
+      (r.firmado?"<div style='background:#FDECEC;color:#8a1c1c;border-radius:9px;padding:9px 11px;margin-top:12px;font-size:13px'>Este contrato está <b>firmado</b>: el que firmó el cliente deja de coincidir con el sistema y habrá que firmar el nuevo.</div>"+
+        "<label style='display:block;font-size:11.5px;font-weight:700;letter-spacing:.04em;margin-top:10px'>MOTIVO (OBLIGATORIO)</label><textarea id='actMot' style='width:100%;min-height:64px;border:1.5px solid #cfd8e3;border-radius:9px;padding:8px;font:inherit'></textarea>":"")+
+      "<div id='actMsg' style='color:#b3261e;font-size:13px;margin-top:6px'></div>"+
+      "<div style='background:#FFF3D1;color:#6b5000;border-radius:9px;padding:9px 11px;margin-top:10px;font-size:13px'>Conserva el mismo número. Si ya lo imprimiste o lo enviaste, vuelve a imprimirlo. La versión anterior queda en el historial de Plantillas y ajustes.</div>",true);
+  }).withFailureHandler(function(){ actCuerpo("<b>Sin conexión</b><p>Intenta de nuevo.</p>",false); }).api_actualizarTextoContrato(ACT.pin, COD, false);
+}
+function actConfirmar(){
+  var r=ACT.r, m=document.getElementById("actMot"), mot=m?m.value.trim():"";
+  if(r&&r.firmado&&mot.length<5){ document.getElementById("actMsg").textContent="Escribe el motivo."; return; }
+  var ok=document.getElementById("actOk"); ok.disabled=true; ok.textContent="Actualizando…";
+  google.script.run.withSuccessHandler(function(x){
+    ok.textContent="Actualizar";
+    if(!x||!x.ok){ ok.disabled=false; document.getElementById("actMsg").textContent=(x&&x.error)||"No se pudo."; return; }
+    actCerrar(); location.reload();
+  }).withFailureHandler(function(){ ok.disabled=false; ok.textContent="Actualizar"; document.getElementById("actMsg").textContent="Sin conexión. Intenta de nuevo."; })
+    .api_actualizarTextoContrato(ACT.pin, COD, true, mot);
+}
+
 /* api 3.5.1: mandar el enlace de este documento por WhatsApp */
 function compartirDoc(){ var t = document.title + '\n' + location.href; window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank'); }
 var LOGO="logo-ecovsa.png";
@@ -207,6 +259,7 @@ function seguir(cod){
       if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo cargar.")); return; }
       if(r.empresa) DATOS_EMP=r.empresa;
       pintar(r.prospecto, r);
+      actPreparar(r);
       $("aviso").style.display="none"; $("app").style.display="block";
     })
     .withFailureHandler(function(){ aviso("Sin conexión."); })
