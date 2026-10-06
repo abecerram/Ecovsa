@@ -1848,10 +1848,11 @@
       MK.llamar('api_revisarContrato', MK.pin, COD).then(function (r) {
         var url = 'Contrato.html?cod=' + encodeURIComponent(COD);
         if (r.listo) {
-          var puedeAct = !GER && !cerrada() && String((OP && OP['doc contrato firmado']) || '').toUpperCase() !== 'SI';   // api 3.25
+          var firm = cerrada() || String((OP && OP['doc contrato firmado']) || '').toUpperCase() === 'SI';
+          var puedeAct = !GER && (!firm || ROL === 'admin');   // api 3.25.1: firmado → solo el administrador, con motivo
           MK.hoja('<h2>El contrato está completo</h2><p class="small muted" style="margin-top:6px">Tiene los ' + REQ.length + ' datos y los 5 documentos que pide. Se abre listo para imprimir y firmar.</p>' +
-            (puedeAct ? '<p class="small muted" style="margin-top:8px">¿Cambiaste el texto en Plantillas y ajustes o algún dato de la ficha? Un contrato ya generado sigue con lo de antes hasta que lo actualices.</p>' : '') +
-            '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button>' + (puedeAct ? '<button class="btn" id="ct-act">Actualizar al texto vigente</button>' : '') +
+            (puedeAct ? '<p class="small muted" style="margin-top:8px">' + (firm ? 'Este contrato está firmado. Como administrador puedes rehacerlo con el texto vigente, escribiendo el motivo.' : '¿Cambiaste el texto en Plantillas y ajustes o algún dato de la ficha? Un contrato ya generado sigue con lo de antes hasta que lo actualices.') + '</p>' : '') +
+            '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button>' + (puedeAct ? '<button class="btn" id="ct-act">' + (firm ? 'Rehacer el contrato' : 'Actualizar al texto vigente') + '</button>' : '') +
             '<a class="btn pri" id="ct-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
           $('ct-abrir').onclick = function () { MK.cerrarHoja(); };
           if ($('ct-act')) $('ct-act').onclick = function () { actualizarContrato(this, url); };
@@ -1884,11 +1885,15 @@
       MK.hoja('<h2>Actualizar el contrato ' + E(r.nContrato || '') + '</h2>' +
         '<p class="small muted" style="margin-top:6px">Se generó el ' + E(r.tomadaEn ? MK.fechaLarga(String(r.tomadaEn).slice(0, 10)) : '—') + ' (versión ' + E(r.version) + '). Con el texto vigente cambia:</p>' +
         '<ul style="margin:8px 0 0 18px;font-size:13px">' + r.cambios.map(function (c) { return '<li>' + E(c) + '</li>'; }).join('') + '</ul>' +
+        (r.firmado ? '<div class="aviso rj" style="margin-top:12px">Este contrato está <b>firmado</b>. El que firmó el cliente deja de coincidir con el sistema: habrá que firmar el nuevo.</div>' +
+          '<label class="lb" for="ca-mot" style="margin-top:10px">MOTIVO (OBLIGATORIO)</label><textarea class="in" id="ca-mot" placeholder="Ej.: la cláusula tercera tenía un error y el cliente firmará la versión corregida"></textarea><div id="ca-msg" class="small" style="margin-top:6px;color:var(--bad)"></div>' : '') +
         '<div class="aviso am" style="margin-top:12px">Conserva el mismo número. Si ya imprimiste o enviaste el contrato, vuelve a imprimirlo: el anterior deja de valer. La versión anterior queda en el historial de Plantillas y ajustes.</div>' +
         '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ca-ok">Actualizar</button></div>');
       $('ca-ok').onclick = function () {
-        var b = this; MK.ocupado(b, true, 'Actualizando…');
-        MK.llamar('api_actualizarTextoContrato', MK.pin, COD, true).then(function (x) {
+        var b = this, mot = $('ca-mot') ? $('ca-mot').value.trim() : '';
+        if (r.firmado && mot.length < 5) { $('ca-msg').textContent = 'Escribe el motivo.'; return; }
+        MK.ocupado(b, true, 'Actualizando…');
+        MK.llamar('api_actualizarTextoContrato', MK.pin, COD, true, mot).then(function (x) {
           MK.ocupado(b, false);
           MK.hoja('<h2>Contrato actualizado ✓</h2><p class="small muted" style="margin-top:6px">' + E(x.nContrato || '') + ' ahora va en la versión ' + E(x.version) + ', con el texto vigente.</p>' +
             '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><a class="btn pri" id="ca-abrir" href="' + url + '" target="_blank" rel="noopener">' + IC('contrato', 15) + ' Abrir el contrato</a></div>');
