@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LogSolidos.js · api 3.17 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   LogSolidos.js · api 3.26 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   - api 3.26 (prueba del 8 oct): salida automática, el punto en 4 pasos con fotos de antes y después, descarga
+     en planta sin peso con cambio de destino, y la ruta en vivo en el Inicio de la oficina.
    Se carga al final de Index.html. No cambia nada de peligrosos:
    - Supervisión: pestaña «Peligrosos | Sólidos» en la barra de arriba. En
      Sólidos el menú lateral y las pantallas son las de sólidos, con las
@@ -208,6 +210,50 @@
   .sv-mv-tip.no{opacity:0}
   .sv-mv-mapa.full{position:fixed;inset:0;z-index:9000;border-radius:0}
   @media (max-width:860px){.sv-mv{grid-template-columns:1fr;height:auto}.sv-mv-lado{max-height:220px;order:2}.sv-mv-mapa{height:62vh}}
+  /* api 3.26 · el punto en 4 pasos, la descarga y la ruta en vivo */
+  #pantalla-solc label.sc-foto{text-transform:none;letter-spacing:0}
+  .p4-paso{display:flex;gap:4px;margin:0 0 10px}.p4-paso span{flex:1;height:5px;border-radius:3px;background:#dfe5ee}.p4-paso span.ok{background:#2f9e44}.p4-paso span.on{background:#14306b}
+  .jv-card.p4-act{border:2px solid #14306b}
+  .p4-cant{display:grid;grid-template-columns:minmax(0,1fr) 40px 44px 40px;gap:6px;align-items:center;padding:7px 0;border-top:1px solid #eef1f5;font-size:13px;font-weight:800}
+  .p4-cant button{height:38px;border-radius:10px;border:0;font:900 20px Archivo,sans-serif;background:#E8EEF7;color:#14306b;cursor:pointer}
+  .p4-cant b{text-align:center;font-size:18px}.p4-cant small{display:block;font-size:11px;color:#5B6880;font-weight:700}
+  .p4-ok{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#1e6b31;background:#eaf6e4;border-radius:10px;padding:9px 10px}
+  .p4-ok button{margin-left:auto;border:0;background:none;color:#14306b;font:900 12px Archivo,sans-serif;text-decoration:underline;cursor:pointer}
+  .p4-dst{display:grid;gap:8px}.p4-dst button{border:1.5px solid #D3DDEA;background:#fff;border-radius:12px;padding:11px 12px;text-align:left;font:900 14px Archivo,sans-serif;color:#0f2140;cursor:pointer}
+  .p4-dst button small{display:block;font-size:11.5px;font-weight:700;color:#5B6880}.p4-dst button.on{border-color:#14306b;background:#EEF3FB;box-shadow:inset 0 0 0 1px #14306b}
+  .vv{padding:14px 16px;margin-bottom:12px}
+  .vv-h{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.vv-h .tx{flex:1;min-width:240px}
+  .vv-h .t1{font-size:16px;font-weight:900;color:var(--ini-navy)}.vv-h .t2{font-size:12.5px;color:var(--ini-gris);font-weight:600;margin-top:3px;line-height:1.5}.vv-h .t2 b{color:#0f2140}
+  .vv-est{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+  .vv-est .big{font-size:15px;font-weight:900;color:#14306b;background:#E8F0FA;border-radius:9px;padding:5px 10px}
+  .vv-est .big.v{background:#E7F3DD;color:#2F6B0A}.vv-est .big.r{background:#FDECEA;color:#B42318}.vv-est .big.a{background:#FFF4D6;color:#8a6300}
+  .vv-est small{font-size:11.5px;color:var(--ini-gris);font-weight:700}
+  .vv-lin{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);margin:18px 0 4px}
+  .vv-lin:before{content:"";position:absolute;left:3%;right:3%;top:14px;height:4px;border-radius:3px;background:#e1e6ee}
+  .vv-lin .pt{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:0;background:none;border:0;font-family:inherit;padding:0}
+  .vv-lin .pt .c{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:900 12px Archivo,sans-serif;background:#fff;border:2.5px solid #c3cddb;color:#7a879b;position:relative;z-index:1}
+  .vv-lin .pt.h .c{background:#2f9e44;border-color:#2f9e44;color:#fff}.vv-lin .pt.s .c{background:#d64045;border-color:#d64045;color:#fff}
+  .vv-lin .pt.n .c{background:#14306b;border-color:#14306b;color:#fff;box-shadow:0 0 0 5px rgba(20,48,107,.18)}
+  .vv-lin .pt.d .c{border-radius:8px;background:#FFF4D6;border-color:#F5B301;color:#8a6300}.vv-lin .pt.d.h .c{background:#2f9e44;border-color:#2f9e44;color:#fff}
+  .vv-lin .pt b{font-size:10.5px;font-weight:800;color:#3d4a60;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vv-lin .pt small{font-size:10px;color:#8a96a8;font-weight:700;margin-top:-3px}
+  .vv-g{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;margin-top:14px}
+  @media (max-width:1100px){.vv-g{grid-template-columns:minmax(0,1fr)}.vv-lin .pt b,.vv-lin .pt small{display:none}}
+  .vv-mapa{height:320px;border-radius:14px;overflow:hidden;border:1px solid var(--ini-linea);background:#dfe9f3}
+  .vv-col{display:flex;flex-direction:column;gap:10px}
+  .vv-va{background:#fff;border:1px solid var(--ini-linea);border-left:5px solid #14306b;border-radius:14px;padding:12px 14px}
+  .vv-va .et{font-size:10.5px;font-weight:900;letter-spacing:.8px;color:#14306b;text-transform:uppercase}.vv-va .n{font-size:16px;font-weight:900;color:var(--ini-navy);margin:3px 0 2px}
+  .vv-va .z{font-size:12.5px;color:#5b6a80;font-weight:700;line-height:1.5}
+  .vv-va.u{border-left-color:#2f9e44;cursor:pointer}.vv-va.u .et{color:#2F6B0A}.vv-va.u.s{border-left-color:#d64045}.vv-va.u.s .et{color:#B42318}
+  .vv-cif{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#fff;border:1px solid var(--ini-linea);border-radius:14px;overflow:hidden}
+  .vv-cif div{padding:10px 12px;border-left:1px solid var(--ini-linea);border-top:1px solid var(--ini-linea)}
+  .vv-cif div:nth-child(3n+1){border-left:0}.vv-cif div:nth-child(-n+3){border-top:0}
+  .vv-cif b{display:block;font-size:19px;font-weight:900;color:var(--ini-navy)}.vv-cif span{font-size:11.5px;color:var(--ini-gris);font-weight:700}
+  .vv tr.pe td{color:#8a96a8}.vv tr.nx td{background:#F3F7FD}
+  .vv-pin{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:900 11px Archivo,sans-serif;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);background:#fff;color:#0f2140}
+  .vv-pin.h{background:#2f9e44;color:#fff}.vv-pin.s{background:#d64045;color:#fff}.vv-pin.n{background:#14306b;color:#fff}
+  .vv-fotos{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px}.vv-fotos figure{margin:0}
+  .vv-fotos .ph{aspect-ratio:4/3;border-radius:10px;background:#eef1f5;display:grid;place-items:center;font-size:12px;color:#8a96a8;font-weight:700;overflow:hidden}
+  .vv-fotos img{width:100%;height:100%;object-fit:cover;display:block}.vv-fotos figcaption{font-size:11.5px;color:#5b6a80;font-weight:800;margin-top:4px}
   section[id^="pantalla-s-"]{color:var(--ini-tinta)}body.es-sup section[id^="pantalla-s-"]{max-width:1320px}
   `;
   var st = document.createElement('style'); st.id = 'dso-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -397,7 +443,7 @@
     return m[h.estado] || [h.estado, 'var(--ini-gris)'];
   }
   function pintarHub(s) {
-    var I = D.ini, k = I.kpi, B = D.base;
+    var I = D.ini, k = I.kpi, B = D.base; vvAvisos(I);   /* api 3.26 */
     var nom = String((window.USUARIO && USUARIO.nombre) || '').trim().split(/\s+/)[0], hr = new Date().getHours();
     var hola = (hr < 12 ? 'Buenos días' : hr < 19 ? 'Buenas tardes' : 'Buenas noches') + (nom ? ', ' + e(nom) : '');
     var abiertas = I.noche.filter(function (h) { return h.estado !== 'cerrada' && h.estado !== 'no_sale'; }).length;
@@ -420,10 +466,11 @@
     var sinBase = !B.unidades.length || !B.clientes.length;
     pintar(s, '<div class="ini"><div class="ini-grid"><div><div class="ini-hola">' + hola + '<span>' + fLarga(I.fecha) + ' · sólidos · ' + (abiertas ? abiertas + ' ruta' + (abiertas > 1 ? 's' : '') + ' abierta' + (abiertas > 1 ? 's' : '') : 'sin rutas abiertas') + '</span></div>' +
       (sinBase ? '<div class="pl-ban a"><span>Para empezar: registra ' + (!B.unidades.length ? '<b>las unidades</b> en «Flota de sólidos»' : '') + (!B.unidades.length && !B.clientes.length ? ' y ' : '') + (!B.clientes.length ? '<b>los clientes y sus puntos de recolección</b> en «Clientes de sólidos»' : '') + '.</span><span class="sp"></span><button onclick="DSO.mostrar(\'' + (!B.unidades.length ? 's-flota' : 's-cli') + '\')">Ir →</button></div>' : '') +
-      '<div class="ini-bloque"><div class="ini-bt"><h3>Operación de hoy · en vivo</h3><button class="x" onclick="DSO.mostrar(\'s-salidas\')">Toca una ruta para ver su hoja</button></div><div class="ini-sem">' + noche + '</div></div>' +
+      vvBloque(I) + '<div class="ini-bloque"><div class="ini-bt"><h3>Operación de hoy · en vivo</h3><button class="x" onclick="DSO.mostrar(\'s-salidas\')">Toca una ruta para ver su hoja</button></div><div class="ini-sem">' + noche + '</div></div>' +
       '<div class="ini-bloque"><div class="ini-bt"><h3>Indicadores · últimos 7 días</h3></div><div class="ini-kpis">' + kp.map(function (x) { return '<button onclick="DSO.mostrar(\'' + x[3] + '\')"><b>' + x[0] + '</b><span>' + x[1] + '</span><em>' + e(x[2]) + '</em></button>'; }).join('') + '</div></div>' +
       '<div class="ini-bloque"><div class="ini-bt"><h3>Lo que viene esta semana</h3><button class="x" onclick="DSO.mostrar(\'s-agenda\')">Abrir calendario →</button></div><div class="ini-sem">' + prox + '</div></div></div>' +
       '<aside class="ini-aten"><h3>Requiere tu atención <span style="color:var(--ini-rojo)">' + (I.atencion.length || '') + '</span></h3>' + at + '</aside></div></div>');
+    vvMapas(I);   /* api 3.26 */
     contadores({ dsoSal: I.atencion.filter(function (a) { return a.ir === 'salidas' && a.tono === 'r'; }).length, dsoRel: I.atencion.filter(function (a) { return a.ir === 'relleno'; }).length,
       dsoCli: I.atencion.filter(function (a) { return a.ir === 'clientes'; }).length, dsoCaj: I.atencion.filter(function (a) { return /Caja llena/.test(a.titulo); }).length });
     if (typeof pintarMenuSup_ === 'function') pintarMenuSup_();
@@ -788,7 +835,7 @@
       (hs.length ? '<div class="sv-list">' + hs.map(function (h) {
         return '<div class="it' + (h.hojaId === D.hojaSel ? ' sel' : '') + '" onclick="DSO.salSel(\'' + e(h.hojaId) + '\')"><div class="tx"><b>' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + '</b><small>' + e(h.hojaId) + ' · ' + e(h.conductor || 'sin conductor') + (h.ayudantes.length ? ' + ' + h.ayudantes.length + ' ayudante(s)' : '') + ' · ' + h.atendidas + '/' + h.paradas.length + '</small></div>' + chipEst(h.estado) + '</div>';
       }).join('') + '</div>' : '<div class="sv-vacio"><b>No hay hojas este día</b>Se arman en «Planificar rutas».</div>') +
-      '<div class="sv-nota">El orden es el mismo de peligrosos: <b>el conductor hace la revisión</b> en su celular → <b>tú firmas la salida</b> → ruta → <b>ticket del relleno</b> → regreso y cierre.</div></div>';
+      '<div class="sv-nota">El orden: <b>el conductor hace la revisión</b> en su celular → <b>si está bien, la ruta sale sola</b> (con una falla, o si falta alguien o su EPP, decides tú) → ruta → <b>descarga</b> → regreso y cierre.</div></div>';
     var h = '<div class="cr-tt"><div><h1>Salidas y hojas de ruta</h1><div class="sub">' + fLarga(D.fecha) + ' · ' + hs.length + ' hoja' + (hs.length === 1 ? '' : 's') + (pf ? ' · ' + pf + ' espera' + (pf > 1 ? 'n' : '') + ' tu firma' : '') + '</div></div><span class="sp"></span>' +
       '<button class="pl-btn" onclick="DSO.salIr(\'' + masDias(D.fecha, -1) + '\')">◀</button><input type="date" value="' + D.fecha + '" onchange="DSO.salIr(this.value)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800;color:var(--ini-navy)"><button class="pl-btn" onclick="DSO.salIr(\'' + masDias(D.fecha, 1) + '\')">▶</button>' +
       (D.det ? '<button class="pl-btn" onclick="DSO.imprimirHoja()">🖨️ Imprimir hoja</button>' : '') + '</div>' +
@@ -803,9 +850,9 @@
     var paso = function (c, b, t) { return '<div class="p ' + c + '"><b>' + b + '</b><span>' + t + '</span></div>'; };
     var tl = paso(rv ? (rv.fallas ? 'mal' : 'ok') : (est === 'publicada' ? 'on' : 'no'), 'Revisión del camión', rv ? e(rv.por) + ' · ' + e(String(rv.en).slice(11)) + ' · ' + (rv.items.length - rv.fallas) + ' de ' + rv.items.length + ' bien · odómetro ' + N(rv.odometro) + (rv.tanque ? ' · tanque ' + e(rv.tanque) : '') : 'pendiente · la hace el conductor en su celular') +
       paso(rv ? 'ok' : 'no', 'Equipo presente', rv && rv.equipo && rv.equipo.length ? e(rv.equipo.map(function (q) { return q.nombre + (q.presente ? (q.epp ? '' : ' (sin EPP)') : ' (no vino)'); }).join(' · ')) : (ayud.length ? e(ayud.join(' · ')) : 'sin ayudantes')) +
-      paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : 'Salida firmada', fi ? e(fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') : (est === 'por_firmar' ? 'Falta tu firma' : 'pendiente')) +
+      paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
       paso(est === 'cerrada' ? 'ok' : est === 'en_ruta' ? 'on' : 'no', 'En ruta · ' + h.paradas.length + ' paradas', h.atendidas + ' de ' + h.paradas.length + ' hechas' + (h.bolsas ? ' · ' + N(h.bolsas) + ' bolsas' : '') + (h.paradas.filter(function (p) { return p.inc; }).length ? ' · ' + h.paradas.filter(function (p) { return p.inc; }).length + ' incidencia(s)' : '')) +
-      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Relleno · ticket de báscula', h.viajes.length ? h.viajes.map(function (v) { return 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
+      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + (Number(v.neto) > 0 ? N(v.neto) + ' kg' : 'peso por llegar') : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
       paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') : 'pendiente');
     var ck = rv ? rv.items.map(function (x) { return '<div class="sv-ck"><span>' + e(x.texto) + '</span>' + (x.estado === 'm' ? '<span class="sv-no">✕ falla</span>' : '<span class="sv-ok">✓ bien</span>') + '</div>'; }).join('') + (rv.nota ? '<div class="sv-nota am">' + e(rv.nota) + '</div>' : '')
       : (d.lista || []).map(function (x) { return '<div class="sv-ck"><span>' + e(x) + '</span><span style="color:#8a96a8;font-size:12px">pendiente</span></div>'; }).join('');
@@ -816,7 +863,7 @@
     else if (est === 'publicada') firma = '<div class="sv-nota">Cuando el conductor envíe la revisión del camión, aquí aparece para que firmes la salida.</div>';
     var fotosDe = function (ids) { return (ids || []).map(function (id, k) { return '<button class="sv-chip v" style="border:0;cursor:pointer" onclick="DSO.verFoto(\'' + e(id) + '\')">📷 ' + (k + 1) + '</button>'; }).join(' '); };
     var filas = h.paradas.map(function (p, i) {
-      var ev = p.llegada ? (p.inc ? '<span class="sv-chip r">' + e(p.inc) + '</span> ' : '') + fotosDe(p.fotos) : '';
+      var ev = p.llegada ? (p.inc ? '<span class="sv-chip r">' + e(p.inc) + '</span> ' : '') + fotosDe(p.fotos) + (p.recibe === 'encargado' ? ' <span class="sv-chip">✍ ' + e(p.recibeNombre) + '</span>' : p.recibe === 'nadie' ? ' <span class="sv-chip g">sin encargado</span>' : '') + ((p.otro || []).length ? ' <span class="sv-chip ro">+ ' + e(vvOtro(p)) + '</span>' : '') : '';
       var qu = p.servicio === 'caja' ? (p.cajaLevanta ? 'levantó ' + e(p.cajaLevanta) : '') + (p.cajaDeja ? (p.cajaLevanta ? ' · ' : '') + 'dejó ' + e(p.cajaDeja) : '') : (p.llegada ? N(p.bolsas) : '');
       return '<tr><td>' + (i + 1) + '</td><td><b>' + e(p.nombre) + '</b><small>' + (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : e(p.direccion)) + '</small></td>' +
         '<td class="n"' + (p.fueraHorario ? ' style="color:#B42318;font-weight:900"' : '') + '>' + e(p.llegada || '—') + '</td><td class="n">' + e(p.salida || '') + '</td><td class="n">' + (p.llegada && p.salida ? dur(p.llegada, p.salida) : '') + '</td>' +
@@ -1200,7 +1247,7 @@
   /* ═════════════════ CONDUCTOR (celular) ═════════════════ */
   var C = D.con;
   function esCond() { return !sup() && window.USUARIO && USUARIO.nombre && PIN; }
-  function pasos(n) { var P = ['Revisión', 'Salida', 'Ruta', 'Relleno', 'Regreso']; return '<div class="sc-pasos">' + P.map(function (p, i) { return '<span class="' + (i < n ? 'ok' : i === n ? 'on' : '') + '">' + p + '</span>'; }).join('') + '</div>'; }
+  function pasos(n) { var P = ['Revisión', 'Salida', 'Ruta', 'Descarga', 'Regreso']; return '<div class="sc-pasos">' + P.map(function (p, i) { return '<span class="' + (i < n ? 'ok' : i === n ? 'on' : '') + '">' + p + '</span>'; }).join('') + '</div>'; }
   function pasoDe(h) {
     if (!h) return 0;
     if (h.estado === 'publicada') return 0;
@@ -1230,7 +1277,7 @@
     var pelVacia = !(window.RUTA && RUTA.paradas && RUTA.paradas.length);
     op.style.display = pelVacia && C.esSolidos ? 'none' : 'block';
     var n = pasoDe(h), hechas = h.paradas.filter(function (p) { return p.salida; }).length;
-    var btn = { 0: 'Empezar la revisión del camión →', 1: h.estado === 'no_sale' ? 'Ver por qué no sale →' : 'Esperando la firma de salida…', 2: 'Seguir mi ruta →', 3: 'Ir al relleno · ticket →', 4: 'Regresar y cerrar la ruta →', 5: 'Ruta cerrada · ver resumen' }[n];
+    var btn = { 0: 'Empezar la revisión del camión →', 1: h.estado === 'no_sale' ? 'Ver por qué no sale →' : 'Logística decide si sales…', 2: 'Seguir mi ruta →', 3: 'Ir a la descarga →', 4: 'Regresar y cerrar la ruta →', 5: 'Ruta cerrada · ver resumen' }[n];
     t.innerHTML = '<div class="tb-et">' + rutaTit(h) + ' · sólidos</div><div class="tb-t1">' + e(h.nombre || h.hojaId) + ' · ' + h.paradas.length + ' paradas</div>' +
       '<div class="tb-t2">' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + (h.salida ? ' · sale ' + e(h.salida) : '') + (h.ayudantesNombres.length ? ' · con ' + e(h.ayudantesNombres.join(' y ')) : '') + (n >= 2 && n < 5 ? ' · ' + hechas + ' de ' + h.paradas.length + ' hechas' : '') + '</div>' + pasos(n) +
       '<button class="tb-go" style="margin-top:14px" onclick="event.stopPropagation();DSO.conAbrir()">' + btn + '</button>';
@@ -1287,15 +1334,15 @@
     if (r.items.some(function (x) { return !x; })) { aviso('Marca cada punto del camión: bien o falla'); return; }
     if (!(Number(String(r.odometro).replace(/[^\d.]/g, '')) > 0)) { aviso('Falta el odómetro'); return; }
     S('api_dsoRevision', PIN, C.hoja.hojaId, { items: r.items, odometro: Number(String(r.odometro).replace(/[^\d.]/g, '')), tanque: r.tanque, equipo: r.equipo, nota: r.nota })
-      .then(function (x) { aviso(x.fallas ? 'Revisión enviada con ' + x.fallas + ' falla(s)' : 'Revisión enviada'); C.borr.rev = null; D.conAbrir('espera'); }).catch(falla);
+      .then(function (x) { C.borr.rev = null; if (x.estado === 'en_ruta') { aviso('Revisión sin fallas · salida lista, ya puedes salir'); D.conAbrir('ruta'); return; } aviso(x.fallas ? 'Revisión enviada con ' + x.fallas + ' falla(s) · Logística decide' : 'Revisión enviada · Logística decide'); D.conAbrir('espera'); }).catch(falla);   /* api 3.26 */
   };
 
   /* 2 · esperando la firma (o no sale) */
   function vEspera() {
     C.vista = 'espera';
     var h = C.hoja, ns = h.estado === 'no_sale';
-    cSec('<div class="hub-saludo">Hoja de ruta <b>' + e(h.hojaId) + '</b></div><div class="grid-mosaicos"><div class="tb" style="display:block"><div class="tb-et">' + (ns ? 'Logística decidió' : 'Revisión enviada') + '</div><div class="tb-t1">' + (ns ? 'Esta ruta no sale' : 'Esperando la salida') + '</div>' +
-      '<div class="tb-t2">' + (ns ? e(h.firmada ? h.firmada.por + ': ' + h.firmada.nota : '') : 'Logística revisa tu revisión y firma la hoja de salida. Te avisamos aquí.') + '</div>' + pasos(1) +
+    cSec('<div class="hub-saludo">Hoja de ruta <b>' + e(h.hojaId) + '</b></div><div class="grid-mosaicos"><div class="tb" style="display:block"><div class="tb-et">' + (ns ? 'Logística decidió' : 'Revisión enviada') + '</div><div class="tb-t1">' + (ns ? 'Esta ruta no sale' : 'Logística decide si sales') + '</div>' +
+      '<div class="tb-t2">' + (ns ? e(h.firmada ? h.firmada.por + ': ' + h.firmada.nota : '') : 'Tu revisión trae una falla, o falta alguien del equipo o su EPP. Logística decide y te avisa aquí.') + '</div>' + pasos(1) +
       (h.revision ? '<div style="margin-top:14px;background:rgba(255,255,255,.12);border-radius:12px;padding:12px;font-size:13px;font-weight:700">' + (ns ? '' : '⏳ ') + 'Revisión: ' + (h.revision.items.length - h.revision.fallas) + ' de ' + h.revision.items.length + ' bien' + (h.revision.equipo && h.revision.equipo.length ? ' · equipo ' + (h.revision.equipo.every(function (q) { return q.presente && q.epp; }) ? 'completo' : 'incompleto') : '') + '</div>' : '') + '</div></div>' +
       '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + (turnoDe(h) === 'dia' ? ' Tu hoja de hoy' : ' Tu hoja de esta noche') + '</div>' + [['Unidad', (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad], ['Equipo', h.ayudantesNombres.join(' · ') || '—'], ['Paradas', h.paradas.length + ''], ['Relleno', h.relleno || '—'], ['Salida', ns ? 'no sale' : 'por firmar']].map(function (f) { return '<div class="jv-fila"><b>' + f[0] + '</b><span>' + e(f[1]) + '</span></div>'; }).join('') + '</div>' +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');
@@ -1325,9 +1372,9 @@
       return '<div class="sc-par ' + c + '" onclick="DSO.abrirParada(' + k + ')"><span class="n">' + (k + 1) + '</span><div class="t"><b>' + e(p.nombre) + '</b><small>' + (p.salida ? (p.atendida ? (p.servicio === 'caja' ? 'caja ' + e(p.cajaLevanta || '') : N(p.bolsas) + ' bolsas') : e(p.inc || 'no se recolectó')) + ' · ' + e(p.llegada) + '–' + e(p.salida) : (p.llegada ? 'llegaste ' + e(p.llegada) : (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : e(SERV[p.servicio] || '')))) + '</small></div><span>›</span></div>';
     }).join('');
     cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' hechas', '',
-      '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>ticket' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
-      sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga al relleno y registra el ticket de báscula.' : 'Regresa al patio y cierra la ruta.') + '</p></div>' : '') +
-      (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir al relleno · ticket de báscula' : 'El camión está lleno · ir al relleno') + '</button>' : '') +
+      '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>descarga' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
+      sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga a la descarga.' : 'Regresa al patio y cierra la ruta.') + '</p></div>' : '') +
+      (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir a la descarga' : 'El camión está lleno · ir a descargar') + '</button>' : '') +
       (i < 0 && !porTicket ? '<button class="sc-btn v" onclick="DSO.conAbrir(\'cierre\')">Regresé al patio · cerrar la ruta</button>' : '') +
       '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + ' Todas las paradas</div>' + lista + '</div>' +
       (i >= 0 ? '<button class="sc-btn sec" onclick="DSO.conAbrir(\'cierre\')">Terminar la ruta antes</button>' : '') + '<div style="height:20px"></div>');
@@ -1380,6 +1427,8 @@
     if (!C.borr.par || C.borr.par.k !== k) C.borr.par = { k: k, atendida: p.salida ? !!p.atendida : true, bolsas: p.bolsas || 0, contenedor: p.contenedor || '', inc: p.inc || '', llamada: p.llamada || '', espera: p.espera || '',
       cajaDeja: p.cajaDeja || '', cajaLevanta: p.cajaLevanta || p.cajaPunto || '', cajaEstado: p.cajaEstado || '', foto: (p.fotos || [])[0] || '', subiendo: false };
     var b = C.borr.par, ya = !!p.salida;
+    if (!('otro' in b)) Object.assign(b, { fotoAntes: p.fotoAntes || '', fotoDespues: p.fotoDespues || '', otro: (p.otro || []).reduce(function (o, x) { o[x.t] = x.n; return o; }, {}), recibe: p.recibe || '', recibeNombre: p.recibeNombre || '', firma: p.firma || '', paso: 0 });
+    if (b.atendida && p.servicio !== 'caja') { vPunto4(); return; }   /* api 3.26 */
     var seg = function (campo, ops) { return '<div class="sc-seg">' + ops.map(function (o) { return '<button type="button" class="' + (b[campo] === o ? 'on' : '') + '" onclick="DSO.parCampo(\'' + campo + '\',\'' + o + '\')">' + o + '</button>'; }).join('') + '</div>'; };
     var fotoBtn = '<label class="sc-foto ' + (b.foto ? 'si' : b.subiendo ? 'sub' : '') + '">' + ic('camara') + (b.foto ? 'Foto del punto lista · tocar para cambiarla' : b.subiendo ? 'Subiendo la foto…' : 'Tomar la foto del punto') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.parFoto(this)"></label>';
     var cuerpo;
@@ -1422,6 +1471,7 @@
   }
   D.parListo = function () {
     var b = C.borr.par, i = C.idx, p = C.hoja.paradas[i];
+    if (b.atendida && p.servicio !== 'caja') { p4Guardar(); return; }   /* api 3.26 */
     if (b.subiendo) { aviso('Espera a que suba la foto'); return; }
     if (!b.foto) { aviso('Falta la foto del punto'); return; }
     if (!b.atendida && !b.inc) { aviso('Elige qué pasó'); return; }
@@ -1433,6 +1483,202 @@
       }).catch(falla);
   };
 
+  /* ═══ api 3.26 · el punto en 4 pasos (prueba del 8 oct): foto de antes → bolsas → foto de después → quién recibe ═══ */
+  var P4 = ['Foto de antes', 'Contar las bolsas', 'Foto de después', '¿Quién recibe?'];
+  var OTROS = { carton: ['Cajas de cartón', 'cajas'], aceite: ['Aceite de cocina usado', 'galones'], vidrio: ['Vidrio', 'bolsas'], voluminoso: ['Voluminoso', 'piezas'], otro: ['Otro', 'piezas'] };
+  D.OTROS = OTROS;
+  function p4ok(b, k) { return k === 0 ? !!(b.fotoAntes && b.contenedor) : k === 1 ? b.bolsas > 0 : k === 2 ? !!b.fotoDespues : (b.recibe === 'nadie' || (b.recibe === 'encargado' && !!b.firma && !!String(b.recibeNombre || '').trim())); }
+  function p4foto(b, k, txt) {
+    var sub = b.subiendo === k;
+    return '<label class="sc-foto ' + (b[k] ? 'si' : sub ? 'sub' : '') + '">' + ic('camara') + (b[k] ? '✓ Foto lista · tocar para cambiarla' : sub ? 'Subiendo la foto…' : txt) +
+      '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.p4Foto(this,\'' + k + '\')"></label>';
+  }
+  function vPunto4() {
+    C.vista = 'par';
+    var h = C.hoja, i = C.idx, p = h.paradas[i], b = C.borr.par, k = Math.min(b.paso || 0, 3), cuerpo;
+    if (k === 0) cuerpo = p4foto(b, 'fotoAntes', 'Tomar la foto de antes · el depósito como lo encontraste') +
+      '<div class="sc-lbl" style="margin-top:12px">¿Cómo estaba el depósito?</div><div class="sc-seg" style="grid-template-columns:repeat(3,1fr)">' +
+      ['Medio', 'Lleno', 'Rebosado'].map(function (o) { return '<button type="button" class="' + (b.contenedor === o ? 'on' : '') + '" onclick="DSO.p4Set(\'contenedor\',\'' + o + '\')">' + o + '</button>'; }).join('') + '</div>';
+    else if (k === 1) cuerpo = '<div class="sc-cnt"><button type="button" class="m" onclick="DSO.p4Bol(-1)">–</button><div class="v"><b>' + b.bolsas + '</b><small>BOLSAS</small></div><button type="button" class="p" onclick="DSO.p4Bol(1)">+</button></div>' +
+      '<div class="sc-rap"><button type="button" onclick="DSO.p4Bol(5)">+5</button><button type="button" onclick="DSO.p4Bol(10)">+10</button><button type="button" onclick="DSO.p4Bol(-5)">–5</button></div>' +
+      '<div class="sc-lbl" style="margin-top:14px">¿Encontraste otro material?</div><div class="sc-inc">' + Object.keys(OTROS).map(function (o) { return '<button type="button" class="' + (b.otro[o] ? 'on' : '') + '" onclick="DSO.p4Otro(\'' + o + '\')">' + OTROS[o][0] + '</button>'; }).join('') + '</div>' +
+      Object.keys(b.otro).map(function (o) { return '<div class="p4-cant"><span>' + OTROS[o][0] + '<small>' + OTROS[o][1] + '</small></span><button type="button" onclick="DSO.p4Cant(\'' + o + '\',-1)">–</button><b>' + b.otro[o] + '</b><button type="button" onclick="DSO.p4Cant(\'' + o + '\',1)">+</button></div>'; }).join('');
+    else if (k === 2) cuerpo = p4foto(b, 'fotoDespues', 'Tomar la foto de después · el depósito limpio');
+    else cuerpo = '<div class="sc-seg" style="grid-template-columns:1fr 1fr"><button type="button" class="' + (b.recibe === 'encargado' ? 'on' : '') + '" onclick="DSO.p4Set(\'recibe\',\'encargado\')">Hay encargado</button><button type="button" class="' + (b.recibe === 'nadie' ? 'on' : '') + '" onclick="DSO.p4Set(\'recibe\',\'nadie\')">No hay nadie</button></div>' +
+      (b.recibe === 'encargado' ? '<div class="sc-lbl" style="margin-top:12px">Nombre de quien recibe</div><input class="sc-in t" value="' + e(b.recibeNombre || '') + '" oninput="DSO.con.borr.par.recibeNombre=this.value" placeholder="Nombre">' +
+        '<div class="sc-lbl" style="margin-top:10px">Firma</div>' + (b.firma ? '<div class="p4-ok">✓ Firma guardada <button type="button" onclick="DSO.p4Set(\'firma\',\'\')">Volver a firmar</button></div>'
+          : '<div class="sv-firma" id="p4-firma"><canvas></canvas><small>' + (b.subiendo === 'firma' ? 'Guardando la firma…' : 'Firme aquí con el dedo') + '</small></div><div class="sc-rap" style="margin-top:6px"><button type="button" onclick="DSO.p4FirmaBorrar()">Borrar</button><button type="button" onclick="DSO.p4FirmaGuardar()">Guardar la firma</button></div>') : '') +
+      (b.recibe === 'nadie' ? '<div class="sv-nota" style="margin-top:10px">Sin encargado: la constancia son las fotos de antes y después, con la hora y el GPS.</div>' : '');
+    var todo = p4ok(b, 0) && p4ok(b, 1) && p4ok(b, 2) && p4ok(b, 3);
+    cSec(nav(rutaTit(h), 'ruta') + heroHoja('Parada ' + (i + 1) + ' de ' + h.paradas.length + (p.horaHasta ? ' · recibe hasta ' + e(p.horaHasta) : ''), e(p.nombre), e(p.nota || p.direccion || ''),
+      '<div class="jv-est' + (p.lejos ? ' am' : '') + '">✓ Llegaste ' + e(p.llegada) + (p.dist != null ? ' · a ' + N(p.dist) + ' m del punto de recolección' : ' · sin GPS') + '</div>') +
+      '<div class="sc-seg" style="grid-template-columns:1fr 1fr;margin:12px 0"><button type="button" class="on">Recolecté</button><button type="button" onclick="DSO.parCampo(\'atendida\',false)">No pude recolectar</button></div>' +
+      '<div class="p4-paso">' + P4.map(function (t, j) { return '<span class="' + (j < k ? 'ok' : j === k ? 'on' : '') + '"></span>'; }).join('') + '</div>' +
+      '<div class="jv-card p4-act"><div class="jv-tit"><span class="n">' + (k + 1) + '</span> ' + P4[k] + '<span class="r">paso ' + (k + 1) + ' de 4</span></div>' + cuerpo + '</div>' +
+      (k < 3 ? '<button class="sc-btn" ' + (p4ok(b, k) && !b.subiendo ? '' : 'disabled') + ' onclick="DSO.p4Sig()">Siguiente →</button>'
+        : '<button class="sc-btn v" ' + (todo && !b.subiendo ? '' : 'disabled') + ' onclick="DSO.parListo()">✓ Terminé este punto</button><div style="font-size:12px;color:#5B6880;text-align:center;margin-top:6px">Se anota la hora de salida y queda el registro del punto</div>') +
+      (k > 0 ? '<button class="mc-mal" onclick="DSO.p4Atras()">← Volver al paso anterior</button>' : '') +
+      '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
+    if (k === 3 && b.recibe === 'encargado' && !b.firma && b.subiendo !== 'firma') p4Lienzo();
+  }
+  D.p4Set = function (k, v) { C.borr.par[k] = v; vPunto4(); };
+  D.p4Bol = function (n) { var b = C.borr.par; b.bolsas = Math.max(0, Math.min(999, (Number(b.bolsas) || 0) + n)); vPunto4(); };
+  D.p4Otro = function (o) { var b = C.borr.par; if (b.otro[o]) delete b.otro[o]; else b.otro[o] = 1; vPunto4(); };
+  D.p4Cant = function (o, n) { var b = C.borr.par; b.otro[o] = Math.max(1, Math.min(999, (b.otro[o] || 1) + n)); vPunto4(); };
+  D.p4Sig = function () { var b = C.borr.par; if (b.subiendo) { aviso('Espera a que termine de subir'); return; } if (!p4ok(b, b.paso || 0)) { aviso('Falta completar este paso'); return; } b.paso = (b.paso || 0) + 1; vPunto4(); };
+  D.p4Atras = function () { var b = C.borr.par; b.paso = Math.max(0, (b.paso || 0) - 1); vPunto4(); };
+  D.p4Foto = function (inp, k) {
+    var f = inp.files && inp.files[0]; if (!f) return;
+    var b = C.borr.par, kk = b.k; b.subiendo = k; vPunto4();
+    subirFoto(f, (k === 'fotoAntes' ? 'antes' : 'después') + ' · parada ' + (C.idx + 1)).then(function (id) { var x = C.borr.par; if (x && x.k === kk) { x[k] = id; x.subiendo = false; if (C.vista === 'par') vPunto4(); } aviso('Foto guardada'); },
+      function (er) { var x = C.borr.par; if (x && x.k === kk) { x.subiendo = false; if (C.vista === 'par') vPunto4(); } falla(er); });
+  };
+  var P4L = null;
+  function p4Lienzo() {
+    var caja = $i('p4-firma'); if (!caja) return; var cv = caja.querySelector('canvas'); if (!cv) return;
+    var r = caja.getBoundingClientRect(), k = window.devicePixelRatio || 1; cv.width = r.width * k; cv.height = r.height * k;
+    var cx = cv.getContext('2d'); cx.scale(k, k); cx.lineWidth = 2.4; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#0f2140'; cv.style.touchAction = 'none';
+    var dib = false, tr = 0, pos = function (ev) { var q = cv.getBoundingClientRect(); return [ev.clientX - q.left, ev.clientY - q.top]; };
+    cv.onpointerdown = function (ev) { dib = true; tr++; var p = pos(ev); cx.beginPath(); cx.moveTo(p[0], p[1]); try { cv.setPointerCapture(ev.pointerId); } catch (er) {} ev.preventDefault(); };
+    cv.onpointermove = function (ev) { if (!dib) return; var p = pos(ev); cx.lineTo(p[0], p[1]); cx.stroke(); };
+    cv.onpointerup = cv.onpointercancel = function () { dib = false; };
+    P4L = { cv: cv, n: function () { return tr; }, borrar: function () { cx.clearRect(0, 0, cv.width, cv.height); tr = 0; } };
+  }
+  D.p4FirmaBorrar = function () { if (P4L) P4L.borrar(); };
+  D.p4FirmaGuardar = function () {
+    if (!P4L || !P4L.n()) { aviso('Falta la firma'); return; }
+    if (!String(C.borr.par.recibeNombre || '').trim()) { aviso('Escribe el nombre de quien recibe'); return; }
+    var b = C.borr.par, kk = b.k, c2 = document.createElement('canvas'); c2.width = 600; c2.height = Math.max(120, Math.round(600 * P4L.cv.height / P4L.cv.width));
+    var x = c2.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c2.width, c2.height); x.drawImage(P4L.cv, 0, 0, c2.width, c2.height);
+    c2.toBlob(function (bl) {
+      if (!bl) { aviso('No se pudo guardar la firma'); return; }
+      var f; try { f = new File([bl], 'firma.jpg', { type: 'image/jpeg' }); } catch (er) { f = bl; }
+      b.subiendo = 'firma'; vPunto4();
+      subirFoto(f, 'firma · parada ' + (C.idx + 1)).then(function (id) { var y = C.borr.par; if (y && y.k === kk) { y.firma = id; y.subiendo = false; if (C.vista === 'par') vPunto4(); } aviso('Firma guardada'); },
+        function (er) { var y = C.borr.par; if (y && y.k === kk) { y.subiendo = false; if (C.vista === 'par') vPunto4(); } falla(er); });
+    }, 'image/jpeg', .8);
+  };
+  function p4Guardar() {
+    var b = C.borr.par, i = C.idx;
+    if (b.subiendo) { aviso('Espera a que termine de subir'); return; }
+    for (var k = 0; k < 4; k++) if (!p4ok(b, k)) { b.paso = k; vPunto4(); aviso('Falta: ' + P4[k].toLowerCase()); return; }
+    S('api_dsoParada', PIN, C.hoja.hojaId, i, { v3: true, atendida: true, bolsas: b.bolsas, contenedor: b.contenedor, inc: '', foto: b.fotoAntes, fotoAntes: b.fotoAntes, fotoDespues: b.fotoDespues,
+      otro: Object.keys(b.otro).map(function (o) { return { t: o, n: b.otro[o] }; }), recibe: b.recibe, recibeNombre: b.recibeNombre || '', firma: b.firma || '' })
+      .then(function (r) { C.borr.par = null; aviso(r.pendientes ? 'Punto terminado · faltan ' + r.pendientes : 'Punto terminado · terminaste las paradas'); return traer().then(function () { D.conAbrir('ruta'); }); }).catch(falla);
+  }
+
+  /* ═══ api 3.26 · la descarga: elegir dónde (puede cambiar) y si es planta (pesa después) o báscula (ticket) ═══ */
+  D.tkSet = function (k, v) { C.borr.tk[k] = v; vRelleno(); };
+  D.tkBol = function (n) { var t = C.borr.tk; t.bolsas = Math.max(0, Math.min(9999, (Number(t.bolsas) || 0) + n)); vRelleno(); };
+  function vDescElegir(h, t, carga, nb) {
+    var L = (h.destinos || []).slice(); if (h.relleno && L.indexOf(h.relleno) < 0) L.unshift(h.relleno);
+    cSec(nav('Descarga', 'planta') + heroHoja('Viaje ' + (h.viajes.length + 1) + ' · ' + carga.length + ' parada' + (carga.length === 1 ? '' : 's') + ' · ' + N(nb) + ' bolsas', 'La descarga', 'Planificada: ' + e(h.relleno || '—')) +
+      '<div class="jv-card"><div class="sc-lbl">¿Dónde descargas?</div><div class="p4-dst">' + L.map(function (d) { return '<button type="button" class="' + (t.relleno === d ? 'on' : '') + '" onclick="DSO.tkSet(\'relleno\',this.getAttribute(\'data-d\'))" data-d="' + e(d) + '">' + e(d) + (d === h.relleno ? '<small>la planificada</small>' : '<small>cambiar a este destino</small>') + '</button>'; }).join('') + '</div>' +
+      '<div class="sc-lbl" style="margin-top:10px">¿Otro lugar?</div><input class="sc-in t" placeholder="Escribe el nombre del lugar" onchange="DSO.tkSet(\'relleno\',this.value)"></div>' +
+      '<div class="jv-card"><div class="sc-lbl">¿Cómo se pesa ahí?</div><div class="sc-seg" style="grid-template-columns:1fr 1fr"><button type="button" onclick="DSO.tkSet(\'modo\',\'planta\')">Planta<br><small style="font-weight:700">pesan después</small></button><button type="button" onclick="DSO.tkSet(\'modo\',\'bascula\')">Báscula<br><small style="font-weight:700">me dan ticket</small></button></div></div>' +
+      '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
+  }
+  function vDescPlanta(h, t, carga, nb, ll) {
+    cSec(nav('Descarga', 'planta') + heroHoja('Viaje ' + (h.viajes.length + 1) + ' · ' + e(t.relleno), 'Descarga en planta', 'No se pesa al llegar: la planta manda el peso después') +
+      (!ll ? '<button class="sc-btn" onclick="DSO.llegueRelleno()">✓ Llegué a la descarga</button><div style="font-size:12px;color:#5B6880;text-align:center;margin-top:6px">Se anota la hora y el GPS de llegada</div>' : '<div class="jv-card"><div class="jv-fila"><b>Llegada a la descarga</b><span>' + e(ll.llegada) + '</span></div></div>') +
+      '<div class="jv-card"><div class="sc-lbl">Bolsas que entregas</div><div class="sc-cnt"><button type="button" class="m" onclick="DSO.tkBol(-1)">–</button><div class="v"><b>' + N(t.bolsas) + '</b><small>BOLSAS</small></div><button type="button" class="p" onclick="DSO.tkBol(1)">+</button></div>' +
+      '<div style="font-size:12px;color:#5B6880;text-align:center">Contaste ' + N(nb) + ' en los puntos</div>' +
+      '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto de la descarga lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto de la descarga') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label></div>' +
+      '<div class="sc-lbl" style="margin-top:10px">¿Quién recibió en la planta?</div><input class="sc-in t" value="' + e(t.recibio || '') + '" oninput="DSO.con.borr.tk.recibio=this.value" placeholder="Nombre"></div>' +
+      '<button class="sc-btn v" onclick="DSO.descGuardar()"' + (t.subiendo ? ' disabled' : '') + '>✓ Terminé la descarga</button><button class="mc-mal" onclick="DSO.tkSet(\'modo\',\'\')">Cambiar el destino o cómo se pesa</button><button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
+  }
+  D.descGuardar = function () {
+    var t = C.borr.tk;
+    if (t.subiendo) { aviso('Espera a que suba la foto'); return; }
+    if (!t.foto) { aviso('Falta la foto de la descarga'); return; }
+    S('api_dsoDescarga', PIN, C.hoja.hojaId, { relleno: t.relleno, bolsas: t.bolsas, foto: t.foto, recibio: t.recibio || '' })
+      .then(function (r) { C.borr.tk = null; aviso(r.repetido ? 'Esa descarga ya estaba anotada' : 'Descarga anotada · la planta manda el peso después'); return traer().then(function () { D.conAbrir('ruta'); }); }).catch(falla);
+  };
+
+  /* ═══ api 3.26 · Inicio de la oficina: la ruta en vivo ═══ */
+  function vvSig(h) { for (var i = 0; i < h.paradas.length; i++) if (!h.paradas[i].salida) return i; return -1; }
+  function vvOtro(p) { return (p.otro || []).map(function (o) { return o.n + ' ' + ((OTROS[o.t] || ['', ''])[1]) + ' · ' + ((OTROS[o.t] || [o.t])[0]).toLowerCase(); }).join(', '); }
+  function vvAvisos(I) {
+    if (I._vv) return; I._vv = true;
+    (I.noche || []).forEach(function (h) { h.paradas.forEach(function (p) { if (p.atendida && (p.otro || []).length) I.atencion.push({ tono: '', titulo: 'Otro material · ' + p.nombre, detalle: vvOtro(p) + ' · ' + (h.nombre || h.hojaId), accion: 'Ver', hojaId: h.hojaId, ir: 'salidas' }); }); });
+  }
+  function vvEstado(h) {
+    var s = vvSig(h), descargo = (h.viajes || []).length > 0;
+    if (h.estado === 'cerrada') return ['Ruta cerrada ' + e((h.cierre || {}).hora || ''), 'v'];
+    if (h.estado === 'por_firmar') return ['Decida la salida', 'r'];
+    if (h.estado === 'no_sale') return ['No sale', 'r'];
+    if (h.estado === 'publicada') return ['Esperando la revisión', 'a'];
+    if (h.estado === 'borrador') return ['Borrador', 'a'];
+    if (s >= 0) return ['Va al punto ' + (s + 1) + ' de ' + h.paradas.length, ''];
+    return descargo && !h.sinTicket ? ['Regresando al patio', ''] : ['Va a la descarga', ''];
+  }
+  function vvHtml(h) {
+    var P = h.paradas, s = vvSig(h), es = vvEstado(h), fi = h.firma || null, ult = null;
+    P.forEach(function (p) { if (p.llegada) ult = p; });
+    var sal = fi && fi.decision === 'sale' ? (fi.por === 'Salida automática' ? 'salida automática ' : 'salió ') + e(String(fi.en || '').slice(11, 16)) : 'sale ' + e(h.salida || '');
+    var hechos = P.filter(function (p) { return p.salida; }).length, sin = P.filter(function (p) { return p.salida && !p.atendida; }).length;
+    var at = P.filter(function (p) { return p.atendida; }), firmaron = at.filter(function (p) { return p.recibe === 'encargado'; }).length, nadie = at.filter(function (p) { return p.recibe === 'nadie'; }).length;
+    var lin = '<div class="vv-lin">' + P.map(function (p, i) {
+      var c = p.salida ? (p.atendida ? 'h' : 's') : i === s ? 'n' : '';
+      return '<button type="button" class="pt ' + c + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + i + ')" title="' + e(p.nombre) + '"><span class="c">' + (p.salida ? (p.atendida ? '✓' : '✕') : i + 1) + '</span><b>' + e(String(p.nombre).replace(/^Sucursal\s+/i, '')) + '</b><small>' + e(p.llegada || (i === s ? 'sigue' : '')) + '</small></button>';
+    }).join('') + '<span class="pt d' + ((h.viajes || []).length ? ' h' : '') + '"><span class="c">D</span><b>' + e(String(h.relleno || 'descarga').split(' ')[0]) + '</b><small>' + e(((h.viajes || [])[0] || {}).llegada || 'descarga') + '</small></span></div>';
+    var va = '';
+    if (h.estado === 'en_ruta' && s >= 0) { var q = P[s]; va = '<div class="vv-va"><div class="et">Va hacia · punto ' + (s + 1) + ' de ' + P.length + '</div><div class="n">' + e(q.nombre) + '</div><div class="z">' + (q.nota ? 'Dónde se recoge: ' + e(q.nota) + '<br>' : '') + (q.horaDesde ? 'Recibe ' + e(q.horaDesde) + '–' + e(q.horaHasta) : '') + '</div></div>'; }
+    else if (h.estado === 'en_ruta') va = '<div class="vv-va"><div class="et">Va hacia · descarga</div><div class="n">' + e(h.relleno || '—') + '</div></div>';
+    var ul = ult ? '<div class="vv-va u' + (ult.salida && !ult.atendida ? ' s' : '') + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + P.indexOf(ult) + ')"><div class="et">Último punto · ' + e(ult.llegada) + (ult.salida ? '–' + e(ult.salida) : '') + '</div><div class="n">' + e(ult.nombre) + '</div><div class="z">' +
+      (!ult.salida ? 'está en el punto' : ult.atendida ? N(ult.bolsas) + ' bolsas · ' + (ult.recibe === 'encargado' ? 'firmó ' + e(ult.recibeNombre) : ult.recibe === 'nadie' ? 'sin encargado' : '') + ((ult.otro || []).length ? ' · ' + e(vvOtro(ult)) : '') : 'No se pudo recolectar · ' + e(ult.inc || '')) + ' · ver fotos →</div></div>' : '';
+    var cif = '<div class="vv-cif">' + [[hechos + '/' + P.length, 'puntos'], [N(h.bolsas), 'bolsas'], [sin, 'sin acceso'], [firmaron, 'firmaron'], [nadie, 'sin encargado'], [at.filter(function (p) { return (p.otro || []).length; }).length, 'con otro material']].map(function (c) { return '<div><b>' + c[0] + '</b><span>' + c[1] + '</span></div>'; }).join('') + '</div>';
+    var filas = P.map(function (p, i) {
+      var ev = !p.salida ? '' : !p.atendida ? '<span class="sv-chip r">' + e(p.inc || 'sin acceso') + '</span>' + (p.llamada ? ' <span class="sv-chip g">📞 ' + e(p.llamada) + '</span>' : '') :
+        (p.fotoAntes ? '<span class="sv-chip v">📷 antes</span> ' : '') + (p.fotoDespues ? '<span class="sv-chip v">📷 después</span> ' : '') + (p.recibe === 'encargado' ? '<span class="sv-chip">✍ ' + e(p.recibeNombre) + '</span>' : p.recibe === 'nadie' ? '<span class="sv-chip g">sin encargado</span>' : (p.fotos || []).length ? '<span class="sv-chip v">📷 foto</span>' : '');
+      return '<tr class="clic' + (!p.salida ? (i === s ? ' nx' : ' pe') : '') + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + i + ')"><td>' + (i + 1) + '</td><td><b>' + e(p.nombre) + '</b><small>' + (i === s && !p.salida ? (p.llegada ? 'está en el punto' : 'va hacia aquí') : e(p.nota || '')) + '</small></td><td class="n">' + e(p.llegada || '—') + '</td><td class="n">' + e(p.salida || '') + '</td><td class="n">' + (p.salida && p.atendida ? '<b>' + N(p.bolsas) + '</b>' : '') + '</td><td>' + e(vvOtro(p)) + '</td><td>' + ev + '</td></tr>';
+    }).join('');
+    return '<div class="pl-card vv"><div class="vv-h"><div class="tx"><div class="t1">' + chipTurno(turnoDe(h)) + ' ' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + '</div>' +
+      '<div class="t2">' + e(h.conductor || 'sin conductor') + (h.ayudantes && h.ayudantes.length ? ' + ' + h.ayudantes.length + ' ayudante' + (h.ayudantes.length > 1 ? 's' : '') : '') + ' · ' + sal + '<br>Descarga: <b>' + e(h.relleno || '—') + '</b></div></div>' +
+      '<div class="vv-est"><span class="big ' + es[1] + '">' + es[0] + '</span>' + (ult ? '<small>último registro ' + e(ult.salida || ult.llegada) + '</small>' : '') + '</div></div>' + lin +
+      '<div class="vv-g"><div class="vv-mapa" id="vv-m-' + e(h.hojaId) + '"></div><div class="vv-col">' + va + ul + cif + '</div></div>' +
+      '<div class="sv-scroll" style="margin-top:12px"><table class="sv-tb"><thead><tr><th>#</th><th>Sucursal</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">Bolsas</th><th>Otro material</th><th>Evidencia</th></tr></thead><tbody>' + filas + '</tbody></table></div></div>';
+  }
+  function vvBloque(I) {
+    var L = (I.noche || []).filter(function (h) { return ['en_ruta', 'por_firmar', 'cerrada', 'publicada'].indexOf(h.estado) >= 0; });
+    return L.length ? '<div class="ini-bloque"><div class="ini-bt"><h3>Ruta en vivo</h3><button class="x" onclick="DSO.mostrar(\'s-hub\')">Actualizar ↻</button></div>' + L.map(vvHtml).join('') + '</div>' : '';
+  }
+  function vvMapas(I) {
+    if (!window.L) return;
+    (I.noche || []).forEach(function (h) {
+      var el = $i('vv-m-' + h.hojaId); if (!el) return;
+      var m = L.map(el, { zoomControl: true }); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+      var s = vvSig(h), pts = [], hecho = [];
+      h.paradas.forEach(function (p, i) {
+        if (!p.lat) return; var c = p.salida ? (p.atendida ? 'h' : 's') : i === s ? 'n' : '';
+        L.marker([p.lat, p.lng], { icon: L.divIcon({ className: '', html: '<div class="vv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] }), zIndexOffset: i === s ? 500 : 0 }).addTo(m).bindTooltip(e(p.nombre) + (p.llegada ? ' · ' + p.llegada : '')).on('click', function () { D.vvDet(h.hojaId, i); });
+        pts.push([p.lat, p.lng]); if (p.salida || p.llegada) hecho.push([p.lat, p.lng]);
+      });
+      if (hecho.length > 1) L.polyline(hecho, { color: '#2f9e44', weight: 5, opacity: .85 }).addTo(m);
+      var falta = hecho.length ? [hecho[hecho.length - 1]] : []; h.paradas.forEach(function (p) { if (!p.salida && !p.llegada && p.lat) falta.push([p.lat, p.lng]); });
+      if (falta.length > 1) L.polyline(falta, { color: '#14306b', weight: 4, dashArray: '8 8', opacity: .6 }).addTo(m);
+      if (pts.length) m.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); else m.setView([9.0, -79.5], 11);
+      setTimeout(function () { try { m.invalidateSize(); } catch (er) {} }, 150);
+    });
+    clearTimeout(D._vvT);
+    D._vvT = setTimeout(function () { if (window.INI_TAB === 's-hub' && D.modo === 'sol' && !$i('dso-fondo')) { var y = window.scrollY; S('api_dsoInicio', PIN, hoy()).then(function (r) { D.ini = r; pintarHub(seccion('s-hub')); window.scrollTo(0, y); }).catch(function () {}); } }, 60000);
+  }
+  /* detalle de un punto con sus fotos (se piden al abrir) */
+  D.vvDet = function (hojaId, i) {
+    var h = ((D.ini && D.ini.noche) || []).filter(function (x) { return x.hojaId === hojaId; })[0] || (D.det && D.det.hoja && D.det.hoja.hojaId === hojaId ? D.det.hoja : null); if (!h) return;
+    var p = h.paradas[i]; if (!p) return;
+    var fotos = p.atendida ? [[p.fotoAntes, 'Antes · ' + (p.llegada || '') + (p.contenedor ? ' · depósito ' + String(p.contenedor).toLowerCase() : '')], [p.fotoDespues, 'Después · ' + (p.salida || '')]] : [[(p.fotos || [])[0], 'El local · ' + (p.llegada || '')]];
+    if (p.atendida && !p.fotoAntes && (p.fotos || []).length) fotos = [[p.fotos[0], 'Foto del punto']];
+    if (p.firma) fotos.push([p.firma, 'Firma · ' + (p.recibeNombre || '')]);
+    fotos = fotos.filter(function (f) { return f[0]; });
+    var dat = [['Llegó', p.llegada || '—'], ['Salió', p.salida || '—'], ['GPS', p.dist != null ? N(p.dist) + ' m del punto' : '—']];
+    if (p.atendida) dat.push(['Bolsas', N(p.bolsas)], ['Otro material', vvOtro(p) || 'No'], ['Quién recibió', p.recibe === 'encargado' ? p.recibeNombre + ' (firmó)' : p.recibe === 'nadie' ? 'Sin encargado · las fotos son la constancia' : '—']);
+    else if (p.salida) dat.push(['Qué pasó', p.inc || '—'], ['Llamada', p.llamada || '—'], ['Esperó', p.espera ? p.espera + ' min' : '—']);
+    modal('Punto ' + (i + 1) + ' · ' + p.nombre, (fotos.length ? '<div class="vv-fotos">' + fotos.map(function (f, k) { return '<figure><div class="ph" id="vv-f' + k + '">Cargando…</div><figcaption>' + e(f[1]) + '</figcaption></figure>'; }).join('') + '</div>' : (p.salida ? '' : '<div class="sv-vacio"><b>Todavía no llega</b></div>')) +
+      dat.map(function (x) { return '<div class="sv-ck"><span>' + x[0] + '</span><b>' + e(x[1]) + '</b></div>'; }).join(''), '<button class="pl-btn a" data-x>Cerrar</button>');
+    fotos.forEach(function (f, k) { S('api_dsoFoto', PIN, f[0]).then(function (r) { var z = $i('vv-f' + k); if (z) z.innerHTML = '<a href="' + e(r.url) + '" target="_blank" rel="noopener"><img src="' + e(r.url) + '" alt=""></a>'; }, function () { var z = $i('vv-f' + k); if (z) z.textContent = 'No se pudo abrir la foto'; }); });
+  };
+
   /* 5 · relleno: llegada y ticket de báscula */
   function vRelleno() {
     C.vista = 'rell';
@@ -1440,18 +1686,23 @@
     if (!b.tk || b.tk.hojaId !== h.hojaId) b.tk = { hojaId: h.hojaId, ticket: '', lleno: '', vacio: '', neto: '', foto: '', subiendo: false };
     var t = b.tk, carga = h.paradas.filter(function (p) { return p.atendida && p.viaje < 0; }), ll = h.revision && h.revision.llegadaRelleno;
     var neto = (Number(t.lleno) > 0 && Number(t.vacio) > 0) ? Number(t.lleno) - Number(t.vacio) : Number(t.neto) || 0;
-    cSec(nav('Relleno', 'planta') + heroHoja('Viaje ' + (h.viajes.length + 1) + ' · ' + e(h.relleno || 'relleno'), 'Ticket de báscula', carga.length + ' parada' + (carga.length === 1 ? '' : 's') + ' en este viaje' + (h.tipo === 'rolloff' ? ' · caja ' + e(carga.map(function (p) { return p.cajaLevanta; }).filter(Boolean).join(', ')) : ' · ' + N(carga.reduce(function (a, p) { return a + (p.bolsas || 0); }, 0)) + ' bolsas')) +
+    /* api 3.26 · primero dónde descarga y cómo se pesa */
+    var nb = carga.reduce(function (a, p) { return a + (p.bolsas || 0); }, 0);
+    if (t.relleno == null) t.relleno = h.relleno || ''; if (t.bolsas == null) t.bolsas = nb;
+    if (h.tipo !== 'rolloff' && !t.modo) { vDescElegir(h, t, carga, nb); return; }
+    if (t.modo === 'planta') { vDescPlanta(h, t, carga, nb, ll); return; }
+    cSec(nav('Descarga', 'planta') + heroHoja('Viaje ' + (h.viajes.length + 1) + ' · ' + e(t.relleno || h.relleno || 'relleno'), 'Ticket de báscula', carga.length + ' parada' + (carga.length === 1 ? '' : 's') + ' en este viaje' + (h.tipo === 'rolloff' ? ' · caja ' + e(carga.map(function (p) { return p.cajaLevanta; }).filter(Boolean).join(', ')) : ' · ' + N(carga.reduce(function (a, p) { return a + (p.bolsas || 0); }, 0)) + ' bolsas')) +
       (!ll ? '<button class="sc-btn" onclick="DSO.llegueRelleno()">✓ Llegué al relleno</button><div style="font-size:12px;color:#5B6880;text-align:center;margin-top:6px">Se anota la hora y el GPS de llegada</div>' : '<div class="jv-card"><div class="jv-fila"><b>Llegada al relleno</b><span>' + e(ll.llegada) + '</span></div></div>') +
       '<div class="jv-card"><div class="sc-lbl">Número del ticket</div><input class="sc-in" value="' + e(t.ticket) + '" oninput="DSO.con.borr.tk.ticket=this.value" placeholder="Ej. 104882">' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><div class="sc-lbl">Peso lleno (kg)</div><input class="sc-in" inputmode="numeric" value="' + e(t.lleno) + '" oninput="DSO.tkPeso(\'lleno\',this.value)"></div><div><div class="sc-lbl">Peso vacío (kg)</div><input class="sc-in" inputmode="numeric" value="' + e(t.vacio) + '" oninput="DSO.tkPeso(\'vacio\',this.value)"></div></div>' +
       '<div class="sc-lbl" style="margin-top:10px">Si el ticket solo trae el neto</div><input class="sc-in" inputmode="numeric" value="' + e(t.neto) + '" oninput="DSO.tkPeso(\'neto\',this.value)" placeholder="Neto (kg)">' +
       '<div style="margin-top:10px;background:#eaf6e4;border:1px solid #bfe3b3;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center"><b style="color:#1e5a2a">Neto</b><b style="font-size:22px;color:#1e5a2a" id="sc-neto">' + (neto > 0 ? N(neto) + ' kg' : '—') + '</b></div>' +
       '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto del ticket lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto del ticket (comprobante)') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label></div></div>' +
-      '<button class="sc-btn am" onclick="DSO.tkGuardar()"' + (t.subiendo ? ' disabled' : '') + '>Guardar el ticket</button><button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
+      '<button class="sc-btn am" onclick="DSO.tkGuardar()"' + (t.subiendo ? ' disabled' : '') + '>Guardar el ticket</button>' + (h.tipo !== 'rolloff' ? '<button class="mc-mal" onclick="DSO.tkSet(\'modo\',\'\')">Cambiar el destino o cómo se pesa</button>' : '') + '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
   }
   D.llegueRelleno = function () { gpsAhora().then(function (g) { return S('api_dsoLlegue', PIN, C.hoja.hojaId, 'relleno', g); }).then(function (r) { aviso('Llegada al relleno ' + r.hora); return traer(); }).then(vRelleno).catch(falla); };
   D.tkPeso = function (k, v) { var t = C.borr.tk; t[k] = String(v).replace(/[^\d.]/g, ''); var n = (Number(t.lleno) > 0 && Number(t.vacio) > 0) ? Number(t.lleno) - Number(t.vacio) : Number(t.neto) || 0; var x = $i('sc-neto'); if (x) x.textContent = n > 0 ? N(n) + ' kg' : '—'; };
-  D.tkFoto = function (inp) {
+  D.tkFoto = function (inp) {   /* también la foto de la descarga en planta */
     var f = inp.files && inp.files[0]; if (!f) return;
     var t = C.borr.tk; t.subiendo = true; vRelleno();
     subirFoto(f, 'ticket').then(function (id) { t.foto = id; t.subiendo = false; vRelleno(); aviso('Foto guardada'); }, function (er) { t.subiendo = false; vRelleno(); falla(er); });
@@ -1460,7 +1711,7 @@
     var t = C.borr.tk;
     if (!t.ticket) { aviso('Falta el número del ticket'); return; }
     if (!t.foto) { aviso('Falta la foto del ticket'); return; }
-    S('api_dsoTicket', PIN, C.hoja.hojaId, { ticket: t.ticket, lleno: Number(t.lleno) || 0, vacio: Number(t.vacio) || 0, neto: Number(t.neto) || 0, foto: t.foto })
+    S('api_dsoTicket', PIN, C.hoja.hojaId, { ticket: t.ticket, lleno: Number(t.lleno) || 0, vacio: Number(t.vacio) || 0, neto: Number(t.neto) || 0, foto: t.foto, relleno: t.relleno || '' })
       .then(function (r) { C.borr.tk = null; aviso(r.repetido ? 'Ese ticket ya estaba guardado' : 'Ticket guardado · ' + N(r.neto) + ' kg'); D.conAbrir('ruta'); }).catch(falla);
   };
 
@@ -1473,7 +1724,7 @@
     cSec(nav('Cerrar la ruta', 'bandera') + heroHoja('Regreso · ' + e(h.patio || 'patio'), e(h.nombre) + ' · cierre', '',
       '<div class="jv-kp"><div><b>' + h.paradas.filter(function (p) { return p.salida; }).length + '/' + h.paradas.length + '</b><span>paradas</span></div><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + N(h.netoTotal) + '</b><span>kg en báscula</span></div></div>') +
       (pend ? '<div class="sv-nota am">Quedan ' + pend + ' parada(s) sin hacer. Al cerrar quedan anotadas como no hechas.</div>' : '') +
-      (sinT ? '<div class="sv-nota am">Hay ' + sinT + ' parada(s) atendida(s) sin ticket de báscula. Si fuiste al relleno, registra el ticket antes de cerrar. <button class="pl-btn" onclick="DSO.conAbrir(\'rell\')">Ir al ticket</button></div>' : '') +
+      (sinT ? '<div class="sv-nota am">Hay ' + sinT + ' parada(s) atendida(s) sin descargar. Si ya descargaste, anótalo antes de cerrar. <button class="pl-btn" onclick="DSO.conAbrir(\'rell\')">Ir a la descarga</button></div>' : '') +
       '<div class="jv-card"><div class="sc-lbl">Odómetro final</div><input class="sc-in" inputmode="numeric" value="' + e(c.odometro) + '" oninput="DSO.con.borr.ci.odometro=this.value" placeholder="' + (h.revision ? 'salió con ' + N(h.revision.odometro) : 'km') + '">' +
       '<div class="sc-lbl" style="margin-top:10px">Tanque al llegar</div><div class="sc-seg">' + ['¼', '½', '¾', 'Lleno'].map(function (x) { return '<button type="button" class="' + (c.tanque === x ? 'on' : '') + '" onclick="DSO.ciCampo(\'tanque\',\'' + x + '\')">' + x + '</button>'; }).join('') + '</div>' +
       '<div class="sc-lbl" style="margin-top:10px">El camión queda</div><div class="sc-seg" style="grid-template-columns:1fr 1fr">' + ['Lavado y en orden', 'Con una falla'].map(function (x) { return '<button type="button" class="' + (c.queda === x ? 'on' : '') + '" onclick="DSO.ciCampo(\'queda\',\'' + x + '\')">' + x + '</button>'; }).join('') + '</div>' +
