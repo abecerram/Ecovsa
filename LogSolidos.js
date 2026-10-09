@@ -575,9 +575,11 @@
 
     var un = U[E.unidadId] || {};
     var ayud = B.equipo.filter(function (x) { return x.activo && x.puesto !== 'conductor'; });
+    var paP = llDe(patioDe(E.patio || B.ajustes.patio)), deP = llDe(pesaDe(E.relleno));   /* api 3.28.1 · el circuito */
+    var CI = circuito(paP, E.paradas.map(function (id) { return llDe(P[id]); }), deP);
     var paradas = E.paradas.map(function (id, i) {
       var p = P[id] || { nombre: id }, c = C[p.clienteId] || {};
-      return '<div class="pl-st"><span class="n">' + (i + 1) + '</span><span class="eta">' + e(p.horaDesde || '') + '</span><div class="nm"><b>' + e(p.nombre) + '</b><span>' + e(c.nombre || '') + ' · ' + e(SERV[p.servicio] || '') + (p.cajaId ? ' · caja ' + e(p.cajaId) : '') + (p.horaDesde ? ' · recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : '') + (p.nota ? ' · ' + e(p.nota) : '') + '</span></div>' +
+      return '<div class="pl-st"><span class="n">' + (i + 1) + '</span><span class="eta">' + e(p.horaDesde || '') + '</span><div class="nm"><b>' + e(p.nombre) + '</b><span>' + e(c.nombre || '') + ' · ' + e(SERV[p.servicio] || '') + (p.cajaId ? ' · caja ' + e(p.cajaId) : '') + (p.horaDesde ? ' · recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : '') + (p.nota ? ' · ' + e(p.nota) : '') + (CI.tramos[i] != null ? ' · ' + kmTx(CI.tramos[i]) + (i ? ' desde la anterior' : ' desde el patio') : '') + '</span></div>' +
         (ed ? '<span class="mv"><button title="Subir" onclick="DSO.planMover(' + i + ',-1)">↑</button><button title="Bajar" onclick="DSO.planMover(' + i + ',1)">↓</button><button class="x" title="Quitar" onclick="DSO.planQuitar(' + i + ')">✕</button></span>' : '') + '</div>';
     }).join('');
     var nCajas = E.paradas.filter(function (id) { return (P[id] || {}).servicio === 'caja'; }).length;
@@ -597,7 +599,9 @@
       '<div style="flex:1 1 100%"><small>Patio de salida</small><select onchange="DSO.planCampo(\'patio\',this.value)"' + (ed ? '' : ' disabled') + '>' + patioOpts(E.patio || B.ajustes.patio) + '</select>' + ((patioDe(E.patio || B.ajustes.patio) || {}).lat ? '' : ' <span class="sv-chip r">sin ubicación</span>') + '</div>' +
       '<div style="flex:1 1 100%"><small>Disposición final</small><select onchange="DSO.planCampo(\'relleno\',this.value)"' + (ed ? '' : ' disabled') + '>' + B.ajustes.rellenos.concat(E.relleno && B.ajustes.rellenos.indexOf(E.relleno) < 0 ? [E.relleno] : []).map(function (r) { return '<option' + (r === E.relleno ? ' selected' : '') + '>' + e(r) + '</option>'; }).join('') + '</select> ' + pesaChip(E.relleno) + '</div></div>' +
       '<div class="pl-cap"><div class="row">' + cap.map(function (c) { return '<div><b>' + e(c[0]) + '</b><span>' + c[1] + '</span></div>'; }).join('') + '</div></div>' +
-      (E.paradas.length ? '<div class="pl-st rell"><span class="n">P</span><span class="eta">' + e(E.salida || '') + '</span><div class="nm"><b>' + e(E.patio || B.ajustes.patio) + '</b><span>Salida del patio' + ((patioDe(E.patio || B.ajustes.patio) || {}).lat ? '' : ' · sin ubicación: márcala en Flota › Ajustes') + '</span></div></div>' + paradas + '<div class="pl-st rell"><span class="n">🏭</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Relleno') + '</b><span>' + pesaTxt(E.relleno) + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + '</span></div></div><div class="pl-fin">Regreso al ' + e(E.patio || B.ajustes.patio) + '</div>'
+      (E.paradas.length ? '<div class="pl-st rell"><span class="n">P</span><span class="eta">' + e(E.salida || '') + '</span><div class="nm"><b>' + e(E.patio || B.ajustes.patio) + '</b><span>Salida del patio' + ((patioDe(E.patio || B.ajustes.patio) || {}).lat ? '' : ' · sin ubicación: márcala en Flota › Ajustes') + '</span></div></div>' + paradas + '<div class="pl-st rell"><span class="n">D</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Destino') + '</b><span>' + pesaTxt(E.relleno) + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + (CI.kD != null ? ' · ' + kmTx(CI.kD) + ' desde la última sucursal' : deP ? '' : ' · sin ubicación: márcala en Disposición final › Destinos') + '</span></div></div>' +
+        '<div class="pl-st rell"><span class="n">P</span><span class="eta"></span><div class="nm"><b>Regreso a ' + e(E.patio || B.ajustes.patio) + '</b><span>Aquí termina la ruta' + (CI.kR != null ? ' · ' + kmTx(CI.kR) + ' desde el destino' : '') + '</span></div></div>' +
+        '<div class="pl-fin">' + (CI.completo ? 'Recorrido completo ≈ ' + kmTx(CI.total) + ' en línea recta (por carretera es más)' : 'Para medir el recorrido completo falta la ubicación ' + [!paP ? 'del patio' : '', !deP ? 'del destino' : '', E.paradas.some(function (id) { return !llDe(P[id]); }) ? 'de alguna sucursal' : ''].filter(Boolean).join(', ')) + '</div>'
         : '<div class="pl-vacio">Agrega paradas desde la lista de la izquierda.</div>') +
       '<div class="pl-pie">' + (ed ? '<button class="pl-btn" onclick="DSO.planCercania()">🧭 Por cercanía</button>' : '') + '<span style="flex:1"></span>' +
       (puede() && E.paradas.length ? '<button class="pl-btn" onclick="DSO.rutaDesdeHoja()">🔁 Guardar como ruta fija</button>' : '') +
@@ -793,6 +797,8 @@
         }
       });
       if (h.patioInfo && h.patioInfo.lat) { var pl0 = [h.patioInfo.lat, h.patioInfo.lng]; L.marker(pl0, { icon: L.divIcon({ className: '', html: '<div class="sv-num" style="background:#F5B301;color:#0f2140;border-radius:7px">P</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).bindPopup('<b>' + e(h.patio) + '</b><br>Salida y regreso · ' + e(h.nombre || h.hojaId)).addTo(g); linea.unshift(pl0); }   /* api 3.28 */
+      var dl = llDe(h.destinoInfo); if (dl) { L.marker(dl, { icon: pinDP('D', '#0f2140', '#fff') }).bindPopup('<b>' + e(h.destinoInfo.nombre) + '</b><br>Descarga · ' + e(h.nombre || h.hojaId)).addTo(g); linea.push(dl); }   /* api 3.28.1 · circuito */
+      if (h.patioInfo && h.patioInfo.lat && linea.length) linea.push([h.patioInfo.lat, h.patioInfo.lng]);
       if (linea.length > 1) L.polyline(linea, { color: col, weight: 3, opacity: .7 }).addTo(g);
     });
     D.dia.candidatos.forEach(function (p) { var mk = null; if (p.lat) { mk = L.circleMarker([p.lat, p.lng], { radius: 6, color: '#868e96', fillColor: '#adb5bd', fillOpacity: .9, weight: 1 }).bindPopup('<b>' + e(p.nombre) + '</b><br>Le toca y no está en ninguna hoja'); mk.addTo(D._cand); } D._candMk.push(mk); });
@@ -886,7 +892,7 @@
       paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') + (rv && rv.distPatio != null ? ' · GPS ' + distPatioTxt(rv.distPatio) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
       paso(est === 'cerrada' ? 'ok' : est === 'en_ruta' ? 'on' : 'no', 'En ruta · ' + h.paradas.length + ' paradas', h.atendidas + ' de ' + h.paradas.length + ' hechas' + (h.bolsas ? ' · ' + N(h.bolsas) + ' bolsas' : '') + (h.paradas.filter(function (p) { return p.inc; }).length ? ' · ' + h.paradas.filter(function (p) { return p.inc; }).length + ' incidencia(s)' : '')) +
       paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + vvPesoTxt(v) + (v.oficina ? ' · anotada en oficina' : '') : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin descarga anotada' : '') : 'pendiente') +
-      paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') + (h.regreso && h.regreso.distPatio != null ? ' · cerró ' + distPatioTxt(h.regreso.distPatio) : '') : 'pendiente');
+      paso(ci ? (h.regreso && h.regreso.distPatio > 300 ? 'mal' : 'ok') : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') + (h.regreso && h.regreso.distPatio != null ? ' · ' + (h.regreso.distPatio > 300 ? '<b style="color:#B42318">cerró a ' + distPatioTxt(h.regreso.distPatio).replace(/ del patio$/, '') + ' del patio, no en el patio</b>' : 'cerró ' + distPatioTxt(h.regreso.distPatio)) : '') : 'pendiente');
     var ck = rv ? rv.items.map(function (x) { return '<div class="sv-ck"><span>' + e(x.texto) + '</span>' + (x.estado === 'm' ? '<span class="sv-no">✕ falla</span>' : '<span class="sv-ok">✓ bien</span>') + '</div>'; }).join('') + (rv.nota ? '<div class="sv-nota am">' + e(rv.nota) + '</div>' : '')
       : (d.lista || []).map(function (x) { return '<div class="sv-ck"><span>' + e(x) + '</span><span style="color:#8a96a8;font-size:12px">pendiente</span></div>'; }).join('');
     var firma = '';
@@ -1282,12 +1288,43 @@
     }).catch(falla);
   };
 
+  /* ═══ api 3.28.1 · el circuito: patio → sucursales → destino → el mismo patio ═══ */
+  function llDe(o) { return o && o.lat != null && o.lng != null && o.lat !== '' && isFinite(o.lat) && isFinite(o.lng) ? [Number(o.lat), Number(o.lng)] : null; }
+  function kmEntre(a, b) {
+    if (!a || !b) return null;
+    var r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r;
+    var x = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return 2 * 6371 * Math.asin(Math.sqrt(x));
+  }
+  function kmTx(k) { return k == null ? '' : k < 1 ? N(Math.round(k * 1000)) + ' m' : N(k, 1) + ' km'; }
+  /* tramos en línea recta: a cada parada desde la anterior (la primera desde el patio), de la última al destino y del destino al patio */
+  function circuito(pat, pts, dest) {
+    var tr = [], prev = pat, tot = 0, ok = !!pat;
+    pts.forEach(function (q) { var k = kmEntre(prev, q); tr.push(k); if (k == null) ok = false; else tot += k; if (q) prev = q; });
+    var kD = kmEntre(prev, dest), kR = kmEntre(dest || prev, pat);
+    if (kD == null) ok = false; else tot += kD;
+    if (kR == null) ok = false; else tot += kR;
+    return { tramos: tr, kD: kD, kR: kR, total: tot, completo: ok };
+  }
+  function pinDP(t, bg, fg) { return L.divIcon({ className: '', html: '<div style="width:24px;height:24px;border-radius:7px;background:' + bg + ';color:' + fg + ';display:grid;place-items:center;font:900 12px Archivo,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)">' + t + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }); }
+  D.irMapa = function (lat, lng) { window.open('https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng + '&travelmode=driving', '_blank'); };
+  /* mapa para marcar la ubicación (el mismo de los patios) */
+  function mapaUbic() {
+    setTimeout(function () {
+      if (typeof L === 'undefined' || !$i('pt-mapa')) return;
+      var m = D._ptm = L.map('pt-mapa').setView(D._pll || [9.0, -79.55], D._pll ? 16 : 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+      D._ptpin = D._pll ? L.marker(D._pll).addTo(m) : null;
+      m.on('click', function (ev) { D.patPin([+ev.latlng.lat.toFixed(6), +ev.latlng.lng.toFixed(6)], false); });
+    }, 60);
+  }
+
   /* Destinos de disposición: cada uno dice cómo se pesa; el conductor ya no lo elige a mano */
   function destinosHtml() {
     var L = (D.base.ajustes.destinos || []), ed = puede();
     return '<div class="pl-ban g"><span>Tu lista de lugares de disposición final. Cada uno dice <b>cómo se pesa</b>: en <b>planta</b> (se deja todo y la planta manda el peso después) o en <b>báscula</b> (el conductor anota el ticket). Se eligen al planificar la ruta, y el conductor puede cambiar a otro activo en el camino.</span>' + (ed ? '<button class="pl-btn a" onclick="DSO.destForm(\'\')">＋ Agregar destino</button>' : '') + '</div>' +
       '<div class="ds-list">' + L.map(function (d) {
-        return '<div class="ds-c' + (d.activo ? '' : ' off') + '"><div class="top"><div class="tx"><b>' + e(d.nombre) + '</b><small>' + e(d.lugar || 'sin lugar anotado') + '</small></div>' + (d.pesa === 'bascula' ? '<span class="sv-chip ro">Báscula · ticket</span>' : '<span class="sv-chip v">Planta · pesa después</span>') + '</div>' +
+        return '<div class="ds-c' + (d.activo ? '' : ' off') + '"><div class="top"><div class="tx"><b>' + e(d.nombre) + '</b><small>' + e(d.lugar || 'sin lugar anotado') + ' · ' + (llDe(d) ? 'ubicación marcada' : '<span style="color:#B42318;font-weight:800">sin ubicación · márcala en «Editar»</span>') + '</small></div>' + (d.pesa === 'bascula' ? '<span class="sv-chip ro">Báscula · ticket</span>' : '<span class="sv-chip v">Planta · pesa después</span>') + '</div>' +
           '<div class="dt"><span><small>Recibe</small>' + e(d.horario || '—') + '</span><span><small>Contacto</small>' + e(d.contacto || '—') + '</span></div>' + (d.nota ? '<div class="nt">' + e(d.nota) + '</div>' : '') +
           '<div class="bt">' + (d.activo ? '<span class="sv-chip v">activo</span>' : '<span class="sv-chip g">pausado</span>') + '<span style="flex:1"></span>' + (ed ? '<button class="pl-btn" onclick="DSO.destActivo(\'' + d.id + '\')">' + (d.activo ? 'Pausar' : 'Activar') + '</button><button class="pl-btn" onclick="DSO.destForm(\'' + d.id + '\')">Editar</button>' : '') + '</div></div>';
       }).join('') + '</div><div class="sv-nota">El nombre es el que sale en la hoja de ruta, el recibo y el resumen de la noche. Pausar un destino lo quita de la lista del planificador y del conductor; las noches pasadas no cambian.</div>';
@@ -1295,11 +1332,16 @@
   D.destForm = function (id) {
     if (!puede()) return;
     var d = (D.base.ajustes.destinos || []).filter(function (x) { return x.id === id; })[0] || { pesa: 'planta', activo: true };
+    D._pll = llDe(d); D._ptm = null; D._ptpin = null;   /* api 3.28.1 */
     modal(id ? 'Destino · ' + d.nombre : 'Destino nuevo', '<div class="dso-f"><label class="w">Nombre<input id="df-nom" maxlength="80" value="' + e(d.nombre || '') + '" placeholder="Ej. Desechos Panamá · La Chorrera"></label>' +
       '<label>Lugar<input id="df-lug" maxlength="80" value="' + e(d.lugar || '') + '" placeholder="Ej. La Chorrera"></label><label>Cómo se pesa<select id="df-pes"><option value="planta"' + (d.pesa !== 'bascula' ? ' selected' : '') + '>Planta · pesa después</option><option value="bascula"' + (d.pesa === 'bascula' ? ' selected' : '') + '>Báscula · ticket</option></select></label>' +
       '<label>Horario de recepción<input id="df-hor" maxlength="40" value="' + e(d.horario || '') + '" placeholder="Ej. 00:00 a 06:00"></label><label>Contacto<input id="df-con" maxlength="80" value="' + e(d.contacto || '') + '" placeholder="Ej. Recepción de planta"></label>' +
-      '<label class="w">Nota para el conductor<textarea id="df-not" maxlength="200" placeholder="Ej. Recibe de madrugada. Dejar las bolsas en la fosa 2.">' + e(d.nota || '') + '</textarea></label></div>',
+      '<label class="w">Nota para el conductor<textarea id="df-not" maxlength="200" placeholder="Ej. Recibe de madrugada. Dejar las bolsas en la fosa 2.">' + e(d.nota || '') + '</textarea></label>' +
+      '<label class="w">Ubicación de la entrada · pega un enlace de Google Maps o «8.88, -79.78», toca el mapa o usa tu ubicación<input id="pt-ll" value="' + (D._pll ? D._pll.join(', ') : '') + '" oninput="DSO.patLeer(this.value)"></label></div>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button type="button" class="pl-btn" onclick="DSO.patAqui()">📍 Usar mi ubicación</button></div>' +
+      '<div id="pt-mapa" style="height:220px;border-radius:12px;margin-top:8px;border:1px solid #e1e6ee"></div>',
       '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.destGuardar(\'' + e(id) + '\')">Guardar</button>');
+    mapaUbic();
   };
   function destGuardarLista(L, msg) {
     return S('api_dsoGuardar', PIN, 'ajustes', { destinos: L }).then(function () { cerrarModal(); aviso(msg); return recargarBase(); }).then(function () { pintarRelleno(seccion('s-rell')); }).catch(falla);
@@ -1308,7 +1350,7 @@
     var nom = val('df-nom'); if (!nom) { aviso('Escribe el nombre del destino'); return; }
     var L = (D.base.ajustes.destinos || []).map(function (x) { return Object.assign({}, x); });
     if (L.some(function (x) { return x.id !== id && x.nombre.toUpperCase() === nom.toUpperCase(); })) { aviso('Ya hay un destino con ese nombre'); return; }
-    var o = { nombre: nom, lugar: val('df-lug'), pesa: val('df-pes'), horario: val('df-hor'), contacto: val('df-con'), nota: val('df-not') };
+    var o = { nombre: nom, lugar: val('df-lug'), pesa: val('df-pes'), horario: val('df-hor'), contacto: val('df-con'), nota: val('df-not'), lat: D._pll ? D._pll[0] : null, lng: D._pll ? D._pll[1] : null };
     var x = L.filter(function (z) { return z.id === id; })[0];
     if (x) Object.assign(x, o); else L.push(Object.assign(o, { activo: true }));
     destGuardarLista(L, 'Destino guardado');
@@ -1718,8 +1760,10 @@
     }).join('');
     cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' hechas', '',
       '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>descarga' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
-      sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga a la descarga.' : 'Regresa al patio y cierra la ruta.') + '</p></div>' : '') +
+      sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga a la descarga.' : 'Regresa a ' + e(h.patio || 'el patio') + ': la ruta se cierra en el patio de donde salió.') + '</p></div>' : '') +
       (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir a la descarga' : 'El camión está lleno · ir a descargar') + '</button>' : '') +
+      (i < 0 && porTicket && llDe(h.destinoInfo) ? '<button class="sc-btn sec" onclick="DSO.irMapa(' + llDe(h.destinoInfo).join(',') + ')">🧭 Cómo llegar a la descarga · ' + e(h.destinoInfo.nombre) + '</button>' : '') +
+      (i < 0 && !porTicket && llDe(h.patioInfo) ? '<button class="sc-btn am" onclick="DSO.irMapa(' + llDe(h.patioInfo).join(',') + ')">🧭 Cómo llegar al patio · ' + e(h.patio) + '</button>' : '') +
       (i < 0 ? '<button class="sc-btn ' + (porTicket ? 'sec' : 'v') + '" onclick="DSO.conAbrir(\'cierre\')">' + (porTicket ? 'Cerrar la ruta sin anotar la descarga' : 'Regresé al patio · cerrar la ruta') + '</button>' : '') +   /* api 3.28.1 */
       '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + ' Todas las paradas</div>' + lista + '</div>' +
       (i >= 0 ? '<button class="sc-btn sec" onclick="DSO.conAbrir(\'cierre\')">Terminar la ruta antes</button>' : '') + '<div style="height:20px"></div>');
@@ -1969,10 +2013,10 @@
     var lin = '<div class="vv-lin">' + P.map(function (p, i) {
       var c = p.salida ? (p.atendida ? 'h' : 's') : i === s ? 'n' : '';
       return '<button type="button" class="pt ' + c + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + i + ')" title="' + e(p.nombre) + '"><span class="c">' + (p.salida ? (p.atendida ? '✓' : '✕') : i + 1) + '</span><b>' + e(String(p.nombre).replace(/^Sucursal\s+/i, '')) + '</b><small>' + e(p.llegada || (i === s ? 'sigue' : '')) + '</small></button>';
-    }).join('') + '<span class="pt d' + ((h.viajes || []).length ? ' h' : '') + '"><span class="c">D</span><b>' + e(String(h.relleno || 'descarga').split(' ')[0]) + '</b><small>' + e(((h.viajes || [])[0] || {}).llegada || 'descarga') + '</small></span></div>';
+    }).join('') + '<span class="pt d' + ((h.viajes || []).length ? ' h' : '') + '"><span class="c">D</span><b>' + e(String(h.relleno || 'descarga').split(' ')[0]) + '</b><small>' + e(((h.viajes || [])[0] || {}).llegada || 'descarga') + '</small></span><span class="pt d' + (h.estado === 'cerrada' ? ' h' : '') + '"><span class="c">P</span><b>Patio</b><small>' + e(h.estado === 'cerrada' ? ((h.cierre || {}).hora || 'cerró') : 'regreso') + '</small></span></div>';
     var va = '';
     if (h.estado === 'en_ruta' && s >= 0) { var q = P[s]; va = '<div class="vv-va"><div class="et">Va hacia · punto ' + (s + 1) + ' de ' + P.length + '</div><div class="n">' + e(q.nombre) + '</div><div class="z">' + (q.nota ? 'Dónde se recoge: ' + e(q.nota) + '<br>' : '') + (q.horaDesde ? 'Recibe ' + e(q.horaDesde) + '–' + e(q.horaHasta) : '') + '</div></div>'; }
-    else if (h.estado === 'en_ruta') va = '<div class="vv-va"><div class="et">Va hacia · descarga</div><div class="n">' + e(h.relleno || '—') + '</div></div>';
+    else if (h.estado === 'en_ruta') va = (h.viajes || []).length && !h.sinTicket ? '<div class="vv-va"><div class="et">Va hacia · regreso al patio</div><div class="n">' + e(h.patio || '—') + '</div></div>' : '<div class="vv-va"><div class="et">Va hacia · descarga</div><div class="n">' + e(h.relleno || '—') + '</div></div>';   /* api 3.28.1 */
     var ul = ult ? '<div class="vv-va u' + (ult.salida && !ult.atendida ? ' s' : '') + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + P.indexOf(ult) + ')"><div class="et">Último punto · ' + e(ult.llegada) + (ult.salida ? '–' + e(ult.salida) : '') + '</div><div class="n">' + e(ult.nombre) + '</div><div class="z">' +
       (!ult.salida ? 'está en el punto' : ult.atendida ? N(ult.bolsas) + ' bolsas · ' + (ult.recibe === 'encargado' ? 'firmó ' + e(ult.recibeNombre) : ult.recibe === 'nadie' ? 'sin encargado' : '') + ((ult.otro || []).length ? ' · ' + e(vvOtro(ult)) : '') : 'No se pudo recolectar · ' + e(ult.inc || '')) + ' · ver fotos →</div></div>' : '';
     var cif = '<div class="vv-cif">' + [[hechos + '/' + P.length, 'puntos'], [N(h.bolsas), 'bolsas'], [sin, 'sin acceso'], [firmaron, 'firmaron'], [nadie, 'sin encargado'], [at.filter(function (p) { return (p.otro || []).length; }).length, 'con otro material']].map(function (c) { return '<div><b>' + c[0] + '</b><span>' + c[1] + '</span></div>'; }).join('') + '</div>';
@@ -2003,8 +2047,12 @@
         L.marker([p.lat, p.lng], { icon: L.divIcon({ className: '', html: '<div class="vv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] }), zIndexOffset: i === s ? 500 : 0 }).addTo(m).bindTooltip(e(p.nombre) + (p.llegada ? ' · ' + p.llegada : '')).on('click', function () { D.vvDet(h.hojaId, i); });
         pts.push([p.lat, p.lng]); if (p.salida || p.llegada) hecho.push([p.lat, p.lng]);
       });
+      var DL = llDe(h.destinoInfo), descargo = (h.viajes || []).length > 0 && s < 0 && !h.sinTicket;   /* api 3.28.1 · circuito */
+      if (DL) { L.marker(DL, { icon: pinDP('D', '#0f2140', '#fff') }).addTo(m).bindTooltip(e(h.destinoInfo.nombre) + ' · descarga'); pts.push(DL); if (descargo) hecho.push(DL); }
+      if (P0 && h.estado === 'cerrada') hecho.push(P0);
       if (hecho.length > 1) L.polyline(hecho, { color: '#2f9e44', weight: 5, opacity: .85 }).addTo(m);
       var falta = hecho.length ? [hecho[hecho.length - 1]] : []; h.paradas.forEach(function (p) { if (!p.salida && !p.llegada && p.lat) falta.push([p.lat, p.lng]); });
+      if (DL && !descargo) falta.push(DL); if (P0 && h.estado !== 'cerrada') falta.push(P0);
       if (falta.length > 1) L.polyline(falta, { color: '#14306b', weight: 4, dashArray: '8 8', opacity: .6 }).addTo(m);
       if (pts.length) m.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); else m.setView([9.0, -79.5], 11);
       setTimeout(function () { try { m.invalidateSize(); } catch (er) {} }, 150);
@@ -2072,6 +2120,7 @@
     var c = b.ci, pend = h.paradas.filter(function (p) { return !p.salida; }).length, sinT = h.paradas.filter(function (p) { return p.atendida && p.viaje < 0; }).length;
     cSec(nav('Cerrar la ruta', 'bandera') + heroHoja('Regreso · ' + e(h.patio || 'patio'), e(h.nombre) + ' · cierre', '',
       '<div class="jv-kp"><div><b>' + h.paradas.filter(function (p) { return p.salida; }).length + '/' + h.paradas.length + '</b><span>paradas</span></div><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + N(h.netoTotal) + '</b><span>kg en báscula</span></div></div>') +
+      '<div class="sv-nota">La ruta se cierra en <b>' + e(h.patio || 'el patio') + '</b>, de donde salió. Al cerrar se anota dónde estás.</div>' +   /* api 3.28.1 */
       (pend ? '<div class="sv-nota am">Quedan ' + pend + ' parada(s) sin hacer. Al cerrar quedan anotadas como no hechas.</div>' : '') +
       (sinT ? '<div class="sv-nota am">Hay ' + sinT + ' parada(s) atendida(s) sin descargar. Si ya descargaste, anótalo antes de cerrar; si no puedes, cierra igual y Logística la anota desde la oficina. <button class="pl-btn" onclick="DSO.conAbrir(\'rell\')">Ir a la descarga</button></div>' : '') +
       '<div class="jv-card"><div class="sc-lbl">Odómetro final</div><input class="sc-in" inputmode="numeric" value="' + e(c.odometro) + '" oninput="DSO.con.borr.ci.odometro=this.value" placeholder="' + (h.revision ? 'salió con ' + N(h.revision.odometro) : 'km') + '">' +
@@ -2178,7 +2227,10 @@
       h.paradas.forEach(function (p, i) { if (!(p.lat && p.lng)) return; var ll = [Number(p.lat), Number(p.lng)]; pts.push(ll);
         var c = p.salida ? (p.atendida ? 'h' : 's') : (i === sig ? 'a' : '');
         L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="dsv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(mp).bindPopup('<b>' + e(p.nombre) + '</b>'); });
-      if (pts.length > 1) { L.polyline(pts, { color: '#0b4f93', weight: 3, dashArray: '6 5' }).addTo(mp); mp.fitBounds(pts, { padding: [24, 24] }); } else mp.setView(pts[0], 16);
+      var dl = llDe(h.destinoInfo), pl2 = llDe(h.patioInfo);   /* api 3.28.1 · circuito: descarga y regreso al patio */
+      if (dl) { pts.push(dl); L.marker(dl, { icon: pinDP('D', '#0f2140', '#fff') }).addTo(mp).bindPopup('<b>' + e(h.destinoInfo.nombre) + '</b><br>Descarga'); }
+      var lin = pts.slice(); if (pl2 && lin.length > 1) lin.push(pl2);
+      if (lin.length > 1) { L.polyline(lin, { color: '#0b4f93', weight: 3, dashArray: '6 5' }).addTo(mp); mp.fitBounds(pts, { padding: [24, 24] }); } else if (pts.length) mp.setView(pts[0], 16);
       setTimeout(function () { mp.invalidateSize(); }, 200);
     }],
     tickets: ['Descarga y pesos', 'camion', function () {   /* api 3.27.1 · en planta el conductor no anota peso ni ticket */

@@ -76,7 +76,7 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 .foto.firma .im{aspect-ratio:3/1;background:#fff}.foto.firma img{object-fit:contain}
 .foto .pie2{padding:6px 9px;font-size:10.5px;color:#444}
 @media (max-width:640px){.hoja{padding:18px 14px}.cuadros{grid-template-columns:1fr 1fr}.enc img{height:44px}.fotos{grid-template-columns:1fr}}
-@media print{.foto .im{aspect-ratio:auto;height:62mm}.foto.firma .im{height:24mm}}
+@media print{.foto .im{aspect-ratio:auto;height:50mm;overflow:hidden}.foto img{height:50mm;object-fit:contain}.foto.firma img{height:18mm}.foto.firma .im{height:18mm}.fotos{gap:6px}.foto .pie2{padding:3px 8px}.pie{margin-top:12px}.nota{margin-top:8px}}   /* api 3.28.1 · cabe en una hoja carta */
 @page{margin:14mm}
 </style>
 <link rel="stylesheet" href="documento.css">
@@ -124,22 +124,16 @@ function arrancar(){
   google.script.run.withSuccessHandler(function(r){
     if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el recibo.")); return; }
     var est = r.atendida ? "Recolectada" : "No se pudo recolectar"+(r.inc?" · "+esc(r.inc):"");
-    var cant = r.cajaLevanta ? "Caja "+esc(r.cajaLevanta) : (r.atendida ? n0(r.bolsas) : "—");
     mostrar(membrete(r,"Recibo de recolección")+
       "<div class='tit'><div><span class='et'>Recibo de recolección · desechos sólidos</span><b>"+esc(r.folio)+"</b></div><div class='der'>"+esc(DOCE.fecha(r.fecha))+"<br>"+esc(est)+"</div></div>"+
-      "<div class='cuadros'>"+
-        "<div class='cuadro'><div class='e'>Llegada</div><div class='v'>"+esc(r.llegada||"—")+"</div><div class='s'>hora en el punto</div></div>"+
-        "<div class='cuadro'><div class='e'>Salida</div><div class='v'>"+esc(r.salida||"—")+"</div><div class='s'>hora de salida</div></div>"+
-        "<div class='cuadro'><div class='e'>"+(r.cajaLevanta?"Caja":"Bolsas")+"</div><div class='v'>"+cant+"</div><div class='s'>"+(r.cajaLevanta?(r.cajaDeja?"dejó la "+esc(r.cajaDeja):"roll-off"):"contadas en el punto")+"</div></div>"+
-        (r.porBolsa
-          ? "<div class='cuadro'><div class='e'>Recibió</div><div class='v' style='font-size:15px'>"+(r.recibe==="encargado"?esc(r.recibeNombre||"Encargado"):r.recibe==="nadie"?"Sin encargado":"—")+"</div><div class='s'>"+(r.recibe==="encargado"?"firmó en el punto":r.recibe==="nadie"?"constancia con fotos":"")+"</div></div>"
-          : "<div class='cuadro'><div class='e'>Peso</div><div class='v'>"+(r.kg!=null?n0(r.kg):"—")+"</div><div class='s'>"+(r.kg!=null?"kg · báscula del relleno":"pendiente del ticket")+"</div></div>")+
-      "</div>"+
       "<div class='sec'>Datos de la visita</div><table><tbody>"+
         "<tr><th style='width:34%'>Cliente</th><td>"+esc(r.cliente)+"</td></tr>"+
         "<tr><th>Punto de recolección</th><td>"+esc(r.punto)+(r.direccion?"<br><small>"+esc(r.direccion)+"</small>":"")+"</td></tr>"+
         "<tr><th>Servicio</th><td>"+esc(r.servicio)+(r.contenedor?" · contenedor "+esc(r.contenedor).toLowerCase():"")+"</td></tr>"+
         "<tr><th>Unidad y conductor</th><td>"+esc(r.unidad)+" · "+esc(r.conductor)+"</td></tr>"+
+        "<tr><th>Hora de la visita</th><td>"+esc(r.llegada||"—")+(r.salida?" a "+esc(r.salida):"")+"</td></tr>"+   /* api 3.28.1 · sin cuadros grandes */
+        (r.cajaLevanta?"<tr><th>Caja</th><td>Levantó la "+esc(r.cajaLevanta)+(r.cajaDeja?" · dejó la "+esc(r.cajaDeja):"")+"</td></tr>":(r.atendida?"<tr><th>Bolsas</th><td>"+n0(r.bolsas)+"</td></tr>":""))+
+        (!r.porBolsa?"<tr><th>Peso</th><td>"+(r.kg!=null?n0(r.kg)+" kg · báscula del relleno":"pendiente del ticket")+"</td></tr>":"")+
         (r.porBolsa&&r.atendida?"<tr><th>Recibió</th><td>"+(r.recibe==="encargado"?esc(r.recibeNombre||"Encargado del local")+" · firmó en el punto":r.recibe==="nadie"?"No había encargado · la constancia son las fotos de antes y después":"—")+"</td></tr>":"")+
         (r.otro?"<tr><th>Otro material</th><td>"+esc(r.otro)+"</td></tr>":"")+
         "<tr><th>Disposición final</th><td>"+esc(r.relleno||"—")+(r.ticket?" · ticket de báscula "+esc(r.ticket):"")+"</td></tr>"+
