@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LogSolidos.js · api 3.26 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   LogSolidos.js · api 3.27 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   - api 3.27: Disposición final · pesos (peso de la planta por tandas, se cierra el total), Destinos de disposición,
+     el conductor sabe cómo se pesa cada destino y el resumen de la noche para la gerencia del cliente.
    - api 3.26 (prueba del 8 oct): salida automática, el punto en 4 pasos con fotos de antes y después, descarga
      en planta sin peso con cambio de destino, y la ruta en vivo en el Inicio de la oficina.
    Se carga al final de Index.html. No cambia nada de peligrosos:
@@ -254,6 +256,20 @@
   .vv-fotos{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px}.vv-fotos figure{margin:0}
   .vv-fotos .ph{aspect-ratio:4/3;border-radius:10px;background:#eef1f5;display:grid;place-items:center;font-size:12px;color:#8a96a8;font-weight:700;overflow:hidden}
   .vv-fotos img{width:100%;height:100%;object-fit:cover;display:block}.vv-fotos figcaption{font-size:11.5px;color:#5b6a80;font-weight:800;margin-top:4px}
+  /* api 3.27 · Disposición final · pesos y destinos */
+  .pz-info{display:flex;flex-wrap:wrap;gap:8px 18px;margin-bottom:12px}.pz-info span{display:flex;flex-direction:column;font-size:13px}.pz-info small{font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#7a879b}
+  .pz-tot{border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:2px}.pz-tot.ab{background:#FFF8E8;border:1.5px solid #F2D49A}.pz-tot.ce{background:#EEF7E8;border:1.5px solid #BFDDA8}
+  .pz-tot small{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#6b5a2e}.pz-tot.ce small{color:#2F6B0A}.pz-tot b{font-size:32px;line-height:1.1;color:#0f2140;font-variant-numeric:tabular-nums}.pz-tot b i{font-style:normal;font-size:16px;color:#5b6a80}.pz-tot span{font-size:12.5px;color:#5b6a80}
+  .pz-nueva{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;align-items:end;margin-bottom:10px}.pz-nueva label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:#5b6a80;text-transform:uppercase;letter-spacing:.3px}
+  .pz-nueva input{border:1.5px solid var(--ini-linea,#d9e0ea);border-radius:10px;padding:10px 11px;font:inherit;font-size:15px;font-weight:700;text-transform:none;letter-spacing:0;color:#0f2140;min-width:0}.pz-nueva .pl-btn{height:44px}
+  .pz-lista{display:flex;flex-direction:column;border:1px solid var(--ini-linea,#d9e0ea);border-radius:12px;overflow:hidden;margin-bottom:6px}.pz-lista>div{display:flex;gap:12px;align-items:center;padding:8px 12px;border-top:1px solid #eef1f5;font-size:13px}.pz-lista>div:first-child{border-top:0}
+  .pz-lista .k{font-weight:900;color:#0f2140;min-width:96px;font-variant-numeric:tabular-nums}.pz-lista .d{flex:1;min-width:0;display:flex;flex-direction:column}.pz-lista .d small{color:#8a96a8;font-size:11px}.pz-lista button{border:0;background:#FDECEA;color:#B42318;border-radius:8px;width:30px;height:30px;font-weight:900;cursor:pointer}
+  .pz-conf{flex:1 1 100%;font-size:13px;color:#0f2140;margin-bottom:4px}
+  @media (max-width:640px){.pz-nueva{grid-template-columns:1fr}.pz-tot b{font-size:28px}}
+  .ds-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}.ds-c{background:#fff;border:1px solid var(--ini-linea,#d9e0ea);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:8px}.ds-c.off{opacity:.62}
+  .ds-c .top{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}.ds-c .tx{display:flex;flex-direction:column;min-width:0}.ds-c .tx b{font-size:14.5px;color:#0f2140}.ds-c .tx small{font-size:12px;color:#7a879b}
+  .ds-c .dt{display:flex;gap:16px;font-size:12.5px}.ds-c .dt span{display:flex;flex-direction:column}.ds-c .dt small{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8a96a8}.ds-c .nt{font-size:12px;color:#5b6a80;background:#f5f7fa;border-radius:8px;padding:6px 9px}
+  .ds-c .bt{display:flex;gap:6px;align-items:center}.pl-ban .pl-btn{margin-left:auto;flex:0 0 auto;text-decoration:none}
   section[id^="pantalla-s-"]{color:var(--ini-tinta)}body.es-sup section[id^="pantalla-s-"]{max-width:1320px}
   `;
   var st = document.createElement('style'); st.id = 'dso-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -345,7 +361,7 @@
   };
   var MENU_PEL = null;
   var MENU_SOL = [['Operación'], ['s-hub', '🏠', 'Inicio'], ['s-plan', '🛠️', 'Planificar rutas'], ['s-mapa', '🗺️', 'Mapa de rutas'], ['s-agenda', '🗓️', 'Calendario'],
-    ['s-salidas', '📋', 'Salidas y hojas de ruta', 'dsoSal'], ['s-cierre', '📊', 'Cierre de rutas'], ['s-cli', '👥', 'Clientes de sólidos', 'dsoCli'], ['s-rell', '🏭', 'Relleno · tickets', 'dsoRel'],
+    ['s-salidas', '📋', 'Salidas y hojas de ruta', 'dsoSal'], ['s-cierre', '📊', 'Cierre de rutas'], ['s-cli', '👥', 'Clientes de sólidos', 'dsoCli'], ['s-rell', '🏭', 'Disposición final · pesos', 'dsoRel'],
     ['Administración'], ['s-flota', '🚚', 'Flota de sólidos'], ['s-equipos', '👤', 'Equipos de trabajo'], ['s-cajas', '📦', 'Cajas roll-off', 'dsoCaj']];
   var PANTALLAS = {};
 
@@ -454,7 +470,7 @@
       return '<div class="ini-sr" style="display:grid;grid-template-columns:minmax(0,1fr) 150px 80px;gap:14px;align-items:center;cursor:pointer" onclick="DSO.irHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')"><b>' + chipTurno(turnoDe(h)) + ' ' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) +
         '<small style="display:block;font-weight:600;color:var(--ini-gris);font-size:12px;margin-top:2px">' + e(sub) + (h.fecha !== I.fecha ? ' · desde ' + fCorta(h.fecha) : '') + '</small></b><div class="ini-mini"><i style="width:' + pct + '%"></i></div><span class="e" style="color:' + es[1] + ';text-align:right">' + es[0] + '</span></div>';
     }).join('') : '<div class="sv-vacio"><b>No hay hojas de ruta para hoy</b>Ármalas en «Planificar rutas».' + (puede() ? '<div style="margin-top:10px"><button class="pl-btn v" onclick="DSO.mostrar(\'s-plan\')">Planificar rutas →</button></div>' : '') + '</div>';
-    var kp = [[N(k.toneladas, 1) + ' t', 'al relleno', k.tickets + ' ticket' + (k.tickets === 1 ? '' : 's'), 's-rell'], [N(k.bolsas), 'bolsas contadas', 'compactador', 's-cierre'], [N(k.cajas), 'cajas cambiadas', 'roll-off', 's-cajas'],
+    var kp = [[N(k.toneladas, 1) + ' t', 'a disposición final', k.tickets + ' descarga' + (k.tickets === 1 ? '' : 's'), 's-rell'], [N(k.bolsas), 'bolsas contadas', 'compactador', 's-cierre'], [N(k.cajas), 'cajas cambiadas', 'roll-off', 's-cajas'],
       [k.cumplidas + '%', 'paradas cumplidas', k.sinHacer ? k.sinHacer + ' sin hacer' : 'todas hechas', 's-cierre'], [N(k.km), 'km recorridos', 'según el odómetro', 's-cierre']];
     var prox = I.proximos.map(function (p) {
       var es = p.hojas ? (p.publicadas === p.hojas ? ['lista', 'var(--ini-verde,#2f9e44)', 100] : ['borrador', 'var(--ini-gris)', Math.round(p.publicadas / p.hojas * 100)]) : (p.rutasFijas ? ['crear →', 'var(--ini-rojo)', 0] : ['sin ruta', 'var(--ini-gris)', 0]);
@@ -471,7 +487,7 @@
       '<div class="ini-bloque"><div class="ini-bt"><h3>Lo que viene esta semana</h3><button class="x" onclick="DSO.mostrar(\'s-agenda\')">Abrir calendario →</button></div><div class="ini-sem">' + prox + '</div></div></div>' +
       '<aside class="ini-aten"><h3>Requiere tu atención <span style="color:var(--ini-rojo)">' + (I.atencion.length || '') + '</span></h3>' + at + '</aside></div></div>');
     vvMapas(I);   /* api 3.26 */
-    contadores({ dsoSal: I.atencion.filter(function (a) { return a.ir === 'salidas' && a.tono === 'r'; }).length, dsoRel: I.atencion.filter(function (a) { return a.ir === 'relleno'; }).length,
+    contadores({ dsoSal: I.atencion.filter(function (a) { return a.ir === 'salidas' && a.tono === 'r'; }).length, dsoRel: I.atencion.filter(function (a) { return a.ir === 'relleno' || a.ir === 'pesos'; }).length,
       dsoCli: I.atencion.filter(function (a) { return a.ir === 'clientes'; }).length, dsoCaj: I.atencion.filter(function (a) { return /Caja llena/.test(a.titulo); }).length });
     if (typeof pintarMenuSup_ === 'function') pintarMenuSup_();
   }
@@ -481,6 +497,7 @@
     var a = D.ini.atencion[i]; if (!a) return;
     if (a.ir === 'salidas') { var h = D.ini.noche.filter(function (x) { return x.hojaId === a.hojaId; })[0]; D.irHoja(a.hojaId, h ? h.fecha : D.fecha); return; }
     if (a.ir === 'relleno') { D.rellTab = 'f'; mostrar('s-rell'); return; }
+    if (a.ir === 'pesos') { D.rellTab = 'p'; D._pesoAbrir = { hojaId: a.hojaId, viaje: a.viaje }; mostrar('s-rell'); return; }   /* api 3.27 */
     if (a.ir === 'clientes') { var p = (D.base.puntos || []).filter(function (x) { return x.puntoId === a.puntoId; })[0]; D.cliSel = p ? p.clienteId : null; mostrar('s-cli'); return; }
     if (a.ir === 'plan') { D.fecha = a.fecha || hoy(); D.editor = null; D._abrirHoja = a.hojaId || null; mostrar('s-plan'); return; }
   };
@@ -566,9 +583,9 @@
       '<div><small>Salida</small><input type="time" value="' + e(E.salida) + '" onchange="DSO.planCampo(\'salida\',this.value)"' + (ed ? '' : ' disabled') + '></div></div>' +
       '<div class="pl-cfg" style="padding-top:0"><div style="flex:1 1 100%"><small>Ayudantes del equipo · no entran al sistema; el conductor confirma que vinieron</small><div class="sv-eq">' +
       (ayud.length ? ayud.map(function (a) { var on = E.ayudantes.indexOf(a.personaId) >= 0; return '<span class="' + (on ? 'on' : '') + '"' + (ed ? ' onclick="DSO.planAyudante(\'' + e(a.personaId) + '\')"' : '') + '>' + e(a.nombre) + '<small>' + (a.protocoloEstado === 'firmado' ? 'protocolo al día' : 'protocolo pendiente') + '</small></span>'; }).join('') : '<small style="text-transform:none">Regístralos en «Equipos de trabajo».</small>') + '</div></div>' +
-      '<div style="flex:1 1 100%"><small>Disposición final</small><select onchange="DSO.planCampo(\'relleno\',this.value)"' + (ed ? '' : ' disabled') + '>' + B.ajustes.rellenos.concat(E.relleno && B.ajustes.rellenos.indexOf(E.relleno) < 0 ? [E.relleno] : []).map(function (r) { return '<option' + (r === E.relleno ? ' selected' : '') + '>' + e(r) + '</option>'; }).join('') + '</select></div></div>' +
+      '<div style="flex:1 1 100%"><small>Disposición final</small><select onchange="DSO.planCampo(\'relleno\',this.value)"' + (ed ? '' : ' disabled') + '>' + B.ajustes.rellenos.concat(E.relleno && B.ajustes.rellenos.indexOf(E.relleno) < 0 ? [E.relleno] : []).map(function (r) { return '<option' + (r === E.relleno ? ' selected' : '') + '>' + e(r) + '</option>'; }).join('') + '</select> ' + pesaChip(E.relleno) + '</div></div>' +
       '<div class="pl-cap"><div class="row">' + cap.map(function (c) { return '<div><b>' + e(c[0]) + '</b><span>' + c[1] + '</span></div>'; }).join('') + '</div></div>' +
-      (E.paradas.length ? paradas + '<div class="pl-st rell"><span class="n">🏭</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Relleno') + '</b><span>Descarga y ticket de báscula' + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + '</span></div></div><div class="pl-fin">Regreso al ' + e(B.ajustes.patio) + '</div>'
+      (E.paradas.length ? paradas + '<div class="pl-st rell"><span class="n">🏭</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Relleno') + '</b><span>' + pesaTxt(E.relleno) + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + '</span></div></div><div class="pl-fin">Regreso al ' + e(B.ajustes.patio) + '</div>'
         : '<div class="pl-vacio">Agrega paradas desde la lista de la izquierda.</div>') +
       '<div class="pl-pie">' + (ed ? '<button class="pl-btn" onclick="DSO.planCercania()">🧭 Por cercanía</button>' : '') + '<span style="flex:1"></span>' +
       (puede() && E.paradas.length ? '<button class="pl-btn" onclick="DSO.rutaDesdeHoja()">🔁 Guardar como ruta fija</button>' : '') +
@@ -852,7 +869,7 @@
       paso(rv ? 'ok' : 'no', 'Equipo presente', rv && rv.equipo && rv.equipo.length ? e(rv.equipo.map(function (q) { return q.nombre + (q.presente ? (q.epp ? '' : ' (sin EPP)') : ' (no vino)'); }).join(' · ')) : (ayud.length ? e(ayud.join(' · ')) : 'sin ayudantes')) +
       paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
       paso(est === 'cerrada' ? 'ok' : est === 'en_ruta' ? 'on' : 'no', 'En ruta · ' + h.paradas.length + ' paradas', h.atendidas + ' de ' + h.paradas.length + ' hechas' + (h.bolsas ? ' · ' + N(h.bolsas) + ' bolsas' : '') + (h.paradas.filter(function (p) { return p.inc; }).length ? ' · ' + h.paradas.filter(function (p) { return p.inc; }).length + ' incidencia(s)' : '')) +
-      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + (Number(v.neto) > 0 ? N(v.neto) + ' kg' : 'peso por llegar') : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
+      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + vvPesoTxt(v) : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
       paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') : 'pendiente');
     var ck = rv ? rv.items.map(function (x) { return '<div class="sv-ck"><span>' + e(x.texto) + '</span>' + (x.estado === 'm' ? '<span class="sv-no">✕ falla</span>' : '<span class="sv-ok">✓ bien</span>') + '</div>'; }).join('') + (rv.nota ? '<div class="sv-nota am">' + e(rv.nota) + '</div>' : '')
       : (d.lista || []).map(function (x) { return '<div class="sv-ck"><span>' + e(x) + '</span><span style="color:#8a96a8;font-size:12px">pendiente</span></div>'; }).join('');
@@ -872,13 +889,13 @@
     var tk = h.viajes.map(function (v, n) { return '<tr><td><b>' + e(v.ticket) + '</b><small>viaje ' + (n + 1) + '</small></td><td class="n">' + e(v.llegada || '') + '</td><td class="n">' + e(v.salida || '') + '</td><td class="n">' + (v.lleno ? N(v.lleno) : '') + '</td><td class="n">' + (v.vacio ? N(v.vacio) : '') + '</td><td class="n"><b>' + N(v.neto) + '</b></td><td>' + (v.foto ? fotosDe([v.foto]) : '') + '</td></tr>'; }).join('');
     return '<div class="pl-card sv-pad"><div class="pl-ch" style="padding:0 0 8px"><h3>Hoja de ruta ' + e(h.hojaId) + ' · ' + e(h.nombre) + '</h3>' + chipEst(est) + '</div>' +
       '<div class="sv-g2" style="font-size:13px"><div><div class="sv-h" style="margin-top:4px">Unidad y equipo</div><div class="sv-ck"><span>Unidad</span><b>' + e(h.unidad || '—') + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + (h.placa ? ' · ' + e(h.placa) : '') + '</b></div><div class="sv-ck"><span>Conductor</span><b>' + e(h.conductor || '—') + '</b></div>' +
-      '<div class="sv-ck"><span>Ayudantes</span><b>' + e(ayud.join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Sale</span><b>' + e(h.salida || '—') + '</b></div><div class="sv-ck"><span>Relleno</span><b>' + e(h.relleno || '—') + '</b></div></div>' +
+      '<div class="sv-ck"><span>Ayudantes</span><b>' + e(ayud.join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Sale</span><b>' + e(h.salida || '—') + '</b></div><div class="sv-ck"><span>Descarga</span><b>' + e(h.relleno || '—') + '</b></div></div>' +
       '<div><div class="sv-h" style="margin-top:4px">Así va</div><div class="sv-tl">' + tl + '</div></div></div>' +
       '<div class="sv-h">Revisión del camión · la hace el conductor desde su celular</div>' + ck + firma +
       '<div class="sv-h">Paradas · «✓ Llegué» anota la hora y el GPS; «Listo», la salida</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>#</th><th>Punto de recolección</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">En el punto</th><th class="n">GPS vs. punto</th><th class="n">' + (h.tipo === 'rolloff' ? 'Caja' : 'Bolsas') + '</th><th class="n">Kg</th><th>Evidencia</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
       (tk ? '<div class="sv-h">Tickets del relleno</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>Ticket</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">Lleno</th><th class="n">Vacío</th><th class="n">Neto kg</th><th>Foto</th></tr></thead><tbody>' + tk + '</tbody></table></div>' : '') +
       '<div class="sv-btns">' + (['borrador', 'publicada'].indexOf(est) >= 0 && puede() ? '<button class="pl-btn" onclick="DSO.irPlanHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')">Editar en el planificador</button>' : '') +
-      (h.atendidas || h.paradas.some(function (p) { return p.llegada; }) ? '<button class="pl-btn" onclick="DSO.enlaces(\'' + e(h.hojaId) + '\')">🔗 Recibos para el cliente</button>' : '') + '</div>' +
+      (h.atendidas || h.paradas.some(function (p) { return p.llegada; }) ? '<button class="pl-btn" onclick="DSO.enlaces(\'' + e(h.hojaId) + '\')">🔗 Recibos y resumen</button>' : '') + '</div>' +
       (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la ruta: revisión, salida firmada, paradas, ticket del relleno y regreso.</div>' : '') +
       '<div class="sv-nota">Llegada a más de ' + h.distanciaLejos + ' m del punto guardado: sale en rojo. Llegada fuera de la hora en que el local recibe: la hora sale en rojo.</div></div>';
   }
@@ -915,9 +932,10 @@
     S('api_dsoEnlaces', PIN, id).then(function (r) {
       var raiz = location.href.replace(/[^/]*([?#].*)?$/, '');
       D._enl = r.recibos.map(function (x) { return Object.assign({}, x, { url: raiz + x.url }); });
-      modal('Recibos para el cliente', '<div class="sv-list">' + D._enl.map(function (x, i) {
+      if (r.resumen) D._enl.unshift({ punto: 'Resumen de la noche', cliente: 'Para el encargado general · queda abierto hasta cerrar el peso', url: raiz + r.resumen });   /* api 3.27 */
+      modal('Recibos y resumen para el cliente', '<div class="sv-list">' + D._enl.map(function (x, i) {
         return '<div class="it" style="cursor:default"><div class="tx"><b>' + e(x.punto) + '</b><small>' + e(x.cliente) + '</small><small style="word-break:break-all">' + e(x.url) + '</small></div><button class="pl-btn" onclick="DSO.copiar(' + i + ')">Copiar</button></div>';
-      }).join('') + '</div><div class="sv-nota">Cada enlace lleva una clave y muestra solo el recibo de esa visita: hora, bolsas o caja y peso. El reporte del mes sale en Cobros › Para facturar.</div>', '<button class="pl-btn" data-x>Cerrar</button>');
+      }).join('') + '</div><div class="sv-nota">Cada enlace lleva una clave. El recibo de cada sucursal muestra su visita: horas, bolsas, quién recibió y las novedades, sin peso. El resumen de la noche lleva todas las sucursales y el peso total de la planta. El reporte del mes sale en Cobros › Para facturar.</div>', '<button class="pl-btn" data-x>Cerrar</button>');
     }).catch(falla);
   };
   D.copiar = function (i) {
@@ -1070,21 +1088,60 @@
   };
   D.ubic = function (id, si) { S('api_dsoAprobarUbicacion', PIN, id, si).then(function () { aviso(si ? 'Ubicación aprobada' : 'Ubicación descartada'); mostrar('s-cli'); }).catch(falla); };
 
-  /* ═══ Relleno · tickets ═══ */
+  /* ═══ api 3.27 · Disposición final · pesos (antes «Relleno · tickets») ═══
+     Pesos de planta: la planta pesa y manda el peso en varias tandas; aquí se van sumando y al final se cierra el total.
+     Mientras está abierto, el resumen de la noche queda abierto y el reparto por sucursal espera. Los recibos de cada sucursal no llevan peso. */
+  function pesaDe(nombre) { var L = (D.base && D.base.ajustes && D.base.ajustes.destinos) || []; for (var i = 0; i < L.length; i++) if (L[i].nombre === nombre) return L[i]; return null; }
+  function pesaTxt(nombre) { var d = pesaDe(nombre); return d && d.pesa === 'bascula' ? 'Báscula · ticket con lleno y vacío' : d ? 'Planta · se deja todo, la planta pesa después' : 'Descarga'; }
+  function pesaChip(nombre) { var d = pesaDe(nombre); return d ? (d.pesa === 'bascula' ? '<span class="sv-chip ro">Báscula · ticket</span>' : '<span class="sv-chip v">Planta · pesa después</span>') : ''; }
+  function sumaTandas(v) { return Math.round((v.tandas || []).reduce(function (a, x) { return a + (Number(x.kg) || 0); }, 0) * 10) / 10; }
+  function vvPesoTxt(v) { return v.pesoPendiente ? ((v.tandas || []).length ? 'peso abierto · ' + N(sumaTandas(v), 1) + ' kg sumados' : 'peso por anotar') : N(v.neto, 1) + ' kg'; }
+  function pnum(s) {
+    s = String(s == null ? '' : s).replace(/\s|kg/gi, '');
+    if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/,/g, '');
+    else if (/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+    var n = Number(s); return isFinite(n) ? n : 0;
+  }
   PANTALLAS['s-rell'] = function (s) {
     D.rellMes = D.rellMes || hoy().slice(0, 7);
     var d = D.rellMes + '-01', fin = masDias(masDias(d, 32).slice(0, 7) + '-01', -1);
-    cargando(s, 'Cargando los tickets…');
-    S('api_dsoTickets', PIN, d, fin).then(function (r) { D.tk = r; if (!r.tickets.some(function (t) { return t.ticket === D.tkSel; })) D.tkSel = (r.tickets[0] || {}).ticket; pintarRelleno(s); }).catch(falla);
+    cargando(s, 'Cargando la disposición final…');
+    Promise.all([S('api_dsoTickets', PIN, d, fin), D.base ? Promise.resolve(D.base) : recargarBase()]).then(function (r) {
+      D.tk = r[0];
+      var b = r[0].tickets.filter(function (t) { return !t.planta; });
+      if (!b.some(function (t) { return t.ticket === D.tkSel; })) D.tkSel = (b[0] || {}).ticket;
+      pintarRelleno(s);
+      if (D._pesoAbrir) { var x = D._pesoAbrir; D._pesoAbrir = null; D.pesoAbrir(x.hojaId, x.viaje); }
+    }).catch(falla);
   };
+  function plantas() {
+    return (D.tk.tickets || []).filter(function (t) { return t.planta; }).sort(function (a, b) {
+      var A = a.peso && a.peso.abierto ? 0 : 1, B2 = b.peso && b.peso.abierto ? 0 : 1;
+      return A !== B2 ? A - B2 : (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0);
+    });
+  }
+  function pesoCelda(t) {
+    var p = t.peso || {};
+    if (!p.abierto) return '<b>' + N(p.kg, 1) + ' kg</b><small>cerrado</small>';
+    return p.parcial > 0 ? '<b>' + N(p.parcial, 1) + ' kg</b><small><span class="sv-chip ro">abierto · faltan tandas</span></small>' : '<span class="sv-chip ro">Por anotar · lo manda la planta</span>';
+  }
   function pintarRelleno(s) {
-    var R = D.tk, tab = D.rellTab === 'f' ? 'f' : 't', sel = R.tickets.filter(function (t) { return t.ticket === D.tkSel; })[0];
-    var cuerpo;
-    if (tab === 't') {
-      var izq = '<div class="pl-card sv-scroll">' + (R.tickets.length ? '<table class="sv-tb"><thead><tr><th>Ticket</th><th>Hoja</th><th>Qué llevó</th><th class="n">Neto kg</th><th>Foto</th></tr></thead><tbody>' + R.tickets.map(function (t) {
+    var R = D.tk, tab = ['p', 't', 'f', 'd'].indexOf(D.rellTab) >= 0 ? D.rellTab : 'p', cuerpo;
+    var bas = R.tickets.filter(function (t) { return !t.planta; }), sel = bas.filter(function (t) { return t.ticket === D.tkSel; })[0], PL = plantas();
+    if (tab === 'p') {
+      cuerpo = '<div class="pl-ban g"><span>En planta <b>no se pesa al llegar</b>: el conductor deja todo y la planta manda el peso después, en varias tandas. Aquí las vas sumando; cuando llegue la última, <b>cierra el peso</b>: el total se reparte entre las sucursales según sus bolsas y el resumen de la noche queda cerrado. <b>Los recibos de cada sucursal no llevan peso</b>, solo bolsas.</span></div>' +
+        '<div class="pl-card sv-scroll">' + (PL.length ? '<table class="sv-tb"><thead><tr><th>Noche</th><th>Hoja</th><th>Destino</th><th class="n">Bolsas entregadas</th><th class="n">Peso de la planta</th><th class="n">Kg por bolsa</th><th></th></tr></thead><tbody>' + PL.map(function (t) {
+          var p = t.peso || {}, kgb = !p.abierto && t.bolsasEntregadas ? N(p.kg / t.bolsasEntregadas, 1) : '';
+          return '<tr><td><b>' + fCorta(t.fecha) + '</b>' + (t.antes ? '<small>de un mes anterior</small>' : '') + '</td><td>' + e(t.nombre) + '<small>' + e(t.hojaId) + (t.estadoHoja !== 'cerrada' ? ' · ruta en curso' : '') + '</small></td><td>' + e(t.relleno) + (t.rellenoPlan ? '<small>planificada: ' + e(t.rellenoPlan) + '</small>' : '') + '</td>' +
+            '<td class="n">' + N(t.bolsasEntregadas) + '</td><td class="n">' + pesoCelda(t) + '</td><td class="n">' + kgb + '</td>' +
+            '<td style="white-space:nowrap"><button class="pl-btn' + (p.abierto ? ' a' : '') + '" onclick="DSO.pesoAbrir(\'' + e(t.hojaId) + '\',' + t.idx + ')">' + (p.abierto ? (p.parcial > 0 ? 'Sumar tanda' : 'Anotar el peso') : 'Ver el peso') + '</button> <button class="pl-btn" onclick="DSO.resumenAbrir(\'' + e(t.hojaId) + '\')">Resumen</button></td></tr>';
+        }).join('') + '</tbody></table>' : '<div class="sv-vacio"><b>No hay descargas en planta este mes</b>Salen aquí cuando el conductor anota «Terminé la descarga» en una planta.</div>') + '</div>';
+    } else if (tab === 't') {
+      var izq = '<div class="pl-card sv-scroll">' + (bas.length ? '<table class="sv-tb"><thead><tr><th>Ticket</th><th>Hoja</th><th>Qué llevó</th><th class="n">Neto kg</th><th>Foto</th></tr></thead><tbody>' + bas.map(function (t) {
         var que = t.reparto.length === 1 && t.reparto[0].caja ? 'Caja ' + t.reparto[0].caja + ' · ' + t.reparto[0].cliente : t.reparto.length + ' parada' + (t.reparto.length === 1 ? '' : 's') + ' · ' + N(t.reparto.reduce(function (a, x) { return a + x.bolsas; }, 0)) + ' bolsas';
         return '<tr class="clic' + (t.ticket === D.tkSel ? ' sel' : '') + '" onclick="DSO.tkVer(\'' + e(t.ticket) + '\')"><td><b>' + e(t.ticket) + '</b><small>' + e(t.llegada) + (t.salida ? '–' + e(t.salida) : '') + '</small></td><td>' + fCorta(t.fecha) + ' · ' + e(t.nombre) + '<small>' + e(t.hojaId) + ' · viaje ' + t.viaje + '</small></td><td>' + e(que) + '</td><td class="n"><b>' + N(t.neto) + '</b></td><td>' + (t.foto ? '<span class="sv-ok">✓</span>' : '—') + '</td></tr>';
-      }).join('') + '<tr class="tot"><td>Total</td><td></td><td>' + R.tickets.length + ' tickets</td><td class="n">' + N(R.totalKg) + '</td><td></td></tr></tbody></table>' : '<div class="sv-vacio"><b>No hay tickets este mes</b>Los registra el conductor en el relleno, con la foto del comprobante.</div>') + '</div>';
+      }).join('') + '<tr class="tot"><td>Total</td><td></td><td>' + bas.length + ' tickets</td><td class="n">' + N(R.basculaKg) + '</td><td></td></tr></tbody></table>' : '<div class="sv-vacio"><b>No hay tickets de báscula este mes</b>Los registra el conductor en el relleno, con la foto del comprobante.</div>') + '</div>';
       var der = sel ? '<div class="pl-card sv-pad"><div class="pl-ch" style="padding:0 0 6px"><h3>Ticket ' + e(sel.ticket) + ' · reparto</h3><span class="sv-chip v">' + N(sel.neto) + ' kg</span></div>' +
         '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:#667489;margin-bottom:8px">' + (sel.lleno ? '<span>Lleno <b style="color:#0f2140">' + N(sel.lleno) + '</b></span><span>Vacío <b style="color:#0f2140">' + N(sel.vacio) + '</b></span>' : '') + '<span>Neto <b style="color:#0f2140">' + N(sel.neto) + ' kg</b></span><span>' + e(sel.relleno) + '</span></div>' +
         '<table class="sv-tb"><thead><tr><th>Punto</th><th class="n">' + (sel.tipo === 'rolloff' ? 'Caja' : 'Bolsas') + '</th><th>Parte</th><th class="n">Kg</th></tr></thead><tbody>' + sel.reparto.map(function (x) {
@@ -1092,19 +1149,113 @@
           return '<tr><td>' + e(x.nombre) + '<small>' + e(x.cliente) + '</small></td><td class="n">' + (x.caja ? e(x.caja) : N(x.bolsas)) + '</td><td><div style="display:flex;gap:8px;align-items:center"><div class="sv-bar" style="flex:1"><i style="width:' + p + '%"></i></div><small style="display:inline;min-width:40px;text-align:right">' + N(p, 1) + ' %</small></div></td><td class="n"><b>' + N(x.kg) + '</b></td></tr>';
         }).join('') + '</tbody></table><div class="sv-nota">Compactador: el peso del ticket se reparte según las bolsas de cada punto. <b>Roll-off: el ticket es de una sola caja, así que todo el peso es de ese cliente.</b></div></div>' : '<div></div>';
       cuerpo = '<div class="sv-g21" style="grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)">' + izq + der + '</div>';
-    } else {
-      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Hoja</th><th class="n">Paradas sin ticket</th><th>Estado</th></tr></thead><tbody>' + R.faltan.map(function (f) {
+    } else if (tab === 'f') {
+      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Hoja</th><th class="n">Paradas sin descargar</th><th>Estado</th></tr></thead><tbody>' + R.faltan.map(function (f) {
         return '<tr class="clic" onclick="DSO.irHoja(\'' + e(f.hojaId) + '\',\'' + f.fecha + '\')"><td>' + fCorta(f.fecha) + '</td><td><b>' + e(f.nombre) + '</b><small>' + e(f.hojaId) + '</small></td><td class="n">' + f.paradas + '</td><td>' + chipEst(f.estado) + '</td></tr>';
-      }).join('') + '</tbody></table>' : '<div class="sv-vacio"><b>No falta ningún ticket</b>Todas las paradas atendidas tienen su peso de báscula.</div>') + '</div>' +
-        '<div class="sv-nota am">Una parada atendida sin ticket no tiene peso: en el cobro por tonelada no suma hasta que aparezca el ticket.</div>';
-    }
-    pintar(s, '<div class="cr-tt"><div><h1>Relleno · tickets de báscula</h1><div class="sub">El conductor cuenta, la báscula pesa · ' + R.tickets.length + ' ticket' + (R.tickets.length === 1 ? '' : 's') + ' en el mes · ' + N(R.totalKg / 1000, 1) + ' t' + (R.faltan.length ? ' · ' + R.faltan.length + ' hoja(s) con faltantes' : '') + '</div></div><span class="sp"></span>' +
+      }).join('') + '</tbody></table>' : '<div class="sv-vacio"><b>No falta ninguna descarga</b>Todas las paradas atendidas tienen su descarga anotada.</div>') + '</div>' +
+        '<div class="sv-nota am">Una parada atendida sin descarga ni ticket no tiene peso: no suma hasta que se anote.</div>';
+    } else cuerpo = destinosHtml();
+    var ab = R.pesosAbiertos || 0;
+    pintar(s, '<div class="cr-tt"><div><h1>Disposición final · pesos</h1><div class="sub">Antes «Relleno · tickets» · ' + N((R.plantaKg || 0) / 1000, 2) + ' t de planta y ' + N((R.basculaKg || 0) / 1000, 2) + ' t de báscula en el mes' + (ab ? ' · ' + ab + ' peso(s) abierto(s)' : '') + '</div></div><span class="sp"></span>' +
       '<input type="month" value="' + D.rellMes + '" onchange="DSO.rellIr(this.value)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"></div>' +
-      '<div class="cr-tabs"><button class="' + (tab === 't' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'t\')">Tickets</button><button class="' + (tab === 'f' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'f\')">Faltantes' + (R.faltan.length ? ' · ' + R.faltan.length : '') + '</button></div>' + cuerpo);
+      '<div class="cr-tabs"><button class="' + (tab === 'p' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'p\')">Pesos de planta' + (ab ? ' · ' + ab : '') + '</button><button class="' + (tab === 't' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'t\')">Tickets de báscula</button><button class="' + (tab === 'f' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'f\')">Faltantes' + (R.faltan.length ? ' · ' + R.faltan.length : '') + '</button><button class="' + (tab === 'd' ? 'on' : '') + '" onclick="DSO.rellTabIr(\'d\')">Destinos</button></div>' + cuerpo);
   }
   D.tkVer = function (t) { D.tkSel = t; pintarRelleno(seccion('s-rell')); };
   D.rellIr = function (m) { if (m) { D.rellMes = m; mostrar('s-rell'); } };
   D.rellTabIr = function (t) { D.rellTab = t; pintarRelleno(seccion('s-rell')); };
+
+  /* el resumen de la noche (lo que ve la gerencia del cliente), con su clave */
+  D.resumenAbrir = function (hojaId) {
+    var k = D.tk && D.tk.clavesResumen && D.tk.clavesResumen[hojaId];
+    var ir = function (url) { var raiz = location.href.replace(/[^/]*([?#].*)?$/, ''); window.open(raiz + url, '_blank'); };
+    if (k) { ir('SolidosResumen.html?h=' + encodeURIComponent(hojaId) + '&k=' + k); return; }
+    S('api_dsoEnlaces', PIN, hojaId).then(function (r) { ir(r.resumen); }).catch(falla);
+  };
+
+  /* la herramienta: sumar las tandas y cerrar el total */
+  function pesoDe(hojaId, idx) { return (D.tk.tickets || []).filter(function (t) { return t.planta && t.hojaId === hojaId && t.idx === Number(idx); })[0]; }
+  D.pesoAbrir = function (hojaId, idx) {
+    var t = pesoDe(hojaId, idx);
+    if (!t) { D.rellTab = 'p'; D._pesoAbrir = { hojaId: hojaId, viaje: idx }; mostrar('s-rell'); return; }
+    D._peso = { hojaId: hojaId, idx: Number(idx), confirmar: '' };
+    pesoModal();
+  };
+  function pesoModal() {
+    var P0 = D._peso, t = pesoDe(P0.hojaId, P0.idx); if (!t) return;
+    var p = t.peso || { abierto: true, parcial: 0, tandas: [] }, ed = puede();
+    var info = '<div class="pz-info"><span><small>Destino</small><b>' + e(t.relleno) + '</b></span><span><small>Bolsas entregadas</small><b>' + N(t.bolsasEntregadas) + '</b></span><span><small>Llegó</small><b>' + e(t.llegada || '—') + '</b></span>' + (t.recibio ? '<span><small>Recibió en planta</small><b>' + e(t.recibio) + '</b></span>' : '') + '</div>';
+    var total = '<div class="pz-tot ' + (p.abierto ? 'ab' : 'ce') + '"><small>' + (p.abierto ? 'Total sumado · abierto' : 'Peso total · cerrado') + '</small><b>' + N(p.abierto ? p.parcial : p.kg, 1) + ' <i>kg</i></b>' +
+      (!p.abierto && t.bolsasEntregadas ? '<span>' + N(p.kg / t.bolsasEntregadas, 1) + ' kg por bolsa</span>' : p.abierto ? '<span>' + (p.parcial > 0 ? 'Suma la siguiente tanda cuando llegue' : 'Anota la primera tanda que mandó la planta') + '</span>' : '') + '</div>';
+    var nueva = p.abierto && ed ? '<div class="pz-nueva"><label>Peso de esta tanda (kg)<input id="pz-kg" inputmode="decimal" autocomplete="off" placeholder="Ej. 1,250.5" onkeydown="if(event.key===\'Enter\'){event.preventDefault();DSO.pesoSumar();}"></label>' +
+      '<label>Nota (opcional)<input id="pz-nota" maxlength="80" placeholder="Ej. reporte de la mañana" onkeydown="if(event.key===\'Enter\'){event.preventDefault();DSO.pesoSumar();}"></label><button class="pl-btn v" onclick="DSO.pesoSumar()">＋ Sumar</button></div>' : '';
+    var lista = (p.tandas || []).length ? '<div class="pz-lista">' + p.tandas.map(function (x, i) {
+      return '<div><span class="k">' + N(x.kg, 1) + ' kg</span><span class="d">' + e(x.nota || 'tanda') + '<small>' + e(x.en) + ' · ' + e(x.por) + '</small></span>' + (p.abierto && ed ? '<button type="button" title="Quitar esta tanda" onclick="DSO.pesoQuitar(' + i + ')">✕</button>' : '') + '</div>';
+    }).join('') + '</div>' : '';
+    var rep = !p.abierto ? '<div class="sv-h" style="margin-top:12px">Reparto por sucursal · según sus bolsas</div><table class="sv-tb"><thead><tr><th>Sucursal</th><th class="n">Bolsas</th><th class="n">Kg</th></tr></thead><tbody>' + (t.reparto || []).map(function (x) { return '<tr><td>' + e(x.nombre) + '</td><td class="n">' + N(x.bolsas) + '</td><td class="n">' + N(x.kg, 1) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<div class="sv-nota">Este reparto es para el consolidado del mes y el cobro por tonelada. Los recibos de cada sucursal no llevan peso.</div>' + (p.cerrado ? '<div class="sv-hint">Cerrado por ' + e(p.cerrado.por) + ' · ' + e(p.cerrado.en) + '</div>' : '') : '';
+    var botones;
+    if (P0.confirmar === 'cerrar') botones = '<span class="pz-conf">¿Cerrar el peso con <b>' + N(p.parcial, 1) + ' kg</b>? Se reparte entre las sucursales y el resumen de la noche queda cerrado.</span><button class="pl-btn" onclick="DSO.pesoConfirmar(\'\')">Volver</button><button class="pl-btn v" onclick="DSO.pesoCerrar()">Sí, cerrar el peso</button>';
+    else if (P0.confirmar === 'reabrir') botones = '<span class="pz-conf">¿Reabrir para corregir? El reparto y el resumen vuelven a quedar abiertos hasta que lo cierres otra vez.</span><button class="pl-btn" onclick="DSO.pesoConfirmar(\'\')">Volver</button><button class="pl-btn a" onclick="DSO.pesoReabrir()">Sí, reabrir</button>';
+    else if (p.abierto) botones = '<button class="pl-btn" data-x>Dejar abierto</button>' + (ed ? '<button class="pl-btn v" onclick="DSO.pesoConfirmar(\'cerrar\')"' + (p.parcial > 0 ? '' : ' disabled') + '>Cerrar el peso · ' + N(p.parcial, 1) + ' kg</button>' : '');
+    else botones = (ed ? '<button class="pl-btn" onclick="DSO.pesoConfirmar(\'reabrir\')">Reabrir para corregir</button>' : '') + '<button class="pl-btn" onclick="DSO.resumenAbrir(\'' + e(t.hojaId) + '\')">Resumen de la noche</button><button class="pl-btn a" data-x>Listo</button>';
+    modal('Peso de la planta · ' + fCorta(t.fecha) + ' · ' + t.nombre, info + total + nueva + lista + rep + (p.abierto ? '<div class="sv-nota">Cada tanda se guarda al sumarla: puedes cerrar esta ventana y volver cuando la planta mande la siguiente. Mientras el peso esté abierto, el resumen de la noche dice «abierto».</div>' : ''), botones);
+    var kg = document.getElementById('pz-kg'); if (kg) kg.focus();
+  }
+  function pesoTras(r, recargar) {
+    var P0 = D._peso, t = pesoDe(P0.hojaId, P0.idx);
+    P0.confirmar = '';
+    if (t) { t.peso = { abierto: r.abierto, parcial: r.parcial, kg: r.kg, tandas: r.tandas, cerrado: r.cerrado }; t.neto = r.kg || 0; }
+    if (!recargar) { pintarRelleno(seccion('s-rell')); pesoModal(); return; }
+    var d = D.rellMes + '-01', fin = masDias(masDias(d, 32).slice(0, 7) + '-01', -1);
+    S('api_dsoTickets', PIN, d, fin).then(function (x) { D.tk = x; pintarRelleno(seccion('s-rell')); if (pesoDe(P0.hojaId, P0.idx)) pesoModal(); else cerrarModal(); }).catch(falla);
+  }
+  D.pesoSumar = function () {
+    var kg = pnum(val('pz-kg')), nota = val('pz-nota');
+    if (!(kg > 0)) { aviso('Escribe el peso de la tanda en kg'); return; }
+    S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'sumar', { kg: kg, nota: nota }).then(function (r) { aviso('Tanda sumada · total ' + N(r.parcial, 1) + ' kg'); pesoTras(r); }).catch(falla);
+  };
+  D.pesoQuitar = function (i) { S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'quitar', { idx: i }).then(function (r) { aviso('Tanda quitada'); pesoTras(r); }).catch(falla); };
+  D.pesoConfirmar = function (q) { D._peso.confirmar = q; pesoModal(); };
+  D.pesoCerrar = function () { S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'cerrar', {}).then(function (r) { aviso('Peso cerrado · ' + N(r.kg, 1) + ' kg repartidos entre las sucursales'); pesoTras(r, true); }).catch(falla); };
+  D.pesoReabrir = function () { S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'reabrir', {}).then(function (r) { aviso('Peso reabierto'); pesoTras(r, true); }).catch(falla); };
+
+  /* Destinos de disposición: cada uno dice cómo se pesa; el conductor ya no lo elige a mano */
+  function destinosHtml() {
+    var L = (D.base.ajustes.destinos || []), ed = puede();
+    return '<div class="pl-ban g"><span>Tu lista de lugares de disposición final. Cada uno dice <b>cómo se pesa</b>: en <b>planta</b> (se deja todo y la planta manda el peso después) o en <b>báscula</b> (el conductor anota el ticket). Se eligen al planificar la ruta, y el conductor puede cambiar a otro activo en el camino.</span>' + (ed ? '<button class="pl-btn a" onclick="DSO.destForm(\'\')">＋ Agregar destino</button>' : '') + '</div>' +
+      '<div class="ds-list">' + L.map(function (d) {
+        return '<div class="ds-c' + (d.activo ? '' : ' off') + '"><div class="top"><div class="tx"><b>' + e(d.nombre) + '</b><small>' + e(d.lugar || 'sin lugar anotado') + '</small></div>' + (d.pesa === 'bascula' ? '<span class="sv-chip ro">Báscula · ticket</span>' : '<span class="sv-chip v">Planta · pesa después</span>') + '</div>' +
+          '<div class="dt"><span><small>Recibe</small>' + e(d.horario || '—') + '</span><span><small>Contacto</small>' + e(d.contacto || '—') + '</span></div>' + (d.nota ? '<div class="nt">' + e(d.nota) + '</div>' : '') +
+          '<div class="bt">' + (d.activo ? '<span class="sv-chip v">activo</span>' : '<span class="sv-chip g">pausado</span>') + '<span style="flex:1"></span>' + (ed ? '<button class="pl-btn" onclick="DSO.destActivo(\'' + d.id + '\')">' + (d.activo ? 'Pausar' : 'Activar') + '</button><button class="pl-btn" onclick="DSO.destForm(\'' + d.id + '\')">Editar</button>' : '') + '</div></div>';
+      }).join('') + '</div><div class="sv-nota">El nombre es el que sale en la hoja de ruta, el recibo y el resumen de la noche. Pausar un destino lo quita de la lista del planificador y del conductor; las noches pasadas no cambian.</div>';
+  }
+  D.destForm = function (id) {
+    if (!puede()) return;
+    var d = (D.base.ajustes.destinos || []).filter(function (x) { return x.id === id; })[0] || { pesa: 'planta', activo: true };
+    modal(id ? 'Destino · ' + d.nombre : 'Destino nuevo', '<div class="dso-f"><label class="w">Nombre<input id="df-nom" maxlength="80" value="' + e(d.nombre || '') + '" placeholder="Ej. Desechos Panamá · La Chorrera"></label>' +
+      '<label>Lugar<input id="df-lug" maxlength="80" value="' + e(d.lugar || '') + '" placeholder="Ej. La Chorrera"></label><label>Cómo se pesa<select id="df-pes"><option value="planta"' + (d.pesa !== 'bascula' ? ' selected' : '') + '>Planta · pesa después</option><option value="bascula"' + (d.pesa === 'bascula' ? ' selected' : '') + '>Báscula · ticket</option></select></label>' +
+      '<label>Horario de recepción<input id="df-hor" maxlength="40" value="' + e(d.horario || '') + '" placeholder="Ej. 00:00 a 06:00"></label><label>Contacto<input id="df-con" maxlength="80" value="' + e(d.contacto || '') + '" placeholder="Ej. Recepción de planta"></label>' +
+      '<label class="w">Nota para el conductor<textarea id="df-not" maxlength="200" placeholder="Ej. Recibe de madrugada. Dejar las bolsas en la fosa 2.">' + e(d.nota || '') + '</textarea></label></div>',
+      '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.destGuardar(\'' + e(id) + '\')">Guardar</button>');
+  };
+  function destGuardarLista(L, msg) {
+    return S('api_dsoGuardar', PIN, 'ajustes', { destinos: L }).then(function () { cerrarModal(); aviso(msg); return recargarBase(); }).then(function () { pintarRelleno(seccion('s-rell')); }).catch(falla);
+  }
+  D.destGuardar = function (id) {
+    var nom = val('df-nom'); if (!nom) { aviso('Escribe el nombre del destino'); return; }
+    var L = (D.base.ajustes.destinos || []).map(function (x) { return Object.assign({}, x); });
+    if (L.some(function (x) { return x.id !== id && x.nombre.toUpperCase() === nom.toUpperCase(); })) { aviso('Ya hay un destino con ese nombre'); return; }
+    var o = { nombre: nom, lugar: val('df-lug'), pesa: val('df-pes'), horario: val('df-hor'), contacto: val('df-con'), nota: val('df-not') };
+    var x = L.filter(function (z) { return z.id === id; })[0];
+    if (x) Object.assign(x, o); else L.push(Object.assign(o, { activo: true }));
+    destGuardarLista(L, 'Destino guardado');
+  };
+  D.destActivo = function (id) {
+    var L = (D.base.ajustes.destinos || []).map(function (x) { return Object.assign({}, x); }), x = L.filter(function (z) { return z.id === id; })[0]; if (!x) return;
+    x.activo = !x.activo;
+    if (!L.some(function (z) { return z.activo; })) { aviso('Deja al menos un destino activo'); return; }
+    destGuardarLista(L, x.activo ? 'Destino activo' : 'Destino pausado');
+  };
 
   /* ═══ Flota de sólidos ═══ */
   PANTALLAS['s-flota'] = function (s) {
@@ -1136,7 +1287,7 @@
     } else {
       var A = B.ajustes;
       cuerpo = '<div class="pl-card sv-pad" style="max-width:620px"><div class="dso-f"><label>Lejos del punto (metros)<input id="aj-lej" type="number" min="30" max="2000" value="' + A.distanciaLejos + '"></label><label>Patio de salida y regreso<input id="aj-pat" value="' + e(A.patio) + '"></label>' +
-        '<label class="w">Rellenos · disposición final (uno por línea)<textarea id="aj-rel">' + e(A.rellenos.join('\n')) + '</textarea></label></div>' + (puede() ? '<div class="sv-btns"><button class="pl-btn v" onclick="DSO.ajustesGuardar()">Guardar</button></div>' : '') + '</div>';
+        '<div class="w sv-nota" style="margin:0;grid-column:1/-1">Los destinos de disposición final (con cómo se pesa cada uno) están en <b>Disposición final · pesos › Destinos</b>. <button class="pl-btn" onclick="DSO.rellTab=\'d\';DSO.mostrar(\'s-rell\')">Ir a Destinos</button></div></div>' + (puede() ? '<div class="sv-btns"><button class="pl-btn v" onclick="DSO.ajustesGuardar()">Guardar</button></div>' : '') + '</div>';
     }
     pintar(s, '<div class="cr-tt"><div><h1>Flota de sólidos</h1><div class="sub">' + B.unidades.filter(function (u) { return u.estado === 'activa'; }).length + ' unidad(es) activa(s) · separadas de peligrosos</div></div><span class="sp"></span>' + (puede() ? '<button class="pl-btn v" onclick="DSO.uniForm(\'\')">＋ Unidad nueva</button>' : '') + '</div>' +
       '<div class="cr-tabs"><button class="' + (t === 'u' ? 'on' : '') + '" onclick="DSO.flotaIr(\'u\')">Unidades</button><button class="' + (t === 'l' ? 'on' : '') + '" onclick="DSO.flotaIr(\'l\')">Lista de revisión</button><button class="' + (t === 'a' ? 'on' : '') + '" onclick="DSO.flotaIr(\'a\')">Ajustes</button></div>' + cuerpo);
@@ -1147,7 +1298,7 @@
     S('api_dsoGuardar', PIN, 'ajustes', { listas: l }).then(function () { aviso('Listas guardadas'); mostrar('s-flota'); }).catch(falla);
   };
   D.ajustesGuardar = function () {
-    S('api_dsoGuardar', PIN, 'ajustes', { distanciaLejos: Number(val('aj-lej')) || 150, patio: val('aj-pat'), rellenos: val('aj-rel').split('\n').map(function (x) { return x.trim(); }).filter(Boolean) })
+    S('api_dsoGuardar', PIN, 'ajustes', { distanciaLejos: Number(val('aj-lej')) || 150, patio: val('aj-pat') })
       .then(function () { aviso('Ajustes guardados'); mostrar('s-flota'); }).catch(falla);
   };
   D.uniForm = function (id) {
@@ -1344,7 +1495,7 @@
     cSec('<div class="hub-saludo">Hoja de ruta <b>' + e(h.hojaId) + '</b></div><div class="grid-mosaicos"><div class="tb" style="display:block"><div class="tb-et">' + (ns ? 'Logística decidió' : 'Revisión enviada') + '</div><div class="tb-t1">' + (ns ? 'Esta ruta no sale' : 'Logística decide si sales') + '</div>' +
       '<div class="tb-t2">' + (ns ? e(h.firmada ? h.firmada.por + ': ' + h.firmada.nota : '') : 'Tu revisión trae una falla, o falta alguien del equipo o su EPP. Logística decide y te avisa aquí.') + '</div>' + pasos(1) +
       (h.revision ? '<div style="margin-top:14px;background:rgba(255,255,255,.12);border-radius:12px;padding:12px;font-size:13px;font-weight:700">' + (ns ? '' : '⏳ ') + 'Revisión: ' + (h.revision.items.length - h.revision.fallas) + ' de ' + h.revision.items.length + ' bien' + (h.revision.equipo && h.revision.equipo.length ? ' · equipo ' + (h.revision.equipo.every(function (q) { return q.presente && q.epp; }) ? 'completo' : 'incompleto') : '') + '</div>' : '') + '</div></div>' +
-      '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + (turnoDe(h) === 'dia' ? ' Tu hoja de hoy' : ' Tu hoja de esta noche') + '</div>' + [['Unidad', (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad], ['Equipo', h.ayudantesNombres.join(' · ') || '—'], ['Paradas', h.paradas.length + ''], ['Relleno', h.relleno || '—'], ['Salida', ns ? 'no sale' : 'por firmar']].map(function (f) { return '<div class="jv-fila"><b>' + f[0] + '</b><span>' + e(f[1]) + '</span></div>'; }).join('') + '</div>' +
+      '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + (turnoDe(h) === 'dia' ? ' Tu hoja de hoy' : ' Tu hoja de esta noche') + '</div>' + [['Unidad', (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + h.unidad], ['Equipo', h.ayudantesNombres.join(' · ') || '—'], ['Paradas', h.paradas.length + ''], ['Descarga', h.relleno || '—'], ['Salida', ns ? 'no sale' : 'por firmar']].map(function (f) { return '<div class="jv-fila"><b>' + f[0] + '</b><span>' + e(f[1]) + '</span></div>'; }).join('') + '</div>' +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');
     clearInterval(C._poll);
     if (!ns) C._poll = setInterval(function () {
@@ -1569,13 +1720,16 @@
 
   /* ═══ api 3.26 · la descarga: elegir dónde (puede cambiar) y si es planta (pesa después) o báscula (ticket) ═══ */
   D.tkSet = function (k, v) { C.borr.tk[k] = v; vRelleno(); };
+  D.descDest = function (d) { var t = C.borr.tk, x = (C.hoja.destinosInfo || []).filter(function (z) { return z.nombre === d; })[0]; t.relleno = d; if (x) t.modo = x.pesa; vRelleno(); };   /* api 3.27 */
   D.tkBol = function (n) { var t = C.borr.tk; t.bolsas = Math.max(0, Math.min(9999, (Number(t.bolsas) || 0) + n)); vRelleno(); };
   function vDescElegir(h, t, carga, nb) {
     var L = (h.destinos || []).slice(); if (h.relleno && L.indexOf(h.relleno) < 0) L.unshift(h.relleno);
+    var INF = {}; (h.destinosInfo || []).forEach(function (d) { INF[d.nombre] = d; });   /* api 3.27 */
+    var pz = function (d) { var x = INF[d]; return x ? (x.pesa === 'bascula' ? ' · báscula, ticket' : ' · planta, pesan después') : ''; };
     cSec(nav('Descarga', 'planta') + heroHoja('Viaje ' + (h.viajes.length + 1) + ' · ' + carga.length + ' parada' + (carga.length === 1 ? '' : 's') + ' · ' + N(nb) + ' bolsas', 'La descarga', 'Planificada: ' + e(h.relleno || '—')) +
-      '<div class="jv-card"><div class="sc-lbl">¿Dónde descargas?</div><div class="p4-dst">' + L.map(function (d) { return '<button type="button" class="' + (t.relleno === d ? 'on' : '') + '" onclick="DSO.tkSet(\'relleno\',this.getAttribute(\'data-d\'))" data-d="' + e(d) + '">' + e(d) + (d === h.relleno ? '<small>la planificada</small>' : '<small>cambiar a este destino</small>') + '</button>'; }).join('') + '</div>' +
-      '<div class="sc-lbl" style="margin-top:10px">¿Otro lugar?</div><input class="sc-in t" placeholder="Escribe el nombre del lugar" onchange="DSO.tkSet(\'relleno\',this.value)"></div>' +
-      '<div class="jv-card"><div class="sc-lbl">¿Cómo se pesa ahí?</div><div class="sc-seg" style="grid-template-columns:1fr 1fr"><button type="button" onclick="DSO.tkSet(\'modo\',\'planta\')">Planta<br><small style="font-weight:700">pesan después</small></button><button type="button" onclick="DSO.tkSet(\'modo\',\'bascula\')">Báscula<br><small style="font-weight:700">me dan ticket</small></button></div></div>' +
+      '<div class="jv-card"><div class="sc-lbl">¿Dónde descargas?</div><div class="p4-dst">' + L.map(function (d) { return '<button type="button" class="' + (t.relleno === d ? 'on' : '') + '" onclick="DSO.descDest(this.getAttribute(\'data-d\'))" data-d="' + e(d) + '">' + e(d) + (d === h.relleno ? '<small>la planificada' + pz(d) + '</small>' : '<small>cambiar a este destino' + pz(d) + '</small>') + '</button>'; }).join('') + '</div>' +
+      '<div class="sc-lbl" style="margin-top:10px">¿Otro lugar?</div><input class="sc-in t" placeholder="Escribe el nombre del lugar" value="' + (t.relleno && L.indexOf(t.relleno) < 0 ? e(t.relleno) : '') + '" onchange="DSO.tkSet(\'relleno\',this.value)"></div>' +
+      (INF[t.relleno] ? '' : '<div class="jv-card"><div class="sc-lbl">¿Cómo se pesa ahí?' + (t.relleno ? ' · ' + e(t.relleno) : '') + '</div><div class="sc-seg" style="grid-template-columns:1fr 1fr"><button type="button" onclick="DSO.tkSet(\'modo\',\'planta\')">Planta<br><small style="font-weight:700">pesan después</small></button><button type="button" onclick="DSO.tkSet(\'modo\',\'bascula\')">Báscula<br><small style="font-weight:700">me dan ticket</small></button></div></div>') +
       '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
   }
   function vDescPlanta(h, t, carga, nb, ll) {

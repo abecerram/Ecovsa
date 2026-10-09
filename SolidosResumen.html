@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<title>Recibo de recolección · desechos sólidos · ECOVSA</title>
+<title>Resumen de la noche · desechos sólidos · ECOVSA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base target="_top">
 <meta charset="UTF-8">
@@ -69,7 +69,13 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
   .firmas{page-break-inside:avoid}
   .sec{page-break-after:avoid}
 }
-@page{margin:14mm}
+.estado{display:inline-block;border-radius:6px;padding:3px 9px;font-size:10.5px;font-weight:900;letter-spacing:.6px;margin-top:4px}
+.estado.ab{background:var(--ambar);color:#4A3300}.estado.ce{background:#E7F3DD;color:#2F6B0A}
+.tabla{overflow-x:auto}
+td.no{color:#B42318}
+@media (max-width:640px){.mo{display:none}}
+@media (max-width:640px){.hoja{padding:18px 14px}.cuadros{grid-template-columns:1fr 1fr}.enc img{height:44px}}
+@page{margin:12mm}
 </style>
 <link rel="stylesheet" href="documento.css">
 <script src="documento.js"></script>
@@ -81,54 +87,63 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 <div id="app" style="display:none">
 <div class="barra doc-barra no-imprimir">
     <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
-    <div class="ti">Recibo de recolección · desechos sólidos</div>
+    <div class="ti">Resumen de la noche · desechos sólidos</div>
     <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
   </div>
   <div class="hoja" id="hoja"></div>
 </div>
 
 <script>
-/* api 3.17 · Desechos sólidos · documento para el cliente (enlace con clave, sin PIN)
-   api 3.27 · por bolsa el recibo no lleva peso: cuenta las bolsas y dice quién recibió; el roll-off sigue con su peso */
+/* api 3.27 · Desechos sólidos · Resumen de la noche para la gerencia del cliente (enlace con clave, sin PIN).
+   Todas las sucursales de la ruta con sus bolsas y quién recibió; el peso total lo manda la planta después:
+   mientras no se cierre, el resumen dice ABIERTO. */
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function n0(v){return Number(v||0).toLocaleString("en-US",{maximumFractionDigits:0});}
+function n1(v){return Number(v||0).toLocaleString("en-US",{maximumFractionDigits:1});}
 function aviso(t){ $("app").style.display="none"; var a=$("aviso"); a.style.display="block"; a.innerHTML=t; }
 function q(k){ var m=(location.search||"").match(new RegExp("[?&]"+k+"=([^&]+)")); return m?decodeURIComponent(m[1]):""; }
 function membrete(r, que){ return DOCE.membrete({ empresa:r.empresa, linea:"Recolección y transporte de desechos sólidos no peligrosos", franja:"Desechos sólidos no peligrosos · "+que, codigo:(r.empresa&&r.empresa.formulario)||"Formato por asignar" }); }
 function mostrar(html){ $("hoja").innerHTML=html; $("aviso").style.display="none"; $("app").style.display="block"; }
 function pie(r){ var e=DOCE.empresa(r.empresa); return "<div class='pie'>"+esc(e.razonSocial)+" · RUC "+esc(e.ruc)+(e.dv?" DV "+esc(e.dv):"")+" · "+esc(e.direccion)+"<br>Tel. "+esc(e.telefono)+" · "+esc(e.correo)+"</div>"; }
-
+function recibio(f){
+  if(!f.llegada) return "<span style='color:#888'>pendiente</span>";
+  if(!f.atendida) return "<span class='no'>No se pudo recolectar</span>";
+  return f.recibe==="encargado" ? "✍ "+esc(f.recibeNombre||"Encargado") : f.recibe==="nadie" ? "Sin encargado · fotos" : "—";
+}
 function arrancar(){
-  var h=q("h"), i=q("i"), k=q("k");
-  if(!h||i===""||!k){ aviso("El enlace está incompleto."); return; }
+  var h=q("h"), k=q("k");
+  if(!h||!k){ aviso("El enlace está incompleto."); return; }
   google.script.run.withSuccessHandler(function(r){
-    if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el recibo.")); return; }
-    var est = r.atendida ? "Recolectada" : "No se pudo recolectar"+(r.inc?" · "+esc(r.inc):"");
-    var cant = r.cajaLevanta ? "Caja "+esc(r.cajaLevanta) : (r.atendida ? n0(r.bolsas) : "—");
-    mostrar(membrete(r,"Recibo de recolección")+
-      "<div class='tit'><div><span class='et'>Recibo de recolección · desechos sólidos</span><b>"+esc(r.folio)+"</b></div><div class='der'>"+esc(DOCE.fecha(r.fecha))+"<br>"+esc(est)+"</div></div>"+
+    if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir el resumen.")); return; }
+    var T=r.totales, D=r.descargas||[];
+    var est = r.abierto ? "<span class='estado ab'>ABIERTO · "+(r.rutaCerrada?"PESO POR CERRAR":"RUTA EN CURSO")+"</span>" : "<span class='estado ce'>CERRADO</span>";
+    var peso = r.kg!=null ? "<div class='v'>"+n1(r.kg)+"</div><div class='s'>kg · reportado por la planta</div>" : "<div class='v' style='font-size:15px'>En proceso</div><div class='s'>la planta lo está reportando</div>";
+    mostrar(membrete(r,"Resumen de la noche")+
+      "<div class='tit'><div><span class='et'>Resumen de la noche · desechos sólidos</span><b>"+esc(r.folio)+"</b></div><div class='der'>"+esc(DOCE.fecha(r.fecha))+"<br>"+est+"</div></div>"+
       "<div class='cuadros'>"+
-        "<div class='cuadro'><div class='e'>Llegada</div><div class='v'>"+esc(r.llegada||"—")+"</div><div class='s'>hora en el punto</div></div>"+
-        "<div class='cuadro'><div class='e'>Salida</div><div class='v'>"+esc(r.salida||"—")+"</div><div class='s'>hora de salida</div></div>"+
-        "<div class='cuadro'><div class='e'>"+(r.cajaLevanta?"Caja":"Bolsas")+"</div><div class='v'>"+cant+"</div><div class='s'>"+(r.cajaLevanta?(r.cajaDeja?"dejó la "+esc(r.cajaDeja):"roll-off"):"contadas en el punto")+"</div></div>"+
-        (r.porBolsa
-          ? "<div class='cuadro'><div class='e'>Recibió</div><div class='v' style='font-size:15px'>"+(r.recibe==="encargado"?esc(r.recibeNombre||"Encargado"):r.recibe==="nadie"?"Sin encargado":"—")+"</div><div class='s'>"+(r.recibe==="encargado"?"firmó en el punto":r.recibe==="nadie"?"constancia con fotos":"")+"</div></div>"
-          : "<div class='cuadro'><div class='e'>Peso</div><div class='v'>"+(r.kg!=null?n0(r.kg):"—")+"</div><div class='s'>"+(r.kg!=null?"kg · báscula del relleno":"pendiente del ticket")+"</div></div>")+
+        "<div class='cuadro'><div class='e'>Sucursales atendidas</div><div class='v'>"+T.atendidos+" <span style='font-size:13px;color:#666'>de "+T.puntos+"</span></div><div class='s'>"+(T.noAtendidos?T.noAtendidos+" no se pudo recolectar":"todas las visitadas")+(T.pendientes?" · "+T.pendientes+" pendiente(s)":"")+"</div></div>"+
+        "<div class='cuadro'><div class='e'>Bolsas</div><div class='v'>"+n0(T.bolsas)+"</div><div class='s'>contadas en los puntos</div></div>"+
+        "<div class='cuadro'><div class='e'>Recibieron</div><div class='v'>"+T.firmaron+"</div><div class='s'>firmaron · "+T.sinEncargado+" sin encargado</div></div>"+
+        "<div class='cuadro'><div class='e'>Peso total</div>"+peso+"</div>"+
       "</div>"+
-      "<div class='sec'>Datos de la visita</div><table><tbody>"+
-        "<tr><th style='width:34%'>Cliente</th><td>"+esc(r.cliente)+"</td></tr>"+
-        "<tr><th>Punto de recolección</th><td>"+esc(r.punto)+(r.direccion?"<br><small>"+esc(r.direccion)+"</small>":"")+"</td></tr>"+
-        "<tr><th>Servicio</th><td>"+esc(r.servicio)+(r.contenedor?" · contenedor "+esc(r.contenedor).toLowerCase():"")+"</td></tr>"+
-        "<tr><th>Unidad y conductor</th><td>"+esc(r.unidad)+" · "+esc(r.conductor)+"</td></tr>"+
-        (r.porBolsa&&r.atendida?"<tr><th>Recibió</th><td>"+(r.recibe==="encargado"?esc(r.recibeNombre||"Encargado del local")+" · firmó en el punto":r.recibe==="nadie"?"No había encargado · la constancia son las fotos de antes y después":"—")+"</td></tr>":"")+
-        (r.otro?"<tr><th>Otro material</th><td>"+esc(r.otro)+"</td></tr>":"")+
-        "<tr><th>Disposición final</th><td>"+esc(r.relleno||"—")+(r.ticket?" · ticket de báscula "+esc(r.ticket):"")+"</td></tr>"+
-        (r.inc?"<tr><th>Novedad</th><td>"+esc(r.inc)+(r.incNota?" · "+esc(r.incNota):"")+"</td></tr>":"")+
+      "<div class='sec'>Datos de la noche</div><table><tbody>"+
+        (r.clientes?"<tr><th style='width:30%'>Cliente</th><td>"+esc(r.clientes)+"</td></tr>":"")+
+        "<tr><th style='width:30%'>Ruta</th><td>"+esc(r.ruta||r.hojaId)+"</td></tr>"+
+        "<tr><th>Unidad y equipo</th><td>"+esc(r.unidad)+" · conductor "+esc(r.conductor)+(r.ayudantes?" y "+r.ayudantes+" ayudante"+(r.ayudantes===1?"":"s"):"")+"</td></tr>"+
+        "<tr><th>Salida y regreso</th><td>"+(r.salida?"Salió "+esc(r.salida):"—")+(r.regreso?" · regresó "+esc(r.regreso):r.rutaCerrada?"":" · en ruta")+"</td></tr>"+
       "</tbody></table>"+
-      "<div class='nota'>"+(r.porBolsa?"La hora de llegada y la ubicación las registra el conductor en el punto. El servicio se cuenta por bolsas: este recibo no lleva peso.":"La hora de llegada y la ubicación las registra el conductor en el punto. En roll-off la caja es de un solo cliente y el peso del ticket de báscula es todo suyo.")+"</div>"+
+      "<div class='sec'>Sucursales</div><div class='tabla'><table><thead><tr><th>#</th><th>Sucursal</th><th>Llegada</th><th class='mo'>Salida</th><th style='text-align:right'>Bolsas</th><th class='mo'>Depósito</th><th>Recibió</th><th>Novedades</th><th class='mo'>Recibo N.°</th></tr></thead><tbody>"+
+        r.filas.map(function(f){ return "<tr><td>"+f.n+"</td><td><b>"+esc(f.punto)+"</b></td><td>"+esc(f.llegada||"—")+"</td><td class='mo'>"+esc(f.salida||"—")+"</td><td class='n'>"+(f.atendida?(f.caja?"Caja "+esc(f.caja):n0(f.bolsas)):"—")+"</td><td class='mo'>"+esc(f.contenedor||"")+"</td><td>"+recibio(f)+"</td><td>"+esc([f.inc,f.otro?"Otro material: "+f.otro:""].filter(Boolean).join(" · "))+"</td><td class='mo'>"+esc(f.folio||"")+"</td></tr>"; }).join("")+
+        "<tr class='tot'><td></td><td>Total</td><td></td><td class='mo'></td><td class='n'>"+n0(T.bolsas)+"</td><td class='mo'></td><td colspan='2'>"+T.atendidos+" de "+T.puntos+" sucursales atendidas</td><td class='mo'></td></tr>"+
+      "</tbody></table></div>"+
+      "<div class='sec'>Disposición final</div>"+(D.length?"<table><thead><tr><th>Destino</th><th>Llegada</th><th style='text-align:right'>Bolsas entregadas</th><th style='text-align:right'>Peso</th></tr></thead><tbody>"+
+        D.map(function(d){ return "<tr><td>"+esc(d.destino)+"</td><td>"+esc(d.llegada||"—")+"</td><td class='n'>"+(d.bolsas!=null?n0(d.bolsas):"—")+"</td><td class='n'>"+(d.abierto?"en proceso":n1(d.kg)+" kg")+"</td></tr>"; }).join("")+
+        (r.kg!=null&&D.length>1?"<tr class='tot'><td colspan='3'>Peso total</td><td class='n'>"+n1(r.kg)+" kg</td></tr>":"")+
+        "</tbody></table>":"<div style='font-size:11px;color:#666'>Todavía no se ha descargado.</div>")+
+      "<div class='nota'>"+(r.abierto?"Este resumen está <b>abierto</b>: la planta de disposición pesa la carga con cuidado al tratarla y reporta el peso después. Cuando ECOVSA registre el peso total, este mismo enlace mostrará el resumen cerrado.":"Resumen cerrado con el peso total que reportó la planta de disposición.")+" Cada sucursal tiene su recibo de visita (horas, bolsas y quién recibió); los recibos de sucursal no llevan peso.</div>"+
       pie(r));
-  }).withFailureHandler(function(){ aviso("Sin conexión. El recibo necesita señal."); }).api_dsoRecibo(h, i, k);
+  }).withFailureHandler(function(){ aviso("Sin conexión. El resumen necesita señal."); }).api_dsoResumen(h, k);
 }
 arrancar();
 </script>
