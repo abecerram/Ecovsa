@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    LogSolidos.js · api 3.27 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   - 3.28.2: la ruta como circuito (patio → sucursales → destino → el mismo patio), destinos con ubicación.
    - 3.28.1: «Anotar la descarga» desde la oficina (abre el sumador del peso); el conductor puede cerrar la ruta sin la descarga anotada; «falta descarga» en vez de «ticket».
    - 3.28: patios de salida con ubicación (planificador, mapas, salida y regreso del conductor) y «Recibos y reportes» (envío por WhatsApp).
    - 3.27.1: el inicio del conductor ya no le pide «ticket»: «Descarga y pesos» muestra sus descargas; en planta el peso lo anota Logística.
@@ -281,6 +282,10 @@
   .pl-btn.wa{background:#1f8f4e;color:#fff;border-color:#1f8f4e}.pl-btn.wa:hover{background:#187a42}
   .sv-tb td .pl-btn{padding:5px 9px;margin-right:4px}
   .ds-c .bt{flex-wrap:wrap}
+  /* api 3.28.2 · descarga y regreso como paradas */
+  .dso-dp td{background:#f5f8fd}.dso-dp.pe td{opacity:.75}
+  .dso-dpn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#0f2140;color:#fff;font:900 11px Archivo,sans-serif}.dso-dpn.p{background:#F5B301;color:#0f2140}
+  .sc-par.dp .n{border-radius:7px;background:#0f2140;color:#fff}.sc-par.dp.pp .n{background:#F5B301;color:#0f2140}
   section[id^="pantalla-s-"]{color:var(--ini-tinta)}body.es-sup section[id^="pantalla-s-"]{max-width:1320px}
   `;
   var st = document.createElement('style'); st.id = 'dso-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -907,8 +912,8 @@
       return '<tr><td>' + (i + 1) + '</td><td><b>' + e(p.nombre) + '</b><small>' + (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : e(p.direccion)) + '</small></td>' +
         '<td class="n"' + (p.fueraHorario ? ' style="color:#B42318;font-weight:900"' : '') + '>' + e(p.llegada || '—') + '</td><td class="n">' + e(p.salida || '') + '</td><td class="n">' + (p.llegada && p.salida ? dur(p.llegada, p.salida) : '') + '</td>' +
         '<td class="n">' + (p.dist != null ? '<span class="' + (p.lejos ? 'sv-no' : '') + '">' + N(p.dist) + ' m</span>' : (p.llegada ? '<small>sin GPS</small>' : '')) + '</td><td class="n">' + qu + '</td><td class="n">' + (p.kg ? N(p.kg) : '') + '</td><td>' + ev + '</td></tr>';
-    }).join('');
-    var tk = h.viajes.map(function (v, n) { return '<tr><td><b>' + e(v.ticket) + '</b><small>viaje ' + (n + 1) + '</small></td><td class="n">' + e(v.llegada || '') + '</td><td class="n">' + e(v.salida || '') + '</td><td class="n">' + (v.lleno ? N(v.lleno) : '') + '</td><td class="n">' + (v.vacio ? N(v.vacio) : '') + '</td><td class="n"><b>' + N(v.neto) + '</b></td><td>' + (v.foto ? fotosDe([v.foto]) : '') + '</td></tr>'; }).join('');
+    }).join('') + descFilas(h, 'hoja');   /* api 3.28.2 · descarga y regreso como paradas */
+    var tk = h.viajes.map(function (v, n) { if (v.planta) return '';   /* api 3.28.2 · la planta ya sale como «D» en las paradas */ return '<tr><td><b>' + e(v.ticket) + '</b><small>viaje ' + (n + 1) + '</small></td><td class="n">' + e(v.llegada || '') + '</td><td class="n">' + e(v.salida || '') + '</td><td class="n">' + (v.lleno ? N(v.lleno) : '') + '</td><td class="n">' + (v.vacio ? N(v.vacio) : '') + '</td><td class="n"><b>' + N(v.neto) + '</b></td><td>' + (v.foto ? fotosDe([v.foto]) : '') + '</td></tr>'; }).join('');
     return '<div class="pl-card sv-pad"><div class="pl-ch" style="padding:0 0 8px"><h3>Hoja de ruta ' + e(h.hojaId) + ' · ' + e(h.nombre) + '</h3>' + chipEst(est) + '</div>' +
       '<div class="sv-g2" style="font-size:13px"><div><div class="sv-h" style="margin-top:4px">Unidad y equipo</div><div class="sv-ck"><span>Unidad</span><b>' + e(h.unidad || '—') + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + (h.placa ? ' · ' + e(h.placa) : '') + '</b></div><div class="sv-ck"><span>Conductor</span><b>' + e(h.conductor || '—') + '</b></div>' +
       '<div class="sv-ck"><span>Ayudantes</span><b>' + e(ayud.join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Sale</span><b>' + e(h.salida || '—') + '</b></div><div class="sv-ck"><span>Patio</span><b>' + e(h.patio || '—') + '</b></div><div class="sv-ck"><span>Descarga</span><b>' + e(h.relleno || '—') + '</b></div></div>' +
@@ -919,7 +924,7 @@
       '<div class="sv-btns">' + (['borrador', 'publicada'].indexOf(est) >= 0 && puede() ? '<button class="pl-btn" onclick="DSO.irPlanHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')">Editar en el planificador</button>' : '') +
       (['en_ruta', 'cerrada'].indexOf(est) >= 0 && h.sinTicket > 0 && puede() ? '<button class="pl-btn a" onclick="DSO.descOfAbrir(\'' + e(h.hojaId) + '\')">Anotar la descarga</button>' : '') +   /* api 3.28.1 */
       (h.atendidas || h.paradas.some(function (p) { return p.llegada; }) ? '<button class="pl-btn" onclick="DSO.enlaces(\'' + e(h.hojaId) + '\')">🔗 Recibos y resumen</button>' : '') + '</div>' +
-      (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la ruta: revisión, salida firmada, paradas, ticket del relleno y regreso.</div>' : '') +
+      (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la ruta: revisión, salida firmada, paradas, descarga y regreso al patio.</div>' : '') +
       '<div class="sv-nota">Llegada a más de ' + h.distanciaLejos + ' m del punto guardado: sale en rojo. Llegada fuera de la hora en que el local recibe: la hora sale en rojo.</div></div>';
   }
   D.irPlanHoja = function (id, f) { D.fecha = f; D.editor = null; mostrar('s-plan'); setTimeout(function () { if (D.dia && D.dia.hojas.some(function (x) { return x.hojaId === id; })) D.elegirHoja(id); }, 900); };
@@ -1317,6 +1322,32 @@
       D._ptpin = D._pll ? L.marker(D._pll).addTo(m) : null;
       m.on('click', function (ev) { D.patPin([+ev.latlng.lat.toFixed(6), +ev.latlng.lng.toFixed(6)], false); });
     }, 60);
+  }
+
+  /* ═══ api 3.28.2 · la descarga y el regreso al patio cuentan como paradas de la hoja ═══ */
+  function mTx(m) { return m == null ? '' : m < 1000 ? N(m) + ' m' : N(m / 1000, 1) + ' km'; }
+  function descFilas(h, modo) {
+    var V = h.viajes || [], hay = h.paradas.some(function (p) { return p.atendida; }), out = [];
+    var cel = function (a) { return a.map(function (x) { return '<td' + (x[1] ? ' class="n"' : '') + '>' + x[0] + '</td>'; }).join(''); };
+    V.forEach(function (v, n) {
+      var lejos = v.dist != null && v.dist > 300;
+      var gps = v.dist != null ? '<span class="' + (lejos ? 'sv-no' : '') + '">' + mTx(v.dist) + (lejos ? ' · lejos' : '') + '</span>' : '<small>' + (v.oficina ? 'anotada en oficina' : v.gps ? 'destino sin ubicación' : 'sin GPS') + '</small>';
+      var que = v.planta ? N(v.bolsas) + ' bolsas' : 'ticket ' + e(v.ticket);
+      var kg = v.planta && v.pesoPendiente ? '<small>por anotar</small>' : N(v.neto);
+      var ev = (v.recibio ? '<span class="sv-chip">✍ ' + e(v.recibio) + '</span> ' : '') + (v.foto ? '<button class="sv-chip v" style="border:0;cursor:pointer" onclick="DSO.verFoto(\'' + e(v.foto) + '\')">📷 descarga</button> ' : '') + (v.oficina ? '<span class="sv-chip g">anotada en oficina</span>' : '');
+      var nm = '<b>' + e(v.relleno || h.relleno || 'Descarga') + '</b><small>descarga' + (V.length > 1 ? ' · viaje ' + (n + 1) : '') + ' · ' + (v.planta ? 'planta' : 'báscula') + '</small>';
+      out.push('<tr class="dso-dp"><td><span class="dso-dpn">D</span></td>' + (modo === 'vivo'
+        ? cel([[nm], [e(v.llegada || '—'), 1], [e(v.salida || ''), 1], [que, 1], [''], [gps + ' ' + ev]])
+        : cel([[nm], [e(v.llegada || '—'), 1], [e(v.salida || ''), 1], [v.llegada && v.salida ? dur(v.llegada, v.salida) : '', 1], [gps, 1], [que, 1], [kg, 1], [ev]])) + '</tr>');
+    });
+    if (!V.length && hay) out.push('<tr class="dso-dp pe"><td><span class="dso-dpn">D</span></td>' + cel([['<b>' + e(h.relleno || 'Descarga') + '</b><small>descarga · pendiente</small>'], ['—', 1]].concat(modo === 'vivo' ? [[''], [''], [''], ['']] : [[''], [''], [''], [''], [''], ['']])) + '</tr>');
+    var r = h.regreso || null, ci = h.cierre || null, dP = r && r.distPatio != null ? r.distPatio : null, lejP = dP != null && dP > 300;
+    var gP = dP != null ? '<span class="' + (lejP ? 'sv-no' : '') + '">' + (dP <= 300 ? 'en el patio' : mTx(dP) + ' del patio') + '</span>' : (ci ? '<small>sin GPS</small>' : '');
+    var nmP = '<b>' + e(h.patio || 'Patio') + '</b><small>regreso al patio · fin de la ruta</small>', lleP = e((r && r.llegada) || (ci && ci.hora) || '—');
+    out.push('<tr class="dso-dp' + (ci ? '' : ' pe') + '"><td><span class="dso-dpn p">P</span></td>' + (modo === 'vivo'
+      ? cel([[nmP], [lleP, 1], [''], [''], [''], [gP]])
+      : cel([[nmP], [lleP, 1], [''], [''], [gP, 1], [''], [''], [ci ? (ci.queda ? e(ci.queda) : '') : '<small>pendiente</small>']])) + '</tr>');
+    return out.join('');
   }
 
   /* Destinos de disposición: cada uno dice cómo se pesa; el conductor ya no lo elige a mano */
@@ -1758,7 +1789,10 @@
       var c = p.salida ? (p.atendida ? 'ok' : 'mal') : (k === i ? 'on' : '');
       return '<div class="sc-par ' + c + '" onclick="DSO.abrirParada(' + k + ')"><span class="n">' + (k + 1) + '</span><div class="t"><b>' + e(p.nombre) + '</b><small>' + (p.salida ? (p.atendida ? (p.servicio === 'caja' ? 'caja ' + e(p.cajaLevanta || '') : N(p.bolsas) + ' bolsas') : e(p.inc || 'no se recolectó')) + ' · ' + e(p.llegada) + '–' + e(p.salida) : (p.llegada ? 'llegaste ' + e(p.llegada) : (p.horaDesde ? 'recibe ' + e(p.horaDesde) + '–' + e(p.horaHasta) : e(SERV[p.servicio] || '')))) + '</small></div><span>›</span></div>';
     }).join('');
-    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' hechas', '',
+    var descHecha = (h.viajes || []).length > 0 && !porTicket, hayCarga = P.some(function (p) { return p.atendida; });   /* api 3.28.2 */
+    lista += '<div class="sc-par dp ' + (descHecha ? 'ok' : (i < 0 && porTicket ? 'on' : '')) + '"' + (porTicket ? ' onclick="DSO.conAbrir(\'rell\')"' : '') + '><span class="n">D</span><div class="t"><b>' + e(h.relleno || 'Descarga') + '</b><small>' + (descHecha ? 'descargaste ' + e(((h.viajes[h.viajes.length - 1]) || {}).llegada || '') + '–' + e(((h.viajes[h.viajes.length - 1]) || {}).salida || '') : hayCarga ? 'descarga · pendiente' : 'descarga') + '</small></div></div>' +
+      '<div class="sc-par dp pp ' + (i < 0 && !porTicket && descHecha ? 'on' : '') + '"><span class="n">P</span><div class="t"><b>' + e(h.patio || 'Patio') + '</b><small>regreso al patio · aquí se cierra la ruta</small></div></div>';
+    cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja(e(h.nombre) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + e(h.unidad), hechas + ' de ' + P.length + ' sucursales' + (descHecha ? ' · descarga ✓' : ''), '',
       '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>descarga' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
       sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga a la descarga.' : 'Regresa a ' + e(h.patio || 'el patio') + ': la ruta se cierra en el patio de donde salió.') + '</p></div>' : '') +
       (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir a la descarga' : 'El camión está lleno · ir a descargar') + '</button>' : '') +
@@ -1982,6 +2016,7 @@
   D.descGuardar = function () {
     var t = C.borr.tk;
     if (t.subiendo) { aviso('Espera a que suba la foto'); return; }
+    if (!(C.hoja.revision && C.hoja.revision.llegadaRelleno)) { aviso('Primero toca «✓ Llegué a la descarga»'); return; }   /* api 3.28.2 */
     if (!t.foto) { aviso('Falta la foto de la descarga'); return; }
     S('api_dsoDescarga', PIN, C.hoja.hojaId, { relleno: t.relleno, bolsas: t.bolsas, foto: t.foto, recibio: t.recibio || '' })
       .then(function (r) { C.borr.tk = null; aviso(r.repetido ? 'Esa descarga ya estaba anotada' : 'Descarga anotada · la planta manda el peso después'); return traer().then(function () { D.conAbrir('ruta'); }); }).catch(falla);
@@ -2025,6 +2060,7 @@
         (p.fotoAntes ? '<span class="sv-chip v">📷 antes</span> ' : '') + (p.fotoDespues ? '<span class="sv-chip v">📷 después</span> ' : '') + (p.recibe === 'encargado' ? '<span class="sv-chip">✍ ' + e(p.recibeNombre) + '</span>' : p.recibe === 'nadie' ? '<span class="sv-chip g">sin encargado</span>' : (p.fotos || []).length ? '<span class="sv-chip v">📷 foto</span>' : '');
       return '<tr class="clic' + (!p.salida ? (i === s ? ' nx' : ' pe') : '') + '" onclick="DSO.vvDet(\'' + e(h.hojaId) + '\',' + i + ')"><td>' + (i + 1) + '</td><td><b>' + e(p.nombre) + '</b><small>' + (i === s && !p.salida ? (p.llegada ? 'está en el punto' : 'va hacia aquí') : e(p.nota || '')) + '</small></td><td class="n">' + e(p.llegada || '—') + '</td><td class="n">' + e(p.salida || '') + '</td><td class="n">' + (p.salida && p.atendida ? '<b>' + N(p.bolsas) + '</b>' : '') + '</td><td>' + e(vvOtro(p)) + '</td><td>' + ev + '</td></tr>';
     }).join('');
+    filas += descFilas(h, 'vivo');   /* api 3.28.2 */
     return '<div class="pl-card vv"><div class="vv-h"><div class="tx"><div class="t1">' + chipTurno(turnoDe(h)) + ' ' + e(h.nombre || h.hojaId) + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + ' ' + e(h.unidad) + '</div>' +
       '<div class="t2">' + e(h.conductor || 'sin conductor') + (h.ayudantes && h.ayudantes.length ? ' + ' + h.ayudantes.length + ' ayudante' + (h.ayudantes.length > 1 ? 's' : '') : '') + ' · ' + sal + '<br>Descarga: <b>' + e(h.relleno || '—') + '</b></div></div>' +
       '<div class="vv-est"><span class="big ' + es[1] + '">' + es[0] + '</span>' + (ult ? '<small>último registro ' + e(ult.salida || ult.llegada) + '</small>' : '') + '</div></div>' + lin +
@@ -2097,7 +2133,7 @@
       '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto del ticket lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto del ticket (comprobante)') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label></div></div>' +
       '<button class="sc-btn am" onclick="DSO.tkGuardar()"' + (t.subiendo ? ' disabled' : '') + '>Guardar el ticket</button>' + (h.tipo !== 'rolloff' ? '<button class="mc-mal" onclick="DSO.tkSet(\'modo\',\'\')">Cambiar el destino o cómo se pesa</button>' : '') + '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
   }
-  D.llegueRelleno = function () { gpsAhora().then(function (g) { return S('api_dsoLlegue', PIN, C.hoja.hojaId, 'relleno', g); }).then(function (r) { aviso('Llegada al relleno ' + r.hora); return traer(); }).then(vRelleno).catch(falla); };
+  D.llegueRelleno = function () { gpsAhora().then(function (g) { return S('api_dsoLlegue', PIN, C.hoja.hojaId, 'relleno', g, (C.borr.tk || {}).relleno || C.hoja.relleno || ''); }).then(function (r) { aviso('Llegada a la descarga ' + r.hora + (r.dist != null ? (r.dist > 300 ? ' · ojo: estás a ' + mTx(r.dist) + ' del destino' : ' · en el destino') : '')); return traer(); }).then(vRelleno).catch(falla); };   /* api 3.28.2 */
   D.tkPeso = function (k, v) { var t = C.borr.tk; t[k] = String(v).replace(/[^\d.]/g, ''); var n = (Number(t.lleno) > 0 && Number(t.vacio) > 0) ? Number(t.lleno) - Number(t.vacio) : Number(t.neto) || 0; var x = $i('sc-neto'); if (x) x.textContent = n > 0 ? N(n) + ' kg' : '—'; };
   D.tkFoto = function (inp) {   /* también la foto de la descarga en planta */
     var f = inp.files && inp.files[0]; if (!f) return;
@@ -2106,6 +2142,7 @@
   };
   D.tkGuardar = function () {
     var t = C.borr.tk;
+    if (!(C.hoja.revision && C.hoja.revision.llegadaRelleno)) { aviso('Primero toca «✓ Llegué al relleno»'); return; }   /* api 3.28.2 */
     if (!t.ticket) { aviso('Falta el número del ticket'); return; }
     if (!t.foto) { aviso('Falta la foto del ticket'); return; }
     S('api_dsoTicket', PIN, C.hoja.hojaId, { ticket: t.ticket, lleno: Number(t.lleno) || 0, vacio: Number(t.vacio) || 0, neto: Number(t.neto) || 0, foto: t.foto, relleno: t.relleno || '' })
