@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    LogSolidos.js · api 3.27 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   - 3.28.1: «Anotar la descarga» desde la oficina (abre el sumador del peso); el conductor puede cerrar la ruta sin la descarga anotada; «falta descarga» en vez de «ticket».
    - 3.28: patios de salida con ubicación (planificador, mapas, salida y regreso del conductor) y «Recibos y reportes» (envío por WhatsApp).
    - 3.27.1: el inicio del conductor ya no le pide «ticket»: «Descarga y pesos» muestra sus descargas; en planta el peso lo anota Logística.
    - api 3.27: Disposición final · pesos (peso de la planta por tandas, se cierra el total), Destinos de disposición,
@@ -884,7 +885,7 @@
       paso(rv ? 'ok' : 'no', 'Equipo presente', rv && rv.equipo && rv.equipo.length ? e(rv.equipo.map(function (q) { return q.nombre + (q.presente ? (q.epp ? '' : ' (sin EPP)') : ' (no vino)'); }).join(' · ')) : (ayud.length ? e(ayud.join(' · ')) : 'sin ayudantes')) +
       paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') + (rv && rv.distPatio != null ? ' · GPS ' + distPatioTxt(rv.distPatio) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
       paso(est === 'cerrada' ? 'ok' : est === 'en_ruta' ? 'on' : 'no', 'En ruta · ' + h.paradas.length + ' paradas', h.atendidas + ' de ' + h.paradas.length + ' hechas' + (h.bolsas ? ' · ' + N(h.bolsas) + ' bolsas' : '') + (h.paradas.filter(function (p) { return p.inc; }).length ? ' · ' + h.paradas.filter(function (p) { return p.inc; }).length + ' incidencia(s)' : '')) +
-      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + vvPesoTxt(v) : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
+      paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + vvPesoTxt(v) + (v.oficina ? ' · anotada en oficina' : '') : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin descarga anotada' : '') : 'pendiente') +
       paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') + (h.regreso && h.regreso.distPatio != null ? ' · cerró ' + distPatioTxt(h.regreso.distPatio) : '') : 'pendiente');
     var ck = rv ? rv.items.map(function (x) { return '<div class="sv-ck"><span>' + e(x.texto) + '</span>' + (x.estado === 'm' ? '<span class="sv-no">✕ falla</span>' : '<span class="sv-ok">✓ bien</span>') + '</div>'; }).join('') + (rv.nota ? '<div class="sv-nota am">' + e(rv.nota) + '</div>' : '')
       : (d.lista || []).map(function (x) { return '<div class="sv-ck"><span>' + e(x) + '</span><span style="color:#8a96a8;font-size:12px">pendiente</span></div>'; }).join('');
@@ -910,6 +911,7 @@
       '<div class="sv-h">Paradas · «✓ Llegué» anota la hora y el GPS; «Listo», la salida</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>#</th><th>Punto de recolección</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">En el punto</th><th class="n">GPS vs. punto</th><th class="n">' + (h.tipo === 'rolloff' ? 'Caja' : 'Bolsas') + '</th><th class="n">Kg</th><th>Evidencia</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
       (tk ? '<div class="sv-h">Tickets del relleno</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>Ticket</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">Lleno</th><th class="n">Vacío</th><th class="n">Neto kg</th><th>Foto</th></tr></thead><tbody>' + tk + '</tbody></table></div>' : '') +
       '<div class="sv-btns">' + (['borrador', 'publicada'].indexOf(est) >= 0 && puede() ? '<button class="pl-btn" onclick="DSO.irPlanHoja(\'' + e(h.hojaId) + '\',\'' + h.fecha + '\')">Editar en el planificador</button>' : '') +
+      (['en_ruta', 'cerrada'].indexOf(est) >= 0 && h.sinTicket > 0 && puede() ? '<button class="pl-btn a" onclick="DSO.descOfAbrir(\'' + e(h.hojaId) + '\')">Anotar la descarga</button>' : '') +   /* api 3.28.1 */
       (h.atendidas || h.paradas.some(function (p) { return p.llegada; }) ? '<button class="pl-btn" onclick="DSO.enlaces(\'' + e(h.hojaId) + '\')">🔗 Recibos y resumen</button>' : '') + '</div>' +
       (est === 'cerrada' ? '<div class="sv-nota">Esta hoja queda como el documento de trabajo de la ruta: revisión, salida firmada, paradas, ticket del relleno y regreso.</div>' : '') +
       '<div class="sv-nota">Llegada a más de ' + h.distanciaLejos + ' m del punto guardado: sale en rojo. Llegada fuera de la hora en que el local recibe: la hora sale en rojo.</div></div>';
@@ -982,7 +984,7 @@
       var filas = F.map(function (f) {
         return '<tr class="clic" onclick="DSO.irHoja(\'' + e(f.hojaId) + '\',\'' + f.fecha + '\')"><td>' + fCorta(f.fecha) + '</td><td><b>' + e(f.nombre) + '</b><small>' + e(f.hojaId) + ' · ' + (TIPOS[f.tipo] || TIPOS.compactador)[1] + ' ' + e(f.unidad) + '</small></td><td>' + e(f.conductor) + '</td>' +
           '<td class="n">' + f.atendidas + '/' + f.paradas + (f.incidencias ? '<small>' + f.incidencias + ' incidencia(s)</small>' : '') + '</td><td class="n">' + (f.bolsas ? N(f.bolsas) : '') + (f.cajas ? '<small>' + f.cajas + ' caja(s)</small>' : '') + '</td>' +
-          '<td class="n">' + (f.neto ? N(f.neto) : (f.sinTicket ? '<span class="sv-chip r">falta ticket</span>' : '')) + '</td><td class="n">' + e(f.salida) + '</td><td class="n">' + e(f.regreso) + '</td><td class="n">' + (f.km != null ? N(f.km) : '') + '</td><td>' + chipEst(f.estado) + (f.lejos ? ' <span class="sv-chip ro">' + f.lejos + ' lejos</span>' : '') + '</td></tr>';
+          '<td class="n">' + (f.neto ? N(f.neto) : (f.sinTicket ? '<span class="sv-chip r">falta descarga</span>' : '')) + '</td><td class="n">' + e(f.salida) + '</td><td class="n">' + e(f.regreso) + '</td><td class="n">' + (f.km != null ? N(f.km) : '') + '</td><td>' + chipEst(f.estado) + (f.lejos ? ' <span class="sv-chip ro">' + f.lejos + ' lejos</span>' : '') + '</td></tr>';
       }).join('');
       pintar(s, '<div class="cr-tt"><div><h1>Cierre de rutas · sólidos</h1><div class="sub">Lo que pasó en cada ruta: paradas, bolsas, peso en báscula y kilómetros</div></div><span class="sp"></span>' +
         '<input type="date" value="' + D.cieDesde + '" onchange="DSO.cieRango(this.value,null)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"> a <input type="date" value="' + D.cieHasta + '" onchange="DSO.cieRango(null,this.value)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"></div>' +
@@ -1166,10 +1168,10 @@
         }).join('') + '</tbody></table><div class="sv-nota">Compactador: el peso del ticket se reparte según las bolsas de cada punto. <b>Roll-off: el ticket es de una sola caja, así que todo el peso es de ese cliente.</b></div></div>' : '<div></div>';
       cuerpo = '<div class="sv-g21" style="grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)">' + izq + der + '</div>';
     } else if (tab === 'f') {
-      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Hoja</th><th class="n">Paradas sin descargar</th><th>Estado</th></tr></thead><tbody>' + R.faltan.map(function (f) {
-        return '<tr class="clic" onclick="DSO.irHoja(\'' + e(f.hojaId) + '\',\'' + f.fecha + '\')"><td>' + fCorta(f.fecha) + '</td><td><b>' + e(f.nombre) + '</b><small>' + e(f.hojaId) + '</small></td><td class="n">' + f.paradas + '</td><td>' + chipEst(f.estado) + '</td></tr>';
+      cuerpo = '<div class="pl-card sv-scroll">' + (R.faltan.length ? '<table class="sv-tb"><thead><tr><th>Fecha</th><th>Hoja</th><th class="n">Paradas sin descargar</th><th>Estado</th><th></th></tr></thead><tbody>' + R.faltan.map(function (f) {
+        return '<tr class="clic" onclick="DSO.irHoja(\'' + e(f.hojaId) + '\',\'' + f.fecha + '\')"><td>' + fCorta(f.fecha) + '</td><td><b>' + e(f.nombre) + '</b><small>' + e(f.hojaId) + '</small></td><td class="n">' + f.paradas + '</td><td>' + chipEst(f.estado) + '</td><td>' + (puede() ? '<button class="pl-btn a" onclick="event.stopPropagation();DSO.descOfAbrir(\'' + e(f.hojaId) + '\')">Anotar la descarga</button>' : '') + '</td></tr>';
       }).join('') + '</tbody></table>' : '<div class="sv-vacio"><b>No falta ninguna descarga</b>Todas las paradas atendidas tienen su descarga anotada.</div>') + '</div>' +
-        '<div class="sv-nota am">Una parada atendida sin descarga ni ticket no tiene peso: no suma hasta que se anote.</div>';
+        '<div class="sv-nota am">Una parada atendida sin descarga anotada no tiene peso: no suma hasta que se anote. Si el conductor no la anotó, «Anotar la descarga» la registra desde aquí.</div>';
     } else cuerpo = destinosHtml();
     var ab = R.pesosAbiertos || 0;
     pintar(s, '<div class="cr-tt"><div><h1>Disposición final · pesos</h1><div class="sub">Antes «Relleno · tickets» · ' + N((R.plantaKg || 0) / 1000, 2) + ' t de planta y ' + N((R.basculaKg || 0) / 1000, 2) + ' t de báscula en el mes' + (ab ? ' · ' + ab + ' peso(s) abierto(s)' : '') + '</div></div><span class="sp"></span>' +
@@ -1192,7 +1194,8 @@
   function pesoDe(hojaId, idx) { return (D.tk.tickets || []).filter(function (t) { return t.planta && t.hojaId === hojaId && t.idx === Number(idx); })[0]; }
   D.pesoAbrir = function (hojaId, idx) {
     var t = pesoDe(hojaId, idx);
-    if (!t) { D.rellTab = 'p'; D._pesoAbrir = { hojaId: hojaId, viaje: idx }; mostrar('s-rell'); return; }
+    if (!t) { var kk = hojaId + '|' + idx; if (D._pesoYa === kk) { D._pesoYa = null; aviso('No encontré esa descarga en el mes que estás viendo'); return; } D._pesoYa = kk; D.rellTab = 'p'; D._pesoAbrir = { hojaId: hojaId, viaje: idx }; mostrar('s-rell'); return; }
+    D._pesoYa = null;
     D._peso = { hojaId: hojaId, idx: Number(idx), confirmar: '' };
     pesoModal();
   };
@@ -1234,6 +1237,50 @@
   D.pesoConfirmar = function (q) { D._peso.confirmar = q; pesoModal(); };
   D.pesoCerrar = function () { S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'cerrar', {}).then(function (r) { aviso('Peso cerrado · ' + N(r.kg, 1) + ' kg repartidos entre las sucursales'); pesoTras(r, true); }).catch(falla); };
   D.pesoReabrir = function () { S('api_dsoPeso', PIN, D._peso.hojaId, D._peso.idx, 'reabrir', {}).then(function (r) { aviso('Peso reabierto'); pesoTras(r, true); }).catch(falla); };
+
+  /* ═══ api 3.28.1 · Anotar la descarga desde la oficina (el conductor no la anotó) ═══
+     Planta: bolsas entregadas y quién recibió; al guardar se abre el sumador del peso. Báscula: número del ticket y neto. */
+  D.descOfAbrir = function (hojaId) {
+    if (!puede()) return;
+    Promise.all([S('api_dsoHoja', PIN, hojaId), D.base ? Promise.resolve(D.base) : recargarBase()]).then(function (r) {
+      var h = r[0].hoja, carga = h.paradas.filter(function (p) { return p.atendida && p.viaje < 0; });
+      if (!carga.length) { aviso('Esa ruta ya tiene su descarga anotada'); return; }
+      var dest = h.relleno || ((D.base.ajustes.destinos || []).filter(function (d) { return d.activo; })[0] || {}).nombre || '';
+      var nb = carga.reduce(function (a, p) { return a + (Number(p.bolsas) || 0); }, 0), x = pesaDe(dest);
+      D._dof = { hojaId: h.hojaId, fecha: h.fecha, nombre: h.nombre || h.hojaId, estado: h.estado, n: carga.length, nb: nb,
+        relleno: dest, modo: x && x.pesa === 'bascula' ? 'bascula' : 'planta', bolsas: nb, recibio: '', llegada: '', ticket: '', neto: '' };
+      descOfModal();
+    }).catch(falla);
+  };
+  function descOfModal() {
+    var F = D._dof, L = (D.base.ajustes.destinos || []).filter(function (d) { return d.activo; }).map(function (d) { return d.nombre; });
+    if (F.relleno && L.indexOf(F.relleno) < 0) L.unshift(F.relleno);
+    var pl = F.modo !== 'bascula';
+    var cuerpo = '<div class="pz-info"><span><small>Ruta</small><b>' + e(F.nombre) + '</b></span><span><small>Noche</small><b>' + fCorta(F.fecha) + '</b></span><span><small>Paradas sin descarga</small><b>' + F.n + '</b></span><span><small>Bolsas contadas</small><b>' + N(F.nb) + '</b></span></div>' +
+      '<div class="dso-f"><label class="w">Destino<select id="dof-dest" onchange="DSO.descOfDest(this.value)">' + L.map(function (n) { return '<option' + (n === F.relleno ? ' selected' : '') + '>' + e(n) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="w">Cómo se pesa<select id="dof-modo" onchange="DSO.descOfCampo(\'modo\',this.value)"><option value="planta"' + (pl ? ' selected' : '') + '>Planta · pesa después (se suma por tandas)</option><option value="bascula"' + (pl ? '' : ' selected') + '>Báscula · ticket</option></select></label>' +
+      (pl ? '<label>Bolsas entregadas<input id="dof-bol" inputmode="numeric" value="' + e(F.bolsas) + '" oninput="DSO._dof.bolsas=this.value"></label>' +
+            '<label>¿Quién recibió en la planta? (opcional)<input id="dof-rec" maxlength="80" value="' + e(F.recibio) + '" oninput="DSO._dof.recibio=this.value" placeholder="Nombre"></label>'
+          : '<label>Número del ticket<input id="dof-tk" maxlength="30" value="' + e(F.ticket) + '" oninput="DSO._dof.ticket=this.value" placeholder="Ej. 104882"></label>' +
+            '<label>Neto del ticket (kg)<input id="dof-neto" inputmode="decimal" value="' + e(F.neto) + '" oninput="DSO._dof.neto=this.value" placeholder="Ej. 6,480"></label>') +
+      '<label>Hora de llegada (opcional)<input id="dof-hora" type="time" value="' + e(F.llegada) + '" oninput="DSO._dof.llegada=this.value"></label></div>' +
+      '<div class="sv-nota">Queda como <b>anotada en oficina</b> por ti, sin foto. ' + (pl ? 'Al guardar se abre el sumador para anotar el peso que manda la planta.' : 'El peso del ticket se reparte entre las sucursales según sus bolsas.') +
+      (F.estado === 'en_ruta' ? ' El conductor ya podrá cerrar la ruta.' : '') + '</div>';
+    modal('Anotar la descarga · ' + F.nombre, cuerpo, '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.descOfGuardar()">' + (pl ? 'Guardar y anotar el peso' : 'Guardar la descarga') + '</button>');
+  }
+  D.descOfCampo = function (k, v) { D._dof[k] = v; descOfModal(); };
+  D.descOfDest = function (n) { var x = pesaDe(n); D._dof.relleno = n; if (x) D._dof.modo = x.pesa === 'bascula' ? 'bascula' : 'planta'; descOfModal(); };
+  D.descOfGuardar = function () {
+    var F = D._dof, pl = F.modo !== 'bascula';
+    if (!pl && !String(F.ticket || '').trim()) { aviso('Falta el número del ticket'); return; }
+    if (!pl && !(pnum(F.neto) > 0)) { aviso('Escribe el neto del ticket en kg'); return; }
+    S('api_dsoDescargaOficina', PIN, F.hojaId, { relleno: F.relleno, modo: F.modo, bolsas: pnum(F.bolsas), recibio: F.recibio, llegada: F.llegada, ticket: F.ticket, neto: pnum(F.neto) }).then(function (r) {
+      cerrarModal();
+      aviso('Descarga anotada · ' + r.paradas + ' parada' + (r.paradas === 1 ? '' : 's'));
+      if (r.planta) { D.rellMes = String(F.fecha).slice(0, 7); D.rellTab = 'p'; D._pesoAbrir = { hojaId: F.hojaId, viaje: r.idx }; mostrar('s-rell'); }
+      else if (window.INI_TAB === 's-salidas') mostrar('s-salidas'); else mostrar('s-rell');
+    }).catch(falla);
+  };
 
   /* Destinos de disposición: cada uno dice cómo se pesa; el conductor ya no lo elige a mano */
   function destinosHtml() {
@@ -1673,7 +1720,7 @@
       '<div class="jv-kp"><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + hechas + '/' + P.length + '</b><span>paradas</span></div><div><b>' + h.viajes.length + '</b><span>descarga' + (h.viajes.length === 1 ? '' : 's') + '</span></div></div>') +
       sig + (i < 0 ? '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('check') + ' Terminaste las paradas</div><p style="font-size:13.5px;color:#3d4a60;margin:4px 0 0">' + (porTicket ? 'Lleva la carga a la descarga.' : 'Regresa al patio y cierra la ruta.') + '</p></div>' : '') +
       (porTicket ? '<button class="sc-btn am" onclick="DSO.conAbrir(\'rell\')">' + (i < 0 ? 'Ir a la descarga' : 'El camión está lleno · ir a descargar') + '</button>' : '') +
-      (i < 0 && !porTicket ? '<button class="sc-btn v" onclick="DSO.conAbrir(\'cierre\')">Regresé al patio · cerrar la ruta</button>' : '') +
+      (i < 0 ? '<button class="sc-btn ' + (porTicket ? 'sec' : 'v') + '" onclick="DSO.conAbrir(\'cierre\')">' + (porTicket ? 'Cerrar la ruta sin anotar la descarga' : 'Regresé al patio · cerrar la ruta') + '</button>' : '') +   /* api 3.28.1 */
       '<div class="jv-card" style="margin-top:12px"><div class="jv-tit">' + ic('lista') + ' Todas las paradas</div>' + lista + '</div>' +
       (i >= 0 ? '<button class="sc-btn sec" onclick="DSO.conAbrir(\'cierre\')">Terminar la ruta antes</button>' : '') + '<div style="height:20px"></div>');
     vigilarDistancia(i >= 0 ? P[i] : null);
@@ -2026,7 +2073,7 @@
     cSec(nav('Cerrar la ruta', 'bandera') + heroHoja('Regreso · ' + e(h.patio || 'patio'), e(h.nombre) + ' · cierre', '',
       '<div class="jv-kp"><div><b>' + h.paradas.filter(function (p) { return p.salida; }).length + '/' + h.paradas.length + '</b><span>paradas</span></div><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + N(h.netoTotal) + '</b><span>kg en báscula</span></div></div>') +
       (pend ? '<div class="sv-nota am">Quedan ' + pend + ' parada(s) sin hacer. Al cerrar quedan anotadas como no hechas.</div>' : '') +
-      (sinT ? '<div class="sv-nota am">Hay ' + sinT + ' parada(s) atendida(s) sin descargar. Si ya descargaste, anótalo antes de cerrar. <button class="pl-btn" onclick="DSO.conAbrir(\'rell\')">Ir a la descarga</button></div>' : '') +
+      (sinT ? '<div class="sv-nota am">Hay ' + sinT + ' parada(s) atendida(s) sin descargar. Si ya descargaste, anótalo antes de cerrar; si no puedes, cierra igual y Logística la anota desde la oficina. <button class="pl-btn" onclick="DSO.conAbrir(\'rell\')">Ir a la descarga</button></div>' : '') +
       '<div class="jv-card"><div class="sc-lbl">Odómetro final</div><input class="sc-in" inputmode="numeric" value="' + e(c.odometro) + '" oninput="DSO.con.borr.ci.odometro=this.value" placeholder="' + (h.revision ? 'salió con ' + N(h.revision.odometro) : 'km') + '">' +
       '<div class="sc-lbl" style="margin-top:10px">Tanque al llegar</div><div class="sc-seg">' + ['¼', '½', '¾', 'Lleno'].map(function (x) { return '<button type="button" class="' + (c.tanque === x ? 'on' : '') + '" onclick="DSO.ciCampo(\'tanque\',\'' + x + '\')">' + x + '</button>'; }).join('') + '</div>' +
       '<div class="sc-lbl" style="margin-top:10px">El camión queda</div><div class="sc-seg" style="grid-template-columns:1fr 1fr">' + ['Lavado y en orden', 'Con una falla'].map(function (x) { return '<button type="button" class="' + (c.queda === x ? 'on' : '') + '" onclick="DSO.ciCampo(\'queda\',\'' + x + '\')">' + x + '</button>'; }).join('') + '</div>' +
