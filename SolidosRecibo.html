@@ -69,6 +69,14 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
   .firmas{page-break-inside:avoid}
   .sec{page-break-after:avoid}
 }
+.fotos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.foto{border:1px solid #ccc;border-radius:6px;overflow:hidden;background:#f3f5f8;page-break-inside:avoid}
+.foto .im{aspect-ratio:4/3;display:grid;place-items:center;color:#888;font-size:11px;background:#eef1f5}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto.firma .im{aspect-ratio:3/1;background:#fff}.foto.firma img{object-fit:contain}
+.foto .pie2{padding:6px 9px;font-size:10.5px;color:#444}
+@media (max-width:640px){.hoja{padding:18px 14px}.cuadros{grid-template-columns:1fr 1fr}.enc img{height:44px}.fotos{grid-template-columns:1fr}}
+@media print{.foto .im{aspect-ratio:auto;height:62mm}.foto.firma .im{height:24mm}}
 @page{margin:14mm}
 </style>
 <link rel="stylesheet" href="documento.css">
@@ -89,6 +97,7 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 
 <script>
 /* api 3.17 · Desechos sólidos · documento para el cliente (enlace con clave, sin PIN)
+   api 3.28 · lleva las fotos de antes y después y la firma (enlace firmado de 5 minutos, con la clave de este recibo)
    api 3.27 · por bolsa el recibo no lleva peso: cuenta las bolsas y dice quién recibió; el roll-off sigue con su peso */
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -99,6 +108,15 @@ function membrete(r, que){ return DOCE.membrete({ empresa:r.empresa, linea:"Reco
 function mostrar(html){ $("hoja").innerHTML=html; $("aviso").style.display="none"; $("app").style.display="block"; }
 function pie(r){ var e=DOCE.empresa(r.empresa); return "<div class='pie'>"+esc(e.razonSocial)+" · RUC "+esc(e.ruc)+(e.dv?" DV "+esc(e.dv):"")+" · "+esc(e.direccion)+"<br>Tel. "+esc(e.telefono)+" · "+esc(e.correo)+"</div>"; }
 
+function fotosLista(r){ var f=r.fotos||{}, L=[];
+  if(f.antes) L.push(["antes","Antes · "+(r.llegada||"")]); if(f.despues) L.push(["despues","Después · "+(r.salida||"")]);
+  if(f.local) L.push(["local","El local · "+(r.llegada||"")]); if(f.firma) L.push(["firma","Firma de "+(r.recibeNombre||"quien recibió")]);
+  return L; }
+function fotosHtml(r){ var L=fotosLista(r); if(!L.length) return "";
+  return "<div class='sec'>Evidencia de la visita</div><div class='fotos'>"+L.map(function(x){ return "<div class='foto"+(x[0]==="firma"?" firma":"")+"'><div class='im' id='f-"+x[0]+"'>Cargando la foto…</div><div class='pie2'>"+esc(x[1])+"</div></div>"; }).join("")+"</div>"; }
+function cargarFotos(r,h,i,k){ fotosLista(r).forEach(function(x){
+  google.script.run.withSuccessHandler(function(z){ var el=$("f-"+x[0]); if(!el) return; if(z&&z.ok&&z.url){ el.innerHTML="<img alt='"+esc(x[1])+"' src='"+esc(z.url)+"'>"; } else el.textContent="La foto no está disponible."; })
+    .withFailureHandler(function(){ var el=$("f-"+x[0]); if(el) el.textContent="Sin conexión para la foto."; }).api_dsoReciboFoto(h,i,k,x[0]); }); }
 function arrancar(){
   var h=q("h"), i=q("i"), k=q("k");
   if(!h||i===""||!k){ aviso("El enlace está incompleto."); return; }
@@ -126,8 +144,10 @@ function arrancar(){
         "<tr><th>Disposición final</th><td>"+esc(r.relleno||"—")+(r.ticket?" · ticket de báscula "+esc(r.ticket):"")+"</td></tr>"+
         (r.inc?"<tr><th>Novedad</th><td>"+esc(r.inc)+(r.incNota?" · "+esc(r.incNota):"")+"</td></tr>":"")+
       "</tbody></table>"+
+      fotosHtml(r)+
       "<div class='nota'>"+(r.porBolsa?"La hora de llegada y la ubicación las registra el conductor en el punto. El servicio se cuenta por bolsas: este recibo no lleva peso.":"La hora de llegada y la ubicación las registra el conductor en el punto. En roll-off la caja es de un solo cliente y el peso del ticket de báscula es todo suyo.")+"</div>"+
       pie(r));
+    cargarFotos(r, h, i, k);
   }).withFailureHandler(function(){ aviso("Sin conexión. El recibo necesita señal."); }).api_dsoRecibo(h, i, k);
 }
 arrancar();

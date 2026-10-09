@@ -88,7 +88,8 @@ tr.tot td{background:#EEF2F7;font-weight:800;border-top:2px solid var(--azul-osc
 </div>
 
 <script>
-/* api 3.17 · Desechos sólidos · documento para el cliente (enlace con clave, sin PIN) */
+/* api 3.17 · Desechos sólidos · documento para el cliente (enlace con clave, sin PIN)
+   api 3.28 · el peso viene de la planta (por tandas) o de la báscula; avisa si falta cerrar algún peso del mes */
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function n0(v){return Number(v||0).toLocaleString("en-US",{maximumFractionDigits:0});}
@@ -112,11 +113,11 @@ function arrancar(){
         "<div class='cuadro'><div class='e'>Visitas</div><div class='v'>"+r.visitas+"</div><div class='s'>en "+r.noches+" noche(s)</div></div>"+
         "<div class='cuadro'><div class='e'>Bolsas</div><div class='v'>"+n0(r.bolsas)+"</div><div class='s'>contadas en los puntos</div></div>"+
         "<div class='cuadro'><div class='e'>Cajas</div><div class='v'>"+(r.cajas||"—")+"</div><div class='s'>roll-off levantadas</div></div>"+
-        "<div class='cuadro'><div class='e'>Peso</div><div class='v'>"+n0(r.kg)+"</div><div class='s'>kg · "+r.tickets+" ticket(s) de báscula</div></div>"+
+        "<div class='cuadro'><div class='e'>Peso</div><div class='v'>"+n0(r.kg)+"</div><div class='s'>kg · peso de la planta y báscula</div></div>"+
       "</div>"+
       "<div class='sec'>Por punto de recolección</div><table><thead><tr><th>#</th><th>Punto</th><th>Visitas</th><th>Bolsas</th><th>Cajas</th><th>Peso (kg)</th><th>Novedades</th></tr></thead><tbody>"+filas+
       "<tr class='tot'><td colspan='2'>TOTAL</td><td class='n'>"+r.visitas+"</td><td class='n'>"+n0(r.bolsas)+"</td><td class='n'>"+(r.cajas||"—")+"</td><td class='n'>"+n0(r.kg)+"</td><td></td></tr></tbody></table>"+
-      "<div class='nota'>Disposición final en "+esc(r.relleno||"el relleno autorizado")+". El peso de cada punto sale de los tickets de báscula del relleno, repartidos entre las paradas de cada viaje según sus bolsas.</div>"+
+      "<div class='nota'>El peso de cada sucursal sale del peso que reporta la planta de disposición (o del ticket de báscula del relleno), repartido entre las sucursales de cada noche según sus bolsas."+(r.pesoPendiente?" <b>Hay "+r.pesoPendiente+" descarga(s) con el peso por recibir de la planta: el peso de este mes todavía no está completo.</b>":"")+"</div>"+
       "<div style='margin-top:10px;font-size:11px;color:#555'>Emitido el "+esc(DOCE.fecha(r.emitido))+".</div>"+
       pie(r));
   }).withFailureHandler(function(){ aviso("Sin conexión. El reporte necesita señal."); }).api_dsoReporteCliente(c, m, k);

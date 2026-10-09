@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
    LogSolidos.js · api 3.27 · DESECHOS SÓLIDOS DENTRO DE LOGÍSTICA
+   - 3.28: patios de salida con ubicación (planificador, mapas, salida y regreso del conductor) y «Recibos y reportes» (envío por WhatsApp).
+   - 3.27.1: el inicio del conductor ya no le pide «ticket»: «Descarga y pesos» muestra sus descargas; en planta el peso lo anota Logística.
    - api 3.27: Disposición final · pesos (peso de la planta por tandas, se cierra el total), Destinos de disposición,
      el conductor sabe cómo se pesa cada destino y el resumen de la noche para la gerencia del cliente.
    - api 3.26 (prueba del 8 oct): salida automática, el punto en 4 pasos con fotos de antes y después, descarga
@@ -270,6 +272,14 @@
   .ds-c .top{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}.ds-c .tx{display:flex;flex-direction:column;min-width:0}.ds-c .tx b{font-size:14.5px;color:#0f2140}.ds-c .tx small{font-size:12px;color:#7a879b}
   .ds-c .dt{display:flex;gap:16px;font-size:12.5px}.ds-c .dt span{display:flex;flex-direction:column}.ds-c .dt small{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8a96a8}.ds-c .nt{font-size:12px;color:#5b6a80;background:#f5f7fa;border-radius:8px;padding:6px 9px}
   .ds-c .bt{display:flex;gap:6px;align-items:center}.pl-ban .pl-btn{margin-left:auto;flex:0 0 auto;text-decoration:none}
+  /* api 3.28 · patios y recibos */
+  .vv-pin.p,.dsv-pin.p{background:#F5B301;color:#0f2140;border-color:#0f2140;border-radius:7px}
+  .rc-hoja{margin-bottom:14px}.rc-res{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1.5px solid #dfe6ef;border-radius:12px;background:#f7f9fc;margin:6px 0}
+  .rc-res .tx{flex:1 1 260px;min-width:0;display:flex;flex-direction:column}.rc-res .tx b{color:#0f2140;font-size:14px}.rc-res .tx small{color:#667489;font-size:12px}
+  .rc-res .bt{display:flex;gap:6px;flex-wrap:wrap}
+  .pl-btn.wa{background:#1f8f4e;color:#fff;border-color:#1f8f4e}.pl-btn.wa:hover{background:#187a42}
+  .sv-tb td .pl-btn{padding:5px 9px;margin-right:4px}
+  .ds-c .bt{flex-wrap:wrap}
   section[id^="pantalla-s-"]{color:var(--ini-tinta)}body.es-sup section[id^="pantalla-s-"]{max-width:1320px}
   `;
   var st = document.createElement('style'); st.id = 'dso-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -361,7 +371,7 @@
   };
   var MENU_PEL = null;
   var MENU_SOL = [['Operación'], ['s-hub', '🏠', 'Inicio'], ['s-plan', '🛠️', 'Planificar rutas'], ['s-mapa', '🗺️', 'Mapa de rutas'], ['s-agenda', '🗓️', 'Calendario'],
-    ['s-salidas', '📋', 'Salidas y hojas de ruta', 'dsoSal'], ['s-cierre', '📊', 'Cierre de rutas'], ['s-cli', '👥', 'Clientes de sólidos', 'dsoCli'], ['s-rell', '🏭', 'Disposición final · pesos', 'dsoRel'],
+    ['s-salidas', '📋', 'Salidas y hojas de ruta', 'dsoSal'], ['s-recibos', '🧾', 'Recibos y reportes'], ['s-cierre', '📊', 'Cierre de rutas'], ['s-cli', '👥', 'Clientes de sólidos', 'dsoCli'], ['s-rell', '🏭', 'Disposición final · pesos', 'dsoRel'],
     ['Administración'], ['s-flota', '🚚', 'Flota de sólidos'], ['s-equipos', '👤', 'Equipos de trabajo'], ['s-cajas', '📦', 'Cajas roll-off', 'dsoCaj']];
   var PANTALLAS = {};
 
@@ -515,12 +525,12 @@
     }).catch(falla);
   };
   function editorDe(h) {
-    return { fecha: h.fecha, hojaId: h.hojaId, rutaId: h.rutaId, nombre: h.nombre, tipo: h.tipo, unidadId: h.unidadId, conductor: h.conductor, ayudantes: (h.ayudantes || []).slice(), salida: h.salida, relleno: h.relleno, turno: turnoDe(h),
+    return { fecha: h.fecha, hojaId: h.hojaId, rutaId: h.rutaId, nombre: h.nombre, tipo: h.tipo, unidadId: h.unidadId, conductor: h.conductor, ayudantes: (h.ayudantes || []).slice(), salida: h.salida, relleno: h.relleno, patio: h.patio || '', turno: turnoDe(h),
       paradas: h.paradas.map(function (p) { return p.puntoId; }), estado: h.estado, sucio: false };
   }
   function editorNuevo() {
     var B = D.base, u = B.unidades.filter(function (x) { return x.estado === 'activa' && x.tipo === 'compactador'; })[0] || B.unidades.filter(function (x) { return x.estado === 'activa'; })[0] || {};
-    return { fecha: D.fecha, hojaId: '', rutaId: '', nombre: 'Ruta de sólidos', tipo: u.tipo || 'compactador', unidadId: u.unidadId || '', conductor: u.conductor || '', ayudantes: (u.ayudantes || []).slice(), salida: '21:30', turno: 'noche', relleno: B.ajustes.rellenos[0] || '', paradas: [], estado: 'borrador', sucio: false };
+    return { fecha: D.fecha, hojaId: '', rutaId: '', nombre: 'Ruta de sólidos', tipo: u.tipo || 'compactador', unidadId: u.unidadId || '', conductor: u.conductor || '', ayudantes: (u.ayudantes || []).slice(), salida: '21:30', turno: 'noche', relleno: B.ajustes.rellenos[0] || '', patio: B.ajustes.patio || '', paradas: [], estado: 'borrador', sucio: false };
   }
   function elegirHoja(id, sinPintar) {
     var h = id ? D.dia.hojas.filter(function (x) { return x.hojaId === id; })[0] : (sinPintar ? D.dia.hojas.filter(function (x) { return ['borrador', 'publicada'].indexOf(x.estado) >= 0; })[0] || D.dia.hojas[0] : null);
@@ -583,9 +593,10 @@
       '<div><small>Salida</small><input type="time" value="' + e(E.salida) + '" onchange="DSO.planCampo(\'salida\',this.value)"' + (ed ? '' : ' disabled') + '></div></div>' +
       '<div class="pl-cfg" style="padding-top:0"><div style="flex:1 1 100%"><small>Ayudantes del equipo · no entran al sistema; el conductor confirma que vinieron</small><div class="sv-eq">' +
       (ayud.length ? ayud.map(function (a) { var on = E.ayudantes.indexOf(a.personaId) >= 0; return '<span class="' + (on ? 'on' : '') + '"' + (ed ? ' onclick="DSO.planAyudante(\'' + e(a.personaId) + '\')"' : '') + '>' + e(a.nombre) + '<small>' + (a.protocoloEstado === 'firmado' ? 'protocolo al día' : 'protocolo pendiente') + '</small></span>'; }).join('') : '<small style="text-transform:none">Regístralos en «Equipos de trabajo».</small>') + '</div></div>' +
+      '<div style="flex:1 1 100%"><small>Patio de salida</small><select onchange="DSO.planCampo(\'patio\',this.value)"' + (ed ? '' : ' disabled') + '>' + patioOpts(E.patio || B.ajustes.patio) + '</select>' + ((patioDe(E.patio || B.ajustes.patio) || {}).lat ? '' : ' <span class="sv-chip r">sin ubicación</span>') + '</div>' +
       '<div style="flex:1 1 100%"><small>Disposición final</small><select onchange="DSO.planCampo(\'relleno\',this.value)"' + (ed ? '' : ' disabled') + '>' + B.ajustes.rellenos.concat(E.relleno && B.ajustes.rellenos.indexOf(E.relleno) < 0 ? [E.relleno] : []).map(function (r) { return '<option' + (r === E.relleno ? ' selected' : '') + '>' + e(r) + '</option>'; }).join('') + '</select> ' + pesaChip(E.relleno) + '</div></div>' +
       '<div class="pl-cap"><div class="row">' + cap.map(function (c) { return '<div><b>' + e(c[0]) + '</b><span>' + c[1] + '</span></div>'; }).join('') + '</div></div>' +
-      (E.paradas.length ? paradas + '<div class="pl-st rell"><span class="n">🏭</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Relleno') + '</b><span>' + pesaTxt(E.relleno) + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + '</span></div></div><div class="pl-fin">Regreso al ' + e(B.ajustes.patio) + '</div>'
+      (E.paradas.length ? '<div class="pl-st rell"><span class="n">P</span><span class="eta">' + e(E.salida || '') + '</span><div class="nm"><b>' + e(E.patio || B.ajustes.patio) + '</b><span>Salida del patio' + ((patioDe(E.patio || B.ajustes.patio) || {}).lat ? '' : ' · sin ubicación: márcala en Flota › Ajustes') + '</span></div></div>' + paradas + '<div class="pl-st rell"><span class="n">🏭</span><span class="eta"></span><div class="nm"><b>' + e(E.relleno || 'Relleno') + '</b><span>' + pesaTxt(E.relleno) + (E.tipo === 'rolloff' ? ' · un viaje por caja' : '') + '</span></div></div><div class="pl-fin">Regreso al ' + e(E.patio || B.ajustes.patio) + '</div>'
         : '<div class="pl-vacio">Agrega paradas desde la lista de la izquierda.</div>') +
       '<div class="pl-pie">' + (ed ? '<button class="pl-btn" onclick="DSO.planCercania()">🧭 Por cercanía</button>' : '') + '<span style="flex:1"></span>' +
       (puede() && E.paradas.length ? '<button class="pl-btn" onclick="DSO.rutaDesdeHoja()">🔁 Guardar como ruta fija</button>' : '') +
@@ -640,20 +651,22 @@
   D.planCercania = function () {
     var P = mapa(D.base.puntos, 'puntoId'), a = D.editor.paradas.slice(), con = a.filter(function (id) { return P[id] && P[id].lat; }), sin = a.filter(function (id) { return !(P[id] && P[id].lat); });
     if (con.length < 3) { aviso('Hacen falta al menos 3 puntos con ubicación'); return; }
-    var orden = [con.shift()];
+    var pa = patioDe(D.editor.patio || D.base.ajustes.patio), orden = [];   /* api 3.28 · desde el patio */
+    if (pa && pa.lat) { var mj = 0, dm0 = 1e18; con.forEach(function (id, i) { var p = P[id], d = Math.pow(p.lat - pa.lat, 2) + Math.pow((p.lng - pa.lng) * Math.cos(pa.lat * Math.PI / 180), 2); if (d < dm0) { dm0 = d; mj = i; } }); orden.push(con.splice(mj, 1)[0]); }
+    else orden.push(con.shift());
     while (con.length) {
       var u = P[orden[orden.length - 1]], mejor = 0, dm = 1e18;
       con.forEach(function (id, i) { var p = P[id], d = Math.pow(p.lat - u.lat, 2) + Math.pow((p.lng - u.lng) * Math.cos(u.lat * Math.PI / 180), 2); if (d < dm) { dm = d; mejor = i; } });
       orden.push(con.splice(mejor, 1)[0]);
     }
-    D.editor.paradas = orden.concat(sin); D.editor.sucio = true; pintarPlan(seccion('s-plan')); aviso('Ordenadas por cercanía desde la primera parada');
+    D.editor.paradas = orden.concat(sin); D.editor.sucio = true; pintarPlan(seccion('s-plan')); aviso('Ordenadas por cercanía ' + (pa && pa.lat ? 'desde el patio' : 'desde la primera parada (el patio no tiene ubicación)'));
   };
   D.planGuardar = function (publicar) {
     var E = D.editor;
     if (!E.paradas.length) { aviso('La hoja no tiene paradas'); return; }
     if (publicar && (!E.unidadId || !E.conductor)) { aviso('Para publicar elige la unidad y el conductor'); return; }
     var ci = condLista().filter(function (c) { return c.nombre === E.conductor; })[0];
-    S('api_dsoGuardarHoja', PIN, { hojaId: E.hojaId, fecha: E.fecha, rutaId: E.rutaId, nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes, salida: E.salida, turno: E.turno, relleno: E.relleno, paradas: E.paradas, publicar: !!publicar })
+    S('api_dsoGuardarHoja', PIN, { hojaId: E.hojaId, fecha: E.fecha, rutaId: E.rutaId, nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes, salida: E.salida, turno: E.turno, relleno: E.relleno, patio: E.patio || D.base.ajustes.patio, paradas: E.paradas, publicar: !!publicar })
       .then(function (r) { aviso(publicar ? (ci && !ci.usuario ? 'Publicada · ojo: ' + E.conductor + ' no tiene usuario y no la verá en su celular' : 'Publicada: ' + (E.conductor || 'el conductor') + ' ya la ve en su celular') : 'Borrador guardado · el conductor todavía no la ve'); D.editor.hojaId = r.hojaId; D.editor.sucio = false; mostrar('s-plan'); }).catch(falla);
   };
   D.planAnular = function () {
@@ -675,10 +688,10 @@
     modal('Rutas fijas de sólidos', L + '<div class="sv-nota">Una ruta fija es la plantilla de los días que sale: en el planificador, «Crear sus hojas» copia sus paradas, unidad y equipo a la hoja del día.</div>',
       puede() ? '<button class="pl-btn" data-x>Cerrar</button><button class="pl-btn v" onclick="DSO.rutaEditar(\'\')">＋ Ruta fija</button>' : '<button class="pl-btn" data-x>Cerrar</button>');
   };
-  D.rutaDesdeHoja = function () { var E = D.editor; D._rutaBorr = { rutaId: '', nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes.slice(), dias: String(new Date(D.fecha + 'T12:00:00Z').getUTCDay() || 7), salida: E.salida, turno: E.turno, relleno: E.relleno, paradas: E.paradas.slice(), activa: true }; rutaForm(); };
+  D.rutaDesdeHoja = function () { var E = D.editor; D._rutaBorr = { rutaId: '', nombre: E.nombre, tipo: E.tipo, unidadId: E.unidadId, conductor: E.conductor, ayudantes: E.ayudantes.slice(), dias: String(new Date(D.fecha + 'T12:00:00Z').getUTCDay() || 7), salida: E.salida, turno: E.turno, relleno: E.relleno, patio: E.patio, paradas: E.paradas.slice(), activa: true }; rutaForm(); };
   D.rutaEditar = function (id) {
     var r = D.base.rutas.filter(function (x) { return x.rutaId === id; })[0];
-    D._rutaBorr = r ? JSON.parse(JSON.stringify(r)) : { rutaId: '', nombre: '', tipo: 'compactador', unidadId: '', conductor: '', ayudantes: [], dias: '1,2,3,4,5,6,7', salida: '21:30', turno: 'noche', relleno: D.base.ajustes.rellenos[0] || '', paradas: [], activa: true };
+    D._rutaBorr = r ? JSON.parse(JSON.stringify(r)) : { rutaId: '', nombre: '', tipo: 'compactador', unidadId: '', conductor: '', ayudantes: [], dias: '1,2,3,4,5,6,7', salida: '21:30', turno: 'noche', relleno: D.base.ajustes.rellenos[0] || '', patio: D.base.ajustes.patio, paradas: [], activa: true };
     rutaForm();
   };
   function rutaForm() {
@@ -690,6 +703,7 @@
       '<label>Conductor<select id="rf-con">' + condOpts(r.conductor) + '</select>' + condNota(r.conductor) + '</label>' +
       '<label>Turno<select id="rf-tur">' + ['dia', 'noche'].map(function (t) { return '<option value="' + t + '"' + (turnoDe(r) === t ? ' selected' : '') + '>' + TURNO[t][0] + ' ' + TURNO[t][1] + '</option>'; }).join('') + '</select></label>' +
       '<label>Salida<input id="rf-sal" type="time" value="' + e(r.salida) + '"></label>' +
+      '<label>Patio de salida<select id="rf-pat">' + patioOpts(r.patio || D.base.ajustes.patio) + '</select></label>' +
       '<label class="w">Días que sale' + diasHtml(r.dias) + '</label>' +
       '<label class="w">Paradas, en orden · marca las que lleva<div id="rf-par" style="max-height:260px;overflow:auto;border:1.5px solid #d3ddea;border-radius:9px;padding:4px 8px;text-transform:none;letter-spacing:0">' +
       (puntos.length ? puntos.map(function (p) { var i = r.paradas.indexOf(p.puntoId); return '<div style="display:flex;gap:8px;align-items:center;padding:5px 0;font-size:13px;font-weight:600;color:#0f2140"><input type="checkbox" data-p="' + e(p.puntoId) + '"' + (i >= 0 ? ' checked' : '') + ' onchange="DSO.rutaMarca(this)"><span style="min-width:22px;font-weight:900;color:#14306b">' + (i >= 0 ? i + 1 : '') + '</span><span>' + e(p.nombre) + ' <small style="color:#667489">' + e((C[p.clienteId] || {}).nombre || '') + '</small></span></div>'; }).join('') : 'No hay puntos todavía.') + '</div></label>' +
@@ -697,7 +711,7 @@
     modal(r.rutaId ? 'Ruta fija ' + r.rutaId : 'Ruta fija nueva', html, '<button class="pl-btn" onclick="DSO.rutasFijas()">Volver</button><button class="pl-btn v" onclick="DSO.rutaGuardar()">Guardar</button>');
   }
   D.rutaMarca = function (ck) { var r = D._rutaBorr, id = ck.getAttribute('data-p'), i = r.paradas.indexOf(id); if (ck.checked && i < 0) r.paradas.push(id); if (!ck.checked && i >= 0) r.paradas.splice(i, 1); leerRutaForm(); rutaForm(); };
-  function leerRutaForm() { var r = D._rutaBorr; r.nombre = val('rf-nom'); r.tipo = val('rf-tipo'); r.unidadId = val('rf-uni'); r.conductor = val('rf-con'); r.salida = val('rf-sal'); r.turno = val('rf-tur') || turnoDe(r); r.dias = diasSel($i('dso-fondo')); r.activa = !!($i('rf-act') && $i('rf-act').checked); }
+  function leerRutaForm() { var r = D._rutaBorr; r.nombre = val('rf-nom'); r.tipo = val('rf-tipo'); r.unidadId = val('rf-uni'); r.conductor = val('rf-con'); r.salida = val('rf-sal'); r.turno = val('rf-tur') || turnoDe(r); r.dias = diasSel($i('dso-fondo')); r.activa = !!($i('rf-act') && $i('rf-act').checked); r.patio = val('rf-pat') || r.patio; }
   D.rutaGuardar = function () {
     leerRutaForm(); var r = D._rutaBorr;
     S('api_dsoGuardar', PIN, 'ruta', r).then(function () { aviso('Ruta fija guardada'); return recargarBase(); }).then(function () { D.rutasFijas(); if (D.modo === 'sol' && window.INI_TAB === 's-plan') { var s = seccion('s-plan'); S('api_dsoDia', PIN, D.fecha).then(function (d) { D.dia = d; pintarPlan(s); }); } }).catch(falla);
@@ -777,6 +791,7 @@
           if (p.lejos) L.polyline([ll, p.gps], { color: '#d64045', weight: 2, dashArray: '5 5' }).addTo(g);
         }
       });
+      if (h.patioInfo && h.patioInfo.lat) { var pl0 = [h.patioInfo.lat, h.patioInfo.lng]; L.marker(pl0, { icon: L.divIcon({ className: '', html: '<div class="sv-num" style="background:#F5B301;color:#0f2140;border-radius:7px">P</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).bindPopup('<b>' + e(h.patio) + '</b><br>Salida y regreso · ' + e(h.nombre || h.hojaId)).addTo(g); linea.unshift(pl0); }   /* api 3.28 */
       if (linea.length > 1) L.polyline(linea, { color: col, weight: 3, opacity: .7 }).addTo(g);
     });
     D.dia.candidatos.forEach(function (p) { var mk = null; if (p.lat) { mk = L.circleMarker([p.lat, p.lng], { radius: 6, color: '#868e96', fillColor: '#adb5bd', fillOpacity: .9, weight: 1 }).bindPopup('<b>' + e(p.nombre) + '</b><br>Le toca y no está en ninguna hoja'); mk.addTo(D._cand); } D._candMk.push(mk); });
@@ -867,10 +882,10 @@
     var paso = function (c, b, t) { return '<div class="p ' + c + '"><b>' + b + '</b><span>' + t + '</span></div>'; };
     var tl = paso(rv ? (rv.fallas ? 'mal' : 'ok') : (est === 'publicada' ? 'on' : 'no'), 'Revisión del camión', rv ? e(rv.por) + ' · ' + e(String(rv.en).slice(11)) + ' · ' + (rv.items.length - rv.fallas) + ' de ' + rv.items.length + ' bien · odómetro ' + N(rv.odometro) + (rv.tanque ? ' · tanque ' + e(rv.tanque) : '') : 'pendiente · la hace el conductor en su celular') +
       paso(rv ? 'ok' : 'no', 'Equipo presente', rv && rv.equipo && rv.equipo.length ? e(rv.equipo.map(function (q) { return q.nombre + (q.presente ? (q.epp ? '' : ' (sin EPP)') : ' (no vino)'); }).join(' · ')) : (ayud.length ? e(ayud.join(' · ')) : 'sin ayudantes')) +
-      paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
+      paso(fi ? (fi.decision === 'sale' ? 'ok' : 'mal') : (est === 'por_firmar' ? 'on' : 'no'), fi && fi.decision === 'no_sale' ? 'No sale' : fi && fi.por === 'Salida automática' ? 'Salida automática' : 'Salida firmada', fi ? e(fi.por === 'Salida automática' ? 'Revisión sin fallas' : fi.por) + ' · ' + e(String(fi.en).slice(11)) + (fi.nota ? ' · ' + e(fi.nota) : '') + (rv && rv.distPatio != null ? ' · GPS ' + distPatioTxt(rv.distPatio) : '') : (est === 'por_firmar' ? 'La revisión trae una falla o falta alguien: decide tú' : 'sale sola si la revisión llega bien')) +
       paso(est === 'cerrada' ? 'ok' : est === 'en_ruta' ? 'on' : 'no', 'En ruta · ' + h.paradas.length + ' paradas', h.atendidas + ' de ' + h.paradas.length + ' hechas' + (h.bolsas ? ' · ' + N(h.bolsas) + ' bolsas' : '') + (h.paradas.filter(function (p) { return p.inc; }).length ? ' · ' + h.paradas.filter(function (p) { return p.inc; }).length + ' incidencia(s)' : '')) +
       paso(h.viajes.length ? (h.sinTicket ? 'mal' : 'ok') : 'no', 'Descarga', h.viajes.length ? h.viajes.map(function (v) { return v.planta ? e(v.relleno || 'Planta') + ' · ' + N(v.bolsas) + ' bolsas · ' + vvPesoTxt(v) : 'Ticket ' + e(v.ticket) + ' · ' + N(v.neto) + ' kg'; }).join(' · ') + (h.sinTicket ? ' · faltan ' + h.sinTicket + ' parada(s) sin ticket' : '') : 'pendiente') +
-      paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') : 'pendiente');
+      paso(ci ? 'ok' : 'no', 'Regreso y cierre', ci ? e(ci.hora) + ' · odómetro ' + N(ci.odometro) + (ci.km != null ? ' (' + N(ci.km) + ' km)' : '') + (ci.tanque ? ' · tanque ' + e(ci.tanque) : '') + (ci.queda ? ' · ' + e(ci.queda) : '') + (h.regreso && h.regreso.distPatio != null ? ' · cerró ' + distPatioTxt(h.regreso.distPatio) : '') : 'pendiente');
     var ck = rv ? rv.items.map(function (x) { return '<div class="sv-ck"><span>' + e(x.texto) + '</span>' + (x.estado === 'm' ? '<span class="sv-no">✕ falla</span>' : '<span class="sv-ok">✓ bien</span>') + '</div>'; }).join('') + (rv.nota ? '<div class="sv-nota am">' + e(rv.nota) + '</div>' : '')
       : (d.lista || []).map(function (x) { return '<div class="sv-ck"><span>' + e(x) + '</span><span style="color:#8a96a8;font-size:12px">pendiente</span></div>'; }).join('');
     var firma = '';
@@ -889,7 +904,7 @@
     var tk = h.viajes.map(function (v, n) { return '<tr><td><b>' + e(v.ticket) + '</b><small>viaje ' + (n + 1) + '</small></td><td class="n">' + e(v.llegada || '') + '</td><td class="n">' + e(v.salida || '') + '</td><td class="n">' + (v.lleno ? N(v.lleno) : '') + '</td><td class="n">' + (v.vacio ? N(v.vacio) : '') + '</td><td class="n"><b>' + N(v.neto) + '</b></td><td>' + (v.foto ? fotosDe([v.foto]) : '') + '</td></tr>'; }).join('');
     return '<div class="pl-card sv-pad"><div class="pl-ch" style="padding:0 0 8px"><h3>Hoja de ruta ' + e(h.hojaId) + ' · ' + e(h.nombre) + '</h3>' + chipEst(est) + '</div>' +
       '<div class="sv-g2" style="font-size:13px"><div><div class="sv-h" style="margin-top:4px">Unidad y equipo</div><div class="sv-ck"><span>Unidad</span><b>' + e(h.unidad || '—') + ' · ' + (TIPOS[h.tipo] || TIPOS.compactador)[1] + (h.placa ? ' · ' + e(h.placa) : '') + '</b></div><div class="sv-ck"><span>Conductor</span><b>' + e(h.conductor || '—') + '</b></div>' +
-      '<div class="sv-ck"><span>Ayudantes</span><b>' + e(ayud.join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Sale</span><b>' + e(h.salida || '—') + '</b></div><div class="sv-ck"><span>Descarga</span><b>' + e(h.relleno || '—') + '</b></div></div>' +
+      '<div class="sv-ck"><span>Ayudantes</span><b>' + e(ayud.join(' · ') || '—') + '</b></div><div class="sv-ck"><span>Sale</span><b>' + e(h.salida || '—') + '</b></div><div class="sv-ck"><span>Patio</span><b>' + e(h.patio || '—') + '</b></div><div class="sv-ck"><span>Descarga</span><b>' + e(h.relleno || '—') + '</b></div></div>' +
       '<div><div class="sv-h" style="margin-top:4px">Así va</div><div class="sv-tl">' + tl + '</div></div></div>' +
       '<div class="sv-h">Revisión del camión · la hace el conductor desde su celular</div>' + ck + firma +
       '<div class="sv-h">Paradas · «✓ Llegué» anota la hora y el GPS; «Listo», la salida</div><div class="sv-scroll"><table class="sv-tb"><thead><tr><th>#</th><th>Punto de recolección</th><th class="n">Llegó</th><th class="n">Salió</th><th class="n">En el punto</th><th class="n">GPS vs. punto</th><th class="n">' + (h.tipo === 'rolloff' ? 'Caja' : 'Bolsas') + '</th><th class="n">Kg</th><th>Evidencia</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
@@ -1050,6 +1065,7 @@
       '<label>Unidad que lo atiende<select id="pf-uni">' + Object.keys(TIPOS).map(function (k) { return '<option value="' + k + '"' + (k === p.unidadTipo ? ' selected' : '') + '>' + TIPOS[k][1] + '</option>'; }).join('') + '</select></label>' +
       '<label>Recibe desde<input id="pf-hd" type="time" value="' + e(p.horaDesde || '') + '"></label><label>Recibe hasta<input id="pf-hh" type="time" value="' + e(p.horaHasta || '') + '"></label>' +
       '<label>Caja asignada (roll-off)<input id="pf-caja" value="' + e(p.cajaId || '') + '" placeholder="Ej. C-04"></label>' +
+      '<label>Gerente de la tienda (recibe su recibo)<input id="pf-ger" value="' + e(p.gerente || '') + '" placeholder="Nombre"></label><label>WhatsApp del gerente<input id="pf-tg" inputmode="tel" value="' + e(p.telGerente || '') + '" placeholder="Ej. 6000-0000"></label>' +
       '<label class="w">Frecuencia · días que le toca' + diasHtml(p.dias) + '</label>' +
       '<label class="w">Ubicación del punto de recolección · pega un enlace de Google Maps o «8.97, -79.52», o toca el mapa<input id="pf-ll" value="' + (D._ll ? D._ll.join(', ') : '') + '" oninput="DSO.puntoLeer(this.value)"></label></div><div id="pf-mapa" style="height:230px;border-radius:12px;margin-top:8px;border:1px solid #e1e6ee"></div>',
       '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.puntoGuardar(\'' + e(id) + '\',\'' + e(p.clienteId) + '\')">Guardar</button>');
@@ -1065,7 +1081,7 @@
   D.puntoLeer = function (t) { var m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/[?&](?:q|query|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || String(t).match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/); if (m) D.puntoPin([Number(m[1]), Number(m[2])], true); };
   D.puntoGuardar = function (id, cli) {
     S('api_dsoGuardar', PIN, 'punto', { puntoId: id, clienteId: cli, nombre: val('pf-nom'), direccion: val('pf-dir'), nota: val('pf-nota'), servicio: val('pf-serv'), unidadTipo: val('pf-uni'), horaDesde: val('pf-hd'), horaHasta: val('pf-hh'),
-      cajaId: val('pf-caja'), activo: D._pfAct, pausaMotivo: D._pfAct ? '' : (val('pf-mot') || D._pfMot), dias: diasSel($i('dso-fondo')), lat: D._ll ? D._ll[0] : '', lng: D._ll ? D._ll[1] : '' })
+      cajaId: val('pf-caja'), gerente: val('pf-ger'), telGerente: val('pf-tg'), activo: D._pfAct, pausaMotivo: D._pfAct ? '' : (val('pf-mot') || D._pfMot), dias: diasSel($i('dso-fondo')), lat: D._ll ? D._ll[0] : '', lng: D._ll ? D._ll[1] : '' })
       .then(function () { cerrarModal(); aviso(D._pfAct ? 'Sucursal guardada · en servicio' : 'Sucursal guardada · pausada: no sale en el planificador'); D.cliSel = cli; mostrar('s-cli'); }).catch(falla);
   };
   /* 3.17.2 · en servicio / pausada: un interruptor grande, solo cambia al tocarlo */
@@ -1257,6 +1273,136 @@
     destGuardarLista(L, x.activo ? 'Destino activo' : 'Destino pausado');
   };
 
+  /* ═══ api 3.28 · Patios de salida ═══ */
+  function patiosDe() { return (D.base && D.base.ajustes && D.base.ajustes.patios) || []; }
+  function patioDe(nombre) { var L = patiosDe(); for (var i = 0; i < L.length; i++) if (L[i].nombre === nombre) return L[i]; return null; }
+  function distPatioTxt(m) { if (m == null) return ''; return m <= 300 ? 'en el patio' : m < 1000 ? N(m) + ' m del patio' : N(m / 1000, 1) + ' km del patio'; }
+  function patiosHtml() {
+    var L = patiosDe(), ed = puede();
+    return '<div class="sv-h" style="margin-top:16px">Patios de salida · de aquí sale la ruta y aquí regresa</div>' +
+      '<div class="ds-list">' + L.map(function (p) {
+        return '<div class="ds-c' + (p.activo ? '' : ' off') + '"><div class="top"><div class="tx"><b>' + e(p.nombre) + '</b><small>' + (p.lat ? N(p.lat, 5) + ', ' + N(p.lng, 5) : '<span style="color:#B42318;font-weight:800">sin ubicación · márcala en el mapa</span>') + '</small></div>' +
+          (p.principal ? '<span class="sv-chip v">principal</span>' : '') + '</div>' + (p.nota ? '<div class="nt">' + e(p.nota) + '</div>' : '') +
+          '<div class="bt">' + (p.activo ? '<span class="sv-chip v">activo</span>' : '<span class="sv-chip g">pausado</span>') + '<span style="flex:1"></span>' +
+          (ed ? (!p.principal && p.activo ? '<button class="pl-btn" onclick="DSO.patPrincipal(\'' + p.id + '\')">Hacer principal</button>' : '') + (!p.principal ? '<button class="pl-btn" onclick="DSO.patActivo(\'' + p.id + '\')">' + (p.activo ? 'Pausar' : 'Activar') + '</button>' : '') + '<button class="pl-btn" onclick="DSO.patForm(\'' + p.id + '\')">Editar</button>' : '') + '</div></div>';
+      }).join('') + '</div>' + (ed ? '<div class="sv-btns" style="justify-content:flex-start"><button class="pl-btn a" onclick="DSO.patForm(\'\')">＋ Agregar patio</button></div>' : '') +
+      '<div class="sv-nota">El principal viene puesto en cada hoja nueva; en el planificador puedes elegir otro. Con la ubicación, la ruta sale del patio en los mapas, «Por cercanía» ordena desde el patio y la salida y el regreso del conductor se comparan con el patio.</div>';
+  }
+  D.patForm = function (id) {
+    if (!puede()) return;
+    var p = patiosDe().filter(function (x) { return x.id === id; })[0] || { activo: true };
+    D._pll = p.lat ? [p.lat, p.lng] : null;
+    modal(id ? p.nombre : 'Patio nuevo', '<div class="dso-f"><label class="w">Nombre<input id="pt-nom" maxlength="80" value="' + e(p.nombre || '') + '" placeholder="Ej. Patio · Chivo Chivo"></label>' +
+      '<label class="w">Nota (opcional)<input id="pt-not" maxlength="200" value="' + e(p.nota || '') + '" placeholder="Ej. entrada por el portón 2"></label>' +
+      '<label class="w">Ubicación · pega un enlace de Google Maps o «9.08, -79.55», toca el mapa o usa tu ubicación<input id="pt-ll" value="' + (D._pll ? D._pll.join(', ') : '') + '" oninput="DSO.patLeer(this.value)"></label></div>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button type="button" class="pl-btn" onclick="DSO.patAqui()">📍 Usar mi ubicación</button></div>' +
+      '<div id="pt-mapa" style="height:240px;border-radius:12px;margin-top:8px;border:1px solid #e1e6ee"></div>',
+      '<button class="pl-btn" data-x>Cancelar</button><button class="pl-btn v" onclick="DSO.patGuardar(\'' + e(id) + '\')">Guardar</button>');
+    setTimeout(function () {
+      if (typeof L === 'undefined' || !$i('pt-mapa')) return;
+      var m = D._ptm = L.map('pt-mapa').setView(D._pll || [9.0, -79.55], D._pll ? 17 : 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+      D._ptpin = D._pll ? L.marker(D._pll).addTo(m) : null;
+      m.on('click', function (ev) { D.patPin([+ev.latlng.lat.toFixed(6), +ev.latlng.lng.toFixed(6)], false); });
+    }, 60);
+  };
+  D.patPin = function (ll, centrar) { D._pll = ll; var i = $i('pt-ll'); if (i && !centrar) i.value = ll.join(', '); if (!D._ptm) return; if (D._ptpin) D._ptpin.setLatLng(ll); else D._ptpin = L.marker(ll).addTo(D._ptm); if (centrar) D._ptm.setView(ll, 17); };
+  D.patLeer = function (t) { var m = String(t).match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || String(t).match(/[?&](?:q|query|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || String(t).match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/); if (m) D.patPin([Number(m[1]), Number(m[2])], true); };
+  D.patAqui = function () {
+    if (!navigator.geolocation) { aviso('Este equipo no da la ubicación'); return; }
+    aviso('Buscando tu ubicación…');
+    navigator.geolocation.getCurrentPosition(function (pos) { var ll = [+pos.coords.latitude.toFixed(6), +pos.coords.longitude.toFixed(6)]; D.patPin(ll, true); var i = $i('pt-ll'); if (i) i.value = ll.join(', '); aviso('Ubicación puesta · precisión ' + Math.round(pos.coords.accuracy) + ' m'); },
+      function () { aviso('No se pudo leer tu ubicación'); }, { enableHighAccuracy: true, timeout: 10000 });
+  };
+  function patGuardarLista(L, msg) {
+    return S('api_dsoGuardar', PIN, 'ajustes', { patios: L }).then(function () { cerrarModal(); aviso(msg); return recargarBase(); }).then(function () { if (window.INI_TAB === 's-flota') mostrar('s-flota'); }).catch(falla);
+  }
+  D.patGuardar = function (id) {
+    var nom = val('pt-nom'); if (!nom) { aviso('Escribe el nombre del patio'); return; }
+    var L = patiosDe().map(function (x) { return Object.assign({}, x); });
+    if (L.some(function (x) { return x.id !== id && x.nombre.toUpperCase() === nom.toUpperCase(); })) { aviso('Ya hay un patio con ese nombre'); return; }
+    var o = { nombre: nom, nota: val('pt-not'), lat: D._pll ? D._pll[0] : null, lng: D._pll ? D._pll[1] : null };
+    var x = L.filter(function (z) { return z.id === id; })[0];
+    if (x) Object.assign(x, o); else L.push(Object.assign(o, { activo: true, principal: !L.length }));
+    patGuardarLista(L, 'Patio guardado');
+  };
+  D.patPrincipal = function (id) { var L = patiosDe().map(function (x) { return Object.assign({}, x, { principal: x.id === id }); }); patGuardarLista(L, 'Patio principal cambiado'); };
+  D.patActivo = function (id) { var L = patiosDe().map(function (x) { return Object.assign({}, x); }), x = L.filter(function (z) { return z.id === id; })[0]; if (!x) return; x.activo = !x.activo; patGuardarLista(L, x.activo ? 'Patio activo' : 'Patio pausado'); };
+  function patioOpts(sel) {
+    var L = patiosDe().filter(function (p) { return p.activo; }).map(function (p) { return p.nombre; });
+    if (sel && L.indexOf(sel) < 0) L.push(sel);
+    return L.map(function (n) { return '<option' + (n === sel ? ' selected' : '') + '>' + e(n) + '</option>'; }).join('');
+  }
+
+  /* ═══ api 3.28 · Recibos y reportes ═══
+     Cada sucursal recibe su recibo (sin peso) y el encargado general el resumen de la noche. Se mandan por WhatsApp desde aquí:
+     el sistema abre WhatsApp con el mensaje listo y anota que se abrió (no puede saber si el mensaje salió). */
+  PANTALLAS['s-recibos'] = function (s) {
+    D.recFecha = D.recFecha || hoy();
+    cargando(s, 'Cargando los recibos…');
+    Promise.all([S('api_dsoRecibos', PIN, D.recFecha), D.base ? Promise.resolve(D.base) : recargarBase()]).then(function (r) { D.rec = r[0]; pintarRecibos(s); }).catch(falla);
+  };
+  function raizUrl() { return location.href.replace(/[^/]*([?#].*)?$/, ''); }
+  function telWa(t) { var d = String(t || '').replace(/\D/g, ''); if (d.length === 7 || d.length === 8) d = '507' + d; return d; }
+  function envioChip(v) { return v ? '<span class="sv-chip v">' + (v.canal === 'copiado' ? 'copiado' : 'WhatsApp abierto') + ' ' + e(String(v.en).slice(11)) + (v.veces > 1 ? ' · ' + v.veces + ' veces' : '') + '</span>' : '<span class="sv-chip g">sin enviar</span>'; }
+  function msgRecibo(f) {
+    var R = D.rec, fe = fLarga(R.fecha).toLowerCase();
+    var cuerpo = f.atendida ? (f.caja ? 'caja ' + f.caja : N(f.bolsas) + ' bolsa' + (f.bolsas === 1 ? '' : 's')) + ', llegada ' + f.llegada + (f.recibe === 'encargado' ? ', recibió ' + f.recibeNombre : f.recibe === 'nadie' ? ', sin encargado en el local (van las fotos de antes y después)' : '') + '.'
+      : 'no pudimos recolectar' + (f.inc ? ' (' + f.inc.toLowerCase() + ')' : '') + '. En el enlace van la hora y la foto.';
+    return 'Saludos' + (f.gerente ? ', ' + f.gerente : '') + '. Le compartimos el recibo de recolección de ' + f.punto + ' del ' + fe + ': ' + cuerpo + '\n' + raizUrl() + f.url + '\nECOVSA';
+  }
+  function msgResumen(h) {
+    var R = D.rec, fe = fLarga(R.fecha).toLowerCase(), T = h.totales, z = h.resumen;
+    return 'Saludos' + (z.encargado ? ', ' + z.encargado : '') + '. Le compartimos el resumen de la recolección del ' + fe + ': ' + T.atendidos + ' de ' + T.puntos + ' sucursales atendidas, ' + N(T.bolsas) + ' bolsas.' +
+      (z.abierto ? ' El peso total lo reporta la planta de disposición y lo agregaremos en este mismo enlace.' : '') + '\n' + raizUrl() + z.url + '\nECOVSA';
+  }
+  function pintarRecibos(s) {
+    var R = D.rec, ed = R.puedeMarcar;
+    var cuerpo = R.hojas.length ? R.hojas.map(function (h, hi) {
+      var z = h.resumen, falta = h.filas.filter(function (f) { return f.url && !f.envio; }).length;
+      var res = '<div class="rc-res"><div class="tx"><b>Resumen de la noche</b><small>Para ' + e(z.encargado || 'el encargado general') + (z.cliente ? ' · ' + e(z.cliente) : '') + (z.telefono ? ' · ' + e(z.telefono) : ' · sin WhatsApp en la ficha del cliente') + '</small></div>' +
+        (z.abierto ? '<span class="sv-chip ro">abierto · peso por cerrar</span>' : '<span class="sv-chip v">cerrado</span>') + envioChip(z.envio) +
+        '<span class="bt"><button class="pl-btn" onclick="DSO.recVer(' + hi + ',-1)">Ver</button>' + (ed ? '<button class="pl-btn wa" onclick="DSO.recWa(' + hi + ',-1)">WhatsApp</button><button class="pl-btn" onclick="DSO.recCopiar(' + hi + ',-1)">Copiar</button>' : '') + '</span></div>';
+      var filas = h.filas.map(function (f) {
+        var rec = !f.url ? '<span class="sv-chip g">pendiente</span>' : !f.atendida ? '<span class="sv-chip r">' + e(f.inc || 'no se pudo') + '</span>' : f.recibe === 'encargado' ? '✍ ' + e(f.recibeNombre) : f.recibe === 'nadie' ? 'sin encargado' : '—';
+        return '<tr><td>' + (f.idx + 1) + '</td><td><b>' + e(f.punto) + '</b><small>' + (f.gerente ? e(f.gerente) + (f.telGerente ? ' · ' + e(f.telGerente) : ' · sin WhatsApp') : 'sin gerente anotado') + '</small></td><td>' + e(f.llegada || '—') + '</td><td class="n">' + (f.atendida ? (f.caja ? 'caja' : N(f.bolsas)) : '—') + '</td><td>' + rec + '</td><td>' + e(f.folio || '') + '</td><td>' + (f.url ? envioChip(f.envio) : '') + '</td>' +
+          '<td style="white-space:nowrap">' + (f.url ? '<button class="pl-btn" onclick="DSO.recVer(' + hi + ',' + f.idx + ')">Ver</button>' + (ed ? '<button class="pl-btn wa" onclick="DSO.recWa(' + hi + ',' + f.idx + ')">WhatsApp</button><button class="pl-btn" onclick="DSO.recCopiar(' + hi + ',' + f.idx + ')">Copiar</button>' : '') : '') + '</td></tr>';
+      }).join('');
+      return '<div class="pl-card sv-pad rc-hoja"><div class="pl-ch" style="padding:0 0 8px"><h3>' + e(h.nombre || h.hojaId) + '</h3><span class="sv-chip">' + e(h.hojaId) + '</span>' + chipEst(h.estado) + '<span style="flex:1"></span><small style="color:#667489">' + e(h.unidad) + ' · ' + e(h.conductor) + ' · ' + h.totales.atendidos + ' de ' + h.totales.puntos + ' · ' + N(h.totales.bolsas) + ' bolsas</small></div>' + res +
+        (ed && falta ? '<div class="sv-btns" style="justify-content:flex-start;margin:8px 0"><button class="pl-btn wa" onclick="DSO.recSiguiente(' + hi + ')">Enviar el siguiente recibo · faltan ' + falta + '</button></div>' : '') +
+        '<div class="sv-scroll"><table class="sv-tb"><thead><tr><th>#</th><th>Sucursal · gerente</th><th>Llegó</th><th class="n">Bolsas</th><th>Recibió</th><th>Recibo N.°</th><th>Envío</th><th></th></tr></thead><tbody>' + filas + '</tbody></table></div></div>';
+    }).join('') : '<div class="sv-vacio"><b>Esta noche no tiene rutas en curso ni cerradas</b>Los recibos salen cuando el conductor marca «Llegué» en cada sucursal.</div>';
+    var cons = R.consolidados.length ? '<div class="pl-card sv-pad"><div class="pl-ch" style="padding:0 0 6px"><h3>Consolidado del mes</h3></div>' + R.consolidados.map(function (c, i) {
+      return '<div class="rc-res"><div class="tx"><b>' + e(c.cliente) + '</b><small>Visitas, bolsas y kg por sucursal (kg = peso de la planta repartido por bolsas) · va con la factura</small></div><span class="bt"><button class="pl-btn" onclick="DSO.recCons(' + i + ',0)">Ver</button><button class="pl-btn" onclick="DSO.recCons(' + i + ',1)">Copiar</button></span></div>';
+    }).join('') + '</div>' : '';
+    pintar(s, '<div class="cr-tt"><div><h1>Recibos y reportes</h1><div class="sub">' + fLarga(R.fecha) + ' · cada sucursal recibe su recibo (sin peso) y el encargado general el resumen de la noche</div></div><span class="sp"></span>' +
+      '<button class="pl-btn" onclick="DSO.recDia(-1)">◀</button><input type="date" value="' + R.fecha + '" onchange="DSO.recIr(this.value)" style="border:1.5px solid var(--ini-linea);border-radius:10px;padding:7px 10px;font-family:inherit;font-weight:800"><button class="pl-btn" onclick="DSO.recDia(1)">▶</button></div>' +
+      '<div class="pl-ban g"><span>«WhatsApp» abre el chat del gerente con el mensaje y el enlace listos: solo toca enviar. El correo con copia al encargado general sale cuando esté el correo del dominio. El WhatsApp del gerente se anota en <b>Clientes de sólidos</b>, en cada sucursal.</span></div>' + cuerpo + cons);
+  }
+  D.recIr = function (f) { if (f) { D.recFecha = f; mostrar('s-recibos'); } };
+  D.recDia = function (n) { D.recIr(masDias(D.rec ? D.rec.fecha : hoy(), n)); };
+  function recItem(hi, i) { var h = D.rec.hojas[hi]; return i < 0 ? { h: h, url: h.resumen.url, msg: msgResumen(h), tel: h.resumen.telefono, que: 'resumen' } : (function () { var f = h.filas.filter(function (x) { return x.idx === i; })[0]; return { h: h, f: f, url: f.url, msg: msgRecibo(f), tel: f.telGerente, que: i }; })(); }
+  function recMarcar(it, canal) {
+    S('api_dsoMarcarEnvio', PIN, it.h.hojaId, it.que, canal).then(function (r) { if (it.que === 'resumen') it.h.resumen.envio = r.envio; else it.f.envio = r.envio; pintarRecibos(seccion('s-recibos')); }).catch(falla);
+  }
+  D.recVer = function (hi, i) { var it = recItem(hi, i); window.open(raizUrl() + it.url, '_blank'); };
+  D.recWa = function (hi, i) {
+    var it = recItem(hi, i), t = telWa(it.tel);
+    window.open('https://wa.me/' + t + '?text=' + encodeURIComponent(it.msg), '_blank');
+    if (!t) aviso('No hay WhatsApp anotado: elige el contacto en WhatsApp');
+    recMarcar(it, 'whatsapp');
+  };
+  D.recCopiar = function (hi, i) {
+    var it = recItem(hi, i), fin = function () { aviso('Mensaje y enlace copiados'); recMarcar(it, 'copiado'); };
+    if (navigator.clipboard) navigator.clipboard.writeText(it.msg).then(fin, function () { prompt('Copia el mensaje', it.msg); fin(); }); else { prompt('Copia el mensaje', it.msg); fin(); }
+  };
+  D.recSiguiente = function (hi) { var f = D.rec.hojas[hi].filas.filter(function (x) { return x.url && !x.envio; })[0]; if (f) D.recWa(hi, f.idx); };
+  D.recCons = function (i, copiar) {
+    var c = D.rec.consolidados[i], url = raizUrl() + c.url;
+    if (!copiar) { window.open(url, '_blank'); return; }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { aviso('Enlace copiado'); }, function () { prompt('Copia el enlace', url); }); else prompt('Copia el enlace', url);
+  };
+
   /* ═══ Flota de sólidos ═══ */
   PANTALLAS['s-flota'] = function (s) {
     cargando(s, 'Cargando la flota…');
@@ -1286,8 +1432,8 @@
         '<div class="sv-nota">Cada tipo de unidad tiene su propia lista. El conductor marca cada punto «bien» o «falla» antes de salir y eso va a la hoja que firmas.</div>';
     } else {
       var A = B.ajustes;
-      cuerpo = '<div class="pl-card sv-pad" style="max-width:620px"><div class="dso-f"><label>Lejos del punto (metros)<input id="aj-lej" type="number" min="30" max="2000" value="' + A.distanciaLejos + '"></label><label>Patio de salida y regreso<input id="aj-pat" value="' + e(A.patio) + '"></label>' +
-        '<div class="w sv-nota" style="margin:0;grid-column:1/-1">Los destinos de disposición final (con cómo se pesa cada uno) están en <b>Disposición final · pesos › Destinos</b>. <button class="pl-btn" onclick="DSO.rellTab=\'d\';DSO.mostrar(\'s-rell\')">Ir a Destinos</button></div></div>' + (puede() ? '<div class="sv-btns"><button class="pl-btn v" onclick="DSO.ajustesGuardar()">Guardar</button></div>' : '') + '</div>';
+      cuerpo = '<div class="pl-card sv-pad" style="max-width:620px"><div class="dso-f"><label>Lejos del punto (metros)<input id="aj-lej" type="number" min="30" max="2000" value="' + A.distanciaLejos + '"></label>' +
+        '<div class="w sv-nota" style="margin:0;grid-column:1/-1">Los destinos de disposición final (con cómo se pesa cada uno) están en <b>Disposición final · pesos › Destinos</b>. <button class="pl-btn" onclick="DSO.rellTab=\'d\';DSO.mostrar(\'s-rell\')">Ir a Destinos</button></div></div>' + (puede() ? '<div class="sv-btns"><button class="pl-btn v" onclick="DSO.ajustesGuardar()">Guardar</button></div>' : '') + '</div>' + patiosHtml();   /* api 3.28 */
     }
     pintar(s, '<div class="cr-tt"><div><h1>Flota de sólidos</h1><div class="sub">' + B.unidades.filter(function (u) { return u.estado === 'activa'; }).length + ' unidad(es) activa(s) · separadas de peligrosos</div></div><span class="sp"></span>' + (puede() ? '<button class="pl-btn v" onclick="DSO.uniForm(\'\')">＋ Unidad nueva</button>' : '') + '</div>' +
       '<div class="cr-tabs"><button class="' + (t === 'u' ? 'on' : '') + '" onclick="DSO.flotaIr(\'u\')">Unidades</button><button class="' + (t === 'l' ? 'on' : '') + '" onclick="DSO.flotaIr(\'l\')">Lista de revisión</button><button class="' + (t === 'a' ? 'on' : '') + '" onclick="DSO.flotaIr(\'a\')">Ajustes</button></div>' + cuerpo);
@@ -1298,7 +1444,7 @@
     S('api_dsoGuardar', PIN, 'ajustes', { listas: l }).then(function () { aviso('Listas guardadas'); mostrar('s-flota'); }).catch(falla);
   };
   D.ajustesGuardar = function () {
-    S('api_dsoGuardar', PIN, 'ajustes', { distanciaLejos: Number(val('aj-lej')) || 150, patio: val('aj-pat') })
+    S('api_dsoGuardar', PIN, 'ajustes', { distanciaLejos: Number(val('aj-lej')) || 150 })
       .then(function () { aviso('Ajustes guardados'); mostrar('s-flota'); }).catch(falla);
   };
   D.uniForm = function (id) {
@@ -1484,7 +1630,8 @@
     var r = C.borr.rev;
     if (r.items.some(function (x) { return !x; })) { aviso('Marca cada punto del camión: bien o falla'); return; }
     if (!(Number(String(r.odometro).replace(/[^\d.]/g, '')) > 0)) { aviso('Falta el odómetro'); return; }
-    S('api_dsoRevision', PIN, C.hoja.hojaId, { items: r.items, odometro: Number(String(r.odometro).replace(/[^\d.]/g, '')), tanque: r.tanque, equipo: r.equipo, nota: r.nota })
+    aviso('Enviando la revisión…');
+    gpsAhora().then(function (g) { return S('api_dsoRevision', PIN, C.hoja.hojaId, { items: r.items, odometro: Number(String(r.odometro).replace(/[^\d.]/g, '')), tanque: r.tanque, equipo: r.equipo, nota: r.nota, gps: g }); })   /* api 3.28 */
       .then(function (x) { C.borr.rev = null; if (x.estado === 'en_ruta') { aviso('Revisión sin fallas · salida lista, ya puedes salir'); D.conAbrir('ruta'); return; } aviso(x.fallas ? 'Revisión enviada con ' + x.fallas + ' falla(s) · Logística decide' : 'Revisión enviada · Logística decide'); D.conAbrir('espera'); }).catch(falla);   /* api 3.26 */
   };
 
@@ -1802,7 +1949,8 @@
     (I.noche || []).forEach(function (h) {
       var el = $i('vv-m-' + h.hojaId); if (!el) return;
       var m = L.map(el, { zoomControl: true }); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
-      var s = vvSig(h), pts = [], hecho = [];
+      var s = vvSig(h), pts = [], hecho = [], P0 = h.patioInfo && h.patioInfo.lat ? [h.patioInfo.lat, h.patioInfo.lng] : null;   /* api 3.28 · sale del patio */
+      if (P0) { L.marker(P0, { icon: L.divIcon({ className: '', html: '<div class="vv-pin p">P</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(m).bindTooltip(e(h.patio) + ' · salida y regreso'); pts.push(P0); hecho.push(P0); }
       h.paradas.forEach(function (p, i) {
         if (!p.lat) return; var c = p.salida ? (p.atendida ? 'h' : 's') : i === s ? 'n' : '';
         L.marker([p.lat, p.lng], { icon: L.divIcon({ className: '', html: '<div class="vv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] }), zIndexOffset: i === s ? 500 : 0 }).addTo(m).bindTooltip(e(p.nombre) + (p.llegada ? ' · ' + p.llegada : '')).on('click', function () { D.vvDet(h.hojaId, i); });
@@ -1898,7 +2046,7 @@
     var h = C.hoja, ci = h.cierre || {};
     cSec(nav(rutaTit(C.hoja), 'ruta') + heroHoja('Ruta cerrada · ' + e(ci.hora || ''), e(h.nombre) + ' terminada', fLarga(h.fecha),
       '<div class="jv-kp"><div><b>' + h.atendidas + '/' + h.paradas.length + '</b><span>paradas</span></div><div><b>' + N(h.bolsas) + '</b><span>bolsas</span></div><div><b>' + N(h.netoTotal) + '</b><span>kg en báscula</span></div></div>' +
-      '<div class="jv-est">✓ ' + h.viajes.length + ' ticket(s) guardado(s)' + (ci.km != null ? ' · ' + N(ci.km) + ' km' : '') + '</div>') +
+      '<div class="jv-est">✓ ' + h.viajes.length + ' descarga(s) anotada(s)' + (ci.km != null ? ' · ' + N(ci.km) + ' km' : '') + '</div>') +
       '<button class="sc-btn sec" onclick="DSO.conVolver()">Volver al menú</button>');
   }
 
@@ -1945,7 +2093,7 @@
     var h = C.hoja, uni = h ? (TIPOS[h.tipo] || TIPOS.compactador)[1].toLowerCase() + ' ' + h.unidad : '';
     var faltaTk = h && h.estado === 'en_ruta' && h.sinTicket > 0, revPend = h && h.estado === 'publicada';
     var T = [['mapa', 'i38-te', 'mapa', 'Mapa de mi ruta', h ? 'Mis paradas de hoy en el mapa' : 'Mis paradas en el mapa', ''],
-      ['tickets', 'i38-ve', 'rel', 'Relleno y tickets', 'Mis tickets de báscula', faltaTk ? '<span class="dso-tg w">Falta el de hoy</span>' : ''],
+      ['tickets', 'i38-ve', 'rel', 'Descarga y pesos', 'Mis descargas', faltaTk ? '<span class="dso-tg w">Falta descargar</span>' : ''],
       ['revs', '', 'rev', 'Revisión de mi unidad', h && h.unidad ? 'Lista del ' + e(uni) : 'Mis revisiones', revPend ? '<span class="dso-tg w">Pendiente hoy</span>' : ''],
       ['jor', 'i38-na', 'jor', 'Jornada de mi unidad', 'Km y combustible' + (h && h.unidad ? ' del ' + e(h.unidad) : ''), ''],
       ['hechas', 'i38-mo', 'his', 'Mis rutas hechas', 'Lo que he trabajado este mes', ''],
@@ -1979,20 +2127,25 @@
       var sig = -1; h.paradas.some(function (p, i) { if (!p.salida) { sig = i; return true; } return false; });
       var mp = L.map(d, { zoomControl: true }); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mp);
       var pts = [];
+      if (h.patioInfo && h.patioInfo.lat) { var pl = [Number(h.patioInfo.lat), Number(h.patioInfo.lng)]; pts.push(pl); L.marker(pl, { icon: L.divIcon({ className: '', html: '<div class="dsv-pin p">P</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(mp).bindPopup('<b>' + e(h.patio) + '</b><br>Salida y regreso'); }   /* api 3.28 */
       h.paradas.forEach(function (p, i) { if (!(p.lat && p.lng)) return; var ll = [Number(p.lat), Number(p.lng)]; pts.push(ll);
         var c = p.salida ? (p.atendida ? 'h' : 's') : (i === sig ? 'a' : '');
         L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="dsv-pin ' + c + '">' + (i + 1) + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(mp).bindPopup('<b>' + e(p.nombre) + '</b>'); });
       if (pts.length > 1) { L.polyline(pts, { color: '#0b4f93', weight: 3, dashArray: '6 5' }).addTo(mp); mp.fitBounds(pts, { padding: [24, 24] }); } else mp.setView(pts[0], 16);
       setTimeout(function () { mp.invalidateSize(); }, 200);
     }],
-    tickets: ['Relleno y tickets', 'camion', function () {
+    tickets: ['Descarga y pesos', 'camion', function () {   /* api 3.27.1 · en planta el conductor no anota peso ni ticket */
       var L2 = [], h = C.hoja;
       rutas().forEach(function (r) { r.tickets.forEach(function (t) { L2.push({ t: t, r: r }); }); });
       var falta = h && h.estado === 'en_ruta' && h.sinTicket > 0;
-      return '<div class="jv-card"><div class="jv-tit">Mis tickets de báscula</div>' +
-        (falta ? fila('Hoy · ' + e(h.nombre || h.hojaId), h.sinTicket + ' parada(s) sin ticket', '<span class="est a">falta</span>') : '') +
-        (L2.length ? L2.map(function (x) { return fila(e(x.t.ticket || 's/n'), e(fCorta(x.r.fecha)) + ' · ' + e(x.r.nombre || x.r.hojaId) + (x.t.relleno ? ' · ' + e(x.t.relleno) : ''), '<b>' + N(x.t.neto) + ' kg</b>'); }).join('') : (falta ? '' : '<div class="vac">Todavía no tiene tickets en estas semanas.</div>')) + '</div>' +
-        '<div class="hint">Cada ticket lleva su foto. Si falta uno, aparece aquí en ámbar.</div>' + (falta ? '<button class="sc-btn" onclick="DSO.conAbrir(\'rell\')">Registrar el ticket del relleno</button>' : '');
+      var esPlanta = function (t) { return /^PLANTA-/.test(String(t.ticket || '')); };
+      return '<div class="jv-card"><div class="jv-tit">Mis descargas</div>' +
+        (falta ? fila('Hoy · ' + e(h.nombre || h.hojaId), h.sinTicket + ' parada(s) sin descargar', '<span class="est a">falta</span>') : '') +
+        (L2.length ? L2.map(function (x) { var p = esPlanta(x.t);
+          return fila(p ? 'Descarga en planta' : 'Ticket ' + e(x.t.ticket || 's/n'), e(fCorta(x.r.fecha)) + ' · ' + e(x.r.nombre || x.r.hojaId) + (x.t.relleno ? ' · ' + e(x.t.relleno) : ''),
+            p ? '<span class="est h">entregada</span>' : '<b>' + N(x.t.neto) + ' kg</b>'); }).join('') : (falta ? '' : '<div class="vac">Todavía no tiene descargas en estas semanas.</div>')) + '</div>' +
+        '<div class="hint">En planta solo entregas las bolsas, con la foto y quién recibió: <b>el peso lo anota Logística</b> cuando lo manda la planta. Solo en báscula se anota el ticket.</div>' +
+        (falta ? '<button class="sc-btn" onclick="DSO.conAbrir(\'rell\')">Ir a la descarga</button>' : '');
     }],
     revs: ['Revisión de mi unidad', 'lista', function () {
       var h = C.hoja, R = rutas().filter(function (r) { return r.revision; });
