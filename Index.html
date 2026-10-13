@@ -7738,6 +7738,7 @@ function rx2Filtrar_(l){
     if(RX2.fil === "enviados") return !!r.enviado;
     if(RX2.fil === "sinFirma") return !r.firmado;
     if(RX2.fil === "sinActa") return !r.acta;
+    if(RX2.fil === "avisos") return !!r.avisoError;   /* api 3.29 */
     return true;
   });
 }
@@ -7796,9 +7797,9 @@ function rx2Pintar_(){
   var L = RX2.lista, cuenta = {
     todos: L.length, porEnviar: L.filter(function(r){ return r.pide && !r.enviado; }).length,
     enviados: L.filter(function(r){ return r.enviado; }).length, sinFirma: L.filter(function(r){ return !r.firmado; }).length,
-    sinActa: L.filter(function(r){ return !r.acta; }).length };
-  $("rx2-fil").innerHTML = [["todos","Todos"],["porEnviar","Por enviar"],["enviados","Enviados"],["sinFirma","Sin firma"],["sinActa","Sin acta"]].map(function(o){
-    return '<button class="' + (RX2.fil === o[0] ? "on" : "") + (o[0] === "porEnviar" && cuenta.porEnviar ? " aviso" : "") + '" onclick="RX2.fil=\'' + o[0] + '\';rx2Pintar_()">' + o[1] + ' · ' + cuenta[o[0]] + '</button>'; }).join("");
+    sinActa: L.filter(function(r){ return !r.acta; }).length, avisos: L.filter(function(r){ return !!r.avisoError; }).length };
+  $("rx2-fil").innerHTML = [["todos","Todos"],["porEnviar","Por enviar"],["enviados","Enviados"],["sinFirma","Sin firma"],["sinActa","Sin acta"]].concat(cuenta.avisos || RX2.fil === "avisos" ? [["avisos","Aviso de error"]] : []).map(function(o){
+    return '<button class="' + (RX2.fil === o[0] ? "on" : "") + ((o[0] === "porEnviar" && cuenta.porEnviar) || (o[0] === "avisos" && cuenta.avisos) ? " aviso" : "") + '" onclick="RX2.fil=\'' + o[0] + '\';rx2Pintar_()">' + o[1] + ' · ' + cuenta[o[0]] + '</button>'; }).join("");
   var c = $("rx2-cuerpo");
   if(RX2.cargando){ c.innerHTML = '<div class="rx2-vacio">Consultando…</div>'; $("rx2-pie").textContent = ""; return; }
   if(RX2.error){ c.innerHTML = '<div class="rx2-vacio">' + esc(RX2.error) + '</div>'; $("rx2-pie").textContent = ""; return; }
@@ -7810,6 +7811,9 @@ function rx2Pintar_(){
       var envio = e ? '<span class="rx2-tag ok" title="' + esc(e.txt) + '">' + e.icono + ' ' + esc(e.cuando) + '</span>'
                 : r.pide ? '<span class="rx2-tag am">pide PDF · sin enviar</span>' : '<span class="rx2-tag gr">solo papel</span>';
       var firma = r.firmado ? '<span class="rx2-fir">✍ ' + esc(r.firmante || "firmado") + '</span>' : '<span class="rx2-tag rj">sin firma</span>';
+      /* api 3.29: el conductor avisó un error · el recibo se corrigió */
+      if(r.avisoError) firma += ' <span class="rx2-tag am" title="Aviso de ' + esc(typeof r.avisoError === "string" ? r.avisoError : "") + '">⚠ aviso de error</span>';
+      if(r.corregido) firma += ' <span class="rx2-tag gr" title="Corregido el ' + esc(r.corregido) + '">✎ corregido</span>';
       var canal = r.pide === "correo" ? "correo" : "whatsapp";
       var btn = '<button class="rx2-b" onclick="verReciboEnPantalla(\'' + f + '\')" title="Ver el recibo">👁</button>' +
                 '<button class="rx2-b ' + (e ? "" : "pri") + '" onclick="rx2Enviar_(\'' + f + '\',\'' + canal + '\')">' + (e ? "Reenviar" : "Enviar") + '</button>';
@@ -9833,7 +9837,7 @@ function pintarRecibos(h){
       '<div class="acciones">'+
         '<button class="btn ambar mini" onclick="verReciboEnPantalla(\''+f+'\')">👁 Visualizar</button>'+
         '<button class="btn sec mini" onclick="abrirReciboPublico(\''+f+'\')">↗ Abrir / enviar</button>'+
-        (sup ? '<button class="btn sec mini" onclick="reabrirRecibo(\''+f+'\')">🔓 Reabrir</button>' : '')+
+        (sup && r.enviado ? '<button class="btn sec mini" onclick="reabrirRecibo(\''+f+'\')">Marcar como no enviado</button>' : '')+
       '</div>'+
     '</div>';
   }).join("");
@@ -9841,16 +9845,16 @@ function pintarRecibos(h){
 
 /* Una parada enviada queda cerrada. Solo el administrador la reabre. */
 function reabrirRecibo(folio){
-  preguntar({titulo:"Reabrir el recibo "+folio,
-    texto:"La parada volverá a quedar editable para el operador.<br><br>"+
-          "Úsalo solo si hay que corregir un error: el cliente ya tiene una copia del recibo actual.",
-    boton:"Sí, reabrir",
+  preguntar({titulo:"Marcar como no enviado · "+folio,
+    texto:"El recibo vuelve a quedar «por enviar» para mandárselo de nuevo al cliente. No cambia nada del recibo.<br><br>"+
+          "Para cambiar un peso o una cantidad, abra el recibo y use «Corregir».",
+    boton:"Sí, marcar como no enviado",
     alAceptar:function(){
       toast("Reabriendo…");
       google.script.run
         .withSuccessHandler(function(r){
           if(!r||!r.ok){ toast((r&&r.error)||"No se pudo reabrir"); return; }
-          toast("Recibo reabierto ✓"); verHistorialRecibos();
+          toast("Quedó como no enviado ✓"); verHistorialRecibos();
         })
         .withFailureHandler(function(){ toast("Sin señal"); })
         .api_reabrirRecibo(PIN, folio);
