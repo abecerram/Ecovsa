@@ -220,12 +220,12 @@ function pintar(r){
     /* api 3.12: equipos bloqueados por intentos de PIN y pedidos de PIN nuevo (solo el administrador) */
     var SG=r.seguridad; if(SG && SG.abiertos){ var ped=SG.pedidos||[]; G.tuyo=[{nivel:"r",tipo:"seguridad",ir:"config",titulo:SG.bloqueos?(SG.bloqueos===1?"Un equipo quedó bloqueado por intentos de PIN":SG.bloqueos+" equipos o redes bloqueados por intentos de PIN"):(ped.length===1?ped[0]+" pide un PIN nuevo":ped.length+" personas piden un PIN nuevo"),texto:(SG.bloqueos&&ped.length?(ped.length===1?ped[0]+" pide un PIN nuevo. ":ped.length+" piden un PIN nuevo. "):"")+"Toca para verlo en Configuración › Seguridad."}].concat(G.tuyo||[]); }
     /* api 3.23: lo que espera al administrador (portal de clientes) sale en «Lo tuyo» y en la franja azul */
-    var AD=(r.admin||[]).map(function(a){ return {nivel:a.nivel,tipo:a.tipo,ir:"config",titulo:a.titulo,texto:a.texto,etq:a.etq||"",n:a.n,chip:a.chip}; });
+    var AD=(r.admin||[]).map(function(a){ return {nivel:a.nivel,tipo:a.tipo,ir:"config",titulo:a.titulo,texto:a.texto,etq:a.etq||"",n:a.n,chip:a.chip,ref:a.ref||""}; });
     if(AD.length){ G.tuyo=AD.concat(G.tuyo||[]); var pesoT={r:0,a:1,g:2}; G.tuyo=G.tuyo.map(function(p,i){ return [p,i]; }).sort(function(x,y){ return ((pesoT[x[0].nivel]||0)-(pesoT[y[0].nivel]||0))||(x[1]-y[1]); }).map(function(x){ return x[0]; }); }
     if(SG && SG.abiertos){ var pd=(SG.pedidos||[]).length; if(SG.bloqueos) AD.push({nivel:"r",tipo:"seguridad",n:SG.bloqueos,chip:SG.bloqueos===1?"equipo bloqueado":"equipos bloqueados"}); if(pd) AD.push({nivel:"r",tipo:"seguridad",n:pd,chip:pd===1?"PIN nuevo":"PIN nuevos"}); }
     AD.sort(function(x,y){ return (x.nivel==="r"?0:1)-(y.nivel==="r"?0:1); });
     admH=(rol==="admin"&&AD.length)?'<div class="adm"><h3><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>PARA USTED COMO ADMINISTRADOR</h3><div class="ch">'+
-      AD.map(function(a){ return '<button class="'+(a.nivel==="r"?"r":"a")+'" onclick="irTipo(\''+a.tipo+'\')"><i style="background:'+(a.nivel==="r"?"#ff8a75":"#f5b301")+'"></i><span><b>'+esc(a.n)+'</b> '+esc(a.chip)+'</span><span class="ar">›</span></button>'; }).join("")+'</div></div>':"";
+      AD.map(function(a){ return '<button class="'+(a.nivel==="r"?"r":"a")+'" onclick="irTipo(\''+a.tipo+'\',\''+esc(a.ref||'')+'\')"><i style="background:'+(a.nivel==="r"?"#ff8a75":"#f5b301")+'"></i><span><b>'+esc(a.n)+'</b> '+esc(a.chip)+'</span><span class="ar">›</span></button>'; }).join("")+'</div></div>':"";
     var gT=(G.tuyo||[]).slice(0,rol==="admin"?7:4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
     ESPERA=gT.concat(gM,gS); P=ESPERA;
     var mios=(G.tuyo||[]).concat(G.modulo||[]);
@@ -287,13 +287,15 @@ function modulo(id){ return (TAB&&TAB.modulos||[]).filter(function(m){ return m.
 function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
   /* api 3.7: la ruta en borrador o la ficha del cliente se abren directo */
   if(p.tipo==="espacio"){ navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html#esp"); return; }
-  if(p.tipo==="seguridad"||/^ptl/.test(p.tipo||"")){ irTipo(p.tipo); return; }
+  if(p.tipo==="seguridad"||/^ptl/.test(p.tipo||"")||p.tipo==="recCorr"){ irTipo(p.tipo,p.ref); return; }
   var ir=null; if(p.tipo==="borrador") ir={tab:"plan",fecha:p.fecha}; else if(p.tipo==="rcd"&&p.clienteId&&p.ir==="campo") ir={tab:"cli2",cli:p.clienteId};
   else if(p.tipo==="rcd"&&p.rtipo==="ruta"&&p.ref) ir={tab:"plan",fecha:String(p.ref).split("|")[0]}; else if(p.tipo==="rcd"&&p.rtipo==="camion"&&p.ref) ir={tab:"flota",placa:p.ref};
   if(ir){ ir.t=Date.now(); try{ localStorage.setItem("eco_ir",JSON.stringify(ir)); }catch(e){} }
   if(m && m.permitido && m.estado!=="construccion") abrir(p.ir); else avisar("Esto lo atiende otro módulo."); }
 /* api 3.23: cada asunto del administrador abre directo su pestaña de Configuración */
-function irTipo(tipo){ var H={seguridad:"#seg",ptlPed:"#ptl-ped",ptlInv:"#ptl-venc",ptlPro:"#ptl-pro"}; navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html"+(H[tipo]||"#ptl")); }
+/* api 3.29: el aviso de error en un recibo abre ese recibo con la corrección lista */
+function irTipo(tipo,ref){ if(tipo==="recCorr"&&ref){ navegar(URL_APP+"?p=recibo&id="+encodeURIComponent(ref)+"&corregir=1"); return; }
+  var H={seguridad:"#seg",ptlPed:"#ptl-ped",ptlInv:"#ptl-venc",ptlPro:"#ptl-pro"}; navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html"+(H[tipo]||"#ptl")); }
 function avisarMant(id){ var m=modulo(id); avisar((m&&m.aviso)||"Este módulo está en mantenimiento."); }
 function avisar(t){ var a=$("aviso"); a.textContent=t; a.style.display="block"; clearTimeout(window._av); window._av=setTimeout(function(){ a.style.display="none"; },3600); }
 

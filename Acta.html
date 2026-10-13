@@ -236,6 +236,11 @@ function pintar(a){
   "</tbody></table>"+
 
   (a.observaciones ? "<div class='sec'>4 · Observaciones</div><div>"+esc(a.observaciones)+"</div>" : "")+
+  /* api 3.29: recibos corregidos por el administrador después de emitir el acta */
+  ((a.corregidos && a.corregidos.length) ? "<div class='sec'>Recibos corregidos después de emitir esta acta</div>"+
+    "<div style='border:1px solid #f0d58a;background:#fff8e6;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.5;color:#6b4a00'>"+
+    a.corregidos.map(function(c){ return "<b>"+esc(c.recibo)+"</b> · "+esc(c.cliente)+" · de "+n2(c.antes)+" a "+n2(c.despues)+" kg · corregido el "+esc(DOCE.fecha(c.en))+" · "+esc(c.motivo); }).join("<br>")+
+    "<br><i>Los pesos de esta acta son los que se entregaron y firmaron; no se cambian.</i></div>" : "")+
 
   "<div class='firmas'>"+
     "<div class='firma'><div class='hueco'></div>"+

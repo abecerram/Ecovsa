@@ -193,6 +193,20 @@ body{font-family:'Archivo',system-ui,sans-serif;background:var(--fondo);color:#1
 .hj-lk{display:block;width:100%;border:0;background:none;color:#1f56b3;font:700 13px Archivo,system-ui,sans-serif;padding:8px;cursor:pointer;text-decoration:underline}
 #rec-aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f2a57;color:#fff;padding:11px 16px;border-radius:10px;font:600 13px Archivo,system-ui,sans-serif;max-width:90vw;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none}
 #rec-aviso.si{opacity:1}
+/* api 3.29 · avisar un error y corregir el recibo */
+.hj-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:4px}
+.hj-grid .hj-l{margin:8px 0 3px}
+.hj-grid input{width:100%;box-sizing:border-box;border:1.5px solid #cfd8e3;border-radius:10px;padding:9px 10px;font:600 15px Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#0f2140}
+.hj-grid input.cambio{border-color:#d99a00;background:#fff8e6}
+.hj-grid .hj-ant{font-size:11px;color:#5e6b7e;margin-top:2px}
+.hj-tipo{grid-column:1/-1;font-size:12px;font-weight:800;color:#14306b;margin-top:10px;display:flex;align-items:center;gap:6px}
+.hj-tipo i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.hj-av{background:#fff4d6;border:1px solid #f0d58a;border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.45;color:#6b4a00;margin:8px 0}
+.hj-av.ro{background:#fdecea;border-color:#f3c1bd;color:#8a2b24}
+.hj-av.az{background:#e8effb;border-color:#c9d8f3;color:#1f3f7a}
+.hj-hist{margin-top:12px;border-top:1px solid #e3e8ef;padding-top:8px;font-size:11.5px;color:#5e6b7e;line-height:1.5}
+.rec-corr{margin-top:8px;border:1px solid #f0d58a;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:11px;line-height:1.45;color:#6b4a00}
+.db-punto{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f5b301;margin-left:5px;vertical-align:1px}
 @media print{.hj,#rec-aviso{display:none!important}}
 </style>
 
@@ -231,14 +245,14 @@ window.addEventListener("DOMContentLoaded", function(){
       SOLO_VER = String(p.solover||"") === "1";
       ES_CONDUCTOR = String(p.conductor||"") === "1"; ENVIAR_AL_ABRIR = String(p.enviar||"");
       if(String(p.conductor||"") === "1"){ var bi = document.getElementById("btn-imprimir"); if(bi) bi.style.display = "none"; }
-      CLAVE_REC = String(p.k || ""); BAJAR_AL_ABRIR = String(p.bajar||"") === "1";
+      CLAVE_REC = String(p.k || ""); BAJAR_AL_ABRIR = String(p.bajar||"") === "1"; CORREGIR_AL_ABRIR = String(p.corregir||"") === "1";
       arrancarRecibo(p.id || "");
     });
   } else {
     var up = new URLSearchParams(window.location.search);
     SOLO_VER = up.get("solover") === "1";
     ES_CONDUCTOR = up.get("conductor") === "1"; ENVIAR_AL_ABRIR = up.get("enviar") || "";
-    CLAVE_REC = up.get("k") || ""; BAJAR_AL_ABRIR = up.get("bajar") === "1";
+    CLAVE_REC = up.get("k") || ""; BAJAR_AL_ABRIR = up.get("bajar") === "1"; CORREGIR_AL_ABRIR = up.get("corregir") === "1";
     arrancarRecibo(up.get("id") || "");
   }
 });
@@ -247,7 +261,7 @@ window.addEventListener("DOMContentLoaded", function(){
    acciones —imprimir, WhatsApp, correo, copiar enlace— no se dibuja: son
    herramientas de quien emite el recibo, no de quien lo recibe. Es el mismo
    mecanismo que ya usaba el acta de disposición final. */
-var SOLO_VER = false, CLAVE_REC = "";
+var SOLO_VER = false, CLAVE_REC = "", CORREGIR_AL_ABRIR = false;   /* api 3.29 */
 /* api 3.1 · el cliente sí puede bajar su recibo en PDF (solo ese botón).
    bajar=1 lo descarga al abrir: así llega desde «Mi servicio» del QR. */
 var BAJAR_AL_ABRIR = false;
@@ -391,6 +405,8 @@ function renderizarRecibo(r){
     '<tbody>' + filas + '</tbody>' +
 
   '</table>' +
+  /* api 3.29: el recibo se corrigió después de la visita; el motivo lo ve también el cliente */
+  (d.correccion ? '<div class="rec-corr"><b>Recibo corregido el ' + esc(d.correccion.enTxt || d.correccion.en) + '.</b> ' + esc(d.correccion.motivo) + '</div>' : '') +
 
   '<div class="campo-box" style="margin-top:8px">' +
 
@@ -429,6 +445,7 @@ function renderizarRecibo(r){
   $("cuerpo-recibo").innerHTML = html;
 
   document.title = d.recibo + " · " + d.cliente + " · ECOVSA";
+  if(CORREGIR_AL_ABRIR && !SOLO_VER && d.puedeCorregir){ CORREGIR_AL_ABRIR = false; setTimeout(abrirCorregir, 200); }   /* api 3.29 */
   if(ENVIAR_AL_ABRIR && !SOLO_VER){ var cn = ENVIAR_AL_ABRIR === "correo" ? "correo" : "whatsapp"; ENVIAR_AL_ABRIR = ""; setTimeout(function(){ abrirEnvio(cn); }, 150); }
 
 }
@@ -534,7 +551,10 @@ function pintarBarra(){
     '<div class="ti">Recibo de visita <span class="fo">' + esc(d.recibo) + ' · ' + esc(d.cliente) + (d.enviado ? ' · enviado ' + esc(d.enviado) : '') + '</span></div>' +
       '<button class="db-wa" onclick="abrirEnvio(\'whatsapp\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span>WhatsApp</span></button>' +
       '<button onclick="abrirEnvio(\'correo\')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Correo</span></button>' +
-      (sup ? '<button onclick="reabrirEste()" title="Reabrir el recibo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><span class="db-tx-l">Reabrir</span></button>' : '') +
+      /* api 3.29 */
+      (d.puedeAvisar ? '<button onclick="abrirAviso()" title="Avisar un error en este recibo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg><span>' + (d.aviso ? 'Aviso enviado' : 'Avisar un error') + '</span></button>' : '') +
+      (d.puedeCorregir ? '<button onclick="abrirCorregir()" title="Corregir el recibo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span class="db-tx-l">Corregir</span>' + (d.aviso ? '<i class="db-punto" title="El conductor avisó un error"></i>' : '') + '</button>' : '') +
+      (d.puedeCorregir && (d.enviado || d.marcaEnviado) ? '<button onclick="reabrirEste()" title="Marcar como no enviado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h13M12 7l5 5-5 5"/><path d="M20 5v14"/></svg><span class="db-tx-l">No enviado</span></button>' : '') +
       '<button class="db-pdf" onclick="bajarPdf()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg><span>Descargar PDF</span></button>';
 }
 
@@ -633,7 +653,7 @@ function prepararPdf(fin){
         var r = recPdfDe_({ recibo:d.recibo, cliente:d.cliente, contacto: d.firmante || d.contactoAtiende || d.contacto || "", fecha:d.fecha,
           horaInicio:d.horaInicio, horaFinal:d.horaFinal, vehiculo:d.vehiculo, operador:d.responsable,
           kgBolsas:d.kgBio, cantBolsas:d.cantBio, kgPunzo:d.kgPunzo, cantPunzo:d.cantPunzo, kgAnatomo:d.kgAnatomo, cantAnatomo:d.cantAnatomo,
-          obs:(d.entregas && d.entregas.length ? 'Se entregó en esta visita: ' + d.entregas.map(function(e){ return e.cantidad + ' ' + e.nombre; }).join(', ') + '. ' : '') + (d.obs || ''), clave:d.clave }, recEmp_());
+          obs:(d.entregas && d.entregas.length ? 'Se entregó en esta visita: ' + d.entregas.map(function(e){ return e.cantidad + ' ' + e.nombre; }).join(', ') + '. ' : '') + (d.obs || '') + (d.correccion ? ' · Recibo corregido el ' + (d.correccion.enTxt || d.correccion.en) + ': ' + d.correccion.motivo : ''), clave:d.clave }, recEmp_());
         try{ r.file = new File([r.blob], r.nombre, { type:"application/pdf" }); }catch(e){ r.file = null; }
         RP.pdf = r; fin(r);
       }catch(e){ fin(null, "No se pudo armar el PDF."); }
@@ -763,15 +783,121 @@ function enviarCorreo(){
 }
 function reabrirEste(){
   if(!DATOS_RECIBO) return;
-  var h = '<div class="hj-t">🔓 Reabrir el recibo ' + esc(DATOS_RECIBO.recibo) + '</div><p class="hj-n" style="font-size:14px;margin:8px 0 12px">La parada vuelve a quedar editable para el conductor. Úsalo solo para corregir un error: el cliente ya puede tener una copia.</p>' +
-          '<button type="button" class="hj-b az" onclick="reabrirSi()">Sí, reabrir</button><button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>';
+  var h = '<div class="hj-t">Marcar como no enviado · ' + esc(DATOS_RECIBO.recibo) + '</div><p class="hj-n" style="font-size:14px;margin:8px 0 12px">El recibo vuelve a quedar «por enviar» para mandárselo de nuevo al cliente. No cambia nada del recibo. Para cambiar un peso o una cantidad use «Corregir».</p>' +
+          '<button type="button" class="hj-b az" onclick="reabrirSi()">Sí, marcar como no enviado</button><button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>';
   var v = $("hj"); if(!v){ v = document.createElement("div"); v.id = "hj"; v.className = "hj"; v.onclick = function(e){ if(e.target === v) cerrarEnvio(); }; document.body.appendChild(v); }
   v.innerHTML = '<div class="hj-c">' + h + '</div>'; v.classList.add("si");
 }
 function reabrirSi(){
-  google.script.run.withSuccessHandler(function(r){ cerrarEnvio(); avisoRec(r && r.ok ? "Recibo reabierto" : ((r && r.error) || "No se pudo reabrir")); })
+  google.script.run.withSuccessHandler(function(r){ cerrarEnvio(); if(r && r.ok && DATOS_RECIBO){ DATOS_RECIBO.enviado = ""; DATOS_RECIBO.marcaEnviado = ""; pintarBarra(); } avisoRec(r && r.ok ? "Quedó como no enviado" : ((r && r.error) || "No se pudo")); })
     .withFailureHandler(function(){ avisoRec("Sin señal"); }).api_reabrirRecibo(PIN_ENV, DATOS_RECIBO.recibo);
 }
+/* ═══════ api 3.29 · Avisar un error (conductor) y Corregir (administrador) ═══════
+   El conductor no edita el recibo: avisa el dato correcto. El administrador lo
+   revisa y lo aplica con un motivo, que el cliente ve en su recibo. Si el mes ya
+   se facturó, la diferencia sale como ajuste en Para facturar. */
+var CR_CAMPOS = [["Bioinfeccioso", "#C0392B", ["kgBio", "kg"], ["cantBio", "bolsas"]],
+                 ["Punzocortante", "#F5B301", ["kgPunzo", "kg"], ["cantPunzo", "envases"]],
+                 ["Anatomopatológico", "#8E24AA", ["kgAnatomo", "kg"], ["cantAnatomo", "bolsas"]]];
+function crHoja_(h){
+  var v = $("hj"); if(!v){ v = document.createElement("div"); v.id = "hj"; v.className = "hj"; v.onclick = function(e){ if(e.target === v) cerrarEnvio(); }; document.body.appendChild(v); }
+  v.innerHTML = '<div class="hj-c">' + h + '</div>'; v.classList.add("si");
+}
+function crActual_(){ var d = DATOS_RECIBO || {}, o = {}; CR_CAMPOS.forEach(function(c){ o[c[2][0]] = num(d[c[2][0]]); o[c[3][0]] = num(d[c[3][0]]); }); return o; }
+function crGrid_(base, antes){
+  return '<div class="hj-grid">' + CR_CAMPOS.map(function(c){
+    return '<div class="hj-tipo"><i style="background:' + c[1] + '"></i>' + c[0] + '</div>' + [c[2], c[3]].map(function(f){
+      return '<div><label class="hj-l" for="cr-' + f[0] + '">' + f[1].toUpperCase() + '</label><input id="cr-' + f[0] + '" inputmode="decimal" value="' + esc(base[f[0]]) + '" oninput="crMarca_()" data-antes="' + esc(antes[f[0]]) + '">' +
+             '<div class="hj-ant">en el recibo: ' + esc(antes[f[0]]) + '</div></div>';
+    }).join("");
+  }).join("") + '</div>';
+}
+function crMarca_(){ [].forEach.call(document.querySelectorAll(".hj-grid input"), function(i){ i.classList.toggle("cambio", num(i.value) !== num(i.getAttribute("data-antes")) || String(i.value).trim() === ""); }); }
+function crValores_(){ var o = {}; [].forEach.call(document.querySelectorAll(".hj-grid input"), function(i){ o[i.id.slice(3)] = String(i.value).trim() === "" ? "" : String(i.value).replace(",", "."); }); return o; }
+function crCambios_(a, b){
+  var n = { kgBio: "kg bioinfeccioso", cantBio: "bolsas", kgPunzo: "kg punzocortante", cantPunzo: "envases", kgAnatomo: "kg anatomopatológico", cantAnatomo: "bolsas anatomo." };
+  return Object.keys(n).filter(function(k){ return a && b && num(a[k]) !== num(b[k]); }).map(function(k){ return n[k] + ' ' + num(a[k]) + ' → <b>' + num(b[k]) + '</b>'; }).join(" · ");
+}
+function crFecha_(t){ t = String(t || ""); return t ? t.slice(8, 10) + "/" + t.slice(5, 7) + (t.length > 10 ? " " + t.slice(11, 16) : "") : ""; }
+function crHist_(L){
+  if(!L || !L.length) return "";
+  return '<div class="hj-hist"><b>Historial de este recibo</b><br>' + L.map(function(x){
+    if(x.estado === "aplicada") return '✎ ' + esc(crFecha_(x.corrigioEn)) + ' · corrigió ' + esc(x.corrigioPor) + (x.avisoPor ? ' (avisó ' + esc(x.avisoPor) + ')' : '') + ': ' + x.cambios + ' · «' + esc(x.motivo) + '»' + (x.facturado ? ' · mes ya facturado' : '');
+    if(x.estado === "descartada") return '✕ ' + esc(crFecha_(x.descartadoEn)) + ' · aviso de ' + esc(x.avisoPor) + ' descartado por ' + esc(x.descartadoPor) + ': «' + esc(x.descartadoNota) + '»';
+    return '⚠ ' + esc(crFecha_(x.avisoEn)) + ' · ' + esc(x.avisoPor) + ' avisó un error' + (x.avisoNota ? ': «' + esc(x.avisoNota) + '»' : '');
+  }).join("<br>") + '</div>';
+}
+
+/* El conductor avisa */
+function abrirAviso(){
+  var d = DATOS_RECIBO; if(!d) return;
+  var ant = crActual_(), base = (d.aviso && d.aviso.propuesto) || ant;
+  crHoja_('<div class="hj-t">⚠ Avisar un error · ' + esc(d.recibo) + '</div>' +
+    '<div class="hj-s">' + esc(d.cliente) + ' · ' + esc(d.fecha) + '</div>' +
+    (d.aviso ? '<div class="hj-av az">Ya avisó el ' + esc(crFecha_(d.aviso.en)) + '. Si se equivocó, cámbielo aquí y vuelva a enviarlo.</div>' : '') +
+    '<p class="hj-n" style="font-size:13px">Escriba el dato <b>correcto</b>. El recibo no cambia todavía: el administrador revisa su aviso y lo corrige.</p>' +
+    crGrid_(base, ant) +
+    '<label class="hj-l" for="cr-nota">¿QUÉ PASÓ?</label><textarea id="cr-nota" rows="2" placeholder="Ej.: anoté 18 kg y eran 81">' + esc((d.aviso && d.aviso.nota) || "") + '</textarea>' +
+    '<button type="button" class="hj-b az" id="cr-ir" onclick="enviarAviso()">Enviar el aviso</button><button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>' +
+    crHist_(d.correcciones));
+  crMarca_();
+}
+function enviarAviso(){
+  var b = $("cr-ir"); if(b){ b.disabled = true; b.textContent = "Enviando…"; }
+  google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ if(b){ b.disabled = false; b.textContent = "Enviar el aviso"; } avisoRec((r && r.error) || "No se pudo enviar"); return; }
+      cerrarEnvio(); avisoRec(r.mensaje || "Aviso enviado"); RP.pdf = null; arrancarRecibo(DATOS_RECIBO.recibo);
+    }).withFailureHandler(function(){ if(b){ b.disabled = false; b.textContent = "Enviar el aviso"; } avisoRec("Sin señal: el aviso no se envió"); })
+    .api_enviarAvisoRecibo(PIN_ENV, DATOS_RECIBO.recibo, { valores: crValores_(), nota: ($("cr-nota") || {}).value || "" });
+}
+
+/* El administrador corrige */
+function abrirCorregir(){
+  var d = DATOS_RECIBO; if(!d) return;
+  var ant = crActual_(), av = d.aviso, base = (av && av.propuesto) || ant;
+  crHoja_('<div class="hj-t">✎ Corregir el recibo ' + esc(d.recibo) + '</div>' +
+    '<div class="hj-s">' + esc(d.cliente) + ' · ' + esc(d.fecha) + ' · ' + esc(d.responsable) + '</div>' +
+    (av ? '<div class="hj-av"><b>' + esc(av.por) + ' avisó un error</b> el ' + esc(crFecha_(av.en)) + (av.nota ? ': «' + esc(av.nota) + '»' : '') +
+          (crCambios_(ant, av.propuesto) ? '<br>Propone: ' + crCambios_(ant, av.propuesto) : '') + '<br><small>Ya está puesto abajo. Ajústelo si hace falta.</small></div>' : '') +
+    (d.acta ? '<div class="hj-av ro">Este recibo está en el acta <b>' + esc(d.acta) + '</b>, ya emitida. El acta no cambia: dirá que este recibo se corrigió después.</div>' : '') +
+    (d.firma ? '<div class="hj-av ro">El cliente ya firmó este recibo. El motivo que escriba lo verá él en su recibo.</div>' : '') +
+    crGrid_(base, ant) +
+    '<label class="hj-l" for="cr-mot">MOTIVO · LO VERÁ EL CLIENTE</label><textarea id="cr-mot" rows="2" placeholder="Ej.: se anotó 18 kg en lugar de 28 kg"></textarea>' +
+    '<label class="hj-ck"><input type="checkbox" id="cr-fac"' + (d.mesPasado ? ' checked' : '') + '> Este mes ya se facturó</label>' +
+    '<div class="hj-n">Si ya se facturó, la factura no se toca: la diferencia sale como ajuste (cargo o crédito) en Para facturar del mes en curso.</div>' +
+    '<button type="button" class="hj-b az" id="cr-ir" onclick="aplicarCorreccion()">Aplicar la corrección</button>' +
+    (av ? '<button type="button" class="hj-b gr" onclick="pedirDescarte()">El aviso no procede</button>' : '<button type="button" class="hj-b gr" onclick="cerrarEnvio()">Cancelar</button>') +
+    '<div id="cr-desc"></div>' + crHist_(d.correcciones));
+  crMarca_();
+}
+function aplicarCorreccion(){
+  var b = $("cr-ir"), mot = String(($("cr-mot") || {}).value || "").trim();
+  if(mot.length < 10){ avisoRec("Escriba el motivo: lo verá el cliente en su recibo."); var t = $("cr-mot"); if(t) t.focus(); return; }
+  if(b){ b.disabled = true; b.textContent = "Corrigiendo…"; }
+  google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ if(b){ b.disabled = false; b.textContent = "Aplicar la corrección"; } avisoRec((r && r.error) || "No se pudo corregir"); return; }
+      cerrarEnvio(); avisoRec("Recibo corregido: " + r.antes.toFixed(2) + " → " + r.despues.toFixed(2) + " kg" + (r.porReenviar ? " · quedó por reenviar al cliente" : ""));
+      RP.pdf = null; arrancarRecibo(DATOS_RECIBO.recibo);
+    }).withFailureHandler(function(){ if(b){ b.disabled = false; b.textContent = "Aplicar la corrección"; } avisoRec("Sin señal: no se corrigió"); })
+    .api_corregirRecibo(PIN_ENV, DATOS_RECIBO.recibo, { valores: crValores_(), motivo: mot, facturado: !!(($("cr-fac") || {}).checked) });
+}
+function pedirDescarte(){
+  var c = $("cr-desc"); if(!c) return;
+  c.innerHTML = '<label class="hj-l" for="cr-dn">¿POR QUÉ NO PROCEDE? · LO VE QUIEN AVISÓ</label><textarea id="cr-dn" rows="2" placeholder="Ej.: la báscula marcó 85 kg"></textarea>' +
+    '<button type="button" class="hj-b gr" id="cr-dok" onclick="descartarAviso()">Descartar el aviso</button><button type="button" class="hj-lk" onclick="cerrarEnvio()">Cancelar</button>';
+  var t = $("cr-dn"); if(t) t.focus();
+}
+function descartarAviso(){
+  var n = String(($("cr-dn") || {}).value || "").trim(), b = $("cr-dok");
+  if(n.length < 5){ avisoRec("Escriba por qué no procede."); return; }
+  if(b) b.disabled = true;
+  google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ if(b) b.disabled = false; avisoRec((r && r.error) || "No se pudo"); return; }
+      cerrarEnvio(); avisoRec("Aviso descartado"); arrancarRecibo(DATOS_RECIBO.recibo);
+    }).withFailureHandler(function(){ if(b) b.disabled = false; avisoRec("Sin señal"); })
+    .api_rechazarAvisoRecibo(PIN_ENV, DATOS_RECIBO.recibo, n);
+}
+
 function avisoRec(t){ var a = $("rec-aviso"); if(!a){ a = document.createElement("div"); a.id = "rec-aviso"; document.body.appendChild(a); }
   a.textContent = t; a.className = "si"; clearTimeout(avisoRec._t); avisoRec._t = setTimeout(function(){ a.className = ""; }, 3400); }
 
