@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>Informe financiero · ECOVSA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<!-- api 3.30.1 · Los informes de Finanzas (Dirección › Finanzas › Informes y estados) como
+     documentos del sistema: el membrete aprobado, el código del listado maestro, firmas y pie,
+     igual que el arqueo de caja (F-ADM-02).
+       ?tipo=socios  Informe para socios          F-ADM-08
+       ?tipo=res     Estado de resultados         F-ADM-09
+       ?tipo=bal     Balance general              F-ADM-10
+       ?tipo=flu     Estado de flujo de efectivo  F-ADM-11
+       ?tipo=banco   Paquete para el banco: los tres estados, cada uno en su hoja
+     &mes=aaaa-mm (si no viene, el último mes cerrado). Solo administración y gerencia. -->
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
+<script src="puente.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;background:#e9edf3;color:#0f2140;padding-bottom:30px}
+.hoja{max-width:860px;margin:18px auto 0;background:#fff;border-radius:6px;box-shadow:0 10px 30px rgba(15,33,64,.12);padding:40px 48px}
+.estado{max-width:520px;margin:60px auto;background:#fff;border-radius:14px;padding:26px 24px;text-align:center;color:#5d6a80;box-shadow:0 8px 24px rgba(15,33,64,.1)}
+.estado b{display:block;font-size:18px;color:#0f2a57;margin-bottom:6px}
+h5{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;margin:18px 0 6px;color:#14306b}
+table{width:100%;border-collapse:collapse}
+td,th{border:1px solid #c9d0db;padding:6px 8px;text-align:left;font-size:12px;vertical-align:top}
+th{background:#eef1f5;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:#3d4a60}
+td.r,th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.ind{padding-left:20px}
+td.neg{color:#a8262b}
+tr.st td{font-weight:700;background:#f8f9fb}
+tr.tt td{font-weight:800;background:#f5f6f8}
+tr.gr td{font-weight:800;background:#eef1f5;border-top:2px solid #0f2a57}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cuadros{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cuadro{border:1px solid #c9d0db;border-top:3px solid #14306b;border-radius:5px;padding:8px 10px}
+.cuadro small{display:block;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:#5d6a80}
+.cuadro b{display:block;font-size:17px;font-weight:800;color:#0f2a57;line-height:1.25;font-variant-numeric:tabular-nums}
+.cuadro span{display:block;font-size:10.5px;color:#5d6a80}
+ul.cl{margin:4px 0 0;padding-left:18px;font-size:12px;line-height:1.6}
+.nota{margin-top:12px;font-size:10.5px;color:#5d6a80;line-height:1.5;border-left:3px solid #c9d0db;padding:2px 0 2px 10px}
+.fir{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
+.fir.f2{grid-template-columns:repeat(2,1fr)}
+.fir div{border-top:1px solid #111;padding-top:5px;text-align:center;font-size:10.5px}
+.fir div b{display:block;font-size:11.5px}
+.pie{margin-top:22px;border-top:1px solid #dfe4ec;padding-top:8px;font-size:9.5px;color:#5d6a80;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dm-r b.dt{font-size:14.5px;letter-spacing:.6px;text-transform:uppercase;line-height:1.25}.dm-r span.dp{font-size:11.5px;color:#0f2140;font-weight:600;margin-top:2px;text-wrap:balance}
+.salto{break-before:page;page-break-before:always}
+.tw{overflow-x:auto}
+@media(max-width:680px){.hoja{margin:0;border-radius:0;box-shadow:none;padding:22px 14px}.dos,.fir,.fir.f2{grid-template-columns:1fr}.fir{gap:34px}.cuadros{grid-template-columns:1fr 1fr}}
+@page{size:letter;margin:.25in}
+@media print{body{background:#fff;padding:0}td,th{padding:3.5px 7px;font-size:11px}th{font-size:9.5px}h5{margin:12px 0 5px}.fir{margin-top:36px}.nota{margin-top:8px}.pie{margin-top:14px}.hoja{box-shadow:none;margin:0;padding:0;max-width:none;border-radius:0}.hoja+.hoja{margin-top:0}
+  th,tr.tt td,tr.st td,tr.gr td,.cuadro{-webkit-print-color-adjust:exact;print-color-adjust:exact}tr,.cuadro,.fir{break-inside:avoid}}
+</style>
+<link rel="stylesheet" href="documento.css">
+<script src="documento.js"></script>
+</head>
+<body>
+<div class="barra doc-barra no-imprimir" id="barra">
+  <span class="db-marca"><img src="ecovsa-letras.png" alt="ECOVSA"></span>
+  <div class="ti" id="ti">Informe financiero</div>
+  <button class="sec" id="volver" onclick="history.length > 1 ? history.back() : window.close()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>Volver</span></button>
+  <button class="db-pdf" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Guardar en PDF</span></button>
+</div>
+<div id="app"><div class="estado">Abriendo el informe…</div></div>
+<script>
+var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+var NOMBRE = { socios: 'Informe de gestión financiera', res: 'Estado de resultados', bal: 'Estado de situación financiera', flu: 'Estado de flujos de efectivo', banco: 'Paquete para el banco' };
+var SAL = { decimo: 'Pago del décimo tercer mes', proveedores: 'Pagos a proveedores', planilla: 'Pagos al personal', css: 'Pagos a la CSS y retenciones', prestamos: 'Pagos de préstamos', itbms: 'Pagos de ITBMS', anuales: 'Pólizas, permisos y pagos anuales', proveedor: 'Proveedores', cobro: 'Cobros', impuestos: 'Impuestos (DGI)', prestamo: 'Préstamos', comision: 'Comisiones bancarias', interes: 'Intereses', anual: 'Pagos anuales', socios: 'Socios', otro: 'Otros' };
+var NOMG = { personal: 'Salarios, cargas sociales y provisiones', depreciacion: 'Depreciación', seguros: 'Seguros y permisos', fijos: 'Gastos fijos' };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function d(v) { var x = Math.round((+v || 0) * 100) / 100; return (x < 0 ? '−' : '') + 'B/. ' + Math.abs(x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function pc(v) { v = +v || 0; return (v < 0 ? '−' : '') + Math.abs(v).toFixed(1) + ' %'; }
+function mesTxt(m) { return m ? MESES[+m.slice(5, 7) - 1] + ' de ' + m.slice(0, 4) : ''; }
+/* el periodo, corto, para el recuadro de la derecha del membrete */
+function abr(m) { return MESES[+m.slice(5, 7) - 1].slice(0, 3); }
+function finMes(m) { return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).getUTCDate(); }
+var NUM = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce'];
+var ORD = ['', 'primer', 'segundo', 'tercer', 'cuarto'];
+function alTxt(m) { return finMes(m) + ' de ' + MESES[+m.slice(5, 7) - 1] + ' de ' + m.slice(0, 4); }
+/* 3.30.1 · el período en la forma de los estados: «Por el trimestre y los nueve meses terminados el 30 de septiembre de 2026» */
+function periodo(clave, r) {
+  var h = r.hasta, al = alTxt(h), mn = +h.slice(5, 7);
+  if (clave === 'bal') return 'Al ' + al;
+  if (clave === 'socios') {
+    if (r.per === 'mes') return 'Correspondiente a ' + mesTxt(h);
+    var cual = r.per === 'tri' ? ORD[Math.ceil(mn / 3)] + ' trimestre de ' + h.slice(0, 4) : r.per === 'sem' ? (mn <= 6 ? 'primer' : 'segundo') + ' semestre de ' + h.slice(0, 4) : 'año ' + h.slice(0, 4);
+    return 'Correspondiente al ' + cual + (r.completo ? '' : ' · en curso, hasta ' + MESES[mn - 1]);
+  }
+  var base = r.n === 1 ? ['el mes', 'terminado'] : r.completo && r.per === 'tri' ? ['el trimestre', 'terminado'] : r.completo && r.per === 'anio' ? ['el año', 'terminado'] : ['los ' + NUM[r.n] + ' meses', 'terminados'];
+  return r.anio ? 'Por ' + base[0] + ' y los ' + NUM[mn] + ' meses terminados el ' + al : 'Por ' + base[0] + ' ' + base[1] + ' el ' + al;
+}
+function mesCorto(m) { return m ? MESES[+m.slice(5, 7) - 1].slice(0, 3) + ' ' + m.slice(0, 4) : ''; }
+function falla(t) { document.getElementById('app').innerHTML = '<div class="estado"><b>No se pudo abrir el informe</b>' + esc(t) + '</div>'; }
+function fila(t, a, b, cl) { return '<tr' + (cl && cl !== 'ind' ? ' class="' + cl + '"' : '') + '><td' + (cl === 'ind' ? ' class="ind"' : '') + '>' + t + '</td><td class="r' + (a < 0 ? ' neg' : '') + '">' + d(a) + '</td>' + (b === undefined ? '' : '<td class="r' + (b < 0 ? ' neg' : '') + '">' + d(b) + '</td>') + '</tr>'; }
+function tit(t, n) { return '<tr><th colspan="' + (n || 3) + '">' + t + '</th></tr>'; }
+/* una fila con tantas columnas de cifras como haya (período, comparativo, acumulado) */
+function filaN(t, vals, cl) { return '<tr' + (cl && cl !== 'ind' ? ' class="' + cl + '"' : '') + '><td' + (cl === 'ind' ? ' class="ind"' : '') + '>' + t + '</td>' + vals.map(function (v) { return '<td class="r' + (v < 0 ? ' neg' : '') + '">' + d(v) + '</td>'; }).join('') + '</tr>'; }
+function cabCols(r, al) {
+  var alTx = function (m) { return 'Al ' + finMes(m) + ' ' + abr(m) + ' ' + m.slice(0, 4); };
+  if (al) return [alTx(r.hasta)].concat(r.balanceComp ? [alTx(r.comp.balance)] : []);
+  return [r.etq.per].concat(r.Ra ? [r.etq.comp] : []).concat(r.anio ? ['Acumulado ' + r.etq.anio] : []).concat(r.anioAnt ? ['Acumulado ' + r.etq.anioAnt] : []);
+}
+function cabeza(r, primera, al) { return '<thead><tr><th>' + primera + '</th>' + cabCols(r, al).map(function (c) { return '<th class="r">' + esc(c) + '</th>'; }).join('') + '</tr></thead>'; }
+function sinComp(r) { return r.Ra ? '' : '<div class="nota">Sin cifras comparativas: el sistema no tiene datos de ' + (r.per === 'anio' ? 'años anteriores' : 'períodos anteriores') + '.</div>'; }
+
+/* una hoja: membrete legal con el código del listado maestro, cuerpo, firmas y pie */
+function hoja(r, clave, cuerpo, firmas, salto) {
+  var e = Object.assign({}, r.empresa || {}, { formulario: (r.formularios || {})[clave] || '' });
+  return '<div class="hoja' + (salto ? ' salto' : '') + '">' +
+    DOCE.membrete({ empresa: e, modo: 'legal', codigo: e.formulario,
+      derecha: '<b class="dt">' + esc(NOMBRE[clave]) + '</b><span class="dp">' + esc(periodo(clave, r)) + '</span><span>Cifras en balboas · emitido el ' + esc(DOCE.fecha(r.hoy)) + '</span>' }) +
+    cuerpo +
+    '<div class="nota">Informe de gestión con los datos del sistema de operaciones de ECOVSA. Los estados financieros oficiales los prepara y firma el contador idóneo.</div>' +
+    '<div class="fir' + (firmas.length === 2 ? ' f2' : '') + '">' + firmas.map(function (f) { return '<div><b>' + esc(f[0] || ' ') + '</b>' + esc(f[1]) + '</div>'; }).join('') + '</div>' +
+    '<div class="pie"><span>' + esc(e.razonSocial || '') + ' · RUC ' + esc(e.ruc || '') + (e.dv ? ' DV ' + esc(e.dv) : '') + '</span><span>' + esc(e.formulario) + ' · Documento generado por el sistema de operaciones de ECOVSA</span></div></div>';
+}
+var FIRMAS3 = function (r) { return [[r.usuario, 'Preparado por'], ['', 'Revisado por · Contador Público Autorizado'], ['', 'Aprobado por · Gerencia General']]; };
+
+function socios(r) {
+  var R = r.R, Ra = r.Ra, A = r.anio, cj = r.caja.per, cs = cj[cj.length - 1] || { final: 0, neto: 0, totalSalidas: 0 }, eq = r.equilibrio;
+  var dias = cs.totalSalidas ? Math.floor(cs.final / (cs.totalSalidas / 30)) : 0, varia = cj.reduce(function (t, x) { return t + (x.neto || 0); }, 0);
+  var cols = function (f) { return [f(R)].concat(Ra ? [f(Ra)] : []).concat(A ? [f(A)] : []).concat(r.anioAnt ? [f(r.anioAnt)] : []); };
+  var otros = function (x) { return x.compartido + x.financiero + x.extraordinario; };
+  var c = '<h5>1 · Indicadores clave del ' + (r.n === 1 ? 'mes' : 'período') + '</h5><div class="cuadros">' +
+    '<div class="cuadro"><small>Ingresos</small><b>' + d(R.ingreso) + '</b><span>' + (Ra ? esc(r.etq.comp) + ': ' + d(Ra.ingreso) : 'sin comparativo') + '</span></div>' +
+    '<div class="cuadro"><small>Utilidad antes de impuesto</small><b>' + d(R.utilidad) + '</b><span>margen ' + pc(R.margen) + '</span></div>' +
+    '<div class="cuadro"><small>Efectivo en bancos</small><b>' + d(cs.final) + '</b><span>' + (varia >= 0 ? '+' : '') + d(varia) + ' variación del ' + (r.n === 1 ? 'mes' : 'período') + '</span></div>' +
+    '<div class="cuadro"><small>Cuentas por cobrar</small><b>' + d(r.cartera.total) + '</b><span>vencidas: ' + d(r.cartera.vencido) + '</span></div></div>' +
+    '<h5>2 · Resultados comparativos</h5><div class="tw"><table>' + cabeza(r, 'Concepto') + '<tbody>' +
+    filaN('Ingresos', cols(function (x) { return x.ingreso; })) + filaN('Costo de los servicios', cols(function (x) { return x.directos; })) + filaN('Gastos de administración, financieros y otros', cols(otros)) +
+    filaN('Utilidad antes de impuesto', cols(function (x) { return x.utilidad; }), 'tt') +
+    '<tr><td>Margen antes de impuesto</td>' + cols(function (x) { return x.margen; }).map(function (v) { return '<td class="r">' + pc(v) + '</td>'; }).join('') + '</tr></tbody></table></div>' + sinComp(r) +
+    '<div class="dos"><div><h5>3 · Resultados por línea de negocio</h5><table><thead><tr><th>Línea</th><th class="r">Ingreso</th><th class="r">Utilidad</th><th class="r">Margen</th></tr></thead><tbody>' +
+    '<tr><td>Desechos peligrosos</td><td class="r">' + d(R.P.ingreso) + '</td><td class="r">' + d(R.P.utilidad) + '</td><td class="r">' + pc(R.P.margen) + '</td></tr>' +
+    '<tr><td>Desechos sólidos</td><td class="r">' + d(R.S.ingreso) + '</td><td class="r">' + d(R.S.utilidad) + '</td><td class="r">' + pc(R.S.margen) + '</td></tr></tbody></table></div>' +
+    '<div><h5>4 · Proyectos mayores (acumulado desde su inicio)</h5><table><thead><tr><th>Proyecto</th><th class="r">Ingresos</th><th class="r">Utilidad</th></tr></thead><tbody>' +
+    (r.proyectos.length ? r.proyectos.map(function (p) { return '<tr><td>' + esc(p.nombre) + (p.estado === 'cerrado' ? ' (cerrado)' : '') + '</td><td class="r">' + d(p.tot.ingreso) + '</td><td class="r">' + d(p.tot.utilidad) + '</td></tr>'; }).join('') : '<tr><td colspan="3">Sin proyectos mayores registrados.</td></tr>') + '</tbody></table></div></div>' +
+    '<h5>5 · Indicadores de gestión</h5><table><tbody><tr><td>Punto de equilibrio mensual (ingresos necesarios para cubrir costos y gastos)</td><td class="r">' + d(eq.pe) + '</td></tr>' +
+    (r.n === 1 ? '<tr><td>Ingresos del mes por encima (o por debajo) del punto de equilibrio</td><td class="r">' + d(eq.holgura) + '</td></tr>' : '<tr><td>Ingreso mensual promedio del período frente al punto de equilibrio del último mes</td><td class="r">' + d(eq.holguraProm) + '</td></tr>') +
+    '<tr><td>Cobertura de caja (días de egresos que cubre el efectivo)</td><td class="r">' + dias + ' días</td></tr><tr><td>Cuentas por cobrar con más de 90 días</td><td class="r">' + d(r.cartera.t4) + '</td></tr></tbody></table>';
+  return hoja(r, 'socios', c, [[r.usuario, 'Preparado por'], ['', 'Aprobado por · Gerencia General']]);
+}
+function resultados(r, salto) {
+  var R = r.R, Ra = r.Ra, A = r.anio, L = [R].concat(Ra ? [Ra] : []).concat(A ? [A] : []).concat(r.anioAnt ? [r.anioAnt] : []), nc = L.length + 1;
+  var claves = {}, claveO = {};
+  L.forEach(function (x) { Object.keys(x.dir).forEach(function (k) { claves[k] = 1; }); Object.keys(x.ofi).forEach(function (k) { claveO[k] = 1; }); });
+  var v = function (f) { return L.map(f); }, f = function (t, fn, cl) { return filaN(t, v(fn), cl); };
+  var c = '<div class="tw"><table>' + cabeza(r, 'Concepto') + '<tbody>' +
+    tit('Ingresos por servicios', nc) + f('Desechos peligrosos', function (x) { return x.P.ingreso; }, 'ind') + f('Desechos sólidos', function (x) { return x.S.ingreso; }, 'ind') + f('Total de ingresos', function (x) { return x.ingreso; }, 'st') +
+    tit('Costo de los servicios', nc) + Object.keys(claves).sort().map(function (k) { return f(esc(NOMG[k] || k), function (x) { return x.dir[k] || 0; }, 'ind'); }).join('') + f('Total costo de los servicios', function (x) { return x.directos; }, 'st') + f('Utilidad bruta', function (x) { return x.bruta; }, 'tt') +
+    tit('Gastos de administración', nc) + Object.keys(claveO).sort().map(function (k) { return f(esc(NOMG[k] || k), function (x) { return x.ofi[k] || 0; }, 'ind'); }).join('') + f('Total gastos de administración', function (x) { return x.compartido; }, 'st') +
+    f('Utilidad de operación', function (x) { return x.operativa; }, 'tt') + f('Gastos financieros', function (x) { return x.financiero; }, 'ind') + (L.some(function (x) { return x.extraordinario; }) ? f('Extraordinarios', function (x) { return x.extraordinario; }, 'ind') : '') +
+    f('Utilidad antes del impuesto sobre la renta', function (x) { return x.utilidad; }, 'tt') + f('Impuesto sobre la renta estimado', function (x) { return x.isr; }, 'ind') + f('Utilidad neta', function (x) { return x.neta; }, 'gr') + '</tbody></table></div>' + sinComp(r);
+  return hoja(r, 'res', c, FIRMAS3(r), salto);
+}
+function balance(r, salto) {
+  var B = r.balance, C = r.balanceComp;
+  if (!C) {
+    var f1 = function (t, v, cl) { return fila(t, v, undefined, cl); }, th = function (t) { return '<tr><th colspan="2">' + t + '</th></tr>'; };
+    var c = '<div class="dos"><div><table><tbody>' + th('Activo corriente') + f1('Efectivo y equivalentes de efectivo', B.banco, 'ind') + f1('Cuentas por cobrar comerciales', B.cxc, 'ind') + f1('Gastos pagados por anticipado', B.prepago, 'ind') + f1('Total activo corriente', B.ac, 'st') +
+      th('Propiedad, planta y equipo') + f1('Costo', B.costo, 'ind') + f1('Menos: depreciación acumulada', -B.dac, 'ind') + f1('Propiedad, planta y equipo, neto', B.af, 'st') + f1('Total activo', B.activo, 'gr') + '</tbody></table></div>' +
+      '<div><table><tbody>' + th('Pasivo corriente') + f1('Cuentas por pagar comerciales', B.cxp, 'ind') + f1('ITBMS por pagar', B.itbms, 'ind') + f1('Cuotas obrero-patronales por pagar (CSS)', B.css, 'ind') + f1('Décimo tercer mes por pagar', B.xiii, 'ind') + f1('Impuesto sobre la renta por pagar (estimado)', B.isr, 'ind') + f1('Porción corriente de préstamos por pagar', B.prestCorr, 'ind') + f1('Total pasivo corriente', B.pc, 'st') +
+      th('Pasivo no corriente') + f1('Provisión para prima de antigüedad e indemnización', B.prima, 'ind') + f1('Préstamos por pagar a largo plazo', B.prestLargo, 'ind') + f1('Total pasivo no corriente', B.pl, 'st') +
+      th('Patrimonio') + f1(B.apertura ? 'Capital y utilidades retenidas' : 'Capital y utilidades retenidas*', B.anteriores, 'ind') + f1('Utilidad neta del ejercicio a la fecha', B.utilidadAnio, 'ind') + f1('Total patrimonio', B.patrimonio, 'st') + f1('Total pasivo y patrimonio', B.pasivo + B.patrimonio, 'gr') + '</tbody></table></div></div>' +
+      (B.apertura ? '' : '<div class="nota">* Determinado por diferencia hasta registrar el estado de situación financiera de apertura emitido por el contador.</div>') + '<div class="nota">Sin cifras comparativas: el sistema no tiene datos del cierre anterior.</div>';
+    return hoja(r, 'bal', c, FIRMAS3(r), salto);
+  }
+  /* con comparativo: una sola tabla con el cierre del período y el del período anterior */
+  var g = function (t, k, cl, neg) { return filaN(t, [B, C].map(function (x) { return (neg ? -1 : 1) * (typeof k === 'function' ? k(x) : x[k]); }), cl); }, th2 = function (t) { return tit(t, 3); };
+  var c2 = '<div class="tw"><table class="bal2">' + cabeza(r, 'Concepto', true) + '<tbody>' +
+    th2('Activo corriente') + g('Efectivo y equivalentes de efectivo', 'banco', 'ind') + g('Cuentas por cobrar comerciales', 'cxc', 'ind') + g('Gastos pagados por anticipado', 'prepago', 'ind') + g('Total activo corriente', 'ac', 'st') +
+    th2('Propiedad, planta y equipo') + g('Costo', 'costo', 'ind') + g('Menos: depreciación acumulada', 'dac', 'ind', true) + g('Propiedad, planta y equipo, neto', 'af', 'st') + g('Total activo', 'activo', 'gr') +
+    th2('Pasivo corriente') + g('Cuentas por pagar comerciales', 'cxp', 'ind') + g('ITBMS por pagar', 'itbms', 'ind') + g('Cuotas obrero-patronales por pagar (CSS)', 'css', 'ind') + g('Décimo tercer mes por pagar', 'xiii', 'ind') + g('Impuesto sobre la renta por pagar (estimado)', 'isr', 'ind') + g('Porción corriente de préstamos por pagar', 'prestCorr', 'ind') + g('Total pasivo corriente', 'pc', 'st') +
+    th2('Pasivo no corriente') + g('Provisión para prima de antigüedad e indemnización', 'prima', 'ind') + g('Préstamos por pagar a largo plazo', 'prestLargo', 'ind') + g('Total pasivo no corriente', 'pl', 'st') +
+    th2('Patrimonio') + g(B.apertura ? 'Capital y utilidades retenidas' : 'Capital y utilidades retenidas*', 'anteriores', 'ind') + g('Utilidad neta del ejercicio a la fecha', 'utilidadAnio', 'ind') + g('Total patrimonio', 'patrimonio', 'st') + g('Total pasivo y patrimonio', function (x) { return x.pasivo + x.patrimonio; }, 'gr') + '</tbody></table></div>' +
+    (B.apertura ? '' : '<div class="nota">* Determinado por diferencia hasta registrar el estado de situación financiera de apertura emitido por el contador.</div>');
+  return hoja(r, 'bal', c2, FIRMAS3(r), salto);
+}
+function flujo(r, salto) {
+  var L = [r.caja.per].concat(r.Ra && r.caja.comp ? [r.caja.comp] : []).concat(r.anio && r.caja.anio ? [r.caja.anio] : []).concat(r.anioAnt && r.caja.anioAnt ? [r.caja.anioAnt] : []), nc = L.length + 1;
+  var s = function (cj, fn) { return cj.reduce(function (t, x) { return t + fn(x); }, 0); };
+  var tipos = {}; L.forEach(function (cj) { cj.forEach(function (x) { Object.keys(x.salidas).forEach(function (k) { if (x.salidas[k]) tipos[k] = 1; }); }); });
+  var sal = function (cj, k) { return s(cj, function (x) { return x.salidas[k] || 0; }); }, FIN = ['prestamos', 'prestamo', 'socios'];
+  var fin = function (cj) { return FIN.reduce(function (t, k) { return t + sal(cj, k); }, 0); }, entro = function (cj) { return s(cj, function (x) { return x.cobros; }); }, salio = function (cj) { return s(cj, function (x) { return x.totalSalidas; }); };
+  var f = function (t, fn, cl) { return filaN(t, L.map(fn), cl); };
+  var c = '<div class="tw"><table>' + cabeza(r, 'Concepto') + '<tbody>' + tit('Flujos de efectivo de las actividades de operación', nc) + f('Cobros a clientes', entro, 'ind') +
+    Object.keys(tipos).filter(function (k) { return FIN.indexOf(k) < 0; }).map(function (k) { return f(esc(SAL[k] || k), function (cj) { return -sal(cj, k); }, 'ind'); }).join('') + f('Efectivo neto provisto por las actividades de operación', function (cj) { return entro(cj) - (salio(cj) - fin(cj)); }, 'st') +
+    tit('Flujos de efectivo de las actividades de financiamiento', nc) + f('Pagos de préstamos y movimientos con accionistas', function (cj) { return -fin(cj); }, 'ind') + f('Aumento (disminución) neto del efectivo', function (cj) { return entro(cj) - salio(cj); }, 'tt') +
+    f('Efectivo al inicio del período', function (cj) { return cj.length ? cj[0].inicial : 0; }, 'ind') + f('Efectivo al final del período', function (cj) { return cj.length ? cj[cj.length - 1].final : 0; }, 'gr') + '</tbody></table></div>' + sinComp(r);
+  return hoja(r, 'flu', c, FIRMAS3(r), salto);
+}
+
+(function () {
+  var q = location.search || '', mt = q.match(/[?&]tipo=([a-z]+)/), mm = q.match(/[?&]mes=(\d{4}-\d{2})/), mp = q.match(/[?&]per=(mes|tri|sem|anio)/);
+  var tipo = mt && Object.prototype.hasOwnProperty.call(NOMBRE, mt[1]) ? mt[1] : 'socios', mes = mm ? mm[1] : '', per = mp ? mp[1] : 'mes';
+  if (/[?&]vista=1/.test(q)) { document.getElementById('barra').style.display = 'none'; document.body.style.background = '#e9edf3'; }
+  document.getElementById('ti').textContent = NOMBRE[tipo];
+  var pin = ''; try { pin = JSON.parse(localStorage.getItem('ecovsa_pin') || '""'); } catch (e) { pin = ''; }
+  if (!pin) { falla('Entra primero a Dirección y vuelve a abrir el informe.'); return; }
+  google.script.run.withSuccessHandler(function (r) {
+    if (!r || !r.ok) { falla((r && r.error) || 'Inténtalo de nuevo.'); return; }
+    document.title = NOMBRE[tipo] + ' · ' + r.etq.per + ' · ECOVSA';
+    document.getElementById('ti').innerHTML = esc(NOMBRE[tipo]) + ' <span class="fo">' + esc(r.etq.per) + '</span>';
+    document.getElementById('app').innerHTML = tipo === 'socios' ? socios(r) : tipo === 'res' ? resultados(r) : tipo === 'bal' ? balance(r) : tipo === 'flu' ? flujo(r) : resultados(r) + balance(r, true) + flujo(r, true);
+  }).withFailureHandler(function () { falla('Sin conexión. El informe necesita señal.'); }).api_finInforme(pin, mes, per);
+})();
+</script>
+</body>
+</html>
