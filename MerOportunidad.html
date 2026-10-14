@@ -490,16 +490,19 @@
     if (GER) return { t: 'Ver propuesta', ic: 'ojo', fn: verPropuesta, d: 'Estás en modo consulta. La edición corresponde a mercadeo.' };
     if (OP.gran && ['Registrado', 'Formulario enviado', 'Formulario recibido'].indexOf(e) >= 0)
       return { t: 'Armar la cuenta', ic: 'edificio', fn: function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, d: 'Sedes, precio, servicios y facturación, paso a paso. Al enviarla desde allí pasa sola a «Propuesta enviada».' };
+    if (u && OP['cliente origen'] && ['Registrado', 'Formulario enviado', 'Formulario recibido'].indexOf(e) >= 0)
+      return { t: 'Firmado y pasar a cartera', ic: 'flecha', fn: firmarYCartera, d: 'Cliente que ya existe y visita única: sus datos ya están en su ficha. Con la cotización aceptada, se marca firmada y se envía a Logística con la fecha que pidió el cliente.' };
     switch (e) {
       case 'Registrado': return { t: 'Enviar formulario', ic: 'whatsapp', fn: hojaFormulario, d: 'Le llega un enlace para que llene sus datos. Al enviarlo pasa sola a «Formulario enviado».' };
       case 'Formulario enviado': return { t: 'Reenviar formulario', ic: 'whatsapp', fn: hojaFormulario, d: 'Enviado' + (OP['formulario enviado'] ? ' el ' + E(String(OP['formulario enviado']).split(' · ')[0]) : '') + '. Cuando el cliente lo llene, sus datos llegan solos a esta ficha.' };
       case 'Formulario recibido': return { t: 'Armar propuesta', ic: 'documento', fn: armarPropuesta, d: 'El cliente ya mandó sus datos. Revisa tarifas y notas y genera la propuesta imprimible.' };
       case 'Propuesta enviada': return { t: 'Registrar seguimiento', ic: 'telefono', fn: hojaRespuesta, d: 'Propuesta' + (OP['fecha propuesta'] ? ' del ' + MK.fechaCorta(OP['fecha propuesta']) : '') + '. Anota qué respondió el cliente; si acepta o pide cambios, la etapa se mueve sola.' };
-      case 'En negociación': return { t: 'Pasar a contrato', ic: 'contrato', fn: pasarAContrato, d: 'Cuando el cliente acepte, pasa a «Contrato en proceso» para completar los datos y los documentos del contrato.' };
+      case 'En negociación': if (u) return { t: 'Firmado y pasar a cartera', ic: 'flecha', fn: firmarYCartera, d: 'Visita única: no lleva contrato. Con la propuesta aceptada, se marca firmada y se envía a Logística con la fecha que pidió el cliente.' };
+        return { t: 'Pasar a contrato', ic: 'contrato', fn: pasarAContrato, d: 'Cuando el cliente acepte, pasa a «Contrato en proceso» para completar los datos y los documentos del contrato.' };
       case 'Contrato en proceso':
-        return u ? { t: 'Marcar firmado', ic: 'check', fn: function () { hojaEtapa('Firmado'); }, d: 'Visita única: no lleva contrato. Con la propuesta aceptada y firmada, pásala a «Firmado».' }
+        return u ? { t: 'Firmado y pasar a cartera', ic: 'flecha', fn: firmarYCartera, d: 'Visita única: no lleva contrato. Se marca firmada y se envía a Logística con la fecha que pidió el cliente.' }
           : { t: 'Revisar contrato', ic: 'contrato', fn: revisarContrato, d: 'El contrato pide ' + REQ.length + ' datos (tienes ' + datosC + ') y 5 documentos (tienes ' + docsC + ').' };
-      case 'Firmado': return { t: 'Pasar a cartera', ic: 'flecha', fn: hojaCartera, d: 'Se envía a operaciones como solicitud de alta con todo lo de esta ficha. Nada se vuelve a teclear.' };
+      case 'Firmado': return { t: 'Pasar a cartera', ic: 'flecha', fn: hojaCartera, d: OP['cliente origen'] ? 'Se envía a Logística como alta. Su ficha cambia cuando Logística la apruebe; si la devuelve, la ficha no cambia.' : 'Se envía a operaciones como solicitud de alta con todo lo de esta ficha. Nada se vuelve a teclear.' };
       case 'Pasado a cartera':
         return OP.clienteId ? { t: 'Ver ficha del cliente', ic: 'edificio', fn: function () { MK.irCliente(OP.clienteId); }, d: 'Ya es cliente de ECOVSA.' }
           : { t: 'Avisar a contabilidad', ic: 'correo', fn: correoCartera, d: 'La solicitud de alta está con operaciones. Avísale a contabilidad para que facture desde el inicio.' };
@@ -932,14 +935,15 @@
   function tabPropuesta() {
     var u = unica(), o = OP, vp = venceProp();
     var t = (u || OP.gran ? '' : planHtml()) + '<div class="fg">' +
-      (u ? '' : campo('frecuencia', 'Frecuencia', { ops: D.frecuencias || [] })) +
+      (u ? '' : campo('frecuencia', 'Frecuencia', { ops: (D.frecuencias || []).filter(function (f) { return !/ESPECIAL|SOLICITUD/i.test(String(f)); }), hint: /ESPECIAL/i.test(String(v('frecuencia'))) ? '«Especial» ya no vale para una recurrente: si es de una sola vez, cámbiala a <b>Visita única</b>.' : '' })) +
       campo('costo visita', u ? 'Costo del servicio (B/.)' : 'Costo por visita (B/.)', { t: 'num', hint: u ? '' : difPlan('costo visita') }) +
       (u ? '' : campo('kg plan', 'Kg incluidos en el plan', { t: 'num', hint: difPlan('kg plan') })) +
       campo('tarifa kg adic', u ? 'Tarifa por kg excedente (B/.)' : 'Tarifa kg adicional (B/.)', { t: 'num', hint: u ? '' : difPlan('tarifa kg adic') }) +
       (u ? '' : campo('tarifa visita adic', 'Tarifa visita adicional (B/.)', { t: 'num' })) +
       campo('validez propuesta', 'Validez de la propuesta (días)', { t: 'num', ph: '30', hint: vp.promo ? '<span class="tag t-warn">Vence el ' + fCorta(vp.f) + ': cierra la promoción</span>' : '' }) +
       (u ? '' : campo('plazo contrato', 'Plazo del contrato (meses)', { t: 'num', ro: especial(), hint: especial() ? 'Un servicio especial no lleva plazo.' : '' })) +
-      (u ? campo('cantidadEstimada', 'Cantidad estimada', { t: 'num' }) + campo('fechaTentativa', 'Fecha tentativa', { t: 'date' }) +
+      (u ? campo('cantidadEstimada', 'Kilos estimados', { t: 'num' }) + campo('fechaTentativa', 'Fecha pedida por el cliente *', { t: 'date', req: String(v('sin fecha')).toUpperCase() !== 'SI', hint: 'Sin esta fecha la visita única no pasa a cartera. Viaja hasta Logística para ponerla en la ruta de ese día.' }) +
+        campo('sin fecha', '¿El cliente ya sabe la fecha?', { ops: [['SI', 'Todavía no la sabe (queda en seguimiento)']], vacio: 'Sí, ya la dio' }) +
         campo('descripcionTrabajo', 'Qué se va a recoger', { t: 'area', w2: true, ph: 'Describe el material y el trabajo. Sin esto, la cotización no se entiende sola dentro de seis meses.' }) : '') + '</div>' +
       '<div class="calc"><div><span>Valor cotizado</span><b>' + MK.dinero(v('costo visita') || 0) + '</b><em>Sale del costo. No se escribe a mano.</em></div>' +
       '<div><span>' + (u ? 'Valor del trabajo' : 'Valor mensual') + '</span><b>' + MK.dinero(o.valor) + '</b><em>' + (Object.keys(CAMBIOS).length ? 'Se recalcula al guardar.' : (u ? 'Costo × cantidad.' : 'Costo × visitas al mes.')) + '</em></div>' +
@@ -2169,12 +2173,30 @@
   }
 
   /* ═════════ pasar a cartera ═════════ */
+  /* api 3.31 · visita única: firmada y a cartera en un solo paso */
+  function firmarYCartera() {
+    if (GER) return;
+    if (!v('fechaTentativa') && String(v('sin fecha')).toUpperCase() !== 'SI') { MK.aviso('Falta la fecha que pidió el cliente. Si todavía no la sabe, márcalo en la pestaña Propuesta.'); TAB = 'propuesta'; pintarPanel(); return; }
+    if (!v('costo visita')) { MK.aviso('Falta el costo del servicio.'); TAB = 'propuesta'; pintarPanel(); return; }
+    antesGuardar().then(function (ok) {
+      if (!ok) return;
+      var ir = function () { OP.estado = 'Firmado'; hojaCartera(); };
+      if (OP.estado === 'Firmado') { ir(); return; }
+      MK.api('api_crmMoverEtapa', MK.pin, COD, 'Firmado').then(function (r) {
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo marcar firmada.'); return; }
+        if (r.errores && r.errores.length && !r.movidas) { MK.aviso(r.errores.join(' · ')); return; }
+        ir();
+      }, function (e) { MK.aviso('Sin conexión: ' + e.message); });
+    });
+  }
   function hojaCartera() {
     if (GER) return;
     if (OP.estado === 'Pasado a cartera') { MK.aviso('Esta propuesta ya pasó a cartera.'); return; }
     if (OP.estado !== 'Firmado') { MK.aviso('Solo se pasan a cartera las oportunidades en «Firmado».'); return; }
     var falt = listaDocs().filter(function (d) { return String(OP[d[0]]).toUpperCase() !== 'SI'; });
-    MK.hoja('<h2>Pasar a cartera</h2><p class="small muted">Se envía a operaciones como solicitud de alta para que la aprueben con su ubicación. Viaja todo lo de esta ficha: RUC, plan, tarifas, contrato y facturación.</p>' +
+    var ex31 = !!OP['cliente origen'], u31 = unica();
+    MK.hoja('<h2>Pasar a cartera</h2><p class="small muted">' + (ex31 ? 'Se envía a Logística como alta. Aunque <b>' + E(OP.empresa) + '</b> ya existe, sale en Altas enviadas como «Con Logística» y le llega a Logística en su bandeja. Su ficha cambia cuando Logística la apruebe; si la devuelve, la ficha no cambia.' : 'Se envía a operaciones como solicitud de alta para que la aprueben con su ubicación. Viaja todo lo de esta ficha: RUC, plan, tarifas, contrato y facturación.') + '</p>' +
+      (u31 ? (v('fechaTentativa') ? '<div class="aviso az" style="margin-top:10px">Visita única pedida para el <b>' + E(MK.fechaLarga ? MK.fechaLarga(v('fechaTentativa')) : v('fechaTentativa')) + '</b>: Logística la pone en la ruta de ese día.</div>' : '<div class="aviso am" style="margin-top:10px">El cliente todavía no da la fecha: al aprobarla queda <b>Por iniciar</b> y sale en tu seguimiento de Altas enviadas.</div>') : '') +
       (falt.length ? '<div class="aviso am" style="margin-top:10px">Faltan documentos: <b>' + E(falt.map(function (d) { return d[1]; }).join(', ')) + '</b>. Se puede enviar igual: la solicitud lo dice.</div>' : '<div class="aviso vd" style="margin-top:10px">Documentación completa.</div>') +
       (hayCambios() ? '<div class="aviso am" style="margin-top:10px">Primero se guardan tus cambios de la ficha.</div>' : '') +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ca-ok">' + IC('flecha', 15) + ' Sí, enviar</button></div>');
@@ -2188,7 +2210,7 @@
           soltar();
           if (!r || !r.ok) { MK.cerrarHoja(); MK.aviso((r && r.error) || 'No se pudo enviar.'); if (r && r.yaEnviada) MK.cambio({ tipo: 'cartera' }); return; }
           MK.cerrarHoja();
-          MK.aviso(r.aviso ? r.aviso : r.faltan && r.faltan.length ? 'Enviado, pero faltan documentos: ' + r.faltan.join(', ') : 'Enviado a operaciones ✓');
+          MK.aviso(r.aviso ? r.aviso : r.existente ? 'Enviada a Logística como alta ✓ La ficha cambia cuando la aprueben.' : r.faltan && r.faltan.length ? 'Enviado, pero faltan documentos: ' + r.faltan.join(', ') : 'Enviado a Logística ✓');
           MK.cambio({ tipo: 'cartera' });
           setTimeout(correoCartera, 500);
         }, function (e) { soltar(); MK.aviso('Sin conexión: ' + e.message); });

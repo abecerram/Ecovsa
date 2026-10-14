@@ -382,14 +382,59 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       '<div class="mk-tipos">' +
       '<button type="button" data-t="misma"><span class="tag t-gris">MISMA SEDE</span><b>Propuesta para este punto</b><small>Parte de su plan actual' + (c.planKg ? ' (' + N(c.planKg) + ' kg · ' + E(titulo(c.frecuencia) || 'sin frecuencia') + ')' : '') + '. Precio por visita, como siempre.</small></button>' +
       '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Agregar otra sede</b><small>Este punto más su sucursal nueva: queda como cuenta con 2 sedes, con su precio, servicios, facturación y cobro. Sigue siendo cliente normal: «gran generador» solo desde 100 kg al mes entre todas sus sedes.</small></button></div>' +
-      '<div id="np-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
+      '<div id="np-paso2"></div>' +
+      '<div id="np-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie" id="np-pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
+    var crear = function (t, extra, b) {
+      if (b) b.disabled = true;
+      MK.api('api_crearCuentaGran', MK.pin, Object.assign({ clienteId: c.id, tipo: t }, extra || {})).then(function (r) {
+        if (!r || !r.ok) { if (b) b.disabled = false; document.getElementById('np-msg').textContent = (r && r.error) || 'No se pudo crear.'; return; }
+        location.href = t === 'gran' ? 'MerCuenta.html?id=' + encodeURIComponent(r.codigoPropuesta) : 'MerOportunidad.html?id=' + encodeURIComponent(r.codigoPropuesta);
+      }, function (e) { if (b) b.disabled = false; document.getElementById('np-msg').textContent = e.message; });
+    };
+    /* api 3.31 · paso 2: ¿qué tipo de servicio? La ficha «Especial» viene marcada como visita única */
+    var esp = /ESPECIAL/i.test(String(c.frecuencia || '')) || String((R.datos || {}).modalidad || '').toLowerCase() === 'servicio';
+    var tipo = esp ? 'unica' : 'rec';
+    var FREC = ['SEMANAL', '2X SEMANA', 'QUINCENAL', 'MENSUAL', 'BIMESTRAL', 'TRIMESTRAL', 'SEMESTRAL', 'ANUAL'];
+    var paso2 = function () {
+      var u = tipo === 'unica', p2 = document.getElementById('np-paso2');
+      var bt = function (t, tag, cls, tit, txt) { return '<button type="button" data-tipo="' + t + '"' + (tipo === t ? ' style="border-color:var(--navy);background:#f5f8fd"' : '') + '><span class="tag ' + cls + '">' + tag + '</span><b>' + tit + '</b><small>' + txt + '</small></button>'; };
+      var fr = String(c.frecuencia || '').toUpperCase();
+      p2.innerHTML = '<div class="lb" style="display:block;margin:14px 0 6px">2 · ¿QUÉ TIPO DE SERVICIO?</div><div class="mk-tipos">' +
+        bt('unica', 'SERVICIO ESPECIAL', 't-warn', 'Visita única', 'Se cotiza y se recoge en la fecha que pide el cliente. Sin contrato.') +
+        bt('rec', 'CON CONTRATO', 't-info', 'Recurrente', 'Servicio continuo con contrato, frecuencia y plazo.') + '</div>' +
+        (u ? (esp ? '<div class="aviso az" style="margin-top:10px">Viene marcada <b>Visita única</b> porque su ficha dice «Especial». Si ahora quiere contrato, toca <b>Recurrente</b>.</div>' : '') +
+             '<div class="grid g2" style="margin-top:10px;gap:10px"><div><label class="lb">FECHA PEDIDA POR EL CLIENTE *</label><input class="in" type="date" id="np-fecha"></div>' +
+             '<div><label class="lb">KILOS ESTIMADOS</label><input class="in" type="number" min="0" step="0.5" id="np-kg"></div>' +
+             '<div><label class="lb">PRECIO DE LA RECOLECCIÓN (B/.)</label><input class="in" type="number" min="0" step="0.01" id="np-precio" value="' + E(c.planCosto || '') + '"></div>' +
+             '<div><label class="lb">KILO ADICIONAL (B/.)</label><input class="in" type="number" min="0" step="0.01" id="np-adic" value="' + E((R.datos || {})['tarifa kg adic'] || '') + '"></div></div>' +
+             '<label class="small" style="display:flex;gap:8px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" id="np-sinf"> El cliente todavía no sabe la fecha (queda en seguimiento)</label>' +
+             '<p class="small muted" style="margin:6px 0 0">No pide contrato, plazo ni frecuencia. La fecha viaja hasta la bandeja de Logística para ponerla en la ruta de ese día.</p>'
+           : '<div class="grid g2" style="margin-top:10px;gap:10px"><div><label class="lb">FRECUENCIA *</label><select class="in" id="np-frec"><option value="">Elegir…</option>' +
+             FREC.map(function (f) { return '<option' + (f === fr ? ' selected' : '') + '>' + f + '</option>'; }).join('') + '</select></div>' +
+             '<div><label class="lb">INICIO DE RECOLECCIÓN</label><input class="in" type="date" id="np-ini"></div></div>' +
+             '<p class="small muted" style="margin:8px 0 0">«Especial» ya no aparece como frecuencia: si es de una sola vez, es <b>Visita única</b>. Una recurrente lleva contrato: sin contrato y sin frecuencia no pasa a Firmado ni a cartera. Si el cliente aún no sabe cuándo empieza, se deja vacío: al aprobarlo queda <b>Por iniciar</b> y sale en el seguimiento de Altas enviadas.</p>');
+      [].forEach.call(p2.querySelectorAll('[data-tipo]'), function (b) { b.onclick = function () { tipo = b.getAttribute('data-tipo'); paso2(); }; });
+      document.getElementById('np-pie').innerHTML = '<button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="np-crear">Crear propuesta</button>';
+      document.getElementById('np-crear').onclick = function () {
+        var v = function (id) { var e = document.getElementById(id); return e ? e.value : ''; }, d = { tipoServicio: u ? 'VISITA UNICA' : 'RECURRENTE' };
+        if (u) {
+          d.fechaPedida = v('np-fecha'); d.sinFecha = document.getElementById('np-sinf').checked; d.kilos = v('np-kg'); d.precio = v('np-precio'); d.kgAdic = v('np-adic');
+          if (!d.fechaPedida && !d.sinFecha) { document.getElementById('np-msg').textContent = 'Escribe la fecha que pidió el cliente, o marca que todavía no la sabe.'; return; }
+        } else {
+          d.frecuencia = v('np-frec'); d.inicio = v('np-ini');
+          if (!d.frecuencia) { document.getElementById('np-msg').textContent = 'Elige la frecuencia del servicio.'; return; }
+        }
+        document.getElementById('np-msg').textContent = '';
+        crear('misma', d, this);
+      };
+    };
     [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
       b.onclick = function () {
-        var t = b.getAttribute('data-t'); b.disabled = true;
-        MK.api('api_crearCuentaGran', MK.pin, { clienteId: c.id, tipo: t }).then(function (r) {
-          if (!r || !r.ok) { b.disabled = false; document.getElementById('np-msg').textContent = (r && r.error) || 'No se pudo crear.'; return; }
-          location.href = t === 'gran' ? 'MerCuenta.html?id=' + encodeURIComponent(r.codigoPropuesta) : 'MerOportunidad.html?id=' + encodeURIComponent(r.codigoPropuesta);
-        }, function (e) { b.disabled = false; document.getElementById('np-msg').textContent = e.message; });
+        var t = b.getAttribute('data-t');
+        if (t === 'gran') { crear('gran', {}, b); return; }
+        [].forEach.call(h.querySelectorAll('[data-t]'), function (x) { x.removeAttribute('style'); });
+        b.setAttribute('style', 'border-color:var(--navy);background:#f5f8fd');
+        paso2();
       };
     });
   }

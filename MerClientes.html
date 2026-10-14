@@ -229,9 +229,10 @@
   }
   function pintarTabs() {
     var mias = (ALTA && ALTA.mias) || []; marcarReenviadas(mias);
-    var dev = mias.filter(function (s) { return String(s.estado).toUpperCase() === 'DEVUELTA' && !s._reenviada; }).length;
+    /* api 3.31: el número es lo que te toca atender (devueltas y por iniciar) */
+    var dev = ALTAS && ALTAS.cuentas ? ALTAS.cuentas.accion : mias.filter(function (s) { return String(s.estado).toUpperCase() === 'DEVUELTA' && !s._reenviada; }).length;
     var t = [['cartera', 'Cartera', CRM ? CRM.clientes.length : '']];
-    if (ROL !== 'gerente') t.push(['altas', 'Altas enviadas', dev ? dev + ' devuelta' + (dev > 1 ? 's' : '') : (mias.length || '')]);
+    if (ROL !== 'gerente') t.push(['altas', 'Altas enviadas', dev ? dev + ' por atender' : ((ALTAS && ALTAS.altas ? ALTAS.altas.length : mias.length) || '')]);
     var el = document.getElementById('tabs');
     el.innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '" class="' + (TAB === x[0] ? 'on' : '') + '">' + x[1] + (x[2] !== '' ? '<span class="n"' + (dev && x[0] === 'altas' ? ' style="background:var(--bad-bg);color:var(--bad)"' : '') + '>' + x[2] + '</span>' : '') + '</button>'; }).join('');
     [].forEach.call(el.querySelectorAll('button'), function (b) { b.onclick = function () { TAB = b.getAttribute('data-t'); try { history.replaceState(null, '', TAB === 'altas' ? '#altas' : location.pathname.split('/').pop()); } catch (e) {} verTab(); }; });
@@ -706,43 +707,108 @@
       else ALTA = r;
       pintarTabs();
     }, function (e) { ALTA = { mias: [], error: 'Sin conexión: ' + e.message }; pintarTabs(); });
+    /* api 3.31: cada alta y en qué va, hasta su primera recolección */
+    MK.api('api_altasEnviadas', MK.pin).then(function (r) {
+      ALTAS = r && r.ok ? r : { altas: [], error: (r && r.error) || 'No se pudo cargar.' };
+      pintarTabs();
+    }, function (e) { ALTAS = { altas: [], error: 'Sin conexión: ' + e.message }; pintarTabs(); });
+  }
+  var ALTAS = null, AL_FIL = 'accion';
+  function alCss() {
+    if (document.getElementById('al31-css')) return;
+    var st = document.createElement('style'); st.id = 'al31-css';
+    st.textContent = '.cam{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:10px 0 4px}' +
+      '.cam div{font-size:11.5px;font-weight:700;color:#8a96a8;border-top:4px solid #e1e6ee;padding-top:6px;line-height:1.25}' +
+      '.cam .h{color:#2f9e44;border-top-color:#2f9e44}.cam .a{color:#14306b;border-top-color:#14306b}.cam .m{color:#d64045;border-top-color:#d64045}.cam .o{color:#8a5a00;border-top-color:#d99a00}' +
+      '.al-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 12px}' +
+      '.al-k button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font:inherit;color:inherit}' +
+      '.al-k button b{display:block;font-size:22px;font-weight:700}.al-k button span{font-size:12px;color:var(--muted)}.al-k button.on{border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2)}' +
+      '.al-chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.al-chips button{border:1px solid #d6dde8;background:#fff;border-radius:20px;padding:7px 14px;font:700 13px Archivo,sans-serif;color:#667489;cursor:pointer;min-height:36px}.al-chips button.on{background:#14306b;border-color:#14306b;color:#fff}' +
+      '.al-q{font-size:13px;margin-top:6px}.al-box{border-radius:10px;padding:10px 12px;font-size:13px;margin-top:10px;line-height:1.45}.al-box.rj{background:#fdecea;color:#8c1d22}.al-box.am{background:#fff8e6;color:#4d3a00}.al-box.vd{background:#eaf6e4;color:#1e5a2a}.al-box.az{background:#e8effb;color:#1d3f86}' +
+      '.marca-rj{border:2px solid #d64045!important;background:#fffafa}' +
+      '@media(max-width:760px){.cam{grid-template-columns:repeat(2,minmax(0,1fr))}.al-k{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+    document.head.appendChild(st);
+  }
+  function camino(a) {
+    var E5 = (ALTAS && ALTAS.etapas) || ['Enviada', 'Revisión de Logística', 'Aprobada', 'En planificación', 'Primera recolección'];
+    return '<div class="cam">' + E5.map(function (t, i) {
+      var c = i < a.paso ? 'h' : i === a.paso ? (a.marca || 'a') : '';
+      if (a.paso >= 5) c = 'h';
+      return '<div class="' + c + '">' + E(t) + '</div>';
+    }).join('') + '</div>';
   }
   function pintarAltas() {
     var p = document.getElementById('p-altas'); if (!p) return;
-    if (!ALTA) { MK.cargando(p); return; }
-    if (ALTA.error) { MK.error(p, ALTA.error); return; }
-    var l = ALTA.mias || [];
-    marcarReenviadas(l);
-    var h = '<div class="row w" style="margin-bottom:12px"><p class="muted small" style="flex:1;min-width:240px">Los clientes que enviaste a logística y en qué quedaron. Aquí no se aprueba nada: quien revisa y ubica al cliente es logística. Si te devuelven uno, corrige lo que dice el motivo y vuelve a enviarlo.</p>' +
-      '<button class="btn" id="al-nueva">' + IC('mas', 15) + 'Alta directa</button></div>';
-    if (!l.length) h += '<div class="card">' + MK.vacio('Todavía no has enviado clientes. Cuando una oportunidad pasa a cartera o haces un alta directa, aparece aquí.') + '</div>';
-    h += l.map(function (s, i) {
-      var est = String(s.estado || '').toUpperCase(), cls = est === 'APROBADA' ? 'ok' : est === 'DEVUELTA' ? (s._reenviada ? 'gris' : 'bad') : '';
-      var tag = est === 'APROBADA' ? '<span class="tag t-ok">Aprobada · ya está en la cartera</span>' : est === 'DEVUELTA' ? (s._reenviada ? '<span class="tag t-gris">Devuelta · ya corregida</span>' : '<span class="tag t-bad">Devuelta</span>') : '<span class="tag t-warn">Pendiente · con logística</span>';
-      var linea = est === 'APROBADA' ? 'Aprobada' + (s.procesadaEn ? ' el ' + MK.fecha(s.procesadaEn) : '') + (s.procesadaPor ? ' · la revisó ' + s.procesadaPor : '')
-        : est === 'DEVUELTA' ? 'Te la devolvieron' + (s.procesadaEn ? ' el ' + MK.fecha(s.procesadaEn) : '') + (s.procesadaPor ? ' · ' + s.procesadaPor : '')
-        : 'Esperando revisión' + (s.diasEsperando ? ' · ' + s.diasEsperando + (s.diasEsperando === 1 ? ' día' : ' días') : ' · enviada hoy');
-      /* api 3.15: además del nombre, se busca por RUC y por razón social (las altas directas a veces entran con otro nombre) */
-      var cli = est === 'APROBADA' ? (LISTA.filter(function (c) { return norm(c.nombre) === norm(s.empresa); })[0] ||
-        (s.ruc ? LISTA.filter(function (c) { return norm(c.ruc) === norm(s.ruc); })[0] : null) ||
-        (s.razonSocial ? LISTA.filter(function (c) { return norm(c.razon) === norm(s.razonSocial); })[0] : null)) : null;
-      /* api 3.15: sin frecuencia = servicio de una sola vez → «visita única» en vez de la raya */
-      var frec = titulo(s.frecuencia) || (norm(s.tipoServicio) === 'visita unica' || norm(s.frecuencia) === 'servicio especial' || s.codigoPropuesta ? 'Visita única' : 'Sin frecuencia');
-      return '<div class="sol ' + cls + '"><div class="top"><div style="flex:1;min-width:200px"><b>' + E(s.empresa) + '</b><div class="det">Enviada el ' + E(MK.fecha(s.fechaSolicitud)) + ' · ' + E(frec) + (s.zona ? ' · ' + E(titulo(s.zona)) : '') + (s.codigoPropuesta ? ' · desde ' + E(s.codigoPropuesta) : ' · alta directa') + '</div>' +
-        '<div class="det">' + E(linea) + '</div></div>' + tag + '</div>' +
-        (est === 'DEVUELTA' && s._reenviada ? '<div class="det" style="margin-top:6px">Se corrigió y se volvió a enviar el ' + E(MK.fecha(s._reenviada)) + '. Motivo de entonces: «' + E(s.motivo || 'sin motivo') + '»</div>' : '') +
-        (est === 'DEVUELTA' && !s._reenviada ? '<div class="mot"><b>Motivo:</b> «' + E(s.motivo || 'Sin motivo anotado') + '»</div>' : '') +
-        '<div class="ac">' +
-          (est === 'DEVUELTA' && !s._reenviada && ROL !== 'gerente' ? '<button class="btn sm pri" data-cor="' + i + '">' + IC('lapiz', 14) + 'Corregir y reenviar</button>' : '') +
-          (s.codigoPropuesta ? '<button class="btn sm" data-op="' + E(s.codigoPropuesta) + '">' + IC('embudo', 14) + 'Abrir la oportunidad</button>' : '') +
-          (cli ? '<button class="btn sm" data-cli="' + E(cli.id) + '">' + IC('persona', 14) + 'Abrir la ficha del cliente</button>' : '') +
-        '</div></div>';
+    alCss();
+    if (!ALTAS) { MK.cargando(p); return; }
+    if (ALTAS.error) { MK.error(p, ALTAS.error); return; }
+    var L = ALTAS.altas || [], K = ALTAS.cuentas || {};
+    var F = [['accion', 'Necesitan tu acción'], ['log', 'Con Logística'], ['plan', 'En planificación'], ['todas', 'Todas']];
+    var l = L.filter(function (a) { return AL_FIL === 'todas' || a.g === AL_FIL; });
+    var av = ALTAS.aviso;
+    var h = '<div class="row w" style="margin-bottom:10px"><p class="muted small" style="flex:1;min-width:240px">Cada cliente que enviaste a Logística y en qué va, hasta su primera recolección. Lo que te toca a ti sale primero.</p>' +
+      '<button class="btn" id="al-nueva">' + IC('mas', 15) + 'Alta directa</button></div>' +
+      (av ? '<div class="al-box rj" style="margin:0 0 12px"><b>' + E(av.por || 'Logística') + ' te devolvió ' + E(av.empresa) + (av.cuando ? ' el ' + E(av.cuando) : '') + '.</b> ' + (av.corregir && av.corregir.length ? 'Corrige ' + E(av.corregir.join(', ').toLowerCase()) + ', y reenvíala.' : 'Revisa el motivo y reenvíala.') + ' Este aviso también sale en tu Mi día comercial.</div>' : '') +
+      '<div class="al-k">' +
+        '<button data-f="accion"' + (AL_FIL === 'accion' ? ' class="on"' : '') + '><b>' + (K.accion || 0) + '</b><span>Necesitan tu acción</span></button>' +
+        '<button data-f="log"' + (AL_FIL === 'log' ? ' class="on"' : '') + '><b>' + (K.log || 0) + '</b><span>Con Logística</span></button>' +
+        '<button data-f="plan"' + (AL_FIL === 'plan' ? ' class="on"' : '') + '><b>' + (K.plan || 0) + '</b><span>En planificación</span></button>' +
+        '<button data-f="todas"' + (AL_FIL === 'todas' ? ' class="on"' : '') + '><b>' + (K.marcha || 0) + '</b><span>Ya arrancaron este mes</span></button></div>' +
+      '<div class="al-chips">' + F.map(function (f) { var n = f[0] === 'todas' ? L.length : L.filter(function (a) { return a.g === f[0]; }).length; return '<button data-f="' + f[0] + '"' + (AL_FIL === f[0] ? ' class="on"' : '') + '>' + f[1] + ' · ' + n + '</button>'; }).join('') + '</div>';
+    if (!l.length) h += '<div class="card">' + MK.vacio(AL_FIL === 'accion' ? 'Nada te espera aquí por ahora.' : L.length ? 'Nada en este grupo.' : 'Todavía no has enviado clientes. Cuando una oportunidad pasa a cartera o haces un alta directa, aparece aquí.') + '</div>';
+    h += l.map(function (a) {
+      var i = L.indexOf(a);
+      var x = '<div class="sol ' + (a.tono === 'bad' ? 'bad' : a.g === 'marcha' || a.g === 'plan' ? 'ok' : '') + '"><div class="top"><div style="flex:1;min-width:200px"><b>' + E(a.empresa) + '</b><div class="det">' + E(a.desc) + '</div></div>' +
+        '<span class="tag t-' + E(a.tono || 'gris') + '">' + E(a.estado) + '</span></div>' + camino(a) +
+        '<div class="al-q"><b>Qué pasa ahora:</b> ' + E(a.que) + '</div>';
+      if (a.dev) x += '<div class="al-box rj"><b>Qué tienes que corregir:</b> ' + (a.corregir && a.corregir.length ? E(a.corregir.map(function (c) { return c.t; }).join(' · ').toLowerCase()) : 'ver la nota') + '.' + (a.motivo ? ' Nota de Logística: «' + E(a.motivo) + '».' : '') + '</div>';
+      if (a.porIniciar) x += '<div class="al-box am"><b>Por iniciar · sin fecha de ' + (a.unica ? 'visita' : 'primera recolección') + '.</b>' +
+        (a.ultimo ? ' Último contacto: ' + E(a.ultimo.fecha) + ', ' + E(a.ultimo.tipo) + ' — «' + E(a.ultimo.texto) + '».' : ' Sin contactos anotados todavía.') +
+        (a.siguiente ? ' Próximo seguimiento: ' + E(a.siguiente.fecha) + '.' : '') +
+        '<div class="row w" style="gap:8px;margin-top:8px;align-items:flex-end"><button class="btn sm" data-ll="' + i + '">' + IC('telefono', 14) + 'Anotar llamada</button><span style="flex:1"></span>' +
+        '<div><label class="lb" for="al-f' + i + '" style="margin:0 0 2px">YA TIENE FECHA</label><input class="in" type="date" id="al-f' + i + '" min="' + E(MK.hoy) + '" style="max-width:170px"></div><button class="btn sm pri" data-fe="' + i + '">Avisar a Logística</button></div></div>';
+      if (a.g === 'plan') x += '<div class="al-box vd">Listo de tu lado: ya está en ruta. Sale de tu seguimiento; queda en «Todas» como historial.</div>';
+      x += '<div class="ac">' +
+        (a.dev && ROL !== 'gerente' ? '<button class="btn sm pri" data-cor="' + i + '">' + IC('lapiz', 14) + 'Corregir y reenviar</button>' : '') +
+        (a.codigoPropuesta ? '<button class="btn sm" data-op="' + E(a.codigoPropuesta) + '">' + IC('embudo', 14) + 'Abrir la oportunidad</button>' : '') +
+        (a.clienteId ? '<button class="btn sm" data-cli="' + E(a.clienteId) + '">' + IC('persona', 14) + 'Abrir la ficha del cliente</button>' : '') + '</div></div>';
+      return x;
     }).join('');
     p.innerHTML = h;
     document.getElementById('al-nueva').onclick = function () { formAlta(null); };
-    [].forEach.call(p.querySelectorAll('[data-cor]'), function (b) { b.onclick = function () { formAlta(l[+b.getAttribute('data-cor')]); }; });
+    [].forEach.call(p.querySelectorAll('[data-f]'), function (b) { b.onclick = function () { AL_FIL = b.getAttribute('data-f'); pintarAltas(); }; });
+    [].forEach.call(p.querySelectorAll('[data-cor]'), function (b) { b.onclick = function () { formAlta(L[+b.getAttribute('data-cor')]); }; });
     [].forEach.call(p.querySelectorAll('[data-op]'), function (b) { b.onclick = function () { MK.irOportunidad(b.getAttribute('data-op')); }; });
     [].forEach.call(p.querySelectorAll('[data-cli]'), function (b) { b.onclick = function () { MK.irCliente(b.getAttribute('data-cli')); }; });
+    [].forEach.call(p.querySelectorAll('[data-ll]'), function (b) { b.onclick = function () { anotarLlamada(L[+b.getAttribute('data-ll')]); }; });
+    [].forEach.call(p.querySelectorAll('[data-fe]'), function (b) { b.onclick = function () {
+      var k = +b.getAttribute('data-fe'), a = L[k], f = document.getElementById('al-f' + k).value;
+      if (!f) { MK.aviso('Elige la fecha que dio el cliente.'); return; }
+      MK.ocupado(b, true, 'Avisando…');
+      MK.api('api_altaAvisarFecha', MK.pin, a.solicitudId, f).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo avisar.'); return; }
+        MK.aviso('Listo: Logística recibió el aviso para ponerlo en ruta el ' + MK.fecha(f));
+        cargarAltas();
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+    }; });
+  }
+  function anotarLlamada(a) {
+    MK.hoja('<h2>Anotar seguimiento · ' + E(a.empresa) + '</h2><p class="small muted">Queda en la historia del cliente. Si quedaste de volver a llamar, pon la fecha y sale en tu agenda.</p>' +
+      '<label class="lb" for="ll-tipo">CÓMO</label><select class="sel" id="ll-tipo"><option value="llamada">Llamada</option><option value="whatsapp">WhatsApp</option><option value="correo">Correo</option><option value="visita">Visita</option></select>' +
+      '<label class="lb" for="ll-txt">QUÉ DIJO EL CLIENTE</label><textarea class="in" id="ll-txt" placeholder="Ej.: espera el permiso del MINSA; llama el jueves"></textarea>' +
+      '<label class="lb" for="ll-prox">PRÓXIMO SEGUIMIENTO (OPCIONAL)</label><input class="in" type="date" id="ll-prox" min="' + E(MK.hoy) + '" style="max-width:180px">' +
+      '<div id="ll-msg" class="small" style="margin-top:8px;color:var(--bad)"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ll-ok">Guardar</button></div>');
+    document.getElementById('ll-ok').onclick = function () {
+      var b = this, t = document.getElementById('ll-txt').value.trim();
+      if (!t) { document.getElementById('ll-msg').textContent = 'Escribe qué te dijo el cliente.'; return; }
+      MK.ocupado(b, true, 'Guardando…');
+      MK.api('api_altaAnotar', MK.pin, a.solicitudId, { tipo: document.getElementById('ll-tipo').value, texto: t, proximo: document.getElementById('ll-prox').value }).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { document.getElementById('ll-msg').textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        MK.cerrarHoja(); MK.aviso('Anotado'); cargarAltas();
+      }, function (e) { MK.ocupado(b, false); document.getElementById('ll-msg').textContent = 'Sin conexión: ' + e.message; });
+    };
   }
 
   /* El mismo formulario del alta de Alta.html. Con una devuelta, sale lleno
@@ -754,8 +820,11 @@
       function opc(l, v) { var h = '<option value="">Elegir…</option>', vv = String(v || ''); if (vv && l.indexOf(vv) < 0) h += '<option selected>' + E(vv) + '</option>'; return h + l.map(function (o) { return '<option' + (o === vv ? ' selected' : '') + '>' + E(o) + '</option>'; }).join(''); }
       function inp(id, et, v, extra) { return '<div><label class="lb" for="fa-' + id + '">' + et + '</label><input class="in" id="fa-' + id + '" value="' + E(v || '') + '"' + (extra || '') + '></div>'; }
       var dev = s.solicitudId && String(s.estado).toUpperCase() === 'DEVUELTA';
+      /* api 3.31: lo que Logística marcó para corregir sale en rojo; la visita única pide su fecha y no frecuencia */
+      var COR = {}; (s.corregir || []).forEach(function (c) { COR[c.k || c] = 1; });
+      var u31 = !!s.unica || /UNICA|ÚNICA/i.test(String(s.tipoServicio || ''));
       MK.hoja('<h2>' + (dev ? 'Corregir y reenviar' : 'Alta directa a logística') + '</h2>' +
-        (dev ? '<div class="aviso rj small" style="margin:8px 0"><b>Te la devolvieron:</b> «' + E(s.motivo || 'sin motivo anotado') + '». Corrige y envíala otra vez; logística la revisa de nuevo.</div>'
+        (dev ? '<div class="aviso rj small" style="margin:8px 0"><b>Te la devolvieron:</b> ' + ((s.corregir || []).length ? 'corrige lo marcado en rojo (' + E(s.corregir.map(function (c) { return c.t || c; }).join(', ').toLowerCase()) + ').' : '') + (s.motivo ? ' Nota: «' + E(s.motivo) + '».' : '') + ' Lo demás va igual que antes; Logística la revisa de nuevo.' + '</div>'
              : '<p class="muted small">Los campos con <span class="req">*</span> son obligatorios. Queda pendiente de revisión de logística antes de entrar a rutas.</p>') +
         '<div class="fila2">' + inp('empresa', 'EMPRESA <span class="req">*</span>', s.empresa, ' placeholder="Nombre comercial"') + inp('razon', 'RAZÓN SOCIAL', s.razonSocial, ' placeholder="Si es distinta al nombre comercial"') + '</div>' +
         '<div id="fa-dup" class="small" style="margin-top:4px"></div>' +
@@ -765,11 +834,25 @@
         '<label class="lb" for="fa-direccion">DIRECCIÓN <span class="req">*</span></label><textarea class="in" id="fa-direccion" placeholder="Calle, edificio, local, punto de referencia">' + E(s.direccion || '') + '</textarea>' +
         '<div class="fila2"><div><label class="lb" for="fa-zona">ZONA</label><select class="sel" id="fa-zona">' + opc(zonas, s.zona) + '</select></div>' + inp('plus', 'PLUS CODE DE GOOGLE MAPS', s.plusCode, ' placeholder="Ej.: 2F6R+C5"') + '</div>' +
         '<p class="ayuda">Opcional pero muy útil: en Google Maps, mantén presionado sobre el punto y copia el código corto. Si no lo pones, logística ubica al cliente antes de rutearlo.</p>' +
-        '<div class="fila2"><div><label class="lb" for="fa-frec">FRECUENCIA <span class="req">*</span></label><select class="sel" id="fa-frec">' + opc(frs, s.frecuencia) + '</select></div>' + inp('kg', 'KG MÁX. POR VISITA', s.kgMax, ' inputmode="decimal" placeholder="10"') + '</div>' +
-        '<div class="fila2"><div><label class="lb" for="fa-inicio">INICIO DE RECOLECCIÓN</label><input class="in" type="date" id="fa-inicio" value="' + E(s.inicioRecoleccion || MK.hoy) + '"><p class="ayuda">Desde cuándo logística puede incluirlo en una ruta.</p></div><div></div></div>' +
+        (u31 ? '<input type="hidden" id="fa-frec" value="">' + '<div class="fila2">' + inp('kg', 'KILOS ESTIMADOS', s.kgMax, ' inputmode="decimal" placeholder="10"') + '<div></div></div>'
+             : '<div class="fila2"><div><label class="lb" for="fa-frec">FRECUENCIA <span class="req">*</span></label><select class="sel" id="fa-frec">' + opc(frs.filter(function (f) { return !/ESPECIAL|SOLICITUD/i.test(f); }), s.frecuencia) + '</select></div>' + inp('kg', 'KG MÁX. POR VISITA', s.kgMax, ' inputmode="decimal" placeholder="10"') + '</div>') +
+        '<div class="fila2"><div><label class="lb" for="fa-inicio">' + (u31 ? 'FECHA PEDIDA POR EL CLIENTE' : 'INICIO DE RECOLECCIÓN') + '</label><input class="in" type="date" id="fa-inicio" value="' + E((u31 ? s.fechaPedida : s.inicioRecoleccion) || (u31 ? '' : MK.hoy)) + '"><p class="ayuda">' + (u31 ? 'Logística la pone en la ruta de ese día.' : 'Desde cuándo logística puede incluirlo en una ruta.') + '</p></div><div></div></div>' +
+        (dev ? '<div class="lb" style="margin-top:14px">PRECIO Y SERVICIO</div>' +
+          '<div class="fila2"><div><label class="lb" for="fa-tipo">TIPO DE SERVICIO</label><select class="sel" id="fa-tipo"><option value="RECURRENTE">Recurrente</option><option value="VISITA UNICA"' + (u31 ? ' selected' : '') + '>Visita única</option></select></div>' +
+            inp('costo', u31 ? 'PRECIO DE LA VISITA ($)' : 'PRECIO DEL PLAN ($)', s.planCosto, ' inputmode="decimal"') + '</div>' +
+          '<div class="fila2">' + inp('plankg', 'KILOS INCLUIDOS', s.planKg, ' inputmode="decimal"') + inp('kgadic', 'PRECIO DEL KILO ADICIONAL ($)', s.tarifaKgAdic, ' inputmode="decimal"') + '</div>' +
+          (u31 ? '' : '<div class="fila2">' + inp('visadic', 'PRECIO DE LA VISITA ADICIONAL ($)', s.tarifaVisitaAdic, ' inputmode="decimal"') + '<div></div></div>') : '') +
         '<label class="lb" for="fa-notas">NOTAS PARA LOGÍSTICA</label><textarea class="in" id="fa-notas" placeholder="Horario de atención, restricciones de acceso, a quién buscar…">' + E(s.notas || '') + '</textarea>' +
         '<div id="fa-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
         '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="fa-ok">' + (dev ? 'Reenviar a logística' : 'Enviar a logística') + '</button></div>', { ancha: true });
+      if (dev) { var MARCA = { direccion: ['fa-direccion', 'fa-zona', 'fa-plus'], contacto: ['fa-contacto', 'fa-celular', 'fa-telefono'], fecha: ['fa-inicio'], precio: ['fa-costo', 'fa-plankg', 'fa-kgadic', 'fa-visadic'], tipo: ['fa-tipo'] };
+        /* cambiar el tipo rearma el formulario (frecuencia o fecha pedida) sin perder lo escrito */
+        var ft = document.getElementById('fa-tipo');
+        if (ft) ft.onchange = function () { var g = function (id) { var e = document.getElementById('fa-' + id); return e ? e.value.trim() : ''; };
+          formAlta(Object.assign({}, s, { empresa: g('empresa'), razonSocial: g('razon'), contacto: g('contacto'), cargo: g('cargo'), telefono: g('telefono'), celular: g('celular'), correo: g('correo'),
+            direccion: g('direccion'), zona: g('zona'), plusCode: g('plus'), kgMax: g('kg'), notas: g('notas'), planCosto: g('costo'), planKg: g('plankg'), tarifaKgAdic: g('kgadic'), tarifaVisitaAdic: g('visadic') || s.tarifaVisitaAdic,
+            tipoServicio: ft.value, unica: ft.value === 'VISITA UNICA', frecuencia: ft.value === 'VISITA UNICA' ? '' : s.frecuencia })); };
+        Object.keys(COR).forEach(function (k) { (MARCA[k] || []).forEach(function (id) { var el = document.getElementById(id); if (el) { el.classList.add('marca-rj'); var lb = document.querySelector('label[for="' + id + '"]'); if (lb && lb.innerHTML.indexOf('corregir') < 0) lb.innerHTML += ' <span style="color:#d64045">· corregir</span>'; } }); }); }
       var emp = document.getElementById('fa-empresa'), dup = document.getElementById('fa-dup');
       emp.oninput = function () {
         var v = emp.value.trim().toUpperCase(); if (v.length < 4) { dup.innerHTML = ''; return; }
@@ -785,7 +868,11 @@
           .forEach(function (k) { if (s[k] !== undefined && s[k] !== '') d[k] = s[k]; });
         Object.assign(d, { empresa: v('empresa'), razonSocial: v('razon'), contacto: v('contacto'), cargo: v('cargo'), telefono: v('telefono'), celular: v('celular'), correo: v('correo'),
           direccion: v('direccion'), zona: v('zona'), plusCode: v('plus'), frecuencia: v('frec'), kgMax: v('kg'), inicioRecoleccion: v('inicio'), notas: v('notas') });
-        var f = []; if (!d.empresa) f.push('empresa'); if (!d.contacto) f.push('contacto'); if (!d.celular) f.push('celular'); if (!d.direccion) f.push('dirección'); if (!d.frecuencia) f.push('frecuencia');
+        if (u31) { d.fechaPedida = v('inicio'); d.tipoServicio = d.tipoServicio || 'VISITA UNICA'; }
+        if (dev) { d.reenvioDe = s.solicitudId; d.tipoServicio = v('tipo');
+          [['costo', 'planCosto'], ['plankg', 'planKg'], ['kgadic', 'tarifaKgAdic'], ['visadic', 'tarifaVisitaAdic']].forEach(function (z) { var e = document.getElementById('fa-' + z[0]); if (e) d[z[1]] = e.value.trim(); });
+          if (u31) delete d.tarifaVisitaAdic; else d.fechaPedida = ''; }
+        var f = []; if (!d.empresa) f.push('empresa'); if (!d.contacto) f.push('contacto'); if (!d.celular) f.push('celular'); if (!d.direccion) f.push('dirección'); if (!d.frecuencia && !u31) f.push('frecuencia');
         if (f.length) { msg.textContent = 'Falta: ' + f.join(', ') + '.'; return; }
         MK.ocupado(b, true, 'Enviando…');
         MK.api('api_guardarSolicitud', MK.pin, d).then(function (r) {

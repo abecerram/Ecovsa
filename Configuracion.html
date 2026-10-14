@@ -1113,23 +1113,28 @@ MK.iniciar({
    nunca vuelve a esta pantalla (solo «termina en ••••1234»). */
 var IAC = null, IAC_V = false;
 function vIA() {
-  var cab = MK.cabeza('Conexión de IA', 'La clave del proveedor de IA que usa la Asistente de Cobros. Se guarda en el servidor: nadie la puede volver a ver, ni siquiera tú.');
+  var cab = MK.cabeza('Conexión de IA', 'Una sola clave para todo el sistema, con un tope de uso diario y permiso por módulo. Se guarda en el servidor: nadie la puede volver a ver, ni siquiera tú.');
   if (!IAC) {
     if (!IAC_V) { IAC_V = true; iaLeer(); }
     return cab + '<div class="card"><div class="vacio">Consultando…</div></div>';
   }
   if (!IAC.ok) return cab + '<div class="aviso am">' + MK.esc(IAC.error || 'No se pudo consultar.') + '</div>';
-  var P = IAC.proveedores || [], sel = IAC.proveedor || 'gemini', mod = (P.filter(function (p) { return p.id === sel; })[0] || {}).modelo || '';
+  var P = IAC.proveedores || [], sel = IAC.proveedor || 'claude', mod = (P.filter(function (p) { return p.id === sel; })[0] || {}).modelo || '';
   var h = cab;
   h += '<div class="card"><div class="fila" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div>' +
     (IAC.proveedor ? '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#e3f4e8;color:#1f7a3a;font-weight:700;font-size:12px">conectada</span> <b>' + MK.esc(IAC.proveedorN) + '</b> · clave que termina en <b class="num">••••' + MK.esc(IAC.termina) + '</b> · modelo ' + MK.esc(IAC.modelo) +
       '<div class="small muted" style="margin-top:4px">La puso ' + MK.esc(IAC.por || '—') + (IAC.en ? ' el ' + MK.esc(IAC.en) : '') + '</div>'
-      : '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#fff1cc;color:#8a5a00;font-weight:700;font-size:12px">sin conectar</span> La Asistente de Cobros no funciona hasta que pongas una clave.') + '</div>' +
+      : '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:#fff1cc;color:#8a5a00;font-weight:700;font-size:12px">sin conectar</span> Las funciones con IA (la Asistente de Cobros y las que vengan) no funcionan hasta que pongas una clave.') + '</div>' +
     (IAC.proveedor ? '<button class="btn sm bad" onclick="iaQuitar()">Quitar la conexión</button>' : '') + '</div></div>';
+  /* api 3.31: la IA es del sistema; cada módulo la usa si tiene permiso */
+  var MD = IAC.modulos || {}, MN = { cobros: 'Cobros · Asistente de Cobros', logistica: 'Logística · asistente de rutas (cuando use IA)', planta: 'Planta · su asistente (próximamente)', mercadeo: 'Mercadeo · su asistente (próximamente)' };
+  h += '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Qué módulos la pueden usar</h3><div class="small muted" style="margin-bottom:6px">Todos comparten la misma clave y el mismo tope diario de consultas.</div>' +
+    Object.keys(MN).map(function (k) { return '<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line,#e1e6ee);cursor:pointer"><input type="checkbox" class="iac-m" value="' + k + '"' + (MD[k] ? ' checked' : '') + ' style="width:18px;height:18px"> ' + MK.esc(MN[k]) + '</label>'; }).join('') +
+    '<button class="btn sm" style="margin-top:8px" onclick="iaGuardarModulos(this)">Guardar los módulos</button></div>';
   if (IAC.ultimo) h += '<div class="aviso am" style="margin-top:14px;white-space:pre-wrap"><b>No se guardó la clave.</b> ' + MK.esc(IAC.ultimo).split(' | ').join('\n') + '</div>';   // api 3.21
   h += '<div class="card" style="margin-top:14px"><h3 style="margin-top:0">' + (IAC.proveedor ? 'Cambiar la clave' : 'Conectar') + '</h3>' +
     '<label class="lb">Proveedor</label><select class="in" id="iac-prov" onchange="iaModeloDe(this.value)">' + P.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + MK.esc(p.n) + '</option>'; }).join('') + '</select>' +
-    '<label class="lb">Modelo</label><input class="in" id="iac-mod" value="' + MK.esc(IAC.proveedor === sel && IAC.modelo ? IAC.modelo : mod) + '" autocomplete="off">' +
+    '<label class="lb">Modelo</label><input class="in" id="iac-mod" list="iac-mods" value="' + MK.esc(IAC.proveedor === sel && IAC.modelo ? IAC.modelo : mod) + '" autocomplete="off"><datalist id="iac-mods">' + ((P.filter(function (p) { return p.id === sel; })[0] || {}).otros || []).map(function (m) { return '<option value="' + MK.esc(m) + '">'; }).join('') + '</datalist>' +
     '<label class="lb">Clave</label><input class="in" id="iac-cla" type="password" autocomplete="new-password" spellcheck="false" placeholder="Pega aquí la clave">' +
     '<div class="nota" style="margin:10px 0">' + MK.ic('candado', 15) + ' Al tocar «Probar y guardar», el servidor hace una prueba corta con el proveedor. Si la clave sirve, la guarda; si no, no guarda nada. Gemini gratis: los datos van sin nombres de clientes (modo anónimo fijo).</div>' +
     '<button class="btn pri" onclick="iaGuardar(this)">' + MK.ic('check', 16) + 'Probar y guardar</button></div>';
@@ -1140,7 +1145,12 @@ function iaLeer() {
   google.script.run.withSuccessHandler(function (r) { IAC_V = false; IAC = r || { ok: false }; if (MK.seccion === 'ia') MK.repintar(); })
     .withFailureHandler(function () { IAC_V = false; IAC = { ok: false, error: 'Sin conexión.' }; MK.repintar(); }).api_iaConexion(PIN);
 }
-function iaModeloDe(id) { var p = ((IAC && IAC.proveedores) || []).filter(function (x) { return x.id === id; })[0]; if (p) document.getElementById('iac-mod').value = p.modelo; }
+function iaModeloDe(id) { var p = ((IAC && IAC.proveedores) || []).filter(function (x) { return x.id === id; })[0]; if (p) { document.getElementById('iac-mod').value = p.modelo; var dl = document.getElementById('iac-mods'); if (dl) dl.innerHTML = (p.otros || []).map(function (m) { return '<option value="' + MK.esc(m) + '">'; }).join(''); } }
+function iaGuardarModulos(btn) {
+  var d = {}; [].forEach.call(document.querySelectorAll('.iac-m'), function (x) { d[x.value] = x.checked; });
+  MK.ocupado(btn, true, 'Guardando…');
+  MK.api('api_iaGuardarModulos', PIN, d).then(function (r) { MK.ocupado(btn, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; } IAC.modulos = r.modulos; MK.aviso('Módulos guardados'); }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+}
 function iaGuardar(btn) {
   var cla = (document.getElementById('iac-cla') || {}).value || '';
   if (cla.trim().length < 20) { MK.aviso('Pega la clave completa.'); return; }
