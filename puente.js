@@ -504,9 +504,9 @@
      la cola y se envía solo cuando el módulo vuelve. */
   var mant = (function () {
     /* Ojo: «Index.html» (Logística) e «index.html» (el lobby) son archivos distintos: se comparan tal cual */
-    var PAG_MOD = { 'Index.html': 'campo', 'Mercadeo.html': 'alta', 'Alta.html': 'alta', 'Planta.html': 'planta', 'Cobros.html': 'cobros',
-                    'Inicio.html': 'inicio', 'Panel.html': 'inicio', 'RZona.html': 'inicio', 'RPlanta.html': 'inicio', 'RCartera.html': 'inicio',
-                    'Administracion.html': 'admin', 'SolicitudPago.html': 'solicitud', 'Calidad.html': 'calidad' };
+    var PAG_MOD = { 'Index.html': 'campo', 'Mercadeo.html': 'alta', 'Planta.html': 'planta', 'Cobros.html': 'cobros',
+                    'Inicio.html': 'inicio', 'RPlanta.html': 'inicio',
+                    'Calidad.html': 'calidad' };
     function modulo() {
       if (CONFIG.modulo !== undefined) return CONFIG.modulo || '';
       var f = decodeURIComponent(location.pathname.split('/').pop() || '');

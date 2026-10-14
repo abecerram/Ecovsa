@@ -271,7 +271,7 @@
       if (p.accion === 'captura' && MK.usuario && MK.usuario.rol === 'gerente') return '';
       var href = p.f ? ' href="' + p.f + '"' : ' onclick="MK.captura();return false"';
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';
-    }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>';
+    }).join('');
   }
   function pintarBarra(pag) {
     var sb = document.getElementById('sysbar');
