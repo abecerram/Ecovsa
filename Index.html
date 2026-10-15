@@ -16060,6 +16060,22 @@ function asMarcarParadas_(){
 }
 </script>
 
+<script>
+/* api 3.33 · enlace directo desde Seguridad › Formularios: «Ver dónde vive» del F-LOG-04 abre Flota › Lista de revisión
+   (llega por eco_ir con { tab: 'flota', flTab: 'lis' }; lo demás sigue como estaba) */
+(function(){
+  if(typeof irDirecto37_ !== "function") return;
+  var base = irDirecto37_;
+  irDirecto37_ = function(){
+    var q = null; try { q = JSON.parse(localStorage.getItem("eco_ir") || "null"); } catch(e){}
+    if(!q || q.tab !== "flota" || !q.flTab) return base.apply(this, arguments);
+    try { localStorage.removeItem("eco_ir"); } catch(e){}
+    if(!q.t || Date.now() - q.t > 120000 || !esSupervisor()) return;
+    setTimeout(function(){ FL_TAB = String(q.flTab); mostrarTab("flota"); }, 60);
+  };
+})();
+</script>
+
 </body>
 
 </html>
