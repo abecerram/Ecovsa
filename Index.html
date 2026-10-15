@@ -1604,7 +1604,7 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 .fl-cam.bloqueado{border-top-color:var(--ini-rojo)}.fl-cam.falla{border-top-color:var(--ini-ambar)}.fl-cam.sel{box-shadow:0 0 0 2px var(--ini-azul)}
 .fl-cam .a{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .fl-cam .a b{font-size:18px;font-weight:900;color:var(--ini-navy)}.fl-cam .a small{display:block;font-size:11.5px;color:var(--ini-gris);font-weight:600}
-.fl-m3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}
+.fl-m3{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin:10px 0 6px} /* api 3.34: cabe «km este mes» */
 .fl-m3 div{background:var(--ini-fondo);border-radius:9px;padding:7px 9px}.fl-m3 b{display:block;font-size:14.5px;font-weight:900;color:var(--ini-navy);white-space:nowrap}.fl-m3 span{font-size:10px;color:var(--ini-gris);font-weight:700}
 .fl-m3 b.dn{color:var(--ini-rojo)}.fl-m3 b.up{color:var(--ini-verde)}
 .fl-dt{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #F1F4F8;font-size:12px}.fl-dt b{color:var(--ini-navy);font-weight:900;white-space:nowrap}.fl-dt span{color:var(--ini-gris);font-weight:700;text-align:right}
@@ -6427,7 +6427,7 @@ function crDetalle_(r){
   });
   z += '</div>';
   var h = (esEscritorio_() ? '' : '') + '<div class="ini-pt" style="font-size:19px">' + D[d.getDay()] + ' ' + d.getDate() + ' · ' + esc(r.conductor) + ' · ' + esc(r.vehiculo) + '</div>' +
-    '<div class="ini-ps">Salió ' + esc(r.salida || "—") + (r.salidaPlan ? ' (plan ' + esc(r.salidaPlan) + ')' : '') + ' · regresó ' + esc(r.llegada || "—") + (r.regresoPlan ? ' (plan ' + esc(r.regresoPlan) + ')' : '') + ' · ' + r.hechas + ' de ' + r.total + ' · ' + nIni_(r.kg) + ' kg · ' + nIni_(r.km) + ' km' + (r.fueraHorario ? ' · ' + r.fueraHorario + ' fuera de horario' : '') + (r.estado === "terminada" ? ' · terminó antes' + (r.motivo ? ': ' + esc(r.motivo) : '') : '') + '</div>' +
+    '<div class="ini-ps">Salió ' + esc(r.salida || "—") + (r.salidaPlan ? ' (plan ' + esc(r.salidaPlan) + ')' : '') + ' · regresó ' + esc(r.llegada || "—") + (r.regresoPlan ? ' (plan ' + esc(r.regresoPlan) + ')' : '') + ' · ' + r.hechas + ' de ' + r.total + ' · ' + nIni_(r.kg) + ' kg · ' + nIni_(r.km) + ' km' + (r.real && r.real.km ? ' · ' + nIni_(r.real.km, 1) + ' km por carretera' : (r.kmPlan ? ' · plan ' + nIni_(r.kmPlan, 1) + ' km por carretera' : '')) + (r.fueraHorario ? ' · ' + r.fueraHorario + ' fuera de horario' : '') + (r.estado === "terminada" ? ' · terminó antes' + (r.motivo ? ': ' + esc(r.motivo) : '') : '') + '</div>' +
     '<div class="cr-leg" style="margin-top:0"><span>○ hora planeada</span><span style="color:var(--ini-verde)">▬ tiempo en sitio real</span><span style="color:var(--ini-morado)">▬ más largo de lo normal</span><span style="color:#8A6300">▬ fuera de horario</span></div>' +
     (planes.length ? '' : '<div style="font-size:11.5px;color:var(--ini-gris);margin-top:4px">Esta ruta se publicó antes del planificador nuevo: no tiene hora planeada.</div>') + z;
   var sin = r.paradas.filter(function(p){ return !p.hecha; });
@@ -6447,21 +6447,59 @@ var CR_MAP = null;
 function crMapa_(rid){
   var r = CR.rutas.find(function(x){ return x.rutaId === rid; });
   var pts = r.paradas.filter(function(p){ return p.hecha && p.lat && p.lng; }).sort(function(a, b){ return a.hi.localeCompare(b.hi); });
-  abrirHojaIni_('<div class="ini-pt">🗺️ Recorrido · ' + esc(nombreDia_(r.fecha)) + '</div><div class="ini-ps">' + pts.length + ' de ' + r.hechas + ' paradas con ubicación · en el orden en que se hicieron' + (pts.some(function(p){ return p.latCliente; }) ? ' · algunas con la ubicación del cliente (el registro no traía la suya)' : '') + '</div><div id="cr-mapa"></div>');
-  setTimeout(function(){
-    if(typeof L === "undefined" || !pts.length){ var m = $("cr-mapa"); if(m) m.innerHTML = '<div class="c2-vacio">Sin ubicaciones para dibujar.</div>'; return; }
-    CR_MAP = L.map("cr-mapa"); L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(CR_MAP);
-    var ll = pts.map(function(p){ return [p.lat, p.lng]; });
-    L.polyline(ll, { color: "#0B5394", weight: 4, opacity: .8 }).addTo(CR_MAP);
-    pts.forEach(function(p){ L.marker([p.lat, p.lng], { icon: L.divIcon({ className: "", html: '<span class="cr-p' + (p.fuera ? ' f' : '') + '" style="position:relative;left:9px;top:0">' + p.n + '</span>', iconSize: [18, 18] }) }).addTo(CR_MAP).bindPopup(esc(p.cliente) + " · " + p.hi); });
-    CR_MAP.fitBounds(ll, { padding: [24, 24] });
-  }, 80);
+  /* api 3.34: con el recorrido real guardado se dibuja por carretera; si no está y hay Google, se puede calcular y guardar UNA sola vez */
+  var puedeReal = CR.base && CR.google && CR.google.rutas && pts.length > 1 && pts.length <= 25 && !r.real;
+  abrirHojaIni_('<div class="ini-pt">🗺️ Recorrido · ' + esc(nombreDia_(r.fecha)) + '</div><div class="ini-ps" id="cr-mapa-sub">' + crMapaSub_(r, pts) + '</div><div id="cr-mapa"></div>' +
+    (puedeReal ? '<button class="pl-btn" id="cr-real-btn" style="margin-top:10px" onclick="crRecorridoReal_(\'' + esc(rid) + '\')">🛣️ Calcular el recorrido por carretera y guardarlo (una sola vez)</button>' : ''));
+  setTimeout(function(){ crMapaDibujar_(r, pts); }, 80);
+  if(r.real && !r.real.legs) google.script.run.withSuccessHandler(function(x){
+    if(x && x.ok && x.real && x.real.legs){ r.real = x.real; crMapaDibujar_(r, pts); var e = $("cr-mapa-sub"); if(e) e.innerHTML = crMapaSub_(r, pts); }
+  }).withFailureHandler(function(){}).api_recorridoDe(PIN, rid);
+}
+function crMapaSub_(r, pts){
+  if(r.real) return 'Por carretera, en el orden en que se hicieron las paradas' + (r.real.km ? ' · ' + nIni_(r.real.km, 1) + ' km' : '') + ' · guardado una sola vez';
+  return pts.length + ' de ' + r.hechas + ' paradas con ubicación · en el orden en que se hicieron' + (pts.some(function(p){ return p.latCliente; }) ? ' · algunas con la ubicación del cliente (el registro no traía la suya)' : '');
+}
+function crMapaDibujar_(r, pts){
+  if(typeof L === "undefined" || !pts.length){ var e = $("cr-mapa"); if(e) e.innerHTML = '<div class="c2-vacio">Sin ubicaciones para dibujar.</div>'; return; }
+  if(CR_MAP){ try{ CR_MAP.remove(); }catch(x){} CR_MAP = null; }
+  CR_MAP = L.map("cr-mapa"); L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(CR_MAP);
+  var ll = pts.map(function(p){ return [p.lat, p.lng]; }), foco = ll.slice();
+  if(r.real && r.real.legs){
+    if(CR.base) foco.push([CR.base.lat, CR.base.lng]);
+    r.real.legs.forEach(function(lg){ var g = m36Dec_(lg); L.polyline(g, { color: "#fff", weight: 7, opacity: .8 }).addTo(CR_MAP); L.polyline(g, { color: "#0B5394", weight: 4, opacity: .9 }).addTo(CR_MAP); });
+    if(CR.base) L.marker([CR.base.lat, CR.base.lng], { icon: L.divIcon({ className: "", html: '<div class="mc-base">🏠</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(CR_MAP).bindPopup(esc(CR.base.nombre || "Base"));
+  } else L.polyline(ll, { color: "#0B5394", weight: 4, opacity: .8 }).addTo(CR_MAP);
+  pts.forEach(function(p){ L.marker([p.lat, p.lng], { icon: L.divIcon({ className: "", html: '<span class="cr-p' + (p.fuera ? ' f' : '') + '" style="position:relative;left:9px;top:0">' + p.n + '</span>', iconSize: [18, 18] }) }).addTo(CR_MAP).bindPopup(esc(p.cliente) + " · " + p.hi); });
+  CR_MAP.fitBounds(foco, { padding: [24, 24] });
+}
+function crRecorridoReal_(rid){
+  var r = CR.rutas.find(function(x){ return x.rutaId === rid; }); if(!r || !CR.base) return;
+  var pts = r.paradas.filter(function(p){ return p.hecha && p.lat && p.lng; }).sort(function(a, b){ return a.hi.localeCompare(b.hi); });
+  if(pts.length < 2 || pts.length > 25){ toast(pts.length < 2 ? "Hacen falta al menos dos paradas con ubicación" : "Google traza hasta 25 paradas"); return; }
+  var b = $("cr-real-btn"); if(b){ b.disabled = true; b.textContent = "Calculando con Google…"; }
+  var B = [CR.base.lat, CR.base.lng], P = [B].concat(pts.map(function(p){ return [p.lat, p.lng]; }), [B]);
+  google.script.run.withSuccessHandler(function(x){
+    if(x && x.google) CR.google = x.google;
+    if(!x || !x.ok || !x.trazo || !x.trazo.legs){ if(b){ b.disabled = false; b.textContent = "🛣️ Calcular el recorrido por carretera y guardarlo (una sola vez)"; } toast((x && (x.googleError || x.aviso || x.error)) || "Google no está conectado"); return; }
+    var tz = x.trazo; tz.firma = m36Firma_(P);
+    google.script.run.withSuccessHandler(function(g){
+      if(!g || !g.ok){ if(b){ b.disabled = false; } toast((g && g.error) || "No se pudo guardar"); return; }
+      r.real = { legs: tz.legs, km: tz.km, min: tz.min };
+      if(b) b.remove();
+      var e = $("cr-mapa-sub"); if(e) e.innerHTML = crMapaSub_(r, pts);
+      crMapaDibujar_(r, pts); toast("Recorrido guardado ✓ No vuelve a gastar en Google");
+    }).withFailureHandler(function(){ if(b){ b.disabled = false; } toast("Sin señal"); }).api_guardarRecorrido(PIN, rid, tz);
+  }).withFailureHandler(function(){ if(b){ b.disabled = false; b.textContent = "🛣️ Calcular el recorrido por carretera y guardarlo (una sola vez)"; } toast("Sin señal"); })
+    .api_mapaTrazo(PIN, { puntos: P.map(function(q){ return { lat: q[0], lng: q[1] }; }) });
 }
 function crJornada_(rid){
   var r = CR.rutas.find(function(x){ return x.rutaId === rid; });
   abrirHojaIni_('<div class="ini-pt">⛽ Jornada y revisión</div><div class="ini-ps">' + esc(r.conductor) + ' · ' + esc(r.vehiculo) + ' · ' + esc(nombreDia_(r.fecha)) + '</div>' +
     '<div class="ini-dato"><b>Salida</b><span>' + esc(r.salida || "sin jornada") + (r.salidaPlan ? ' · plan ' + esc(r.salidaPlan) : '') + '</span></div><div class="ini-dato"><b>Regreso</b><span>' + esc(r.llegada || "—") + (r.regresoPlan ? ' · plan ' + esc(r.regresoPlan) : '') + '</span></div>' +
-    '<div class="ini-dato"><b>Kilómetros</b><span>' + nIni_(r.km) + ' km</span></div><div class="ini-dato"><b>Revisión de salida</b><span>' + (r.revisionSalida ? '✓ hecha' : 'no registrada') + '</span></div><div class="ini-dato"><b>Revisión de cierre</b><span>' + (r.revisionCierre ? '✓ hecha' : 'no registrada') + '</span></div>' +
+    '<div class="ini-dato"><b>Kilómetros (odómetro)</b><span>' + nIni_(r.km) + ' km</span></div>' +
+    (r.real && r.real.km ? '<div class="ini-dato"><b>Por carretera (recorrido real)</b><span>' + nIni_(r.real.km, 1) + ' km</span></div>' : (r.kmPlan ? '<div class="ini-dato"><b>Por carretera (plan de la ruta)</b><span>' + nIni_(r.kmPlan, 1) + ' km</span></div>' : '')) +
+    '<div class="ini-dato"><b>Revisión de salida</b><span>' + (r.revisionSalida ? '✓ hecha' : 'no registrada') + '</span></div><div class="ini-dato"><b>Revisión de cierre</b><span>' + (r.revisionCierre ? '✓ hecha' : 'no registrada') + '</span></div>' +
     '<button class="ini-ok sec" style="margin-top:12px" onclick="cerrarHojaIni_();FL_SEL=\'' + esc(r.vehiculo) + '\';FL_FT=\'Revisiones\';mostrarTab(\'flota\')">Ver las revisiones de ' + esc(r.vehiculo) + '</button>');
 }
 function crAnalisis_(){
@@ -6528,7 +6566,7 @@ function flCamiones_(){
     var rev = c.revisionHoy ? '<span class="' + (c.estado === "bloqueado" ? "r" : (c.revisionHoy.fallas ? "a" : "v")) + '">' + esc(c.revisionHoy.hora) + ' · ' + c.revisionHoy.bien + '/' + c.revisionHoy.puntos + (c.estado === "bloqueado" ? ' · bloqueado' : '') + '</span>' : '<span>' + (c.rutaHoy ? 'sin revisión todavía' : 'sin salida hoy') + '</span>';
     var fa = c.fallas.length ? '<span class="' + (c.fallas.some(function(f){ return f.bloquea; }) ? "r" : "a") + '">' + c.fallas.length + ' · ' + esc(c.fallas[0].punto) + (c.fallas.length > 1 ? '…' : '') + '</span>' : '<span class="v">ninguna</span>';
     return '<div class="fl-cam ' + c.estado + (FL_SEL === c.placa ? " sel" : "") + '" onclick="flFicha_(\'' + esc(c.placa) + '\')"><div class="a"><div><b>' + esc(c.placa) + '</b><small>' + esc([c.marca, String(c.conductor || "").split(" ")[0]].filter(Boolean).join(" · ") || "—") + (c.rutaHoy ? ' · ruta de hoy: ' + c.rutaHoy.paradas + ' paradas' : '') + '</small></div>' + flEstChip_(c.estado) + '</div>' +
-      '<div class="fl-m3"><div><b>' + (c.odometro ? nIni_(c.odometro) : '—') + '</b><span>km odómetro</span></div><div><b class="' + (c.kmLMes === null ? '' : (c.kmLMes < meta ? 'dn' : 'up')) + '">' + (c.kmLMes === null ? '—' : nIni_(c.kmLMes, 1) + (c.kmLMes < meta ? ' ↓' : '')) + '</b><span>km/L mes</span></div><div><b>' + bIni_(c.gastoMes).replace(".00", "") + '</b><span>combustible mes</span></div></div>' +
+      '<div class="fl-m3"><div><b>' + (c.odometro ? nIni_(c.odometro) : '—') + '</b><span>km odómetro</span></div><div' + (c.kmMesAnt ? ' title="Mes anterior: ' + nIni_(c.kmMesAnt) + ' km"' : '') + '><b>' + (c.kmMes ? nIni_(c.kmMes) : '—') + '</b><span>km este mes</span></div><div><b class="' + (c.kmLMes === null ? '' : (c.kmLMes < meta ? 'dn' : 'up')) + '">' + (c.kmLMes === null ? '—' : nIni_(c.kmLMes, 1) + (c.kmLMes < meta ? ' ↓' : '')) + '</b><span>km/L mes</span></div><div><b>' + bIni_(c.gastoMes).replace(".00", "") + '</b><span>combustible mes</span></div></div>' +
       '<div class="fl-dt"><b>Revisión de hoy</b>' + rev + '</div><div class="fl-dt"><b>Fallas abiertas</b>' + fa + '</div>' +
       (c.plan ? '<div class="fl-dt"><b>' + esc(c.plan.tarea) + '</b><span class="' + (c.plan.estado === "VENCIDO" ? "r" : "a") + '">' + (c.plan.faltanKm !== null && c.plan.faltanKm !== undefined && (c.plan.faltanDias === null || c.plan.faltanKm / 50 < c.plan.faltanDias) ? (c.plan.faltanKm < 0 ? 'pasado ' + nIni_(-c.plan.faltanKm) + ' km' : 'en ' + nIni_(c.plan.faltanKm) + ' km') : (c.plan.faltanDias < 0 ? 'venció ' + nombreDia_(c.plan.vence) : 'vence ' + nombreDia_(c.plan.vence))) + '</span></div>' : '') +
       '<div class="fl-lab">Revisiones · 7 días</div><div class="fl-fr">' + c.franja.map(function(d){ return '<i class="' + d.estado + '" title="' + esc(nombreDia_(d.fecha)) + ': ' + ({ ok: "sin fallas", falla: "con falla", bloq: "bloqueado", no: "sin revisión" }[d.estado]) + '"></i>'; }).join("") + '</div></div>';
@@ -13595,6 +13633,15 @@ function mdSecuencia_(r){
 }
 function mdLL_(x){ return x.tipo === "planta" ? [x.d.lat, x.d.lng] : (m36LL_(x.p.lat, x.p.lng) ? [x.p.lat, x.p.lng] : null); }
 function mdAtrasada_(p){ if(p.hecha || MD.fecha !== MD.hoy || !p.horaPlan) return false; return plMin_(p.horaPlan) + 20 < ahoraMin_(); }
+/* api 3.34: cuántos minutos va la ruta detrás del plan (la última parada hecha con hora planeada) */
+function mdRetraso_(r){
+  if(MD.fecha !== MD.hoy) return 0;
+  var d = 0;
+  r.paradas.forEach(function(p){ if(p.hecha && p.horaPlan && p.horaHecha){ var a = plMin_(p.horaHecha), b = plMin_(p.horaPlan); if(a !== null && b !== null) d = a - b; } });
+  return d;
+}
+/* la hora a la que de verdad se espera llegar: el plan corrido por el retraso que ya trae la ruta */
+function mdEst_(p, d){ if(!p.horaPlan || d < 15) return ''; var m = plMin_(p.horaPlan); return m === null ? '' : plHH_(m + d); }
 function mdPintar_(){
   var v = MD_V, esHoy = MD.fecha === MD.hoy;
   var h = '<div class="cr-tt"><div><h1>Mapa del día</h1><div class="sub">' + (v === "hoy"
@@ -13620,17 +13667,17 @@ function mdHoyHtml_(esHoy){
   if(!R.length) return h + '<div class="pl-vacio">No hay rutas publicadas para este día.<br><button class="ini-lnk" onclick="PL_F=\'' + MD.fecha + '\';mostrarTab(\'plan\')">Abrir el planificador</button></div>';
   h += '<div class="mt-grid"><div class="mt-card" style="padding:0;overflow:hidden"><div id="md-mapa" class="md-map"></div></div><div class="mt-col"><div class="mt-card"><h3>Rutas<span class="sp"></span><small>toca una para verla sola</small></h3>' +
     R.map(function(r, k){
-      var seq = mdSecuencia_(r), sig = r.paradas.find(function(p){ return !p.hecha; }), atr = r.paradas.filter(mdAtrasada_).length;
+      var seq = mdSecuencia_(r), sig = r.paradas.find(function(p){ return !p.hecha; }), atr = r.paradas.filter(mdAtrasada_).length, rtr = sig ? mdRetraso_(r) : 0;
       var pct = r.paradas.length ? Math.round(r.hechas / r.paradas.length * 100) : 0;
       var est = !r.paradas.length ? '<span class="pl-chip b">viaje a planta</span>' : (r.hechas >= r.paradas.length ? '<span class="pl-chip v">terminada</span>' : (atr ? '<span class="pl-chip e">' + atr + ' atrasada' + (atr > 1 ? 's' : '') + '</span>' : '<span class="pl-chip v">a tiempo</span>'));
       return '<div class="md-rt' + (MD_RSEL === k ? ' on' : '') + '" onclick="MD_RSEL=(MD_RSEL===' + k + '?null:' + k + ');mdPintar_()"><div class="t"><i style="background:' + r.color + '"></i><b>' + (r.tipo === "planta" ? '🏭 ' : '') + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + '</b><span class="sp"></span>' + est + '</div>' +
         '<div class="pl-bar" style="margin-top:8px"><i style="width:' + pct + '%;background:' + r.color + '"></i></div>' +
-        '<small>' + r.hechas + ' de ' + r.paradas.length + ' paradas · ' + Math.round(r.kg) + ' kg' + (r.tipo === "planta" && r.destino ? ' · entrega en ' + esc(r.destino.nombre) : '') + (sig ? ' · <b>sigue:</b> ' + esc(sig.nombre) + (sig.horaPlan ? ' · plan ' + esc(sig.horaPlan) : '') : '') + '</small>' +
+        '<small>' + r.hechas + ' de ' + r.paradas.length + ' paradas · ' + Math.round(r.kg) + ' kg' + (r.tipo === "planta" && r.destino ? ' · entrega en ' + esc(r.destino.nombre) : '') + (sig ? ' · <b>sigue:</b> ' + esc(sig.nombre) + (sig.horaPlan ? ' · plan ' + esc(sig.horaPlan) + (mdEst_(sig, rtr) ? ' · <b style="color:#8A6300">llegaría ~' + mdEst_(sig, rtr) + '</b>' : '') : '') : '') + (rtr >= 15 ? ' · <b style="color:#8A6300">va ~' + rtr + ' min detrás del plan</b>' : '') + '</small>' +
         (MD_RSEL === k ? '<div style="margin-top:8px">' + seq.map(function(x, i){
           if(x.tipo === "planta") return '<div class="md-st"><span class="n mp-pl" style="height:20px;font-size:9px;padding:0 5px">P</span><span class="nm">' + esc(x.d.nombre) + '</span><span class="h">recibe ' + esc(x.d.desde) + '–' + esc(x.d.hasta) + '</span></div>';
           var p = x.p, e = p.hecha ? "hecha" : (mdAtrasada_(p) ? "tarde" : "pend");
           return '<div class="md-st"><span class="n mp-n ' + e + '" style="' + (e === "pend" ? 'border-color:' + r.color + ';color:' + r.color : '') + '">' + (p.hecha ? '✓' : x.i + 1) + '</span><span class="nm">' + esc(p.nombre) + '</span><span class="h">' +
-            (p.hecha ? '✓ ' + esc(p.horaHecha || "") + (p.kg ? ' · ' + p.kg + ' kg' : '') : (e === "tarde" ? 'plan ' + esc(p.horaPlan) + ' · sin recibo' : (p.horaPlan ? 'plan ' + esc(p.horaPlan) : ''))) + '</span></div>';
+            (p.hecha ? '✓ ' + esc(p.horaHecha || "") + (p.kg ? ' · ' + p.kg + ' kg' : '') : (e === "tarde" ? 'plan ' + esc(p.horaPlan) + ' · sin recibo' : (p.horaPlan ? 'plan ' + esc(p.horaPlan) + (mdEst_(p, rtr) ? ' · ~' + mdEst_(p, rtr) : '') : ''))) + '</span></div>';
         }).join("") + '</div>' : '') + '</div>';
     }).join("") +
     '<div class="md-nota">Sin GPS: una parada se pinta hecha cuando el conductor cierra su recibo. Si pasa 20 minutos de su hora planificada sin recibo, se pinta atrasada.</div></div>' +
@@ -13828,6 +13875,9 @@ function cdPintar_(){
       var n = seq.slice(0, seq.indexOf(x) + 1).filter(function(y){ return y.tipo === "cli"; }).length;
       return '<div class="mc-it"><span class="mc-n p" style="width:22px;height:22px;font-size:10px">' + n + '</span><b>' + esc(x.c.nombre) + '</b><span>' + esc(x.p.horaPlan || "") + '</span></div>';
     }).join("") + (resto.length > 4 ? '<div class="mc-it" style="justify-content:center"><span>y ' + (resto.length - 4) + ' más</span></div>' : '') + '</div>';
+  /* api 3.34: la ruta completa en Google Maps, por tramos */
+  var pdts = seq.filter(function(x){ return !x.hecha && x.ll; }).length;
+  if(pdts > 1) h += '<button class="mc-lnk" style="display:block;margin:10px auto 0" onclick="abrirRutaEnMaps()">🧭 Ver la ruta completa en Google Maps' + (pdts + (RUTA.info && RUTA.info.base ? 1 : 0) > 10 ? ' (por tramos)' : '') + '</button>';
   s.innerHTML = h;
   setTimeout(function(){ cdDibujar_(seq, k, B); }, 30);
 }
@@ -13947,13 +13997,28 @@ function cdMandarUb_(clienteId){
   }).withFailureHandler(function(){ b.disabled = false; b.textContent = "Estoy en la puerta · enviar mi ubicación"; toast("Sin señal: intenta de nuevo"); })
     .api_reportarUbicacion(PIN, clienteId, CD_YO[0], CD_YO[1], CD_YO.prec || 0, $("cd-ub-n").value);
 }
-/* abrir la ruta completa en Maps (lo que había) sigue funcionando */
+/* api 3.34 · la ruta completa en Google Maps, en tramos de hasta 10 paradas
+   (Google Maps acepta 10 puntos por viaje; cada tramo arranca donde terminó el anterior) */
 function abrirRutaEnMaps(){
   var seq = cdSecuencia_().filter(function(x){ return !x.hecha && x.ll; });
   if(!seq.length){ toast("Sin coordenadas disponibles"); return; }
-  var dest = seq[seq.length - 1].ll, med = seq.slice(0, -1).slice(0, 9);
+  var pts = seq.map(function(x){ return [x.ll[0], x.ll[1]]; });
+  var info = RUTA.info || {};
+  if(info.base && m36LL_(info.base.lat, info.base.lng)) pts.push([info.base.lat, info.base.lng]);   // el regreso a la base
+  if(pts.length <= 10){ cdAbrirTramo_(pts, null); return; }
+  var tramos = [], i = 0;
+  while(i < pts.length){ tramos.push({ o: i ? pts[i - 1] : null, p: pts.slice(i, i + 10), desde: i + 1, hasta: Math.min(i + 10, pts.length) }); i += 10; }
+  cdHoja_('<h3>Ruta completa en Google Maps</h3><p>Google Maps acepta hasta 10 paradas por viaje, así que tu ruta va en ' + tramos.length + ' tramos. Abre el tramo 1; cuando lo termines, vuelve aquí y abre el siguiente (cada tramo arranca donde terminó el anterior).</p>' +
+    tramos.map(function(t, k){
+      return '<button class="mc-op" onclick="cdAbrirTramo_(' + JSON.stringify(t.p) + ',' + JSON.stringify(t.o) + ')"><span class="ic" style="background:#E8F0FE">' + (k + 1) + '</span><span><b>Tramo ' + (k + 1) + '</b><small>paradas ' + t.desde + ' a ' + t.hasta + (t.hasta === pts.length && info.base ? ' · termina en la base' : '') + '</small></span></button>';
+    }).join(""));
+}
+function cdAbrirTramo_(p, o){
+  cdCerrarHoja_();
+  var dest = p[p.length - 1], med = p.slice(0, -1);
   var url = "https://www.google.com/maps/dir/?api=1&destination=" + dest[0] + "," + dest[1] + "&travelmode=driving";
-  if(med.length) url += "&waypoints=" + med.map(function(x){ return x.ll[0] + "," + x.ll[1]; }).join("|");
+  if(o) url += "&origin=" + o[0] + "," + o[1];
+  if(med.length) url += "&waypoints=" + med.map(function(q){ return q[0] + "," + q[1]; }).join("|");
   window.open(url, "_blank");
 }
 </script>
