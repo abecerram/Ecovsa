@@ -224,6 +224,11 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 3
 
 .pr-aviso b{color:var(--ambar-osc)}
 
+.pr-opc{display:flex!important;gap:10px;align-items:flex-start;border:1.5px solid var(--borde,#e1e6ee);border-radius:12px;padding:10px 12px;margin:8px 0 0!important;cursor:pointer;font-size:13.5px!important;line-height:1.4;text-transform:none!important;letter-spacing:0!important;font-weight:600!important;color:var(--tinta,#14202E)!important;text-align:left}
+.pr-opc input[type=radio],.pr-opc input[type=checkbox]{width:18px!important;height:18px!important;min-height:0!important;margin:2px 0 0!important;padding:0!important;flex:0 0 18px!important;display:inline-block!important}
+.pr-opc>span{flex:1;min-width:0}.pr-opc b{font-weight:800}.pr-opc small{display:block;color:var(--gris,#6B7686);font-weight:600;font-size:12px}
+.pr-opc input[type=date]{width:auto!important;display:block;margin-top:6px!important;font-size:13px}
+.pr-cmp{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}.pr-cmp th{text-align:left;font-size:11px;color:var(--gris,#6B7686);padding:6px 8px;border-bottom:1px solid var(--borde,#e1e6ee)}.pr-cmp td{padding:7px 8px;border-bottom:1px solid #eef1f5}
 .pr-ficha{margin-top:14px;background:var(--azul-suave);border:1px solid var(--azul-claro);border-radius:12px;padding:12px 13px}
 
 .pr-ficha h4{margin:0 0 8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--eco-azul-osc)}
@@ -2359,6 +2364,10 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 <input type="date" id="pl-fecha" onchange="if(this.value)plCargar_(this.value)">
 <button class="pl-btn" onclick="PL&&plCargar_(PL.siguiente)">▶</button></div>
 <div id="pl-cuerpo"></div>
+</section>
+
+<section id="pantalla-asis" class="pantalla">
+<div id="as-cuerpo"></div>
 </section>
 
 <section id="pantalla-mapadia" class="pantalla">
@@ -4806,7 +4815,7 @@ try{ INI_PER = localStorage.getItem("eco_ini_per") || "semana"; }catch(e){}
 
 var MENU_SUP = [
   ["Operación"],
-  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["mapadia","🗺️","Mapa del día"], ["agenda","🗓️","Calendario"],
+  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["asis","🧭","Asistente de rutas"], ["mapadia","🗺️","Mapa del día"], ["agenda","🗓️","Calendario"],
   ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"],
   ["recibos","🧾","Recibos"], ["dfin","🏭","Disposición final"],
   ["Por revisar"],
@@ -9561,7 +9570,7 @@ document.querySelectorAll(".pantalla").forEach(function(p){p.classList.remove("a
 
 $("pantalla-"+tab).classList.add("activa");
 INI_TAB = tab;
-if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="flota") flCargar_(); if(tab==="mto") mtCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
+if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="flota") flCargar_(); if(tab==="mto") mtCargar_(); if(tab==="asis") asCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
 
 if(tab==="paradas") renderParadas();
 
@@ -10031,7 +10040,10 @@ function abrirRevisionPR(id){
   document.querySelectorAll("[id^='pr-rev-']").forEach(function(c){ c.style.display="none"; });
   caja.style.display="block";
   var fr = (PR.frecuencias||[]), zo = (PR.zonas||[]);
+  /* api 3.31: un cliente que ya existe no se crea de nuevo; la visita única va a la ruta del día pedido */
+  if(s.clienteId){ caja.innerHTML = revisionExistentePR_(s, zo); return; }
   caja.innerHTML =
+    (s.unica ? '<div class="pr-ficha" style="margin:0 0 12px"><h4>Visita única</h4>'+(s.fechaPedida ? 'Pedida para el <b>'+esc(s.fechaPedidaTxt||s.fechaPedida)+'</b>. Al aprobar queda en la ruta de ese día.' : 'El cliente todavía no da la fecha: queda «Por iniciar» y Mercadeo le da seguimiento.')+'</div>' : '')+
     '<label>Nombre como quedará en la agenda</label>'+
     '<input id="pr-nombre" value="'+esc(s.empresa)+'">'+
     '<div class="ayuda">Debe coincidir con el de los recibos: así se cruzan las recolecciones.</div>'+
@@ -10055,7 +10067,7 @@ function abrirRevisionPR(id){
     '<div class="ayuda">Si escribes coordenadas, tienen prioridad sobre el Plus Code.</div>'+
     fichaQueEntraPR(s)+
     '<button class="btn" style="margin-top:12px" onclick="aprobarPR(\''+id+'\')">'+
-    '✓ Aprobar y agregar a la agenda</button>';
+    (s.unica && s.fechaPedida ? '✓ Aprobar y poner en la ruta del '+esc(s.fechaPedidaTxt||s.fechaPedida) : '✓ Aprobar y agregar a la agenda')+'</button>';
   setTimeout(montarMapaPR, 120);
 }
 
@@ -10123,7 +10135,42 @@ function montarMapaPR(){
   setTimeout(function(){ prMapa.invalidateSize(); }, 200);
 }
 
+/* api 3.31 · cliente que ya existe: se ve lo que hoy dice su ficha y lo que queda al aprobar */
+function revisionExistentePR_(s, zo){
+  var F = s.ficha || [];
+  return '<div class="pr-ficha" style="margin:0 0 12px"><h4>'+(s.adicional ? 'Visita adicional de un cliente que ya existe' : 'Cliente que ya existe')+'</h4>'+
+      (s.adicional ? 'Es un cliente recurrente que pide una visita aparte: <b>su plan no cambia</b>.' : 'No se crea otro: al aprobar se actualiza su ficha (queda en su historial).')+
+      (s.unica ? (s.fechaPedida ? ' La visita queda en la ruta del <b>'+esc(s.fechaPedidaTxt||s.fechaPedida)+'</b>.' : ' El cliente todavía no da la fecha: queda «Por iniciar».') : '')+'</div>'+
+    (F.length ? '<div style="overflow-x:auto"><table class="pr-cmp"><thead><tr><th>Dato</th><th>Hoy en su ficha</th><th>Queda al aprobar</th></tr></thead><tbody>'+
+      F.map(function(f){ return '<tr><td>'+esc(f.dato)+'</td><td style="color:var(--gris)">'+esc(f.hoy||'Sin dato')+'</td><td><b>'+esc(f.queda||'—')+'</b></td></tr>'; }).join('')+'</tbody></table></div>'
+      : '<div class="ayuda">Su ficha no cambia.</div>')+
+    '<div class="fila" style="margin-top:10px"><div><label>Zona</label><select id="pr-zona">'+((s.zona && zo.indexOf(s.zona)<0) ? [s.zona].concat(zo) : zo).map(function(z){ return '<option'+(z===s.zona?" selected":"")+'>'+esc(z)+'</option>'; }).join("")+'</select></div><div></div></div>'+
+    '<label>Dirección</label><input id="pr-direccion" value="'+esc(s.direccion||"")+'">'+
+    '<input type="hidden" id="pr-nombre" value="'+esc(s.clienteNombre||s.empresa)+'"><input type="hidden" id="pr-frecuencia" value=""><input type="hidden" id="pr-pluscode" value=""><input type="hidden" id="pr-kg" value=""><input type="hidden" id="pr-coords" value="">'+
+    '<button class="btn" style="margin-top:12px" onclick="aprobarPR(\''+s.solicitudId+'\')">'+
+    (s.unica && s.fechaPedida ? '✓ Aprobar y poner en la ruta del '+esc(s.fechaPedidaTxt||s.fechaPedida) : '✓ Aprobar y actualizar su ficha')+'</button>';
+}
+/* api 3.31 · la visita única: elegir la ruta de ese día (o cambiar el día) antes de aprobar */
 function aprobarPR(id){
+  var s = (PR && PR.pendientes || []).find(function(x){ return x.solicitudId===id; }) || {};
+  if(s.unica && s.fechaPedida && !aprobarPR._ruta){
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No pude leer las rutas de ese día"); return; }
+      var op = (r.rutas||[]).map(function(x, i){ return '<label class="pr-opc"><input type="radio" name="pr-ruta" value="'+esc(x.rutaId)+'"'+(i===0?' checked':'')+'> <span><b>Ruta del '+esc(r.fechaTxt)+' · '+esc(x.conductor||'sin conductor')+'</b><br><small>Camión '+esc(x.vehiculo||'—')+' · '+x.paradas+' paradas · '+(x.estadoPlan==='publicada'?'ya publicada: le llega al conductor':'en borrador')+' · va al final; el orden se ajusta en el editor</small></span></label>'; }).join('');
+      preguntar({ titulo:"Aprobar · "+(s.clienteNombre||s.empresa), icono:"✓", boton:"Aprobar y poner en la ruta",
+        texto: 'Visita única pedida para el <b>'+esc(r.fechaTxt)+'</b>'+(r.feriado?' (feriado: '+esc(r.feriado)+')':'')+'. Elige la ruta de ese día.'+
+          '<div style="margin-top:10px;text-align:left">'+(op || '<div class="ayuda">Ese día todavía no tiene ruta: se crea una en borrador.</div>')+
+          '<label class="pr-opc"><input type="radio" name="pr-ruta" value="_otro"'+(op?'':' checked')+'> <span><b>Otra ruta u otro día</b><br><small>Si cambias la fecha, a Mercadeo le llega el aviso con la fecha nueva.</small> <input type="date" id="pr-otrodia" value="'+esc(r.fecha)+'" style="margin-top:6px"></span></label></div>'+
+          '<div class="ayuda" style="text-align:left">Al aprobar: la ficha toma lo nuevo, la parada queda en el planificador y Mercadeo la ve «En planificación».</div>',
+        alAceptar:function(){
+          var sel = document.querySelector('input[name="pr-ruta"]:checked'), v = sel ? sel.value : "_otro";
+          aprobarPR._ruta = v === "_otro" ? { fechaRuta: ($("pr-otrodia")||{}).value || r.fecha } : { rutaId: v, fechaRuta: r.fecha };
+          aprobarPR(id);
+        } });
+    }).withFailureHandler(function(){ toast("Sin conexión"); }).api_altaRutasDia(PIN, s.fechaPedida);
+    return;
+  }
+  var extra31 = aprobarPR._ruta || {}; aprobarPR._ruta = null;
   if(prEnVuelo===id){ toast("Ya se está aprobando…"); return; }
   var c = ($("pr-coords").value||"").trim(), lat="", lng="";
   if(c){
@@ -10134,6 +10181,8 @@ function aprobarPR(id){
   var ajustes = { nombre:$("pr-nombre").value.trim(), frecuencia:$("pr-frecuencia").value,
     zona:$("pr-zona").value, direccion:$("pr-direccion").value.trim(),
     plusCode:$("pr-pluscode").value.trim(), kg:$("pr-kg").value.trim(), lat:lat, lng:lng };
+  if(extra31.rutaId) ajustes.rutaId = extra31.rutaId;
+  if(extra31.fechaRuta) ajustes.fechaRuta = extra31.fechaRuta;
   if(!ajustes.nombre){ toast("El nombre no puede quedar vacío"); return; }
   prEnVuelo = id;
   toast("Aprobando…");
@@ -10141,7 +10190,9 @@ function aprobarPR(id){
     .withSuccessHandler(function(r){
       prEnVuelo = "";
       if(r && r.ok){
-        var aviso = r.conUbicacion ? "Cliente agregado a la agenda ✓"
+        var aviso = r.ruta ? "Aprobada ✓ Quedó en la ruta del " + r.ruta.fecha + (r.ruta.conductor ? " (" + r.ruta.conductor + ")" : "") + ". A Mercadeo le llegó el aviso."
+                  : r.actualizado ? "Aprobada ✓ Ficha actualizada. A Mercadeo le llegó el aviso."
+                  : r.conUbicacion ? "Cliente agregado a la agenda ✓"
                                    : "Agregado, pero SIN ubicación — recuerda ubicarlo";
         if(r.faltantes && r.faltantes.length) aviso += " · falta " + r.faltantes.join(", ");
         toast(aviso);
@@ -10154,18 +10205,22 @@ function aprobarPR(id){
 }
 
 function devolverPR(id){
-  preguntar({ titulo:"Devolver a mercadeo", icono:"↩",
-    texto:"Escribe qué falta o qué hay que corregir. Esto le llegará a quien lo envió.",
-    escribirLibre:"Motivo de la devolución", boton:"Devolver",
+  var CAS = [["direccion","Dirección o ubicación"],["contacto","Contacto y teléfono"],["precio","Precio o tarifas"],["fecha","Fecha pedida o de inicio"],["tipo","Tipo de servicio (visita única o recurrente)"],["otro","Otro (en la nota)"]];
+  preguntar({ titulo:"Devolver a Mercadeo", icono:"↩",
+    texto:"Marca qué tiene que corregir. Mercadeo lo verá resaltado en rojo para reenviarla."+
+      '<div style="text-align:left;margin-top:8px">'+CAS.map(function(c){ return '<label class="pr-opc" style="padding:7px 10px"><input type="checkbox" class="pr-cor" value="'+c[0]+'"> '+esc(c[1])+'</label>'; }).join("")+'</div>',
+    escribirLibre:"Nota (opcional)", boton:"Devolver con aviso",
     alAceptar:function(){
       var m = ($("dlg-input").value||"").trim();
+      var cor = [].map.call(document.querySelectorAll(".pr-cor:checked"), function(x){ return x.value; });
+      if(!cor.length && !m){ toast("Marca qué corregir o escribe una nota"); setTimeout(function(){ devolverPR(id); }, 300); return; }
       google.script.run
         .withSuccessHandler(function(r){
           if(r && r.ok){ toast("Devuelto a mercadeo"); cargarPorRevisar(false); }
           else toast((r && r.error) || "No se pudo devolver");
         })
         .withFailureHandler(function(){ toast("Sin conexión"); })
-        .api_rechazarSolicitud(PIN, id, m);
+        .api_rechazarSolicitud(PIN, id, m, cor);
     }});
 }
 
@@ -10540,12 +10595,12 @@ function sqNoProcede_(id){
 function sqTarjetaNuevo_(s){
   var tarde = s.diasEsperando >= 3, ab = SQ_AB === "cli:" + s.solicitudId;
   return '<div class="sol' + (s.plusCode ? " ubicado" : "") + '" id="sq-cli-' + esc(s.solicitudId) + '">' +
-    sqTipo_("cli", "Cliente nuevo", "lo mandó " + (s.registradoPor || "Mercadeo")) +
+    sqTipo_("cli", s.clienteId ? (s.adicional ? "Visita adicional" : "Cliente que ya existe") : (s.unica ? "Cliente nuevo · visita única" : "Cliente nuevo"), "lo mandó " + (s.registradoPor || "Mercadeo")) +
     '<div class="enc"><div class="nom">' + esc(s.empresa) + '</div><span class="pill-esp' + (tarde ? " tarde" : "") + '">' + sqDias_(s.diasEsperando) + '</span></div>' +
     '<div class="det">' + esc(s.direccion || "Sin dirección") + '<br>' +
-      '<b>' + esc(s.frecuencia || "—") + '</b> · ' + esc(s.zona || "—") + (s.kgMax ? " · ~" + s.kgMax + " kg" : "") + '<br>' +
+      '<b>' + esc(s.unica ? (s.fechaPedida ? "Visita pedida para el " + (s.fechaPedidaTxt || s.fechaPedida) : "Visita única · sin fecha todavía") : (s.frecuencia || "—")) + '</b> · ' + esc(s.zona || "—") + (s.kgMax ? " · ~" + s.kgMax + " kg" : "") + '<br>' +
       esc(s.contacto || "") + (s.celular ? " · " + esc(s.celular) : "") + '<br>' +
-      (s.plusCode ? '<b style="color:var(--verde-bandera)">Plus Code: ' + esc(s.plusCode) + '</b>' : '<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>') +
+      (s.clienteId ? '<b style="color:var(--verde-bandera)">Ya está en la cartera: no se crea otro</b>' : s.plusCode ? '<b style="color:var(--verde-bandera)">Plus Code: ' + esc(s.plusCode) + '</b>' : '<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>') +
       (s.notas ? '<br><i>' + esc(s.notas) + '</i>' : '') +
       '<br><span style="font-size:11px">Enviado por ' + esc(s.registradoPor) + ' el ' + esc(s.fechaSolicitud) + '</span></div>' +
     '<div class="sq-acc"><button class="btn mini" onclick="sqRevisarNuevo_(\'' + esc(s.solicitudId) + '\')">' + (ab ? "Cerrar la revisión" : "Revisar y aprobar") + '</button>' +
@@ -15727,6 +15782,284 @@ function cal38Cierre_(f, rutaId){
 </script>
 <!-- api 3.17 · desechos sólidos dentro de Logística (pestaña Peligrosos | Sólidos y la ruta del conductor) -->
 <script src="LogSolidos.js"></script>
+<!-- ═══════════════════════════════════════════════════════════════════
+     api 3.31 · ASISTENTE DE RUTAS (Logística)
+     Aquí manda Álvaro: el asistente solo hace lo que está configurado en
+     esta pantalla. Arma y acomoda las rutas de los próximos días con sus
+     reglas, publica la ruta de mañana a la hora de congelar y cuenta en el
+     globito qué hizo y por qué. Se puede deshacer. No manda nada a los
+     clientes ni toca cobros.
+     ═══════════════════════════════════════════════════════════════════ -->
+<style id="estilo-asis">
+#as-cuerpo{max-width:1180px}
+.as-top{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin:2px 0 16px}
+.as-top .mig{font-size:12px;font-weight:800;color:var(--ini-gris);letter-spacing:.3px}
+.as-top h1{margin:2px 0 4px;font-size:22px;font-weight:900;color:var(--ini-navy)}
+.as-top p{margin:0;color:var(--ini-gris);font-size:13.5px;max-width:560px;line-height:1.5}
+.as-acc{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.as-pil{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--ini-linea);border-radius:12px;padding:8px 12px;font-weight:800;font-size:13.5px;color:var(--ini-navy)}
+.as-grid{display:grid;grid-template-columns:200px minmax(0,1fr);gap:18px;align-items:start}
+.as-nav{position:sticky;top:12px;background:#fff;border:1px solid var(--ini-linea);border-radius:14px;padding:8px}
+.as-nav button{display:flex;width:100%;text-align:left;border:0;background:none;border-radius:9px;padding:9px 10px;font:800 13px inherit;font-family:inherit;color:#41506a;cursor:pointer;gap:8px;align-items:center}
+.as-nav button.on{background:#E9F1FA;color:var(--ini-navy)}
+.as-nav button em{margin-left:auto;font-style:normal;font-size:10px;background:#eef1f5;color:var(--ini-gris);border-radius:999px;padding:1px 7px}
+.as-card{background:#fff;border:1px solid var(--ini-linea);border-radius:14px;padding:16px 18px;margin-bottom:14px;scroll-margin-top:70px}
+.as-card h2{margin:0 0 4px;font-size:16px;font-weight:900;color:var(--ini-navy)}
+.as-card>p.s{margin:0 0 8px;font-size:12.5px;color:var(--ini-gris);line-height:1.5}
+.as-f{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:center;padding:11px 0;border-top:1px solid #eef1f5}
+.as-f:first-of-type{border-top:0}
+.as-f b{display:block;font-size:14px;color:#14202E}.as-f small{display:block;font-size:12.5px;color:var(--ini-gris);line-height:1.45;margin-top:2px;font-weight:600}
+.as-f .c{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:13px;font-weight:700;color:#41506a}
+.as-in{width:auto!important;margin:0!important;border:1.5px solid var(--ini-linea);border-radius:9px;padding:7px 9px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ini-navy);background:#fff;min-height:38px}
+.as-in.n{width:78px!important;text-align:center}
+.as-sug{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;background:#FFF3D1;color:#9A6E00;border-radius:999px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+.as-sw{position:relative;width:52px;height:30px;border-radius:999px;background:#c5ccd8;border:0;cursor:pointer;flex:0 0 auto;transition:.2s;padding:0}
+.as-sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+.as-sw.on{background:#2FBF71}.as-sw.on::after{left:25px}
+.as-tb{width:100%;border-collapse:collapse;font-size:13.5px}
+.as-tb th{text-align:left;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--ini-gris);padding:8px;border-bottom:1px solid var(--ini-linea)}
+.as-tb td{padding:10px 8px;border-bottom:1px solid #eef1f5;vertical-align:middle}
+.as-tb td.ce{text-align:center}
+.as-rd{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px solid #c5ccd8;cursor:pointer;background:#fff;padding:0}
+.as-rd.on{border-color:var(--ini-navy)}.as-rd.on::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--ini-navy)}
+.as-rd.lk{opacity:.4;cursor:not-allowed}
+.as-ck{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #eef1f5;font-size:14px;cursor:pointer;font-weight:700;color:#14202E}
+.as-ck:first-of-type{border-top:0}.as-ck input{width:19px;height:19px;margin:1px 0 0;flex:0 0 auto}
+.as-ck small{display:block;color:var(--ini-gris);font-size:12.5px;font-weight:600}
+.as-dia{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1fr);gap:8px 12px;align-items:end;padding:11px 0;border-top:1px solid #eef1f5}
+.as-dia:first-of-type{border-top:0}.as-dia>b{color:var(--ini-navy);font-size:14px;align-self:center}
+.as-dia label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--ini-gris);margin:0 0 3px}
+.as-dia select{width:100%!important}
+.as-chips{display:flex;gap:6px;flex-wrap:wrap}
+.as-chips button{border:1.5px solid #d6dde8;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:800;color:var(--ini-gris);cursor:pointer;background:#fff;font-family:inherit}
+.as-chips button.on{background:var(--ini-navy);border-color:var(--ini-navy);color:#fff}
+.as-pr{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.as-pr div{border:1.5px dashed #d6dde8;border-radius:12px;padding:14px;color:var(--ini-gris);font-size:13px;line-height:1.45;font-weight:600}
+.as-pr b{display:block;color:#41506a;font-size:14px;margin-bottom:4px}
+.as-hz td:first-child{white-space:nowrap;font-weight:800;color:var(--ini-navy)}
+.as-hz .des{opacity:.55;text-decoration:line-through}
+.as-lnk{border:0;background:none;color:var(--ini-azul,#14306b);font:800 12.5px inherit;font-family:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.as-av{border-radius:10px;padding:10px 12px;font-size:13px;margin-top:10px;line-height:1.45;font-weight:600}
+.as-av.az{background:#e8effb;color:#1d3f86}.as-av.am{background:#fff8e6;color:#4d3a00}.as-av.vd{background:#eaf6e4;color:#1e5a2a}.as-av.rj{background:#fdecea;color:#8c1d22}
+.as-chip{display:inline-block;font-size:10px;font-weight:900;padding:1px 7px;border-radius:999px;background:#e8effb;color:#1d3f86;margin-top:3px;letter-spacing:.3px}
+.pl-chip.as{background:#e8effb;color:#1d3f86}
+@media(max-width:860px){.as-grid{grid-template-columns:minmax(0,1fr)}.as-nav{position:static;display:flex;overflow-x:auto;gap:4px}.as-nav button{width:auto;white-space:nowrap}
+  .as-f{grid-template-columns:minmax(0,1fr)}.as-f .c{justify-content:flex-start}.as-tb{display:block;overflow-x:auto}.as-dia{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.as-dia>b{grid-column:1/-1}.as-acc{margin-left:0}}
+/* el globito */
+.bnd-pastilla.ia{background:linear-gradient(140deg,#2FBF71,#1E9E58);padding:12px 18px;gap:8px}
+.bnd-pastilla.ia.off{background:#8A97AD}
+.bnd-pastilla.ia span{font-weight:800;font-size:13.5px}
+#bnd-panel.ia{width:min(430px,calc(100vw - 36px));max-height:min(80vh,660px)}
+.as-g{padding:12px 16px;border-bottom:1px solid var(--borde,#E1E5EA)}
+.as-g h4{margin:0 0 8px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#6B7686;font-weight:800}
+.as-g .int{display:flex;gap:12px;align-items:center}
+.as-g .int b{display:block;font-size:15px;color:#14202E}.as-g .int small{display:block;font-size:12.5px;color:#6B7686;line-height:1.45;margin-top:2px}
+.as-h{padding:11px 16px;border-bottom:1px solid var(--borde,#E1E5EA);border-left:4px solid #2FBF71;background:#F3FBF6}
+.as-h.mov{border-left-color:#F5B301;background:#FFFBF0}.as-h.gris{border-left-color:#c5ccd8;background:#fff}.as-h.rj{border-left-color:#C0392B;background:#FFF6F5}
+.as-h .t{font-size:13.5px;font-weight:800;color:#14202E;line-height:1.3}.as-h .d{font-size:12.5px;color:#6B7686;line-height:1.5;margin-top:3px}
+.as-h .a{display:flex;gap:12px;margin-top:6px}
+@media(max-width:520px){#bnd-panel.ia{left:10px;right:10px;width:auto}}
+</style>
+<script>
+var AS = null, AS_EDIT = null, AS_EST = null, AS_FIL = "todo", AS_VUELO = false;
+var AS_DIAS = [["1","Lunes"],["2","Martes"],["3","Miércoles"],["4","Jueves"],["5","Viernes"],["6","Sábado"],["0","Domingo"]];
+var AS_TIPO = [["normal","Normal"],["colchon","Colchón"],["viaje","Viaje · Panamá Oeste"],["descanso","Descanso"]];
+var AS_MOV = [["colchon","Siguiente colchón"],["anterior","Día anterior"],["avisar","Avisarme"]];
+function asH12_(t){ var m = String(t||"").match(/^(\d{1,2}):(\d{2})/); if(!m) return String(t||""); var h = +m[1]; return ((h % 12) || 12) + ":" + m[2] + (h < 12 ? " a. m." : " p. m."); }
+
+/* ── la pantalla de configuración ── */
+function asCargar_(){
+  var c = $("as-cuerpo"); if(!c) return;
+  if(!AS) c.innerHTML = '<div class="vacio">Leyendo la configuración del asistente…</div>';
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ c.innerHTML = '<div class="vacio">' + esc((r && r.error) || "No se pudo cargar") + '</div>'; return; }
+    AS = r; AS_EDIT = JSON.parse(JSON.stringify(r.cfg)); asPintar_();
+  }).withFailureHandler(function(){ c.innerHTML = '<div class="vacio">Sin conexión. Vuelve a intentar.</div>'; }).api_asisConfig(PIN);
+}
+function asSel_(id, val, ops){ return '<select class="as-in" id="' + id + '">' + ops.map(function(o){ return '<option value="' + esc(o[0]) + '"' + (String(val) === String(o[0]) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join("") + '</select>'; }
+function asHora_(id, val){ return '<input class="as-in" type="time" id="' + id + '" value="' + esc(val || "") + '">'; }
+function asNum_(id, val, min, max){ return '<input class="as-in n" type="number" inputmode="numeric" id="' + id + '" value="' + esc(val) + '" min="' + min + '" max="' + max + '">'; }
+function asPintar_(){
+  var c = $("as-cuerpo"); if(!c || !AS) return;
+  var E = AS_EDIT, on = !!E.on;
+  var cam = (AS.camiones || []);
+  var NAV = [["g","General"],["c","Cálculo de la ruta"],["s","Mi semana"],["n","Lo que nunca mueve"],["p","Permisos"],["h","Lo que hizo"],["m","Más tareas","pronto"]];
+  var h = '<div class="as-top"><div><div class="mig">Logística › Asistente de rutas</div><h1>Asistente de rutas</h1>' +
+      '<p>Aquí mandas tú: el asistente solo hace lo que está configurado en esta pantalla. Arma y acomoda las rutas de los próximos días, te cuenta en el globito qué hizo y por qué, y todo se puede deshacer. No manda nada a los clientes ni toca cobros.</p></div>' +
+    '<div class="as-acc"><div class="as-pil">Piloto automático <button class="as-sw' + (on ? ' on' : '') + '" onclick="asSwitch_()" aria-label="Encender o apagar el piloto automático"></button></div>' +
+      '<button class="pl-btn" onclick="asProbar_()">Probar mis reglas sin aplicar</button><button class="pl-btn v" onclick="asGuardar_()">Guardar</button></div></div>' +
+    '<div class="as-grid"><nav class="as-nav" id="as-nav">' + NAV.map(function(x, i){ return '<button class="' + (i === 0 ? 'on' : '') + '" data-as="' + x[0] + '">' + x[1] + (x[2] ? ' <em>' + x[2] + '</em>' : '') + '</button>'; }).join("") + '</nav><div>';
+  /* General */
+  h += '<section class="as-card" id="as-g"><h2>General</h2><p class="s">Cuándo trabaja y cómo te cuenta lo que hizo.</p>' +
+    '<div class="as-f"><div><b>Piloto automático</b><small>' + (on ? 'Encendido' + (E.onDesde ? ' desde el ' + esc(nombreDia_(String(E.onDesde).slice(0, 10))) + (String(E.onDesde).length > 11 ? ' a las ' + esc(asH12_(String(E.onDesde).slice(11))) : '') + (E.onPor ? ' por ' + esc(E.onPor) : '') : '') + '.' : 'Apagado: no toca nada; planificas tú a mano.') + '</small></div><div class="c"><button class="as-sw' + (on ? ' on' : '') + '" onclick="asSwitch_()"></button></div></div>' +
+    '<div class="as-f"><div><b>Cuándo trabaja</b><small>Cada mañana revisa los próximos días y, además, cada vez que entra un cliente o una visita.</small></div><div class="c">Cada mañana a las ' + asHora_("as-hora", E.hora) + ' y al entrar algo nuevo</div></div>' +
+    '<div class="as-f"><div><b>Cuántos días adelante arma</b><small>Las rutas más lejanas quedan en borrador y se acomodan cada mañana.</small></div><div class="c">' + asNum_("as-dias", E.dias, 1, 14) + ' días</div></div>' +
+    '<div class="as-f"><div><b>Congelar la ruta de mañana <span class="as-sug">sugerencia</span></b><small>A esta hora publica al conductor la ruta de mañana y ya no la cambia, para no sorprenderlo.</small></div><div class="c">a las ' + asHora_("as-cong", E.congelar) + '</div></div>' +
+    '<div class="as-f"><div><b>Cómo te cuenta lo que hizo</b><small>En el globito de abajo a la derecha.</small></div><div class="c">' + asSel_("as-aviso", E.aviso, [["tarjeta","Una tarjeta por cada cambio"],["resumen","Un resumen al día"]]) + '</div></div>' +
+    '<div class="as-f"><div><b>Si algo no cabe en ningún día de la semana <span class="as-sug">sugerencia</span></b><small>Por ejemplo, un viernes de Oeste que se pasa.</small></div><div class="c">' + asSel_("as-nocabe", E.noCabe, [["globito","Me lo deja en el globito"],["semanaSig","Lo deja en su día sin avisar"]]) + '</div></div></section>';
+  /* Cálculo */
+  h += '<section class="as-card" id="as-c"><h2>Cálculo de la ruta</h2><p class="s">Con esto calcula a qué hora regresa cada ruta. Es el mismo cálculo del planificador (sin el trazo por carretera).</p>' +
+    '<div class="as-f"><div><b>Hora de salida</b><small>Se cambia en el planificador (⚙) y en cada ruta.</small></div><div class="c">' + esc(asH12_(AS.salida)) + '</div></div>' +
+    '<div class="as-f"><div><b>Tiempo en cada cliente</b><small>Usa el promedio real de cada cliente. Si un cliente todavía no tiene historial, usa este tiempo.</small></div><div class="c">' + asNum_("as-min", E.minSitio, 3, 120) + ' min</div></div>' +
+    '<div class="as-f"><div><b>Máximo de paradas por camión</b><small>Cada camión tiene su tope; se cambia en el planificador.</small></div><div class="c">' + (cam.length ? cam.map(function(x){ return esc(x.placa) + ': ' + x.tope; }).join(' · ') : '14') + '</div></div>' +
+    '<div class="as-f"><div><b>Tope del día en la ciudad</b><small>La ruta tiene que regresar a la base a más tardar a esta hora, por el tráfico. Si se pasa, mueve lo que sobra según «Mi semana».</small></div><div class="c">regreso a más tardar ' + asHora_("as-tope", E.tope) + '</div></div>' +
+    '<div class="as-f"><div><b>Margen <span class="as-sug">sugerencia</span></b><small>Para que termine un poco antes del tope, por si hay imprevistos. Con 0 usa el tope exacto.</small></div><div class="c">' + asNum_("as-margen", E.margen, 0, 120) + ' min antes</div></div>' +
+    '<div class="as-f"><div><b>Zonas sin tope de hora</b><small>Son viaje por carretera: se planifican aparte, el día de viaje.</small></div><div class="c"><div class="as-chips" id="as-zonas">' + (AS.zonas || []).map(function(z){ return '<button data-z="' + esc(z) + '" class="' + ((E.zonasViaje || []).indexOf(z) >= 0 ? 'on' : '') + '">' + esc(z.charAt(0) + z.slice(1).toLowerCase()) + '</button>'; }).join("") + '</div></div></div></section>';
+  /* Semana */
+  h += '<section class="as-card" id="as-s"><h2>Mi semana</h2><p class="s">Qué lleva cada día y a dónde va lo que no cabe. <b>Colchón</b> = recoge lo que no cupo el día anterior; si también se llena, lo que sobra sigue al siguiente colchón. El día de <b>viaje</b> lleva las zonas sin tope de hora.</p>' +
+    AS_DIAS.map(function(d){ var s = (E.semana || {})[d[0]] || {};
+      return '<div class="as-dia"><b>' + d[1] + '</b><div><label for="as-t' + d[0] + '">Tipo de día</label>' + asSel_("as-t" + d[0], s.tipo, AS_TIPO) + '</div>' +
+        '<div><label for="as-m' + d[0] + '">Si se pasa del tope, mover a</label>' + asSel_("as-m" + d[0], s.mover, AS_MOV) + '</div></div>'; }).join("") +
+    '<label class="as-ck" style="margin-top:6px"><input type="checkbox" id="as-fer"' + (E.feriados !== false ? ' checked' : '') + '><span>En días feriados no arma ruta y pasa lo que toque al día hábil anterior <span class="as-sug">sugerencia</span><small>Usa la lista de feriados del sistema' + ((AS.feriados || []).length ? ': el próximo es ' + esc(AS.feriados[0].fechaTxt) + ' (' + esc(AS.feriados[0].nombre) + ')' : '') + '.</small></span></label>' +
+    ((AS.manuales || []).length ? '<div class="as-av am"><b>Días que tomaste a mano:</b> el asistente ya no los toca. ' + AS.manuales.map(function(m){ return esc(m.fechaTxt) + ' <button class="as-lnk" onclick="asDevolver_(\'' + m.fecha + '\')">devolvérselo</button>'; }).join(' · ') + '</div>' : '') + '</section>';
+  /* Nunca mueve */
+  var NUN = [["recurrentes","Recurrentes con su día","Por ejemplo, el hospital del lunes."],["fijo","Clientes con día fijo",""],["estricto","Clientes con horario estricto","Los acomoda en su hora, pero no los cambia de día."],["unicas","Visitas únicas pedidas para una fecha",""],["extras","Recolecciones extra que pidió el cliente",""],["manual","Días que tú cambiaste a mano","Ese día queda tuyo."]];
+  h += '<section class="as-card" id="as-n"><h2>Lo que nunca mueve</h2><p class="s">Estas paradas se quedan en su día aunque el día se pase del tope.</p>' +
+    NUN.map(function(x){ return '<label class="as-ck"><input type="checkbox" data-nun="' + x[0] + '"' + ((E.nunca || {})[x[0]] !== false ? ' checked' : '') + '><span>' + x[1] + (x[2] ? '<small>' + x[2] + '</small>' : '') + '</span></label>'; }).join("") + '</section>';
+  /* Permisos */
+  var PER = [["armar","Armar y acomodar las rutas",""],["mover","Mover paradas de un día a otro","Siguiendo «Mi semana» y «Lo que nunca mueve»."],["nuevos","Meter clientes nuevos y visitas únicas en la ruta","Los mete en el día que les toca, según su zona."],["publicar","Publicar la ruta al conductor","A la hora de congelar la ruta de mañana."],["conductor","Cambiar el conductor o el camión","Siempre lo decides tú."],["avisar","Avisar a los clientes de su recolección","Mandar algo a un cliente siempre pide tu sí."],["cobros","Cobros, facturas y propuestas","No es tarea de este asistente."]];
+  var LK = { conductor: 1, avisar: 1, cobros: 1 }, NIV = ["solo","pide","no"];
+  h += '<section class="as-card" id="as-p"><h2>Permisos</h2><p class="s">Qué hace solo y qué te deja en el globito para que lo hagas tú. Con el piloto apagado no hace nada de esto.</p>' +
+    '<table class="as-tb" id="as-ptb"><thead><tr><th>Tarea</th><th class="ce">Lo hace solo</th><th class="ce">Me lo deja a mí</th><th class="ce">No lo hace</th></tr></thead><tbody>' +
+    PER.map(function(x){ var v = (E.permisos || {})[x[0]];
+      return '<tr><td><b>' + x[1] + '</b>' + (x[2] ? '<div style="font-size:12px;color:var(--ini-gris);font-weight:600">' + x[2] + '</div>' : '') + '</td>' +
+        NIV.map(function(n){ return '<td class="ce"><button class="as-rd' + (v === n ? ' on' : '') + (LK[x[0]] ? ' lk' : '') + '" data-per="' + x[0] + '" data-niv="' + n + '" aria-label="' + n + '"></button></td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></section>';
+  /* Lo que hizo */
+  var HZ = (AS.hizo || []).filter(function(x){ return AS_FIL === "todo" || x.tipo === AS_FIL; });
+  var TIPN = { mov: "Movida", arm: "Ruta armada", pub: "Publicada", aviso: "Aviso", on: "Encendido", off: "Apagado", desh: "Deshecho" };
+  h += '<section class="as-card" id="as-h"><h2>Lo que hizo</h2><p class="s">Todo queda anotado: qué hizo, cuándo y por qué. Lo que todavía no pasa se puede deshacer; ese día queda tuyo.</p>' +
+    '<div class="as-chips" style="margin-bottom:8px" id="as-fil">' + [["todo","Todo"],["mov","Movidas"],["arm","Rutas armadas"],["pub","Publicadas"],["aviso","Avisos"]].map(function(f){ return '<button data-f="' + f[0] + '" class="' + (AS_FIL === f[0] ? 'on' : '') + '">' + f[1] + '</button>'; }).join("") + '</div>' +
+    (HZ.length ? '<table class="as-tb as-hz"><thead><tr><th>Cuándo</th><th>Qué hizo</th><th>Por qué</th><th></th></tr></thead><tbody>' +
+      HZ.map(function(x){ return '<tr class="' + (x.deshecho ? 'des' : '') + '"><td>' + esc(x.enTxt) + '</td><td><b>' + esc(x.texto) + '</b><div style="font-size:11px;color:var(--ini-gris);font-weight:800">' + esc(TIPN[x.tipo] || x.tipo) + (x.deshecho ? ' · deshecho por ' + esc(x.deshechoPor) : '') + '</div></td><td style="font-size:12.5px;color:var(--ini-gris);font-weight:600">' + esc(x.porque) + '</td><td style="white-space:nowrap">' +
+        (x.fecha ? '<button class="as-lnk" onclick="asVerDia_(\'' + esc(x.hacia || x.fecha) + '\')">Ver</button>' : '') + (x.deshacible ? ' · <button class="as-lnk" onclick="asDeshacer_(\'' + esc(x.id) + '\')">Deshacer</button>' : '') + '</td></tr>'; }).join("") + '</tbody></table>'
+      : '<div class="as-av az">Todavía no ha hecho nada' + (on ? '. Cada mañana a las ' + esc(asH12_(E.hora)) + ' revisa los próximos días.' : ': el piloto está apagado.') + '</div>') + '</section>';
+  /* Más tareas */
+  h += '<section class="as-card" id="as-m"><h2>Más tareas para el asistente</h2><p class="s">Cuando le sumes una tarea, aparece aquí como una sección más, con su interruptor y sus permisos. Ideas para después:</p><div class="as-pr">' +
+    '<div><b>Avisos del día anterior</b>Mandar a cada cliente el aviso de su recolección, con tu sí.</div><div><b>Recipientes por reponer</b>Llevar en la ruta los recipientes que le tocan a cada cliente.</div>' +
+    '<div><b>Clientes por iniciar</b>Poner en ruta a los clientes aprobados en cuanto den su fecha.</div><div><b>Revivir los avisos del vigía</b>Contratos por vencer, altas esperando, mantenimientos.</div></div></section>';
+  h += '</div></div>';
+  c.innerHTML = h;
+  [].forEach.call(c.querySelectorAll("#as-nav button"), function(b){ b.onclick = function(){ [].forEach.call(c.querySelectorAll("#as-nav button"), function(x){ x.classList.remove("on"); }); b.classList.add("on"); var t = $("as-" + b.getAttribute("data-as")); if(t) t.scrollIntoView({ behavior: "smooth", block: "start" }); }; });
+  [].forEach.call(c.querySelectorAll("#as-zonas button"), function(b){ b.onclick = function(){ b.classList.toggle("on"); }; });
+  [].forEach.call(c.querySelectorAll("#as-fil button"), function(b){ b.onclick = function(){ asLeer_(); AS_FIL = b.getAttribute("data-f"); asPintar_(); var t = $("as-h"); if(t) t.scrollIntoView({ block: "start" }); }; });
+  [].forEach.call(c.querySelectorAll("#as-ptb .as-rd"), function(r){ r.onclick = function(){
+    if(r.classList.contains("lk")){ toast("Este permiso no se puede cambiar"); return; }
+    [].forEach.call(c.querySelectorAll('#as-ptb .as-rd[data-per="' + r.getAttribute("data-per") + '"]'), function(x){ x.classList.remove("on"); }); r.classList.add("on"); }; });
+}
+/* lo que está en pantalla → AS_EDIT */
+function asLeer_(){
+  if(!AS_EDIT || !$("as-hora")) return AS_EDIT;
+  var E = AS_EDIT, v = function(id){ var e = $(id); return e ? e.value : ""; };
+  E.hora = v("as-hora") || E.hora; E.congelar = v("as-cong") || E.congelar; E.tope = v("as-tope") || E.tope;
+  E.dias = Number(v("as-dias")) || E.dias; E.minSitio = Number(v("as-min")) || E.minSitio; E.margen = v("as-margen") === "" ? E.margen : Number(v("as-margen"));
+  E.aviso = v("as-aviso") || E.aviso; E.noCabe = v("as-nocabe") || E.noCabe; E.feriados = $("as-fer") ? $("as-fer").checked : E.feriados;
+  E.zonasViaje = [].map.call(document.querySelectorAll("#as-zonas button.on"), function(b){ return b.getAttribute("data-z"); });
+  AS_DIAS.forEach(function(d){ E.semana[d[0]] = { tipo: v("as-t" + d[0]) || (E.semana[d[0]] || {}).tipo, mover: v("as-m" + d[0]) || (E.semana[d[0]] || {}).mover }; });
+  [].forEach.call(document.querySelectorAll("[data-nun]"), function(x){ E.nunca[x.getAttribute("data-nun")] = x.checked; });
+  [].forEach.call(document.querySelectorAll("#as-ptb .as-rd.on"), function(x){ E.permisos[x.getAttribute("data-per")] = x.getAttribute("data-niv"); });
+  return E;
+}
+function asGuardar_(despues){
+  if(AS_VUELO) return; var d = JSON.parse(JSON.stringify(asLeer_() || {})); delete d.on; AS_VUELO = true;
+  google.script.run.withSuccessHandler(function(r){
+    AS_VUELO = false;
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    toast("Configuración guardada ✓"); if(despues) despues(); else asCargar_();
+  }).withFailureHandler(function(){ AS_VUELO = false; toast("Sin conexión"); }).api_asisGuardar(PIN, d);
+}
+function asSwitch_(){
+  var on = AS_EDIT ? !!AS_EDIT.on : !!(AS_EST && AS_EST.on);
+  var hacer = function(){
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+      toast(r.on ? "Piloto automático encendido: armo y acomodo las rutas yo solo." : "Piloto automático apagado: no toco nada.");
+      asEstado_(); if($("pantalla-asis") && $("pantalla-asis").classList.contains("activa")) asCargar_();
+    }).withFailureHandler(function(){ toast("Sin conexión"); }).api_asisGuardar(PIN, { on: !on });
+  };
+  if(on) preguntar({ titulo: "Apagar el piloto automático", icono: "⏸", boton: "Apagar", texto: "Desde ahora no toca ninguna ruta: planificas tú a mano. Lo que ya armó se queda como está.", alAceptar: hacer });
+  else preguntar({ titulo: "Encender el piloto automático", icono: "▶", boton: "Encender", texto: "Desde ahora arma y acomoda solo las rutas de los próximos días con tus reglas, y publica la ruta de mañana a la hora de congelar. Te cuenta todo en el globito y se puede deshacer. No manda nada a los clientes ni toca cobros.", alAceptar: hacer });
+}
+function asProbar_(){
+  var d = JSON.parse(JSON.stringify(asLeer_() || {})); delete d.on;
+  toast("Probando tus reglas…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo probar"); return; }
+    var TN = { normal: "Normal", colchon: "Colchón", viaje: "Viaje", descanso: "Descanso", feriado: "Feriado" }, NO = { congelado: "ya congelado", manual: "tuyo (a mano)", publicada: "ya publicada" };
+    var filas = (r.dias || []).map(function(x){ return '<tr><td><b>' + esc(x.fechaTxt) + '</b><div style="font-size:11px;color:var(--ini-gris)">' + esc(TN[x.tipo] || x.tipo) + (x.no ? ' · ' + esc(NO[x.no] || x.no) : '') + '</div></td><td class="ce">' + (x.tipo === "descanso" || x.tipo === "feriado" ? '—' : x.paradas) + '</td><td>' + esc(x.regreso || '—') + '</td><td style="font-size:12.5px">' + esc(x.cambios || (x.nuevas ? x.nuevas + ' nuevas' : '')) + '</td></tr>'; }).join("");
+    preguntar({ titulo: "Prueba de tus reglas · no cambié nada", icono: "🧪", boton: AS_EDIT && AS_EDIT.on ? "Guardar y aplicar ahora" : "Cerrar",
+      texto: 'Así quedaría la semana si aplico tus reglas ahora (tope ' + esc(asH12_(r.tope)) + (r.margen ? ', con ' + r.margen + ' min de margen' : '') + ').' +
+        '<div style="overflow-x:auto;margin-top:10px;text-align:left"><table class="as-tb"><thead><tr><th>Día</th><th class="ce">Paradas</th><th>Regresa</th><th>Cambios</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
+        ((r.avisos || []).length ? '<div class="as-av rj" style="text-align:left">' + r.avisos.map(esc).join('<br>') + '</div>' : ''),
+      alAceptar: function(){ if(!(AS_EDIT && AS_EDIT.on)) return; asGuardar_(function(){ google.script.run.withSuccessHandler(function(x){ toast(x && x.ok ? "Aplicado ✓" : ((x && x.error) || "No se pudo")); asCargar_(); asEstado_(); }).withFailureHandler(function(){ toast("Sin conexión"); }).api_asisAplicar(PIN); }); } });
+  }).withFailureHandler(function(){ toast("Sin conexión"); }).api_asisProbar(PIN, d);
+}
+function asDeshacer_(id){
+  preguntar({ titulo: "Deshacer", icono: "↩", boton: "Sí, deshacer", texto: "Lo movido vuelve a su día (o la ruta armada se quita). Esos días quedan tuyos: el asistente ya no los toca.", alAceptar: function(){
+    google.script.run.withSuccessHandler(function(r){ toast(r && r.ok ? "Deshecho ✓" : ((r && r.error) || "No se pudo")); asCargar_(); asEstado_(); }).withFailureHandler(function(){ toast("Sin conexión"); }).api_asisDeshacer(PIN, id); } });
+}
+function asDevolver_(f){
+  google.script.run.withSuccessHandler(function(r){ toast(r && r.ok ? "Listo: el asistente vuelve a armar ese día" : ((r && r.error) || "No se pudo")); asCargar_(); asEstado_(); }).withFailureHandler(function(){ toast("Sin conexión"); }).api_asisDevolverDia(PIN, f);
+}
+function asVerDia_(f){ if(!f) return; if(typeof bandejaCerrar === "function") bandejaCerrar(); PL_F = f; ED = null; mostrarTab("plan"); }
+function asIr_(){ if(typeof bandejaCerrar === "function") bandejaCerrar(); mostrarTab("asis"); }
+
+/* ── el globito: piloto encendido o apagado, y lo que hizo ── */
+function asEstado_(){
+  if(typeof esSupervisor !== "function" || !esSupervisor() || !PIN) return;
+  google.script.run.withSuccessHandler(function(r){ if(r && r.ok){ AS_EST = r; if(typeof bndPintar === "function") bndPintar(); } }).withFailureHandler(function(){}).api_asisEstado(PIN);
+}
+function asGlobito_(){
+  if(BND_MODULO !== "logistica" || !AS_EST) return;
+  var p = bndEl("bnd-pastilla"), l = bndEl("bnd-lista"), pan = bndEl("bnd-panel"); if(!p || !l) return;
+  var on = !!AS_EST.on, n = BND.length;
+  p.className = "bnd-pastilla ia" + (on ? "" : " off") + (BND_ABIERTO ? " abierto" : "");
+  p.innerHTML = '<i></i><span>' + (on ? 'Piloto automático' : 'Piloto apagado') + '</span>' + (n ? ' · <b>' + n + '</b>' : '');
+  p.title = (on ? "Asistente de rutas encendido" : "Asistente de rutas apagado") + (n ? " · " + n + " pendiente(s)" : "");
+  if(pan) pan.classList.add("ia");
+  var cab = pan && pan.querySelector(".bnd-cab"); if(cab && cab.firstChild && cab.firstChild.nodeType === 3) cab.firstChild.nodeValue = "Asistente de rutas";
+  var txt = on ? 'Encendido. Cada mañana a las ' + esc(asH12_(AS_EST.hora)) + ', y cada vez que entra un cliente o una visita, armo y acomodo solo las rutas de los próximos ' + (AS_EST.dias || 7) + ' días con tus reglas. No mando nada a los clientes ni toco cobros.' : 'Apagado. No toco nada: planificas tú a mano.';
+  var K = { mov: "mov", aviso: "rj", pub: "gris", on: "gris", off: "gris", desh: "gris" };
+  var ents = AS_EST.entradas || [];
+  if(AS_EST.resumen && ents.length){ var mv = ents.filter(function(e){ return e.tipo === "mov"; }), ar = ents.filter(function(e){ return e.tipo === "arm"; });
+    ents = [{ tipo: "arm", texto: "Resumen de hoy", porque: (ar.length ? ar.map(function(e){ return e.texto; }).join(". ") + ". " : "") + (mv.length ? "Moví " + mv.length + (mv.length === 1 ? " grupo de paradas" : " grupos de paradas") + " porque los días se pasaban del tope. " : "") + "El detalle está en «Lo que hizo».", resumen: true }]; }
+  var h = '<div class="as-g"><div class="int"><div style="flex:1"><b>Piloto automático</b><small>' + txt + '</small></div><button class="as-sw' + (on ? ' on' : '') + '" onclick="asSwitch_()" aria-label="Encender o apagar"></button></div>' +
+    '<div style="margin-top:8px"><button class="as-lnk" onclick="asIr_()">Configurar el asistente: reglas, semana y permisos →</button></div></div>' +
+    '<div class="as-g" style="padding-bottom:4px;border-bottom:0"><h4>' + (AS_EST.hoy ? 'Lo que hizo hoy' : 'Lo último que hizo') + '</h4></div>' +
+    (ents.length ? ents.map(function(e){ return '<div class="as-h ' + (K[e.tipo] || '') + '"><div class="t">' + esc(e.texto) + '</div>' + (e.porque ? '<div class="d">' + esc(e.porque) + '</div>' : '') +
+        '<div class="a">' + (e.resumen ? '<button class="as-lnk" onclick="asIr_()">Ver lo que hizo</button>' : (e.fecha && ["mov","arm","pub","aviso"].indexOf(e.tipo) >= 0 ? '<button class="as-lnk" onclick="asVerDia_(\'' + esc(e.hacia || e.fecha) + '\')">Ver</button>' : '') + (e.deshacible ? '<button class="as-lnk" onclick="asDeshacer_(\'' + esc(e.id) + '\')">Deshacer</button>' : '')) + '</div></div>'; }).join("")
+      : '<div class="bnd-vacio" style="padding:10px 16px">' + (on ? 'Todavía nada hoy.' : 'Con el piloto apagado no hago nada.') + '</div>') +
+    '<div class="as-g" style="padding-bottom:4px;border-bottom:0"><h4>Pendientes</h4></div>';
+  l.insertAdjacentHTML("afterbegin", h);
+}
+(function(){
+  if(typeof bndPintar === "function"){ var p0 = bndPintar; bndPintar = function(){ p0(); try{ asGlobito_(); }catch(e){} }; }
+  if(typeof bndTraer === "function"){ var t0 = bndTraer; bndTraer = function(m){ t0(m); asEstado_(); }; }
+  /* el planificador: los días que armó el asistente y las paradas que movió */
+  if(typeof plPintar_ === "function"){ var g0 = plPintar_; plPintar_ = function(){ g0(); try{ asMarcarDias_(); }catch(e){} }; }
+  if(typeof plPintarRuta_ === "function"){ var r0 = plPintarRuta_; plPintarRuta_ = function(){ r0.apply(this, arguments); try{ asMarcarParadas_(); }catch(e){} }; }
+})();
+function asMarcarDias_(){
+  if(!PL || !PL.asisDias) return;
+  [].forEach.call(document.querySelectorAll(".pl-dias button"), function(b){ var m = (b.getAttribute("onclick") || "").match(/'(\d{4}-\d{2}-\d{2})'/); if(m && PL.asisDias[m[1]] && !b.querySelector(".as-chip")) b.insertAdjacentHTML("beforeend", '<span class="as-chip">asistente</span>'); });
+  if(PL.asisOn && PL.asisDias[PL.fecha] && !PL.pasado && !$("as-ban")){
+    var d = document.querySelector("#pl-cuerpo .pl-dias");
+    if(d) d.insertAdjacentHTML("afterend", '<div class="pl-ban g" id="as-ban"><span style="font-size:18px">🧭</span><div><b>Esta ruta la armó el asistente.</b> Si guardas cambios, el día queda tuyo y el asistente ya no lo toca.</div><span class="sp"></span><button onclick="asIr_()">Ver lo que hizo</button></div>');
+  }
+}
+function asMarcarParadas_(){
+  if(!ED || !ED.paradas) return;
+  [].forEach.call(document.querySelectorAll("#pl-lista .pl-st"), function(r){
+    var i = Number(r.getAttribute("data-i")), p = ED.paradas[i]; if(!p || r.querySelector(".as-mov")) return;
+    var o = String(p.origen || ""), ch = "";
+    if(/^asismov:/.test(o)){ var de = o.split(":")[1] || ""; ch = (de > PL.fecha ? "adelantada del " : "pasada del ") + nombreDia_(de); }
+    else if(o === "unica") ch = "visita única";
+    if(!ch) return;
+    var s = document.createElement("span"); s.className = "pl-chip as as-mov"; s.textContent = ch;
+    var mas = r.querySelector(".mas"); if(mas) r.insertBefore(s, mas); else r.appendChild(s);
+  });
+}
+</script>
+
 </body>
 
 </html>
