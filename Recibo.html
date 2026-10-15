@@ -511,7 +511,15 @@ function rotuloIr(){ var b = $("hj-go"), v = $("hj"); if(!b || !v || v.getAttrib
 function asuntoRecibo(d){ return "Recibo N.º " + (d.recibo||"") + " · recolección del " + fechaLarga(d.fecha) + " · ECOVSA"; }
 
 /* La columna whatsapp de la hoja a veces guarda el enlace completo. */
+/* api 3.33 · el número de los avisos: el que se eligió en la ficha (avisoA); si está vacío o mal escrito, el otro.
+   Sin elegir: el otro número si sirve, si no el teléfono. Si ninguno sirve, se queda como antes. */
 function telefonoWhatsApp(d){
+  var num = function(v){ var w = String(v || ""), m = w.match(/wa\.me\/(\d+)/); var n = m ? m[1] : w.replace(/[^0-9]/g, ""); if(n.length === 8) n = "507" + n; return n.length >= 8 && n.length <= 13 ? n : ""; };
+  var t = num(d.telefono), o = num(d.whatsapp);
+  var bien = String(d.avisoA || "") === "telefono" ? (t || o) : (o || t);
+  return bien || telefonoWhatsAppAntes_(d);
+}
+function telefonoWhatsAppAntes_(d){
   var w = String(d.whatsapp || "");
   var m = w.match(/wa\.me\/(\d+)/);
   if(m) return m[1];

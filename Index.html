@@ -8288,7 +8288,7 @@ var msg = "🌱 *ECOVSA - Comprobante de Recolección*\n" +
 
 "_Servicio contratado con trazabilidad documentada._";
 
-var tel = String(c.whatsapp || c.telefono || "").replace(/\D/g,"");
+var tel = telWhatsDe_(c);   /* api 3.33 · el número de los avisos de la ficha */
 
 var url = tel ? ("https://wa.me/" + (tel.length===8 ? "507"+tel : tel) + "?text=" + encodeURIComponent(msg))
 
@@ -16074,6 +16074,263 @@ function asMarcarParadas_(){
     setTimeout(function(){ FL_TAB = String(q.flTab); mostrarTab("flota"); }, 60);
   };
 })();
+</script>
+
+<script>
+/* ═══════════ api 3.33 · Logística › Clientes: la ficha en grande, los dos números con «los avisos van a este»
+   y «Lo que se lleva» (lo que el cliente contrató para cada visita: el conductor lo ve en la parada como «reponer») ═══════════ */
+(function(){
+  var s = document.createElement("style");
+  s.textContent =
+    ".c2-gr-btn{border:1.5px solid var(--ini-linea);background:#fff;border-radius:9px;padding:4px 10px;font:800 12px Archivo,sans-serif;color:var(--ini-navy);cursor:pointer;white-space:nowrap}" +
+    ".c2-gr-btn:hover{border-color:#9db4d8}" +
+    ".c2-gr{position:fixed;inset:0;background:var(--ini-fondo);z-index:2400;overflow-y:auto}" +
+    ".c2-gr .cab{position:sticky;top:0;z-index:3;background:var(--tm-navy,#0f2a57);color:#fff;display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:3px solid var(--ini-ambar)}" +
+    ".c2-gr .cab button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;font:800 12.5px Archivo,sans-serif;border-radius:9px;padding:6px 12px;cursor:pointer}" +
+    ".c2-gr .cab button[disabled]{opacity:.35;cursor:default}.c2-gr .cab .sp{flex:1}.c2-gr .cab b{font-size:16px;font-weight:900}.c2-gr .cab small{font-size:11.5px;opacity:.85;font-weight:700;margin-left:6px}" +
+    ".c2-gr-in{max-width:1320px;margin:0 auto;padding:18px 22px 40px}" +
+    ".c2-gr-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}" +
+    ".c2-gr-cols>div{display:flex;flex-direction:column;gap:14px;min-width:0}" +
+    ".c2-gr-card{background:#fff;border:1px solid var(--ini-linea);border-radius:14px;padding:14px 16px;min-width:0}" +
+    ".c2-gr-card>h3{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ini-gris);font-weight:900;margin:0 0 10px;display:flex;align-items:center;gap:8px}" +
+    ".c2-gr-card>h3 .n{background:var(--ini-azul,#14306b);color:#fff;border-radius:9px;padding:0 7px;font-size:11px;letter-spacing:0}" +
+    ".c2-gr .c2-fic{border:0;padding:0;position:static;background:none}" +
+    "@media(max-width:1100px){.c2-gr-cols{grid-template-columns:1fr 1fr}}@media(max-width:760px){.c2-gr-cols{grid-template-columns:1fr}.c2-gr .cab{padding:10px 14px}.c2-gr-in{padding:14px}}" +
+    ".c2-num{border:1.5px solid var(--ini-linea);border-radius:12px;padding:8px 10px 10px;margin:0 0 10px}.c2-num.on{border-color:#2f7d32;background:#f6fbf5}" +
+    ".c2-num .c2-in{margin:4px 0 6px}.c2-num .rad{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ini-navy);cursor:pointer;text-transform:none;letter-spacing:0;margin:0}" +
+    ".c2-fic .c2-tabs{flex-wrap:wrap;row-gap:2px}" +
+    ".c2-num .rad input{width:16px;height:16px;accent-color:#2f7d32}.c2-num .mal{font-size:11.5px;font-weight:700;color:var(--ini-rojo);margin-top:4px}" +
+    ".c2-av{font-size:12px;font-weight:700;color:#1f5e22;background:#eef7ec;border-radius:9px;padding:7px 10px;margin:-2px 0 10px}.c2-av.no{color:var(--ini-rojo);background:#fdecea}" +
+    ".c2-ll{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--ini-linea)}.c2-ll:last-child{border-bottom:0}" +
+    ".c2-ll .tx{flex:1;min-width:0}.c2-ll b{font-size:13.5px;color:var(--ini-navy);display:block}.c2-ll small{display:block;font-size:11.5px;color:var(--ini-gris);font-weight:600;margin-top:2px}" +
+    ".c2-ll .q{font-size:15px;font-weight:900;color:var(--ini-navy);min-width:34px;text-align:right}" +
+    ".c2-ll .tg{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:5px;vertical-align:1px;background:#e8effb;color:#2a55b0}.c2-ll .tg.l{background:#fff1cc;color:#8a5a00}";
+  document.head.appendChild(s);
+})();
+
+var C2_GRANDE = false, C2_REP = {};
+
+/* ── el número de los avisos: el que se eligió; si está vacío o mal escrito, el otro ── */
+function c2Dig_(v){ var w = String(v || ""), m = w.match(/wa\.me\/(\d+)/); var n = m ? m[1] : w.replace(/\D/g, ""); if(n.length === 8) n = "507" + n; return n; }
+function c2NumOk_(v){ var n = c2Dig_(v); return n.length >= 8 && n.length <= 13 ? n : ""; }   /* igual que el servidor (avi_num_) */
+function c2NumMal_(v){
+  var t = String(v || "").trim(); if(!t) return "";
+  if((t.match(/\d{3,4}[-\s]?\d{4}/g) || []).length > 1) return "Parece que hay dos números juntos: deje uno solo en cada casilla.";
+  return c2NumOk_(t) ? "" : "Este número está incompleto o mal escrito.";
+}
+/* elegido «telefono» → ese, si no sirve el otro; elegido «whatsapp» o sin elegir → el otro número si sirve, si no el teléfono (como antes) */
+function c2AvisoNum_(c){
+  if(!c) return { n: "", de: "" };
+  var pri = c.avisoA === "telefono" ? "telefono" : "whatsapp", otro = pri === "whatsapp" ? "telefono" : "whatsapp";
+  var a = c2NumOk_(c[pri]); if(a) return { n: a, de: pri };
+  var b = c2NumOk_(c[otro]); return b ? { n: b, de: otro, respaldo: !!c.avisoA } : { n: "", de: "" };
+}
+c2Tel_ = function(c){ return c2AvisoNum_(c).n; };
+telWhatsDe_ = function(c){ return c2AvisoNum_(c).n; };
+telWhats_ = function(c){ return c2AvisoNum_(c).n; };          /* la lista vieja de avisos de la ruta */
+function c2NumTxt_(n){ return String(n || "").replace(/^507/, "").replace(/^(\d{4})(\d{4})$/, "$1-$2"); }
+
+/* ── Contacto: los dos números, y a cuál van los avisos ── */
+fContactoC2_ = function(F){
+  var c = F.cliente, av = c2AvisoNum_(c);
+  var a = c.avisoA === "telefono" || c.avisoA === "whatsapp" ? c.avisoA : (av.de || "telefono");   /* sin elegir: se marca el que de verdad se usa */
+  var inp = function(k, lab, v, ph){ return '<label class="c2-f">' + lab + '</label><input class="c2-in" id="c2-o-' + k + '" value="' + esc(v || "") + '" placeholder="' + esc(ph || "") + '">'; };
+  var num = function(k, lab, ph){
+    var mal = c2NumMal_(c[k]);
+    return '<div class="c2-num' + (a === k ? ' on' : '') + '"><label class="c2-f" style="margin-top:0">' + lab + '</label>' +
+      '<input class="c2-in" id="c2-o-' + k + '" value="' + esc(c[k] || "") + '" placeholder="' + esc(ph) + '">' +
+      '<label class="rad"><input type="radio" name="c2-avisoA" value="' + k + '"' + (a === k ? ' checked' : '') + ' onchange="c2MarcarAviso_(this.value)"> Los avisos de WhatsApp van a este número</label>' +
+      (mal ? '<div class="mal">⚠ ' + esc(mal) + '</div>' : '') + '</div>';
+  };
+  return inp("contacto", "Encargado de recolección", c.contacto, "Nombre y cargo de quien entrega") +
+    num("telefono", "Teléfono principal", "6612-3344") + num("whatsapp", "Otro número (otro contacto)", "Opcional") +
+    '<div class="c2-av' + (av.n ? '' : ' no') + '" id="c2-av">' + (av.n ? '📱 Los avisos llegan al <b>' + esc(c2NumTxt_(av.n)) + '</b>' + (av.respaldo ? ' (el elegido está vacío o mal escrito: se usa el otro)' : '')
+      : '⚠ Sin número válido: este cliente no recibe avisos por WhatsApp') + '</div>' +
+    inp("correo", "Correo", c.correo, "") + inp("direccion", "Dirección", c.direccion, "") +
+    '<label class="c2-f">Recibo digital en PDF</label><select class="c2-in" id="c2-o-reciboDigital">' + [["","No · solo papel"],["whatsapp","Por WhatsApp"],["correo","Por correo"],["ambos","WhatsApp y correo"]].map(function(o){ return '<option value="' + o[0] + '"' + (String(c.reciboDigital || "") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select>' +
+    '<div style="font-size:12px;color:#5e6b7e;margin:-4px 0 8px">El conductor lo comparte al terminar la parada, al número de los avisos o al correo.</div>' +
+    '<label class="c2-f">Nota para el conductor</label><textarea class="c2-in" id="c2-o-notaConductor" rows="2" placeholder="Ej: tocar timbre del sótano, preguntar por seguridad">' + esc(c.notaConductor) + '</textarea>' +
+    '<div style="font-size:11px;color:var(--ini-gris);margin-top:3px">La ve el conductor al abrir la parada.</div>' +
+    '<div class="c2-act"><button class="c2-btn v" onclick="guardarContactoC2_()">Guardar</button></div>' +
+    '<div class="c2-lab">Ubicación</div><div class="c2-dt"><b>📍</b><span>' + (c.lat ? c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) : 'sin ubicación') + ' · <button class="ini-lnk" onclick="ubicarC2_(C2_ID)">corregir en el mapa</button></span></div>' +
+    '<div class="c2-lab">Lo comercial</div>' +
+    '<div class="c2-dt"><b>Razón social</b><span>' + esc(c.razon || "—") + '</span></div><div class="c2-dt"><b>RUC</b><span>' + esc(c.ruc || "—") + (c.dv ? ' DV ' + esc(c.dv) : '') + '</span></div>' +
+    '<div class="c2-dt"><b>Contrato</b><span>' + esc(c.contrato || "—") + (c.vencimiento ? ' · vence ' + c2Fecha_(c.vencimiento) : '') + '</span></div>' +
+    ((c.nombresRecibo || []).length ? '<div class="c2-dt"><b>También aparece como</b><span>' + c.nombresRecibo.map(esc).join("<br>") + '</span></div>' : '') +
+    '<div class="c2-ob b" style="margin-top:10px"><b>Los datos comerciales los mantiene mercadeo</b>Aquí editas lo operativo: contacto, números, ubicación, horario, lo que se lleva y la nota para el conductor.</div>';
+};
+function c2MarcarAviso_(k){
+  [].forEach.call(document.querySelectorAll(".c2-num"), function(d){ var r = d.querySelector("input[type=radio]"); d.classList.toggle("on", !!(r && r.checked)); });
+  var c = { telefono: ($("c2-o-telefono") || {}).value, whatsapp: ($("c2-o-whatsapp") || {}).value, avisoA: k }, av = c2AvisoNum_(c), e = $("c2-av");
+  if(e){ e.className = "c2-av" + (av.n ? "" : " no"); e.innerHTML = av.n ? '📱 Los avisos llegarán al <b>' + esc(c2NumTxt_(av.n)) + '</b>' + (av.respaldo ? ' (el elegido está vacío o mal escrito: se usa el otro)' : '') + ' · falta «Guardar»' : '⚠ Sin número válido'; }
+}
+guardarContactoC2_ = function(){
+  var d = {}; ["contacto","telefono","whatsapp","correo","direccion","reciboDigital","notaConductor"].forEach(function(k){ var e = $("c2-o-" + k); if(e) d[k] = e.value; });
+  var r = document.querySelector('input[name="c2-avisoA"]:checked'); d.avisoA = r ? r.value : "telefono";
+  guardarOperC2_(d);
+};
+/* el número de los avisos también lo usa el conductor (recibo digital) y la lista de clientes: al confirmar, se dejan al día las copias */
+guardarOperC2_ = function(d){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    toast("Guardado ✓");
+    var c = (typeof cli === "function") ? cli(C2_ID) : null;
+    if(c){ ["contacto","telefono","whatsapp","avisoA","correo","direccion","reciboDigital","notaConductor","lat","lng"].forEach(function(k){ if(d[k] !== undefined) c[k] = d[k]; }); guardarLocal(K_CLI, CLIENTES); }
+    var c2 = c2Cli_(C2_ID); if(c2){ ["telefono","whatsapp","avisoA"].forEach(function(k){ if(d[k] !== undefined) c2[k] = d[k]; }); }
+    cargarC2_(true);
+  }).withFailureHandler(function(){ toast("Sin señal — no se guardó"); }).api_guardarOperativoCliente(PIN, C2_ID, d);
+};
+
+/* ── Lo que se lleva en la visita (Reposiciones del cliente) ── */
+function c2RepCargar_(id, forzar){
+  var R = C2_REP[id];
+  if(R && R.cargando) return R;
+  if(R && !forzar && !(R.error && Date.now() - R.t > 30000)) return R;
+  C2_REP[id] = { cargando: true };
+  google.script.run.withSuccessHandler(function(r){
+    C2_REP[id] = r && r.ok ? r : { error: (r && r.error) || "No se pudo abrir", t: Date.now() };
+    if(C2_ID === id) pintarFichaC2_();
+  }).withFailureHandler(function(){ C2_REP[id] = { error: "Sin señal", t: Date.now() }; if(C2_ID === id) pintarFichaC2_(); }).api_reposicionesCliente(PIN, id);
+  return C2_REP[id];
+}
+function c2Id_(v){ return String(v || "").replace(/[^A-Za-z0-9_-]/g, ""); }
+function fLlevaC2_(F){
+  var id = F.cliente.id, R = c2RepCargar_(id);
+  if(R.cargando) return '<div class="c2-vacio">Cargando…</div>';
+  if(R.error) return '<div class="c2-ob r"><b>' + esc(R.error) + '</b></div>';
+  var L = (R.lista || []).filter(function(r){ return r.activo !== "NO"; });
+  var cada = R.cadas || { visita: "En cada visita", mes: "Una vez al mes" };
+  return '<div style="font-size:12px;color:var(--ini-gris);font-weight:600;margin:0 0 6px">Lo que el cliente contrató para cada visita (por ejemplo el reemplazo del recipiente de punzocortantes). Lo define Mercadeo en la propuesta: al firmar o al modificarla llega aquí solo y a la Bandeja para revisarlo. El conductor lo ve en la parada como «reponer».</div>' +
+    (L.length ? L.map(function(r){
+      var nuevo = !r.revisado;
+      return '<div class="c2-ll"><div class="q">' + esc(r.cantidad) + '</div><div class="tx"><b>' + esc(r.nombre) + (r.ref && r.ref !== "ficha" ? '<span class="tg">' + esc(r.ref) + '</span>' : '') + (nuevo ? '<span class="tg l">nuevo · por revisar</span>' : '') + '</b>' +
+        '<small>' + esc(cada[r.cada] || r.cada || "") + (r.cada === "mes" ? ' · este mes ya ' + (r.yaEsteMes || 0) : '') + (r.nota ? ' · ' + esc(r.nota) : '') + '</small></div>' +
+        (nuevo ? '<button class="c2-btn v" style="padding:5px 10px;font-size:12px" onclick="c2RepRevisado_(\'' + c2Id_(r.repId) + '\')">✓ Revisado</button>' : '') + '</div>';
+    }).join("") : '<div class="c2-vacio">No lleva nada aparte de la recolección.</div>') +
+    '<div style="font-size:11.5px;color:var(--ini-gris);margin-top:8px">¿Hay que cambiar algo? Se pide a Mercadeo: lo cambia en la propuesta y vuelve a llegar aquí.</div>';
+}
+function c2RepRevisado_(repId){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    toast("Revisado ✓"); c2RepCargar_(C2_ID, true);
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_reposicionRevisada(PIN, repId);
+}
+
+/* ── la ficha: la pestaña nueva y el botón «Ver en grande» ── */
+var htmlFichaC2Base333_ = htmlFichaC2_;
+htmlFichaC2_ = function(){
+  if(C2_GRANDE) return '<div class="c2-fic"><div class="c2-vacio">La ficha está abierta en grande.<br><br><button class="c2-btn" onclick="cerrarGrandeC2_()">Volver aquí</button></div></div>';
+  var tab = C2_TAB, lleva = tab === "Lo que se lleva";
+  if(lleva) C2_TAB = "Horario";                       /* se arma con una pestaña corta y se cambia el contenido */
+  var h = htmlFichaC2Base333_.apply(this, arguments);
+  C2_TAB = tab;
+  if(!C2_FI || C2_FI.cliente.id !== C2_ID) return h;
+  var R = C2_REP[C2_ID], n = R && R.lista ? R.lista.filter(function(r){ return r.activo !== "NO"; }).length : 0;
+  h = h.replace(/(<div class="c2-tabs">[\s\S]*?)<\/div>/, function(m, a){
+    return a.replace('class="on"', lleva ? 'class=""' : 'class="on"') + '<button class="' + (lleva ? "on" : "") + '" onclick="C2_TAB=\'Lo que se lleva\';pintarFichaC2_()">Lo que se lleva' + (n ? ' · ' + n : '') + '</button></div>';
+  });
+  if(lleva){ var i = h.indexOf('<div class="c2-tabs">'), j = h.indexOf('</div>', i) + 6, k = h.lastIndexOf('</div>'); h = h.slice(0, j) + fLlevaC2_(C2_FI) + h.slice(k); }
+  if(esEscritorio_() && !C2_GRANDE) h = h.replace('<h2>', '<button class="c2-gr-btn" style="float:right;margin:0 0 6px 8px" onclick="abrirGrandeC2_()" title="Abrir la ficha a pantalla completa">⤢ Ver en grande</button><h2>');
+  return h;
+};
+
+/* ── la ficha en grande: todo a la vista, en columnas ── */
+var pintarFichaC2Base333_ = pintarFichaC2_;
+pintarFichaC2_ = function(){
+  if(!C2_GRANDE) return pintarFichaC2Base333_.apply(this, arguments);
+  var g = $("c2-gr-cuerpo"); if(!g) return;
+  var c0 = c2Cli_(C2_ID) || {}, F = C2_FI;
+  var navTxt = "", l = typeof c237Lista_ === "function" ? c237Lista_() : [], k = l.findIndex(function(c){ return c.id === C2_ID; });
+  var t = $("c2-gr-tit"); if(t) t.innerHTML = '<b>' + esc((F && F.cliente.nombre) || c0.nombre || "") + '</b><small>' + esc(((F && F.cliente.zona) || c0.zona || "") + ' · ' + ((F && F.cliente.frecuencia) || c0.frecuencia || "")) + '</small>';
+  var pa = $("c2-gr-ant"), ps = $("c2-gr-sig"), pn = $("c2-gr-n");
+  if(pa) pa.disabled = !(k > 0); if(ps) ps.disabled = !(k >= 0 && k < l.length - 1); if(pn) pn.textContent = k >= 0 ? (k + 1) + " de " + l.length : "";
+  if(!F || F.cliente.id !== C2_ID){ g.innerHTML = '<div class="c2-vacio">Abriendo la ficha…</div>'; return; }
+  var tab = C2_TAB; C2_TAB = "Horario";
+  var cab = htmlFichaC2Base333_(); C2_TAB = tab;
+  cab = cab.slice(0, cab.indexOf('<div class="c2-tabs">')).replace(/<div class="c2-nav">[\s\S]*?<\/div>/, "") + '</div>';
+  var R = c2RepCargar_(C2_ID), n = R && R.lista ? R.lista.filter(function(r){ return r.activo !== "NO"; }).length : 0;
+  var card = function(tit, html, extra){ return '<div class="c2-gr-card"><h3>' + tit + (extra || '') + '</h3><div class="c2-fic">' + html + '</div></div>'; };
+  g.innerHTML = '<div class="c2-gr-card" style="margin-bottom:14px">' + cab + '</div>' +
+    '<div class="c2-gr-cols"><div>' + card("Resumen", fResumenC2_(F, c0)) + card("Historial", fHistorialC2_(F)) + '</div>' +
+    '<div>' + card("Contacto y avisos", fContactoC2_(F)) + '</div>' +
+    '<div>' + card("Lo que se lleva en la visita", fLlevaC2_(F), n ? ' <span class="n">' + n + '</span>' : '') + card("Horario", fHorarioC2_(F)) + card("Recurrencia", fRecurrenciaC2_(F)) + '</div></div>';
+};
+function abrirGrandeC2_(){
+  if(!C2_ID) return;
+  cerrarGrandeC2_(true);
+  C2_GRANDE = true;
+  var f = $("c2-ficha"); if(f) f.innerHTML = htmlFichaC2_();
+  var d = document.createElement("div"); d.className = "c2-gr"; d.id = "c2-gr";
+  d.innerHTML = '<div class="cab"><button onclick="cerrarGrandeC2_()">← Volver a la lista</button><div id="c2-gr-tit"></div><span class="sp"></span>' +
+    '<button id="c2-gr-ant" onclick="c2GrIr_(-1)">◀ Anterior</button><span id="c2-gr-n" style="font-size:12px;font-weight:800;opacity:.85"></span><button id="c2-gr-sig" onclick="c2GrIr_(1)">Siguiente ▶</button></div>' +
+    '<div class="c2-gr-in" id="c2-gr-cuerpo"></div>';
+  document.body.appendChild(d);
+  pintarFichaC2_();
+}
+function cerrarGrandeC2_(quieto){ var d = $("c2-gr"); if(d) d.remove(); if(C2_GRANDE){ C2_GRANDE = false; if(!quieto) pintarFichaC2_(); } }
+function c2GrIr_(dlt){
+  var l = c237Lista_(), k = l.findIndex(function(c){ return c.id === C2_ID; }), n = l[k + dlt]; if(!n) return;
+  C2_RCD = null; C2_ID = Number(n.id); if(C2_FI && C2_FI.cliente.id !== C2_ID) C2_FI = null;
+  pintarFichaC2_(); cargarFichaC2_(C2_ID);
+  var g = $("c2-gr"); if(g) g.scrollTop = 0;
+}
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && C2_GRANDE && !document.querySelector(".ini-velo")) cerrarGrandeC2_(); });
+
+/* ── Bandeja: lo que llegó de Mercadeo para llevar en la visita (al firmar o al modificar la propuesta); Logística solo lo revisa ── */
+bq38Items_ = (function(orig){
+  return function(){
+    var L = orig.apply(this, arguments), S = (BQ.inc && BQ.inc.servicios) || [];
+    if(!S.length) return L;
+    var hoy = hoyISO();
+    S.forEach(function(x){
+      var f = String(x.cuando || "").slice(0, 10), h = String(x.cuando || "").slice(11, 16), n = x.items.length;
+      L.push({ k: "srv:" + x.clienteId, cat: "mer", ic: "bolsa", c: "c38-v", f: f, h: h, d: bq38Dias_(f), g: f === hoy ? "hoy" : "esp",
+               o: "Mercadeo · " + (f ? bq38Hace_(f, h) : "propuesta"), t: "Para llevar en la visita · " + x.cliente,
+               s: x.items.map(function(i){ return i.cantidad + " " + i.nombre; }).join(" · ") + (n > 1 ? "" : (x.items[0].ref ? " · " + x.items[0].ref : "")), b: "Revisar" });
+    });
+    var G = { urg: 0, hoy: 1, esp: 2 };
+    L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); });
+    return L;
+  };
+})(bq38Items_);
+bq38Det_ = (function(orig){
+  return function(){
+    if(String(BQ.sel || "").indexOf("srv:") !== 0) return orig.apply(this, arguments);
+    var id = Number(BQ.sel.slice(4)), x = ((BQ.inc && BQ.inc.servicios) || []).filter(function(z){ return Number(z.clienteId) === id; })[0];
+    if(!x) return '<div class="vacio">Ya se revisó.</div>';
+    var h = '<div class="dh"><i class="bic big c38-v">' + sv38_("bolsa") + '</i><div><div class="bo">Llegó de Mercadeo' + (x.cuando ? ' · ' + esc(bq38Hace_(String(x.cuando).slice(0, 10), String(x.cuando).slice(11, 16))) : '') + (x.zona ? ' · ' + esc(x.zona) : '') + '</div><h2>' + esc(x.cliente) + '</h2></div></div>' +
+      '<div class="rel" style="font-style:normal;font-size:12.5px">El cliente contrató esto para cada visita. Ya le aparece al conductor en la parada como «reponer». Revísalo; si algo no cuadra, se pide a Mercadeo que lo cambie en la propuesta.</div>';
+    h += '<div style="margin:10px 0">' + x.items.map(function(i){
+      return '<div class="c2-ll"><div class="q">' + esc(i.cantidad) + '</div><div class="tx"><b>' + esc(i.nombre) + '<span class="tg">' + (i.nuevo ? 'nuevo' : 'cambió') + '</span>' + (i.ref && i.ref !== "ficha" ? '<span class="tg">' + esc(i.ref) + '</span>' : '') + '</b>' +
+        '<small>' + esc(i.cadaTxt || i.cada || "") + (i.nota ? ' · ' + esc(i.nota) : '') + (i.por ? ' · lo puso ' + esc(String(i.por).split(" ")[0]) : '') + '</small></div>' +
+        '<button class="c2-btn v" style="padding:5px 10px;font-size:12px" onclick="bq38SrvOk_(\'' + c2Id_(i.repId) + '\',0)">✓ Revisado</button></div>';
+    }).join("") + '</div>';
+    h += '<div class="bb"><button onclick="C2_TAB=\'Lo que se lleva\';mostrarTab(\'cli2\');setTimeout(function(){abrirFichaC2_(' + id + ')},60)">Ver su ficha</button>' +
+      (x.items.length > 1 ? '<button class="p" onclick="bq38SrvOk_(\'\',' + id + ')">' + sv38_("check") + ' Todo revisado</button>' : '') + '</div>';
+    return h;
+  };
+})(bq38Det_);
+function bq38SrvOk_(repId, clienteId){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    toast("Revisado ✓");
+    var S = (BQ.inc && BQ.inc.servicios) || [];
+    S.forEach(function(x){ x.items = x.items.filter(function(i){ return repId ? i.repId !== repId : Number(x.clienteId) !== Number(clienteId); }); });
+    if(BQ.inc) BQ.inc.servicios = S.filter(function(x){ return x.items.length; });
+    Object.keys(C2_REP).forEach(function(k){ delete C2_REP[k]; });
+    bq38Contar_(); renderSolicitudes();
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_reposicionRevisada(PIN, repId || "", clienteId ? String(clienteId) : "");
+}
+/* al marcar «Revisado» en la ficha, la Bandeja se pone al día */
+c2RepRevisado_ = function(repId){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    toast("Revisado ✓"); c2RepCargar_(C2_ID, true);
+    var S = (BQ.inc && BQ.inc.servicios) || [];
+    S.forEach(function(x){ x.items = x.items.filter(function(i){ return i.repId !== repId; }); });
+    if(BQ.inc){ BQ.inc.servicios = S.filter(function(x){ return x.items.length; }); bq38Contar_(); }
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_reposicionRevisada(PIN, repId, "");
+};
 </script>
 
 </body>
