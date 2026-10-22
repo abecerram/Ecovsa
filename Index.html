@@ -1146,6 +1146,7 @@ main > .pantalla{max-width:1100px;margin:0 auto;width:100%}
 .jv-dos button small{display:block;font-size:11px;font-weight:600;color:var(--gris);margin-top:2px}
 .jv-dos button.si.on{border-color:#9FCB84;background:#E7F3DD;color:var(--eco-verde)}
 .jv-dos button.no.on{border-color:var(--eco-rojo);background:#FCECEA;color:var(--eco-rojo)}
+.jv-gal{border-style:solid;margin-top:-6px;font-weight:700;color:#5B6880}
 .jv-foto{display:block;width:100%;border:1.5px dashed #C9D3E0;background:#FAFCFD;border-radius:13px;padding:11px;text-align:center;font:inherit;font-size:12.5px;font-weight:800;color:var(--eco-azul);margin-bottom:12px}
 .hoja-abajo .jv-lab{margin-top:4px}
 .hoja-abajo input.jv-in{width:100%;padding:11px;border:1.5px solid var(--borde);border-radius:11px;font:inherit;font-size:15px;font-weight:700;margin:0 0 12px}
@@ -2419,6 +2420,13 @@ Escribe parte del número — <b>0412</b> encuentra <b>ECV-2026-0412</b> — o e
 <div id="df-rango" style="display:none;gap:6px;align-items:center"><input type="date" id="df-d"><input type="date" id="df-h"><button class="pl-btn a" onclick="dfRango_()">Ver</button></div>
 <input id="df-q" class="df-q" placeholder="🔍 Buscar acta o recibo…" onkeydown="if(event.key==='Enter')dfBuscar_(this.value)"></div>
 <div id="df-cuerpo"></div>
+</section>
+
+<!-- api 3.36 · Fumigación (equipo propio, calendario aparte) -->
+<section id="pantalla-fumigacion" class="pantalla">
+<div class="cr-tt"><div><h1>Fumigación</h1><div class="sub">Equipo de fumigación · aparte de las rutas</div></div><span class="sp"></span>
+<button class="pl-btn a" id="fu-nueva" onclick="FU.d&&FU.d.programa.length?FU.agendar(''):toast('Ningún cliente tiene fumigación en su plan')">+ Agendar</button></div>
+<div id="fu-cuerpo"></div>
 </section>
 
 <section id="pantalla-entrega" class="pantalla">
@@ -4392,8 +4400,8 @@ function pintarHojaFalla_(){
     '<label class="jv-lab">¿Puedes ' + (HF.modo === "ruta" ? 'seguir' : 'salir') + ' así?</label>' +
     '<div class="jv-dos"><button class="si' + (HF.puedeSalir === "si" ? " on" : "") + '" onclick="HF.puedeSalir=\'si\';pintarHojaFalla_()">Sí, con cuidado<small>Se avisa a mantenimiento</small></button>' +
       '<button class="no' + (HF.puedeSalir === "no" ? " on" : "") + '" onclick="HF.puedeSalir=\'no\';pintarHojaFalla_()">No, es peligroso<small>' + (HF.modo === "ruta" ? 'Se avisa a logística ya' : 'No sale hasta que logística decida') + '</small></button></div>' +
-    (FOTOS_ACTIVAS ? '<label class="jv-foto">' + (HF.foto ? '📷 Foto lista · tocar para cambiar' : '📷 Agregar foto (opcional)') +
-       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HF.foto=d;pintarHojaFalla_();})"></label>' : '') +
+    (FOTOS_ACTIVAS ? '<label class="jv-foto">' + (HF.foto ? '📷 Foto lista · tocar para cambiar' : '📷 Tomar foto (opcional)') +
+       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HF.foto=d;pintarHojaFalla_();})"></label><label class="jv-foto jv-gal">🖼️ Subir de la galería<input type="file" accept="image/*" style="display:none" onchange="leerFoto_(this,function(d){HF.foto=d;pintarHojaFalla_();})"></label>' : '') +
     '<label class="jv-lab">Nota (opcional)</label><input class="jv-in" id="hf-nota" value="' + esc(HF.nota) + '" oninput="HF.nota=this.value" placeholder="Ej.: se notó desde ayer en la tarde">' +
     '<div class="jv-hpie"><button class="jv-btn sec" style="flex:1" onclick="cerrarHojaFalla_()">Cancelar</button>' +
       '<button class="jv-btn ' + (listo ? "azul" : "gris") + '" style="flex:1.4"' + (listo ? '' : ' disabled') + ' onclick="guardarHojaFalla_()">Guardar falla</button></div>' +
@@ -4630,7 +4638,7 @@ function pintarHojaCombustible_(){
     '<label class="jv-lab">Odómetro al cargar</label><div class="jv-odo"><input id="hc-k" inputmode="numeric" value="' + esc(HC.km) + '" placeholder="Kilometraje" oninput="HC.km=this.value.replace(/[^0-9]/g,\'\');calcComb_()"><span>km</span></div>' +
     '<div class="jv-ay ' + odo.c + '" id="hc-odo">' + esc(odo.t) + '</div><div style="height:10px"></div>' +
     (FOTOS_ACTIVAS ? '<label class="jv-foto">' + (HC.foto ? '📷 Foto del voucher lista' : '📷 Foto del voucher Maxiflota (opcional)') +
-       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HC.foto=d;pintarHojaCombustible_();})"></label>' : '') +
+       '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){HC.foto=d;pintarHojaCombustible_();})"></label><label class="jv-foto jv-gal">🖼️ Subir de la galería<input type="file" accept="image/*" style="display:none" onchange="leerFoto_(this,function(d){HC.foto=d;pintarHojaCombustible_();})"></label>' : '') +
     '<div class="jv-hpie"><button class="jv-btn sec" style="flex:1" onclick="$(\'hoja-comb\').classList.remove(\'ver\')">Cancelar</button>' +
       '<button class="jv-btn azul" id="hc-ok" style="flex:1.4"' + (listo ? '' : ' disabled') + ' onclick="guardarCargaComb_()">Guardar carga</button></div></div>';
   v.classList.add("ver"); v.onclick = function(){ v.classList.remove("ver"); };
@@ -4815,7 +4823,7 @@ try{ INI_PER = localStorage.getItem("eco_ini_per") || "semana"; }catch(e){}
 
 var MENU_SUP = [
   ["Operación"],
-  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["asis","🧭","Asistente de rutas"], ["mapadia","🗺️","Mapa del día"], ["agenda","🗓️","Calendario"],
+  ["hub","🏠","Inicio"], ["plan","🛠️","Planificar rutas"], ["asis","🧭","Asistente de rutas"], ["mapadia","🗺️","Mapa del día"], ["agenda","🗓️","Calendario"], ["fumigacion","🪲","Fumigación"],
   ["cierre","📊","Cierre de rutas"], ["clientes","👥","Clientes","clientes"],
   ["recibos","🧾","Recibos"], ["dfin","🏭","Disposición final"],
   ["Por revisar"],
@@ -9608,7 +9616,7 @@ document.querySelectorAll(".pantalla").forEach(function(p){p.classList.remove("a
 
 $("pantalla-"+tab).classList.add("activa");
 INI_TAB = tab;
-if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="flota") flCargar_(); if(tab==="mto") mtCargar_(); if(tab==="asis") asCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
+if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarInicio_(); if(tab==="cli2") cargarC2_(); else cerrarFullC2_(); if(tab==="cierre") crCargar_(); if(tab==="dfin") dfCargar_(); if(tab==="fumigacion" && window.FU){ FU.pin = PIN; FU.iniciar($("fu-cuerpo")); } if(tab==="flota") flCargar_(); if(tab==="mto") mtCargar_(); if(tab==="asis") asCargar_(); if(tab==="plan") plCargar_(PL_F || plHabilDespues_(hoyISO()), !!(ED && ED.sucio && ED.fecha === PL_F)); }
 
 if(tab==="paradas") renderParadas();
 
@@ -12547,6 +12555,7 @@ MK_IC.salir='<path d="M14 4h5v16h-5"/><path d="M10 8l-4 4 4 4M6 12h11"/>';
 MK_IC.idea='<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>';
 MK_IC.nube='<path d="M7 18a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.5 3.5 0 0 1 17.5 18z"/>';
 MK_IC.hoja='<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19l7-7"/>';
+MK_IC.fumigacion='<path d="M9 8h5v13H9z"/><path d="M10 8V5h3v3M13 5h3l2-2M16 7l3 0M16 3.5l2.5-1.5"/><path d="M9 13h5"/>';
 MK_IC.candado='<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.7-1.5"/>';
 var MK_EMO = {"🏠":"casa","⌂":"casa","🛠":"llave","🔧":"llave","🗓":"calendario","📅":"calendario","📊":"grafico","📈":"tendencia",
   "👥":"personas","👤":"persona","👨":"persona","🗺":"mapa","🧾":"recibo","🏭":"planta","🔔":"campana","🔎":"buscar","🔍":"buscar",
@@ -12554,7 +12563,7 @@ var MK_EMO = {"🏠":"casa","⌂":"casa","🛠":"llave","🔧":"llave","🗓":"c
   "📄":"documento","📋":"lista","📱":"movil","💬":"chat","📍":"visita","⏸":"pausa","⏹":"alto","✉":"correo","✍":"nota","✏":"lapiz",
   "📷":"camara","✅":"check","📞":"llamada","🛣":"ruta","💾":"guardar","📌":"pin","👁":"ojo","🧭":"brujula","⚙":"ajustes",
   "🖨":"imprimir","🏁":"bandera","🗑":"basura","🚪":"salir","🔗":"enlace","💡":"idea","☁":"nube","📎":"clip","🌱":"hoja",
-  "🏥":"edificio","🔓":"candado","☰":"menu","⬇":"bajar"};
+  "🏥":"edificio","🪲":"fumigacion","🔓":"candado","☰":"menu","⬇":"bajar"};
 var MK_RE = new RegExp("(" + Object.keys(MK_EMO).sort(function(a,b){ return b.length - a.length; })
   .map(function(k){ return k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")️?", "g");
 var MK_SALTA = { SCRIPT:1, STYLE:1, TEXTAREA:1, OPTION:1, SELECT:1, INPUT:1, TITLE:1, NOSCRIPT:1 };
@@ -14816,9 +14825,15 @@ function nr38MsgCliente_(){
     (s.accion === "tarde" ? "Volveremos más tarde hoy." : "Logística le escribirá para una nueva fecha.");
 }
 /* Fotos: se guardan en el teléfono hasta que suben (sin señal no se pierden) */
+/* api 3.36: también se pueden subir de la galería (varias a la vez, sin pasar del máximo) */
+function fotosGal38_(inp, max, o, repintar){
+  var fs = [].slice.call(inp.files || []);
+  (function sig(){ var f = fs.shift(); if(!f || o.fotos.length >= max){ repintar(); return; }
+    leerFoto_({ files: [f] }, function(d){ o.fotos.push(d); sig(); }); })();
+}
 function fotos38_(obj, lista, max, repintar){
   return '<div class="h38-fotos">' + lista.map(function(f, k){ return '<div class="f" style="background-image:url(' + f + ')"><button onclick="' + obj + '.fotos.splice(' + k + ',1);' + repintar + '()">✕</button></div>'; }).join("") +
-    (lista.length < max ? '<label>＋ Foto<br>(hasta ' + max + ')<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){' + obj + '.fotos.push(d);' + repintar + '();})"></label>' : '') + '</div>';
+    (lista.length < max ? '<label>📷 Tomar foto<br>(hasta ' + max + ')<input type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFoto_(this,function(d){' + obj + '.fotos.push(d);' + repintar + '();})"></label><label>🖼️ Galería<input type="file" accept="image/*" multiple style="display:none" onchange="fotosGal38_(this,' + max + ',' + obj + ',' + repintar + ')"></label>' : '') + '</div>';
 }
 function nr38Guardar_(){
   var s = NR38; if(!s || !s.motivo || !s.accion) return;
@@ -15438,6 +15453,10 @@ function bq38DetPtl_(id){
     '<div class="dg"><div><small>Qué pide</small><b>' + esc(x.tipoSol || "—") + '</b><span>' + esc(x.item) + '</span></div><div><small>Fecha preferida</small><b>' + (x.fechaPref ? esc(nombreDia_(x.fechaPref)) : "Sin preferencia") + '</b></div>' +
       '<div><small>Horario</small><b>' + esc(x.horario || "Por coordinar") + '</b></div><div><small>Estado</small><b>' + (x.respuesta ? "Respondida" : "Sin responder") + '</b></div></div>' +
     (x.nota ? '<div class="rel">«' + esc(x.nota) + '»</div>' : '') +
+    /* api 3.36: la fumigación se agenda en su calendario (y la respuesta le llega al cliente sola); si no está en su plan, la cotiza Mercadeo */
+    (x.esFum ? '<div class="sec">Fumigación <em>· ' + (x.tieneFum ? 'la tiene en su plan' : 'no la tiene en su plan') + '</em></div><div class="bb" style="margin-bottom:12px">' +
+      (x.tieneFum ? '<button class="p" onclick="FU.pin=PIN;FU.agendarSol(\'' + esc(id) + '\',function(){BQ.sel=\'\';cargarSolicitudes(true);})">' + sv38_("reloj") + ' Agendar la fumigación</button>'
+                  : '<button class="p" onclick="FU.pin=PIN;FU.aMercadeo(\'' + esc(id) + '\',function(){BQ.sel=\'\';cargarSolicitudes(true);})">Pasar a Mercadeo para cotizarla</button>') + '</div>' : '') +
     '<div class="sec">Respuesta para el cliente <em>· la lee en su portal; lo interno no va aquí</em></div>' +
     '<textarea class="in" id="bq38-ptx" rows="4" maxlength="600" style="width:100%;box-sizing:border-box;resize:vertical" placeholder="Ej. Le visitamos el martes 27 en la mañana." oninput="BQ_PTX[\'' + esc(id) + '\']=this.value">' + esc(tx || "") + '</textarea>' +
     '<div style="display:flex;gap:8px;align-items:center;margin:10px 0;font-size:13px;color:#0f2140"><input type="checkbox" id="bq38-pce" checked style="width:16px;height:16px;margin:0;flex:none"><span style="cursor:pointer" onclick="var c=$(\'bq38-pce\');c.checked=!c.checked">Marcar como atendida</span></div>' +
@@ -15895,6 +15914,7 @@ function cal38Cierre_(f, rutaId){
 </script>
 <!-- api 3.17 · desechos sólidos dentro de Logística (pestaña Peligrosos | Sólidos y la ruta del conductor) -->
 <script src="LogSolidos.js"></script>
+<script src="fumigacion.js"></script>
 <!-- ═══════════════════════════════════════════════════════════════════
      api 3.31 · ASISTENTE DE RUTAS (Logística)
      Aquí manda Álvaro: el asistente solo hace lo que está configurado en

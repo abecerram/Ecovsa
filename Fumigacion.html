@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fumigación · ECOVSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_/};</script>
+<script src="puente.js"></script>
+<link rel="stylesheet" href="modulo-kit.css">
+<script src="modulo-kit.js"></script>
+<script src="fumigacion.js"></script>
+<style>
+/* ═══ Fumigación (api 3.36) · la pantalla de quien fumiga, pensada para el celular ═══ */
+.ph h1{display:flex;align-items:center;gap:10px}
+.ph h1::before{content:"";width:10px;height:10px;border-radius:3px;background:#2f7d4f}
+</style>
+</head>
+<body>
+<script src="cargador.js" data-modulo="Fumigación"></script>
+<div id="sysbar"></div>
+<div class="mtabs" id="mtabs"></div>
+<div class="shell"><nav class="mnav" id="mnav"></nav><main class="main" id="main"></main></div>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   FUMIGACIÓN (api 3.36). Todo sale de api_fumInicio y lo pinta
+   fumigacion.js, la misma pieza que usa Logística › Fumigación.
+   Quien fumiga ve sus citas y registra lo hecho con la firma de quien
+   recibe; el supervisor ve además el programa y el calendario.
+   ════════════════════════════════════════════════════════════════ */
+MK.iniciar({
+  modulo: 'Fumigación',
+  base: 'api_fumInicio',
+  inicio: 'ini',
+  paginas: [{ g: 'FUMIGACIÓN' }, { id: 'ini', n: 'Fumigaciones', i: 'calendario' }],
+  alCargar: function (b) {
+    MK.usuario = { nombre: b.yo, rol: b.rol };
+    FU.d = b; FU.pin = MK.pinUso(); if (!FU.mes) FU.mes = b.hoy.slice(0, 7);
+    if (b.rol === 'fumigacion' && FU.vista === 'prog') FU.vista = 'mias';
+  },
+  pintar: function () {
+    if (!MK.base) return;
+    var m = document.getElementById('main');
+    m.innerHTML = MK.cabeza('Fumigación', MK.base.rol === 'fumigacion' ? 'Sus citas y el registro de lo hecho' : 'Programa, citas y calendario de fumigación') + '<div id="fu-cuerpo"></div>';
+    FU.cont = document.getElementById('fu-cuerpo'); FU.pintar();
+  }
+});
+</script>
+</body>
+</html>

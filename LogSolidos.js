@@ -147,6 +147,7 @@
   .sc-foto.si{border-style:solid;border-color:#bfe3b3;background:#eaf6e4;color:#1e5a2a}
   .sc-foto.sub{border-style:solid;border-color:#c4d2e6;background:#f2f6fb;color:#14306b}
   .sc-foto .mki{width:22px;height:22px}
+  .sc-gal{border-style:solid;margin-top:6px;padding:8px 11px;font-size:12.5px;justify-content:center}
   .sc-in{width:100%;box-sizing:border-box;border:1.5px solid #c4d2e6;border-radius:12px;padding:12px;font:800 20px Archivo,sans-serif;color:#141C2B;background:#fff}
   .sc-in.t{font-size:15px;font-weight:600}
   .sc-lbl{font-size:11px;font-weight:900;letter-spacing:1px;color:#5B6880;text-transform:uppercase;margin:2px 0 6px}
@@ -1853,7 +1854,7 @@
     if (!('otro' in b)) Object.assign(b, { fotoAntes: p.fotoAntes || '', fotoDespues: p.fotoDespues || '', otro: (p.otro || []).reduce(function (o, x) { o[x.t] = x.n; return o; }, {}), recibe: p.recibe || '', recibeNombre: p.recibeNombre || '', firma: p.firma || '', paso: 0 });
     if (b.atendida && p.servicio !== 'caja') { vPunto4(); return; }   /* api 3.26 */
     var seg = function (campo, ops) { return '<div class="sc-seg">' + ops.map(function (o) { return '<button type="button" class="' + (b[campo] === o ? 'on' : '') + '" onclick="DSO.parCampo(\'' + campo + '\',\'' + o + '\')">' + o + '</button>'; }).join('') + '</div>'; };
-    var fotoBtn = '<label class="sc-foto ' + (b.foto ? 'si' : b.subiendo ? 'sub' : '') + '">' + ic('camara') + (b.foto ? 'Foto del punto lista · tocar para cambiarla' : b.subiendo ? 'Subiendo la foto…' : 'Tomar la foto del punto') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.parFoto(this)"></label>';
+    var fotoBtn = '<label class="sc-foto ' + (b.foto ? 'si' : b.subiendo ? 'sub' : '') + '">' + ic('camara') + (b.foto ? 'Foto del punto lista · tocar para cambiarla' : b.subiendo ? 'Subiendo la foto…' : 'Tomar la foto del punto') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.parFoto(this)"></label><label class="sc-foto sc-gal">Subir una de la galería<input type="file" accept="image/*" style="display:none" onchange="DSO.parFoto(this)"></label>';
     var cuerpo;
     if (!b.atendida) {
       cuerpo = '<div class="jv-card"><div class="jv-tit">' + ic('alerta') + ' No pude recolectar</div><div class="sc-lbl" style="margin-top:6px">¿Qué pasó?</div><div class="sc-inc">' + h.incidencias.map(function (x) { return '<button type="button" class="' + (b.inc === x ? 'on' : '') + '" onclick="DSO.parCampo(\'inc\',\'' + e(x) + '\')">' + e(x) + '</button>'; }).join('') + '</div>' +
@@ -1914,7 +1915,7 @@
   function p4foto(b, k, txt) {
     var sub = b.subiendo === k;
     return '<label class="sc-foto ' + (b[k] ? 'si' : sub ? 'sub' : '') + '">' + ic('camara') + (b[k] ? '✓ Foto lista · tocar para cambiarla' : sub ? 'Subiendo la foto…' : txt) +
-      '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.p4Foto(this,\'' + k + '\')"></label>';
+      '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.p4Foto(this,\'' + k + '\')"></label><label class="sc-foto sc-gal">Subir una de la galería<input type="file" accept="image/*" style="display:none" onchange="DSO.p4Foto(this,\'' + k + '\')"></label>';
   }
   function vPunto4() {
     C.vista = 'par';
@@ -2009,7 +2010,7 @@
       (!ll ? '<button class="sc-btn" onclick="DSO.llegueRelleno()">✓ Llegué a la descarga</button><div style="font-size:12px;color:#5B6880;text-align:center;margin-top:6px">Se anota la hora y el GPS de llegada</div>' : '<div class="jv-card"><div class="jv-fila"><b>Llegada a la descarga</b><span>' + e(ll.llegada) + '</span></div></div>') +
       '<div class="jv-card"><div class="sc-lbl">Bolsas que entregas</div><div class="sc-cnt"><button type="button" class="m" onclick="DSO.tkBol(-1)">–</button><div class="v"><b>' + N(t.bolsas) + '</b><small>BOLSAS</small></div><button type="button" class="p" onclick="DSO.tkBol(1)">+</button></div>' +
       '<div style="font-size:12px;color:#5B6880;text-align:center">Contaste ' + N(nb) + ' en los puntos</div>' +
-      '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto de la descarga lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto de la descarga') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label></div>' +
+      '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto de la descarga lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto de la descarga') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label><label class="sc-foto sc-gal">Subir una de la galería<input type="file" accept="image/*" style="display:none" onchange="DSO.tkFoto(this)"></label></div>' +
       '<div class="sc-lbl" style="margin-top:10px">¿Quién recibió en la planta?</div><input class="sc-in t" value="' + e(t.recibio || '') + '" oninput="DSO.con.borr.tk.recibio=this.value" placeholder="Nombre"></div>' +
       '<button class="sc-btn v" onclick="DSO.descGuardar()"' + (t.subiendo ? ' disabled' : '') + '>✓ Terminé la descarga</button><button class="mc-mal" onclick="DSO.tkSet(\'modo\',\'\')">Cambiar el destino o cómo se pesa</button><button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
   }
@@ -2130,7 +2131,7 @@
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><div class="sc-lbl">Peso lleno (kg)</div><input class="sc-in" inputmode="numeric" value="' + e(t.lleno) + '" oninput="DSO.tkPeso(\'lleno\',this.value)"></div><div><div class="sc-lbl">Peso vacío (kg)</div><input class="sc-in" inputmode="numeric" value="' + e(t.vacio) + '" oninput="DSO.tkPeso(\'vacio\',this.value)"></div></div>' +
       '<div class="sc-lbl" style="margin-top:10px">Si el ticket solo trae el neto</div><input class="sc-in" inputmode="numeric" value="' + e(t.neto) + '" oninput="DSO.tkPeso(\'neto\',this.value)" placeholder="Neto (kg)">' +
       '<div style="margin-top:10px;background:#eaf6e4;border:1px solid #bfe3b3;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center"><b style="color:#1e5a2a">Neto</b><b style="font-size:22px;color:#1e5a2a" id="sc-neto">' + (neto > 0 ? N(neto) + ' kg' : '—') + '</b></div>' +
-      '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto del ticket lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto del ticket (comprobante)') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label></div></div>' +
+      '<div style="margin-top:10px"><label class="sc-foto ' + (t.foto ? 'si' : t.subiendo ? 'sub' : '') + '">' + ic('camara') + (t.foto ? 'Foto del ticket lista · tocar para cambiarla' : t.subiendo ? 'Subiendo la foto…' : 'Foto del ticket (comprobante)') + '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="DSO.tkFoto(this)"></label><label class="sc-foto sc-gal">Subir una de la galería<input type="file" accept="image/*" style="display:none" onchange="DSO.tkFoto(this)"></label></div></div>' +
       '<button class="sc-btn am" onclick="DSO.tkGuardar()"' + (t.subiendo ? ' disabled' : '') + '>Guardar el ticket</button>' + (h.tipo !== 'rolloff' ? '<button class="mc-mal" onclick="DSO.tkSet(\'modo\',\'\')">Cambiar el destino o cómo se pesa</button>' : '') + '<button class="sc-btn sec" onclick="DSO.conAbrir(\'ruta\')">Volver a la ruta</button><div style="height:20px"></div>');
   }
   D.llegueRelleno = function () { gpsAhora().then(function (g) { return S('api_dsoLlegue', PIN, C.hoja.hojaId, 'relleno', g, (C.borr.tk || {}).relleno || C.hoja.relleno || ''); }).then(function (r) { aviso('Llegada a la descarga ' + r.hora + (r.dist != null ? (r.dist > 300 ? ' · ojo: estás a ' + mTx(r.dist) + ' del destino' : ' · en el destino') : '')); return traer(); }).then(vRelleno).catch(falla); };   /* api 3.28.2 */

@@ -114,7 +114,7 @@
   var DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
   var DIAS_L = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   MK.MESES = MESES; MK.MESES_L = MESES_L; MK.DIAS = DIAS; MK.DIAS_L = DIAS_L;
-  MK.ROLES = { admin: 'Administrador', gerente: 'Gerente', supervisor: 'Supervisor', mercadeo: 'Mercadeo', planta: 'Planta', cobros: 'Cobros', operador: 'Conductor' };
+  MK.ROLES = { admin: 'Administrador', gerente: 'Gerente', supervisor: 'Supervisor', mercadeo: 'Mercadeo', planta: 'Planta', cobros: 'Cobros', operador: 'Conductor', fumigacion: 'Fumigación' };
   MK.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   MK.n = function (v) { var x = Number(String(v == null ? 0 : v).replace(/,/g, '')); return isFinite(x) ? x : 0; };
   MK.num = function (v, d) { return MK.n(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
