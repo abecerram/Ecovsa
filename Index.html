@@ -16465,6 +16465,403 @@ c2RepRevisado_ = function(repId){
   }).withFailureHandler(function(){ toast("Sin señal"); }).api_reposicionRevisada(PIN, repId, "");
 };
 </script>
+<style id="estilo-337">
+/* ═══ api 3.37 · navegación dentro de la app y ubicación del camión ═══ */
+#pantalla-navegar.activa{position:fixed;inset:0;z-index:8000;background:#eef1f4;padding:0;margin:0;max-width:none;overflow:hidden;font-family:Archivo,system-ui,sans-serif}
+#nv-mapa{position:absolute;inset:0;background:#e9edf2}
+.nv-ins{position:absolute;top:0;left:0;right:0;z-index:500;background:#0f2a57;color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 13px;border-radius:0 0 20px 20px;box-shadow:0 8px 24px rgba(15,33,64,.3)}
+.nv-ins.verde{background:#2d6a0b}.nv-ins.gris{background:#3d4a60}
+.nv-ins .f{display:flex;gap:14px;align-items:center}.nv-ins .fl{width:56px;height:56px;flex:none;border-radius:16px;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.nv-ins b{display:block;font-size:29px;font-weight:900;line-height:1.05}.nv-ins span{display:block;font-size:15.5px;font-weight:700;margin-top:4px;color:#dbe6fb;line-height:1.3}
+.nv-ins .lu{margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.15);font-size:13px;font-weight:600;color:#a9bbd9}
+.nv-ins .x{position:absolute;right:12px;top:calc(10px + env(safe-area-inset-top));width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:18px;cursor:pointer}
+.nv-flot{position:absolute;right:14px;z-index:500;width:46px;height:46px;border-radius:50%;border:0;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(15,33,64,.2);font-size:19px;cursor:pointer}
+.nv-gps{position:absolute;left:14px;z-index:500;background:#fff;border-radius:99px;padding:7px 12px;font-size:12px;font-weight:700;color:#2f6b0a;box-shadow:0 4px 14px rgba(15,33,64,.18);display:flex;gap:7px;align-items:center}
+.nv-gps i{width:8px;height:8px;border-radius:50%;background:#2f9e44}.nv-gps.am{color:#8a6300}.nv-gps.am i{background:#d99a00}
+.nv-hoja{position:absolute;left:0;right:0;bottom:0;z-index:500;background:#fff;border-radius:22px 22px 0 0;padding:12px 18px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 26px rgba(15,33,64,.18);max-width:640px;margin:0 auto}
+.nv-hoja .asa{width:40px;height:4px;border-radius:4px;background:#d3d9e2;margin:0 auto 10px}
+.nv-eta{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.nv-eta b{font-size:27px;font-weight:900;color:#2f6b0a}.nv-eta span{font-size:14px;color:#667489;font-weight:700}
+.nv-cli{margin:6px 0 12px;display:flex;gap:10px;align-items:center}.nv-cli .n{width:30px;height:30px;border-radius:9px;background:#14306b;color:#fff;display:grid;place-items:center;font-weight:900;flex:none}
+.nv-cli b{display:block;font-size:16px;color:#0f2140}.nv-cli small{color:#667489;font-size:12.5px;font-weight:600}
+.nv-bt{display:flex;gap:8px}.nv-bt button,.nv-bt a{flex:1;border:1.5px solid #d3d9e2;background:#fff;border-radius:12px;padding:12px 6px;font:800 14px Archivo,sans-serif;color:#14306b;text-align:center;text-decoration:none;cursor:pointer}
+.nv-bt .lg{flex:2.2;background:#2d6a0b;border-color:#2d6a0b;color:#fff;font-size:17px;font-weight:900}.nv-bt .lg.off{background:#eef1f4;border-color:#e1e6ee;color:#8a96a8;font-size:13.5px;font-weight:800}
+.nv-lista{display:block;width:100%;margin-top:10px;border:0;background:none;font:700 13px Archivo,sans-serif;color:#667489;text-decoration:underline;cursor:pointer}
+.nv-yo{width:26px;height:26px;border-radius:50%;background:#14306b;border:4px solid #fff;box-shadow:0 0 0 7px rgba(20,48,107,.18);display:grid;place-items:center}
+.nv-yo svg{width:12px;height:12px}
+.nv-pin{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#2f9e44;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.ub37-chip{display:flex;align-items:center;gap:8px;margin:12px 0 0;background:rgba(255,255,255,.1);border-radius:12px;padding:9px 12px;font:700 12.5px Archivo,sans-serif;color:#dbe6fb;cursor:pointer}
+.ub37-chip i{width:8px;height:8px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 4px rgba(74,222,128,.25);flex:none}.ub37-chip b{color:#fff}
+.ub37-chip.am i{background:#F5B301;box-shadow:0 0 0 4px rgba(245,179,1,.25)}
+.ub37-hoja .ic{width:52px;height:52px;border-radius:16px;background:#e8effb;display:grid;place-items:center;font-size:26px;margin-bottom:8px}
+.ub37-hoja ul{margin:0 0 14px;padding:0;list-style:none}.ub37-hoja li{display:flex;gap:10px;font-size:13.5px;line-height:1.4;padding:8px 0;border-top:1px solid #e1e6ee;color:#0f2140;font-weight:600}.ub37-hoja li span{flex:none;width:22px;text-align:center}
+.ub37-hoja small{display:block;text-align:center;margin-top:10px;font-size:12px;color:#667489;font-weight:600}
+.md37-cam{width:34px;height:34px;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;font-size:16px;box-shadow:0 3px 10px rgba(10,30,60,.4)}
+.md37-cam.am{filter:grayscale(.5);box-shadow:0 0 0 3px #F5B301,0 3px 10px rgba(10,30,60,.4)}
+.md37-lin{display:block;margin-top:4px;font-size:11.5px;font-weight:700;color:#2f6b0a}.md37-lin.am{color:#8A6300}
+</style>
+<script id="js-337">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.37 · SEGUIMIENTO DEL CAMIÓN (lo aprobado por Álvaro el 22 oct)
+   · GEO37: una sola lectura del GPS para todo (navegar y mandar la ubicación).
+   · UB37: mientras la ruta está abierta, la posición va al servidor cada
+     minuto o cada 200 m, con una credencial que vale solo para esa ruta y
+     ese día. Si no hay señal, se guarda y se manda cuando vuelve.
+   · NV37: la pantalla «Navegar» con las vueltas de Google, voz y el botón
+     «Llegué» que aparece a 150 m del local. El conductor ya no sale de la app.
+   ═══════════════════════════════════════════════════════════════════ */
+var GEO37 = { w: null, yo: null, oy: [] };
+GEO37.on = function(f){ if(GEO37.oy.indexOf(f) < 0) GEO37.oy.push(f); GEO37.prender(); };
+GEO37.prender = function(){
+  if(GEO37.w !== null || !navigator.geolocation) return;
+  GEO37.w = navigator.geolocation.watchPosition(function(pos){
+    var c = pos.coords;
+    GEO37.yo = { t: Date.now(), lat: c.latitude, lng: c.longitude, prec: c.accuracy, vel: c.speed, rumbo: c.heading };
+    GEO37.error = null;
+    GEO37.oy.forEach(function(f){ try{ f(GEO37.yo); }catch(e){ console.error(e); } });
+  }, function(e){ GEO37.error = e && e.code === 1 ? "permiso" : "senal"; UB37.chip(); NV37.pintarGps(); }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+};
+GEO37.apagar = function(){ if(GEO37.w !== null && navigator.geolocation) navigator.geolocation.clearWatch(GEO37.w); GEO37.w = null; };
+function m37_(a, b){ var R = 6371000, r = function(x){ return x * Math.PI / 180; }, h = Math.pow(Math.sin(r(b.lat - a.lat) / 2), 2) + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.pow(Math.sin(r(b.lng - a.lng) / 2), 2); return 2 * R * Math.asin(Math.min(1, Math.sqrt(h))); }
+function llamar37_(fn){
+  var a = Array.prototype.slice.call(arguments, 1);
+  if(window.PUENTE && PUENTE.llamar) return PUENTE.llamar.apply(null, [fn].concat(a));
+  return new Promise(function(ok, mal){ var r = google.script.run.withSuccessHandler(ok).withFailureHandler(mal); r[fn].apply(r, a); });
+}
+
+/* ── UB37 · mandar la ubicación ── */
+var UB37 = { cred: null, activo: false, cola: [], ult: null, mandando: false, aceptado: null, preguntado: false, cadaSeg: 60, cadaM: 200 };
+UB37.K = "eco_ubi37";
+UB37.leer = function(){ try{ var x = JSON.parse(localStorage.getItem(UB37.K) || "null"); if(x && x.cola) UB37.cola = x.cola; if(x && x.cred && x.cred.fecha === hoyISO()) UB37.cred = x.cred; }catch(e){} };
+UB37.guardar = function(){ try{ localStorage.setItem(UB37.K, JSON.stringify({ cred: UB37.cred, cola: UB37.cola.slice(-300) })); }catch(e){} };
+UB37.fuente = function(){ return window.EcovsaApp ? "apk" : "web"; };
+/* ¿toca compartir? conductor, ruta de hoy abierta y con paradas por atender */
+UB37.toca = function(){
+  if(!PIN || esSupervisor() || !RUTA || !RUTA.rutaId || RUTA.cierre) return false;
+  if((RUTA.fecha || "") !== hoyISO()) return false;
+  return (RUTA.paradas || []).some(function(p){ return !pAtendida_(p); });
+};
+UB37.destino = function(){
+  if(NV37.abierta() && NV37.cid > 0) return String(NV37.cid);
+  var s = siguientePendiente(0); return s >= 0 ? String(RUTA.paradas[s].clienteId) : "";
+};
+UB37.revisar = function(){
+  if(!UB37.toca()){
+    if(UB37.activo){ UB37.evento("fin"); UB37.activo = false; }
+    UB37.chip(); return;
+  }
+  if(UB37.activo) return;
+  if(UB37.cred && UB37.cred.ruta === RUTA.rutaId && UB37.aceptado){ UB37.arrancar(); return; }
+  if(UB37.pidiendo) return;
+  UB37.pidiendo = true;
+  llamar37_("api_ubiCredencial", PIN, RUTA.rutaId).then(function(r){
+    UB37.pidiendo = false;
+    if(!r || !r.ok || !r.activo){ UB37.cred = null; UB37.chip(); return; }
+    UB37.cred = r.cred; UB37.aceptado = !!r.aceptado; UB37.cadaSeg = r.cadaSeg || 60; UB37.cadaM = r.cadaM || 200; UB37.guardar();
+    if(UB37.aceptado) UB37.arrancar(); else { UB37.chip(); if(!UB37.preguntado) UB37.explicar(); }
+  }, function(){ UB37.pidiendo = false; UB37.chip(); });
+};
+UB37.arrancar = function(){
+  UB37.activo = true;
+  GEO37.on(UB37.punto);
+  UB37.chip(); UB37.mandar();
+};
+/* La explicación de la primera vez (Ley 81: el conductor sabe qué se comparte y con quién) */
+UB37.explicar = function(){
+  UB37.preguntado = true;
+  cdHoja_('<div class="ub37-hoja"><div class="ic">📍</div><h3>Tu ruta se comparte mientras trabajas</h3><p>Para que logística y el cliente que sigue sepan cuándo llegas:</p><ul>' +
+    '<li><span>🚚</span><div>El teléfono envía por dónde va el camión <b>solo durante la ruta</b>. Al terminar las paradas se apaga sola.</div></li>' +
+    '<li><span>👀</span><div>Lo ve logística. Cada cliente ve el camión <b>solo cuando su local es la siguiente parada</b>.</div></li>' +
+    '<li><span>🗓️</span><div>El recorrido punto a punto se borra a los 30 días.</div></li></ul>' +
+    '<button class="btn" id="ub37-ok" onclick="UB37.aceptar()">Entendido · permitir ubicación</button>' +
+    '<small>El teléfono te preguntará si permites la ubicación: elige «Permitir». Esto se muestra una sola vez y queda registrado.</small></div>');
+};
+UB37.aceptar = function(){
+  var b = $("ub37-ok"); if(b){ b.disabled = true; b.textContent = "Un momento…"; }
+  llamar37_("api_ubiAceptar", PIN).then(function(r){
+    if(!r || !r.ok){ if(b){ b.disabled = false; b.textContent = "Entendido · permitir ubicación"; } toast((r && r.error) || "No se pudo"); return; }
+    UB37.aceptado = true; cdCerrarHoja_(); UB37.arrancar();
+  }, function(){ if(b){ b.disabled = false; b.textContent = "Entendido · permitir ubicación"; } toast("Sin señal: intenta de nuevo"); });
+};
+UB37.punto = function(p){
+  if(!UB37.activo) return;
+  var u = UB37.ult;
+  if(u && p.t - u.t < UB37.cadaSeg * 1000 && m37_(u, p) < UB37.cadaM) return;
+  UB37.encolar({ t: p.t, lat: +p.lat.toFixed(6), lng: +p.lng.toFixed(6), prec: Math.round(p.prec || 0), vel: p.vel == null ? null : +p.vel.toFixed(1),
+                 rumbo: p.rumbo == null || isNaN(p.rumbo) ? null : Math.round(p.rumbo), dest: UB37.destino() });
+};
+UB37.encolar = function(x){ UB37.cola.push(x); if(!x.ev) UB37.ult = x; if(UB37.cola.length > 300) UB37.cola = UB37.cola.slice(-300); UB37.guardar(); UB37.mandar(); };
+UB37.evento = function(ev, cid){
+  if(!UB37.cred) return;
+  var y = GEO37.yo, c = cid ? cli(Number(cid)) : null;
+  var ll = y && Date.now() - y.t < 180000 ? y : (c && c.lat ? { lat: c.lat, lng: c.lng } : y);
+  if(!ll) return;
+  UB37.encolar({ t: Date.now(), lat: +Number(ll.lat).toFixed(6), lng: +Number(ll.lng).toFixed(6), ev: ev, cid: cid ? String(cid) : "", dest: UB37.destino() });
+};
+UB37.mandar = function(){
+  if(UB37.mandando || !UB37.cola.length || !UB37.cred) return;
+  UB37.mandando = true;
+  var lote = UB37.cola.slice(0, 100);
+  llamar37_("api_ubiEnviar", UB37.cred, lote, UB37.fuente()).then(function(r){
+    UB37.mandando = false;
+    if(r && r.ok === false && /Credencial/.test(r.error || "")){ UB37.cred = null; UB37.cola = []; UB37.guardar(); UB37.activo = false; UB37.chip(); return; }
+    if(r && r.ok !== false){ UB37.cola = UB37.cola.slice(lote.length); UB37.enviadoEn = Date.now(); UB37.guardar(); }
+    if(r && r.parar){ UB37.activo = false; UB37.cola = []; UB37.guardar(); }
+    UB37.chip(); NV37.pintarGps();
+    if(UB37.cola.length && r && r.ok !== false) setTimeout(UB37.mandar, 500);
+  }, function(){ UB37.mandando = false; UB37.chip(); NV37.pintarGps(); });
+};
+/* parado en un local el GPS casi no avisa: se manda igual cada minuto para que no parezca «sin señal» */
+setInterval(function(){
+  UB37.revisar();
+  if(UB37.activo && GEO37.yo && Date.now() - GEO37.yo.t < 120000 && (!UB37.ult || Date.now() - UB37.ult.t >= UB37.cadaSeg * 1000))
+    UB37.encolar({ t: Date.now(), lat: +GEO37.yo.lat.toFixed(6), lng: +GEO37.yo.lng.toFixed(6), prec: Math.round(GEO37.yo.prec || 0), dest: UB37.destino() });
+  UB37.mandar();
+}, 30000);
+UB37.estado = function(){
+  if(!UB37.toca()) return "";
+  if(GEO37.error === "permiso") return "permiso";
+  if(!UB37.activo) return UB37.cred && !UB37.aceptado ? "aceptar" : "";
+  return "activa";
+};
+/* la línea del tablero: «Ubicación activa · solo durante la ruta» */
+UB37.chip = function(){
+  var tb = $("hub-operador"); if(!tb) return;
+  var e = tb.querySelector(".ub37-chip"), st = UB37.estado();
+  if(!st){ if(e) e.remove(); return; }
+  if(!e){ var go = tb.querySelector(".tb-go"); if(!go) return; e = document.createElement("div"); go.parentNode.insertBefore(e, go); }
+  e.className = "ub37-chip" + (st === "activa" ? "" : " am");
+  e.innerHTML = st === "activa" ? '<i></i><span><b>Ubicación activa</b> · solo durante la ruta</span>'
+    : st === "permiso" ? '<i></i><span><b>Activa la ubicación del teléfono</b> · logística no ve dónde vas</span>'
+    : '<i></i><span><b>Toca para compartir tu ubicación</b> durante la ruta</span>';
+  e.onclick = function(ev){ ev.stopPropagation(); if(st === "aceptar") UB37.explicar(); else if(st === "permiso") toast("Activa la ubicación en los ajustes del teléfono para esta app"); };
+};
+
+/* ── NV37 · la pantalla Navegar ── */
+var NV37 = { m: null, cid: 0, dest: null, ruta: null, pts: [], pasos: [], k: -1, sigue: true, fuera: 0, pedidoEn: 0, dicho: {}, wake: null };
+NV37.abierta = function(){ var s = $("pantalla-navegar"); return !!(s && s.classList.contains("activa")); };
+NV37.armar = function(){
+  if($("pantalla-navegar")) return;
+  var s = document.createElement("section"); s.id = "pantalla-navegar"; s.className = "pantalla";
+  s.innerHTML = '<div id="nv-mapa"></div><div class="nv-ins" id="nv-ins"></div>' +
+    '<button class="nv-flot" id="nv-voz" style="top:150px" onclick="NV37.voz()" aria-label="Voz"></button>' +
+    '<button class="nv-flot" id="nv-cen" style="top:204px;display:none" onclick="NV37.centrar()" aria-label="Centrar">◎</button>' +
+    '<div class="nv-gps" id="nv-gps"></div><div class="nv-hoja" id="nv-hoja"></div>';
+  var ref = $("pantalla-mapa"); (ref && ref.parentNode ? ref.parentNode : document.body).insertBefore(s, ref ? ref.nextSibling : null);
+};
+NV37.vozOn = function(){ try{ return localStorage.getItem("eco_nav_voz") !== "no"; }catch(e){ return true; } };
+NV37.voz = function(){ try{ localStorage.setItem("eco_nav_voz", NV37.vozOn() ? "no" : "si"); }catch(e){} NV37.pintarVoz(); if(NV37.vozOn()) NV37.decir("Voz activada"); else if(window.speechSynthesis) speechSynthesis.cancel(); };
+NV37.pintarVoz = function(){ var b = $("nv-voz"); if(b) b.textContent = NV37.vozOn() ? "🔊" : "🔇"; };
+NV37.decir = function(t){
+  if(!NV37.vozOn() || !window.speechSynthesis || !t) return;
+  try{ speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(t); u.lang = "es-419"; u.rate = 1; speechSynthesis.speak(u); }catch(e){}
+};
+/* abrir hacia un cliente de la ruta (id) o hacia un punto ({lat,lng,nombre}: planta, descarga o base) */
+NV37.abrir = function(dest){
+  NV37.armar();
+  if(typeof dest === "object" && dest){ NV37.cid = 0; NV37.dest = { lat: Number(dest.lat), lng: Number(dest.lng), nombre: dest.nombre || "el destino", tel: "" }; }
+  else {
+    var c = cli(Number(dest)); if(!c){ toast("No encontré ese cliente"); return; }
+    if(c.lat == null || c.lng == null){ toast("Este cliente no tiene ubicación: manda la tuya al llegar"); return; }
+    NV37.cid = Number(dest); NV37.dest = { lat: Number(c.lat), lng: Number(c.lng), nombre: c.nombre, tel: c.telefono || "", dir: c.direccion || "" };
+  }
+  NV37.ruta = null; NV37.pts = []; NV37.pasos = []; NV37.k = -1; NV37.dicho = {}; NV37.sigue = true; NV37.fuera = 0; NV37.pedidoEn = 0; NV37.llegando = false;
+  mostrarTab("navegar");
+  if(!NV37.m){
+    NV37.m = L.map("nv-mapa", { zoomControl: false, attributionControl: false, zoomAnimation: false, fadeAnimation: false });
+    m36Capas_(NV37.m, "calle");
+    NV37.m.on("dragstart", function(){ NV37.sigue = false; var b = $("nv-cen"); if(b) b.style.display = "grid"; });
+  }
+  setTimeout(function(){ NV37.m.invalidateSize(); }, 60);
+  if(NV37.capa) NV37.m.removeLayer(NV37.capa);
+  NV37.capa = L.layerGroup().addTo(NV37.m);
+  L.marker([NV37.dest.lat, NV37.dest.lng], { icon: L.divIcon({ className: "", html: '<div class="nv-pin"></div>', iconSize: [34, 34], iconAnchor: [6, 34] }) }).addTo(NV37.capa);
+  NV37.m.setView([NV37.dest.lat, NV37.dest.lng], 15);
+  NV37.pintarVoz(); NV37.pintar(); NV37.pintarGps();
+  GEO37.on(NV37.posicion);
+  if(GEO37.yo && Date.now() - GEO37.yo.t < 60000) NV37.posicion(GEO37.yo);
+  NV37.despierto(true);
+  UB37.revisar();
+};
+NV37.cerrar = function(){ NV37.despierto(false); if(window.speechSynthesis) try{ speechSynthesis.cancel(); }catch(e){} };
+/* la pantalla no se apaga mientras navega */
+NV37.despierto = function(si){
+  if(!("wakeLock" in navigator)) return;
+  if(si && !NV37.wake) navigator.wakeLock.request("screen").then(function(w){ NV37.wake = w; w.addEventListener("release", function(){ NV37.wake = null; }); }).catch(function(){});
+  if(!si && NV37.wake){ NV37.wake.release().catch(function(){}); NV37.wake = null; }
+};
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible" && NV37.abierta()) NV37.despierto(true); });
+NV37.centrar = function(){ NV37.sigue = true; var b = $("nv-cen"); if(b) b.style.display = "none"; if(GEO37.yo) NV37.m.setView([GEO37.yo.lat, GEO37.yo.lng], 17); };
+NV37.pedirRuta = function(y){
+  if(Date.now() - NV37.pedidoEn < 40000) return;
+  NV37.pedidoEn = Date.now();
+  var d = NV37.cid > 0 ? NV37.cid : { lat: NV37.dest.lat, lng: NV37.dest.lng };
+  llamar37_("api_navRuta", PIN, { lat: y.lat, lng: y.lng, rumbo: y.rumbo }, d).then(function(r){
+    if(!r || !r.ok){ NV37.sinGoogle = (r && r.error) || "Sin camino"; NV37.dibujar(); return; }
+    NV37.sinGoogle = r.ruta ? "" : (r.googleError || "Sin camino");
+    NV37.ruta = r.ruta || null; NV37.k = -1; NV37.dicho = {}; NV37.fuera = 0;
+    NV37.pasos = (NV37.ruta && NV37.ruta.pasos || []).map(function(s){ return { m: s.m, seg: s.seg, txt: String(s.txt || ""), man: s.man, pts: m36Dec_(s.poly).map(function(q){ return { lat: q[0], lng: q[1] }; }) }; });
+    NV37.pts = []; NV37.pasos.forEach(function(s, k){ s.pts.forEach(function(q){ NV37.pts.push({ lat: q.lat, lng: q.lng, k: k }); }); });
+    NV37.dibujar(); if(GEO37.yo) NV37.posicion(GEO37.yo);
+  }, function(){ NV37.pedidoEn = 0; NV37.sinGoogle = "Sin señal"; NV37.dibujar(); });
+};
+NV37.dibujar = function(){
+  if(!NV37.m) return;
+  if(NV37.linea) NV37.capa.removeLayer(NV37.linea);
+  var y = GEO37.yo, ll = NV37.pts.length ? NV37.pts.map(function(q){ return [q.lat, q.lng]; }) : (y ? [[y.lat, y.lng], [NV37.dest.lat, NV37.dest.lng]] : []);
+  if(!ll.length) return;
+  NV37.linea = L.layerGroup([L.polyline(ll, { color: "#fff", weight: 11, opacity: .95 }), L.polyline(ll, { color: "#14306b", weight: 7, dashArray: NV37.pts.length ? null : "2 10" })]).addTo(NV37.capa);
+};
+/* el punto más cercano de la ruta: en qué paso va y cuánto le falta */
+NV37.donde = function(y){
+  var P = NV37.pts, mejor = -1, md = 1e9;
+  for(var i = 0; i < P.length; i++){ var d = m37_(y, P[i]); if(d < md){ md = d; mejor = i; } }
+  if(mejor < 0) return null;
+  var resto = 0, finPaso = 0, k = P[mejor].k;
+  for(var j = mejor; j < P.length - 1; j++){ var t = m37_(P[j], P[j + 1]); resto += t; if(P[j + 1].k === k) finPaso += t; }
+  return { i: mejor, lejos: md, k: k, resto: resto + md, finPaso: finPaso + md };
+};
+NV37.posicion = function(y){
+  if(!NV37.abierta() || !NV37.dest) return;
+  if(!NV37.yoM) NV37.yoM = L.marker([y.lat, y.lng], { zIndexOffset: 3000, icon: L.divIcon({ className: "", html: '<div class="nv-yo"><svg viewBox="0 0 12 12"><path d="M6 1l4 10-4-2.5L2 11z" fill="#fff"/></svg></div>', iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(NV37.m);
+  else NV37.yoM.setLatLng([y.lat, y.lng]);
+  if(NV37.yoM._icon && y.rumbo != null && !isNaN(y.rumbo)){ var s = NV37.yoM._icon.querySelector("svg"); if(s) s.style.transform = "rotate(" + Math.round(y.rumbo) + "deg)"; }
+  if(NV37.sigue) NV37.m.setView([y.lat, y.lng], Math.max(NV37.m.getZoom() || 16, 16), { animate: false });
+  if(!NV37.ruta && !NV37.sinGoogle) NV37.pedirRuta(y);
+  NV37.dLocal = m37_(y, NV37.dest);
+  var antes = NV37.llegando; NV37.llegando = NV37.dLocal <= 150;
+  if(NV37.llegando && !antes) NV37.decir("Llegaste. " + NV37.dest.nombre + ".");
+  NV37.pos = NV37.pts.length ? NV37.donde(y) : null;
+  /* fuera del camino dos veces seguidas: se pide otro camino */
+  if(NV37.pos && NV37.pos.lejos > 60 && (y.prec || 0) < 50 && !NV37.llegando){ NV37.fuera++; if(NV37.fuera >= 2){ NV37.ruta = null; NV37.pts = []; NV37.pasos = []; NV37.fuera = 0; NV37.pedirRuta(y); } }
+  else NV37.fuera = 0;
+  if(NV37.pos && !NV37.llegando){
+    var k = NV37.pos.k, sig = NV37.pasos[k + 1], fp = NV37.pos.finPaso;
+    if(k !== NV37.k){ NV37.k = k; if(sig) NV37.decir("En " + NV37.dist(fp) + ", " + NV37.linea1(sig.txt)); }
+    if(sig && fp < 80 && !NV37.dicho[k]){ NV37.dicho[k] = 1; NV37.decir(NV37.linea1(sig.txt)); }
+  }
+  NV37.pintar();
+};
+NV37.linea1 = function(t){ return String(t || "").split("\n")[0]; };
+NV37.dist = function(m){ m = Math.max(0, m); return m >= 1000 ? (Math.round(m / 100) / 10).toString().replace(".", ",") + " km" : (m >= 100 ? Math.round(m / 50) * 50 : Math.max(10, Math.round(m / 10) * 10)) + " m"; };
+NV37.flecha = function(man){
+  man = String(man || "");
+  var d = /UTURN/.test(man) ? (/LEFT/.test(man) ? '<path d="M17 20V9a5 5 0 0 0-10 0v4"/><path d="M3 10l4 4 4-4"/>' : '<path d="M7 20V9a5 5 0 0 1 10 0v4"/><path d="M13 10l4 4 4-4"/>')
+    : /ROUNDABOUT/.test(man) ? '<circle cx="12" cy="10" r="4"/><path d="M12 21v-7"/><path d="M16 7l2-3"/>'
+    : /LEFT/.test(man) ? '<path d="M18 21V11a3 3 0 0 0-3-3H5"/><path d="M9 4L5 8l4 4"/>'
+    : /RIGHT/.test(man) ? '<path d="M6 21V11a3 3 0 0 1 3-3h10"/><path d="M15 4l4 4-4 4"/>'
+    : '<path d="M12 21V4"/><path d="M6 10l6-6 6 6"/>';
+  return '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+};
+NV37.pintar = function(){
+  var ins = $("nv-ins"), hoja = $("nv-hoja"); if(!ins || !NV37.dest) return;
+  var D = NV37.dest, y = GEO37.yo, x = '<button class="x" onclick="NV37.salir()" aria-label="Cerrar">✕</button>';
+  if(NV37.llegando){
+    ins.className = "nv-ins verde";
+    ins.innerHTML = x + '<div class="f"><div class="fl"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div><div><b>Llegaste</b><span>' + esc(D.nombre) + '</span></div></div>';
+  } else if(!y){
+    ins.className = "nv-ins gris";
+    ins.innerHTML = x + '<div class="f"><div class="fl">📍</div><div><b>Buscando tu ubicación…</b><span>Revisa que el GPS esté prendido</span></div></div>';
+  } else if(NV37.pos && NV37.pasos.length){
+    var sig = NV37.pasos[NV37.pos.k + 1], ult = !sig;
+    var t = ult ? "Tu destino" : NV37.linea1(sig.txt), lu = !ult && NV37.pasos[NV37.pos.k + 2] ? NV37.linea1(NV37.pasos[NV37.pos.k + 2].txt) : (!ult ? "Luego: tu destino" : "");
+    if(!ult && String(sig.txt).split("\n")[1]) lu = String(sig.txt).split("\n")[1];
+    ins.className = "nv-ins";
+    ins.innerHTML = x + '<div class="f"><div class="fl">' + NV37.flecha(ult ? "STRAIGHT" : sig.man) + '</div><div><b>' + NV37.dist(ult ? NV37.pos.resto : NV37.pos.finPaso) + '</b><span>' + esc(t) + '</span></div></div>' +
+      (lu ? '<div class="lu">' + esc(/^Luego/.test(lu) ? lu : "Luego: " + lu) + '</div>' : '');
+  } else {
+    ins.className = "nv-ins";
+    ins.innerHTML = x + '<div class="f"><div class="fl">' + NV37.flecha("STRAIGHT") + '</div><div><b>' + NV37.dist(NV37.dLocal || 0) + '</b><span>' + (NV37.sinGoogle ? 'Sigue la línea hacia ' + esc(D.nombre) : 'Calculando el camino…') + '</span></div></div>' +
+      (NV37.sinGoogle ? '<div class="lu">Sin las vueltas de Google por ahora (' + esc(NV37.sinGoogle) + '). La línea va directo al local.</div>' : '');
+  }
+  /* la hoja de abajo: minutos, cliente y botones */
+  var i = NV37.cid > 0 ? (RUTA.paradas || []).findIndex(function(p){ return p.clienteId === NV37.cid; }) : -1, n = (RUTA.paradas || []).length;
+  var resto = NV37.pos ? NV37.pos.resto : (NV37.dLocal ? NV37.dLocal * 1.35 : null);
+  var vel = NV37.ruta && NV37.ruta.m && NV37.ruta.seg ? NV37.ruta.m / NV37.ruta.seg : 6.1;
+  var min = resto == null ? null : Math.max(1, Math.round(resto / vel / 60)), lleg = min == null ? "" : new Date(Date.now() + min * 60000).toTimeString().slice(0, 5);
+  var eta = NV37.llegando ? '<b>Ya estás aquí</b><span>a ' + NV37.dist(NV37.dLocal) + ' del local</span>' : min == null ? '<b>—</b><span>esperando el GPS</span>' : '<b>' + min + ' min</b><span>' + NV37.dist(resto) + ' · llegas ' + lleg + '</span>';
+  var btn = NV37.cid > 0
+    ? (NV37.llegando ? '<button class="lg" onclick="NV37.llegue()">✓ Llegué</button>' : '<button class="lg off" onclick="toast(\'«Llegué» se activa a 150 m del local. Si ya estás, abre la lista de paradas.\')">«Llegué» aparece al estar cerca</button>')
+    : (NV37.llegando ? '<button class="lg" onclick="NV37.salir();cdLlegue_(-1)">✓ Llegué</button>' : '');
+  hoja.innerHTML = '<div class="asa"></div><div class="nv-eta">' + eta + '</div>' +
+    '<div class="nv-cli"><div class="n">' + (i >= 0 ? i + 1 : '➤') + '</div><div><b>' + esc(D.nombre) + '</b><small>' + (i >= 0 ? 'Parada ' + (i + 1) + ' de ' + n + (D.dir ? ' · ' + esc(D.dir) : '') : 'Destino') + '</small></div></div>' +
+    '<div class="nv-bt">' + btn + (D.tel ? '<a href="tel:' + esc(D.tel) + '">📞 Llamar</a>' : '') + '</div>' +
+    '<button class="nv-lista" onclick="NV37.salir();continuarRuta()">Ver la lista de paradas</button>';
+  var g = $("nv-gps"), h = hoja.offsetHeight || 220; if(g) g.style.bottom = (h + 12) + "px";
+};
+NV37.pintarGps = function(){
+  var g = $("nv-gps"); if(!g) return;
+  if(GEO37.error === "permiso"){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Activa la ubicación del teléfono'; return; }
+  if(!UB37.activo){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Ubicación sin compartir'; return; }
+  var s = UB37.enviadoEn ? Math.round((Date.now() - UB37.enviadoEn) / 1000) : null;
+  if(UB37.cola.length > 2 || s === null || s > 300){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Sin señal · se envía al volver'; return; }
+  g.className = "nv-gps"; g.innerHTML = '<i></i>Ubicación enviada · hace ' + (s < 60 ? s + ' s' : Math.round(s / 60) + ' min');
+};
+setInterval(function(){ if(NV37.abierta()) NV37.pintarGps(); }, 10000);
+NV37.llegue = function(){ var c = NV37.cid; NV37.salir(); cdLlegue_(c); };
+NV37.salir = function(){ NV37.cerrar(); mostrarTab("hub"); };
+
+/* ── enganches con lo que ya existe ── */
+/* «Llegué» (desde el mapa o la hora de llegada de la parada) también le avisa al cliente que el camión llegó */
+marcarHoraLlegadaGPS = (function(o){ return function(i){ o(i); try{ if(RUTA.paradas[i]) UB37.evento("llegada", RUTA.paradas[i].clienteId); }catch(e){} }; })(marcarHoraLlegadaGPS);
+/* salir de Navegar por cualquier lado apaga la pantalla encendida y la voz */
+mostrarTab = (function(o){ return function(tab){ if(tab !== "navegar" && NV37.abierta()) NV37.cerrar(); return o(tab); }; })(mostrarTab);
+/* el tablero: «Navegar a la parada N» y la línea de la ubicación */
+pintarTablero = (function(o){ return function(){
+  o();
+  try{
+    var tb = $("hub-operador"); if(!tb || esSupervisor() || RUTA.cierre) return;
+    var go = tb.querySelector('.tb-go[onclick*="continuarRuta"]'), s = siguientePendiente(0);
+    if(go && s >= 0 && (RUTA.fecha || hoyISO()) === hoyISO()){
+      var c = cli(RUTA.paradas[s].clienteId);
+      if(c && c.lat != null){ go.innerHTML = '🧭 Navegar a la parada ' + (s + 1) + ' →'; go.setAttribute("onclick", "event.stopPropagation();NV37.abrir(" + RUTA.paradas[s].clienteId + ")"); }
+    }
+    UB37.chip(); UB37.revisar();
+  }catch(e){ console.error(e); }
+}; })(pintarTablero);
+/* la parada abierta: «Cómo llegar» pasa a «Navegar» dentro de la app */
+paradaAbiertaC_ = (function(o){ return function(p, i, c){
+  var h = o(p, i, c);
+  return h.replace(/<a class="pc-a nav" href="[^"]*" target="_blank">([\s\S]*?)Cómo llegar<\/a>/, '<a class="pc-a nav" href="javascript:void 0" onclick="NV37.abrir(' + Number(c.id) + ')">$1Navegar</a>');
+}; })(paradaAbiertaC_);
+/* el mapa del conductor: «Navegar» abre la navegación de la app (cliente, planta o base) */
+cdNavegar_ = (function(o){ return function(la, ln, nombre){
+  var p = (RUTA.paradas || []).find(function(q){ var c = cli(q.clienteId); return c && Number(c.lat) === Number(la) && Number(c.lng) === Number(ln); });
+  NV37.abrir(p ? p.clienteId : { lat: la, lng: ln, nombre: nombre });
+}; })(cdNavegar_);
+UB37.leer();
+setTimeout(function(){ UB37.revisar(); UB37.mandar(); }, 4000);
+/* ── MD37 · Logística › Mapa del día: el camión con la hora de su última posición ── */
+var MD37 = { capa: null };
+MD37.hace = function(x){ if(x.hace == null) return "sin posición"; var s = x.hace; return s < 60 ? "hace " + s + " s" : s < 3600 ? "hace " + Math.round(s / 60) + " min" : "hace " + Math.floor(s / 3600) + " h " + Math.round((s % 3600) / 60) + " min"; };
+MD37.pintar = function(){
+  if(!MD_MAP || !MD || MD.fecha !== MD.hoy) return;
+  if(MD37.capa){ try{ MD_MAP.removeLayer(MD37.capa); }catch(e){} }
+  MD37.capa = L.layerGroup().addTo(MD_MAP);
+  (MD.camiones || []).forEach(function(x){
+    var k = MD.rutas.findIndex(function(r){ return r.rutaId === x.rutaId; });
+    if(MD_RSEL !== null && MD_RSEL !== k) return;
+    var col = k >= 0 ? MD.rutas[k].color : "#14306b";
+    L.marker([x.lat, x.lng], { zIndexOffset: 5000, icon: L.divIcon({ className: "", html: '<div class="md37-cam' + (x.sinSenal ? ' am' : '') + '" style="background:' + col + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><path d="M2 6h11v10H2z"/><path d="M13 9h5l3 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div>', iconSize: [34, 34], iconAnchor: [17, 17] }) })
+      .addTo(MD37.capa).bindTooltip(esc(x.conductor) + ' · ' + esc(x.vehiculo || "") + '<br>' + (x.sinSenal ? '<b style="color:#8A6300">sin señal</b> · última ' : '') + MD37.hace(x) + (x.km ? ' · ' + x.km + ' km hoy' : ''));
+  });
+};
+mdMapaHoy_ = (function(o){ return function(){ o(); try{ MD37.pintar(); }catch(e){ console.error(e); } }; })(mdMapaHoy_);
+mdHoyHtml_ = (function(o){ return function(esHoy){
+  var h = o(esHoy);
+  if(esHoy && MD && MD.camiones) MD.camiones.forEach(function(x){
+    var r = MD.rutas.find(function(q){ return q.rutaId === x.rutaId; }); if(!r) return;
+    var i = h.indexOf('<i style="background:' + r.color + '"></i><b>'); if(i < 0) return;
+    var j = h.indexOf('</small>', i); if(j < 0) return;
+    h = h.slice(0, j) + '<span class="md37-lin' + (x.sinSenal ? ' am' : '') + '">🚚 ' + (x.sinSenal ? 'sin señal · última ' : '') + MD37.hace(x) + (x.km ? ' · ' + x.km + ' km' : '') + '</span>' + h.slice(j);
+  });
+  return h.replace('Sin GPS: una parada se pinta hecha cuando el conductor cierra su recibo.', 'El camión 🚚 se ve con la hora de su última posición (en ámbar si lleva más de 5 minutos sin señal). Una parada se pinta hecha cuando el conductor cierra su recibo.');
+}; })(mdHoyHtml_);
+setInterval(function(){
+  var s = $("pantalla-mapadia");
+  if(!s || !s.classList.contains("activa") || document.visibilityState !== "visible" || !MD || MD_V !== "hoy" || MD.fecha !== MD.hoy || !esSupervisor()) return;
+  llamar37_("api_ubiMapa", PIN).then(function(r){ if(r && r.ok){ MD.camiones = r.camiones; MD37.pintar(); } }, function(){});
+}, 60000);
+</script>
 
 </body>
 
