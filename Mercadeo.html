@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
-  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|marcarAvisoPromo|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
+  escritura:/^api_(crm(Guardar|Completar|Anular|Captura|Mover|Reasignar|Borrar|Subir|Usar)|marcarAvisoPromo|ptlResponder|guardar|marcar|abrir|cerrar|registrar|borrar|eliminar|crear|actualizar|enviar|corregir|dar|anular|confirmar|aprobar|rechazar|subir|asignar|mover|cambiar|agregar|nuevo|editar|reabrir|emitir|pasar|pedir)/i};</script>
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
@@ -473,8 +473,10 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       var pr = PRI[n.prioridad] == null ? 1 : PRI[n.prioridad]; if (pr < g.pri) { g.pri = pr; g.tag = pr === 0 ? 't-bad' : pr === 1 ? 't-warn' : 't-gris'; }
       var liga = parseEnlace(n.enlace);
       g.items.push({ clave: n.clave, tit: n.titulo || 'Sin nombre', sub: p.join(' · ').replace(/\b(\d{4}-\d{2}-\d{2})\b/g, function (f) { return MK.fecha(f); }) + (n.cuando ? ' · desde ' + MK.cuando(n.cuando) : '') + (n.estadoPend === 'pospuesto' ? ' · pospuesto, volvió hoy' : ''),
-        tag: n.prioridad === 'alta' ? '<span class="tag t-bad">Prioridad alta</span> ' : '',
-        acc: '<button class="btn sm pri" data-a="nov-abrir" data-clave="' + esc(n.clave) + '">' + (liga ? 'Abrir ficha' : 'Buscar la ficha') + '</button>' + cierre(n.clave) });
+        tag: (n.prioridad === 'alta' ? '<span class="tag t-bad">Prioridad alta</span> ' : '') + (esPortal(n) && n.respuestaCliente ? '<span class="tag t-ok">Respondida</span> ' : ''),
+        /* api 3.35 · lo que pidió un cliente desde su portal se le contesta aquí; lo ve en su portal, en «Solicitudes» */
+        acc: (esPortal(n) ? '<button class="btn sm pri" data-a="nov-responder" data-clave="' + esc(n.clave) + '">' + (n.respuestaCliente ? 'Cambiar la respuesta' : 'Responder al cliente') + '</button>' : '') +
+          '<button class="btn sm' + (esPortal(n) ? '' : ' pri') + '" data-a="nov-abrir" data-clave="' + esc(n.clave) + '">' + (liga ? 'Abrir ficha' : 'Buscar la ficha') + '</button>' + cierre(n.clave) });
     });
     Object.keys(porCat).map(function (c) { return porCat[c]; }).sort(function (a, b) { return a.pri - b.pri || b.items.length - a.items.length; }).forEach(function (g) { G.push(g); });
     var ex = D.excedidas || [];
@@ -553,6 +555,34 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
       if (fila) fila.classList.remove('sale');
       MK.aviso(e.message || 'Sin conexión: el aviso sigue ahí');
     });
+  }
+  /* api 3.35 · responder al cliente una solicitud de servicio del portal (los pagos los atiende Cobros) */
+  function esPortal(n) { return n.tipoPend === 'portalServicio'; }
+  function novResponder(clave) {
+    var n = NOV[clave]; if (!n) return;
+    MK.hoja('<h2>Responder al cliente</h2><p class="muted small" style="margin-top:2px">' + esc(n.titulo) + (n.folio ? ' · ' + esc(n.folio) : '') + '</p>' +
+      '<div class="small" style="margin:8px 0 2px;padding:9px 11px;background:var(--bg,#f3f5f8);border-radius:9px;white-space:pre-wrap">' + esc(String(n.detalle || '').replace(/^Desde el portal · /, '').replace(/\b(\d{4}-\d{2}-\d{2})\b/g, function (f) { return MK.fecha(f); })) + '</div>' +
+      '<label class="lb" for="rpTx">RESPUESTA PARA EL CLIENTE</label>' +
+      '<textarea class="in" id="rpTx" maxlength="600" rows="5" autofocus placeholder="Lo que el cliente va a leer en su portal">' + esc(n.respuestaCliente || '') + '</textarea>' +
+      '<div class="small muted" style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><span>' + MK.ic('ojo', 12) + ' La lee el cliente en su portal. Lo interno va en la ficha, no aquí.</span><span id="rpN"></span></div>' +
+      '<label style="display:flex;gap:7px;align-items:center;margin-top:10px;font-size:13px;cursor:pointer"><input type="checkbox" id="rpCe" checked> Marcar como atendida (sale de esta lista)</label>' +
+      '<div class="small" id="rpMsg" style="margin-top:6px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="rpSi">Enviar respuesta</button></div>');
+    var tx = document.getElementById('rpTx'), nn = document.getElementById('rpN'), si = document.getElementById('rpSi'), msg = document.getElementById('rpMsg');
+    function contar() { nn.textContent = tx.value.length + ' / 600'; si.disabled = tx.value.trim().length < 3; }
+    tx.oninput = contar; contar();
+    si.onclick = function () {
+      var cerrar = document.getElementById('rpCe').checked, m = tx.value.trim();
+      MK.ocupado(si, true); msg.textContent = '';
+      MK.api('api_ptlResponder', MK.pin, n.pendienteId, m, cerrar).then(function (r) {
+        MK.ocupado(si, false);
+        if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo enviar.'; return; }
+        MK.cerrarHoja();
+        if (cerrar) OCULTAS[clave] = 1; else n.respuestaCliente = m;
+        MK.aviso(cerrar ? 'Respuesta enviada · la solicitud quedó atendida' : 'Respuesta enviada · el cliente ya la ve en su portal');
+        pintarAlertas(); MK.cambio({ tipo: 'novedad' });
+      }, function (e) { MK.ocupado(si, false); msg.textContent = 'Sin conexión: ' + ((e && e.message) || ''); });
+    };
   }
   function novAbrir(clave, btn) {
     var n = NOV[clave]; if (!n) return;
@@ -689,6 +719,7 @@ body.solo-ver .it[data-a="editar"]{cursor:default}
     if (a === 'grp') { var g = b.parentNode, k = g.getAttribute('data-g'); g.classList.toggle('open'); if (g.classList.contains('open')) ABIERTOS[k] = 1; else delete ABIERTOS[k]; return; }
     if (a === 'vermas') { var k2 = b.closest('.a-grp').getAttribute('data-g'); VERMAS[k2] = !VERMAS[k2]; pintarAlertas(); return; }
     if (a === 'nov-abrir') { novAbrir(b.getAttribute('data-clave'), b); return; }
+    if (a === 'nov-responder') { novResponder(b.getAttribute('data-clave')); return; }
     if (a === 'fp-abrir') { fpAbrir(b.getAttribute('data-fp'), b); return; }
     if (a === 'fp-manana') { fpCerrar(b.getAttribute('data-fp'), 'manana', b); return; }
     if (a === 'fp-atendi') { fpCerrar(b.getAttribute('data-fp'), 'atendi', b); return; }
