@@ -1775,7 +1775,7 @@ function contar319(b) {
 
 /* ── BUZÓN ── */
 var BZN = { cargado: false, cargando: false, lista: [], filtro: 'nuevos' };
-var BZN_TIPOS = ['portalComprobante', 'portalAyudaPago'];
+var BZN_TIPOS = ['portalComprobante', 'portalAyudaPago', 'portalServicio'];   // api 3.35: + consultas sobre facturas o pagos
 var BZN_CERR = ['resuelto', 'descartado'];
 var BZN_MOT = {
   dias:   ['Unos días más', 'Anotar la promesa', 'calendario', function (k) { anotar(k, 'promete'); }],
@@ -1819,7 +1819,7 @@ function bznLista() {
   }).slice(0, f === 'atendidos' ? 40 : 200);
 }
 function vBuzon() {
-  var h = MK.cabeza('Buzón', 'Lo que llega de los clientes. Por ahora, del portal: comprobantes de pago y pedidos de ayuda con su pago. Toca un cuadro para ver solo eso.');
+  var h = MK.cabeza('Buzón', 'Lo que llega de los clientes desde el portal: comprobantes de pago, pedidos de ayuda con su pago y consultas sobre sus facturas. Toca un cuadro para ver solo eso.');
   if (!BZN.cargado) { cargarBuzon(); return h + '<div class="cargando">Cargando el buzón…</div>'; }
   var A = bznAbiertos();
   var T = [['nuevos', 'Por atender', 'nuevos y en revisión', A.length, 'warn'],
@@ -1836,7 +1836,7 @@ function bznTarjeta(p) {
   var c = p.c || {}, est = BZN_EST[p.estado] || BZN_EST.nuevo, abierto = BZN_CERR.indexOf(p.estado) < 0;
   var fac = String(c.facturas || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
   var head = '<div class="fila" style="gap:6px;flex-wrap:wrap;align-items:center"><span class="chipx ok">' + MK.ic('enlace', 13) + ' Portal</span>' +
-    (p.tipo === 'portalAyudaPago' ? '<span class="chipx warn">pide ayuda con su pago</span>' : '<span class="chipx info">comprobante</span>') +
+    (p.tipo === 'portalAyudaPago' ? '<span class="chipx warn">pide ayuda con su pago</span>' : p.tipo === 'portalServicio' ? '<span class="chipx info">consulta sobre su factura o pago</span>' : '<span class="chipx info">comprobante</span>') +
     '<b>' + MK.esc(bznCli(p)) + '</b><span class="small muted">· ' + MK.esc(c.quien || '') + ' · ' + fdm(p.fecha) + ' · ' + MK.esc(p.referencia || '') + '</span>' +
     '<span class="chipx ' + est[1] + '">' + est[0] + '</span></div>';
   var cuerpo, acc = '';
@@ -1850,6 +1850,13 @@ function bznTarjeta(p) {
       (p.k ? '<button class="btn sm pri escribe" onclick="bznMotivo(\'' + p.pendienteId + '\')">' + MK.ic(m[2], 15) + m[1] + '</button>' : '') +
       '<button class="btn sm escribe" onclick="bznAtendido(\'' + p.pendienteId + '\')">' + MK.ic('check', 15) + 'Ya lo atendí</button>' +
       '<button class="btn sm escribe" onclick="bznRechazar(\'' + p.pendienteId + '\')">Descartar</button>';
+  } else if (p.tipo === 'portalServicio') {
+    /* api 3.35 · consulta del cliente sobre una factura o un pago: se le contesta y lo lee en su portal */
+    cuerpo = (c.nota ? '<div style="margin-top:8px;font-size:14px">«' + MK.esc(c.nota) + '»</div>' : '') +
+      (c.fecha || c.horario ? '<div class="small" style="margin-top:4px">' + (c.fecha ? 'Prefiere el ' + fdm(c.fecha) : '') + (c.horario ? (c.fecha ? ' · ' : '') + 'horario ' + MK.esc(c.horario) : '') + '</div>' : '') +
+      (c.respuestaCliente ? '<div class="small" style="margin-top:6px"><b>Le respondiste:</b> ' + MK.esc(c.respuestaCliente) + '</div>' : '');
+    if (abierto) acc = '<button class="btn sm pri escribe" onclick="bznResponder(\'' + p.pendienteId + '\')">' + MK.ic('correo', 15) + (c.respuestaCliente ? 'Cambiar la respuesta' : 'Responder al cliente') + '</button>' +
+      '<button class="btn sm escribe" onclick="bznAtendido(\'' + p.pendienteId + '\')">' + MK.ic('check', 15) + 'Ya lo atendí</button>';
   } else {
     cuerpo = '<div style="margin-top:8px;font-size:14px"><b>' + (c.monto ? D(c.monto) : 'Sin monto escrito') + '</b>' + (fac.length ? ' · facturas ' + fac.map(MK.esc).join(' · ') : ' · no marcó facturas') + (c.referencia ? ' · ref. ' + MK.esc(c.referencia) : '') + '</div>';
     if (abierto) acc = (c.archivoId ? '<button class="btn sm" onclick="bznVer(\'' + p.pendienteId + '\')">' + MK.ic('ojo', 15) + 'Ver comprobante</button>' : '') +
@@ -1898,6 +1905,30 @@ function bznTrasPago() {
   bznEstado(id, 'resuelto', 'Pago aplicado').then(function () { MK.aviso('Pago registrado · el cliente ya lo ve como aplicado'); });
 }
 function bznMotivo(id) { var p = bznP(id); if (!p || !p.k) return; bznAbrir(id); (BZN_MOT[p.c.motivo] || BZN_MOT.dias)[3](p.k); }
+/* api 3.35 · Responder al cliente una consulta del portal: lo único que él ve es este mensaje */
+function bznResponder(id) {
+  var p = bznP(id); if (!p) return; bznAbrir(id);
+  MK.lado('<span class="et">Responder al cliente</span><h2>' + MK.esc(bznCli(p)) + '</h2>' +
+    '<div class="sub">Consulta sobre su factura o pago · ' + MK.esc(p.referencia || '') + '</div>' +
+    (p.c.nota ? '<div class="nota" style="margin:0 0 10px">«' + MK.esc(p.c.nota) + '»</div>' : '') +
+    '<label class="lb">Respuesta para el cliente</label>' +
+    '<div class="nota am" style="margin:0 0 8px">' + MK.ic('alerta', 15) + ' Esto lo ve el cliente en su portal, tal cual lo escribas. No pongas notas internas aquí.</div>' +
+    '<textarea class="in" id="bz-rsp" rows="4" style="width:100%" maxlength="600" placeholder="Por ejemplo: su factura 218 ya está pagada; el recibo le llega por correo.">' + MK.esc(p.c.respuestaCliente || '') + '</textarea>' +
+    '<label style="display:flex;gap:7px;align-items:center;margin-top:10px;font-size:13px;cursor:pointer"><input type="checkbox" id="bz-rce" checked> Marcar como atendida</label>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri escribe" onclick="bznResponderGuardar(\'' + id + '\',this)">Enviar respuesta</button></div>');
+}
+function bznResponderGuardar(id, btn) {
+  var p = bznP(id), msj = String((document.getElementById('bz-rsp') || {}).value || '').trim(), cerrar = !!(document.getElementById('bz-rce') || {}).checked;
+  if (msj.length < 3) { MK.aviso('Escribe la respuesta para el cliente.'); return; }
+  MK.ocupado(btn, true);
+  MK.api('api_ptlResponder', MK.pinUso(), id, msj, cerrar).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo enviar.'); return; }
+    if (p) { p.c.respuestaCliente = msj; if (cerrar) { p.estado = 'resuelto'; p.atendidoPor = (B().usuario || {}).nombre || ''; p.atendidoEn = MK.hoy; } else p.estado = 'abierto'; }
+    MK.cerrarLado(); contarBuzon(); MK.pintarMenu(); if (MK.seccion === 'buzon') MK.repintar();
+    MK.aviso(cerrar ? 'Respuesta enviada · quedó atendida' : 'Respuesta enviada · el cliente ya la ve en su portal');
+  }, function () { MK.ocupado(btn, false); });
+}
 function bznAtendido(id) {
   var p = bznP(id); if (!p) return;
   MK.confirmar('Queda como atendido y el cliente vuelve a poder pedir ayuda desde su portal si la necesita.', function () {

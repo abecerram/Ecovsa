@@ -15203,15 +15203,16 @@ tocarAtencionIni_ = (function(orig){
     var a = INI && INI.atencion[i];
     if(a && (a.tipo === "incidencia" || a.tipo === "norec")){ bq38Ir_("inc:" + a.datos.incId); return; }
     if(a && a.tipo === "ubicacion"){ bq38Ir_("", "cond"); return; }
+    if(a && a.tipo === "portal"){ bq38Ir_("ptl:" + a.datos.pendienteId); return; }   // api 3.35
     return orig.apply(this, arguments);
   };
 })(tocarAtencionIni_);
 htmlDetIni_ = (function(orig){
   return function(d){
     var a = d && d.tipo === "aten" && INI ? INI.atencion[d.k] : null;
-    if(a && (a.tipo === "incidencia" || a.tipo === "norec" || a.tipo === "ubicacion"))
+    if(a && (a.tipo === "incidencia" || a.tipo === "norec" || a.tipo === "ubicacion" || a.tipo === "portal"))
       return '<div class="ini-pt">' + esc(a.titulo) + '</div><div class="ini-ps">' + esc(a.texto) + '</div>' +
-        '<button class="ini-ok" onclick="bq38Ir_(\'' + (a.datos && a.datos.incId ? 'inc:' + esc(a.datos.incId) : '') + '\')">Ver en la Bandeja</button>';
+        '<button class="ini-ok" onclick="bq38Ir_(\'' + (a.datos && a.datos.incId ? 'inc:' + esc(a.datos.incId) : a.tipo === 'portal' ? 'ptl:' + esc(a.datos.pendienteId) : '') + '\')">' + (a.tipo === 'portal' ? 'Responder en la Bandeja' : 'Ver en la Bandeja') + '</button>';
     return orig.apply(this, arguments);
   };
 })(htmlDetIni_);
@@ -15288,6 +15289,13 @@ function bq38Items_(){
     S.ins.forEach(function(s){ L.push({ k: "ins:" + s.inspeccionId, cat: "mer", ic: "lupa", c: "c38-v", f: "", d: s.diasEsperando || 0, g: s.diasEsperando ? "esp" : "hoy",
       o: "Mercadeo · " + (s.diasEsperando ? "hace " + sqDias_(s.diasEsperando) : "hoy"), t: "Inspección técnica · " + s.empresa, s: "Pedida por " + (s.pedidaPor || "Mercadeo") + " · sin fecha de visita", b: "Programar" }); });
   }
+  /* api 3.35 · lo que los clientes piden a Logística desde su portal (visitas, cambios de fecha) */
+  ((BQ.inc && BQ.inc.portal) || []).forEach(function(x){
+    L.push({ k: "ptl:" + x.pendienteId, cat: "cli", ic: "persona", c: "c38-v", f: x.fecha, d: x.dias || 0, g: x.fecha === hoy ? "hoy" : "esp",
+             o: "Cliente · Portal · " + bq38Hace_(x.fecha), t: (x.tipoSol || "Solicitud") + " · " + x.cliente,
+             s: [x.fechaPref ? "prefiere el " + nombreDia_(x.fechaPref) : "", x.nota ? "«" + x.nota + "»" : "", x.respuesta ? "ya le respondiste" : ""].filter(Boolean).join(" · "),
+             b: x.respuesta ? "Ver" : "Responder" });
+  });
   var G = { urg: 0, hoy: 1, esp: 2 };
   L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); });
   return L;
@@ -15313,7 +15321,7 @@ renderSolicitudes = function(){
     .sort(function(a, b){ return String(b.f).localeCompare(String(a.f)); });
   var nAtSem = aten.filter(function(a){ return a.f >= semana; }).length;
   var nUrg = L.filter(function(x){ return x.g === "urg"; }).length, nHoy = L.filter(function(x){ return x.g === "hoy"; }).length, nVie = L.filter(function(x){ return (x.d || 0) > 7; }).length;
-  var h = '<div class="top"><div><p>Todo lo que espera a Logística, en un solo lugar: lo que mandan los conductores, los clientes desde su QR, Mercadeo y la flota.</p></div></div>' +
+  var h = '<div class="top"><div><p>Todo lo que espera a Logística, en un solo lugar: lo que mandan los conductores, los clientes desde su QR o su portal, Mercadeo y la flota.</p></div></div>' +
     '<div class="bk"><div class="r"><b>' + nUrg + '</b><span>' + (nUrg === 1 ? "urgente" : "urgentes") + '</span></div><div><b>' + nHoy + '</b><span>nuevas de hoy</span></div>' +
       '<div class="a"><b>' + nVie + '</b><span>esperan más de 7 días</span></div><div><b>' + nAtSem + '</b><span>atendidas esta semana</span></div></div>';
   var F = [["todo", "Todo", L.length], ["cond", "Conductores", cat("cond")], ["flota", "Flota", cat("flota")], ["ruta", "Rutas", cat("ruta")], ["cli", "Clientes", cat("cli")], ["mer", "Mercadeo", cat("mer")]]
@@ -15360,6 +15368,7 @@ function bq38Det_(){
   var k = BQ.sel; if(!k) return '<div class="vacio">Elige algo de la lista.</div>';
   if(k.indexOf("inc:") === 0) return bq38DetInc_(k.slice(4));
   if(k.indexOf("ub:") === 0) return bq38DetUb_(k.slice(3));
+  if(k.indexOf("ptl:") === 0) return bq38DetPtl_(k.slice(4));
   if(k.indexOf("at:") === 0){
     var it = bq38Items_().filter(function(x){ return x.k === k; })[0];
     if(!it) return '<div class="vacio">Ya no está pendiente.</div>';
@@ -15416,6 +15425,45 @@ function bq38RevUb_(id, ok){
     toast(ok ? "Ubicación aprobada ✓" : "Descartada"); BQ.sel = ""; cargarSolicitudes(true);
   }).withFailureHandler(function(){ toast("Sin señal"); }).api_revisarUbicacion(PIN, id, !!ok);
 }
+
+/* ── api 3.35 · solicitud de un cliente desde su portal ──────────────────
+   Se le contesta aquí y lo lee en su portal («Solicitudes»). La respuesta
+   va aparte de la nota de cierre, que sigue siendo interna. */
+var BQ_PTX = {};
+function bq38DetPtl_(id){
+  var x = ((BQ.inc && BQ.inc.portal) || []).filter(function(o){ return o.pendienteId === id; })[0];
+  if(!x) return '<div class="vacio">Ya se atendió.</div>';
+  var tx = BQ_PTX[id] != null ? BQ_PTX[id] : x.respuesta;
+  return '<div class="dh"><i class="bic c38-v big">' + sv38_("persona") + '</i><div><div class="bo">Desde el portal · ' + esc(bq38Hace_(x.fecha)) + (x.quien ? ' · lo pidió ' + esc(x.quien) : '') + ' · ' + esc(x.folio) + '</div><h2>' + esc((x.tipoSol || "Solicitud") + " · " + x.cliente) + '</h2></div></div>' +
+    '<div class="dg"><div><small>Qué pide</small><b>' + esc(x.tipoSol || "—") + '</b><span>' + esc(x.item) + '</span></div><div><small>Fecha preferida</small><b>' + (x.fechaPref ? esc(nombreDia_(x.fechaPref)) : "Sin preferencia") + '</b></div>' +
+      '<div><small>Horario</small><b>' + esc(x.horario || "Por coordinar") + '</b></div><div><small>Estado</small><b>' + (x.respuesta ? "Respondida" : "Sin responder") + '</b></div></div>' +
+    (x.nota ? '<div class="rel">«' + esc(x.nota) + '»</div>' : '') +
+    '<div class="sec">Respuesta para el cliente <em>· la lee en su portal; lo interno no va aquí</em></div>' +
+    '<textarea class="in" id="bq38-ptx" rows="4" maxlength="600" style="width:100%;box-sizing:border-box;resize:vertical" placeholder="Ej. Le visitamos el martes 27 en la mañana." oninput="BQ_PTX[\'' + esc(id) + '\']=this.value">' + esc(tx || "") + '</textarea>' +
+    '<div style="display:flex;gap:8px;align-items:center;margin:10px 0;font-size:13px;color:#0f2140"><input type="checkbox" id="bq38-pce" checked style="width:16px;height:16px;margin:0;flex:none"><span style="cursor:pointer" onclick="var c=$(\'bq38-pce\');c.checked=!c.checked">Marcar como atendida</span></div>' +
+    '<div class="bb"><button onclick="bq38PtlAtendido_(\'' + esc(id) + '\')">' + sv38_("check") + ' Ya lo atendí, sin responder</button><button class="p" id="bq38-psi" onclick="bq38PtlEnviar_(\'' + esc(id) + '\')">Enviar respuesta</button></div>';
+}
+function bq38PtlEnviar_(id){
+  var t = $("bq38-ptx"), m = String((t && t.value) || "").trim(), ce = !!($("bq38-pce") || {}).checked, b = $("bq38-psi");
+  if(m.length < 3){ toast("Escribe la respuesta para el cliente"); if(t) t.focus(); return; }
+  if(b){ b.disabled = true; b.textContent = "Enviando…"; }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ if(b){ b.disabled = false; b.textContent = "Enviar respuesta"; } toast((r && r.error) || "No se pudo enviar"); return; }
+    delete BQ_PTX[id]; toast(ce ? "Respuesta enviada · quedó atendida" : "Respuesta enviada al portal del cliente");
+    if(ce) BQ.sel = ""; cargarSolicitudes(true);
+  }).withFailureHandler(function(){ if(b){ b.disabled = false; b.textContent = "Enviar respuesta"; } toast("Sin señal: la respuesta no se envió"); })
+    .api_ptlResponder(PIN, id, m, ce);
+}
+function bq38PtlAtendido_(id){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    toast("Atendida"); BQ.sel = ""; cargarSolicitudes(true);
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_cerrarPendiente(PIN, id, "resuelto", "Atendido desde la Bandeja de Logística", 0);
+}
+/* mientras se escribe la respuesta, el refresco de la bandeja no la interrumpe */
+renderSolicitudes = (function(orig){
+  return function(){ var a = document.activeElement; if(a && a.id === "bq38-ptx") return; return orig.apply(this, arguments); };
+})(renderSolicitudes);
 
 /* ── una incidencia ── */
 function bq38CargarInc_(id){
