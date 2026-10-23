@@ -8,6 +8,13 @@
    El bloqueo no reinicia: si vuelve a entrar la misma persona sigue donde
    quedó; si entra otra, se va al lobby con lo suyo. El conductor no se
    bloquea nunca. Las páginas públicas (sin PIN guardado) no se tocan.
+   api 3.38.1 (aprobado por Álvaro el 23 oct, Maqueta_entrada_azul_huella):
+     · el fondo es el azul de la marca, siempre: dos luces que se mueven
+       despacio y puntos de luz que suben (sin el árbol ni el botón «Fondo»);
+     · un brillo verde pasa por las letras ECOVSA al armarse el emblema;
+     · con la app ECOVSA 1.2: botón grande «Entrar con tu huella»; al
+       reconocerla, una luz verde llena la huella y se entra;
+     · al entrar, un círculo de luz se abre desde el emblema.
    Archivos que usa, junto a este en el repositorio:
      entrada-arbol.jpg · entrada-globo.png · entrada-bio.png ·
      entrada-flecha-a.png · entrada-flecha-b.png
@@ -185,6 +192,34 @@
   '#ent .e-pc-tec button:hover{background:rgba(255,255,255,.26)}' +
   '#ent.ancho.entrando .e-pc-zona{opacity:0;transition:opacity .3s}' +
   '#ent.azul .e-pc-velo{display:none}' +
+  /* api 3.38.1 · el azul vivo, el brillo de las letras, la huella y el círculo de luz */
+  '#ent{background:radial-gradient(120% 80% at 50% 38%,#16397a 0%,#0f2a57 45%,#081a3a 100%)}' +
+  '#ent .e-foto,#ent .e-copa,#ent .e-sol,#ent .e-velo,#ent .e-fnd,#ent .e-fnd-b,#ent .e-pc-velo{display:none!important}' +
+  '#ent .e-au{position:absolute;width:120vmax;height:120vmax;border-radius:50%;filter:blur(60px);opacity:.42;mix-blend-mode:screen}' +
+  '#ent .e-au.a1{left:-60vmax;top:-50vmax;background:radial-gradient(circle,#1f7a4f 0%,transparent 60%);animation:eAu1 18s ease-in-out infinite alternate}' +
+  '#ent .e-au.a2{right:-70vmax;bottom:-70vmax;background:radial-gradient(circle,#2a5bd7 0%,transparent 60%);animation:eAu2 22s ease-in-out infinite alternate}' +
+  '@keyframes eAu1{to{transform:translate(30vmax,25vmax) scale(1.15)}}@keyframes eAu2{to{transform:translate(-28vmax,-30vmax) scale(1.1)}}' +
+  '#ent.quieto .e-au{animation:none}' +
+  '#ent .e-marca{position:relative}#ent .e-brillo{position:absolute;inset:0;pointer-events:none;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat;' +
+    'background:linear-gradient(105deg,transparent 30%,#8fd46a 48%,#fff 52%,transparent 70%);background-size:300% 100%;background-position:120% 0;animation:eBrillo 1.4s 2.5s ease-in-out forwards}' +
+  '@keyframes eBrillo{to{background-position:-60% 0}}#ent .e-lema{color:#8fd46a;font-weight:800}' +
+  '#ent .e-hu{position:relative;margin-top:26px;width:84px;height:84px;border-radius:50%;border:0;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;color:#fff;animation:eAp .6s 2.4s both}' +
+  '#ent .e-hu::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(143,212,106,.6);animation:eOnda 2.2s ease-out infinite}' +
+  '@keyframes eOnda{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}#ent .e-hu svg{width:48px;height:48px}' +
+  '#ent .e-hu-t{font-weight:700;font-size:14px;margin-top:10px;text-align:center;animation:eAp .6s 2.5s both}#ent .e-hu-t small{display:block;font-weight:600;font-size:12px;opacity:.75;margin-top:2px}' +
+  '#ent.con-huella .e-toca{background:none;border:0;animation:none;padding:8px;margin-top:10px;font-size:13.5px;text-decoration:underline;text-underline-offset:3px;-webkit-backdrop-filter:none;backdrop-filter:none}' +
+  '#ent.con-huella .e-toca b{color:inherit}#ent.abierto .e-hu,#ent.abierto .e-hu-t,#ent.entrando .e-hu,#ent.entrando .e-hu-t{opacity:0;pointer-events:none}' +
+  '#ent .e-hu-k{display:none;margin:10px auto 0;background:none;border:0;color:#8fd46a;font:800 13px Archivo,system-ui,sans-serif;cursor:pointer}#ent.con-huella .e-hu-k{display:block}' +
+  '#ent .e-esc2{position:absolute;z-index:6;left:50%;top:50%;width:150px;height:150px;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.2,.8,.2,1)}' +
+  '#ent .e-esc2.si{opacity:1;transform:translate(-50%,-50%) scale(1)}#ent .e-esc2 svg{width:150px;height:150px;overflow:visible}' +
+  '#ent .e-esc2 .bs path{stroke:rgba(255,255,255,.28)}#ent .e-esc2 .lz path{stroke:#4ADE80;filter:drop-shadow(0 0 6px rgba(74,222,128,.9))}' +
+  '#ent .e-esc2 .lz{clip-path:inset(100% 0 0 0);transition:clip-path .9s cubic-bezier(.4,0,.2,1)}#ent .e-esc2.lleno .lz{clip-path:inset(0 0 0 0)}' +
+  '#ent .e-esc2 .br{position:absolute;left:-10%;right:-10%;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#8fd46a,#fff,#8fd46a,transparent);box-shadow:0 0 14px #8fd46a;top:100%;opacity:0}' +
+  '#ent .e-esc2.lleno .br{animation:eBarra .9s cubic-bezier(.4,0,.2,1)}@keyframes eBarra{0%{top:100%;opacity:1}90%{opacity:1}100%{top:0;opacity:0}}' +
+  '#ent .e-esc2.mal svg{animation:eSac .45s}#ent .e-esc2.mal .bs path{stroke:#ff6b6f}' +
+  '#ent .e-esc2 .ok{position:absolute;right:-6px;bottom:-6px;width:44px;height:44px;border-radius:50%;background:#4ADE80;display:grid;place-items:center;transform:scale(0);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}#ent .e-esc2.listo .ok{transform:scale(1)}' +
+  '#ent.escaneando .e-pan,#ent.escaneando .e-pc-zona{opacity:.15;transition:opacity .3s}' +
+  '#ent .e-portal{position:absolute;z-index:9;border-radius:50%;width:10px;height:10px;background:radial-gradient(circle,#fff 0%,#eef6e8 40%,#f3f5f8 70%);transform:translate(-50%,-50%) scale(0);pointer-events:none;transition:transform .75s cubic-bezier(.7,0,.2,1)}' +
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
   function ponerCss() {
@@ -203,12 +238,16 @@
     op = op || {};
     desmontar();
     ponerCss(); traerAjustes();
-    var fondo = lsGet(K_FONDO) || '';
-    if (!fondo) { try { fondo = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'quieto' : 'vivo'; } catch (e) { fondo = 'vivo'; } }
+    /* api 3.38.1: el azul es fijo; solo se aquieta si el teléfono pide menos movimiento */
+    var fondo = 'vivo';
+    try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) fondo = 'quieto'; } catch (e) {}
     var d = document.createElement('div'); d.id = 'ent'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Entrada ECOVSA');
-    var foto = 'url(' + BASE + 'entrada-arbol.jpg)';
+    var foto = 'none';   /* api 3.38.1: sin el árbol */
+    var FP = '<path d="M12 11v3a8 8 0 0 1-1 4"/><path d="M8.5 13a3.5 3.5 0 0 1 7-1v2.5a11 11 0 0 1-.8 4"/><path d="M5.6 15.5A7 7 0 0 1 5 12.5a7 7 0 0 1 14 0v1.5"/><path d="M6.6 6.4A8.5 8.5 0 0 1 18.5 7"/><path d="M4 9.5A9.5 9.5 0 0 1 5 7.6"/><path d="M19.6 16.5a14 14 0 0 0 .4-2.5"/><path d="M12 20.5c-.4-.3-.8-.7-1.1-1.1"/>';
+    if (!op.huella && hpHay()) op.huella = { pedir: function () { try { window.EcovsaApp.huellaPinPedir(); } catch (x) {} } };
+    var conHuella = !!(op.huella && op.huella.pedir);
     d.innerHTML =
-      '<div class="e-fondo"><div class="e-foto" style="background-image:' + foto + '"></div><div class="e-foto e-copa" style="background-image:' + foto + '"></div>' +
+      '<div class="e-fondo"><i class="e-au a1"></i><i class="e-au a2"></i><div class="e-foto" style="background-image:' + foto + '"></div><div class="e-foto e-copa" style="background-image:' + foto + '"></div>' +
       '<div class="e-sol"><i class="e-halo"></i><i class="e-rayos"></i></div><div class="e-velo"></div></div>' +
       '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="e-viento" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="3" result="n"><animate attributeName="baseFrequency" dur="9s" values="0.012 0.018;0.014 0.021;0.012 0.018" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter></svg>' +
       '<canvas></canvas>' +
@@ -218,13 +257,15 @@
           '<img class="e-capa e-bio in-bi" src="' + BASE + 'entrada-bio.png" alt="" draggable="false">' +
           '<div class="e-gira"><img class="e-capa in-fa" src="' + BASE + 'entrada-flecha-a.png" alt="" draggable="false"><img class="e-capa in-fb" src="' + BASE + 'entrada-flecha-b.png" alt="" draggable="false"></div>' +
         '</div>' +
-        '<div class="e-marca"><img src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"></div>' +
+        '<div class="e-marca"><img src="' + BASE + 'ecovsa-letras.png" alt="ECOVSA" draggable="false"><span class="e-brillo" style="-webkit-mask-image:url(' + BASE + 'ecovsa-letras.png);mask-image:url(' + BASE + 'ecovsa-letras.png)"></span></div>' +
         '<div class="e-lema">ECOLOGÍA · VIDA · SALUD</div>' +
-        '<div class="e-toca" role="button" tabindex="0">' + (op.bloqueo ? 'Sesión bloqueada · <b>PIN</b><small>' + esc(op.nombre || '') + '</small>' : 'Toca para entrar · <b>PIN</b>') + '</div>' +
+        (conHuella ? '<button type="button" class="e-hu" aria-label="Entrar con tu huella"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + FP + '</svg></button><div class="e-hu-t">Entrar con tu huella<small>Toca y pon el dedo en el lector</small></div>' : '') +
+        '<div class="e-toca" role="button" tabindex="0">' + (conHuella ? 'Usar mi <b>PIN</b>' : op.bloqueo ? 'Sesión bloqueada · <b>PIN</b><small>' + esc(op.nombre || '') + '</small>' : 'Toca para entrar · <b>PIN</b>') + '</div>' +
       '</div>' +
       '<div class="e-bienv"><b></b><span></span></div>' +
-      '<div class="e-tec"><div class="e-tt">' + (op.bloqueo ? 'Escribe tu PIN para seguir' : 'Escribe tu PIN') + '<small>' + (op.bloqueo ? 'Si eres otra persona, escribe el tuyo' : 'Rutas ECOVSA') + '</small></div>' +
+      '<div class="e-tec"><div class="e-tt">' + (op.bloqueo ? 'Escribe tu PIN para seguir' : 'Escribe tu PIN') + '<small>' + (op.bloqueo ? 'Si eres otra persona, escribe el tuyo' : 'ECOVSA') + '</small></div>' +
         '<div class="e-pts"></div><div class="e-teclas"></div><div class="e-msg" aria-live="polite"></div>' +
+        '<button type="button" class="e-hu-k">Entrar con mi huella</button>' +
         '<button type="button" class="e-olv">¿Olvidaste tu PIN?</button></div>' +
       '<div class="e-pc"><div class="e-pc-velo"></div>' +
         '<div class="e-pc-reloj"><b></b><span></span></div>' +
@@ -234,12 +275,14 @@
           '<div class="e-pc-hint">Escribe tu PIN · <kbd>Enter</kbd> · <button type="button" class="e-pc-vtec">teclado en pantalla</button> · <button type="button" class="e-olv" style="display:inline;margin:0">¿Olvidaste tu PIN?</button></div>' +
           '<div class="e-pc-tec"></div>' +
         '</div></div>' +
+      '<div class="e-esc2"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><g class="bs">' + FP + '</g><g class="lz">' + FP + '</g></svg><i class="br"></i><span class="ok"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0b2a12" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span></div>' +
       '<button type="button" class="e-fnd-b">🌳 Fondo</button>' +
       '<div class="e-fnd"><b>FONDO DE ESTA PANTALLA</b>' +
         '<button type="button" data-f="vivo">🌳<span>Árbol con movimiento<small>Viento, luz y hojas que caen</small></span></button>' +
         '<button type="button" data-f="quieto">🖼️<span>Árbol quieto<small>La misma foto, sin movimiento</small></span></button>' +
         '<button type="button" data-f="azul">🔵<span>Azul, sin árbol<small>El fondo de siempre, fijo</small></span></button></div>';
     document.body.appendChild(d);
+    if (conHuella) d.classList.add('con-huella');
     E = { d: d, op: op, pin: '', vel: 0.12, ang: 0, arr: false, a0: 0, ult: 0, mx: -999, my: -999, P: [], raf: 0, t: [], ocupado: false, fondo: fondo };
     var q = function (s) { return d.querySelector(s); };
     E.q = q;
@@ -259,8 +302,8 @@
 
     /* hojas que caen y se apartan del dedo */
     var cv = q('canvas'); E.cv = cv; E.cx = cv.getContext('2d');
-    for (var i = 0; i < 34; i++) E.P.push({ x: Math.random(), y: Math.random(), r: 3 + Math.random() * 4, v: .0006 + Math.random() * .0009, rot: Math.random() * 6, vr: (Math.random() - .5) * .04,
-      c: ['124,194,66', '86,168,90', '232,196,74', '200,140,60'][i % 4], dx: 0, dy: 0, f: Math.random() * 6 });
+    for (var i = 0; i < 46; i++) E.P.push({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.8, v: .00025 + Math.random() * .0007, rot: 0, vr: 0,
+      c: i % 3 === 0 ? '143,212,106' : '255,255,255', dx: 0, dy: 0, f: Math.random() * 6 });
     tam(); E.onRes = function () { tam(); ancho(); solSitio(); }; addEventListener('resize', E.onRes);
     solSitio();
 
@@ -287,11 +330,18 @@
     q('.e-fnd').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     q('.e-fnd').addEventListener('click', function (e) { var b = e.target.closest('button[data-f]'); if (!b) return; fondoAplicar(b.getAttribute('data-f')); lsSet(K_FONDO, b.getAttribute('data-f')); q('.e-fnd').classList.remove('si'); });
     d.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b,.e-pc-zona,.e-olvp')) return;
+      if (e.target.closest('.e-tec,.e-fnd,.e-fnd-b,.e-pc-zona,.e-olvp,.e-hu')) return;
       q('.e-fnd').classList.remove('si');
       if (d.classList.contains('abierto')) cerrarTec(); else abrir();
     });
     q('.e-toca').addEventListener('keydown', function (e) { if (e.key === ' ') { abrir(); e.preventDefault(); } });
+    if (conHuella) {
+      var pedirH = function (e) { e.stopPropagation(); if (E.ocupado) return; cerrarTec(); try { op.huella.pedir(); } catch (x) {} };
+      q('.e-hu').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+      q('.e-hu').addEventListener('click', pedirH);
+      q('.e-hu-k').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+      q('.e-hu-k').addEventListener('click', pedirH);
+    }
     q('.e-pc-tec').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-pc-ir').addEventListener('click', function (e) { e.stopPropagation(); tecla('ok'); });
     q('.e-pc-vtec').addEventListener('click', function (e) { e.stopPropagation(); d.classList.toggle('teclado'); });
@@ -395,12 +445,12 @@
       var cx = E.cx, W = E.cv.width, H = E.cv.height, k = devicePixelRatio || 1;
       cx.clearRect(0, 0, W, H);
       E.P.forEach(function (p) {
-        p.y += p.v; p.f += .02; p.rot += p.vr; if (p.y > 1.05) { p.y = -.05; p.x = Math.random(); }
-        var px = p.x * W + Math.sin(p.f) * 18 * k + p.dx, py = p.y * H + p.dy, ddx = px - E.mx * k, ddy = py - E.my * k, dd = Math.hypot(ddx, ddy);
-        if (dd < 130 * k && dd > 0) { p.dx += ddx / dd * 4; p.dy += ddy / dd * 4; }
-        p.dx *= .96; p.dy *= .96;
-        cx.save(); cx.translate(px, py); cx.rotate(p.rot); cx.beginPath(); cx.ellipse(0, 0, p.r * k, p.r * .45 * k, 0, 0, 7);
-        cx.fillStyle = 'rgba(' + p.c + ',.75)'; cx.fill(); cx.restore();
+        p.y -= p.v; p.f += .02; if (p.y < -.03) { p.y = 1.03; p.x = Math.random(); }
+        var px = p.x * W + Math.sin(p.f * .5) * 6 * k + p.dx, py = p.y * H + p.dy, ddx = px - E.mx * k, ddy = py - E.my * k, dd = Math.hypot(ddx, ddy);
+        if (dd < 110 * k && dd > 0) { p.dx += ddx / dd * 3; p.dy += ddy / dd * 3; }
+        p.dx *= .95; p.dy *= .95;
+        cx.beginPath(); cx.arc(px, py, p.r * k, 0, 6.29);
+        cx.fillStyle = 'rgba(' + p.c + ',' + (.25 + .35 * (1 + Math.sin(p.f)) / 2) + ')'; cx.fill();
       });
     }
     E.raf = requestAnimationFrame(cuadro);
@@ -442,27 +492,93 @@
     if (hasta) { msg('Demasiados intentos. Espera ' + Math.ceil((hasta - Date.now()) / 60000) + ' min.'); E.pin = ''; pts(); return; }
     E.ocupado = true; msg('Verificando…', '#cfe0ff');
     var validar = E.op.validar || function (p, fin) { fin({ ok: false, error: 'Sin validación' }); };
+    var porHuella = !!E.porHuella; E.porHuella = false;
     validar(pin, function (r) {
       if (!E) return;
       msg('');
       if (r && r.ok) {
         acierto();
-        E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30; E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.2);
-        var nom = String((r.nombre || '')).trim().split(' ')[0];
-        E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
-        E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
-        setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
-        setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, r.pausa || 1500);
+        /* api 3.38.1: con la app que lo permite, antes de entrar se ofrece guardar la huella */
+        if (!porHuella && hpOfrecer()) { ofrecerHuella(pin, function () { exito(r); }); return; }
+        exito(r);
       } else if (r && r.crearPin) {
         /* api 3.12: entró con un PIN temporal: ahora crea el suyo */
         E.ocupado = false; empezarCrear(pin, r.nombre || '');
       } else {
         E.ocupado = false; fallo(r);
+        /* api 3.38.1: la huella traía un PIN que ya no sirve (lo cambiaron): se olvida y se pide escribirlo */
+        if (porHuella && !(r && (r.bloqueo || r.mantenimiento)) && !/conexi/i.test(String(r && r.error))) { hpBorrar(); abrir(); msg('Tu PIN cambió: escríbelo. Luego puedes volver a guardar tu huella.'); E.pin = ''; pts(); return; }
+        if (porHuella) abrir();
         var p = E.q('.e-pts'), p2 = E.q('.e-pc-pin'); p.classList.add('mal'); p2.classList.add('mal'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
         msg((r && r.error) || 'PIN no válido · intenta otra vez');
         setTimeout(function () { if (!E) return; p.classList.remove('mal'); p2.classList.remove('mal'); E.pin = ''; pts(); }, 600);
       }
-    });
+    }, { huella: porHuella });
+  }
+  function exito(r) {
+    if (!E) return;
+    E.q('.e-pts').classList.add('ok'); E.q('.e-pc-pin').classList.add('ok'); E.vel = 30; E.pcBase = (E.pcBase || 0) + 360; pcGiro(1.2);
+    var nom = String((r.nombre || '')).trim().split(' ')[0];
+    E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
+    E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
+    setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
+    var pausa = r.pausa || 1500;
+    setTimeout(portal, Math.max(450, pausa - 720));   /* api 3.38.1 */
+    setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, pausa);
+  }
+
+  /* ═══ api 3.38.1 · el círculo de luz y la huella ═══ */
+  function portal() {
+    if (!E) return; var quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
+    if (quieto) return;
+    var em = E.q(E.d.classList.contains('ancho') ? '.e-pc-emb' : '.e-esc') || E.d, rc = em.getBoundingClientRect(), p = document.createElement('i');
+    p.className = 'e-portal'; p.style.left = (rc.left + rc.width / 2) + 'px'; p.style.top = (rc.top + rc.height / 2) + 'px'; E.d.appendChild(p);
+    var k = Math.hypot(innerWidth, innerHeight) / 5; void p.offsetWidth; p.style.transform = 'translate(-50%,-50%) scale(' + k + ')';
+    E.vel = 30;
+  }
+  function hpApp(f) { return !!(window.EcovsaApp && typeof window.EcovsaApp[f] === 'function'); }
+  function hpHay() { try { return hpApp('huellaPinHay') && !!window.EcovsaApp.huellaPinHay(); } catch (x) { return false; } }
+  function hpBorrar() { try { if (hpApp('huellaPinBorrar')) window.EcovsaApp.huellaPinBorrar(); } catch (x) {} }
+  function hpOfrecer() {
+    try { if (!hpApp('huellaPinDisponible') || !window.EcovsaApp.huellaPinDisponible() || hpHay()) return false; } catch (x) { return false; }
+    var no = Number(lsGet('eco_hp_no')) || 0; return Date.now() - no > 30 * 86400000;   /* «Ahora no»: se vuelve a preguntar en 30 días */
+  }
+  var HP = { sigue: null };
+  function ofrecerHuella(pin, sigue) {
+    if (!E) return sigue();
+    E.q('.e-pts').classList.add('ok'); E.d.classList.remove('abierto');
+    var h = document.createElement('div'); h.className = 'e-olvp e-hpof';
+    h.innerHTML = '<b>¿Entrar con tu huella la próxima vez?</b><p>Así no escribes el PIN al entrar. La huella se queda solo en este teléfono; tu PIN sigue sirviendo siempre.</p>' +
+      '<div class="fl"><button type="button" class="no">Ahora no</button><button type="button" class="si">Sí, usar mi huella</button></div>';
+    E.d.appendChild(h);
+    h.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    var fin = function () { if (h.parentNode) h.parentNode.removeChild(h); HP.sigue = null; sigue(); };
+    h.querySelector('.no').onclick = function () { lsSet('eco_hp_no', String(Date.now())); fin(); };
+    h.querySelector('.si').onclick = function () { HP.sigue = fin; try { window.EcovsaApp.huellaPinGuardar(String(pin)); } catch (x) { fin(); } };
+  }
+  /* lo que contesta la app (EcovsaApp.huellaPinPedir / huellaPinGuardar) */
+  if (!window.ecoHuella) window.ecoHuella = function (txt) {
+    var r = {}; try { r = JSON.parse(txt); } catch (x) {}
+    if (r.accion === 'guardar') { var f = HP.sigue; if (f) f(); return; }
+    if (!E) return;
+    if (r.ok && r.pin) { conHuellaPin(r.pin); return; }
+    if (r.invalidada) { abrir(); msg('Las huellas del teléfono cambiaron: entra con tu PIN y vuelve a guardar la tuya.'); return; }
+    if (r.error && r.error !== 'ocupado') { abrir(); msg(r.error); return; }
+    if (r.cancelado) abrir();
+  };
+  if (!window.ecoHuellaFallo) window.ecoHuellaFallo = function () { huellaMal(); };
+  /* la app reconoció la huella y devolvió el PIN: la luz llena la huella y se prueba el PIN como siempre */
+  function conHuellaPin(pin) {
+    if (!E || E.ocupado || !pin) return;
+    var s = E.q('.e-esc2'); E.d.classList.remove('abierto'); E.d.classList.add('escaneando'); s.classList.remove('mal', 'lleno', 'listo'); s.classList.add('si');
+    setTimeout(function () { if (E) s.classList.add('lleno'); }, 250);
+    setTimeout(function () { if (!E) return; s.classList.add('listo'); try { navigator.vibrate && navigator.vibrate(40); } catch (x) {} }, 1150);
+    setTimeout(function () { if (!E) return; s.classList.remove('si'); E.d.classList.remove('escaneando'); E.pin = String(pin); E.porHuella = true; pts(); probar(); }, 1550);
+  }
+  function huellaMal() {
+    if (!E) return; var s = E.q('.e-esc2'); E.d.classList.add('escaneando'); s.classList.remove('lleno', 'listo'); s.classList.add('si', 'mal');
+    try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (x) {}
+    setTimeout(function () { if (!E) return; s.classList.remove('si', 'mal'); E.d.classList.remove('escaneando'); }, 900);
   }
 
   /* ═══ api 3.12 · Crear tu PIN (después de entrar con el temporal) ═══ */
@@ -645,7 +761,7 @@
     /* la pantalla de abajo puede repintarse (p. ej. el lobby toma el fondo que se eligió al bloquear) */
     try { window.dispatchEvent(new Event('eco-desbloqueo')); } catch (e) {} }
 
-  window.EntradaECOVSA = { montar: montar, quitar: desmontar, vigiar: vigiar, detener: function () { V.activo = false; quitarAviso(); },
+  window.EntradaECOVSA = { montar: montar, quitar: desmontar, conHuella: conHuellaPin, huellaMal: huellaMal, abrirPin: function () { abrir(); }, vigiar: vigiar, detener: function () { V.activo = false; quitarAviso(); },
                            reanudar: function () { V.pin = pinGuardado(); if (V.iniciado) { V.activo = true; V.ultLocal = Date.now(); } else vigiar(); }, bloquear: function () { quitarAviso(); bloquear(); },
                            aviso: mostrarAviso, base: BASE };
   /* puente.js la carga con data-vigia: arranca el vigía sola */

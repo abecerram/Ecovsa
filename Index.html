@@ -18817,6 +18817,48 @@ APP38.opcionesMenu = (function(o){ return function(){
   if(!esSupervisor()) l.push('<button class="op" onclick="C38.cerrarMenu();QR38.abrir()"><span class="ic">' + ic38_("qr") + '</span><span>Escanear el QR de un cliente<small>Abre su parada o su historial</small></span></button>');
   return l;
 }; })(APP38.opcionesMenu);
+
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.38.1 · LA ENTRADA AZUL EN LA APP
+   Aprobado por Álvaro el 23 oct (Maqueta_entrada_azul_huella): la caja
+   vieja «Rutas ECOVSA» se va; la app del conductor y Logística entran por
+   la misma entrada de todo el sistema (entrada.js): azul vivo, el emblema
+   que se arma, el teclado propio y, con la app ECOVSA 1.2, la huella.
+   El PIN se valida igual que antes (api_login) y se sigue con api_bootstrap.
+   Si entrada.js no carga (sin señal la primera vez), queda la caja de antes.
+   ═══════════════════════════════════════════════════════════════════ */
+var ENT38 = { r: null, pin: "" };
+ENT38.cargar = function(cb){
+  if(window.EntradaECOVSA) return cb();
+  var s = document.createElement("script"); s.src = "entrada.js"; s.id = "ent-js";
+  s.onload = cb; s.onerror = function(){ cb(); };
+  document.head.appendChild(s);
+};
+pedirPin = (function(o){ return function(){
+  cargaLista_(true);
+  ENT38.cargar(function(){
+    if(!window.EntradaECOVSA){ o(); return; }
+    $("login").style.display = "none";
+    EntradaECOVSA.montar({ validar: ENT38.validar, alEntrar: ENT38.entrar });
+  });
+}; })(pedirPin);
+ENT38.validar = function(p, fin){
+  google.script.run.withSuccessHandler(function(r){
+    if(r && r.ok){
+      ENT38.r = r; ENT38.pin = p;
+      var sup = ["supervisor", "admin", "gerente"].indexOf(String((r.usuario && r.usuario.rol) || "").toLowerCase()) >= 0;
+      fin({ ok: true, nombre: r.usuario.nombre, texto: sup ? "Abriendo Logística…" : "Abriendo tu ruta…" });
+    } else fin({ ok: false, error: (r && r.error) || "PIN no válido", bloqueo: r && r.bloqueo, mantenimiento: r && r.mantenimiento });
+  }).withFailureHandler(function(){ fin({ ok: false, error: "Sin conexión. Intenta con señal." }); }).api_login(p);
+};
+/* lo mismo que hacía «Ingresar» (entrarConPin) al acertar el PIN */
+ENT38.entrar = function(){
+  var r = ENT38.r, p = ENT38.pin; if(!r) return;
+  PIN = p; guardarLocal(K_PIN, PIN); USUARIO = r.usuario; guardarLocal(K_USR, USUARIO);
+  try{ EntradaECOVSA.quitar(); }catch(e){}
+  cargaCortina_(); pintarCabecera();
+  google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api_bootstrap(PIN, hoyISO());
+};
 </script>
 
 </body>
