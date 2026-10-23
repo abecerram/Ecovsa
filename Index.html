@@ -16534,6 +16534,17 @@ UB37.K = "eco_ubi37";
 UB37.leer = function(){ try{ var x = JSON.parse(localStorage.getItem(UB37.K) || "null"); if(x && x.cola) UB37.cola = x.cola; if(x && x.cred && x.cred.fecha === hoyISO()) UB37.cred = x.cred; }catch(e){} };
 UB37.guardar = function(){ try{ localStorage.setItem(UB37.K, JSON.stringify({ cred: UB37.cred, cola: UB37.cola.slice(-300) })); }catch(e){} };
 UB37.fuente = function(){ return window.EcovsaApp ? "apk" : "web"; };
+/* api 3.38 · dentro de la APK «ECOVSA Conductor» la posición la manda la app (también con la pantalla apagada) */
+UB37.app = function(){ return !!(window.EcovsaApp && EcovsaApp.iniciar); };
+UB37.appEstado = function(){ try{ return JSON.parse(EcovsaApp.estado()) || {}; }catch(e){ return {}; } };
+UB37.avisoApp = function(){
+  if(!UB37.app() || !UB37.activo) return;
+  var P = RUTA.paradas || [], s = siguientePendiente(0), c = s >= 0 ? cli(P[s].clienteId) : null;
+  var t = s >= 0 ? "Ruta en curso · Parada " + (s + 1) + " de " + P.length : "Ruta en curso";
+  var x = c ? "Siguiente: " + c.nombre : "Toca para volver a tu ruta", k = t + "|" + x + "|" + UB37.destino();
+  if(k === UB37._aviso) return; UB37._aviso = k;
+  try{ EcovsaApp.aviso(t, x, UB37.destino()); }catch(e){}
+};
 /* ¿toca compartir? conductor, ruta de hoy abierta y con paradas por atender */
 UB37.toca = function(){
   if(!PIN || esSupervisor() || !RUTA || !RUTA.rutaId || RUTA.cierre) return false;
@@ -16546,7 +16557,7 @@ UB37.destino = function(){
 };
 UB37.revisar = function(){
   if(!UB37.toca()){
-    if(UB37.activo){ UB37.evento("fin"); UB37.activo = false; }
+    if(UB37.activo){ UB37.evento("fin"); UB37.activo = false; if(UB37.app()) try{ EcovsaApp.detener(); }catch(e){} }
     UB37.chip(); return;
   }
   if(UB37.activo) return;
@@ -16563,6 +16574,14 @@ UB37.revisar = function(){
 UB37.arrancar = function(){
   UB37.activo = true;
   GEO37.on(UB37.punto);
+  if(UB37.app()){
+    var url = window.PUENTE && PUENTE.destino ? PUENTE.destino("api_ubiEnviar") : "https://wgufdfagvyelsypypkyr.supabase.co/functions/v1/api";
+    UB37._aviso = "";
+    try{ EcovsaApp.iniciar(JSON.stringify({ cred: UB37.cred, url: url, cadaSeg: UB37.cadaSeg, cadaM: UB37.cadaM, destino: UB37.destino() })); }catch(e){}
+    UB37.avisoApp();
+    /* Huawei y otros cierran las apps para ahorrar batería: una vez por día se pide quedar fuera */
+    try{ if(!EcovsaApp.bateriaLibre() && localStorage.getItem("eco_bat") !== hoyISO()){ localStorage.setItem("eco_bat", hoyISO()); EcovsaApp.pedirBateria(); } }catch(e){}
+  }
   UB37.chip(); UB37.mandar();
 };
 /* La explicación de la primera vez (Ley 81: el conductor sabe qué se comparte y con quién) */
@@ -16583,7 +16602,7 @@ UB37.aceptar = function(){
   }, function(){ if(b){ b.disabled = false; b.textContent = "Entendido · permitir ubicación"; } toast("Sin señal: intenta de nuevo"); });
 };
 UB37.punto = function(p){
-  if(!UB37.activo) return;
+  if(!UB37.activo || UB37.app()) return;
   var u = UB37.ult;
   if(u && p.t - u.t < UB37.cadaSeg * 1000 && m37_(u, p) < UB37.cadaM) return;
   UB37.encolar({ t: p.t, lat: +p.lat.toFixed(6), lng: +p.lng.toFixed(6), prec: Math.round(p.prec || 0), vel: p.vel == null ? null : +p.vel.toFixed(1),
@@ -16603,7 +16622,7 @@ UB37.mandar = function(){
   var lote = UB37.cola.slice(0, 100);
   llamar37_("api_ubiEnviar", UB37.cred, lote, UB37.fuente()).then(function(r){
     UB37.mandando = false;
-    if(r && r.ok === false && /Credencial/.test(r.error || "")){ UB37.cred = null; UB37.cola = []; UB37.guardar(); UB37.activo = false; UB37.chip(); return; }
+    if(r && r.ok === false && /Credencial/.test(r.error || "")){ UB37.cred = null; UB37.cola = []; UB37.guardar(); UB37.activo = false; if(UB37.app()) try{ EcovsaApp.detener(); }catch(e){} UB37.chip(); return; }
     if(r && r.ok !== false){ UB37.cola = UB37.cola.slice(lote.length); UB37.enviadoEn = Date.now(); UB37.guardar(); }
     if(r && r.parar){ UB37.activo = false; UB37.cola = []; UB37.guardar(); }
     UB37.chip(); NV37.pintarGps();
@@ -16613,7 +16632,8 @@ UB37.mandar = function(){
 /* parado en un local el GPS casi no avisa: se manda igual cada minuto para que no parezca «sin señal» */
 setInterval(function(){
   UB37.revisar();
-  if(UB37.activo && GEO37.yo && Date.now() - GEO37.yo.t < 120000 && (!UB37.ult || Date.now() - UB37.ult.t >= UB37.cadaSeg * 1000))
+  UB37.avisoApp();
+  if(UB37.activo && !UB37.app() && GEO37.yo && Date.now() - GEO37.yo.t < 120000 && (!UB37.ult || Date.now() - UB37.ult.t >= UB37.cadaSeg * 1000))
     UB37.encolar({ t: Date.now(), lat: +GEO37.yo.lat.toFixed(6), lng: +GEO37.yo.lng.toFixed(6), prec: Math.round(GEO37.yo.prec || 0), dest: UB37.destino() });
   UB37.mandar();
 }, 30000);
@@ -16633,7 +16653,7 @@ UB37.chip = function(){
   e.innerHTML = st === "activa" ? '<i></i><span><b>Ubicación activa</b> · solo durante la ruta</span>'
     : st === "permiso" ? '<i></i><span><b>Activa la ubicación del teléfono</b> · logística no ve dónde vas</span>'
     : '<i></i><span><b>Toca para compartir tu ubicación</b> durante la ruta</span>';
-  e.onclick = function(ev){ ev.stopPropagation(); if(st === "aceptar") UB37.explicar(); else if(st === "permiso") toast("Activa la ubicación en los ajustes del teléfono para esta app"); };
+  e.onclick = function(ev){ ev.stopPropagation(); if(st === "aceptar") UB37.explicar(); else if(st === "permiso"){ if(UB37.app()) try{ EcovsaApp.ajustes(); }catch(x){} toast("Activa la ubicación en los ajustes del teléfono para esta app"); } };
 };
 
 /* ── NV37 · la pantalla Navegar ── */
@@ -16652,7 +16672,9 @@ NV37.vozOn = function(){ try{ return localStorage.getItem("eco_nav_voz") !== "no
 NV37.voz = function(){ try{ localStorage.setItem("eco_nav_voz", NV37.vozOn() ? "no" : "si"); }catch(e){} NV37.pintarVoz(); if(NV37.vozOn()) NV37.decir("Voz activada"); else if(window.speechSynthesis) speechSynthesis.cancel(); };
 NV37.pintarVoz = function(){ var b = $("nv-voz"); if(b) b.textContent = NV37.vozOn() ? "🔊" : "🔇"; };
 NV37.decir = function(t){
-  if(!NV37.vozOn() || !window.speechSynthesis || !t) return;
+  if(!NV37.vozOn() || !t) return;
+  if(window.EcovsaApp && EcovsaApp.decir){ try{ EcovsaApp.decir(t); }catch(e){} return; }   // la APK trae su propia voz
+  if(!window.speechSynthesis) return;
   try{ speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(t); u.lang = "es-419"; u.rate = 1; speechSynthesis.speak(u); }catch(e){}
 };
 /* abrir hacia un cliente de la ruta (id) o hacia un punto ({lat,lng,nombre}: planta, descarga o base) */
@@ -16680,11 +16702,12 @@ NV37.abrir = function(dest){
   GEO37.on(NV37.posicion);
   if(GEO37.yo && Date.now() - GEO37.yo.t < 60000) NV37.posicion(GEO37.yo);
   NV37.despierto(true);
-  UB37.revisar();
+  UB37.revisar(); UB37._aviso = ""; UB37.avisoApp();
 };
 NV37.cerrar = function(){ NV37.despierto(false); if(window.speechSynthesis) try{ speechSynthesis.cancel(); }catch(e){} };
 /* la pantalla no se apaga mientras navega */
 NV37.despierto = function(si){
+  if(window.EcovsaApp && EcovsaApp.pantalla){ try{ EcovsaApp.pantalla(!!si); }catch(e){} return; }
   if(!("wakeLock" in navigator)) return;
   if(si && !NV37.wake) navigator.wakeLock.request("screen").then(function(w){ NV37.wake = w; w.addEventListener("release", function(){ NV37.wake = null; }); }).catch(function(){});
   if(!si && NV37.wake){ NV37.wake.release().catch(function(){}); NV37.wake = null; }
@@ -16792,8 +16815,9 @@ NV37.pintarGps = function(){
   var g = $("nv-gps"); if(!g) return;
   if(GEO37.error === "permiso"){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Activa la ubicación del teléfono'; return; }
   if(!UB37.activo){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Ubicación sin compartir'; return; }
-  var s = UB37.enviadoEn ? Math.round((Date.now() - UB37.enviadoEn) / 1000) : null;
-  if(UB37.cola.length > 2 || s === null || s > 300){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Sin señal · se envía al volver'; return; }
+  var ap = UB37.app() ? UB37.appEstado() : null, env = ap ? ap.enviadoEn : UB37.enviadoEn, cola = ap ? (ap.cola || 0) : UB37.cola.length;
+  var s = env ? Math.round((Date.now() - env) / 1000) : null;
+  if(cola > 2 || s === null || s > 300){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Sin señal · se envía al volver'; return; }
   g.className = "nv-gps"; g.innerHTML = '<i></i>Ubicación enviada · hace ' + (s < 60 ? s + ' s' : Math.round(s / 60) + ' min');
 };
 setInterval(function(){ if(NV37.abierta()) NV37.pintarGps(); }, 10000);
