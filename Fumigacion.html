@@ -47,5 +47,58 @@ MK.iniciar({
   }
 });
 </script>
+<script id="js-338-fu">
+/* api 3.38 · Fumigación con la cara del portal (maqueta aprobada el 23 oct): barra azul con el título, la fecha de la cita en recuadro y «Registrar hecha» en azul */
+/* ── Fumigación: los ajustes sobre lo que pinta FU (sirve en Index.html y en Fumigacion.html) ── */
+(function(){
+  if(!window.FU || typeof FU.pintar !== "function" || FU._fu38) return;
+  FU._fu38 = true;
+  var CSS =
+    '.fu.fu38 .fu-k{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fu.fu38 .fu-k div{display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:11px 10px;border-radius:14px}' +
+    '.fu.fu38 .fu-k div:nth-child(4){display:none}.fu.fu38 .fu-k span{font-size:11.5px}.fu.fu38 .fu-k span::first-letter{text-transform:uppercase}.fu.fu38 .fu-k b{font-size:22px;color:#14306b;margin-top:2px}.fu.fu38 .fu-k .w b{color:#8a6300}' +
+    '.fu.fu38 .fu-tabs button{font-weight:700;font-size:13px;padding:7px 13px}' +
+    '.fu.fu38 .fu-card{border-radius:16px}' +
+    '.fu.fu38 .fu-fila{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 12px;align-items:start}.fu.fu38 .fu-fila .tx{min-width:0}.fu.fu38 .fu-fila .tx b{font-size:15px}.fu.fu38 .fu-fila .acc{grid-column:2;margin-top:6px}' +
+    '.fu.fu38 .fu-fe,.fu.fu38 .fu-fe.hoy,.fu.fu38 .fu-fe.mo{width:56px;min-width:56px;min-height:60px;box-sizing:border-box;background:#e8effb;border:0;color:#14306b;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;padding:4px 0}' +
+    '.fu.fu38 .fu-fe b{font-size:24px}.fu.fu38 .fu-fe span{font-size:10.5px;letter-spacing:.8px;color:#14306b}' +
+    '.fu.fu38 .fu-btn.p{background:#14306b;border-color:#14306b;color:#fff;font-weight:700;font-size:14.5px;padding:10px 16px;border-radius:11px}' +
+    /* Fumigacion.html: el título va en la barra azul; sin la franja de una sola pestaña ni el título repetido */
+    'body.fu38 #mtabs,body.fu38 .main>.ph{display:none!important}body.fu38 .sysbar .mk,body.fu38 .sysbar .sep,body.fu38 .sysbar .mod,body.fu38 .sysbar .sp{display:none!important}' +
+    '.fu38-t{flex:1;min-width:0;color:#fff;font-family:Archivo,sans-serif}.fu38-t b{display:block;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fu38-t small{display:block;font-size:11.5px;font-weight:600;color:#a9bbd9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+  function aplica_(){
+    if(window.MK && MK.base && document.getElementById("sysbar")) return MK.base.rol === "fumigacion";
+    return typeof c38Es_ === "function" && c38Es_() && window.INI_TAB === "fumigacion";
+  }
+  function h12_(h){ var m = /^(\d{2}):(\d{2})$/.exec(h || ""); if(!m) return h || ""; var x = +m[1], pm = x >= 12; x = x % 12 || 12; return x + ":" + m[2] + (pm ? " p. m." : " a. m."); }
+  function ajustar_(){
+    var c = FU.cont, D = FU.d; if(!c || !D) return;
+    if(!document.getElementById("fu38-css")){ var st = document.createElement("style"); st.id = "fu38-css"; st.textContent = CSS; document.head.appendChild(st); }
+    var raiz = c.querySelector(".fu"); if(!raiz) return;
+    raiz.classList.add("fu38");
+    /* la cita: la fecha ya va en el recuadro; queda la hora, con quién (si no va solo) y la nota */
+    raiz.querySelectorAll('.fu-fila button[onclick^="FU.hecha("]').forEach(function(bt){
+      var id = (/FU\.hecha\('([^']+)'\)/.exec(bt.getAttribute("onclick")) || [])[1], x = (D.citas || []).filter(function(z){ return z.fumId === id; })[0];
+      var sm = bt.closest(".fu-fila").querySelector(".tx small"); if(!x || !sm) return;
+      var otros = (x.personas || []).filter(function(p){ return p !== D.yo; });
+      sm.textContent = [h12_(x.hora), otros.length ? "con " + otros.join(" y ") : "", x.nota || ""].filter(Boolean).join(" · ");
+    });
+    /* Fumigacion.html: el título en la barra azul */
+    var sb = document.getElementById("sysbar");
+    if(sb && window.MK){
+      document.body.classList.add("fu38");
+      var t = sb.querySelector(".fu38-t");
+      if(!t){ t = document.createElement("div"); t.className = "fu38-t"; var lg = sb.querySelector(".lg"); if(lg && lg.nextSibling) sb.insertBefore(t, lg.nextSibling); else sb.appendChild(t); }
+      var tx = '<b>Fumigación</b><small>' + String(D.yo || "").replace(/[&<>]/g, "") + ' · sus citas</small>';
+      if(t._h !== tx){ t._h = tx; t.innerHTML = tx; }
+    }
+  }
+  FU.pintar = (function(o){ return function(){
+    var r = o.apply(this, arguments);
+    try{ if(aplica_()) ajustar_(); }catch(e){ console.error(e); }
+    return r;
+  }; })(FU.pintar);
+  if(FU.d && FU.cont){ try{ FU.pintar(); }catch(e){} }
+})();
+</script>
 </body>
 </html>

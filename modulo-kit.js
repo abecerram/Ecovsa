@@ -302,8 +302,8 @@
       '<div class="sp"></div>' +
       (op.buscar ? '<div class="srch">' + MK.ic('buscar', 15) + '<input id="mk-q" placeholder="' + MK.esc(op.buscar.ph || 'Buscar…') + '" autocomplete="off"><div class="res" id="mk-res" hidden></div></div>' : '') +
       (acc ? '<button class="cap" id="mk-accion">' + MK.ic(op.accion.i || 'mas', 15) + '<span class="tx">' + MK.esc(op.accion.t) + '</span></button>' : '') +
-      (u.nombre ? '<div class="us" role="button" tabindex="0" title="Tu usuario" id="mk-us"><span class="nm">' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>' : '') +
-      '<button class="bt" onclick="location.href=\'index.html\'">Módulos</button>';
+      (u.nombre ? '<div class="us" role="button" tabindex="0" title="Tu usuario" id="mk-us"><span class="nm">' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>' : '');
+    /* api 3.38: sin botón «Módulos»; el emblema ya lleva a los módulos */
     var b = document.getElementById('mk-accion'); if (b) b.onclick = function () { op.accion.fn(); };
     var us = document.getElementById('mk-us'); if (us) us.onclick = function () { if (window.TemaECOVSA && TemaECOVSA.menuUsuario) TemaECOVSA.menuUsuario(us, MK.usuario); };
     var q = document.getElementById('mk-q');

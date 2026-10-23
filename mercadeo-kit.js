@@ -282,8 +282,8 @@
         '<div class="lg"></div><div class="mk"><b>ECOVSA</b><span>Sistema de operaciones</span></div><div class="sep"></div><span class="mod">Mercadeo</span>' +
         '<div class="sp"></div><div class="srch">' + MK.ic('buscar', 15) + '<input id="mk-q" placeholder="Buscar cliente, oportunidad, RUC…" autocomplete="off"><div class="res" id="mk-res" hidden></div></div>' +
         (u.rol === 'gerente' ? '' : '<button class="cap" onclick="MK.captura()" title="Captura rápida (tecla N)">') + (u.rol === 'gerente' ? '' : MK.ic('mas', 15) + '<span class="tx">Captura</span></button>') +
-        '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,MK.usuario)"><span>' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>' +
-        '<button class="bt" onclick="location.href=\'index.html\'">Módulos</button>';
+        '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,MK.usuario)"><span>' + MK.esc(u.nombre) + '</span><div class="av">' + MK.esc(MK.ini(u.nombre)) + '</div></div>';
+      /* api 3.38: sin botón «Módulos»; el emblema ya lleva a los módulos */
       var q = document.getElementById('mk-q'); q.oninput = buscar; q.onkeydown = teclasBusqueda;
       q.onfocus = function () { if (q.value.trim().length >= 2) buscar(); };
       document.addEventListener('click', function (e) { if (!e.target.closest || !e.target.closest('.srch')) { var r = document.getElementById('mk-res'); if (r) r.hidden = true; } });
