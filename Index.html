@@ -18861,6 +18861,354 @@ ENT38.entrar = function(){
 };
 </script>
 
+<style id="estilo-340">
+/* ═══ api 3.40 · el mapa nuevo y el camión ═══ */
+.m40-capas{background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(10,30,60,.25);overflow:hidden;font-family:Archivo,system-ui,sans-serif}
+.m40-cb{display:flex;align-items:center;gap:7px;border:0;background:#fff;padding:8px 12px;font:800 12.5px Archivo,system-ui,sans-serif;color:#14306b;cursor:pointer}
+.m40-op{display:grid;padding:4px;border-top:1px solid #eef1f5}.m40-op button{display:flex;align-items:center;gap:9px;border:0;background:none;padding:7px 9px;border-radius:8px;font:700 12.5px Archivo,system-ui,sans-serif;color:#24344f;cursor:pointer;text-align:left;white-space:nowrap}
+.m40-op button.on{background:#e8effb;color:#14306b}.m40-op i{width:30px;height:22px;border-radius:5px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.m40-op .k-calles i{background:linear-gradient(135deg,#f7f4ee 40%,#fcd27b 41% 48%,#f7f4ee 49% 70%,#b7d7f0 71%)}.m40-op .k-sat i{background:linear-gradient(135deg,#3d5a2e,#6b7d4a 50%,#2b4a6a)}.m40-op .k-claro i{background:linear-gradient(135deg,#f5f5f3 45%,#dcdcdc 46% 52%,#f5f5f3 53%)}.m40-op .k-oscuro i{background:linear-gradient(135deg,#262a33 45%,#4a505c 46% 52%,#262a33 53%)}
+.m40-cam{width:36px;height:36px;border-radius:50%;background:var(--c);border:3px solid #fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(10,30,60,.4);position:relative}
+.m40-cam.ch{width:30px;height:30px}
+.m40-cam svg{position:relative;z-index:2;display:block}
+.m40-cam.ve::before{content:"";position:absolute;inset:-4px;border-radius:50%;box-shadow:0 0 18px 6px rgba(74,222,128,.7);animation:m40h 2.4s ease-in-out infinite;z-index:0}
+.m40-cam.ve::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--c);opacity:0;animation:m40p 1.8s ease-out infinite}
+@keyframes m40h{50%{box-shadow:0 0 26px 10px rgba(74,222,128,.45)}}
+@keyframes m40p{0%{opacity:.8;transform:scale(.7)}100%{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion:reduce){.m40-cam.ve::before,.m40-cam.ve::after{animation:none}}
+.m40-en{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:1px 8px;font-weight:800;font-size:11px;background:#e3f4ea;color:#23653c}.m40-en i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.m40-en.am{background:#fff4dc;color:#8a6300}.m40-en.gr{background:#eef1f5;color:#667489}
+.m40-ic{vertical-align:-2px}
+
+/* ═══ api 3.40 · el Inicio nuevo de Logística en la compu ═══ */
+.i40{max-width:1280px;font-family:Archivo,system-ui,sans-serif;color:#0f2140}
+.i40-ic{vertical-align:-3px;flex:none}
+.i40 .pl-btn{display:inline-flex;align-items:center;gap:5px}.i40 .lnk{border:0;background:none;color:#1f5fb8;font:800 12px Archivo,sans-serif;cursor:pointer;padding:0;letter-spacing:0;text-transform:none}
+.i40-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:2px 0 14px}.i40-cab h1{margin:0;font-size:26px;font-weight:800;color:#0f2140}.i40-cab span{font-size:13.5px;color:#667489}
+.i40-ok{display:inline-flex;align-items:center;gap:8px;background:#e9f6ec;color:#1e6b39!important;border-radius:99px;padding:7px 14px;font-weight:800;font-size:12.5px!important}.i40-ok i{width:8px;height:8px;border-radius:50%;background:#2f9e44;box-shadow:0 0 0 4px rgba(47,158,68,.2)}
+.i40-ok.am{background:#fff4dc;color:#8a6300!important}.i40-ok.am i{background:#d99a00;box-shadow:0 0 0 4px rgba(217,154,0,.2)}.i40-ok.gr{background:#eef1f5;color:#44516a!important}.i40-ok.gr i{background:#8a96a8;box-shadow:none}
+.i40-g{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:start}
+.i40-card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(15,33,64,.04)}
+.i40-card h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#44516a}.i40-card h3 .sp{flex:1}
+.i40-n{background:#d6336c;color:#fff;border-radius:99px;font:800 11px/20px Archivo,sans-serif;padding:0 8px;letter-spacing:0}.i40-n.ok{background:#2f9e44}
+.i40-vacio small,.i40-vh small{font:800 11px Archivo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#2f9e44}.i40-vacio h2{margin:4px 0;font-size:20px}.i40-vacio p{color:#667489;font-size:13.5px}
+.i40-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.i40-tabs button{display:inline-flex;align-items:center;gap:6px;border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:5px 11px;font:700 12px Archivo,sans-serif;color:#44516a;cursor:pointer}.i40-tabs button.on{background:#14306b;color:#fff;border-color:#14306b}.i40-tabs i{width:8px;height:8px;border-radius:50%}
+.i40-vh{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.i40-vh h2{margin:3px 0 4px;font-size:21px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.i40-vs{font-size:13px;color:#44516a}.i40-vb{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
+.i40-vh .m40-en{font-size:12px;padding:3px 10px}
+.i40-vg{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;margin-top:12px}#i40-mapa{height:320px;border-radius:14px;overflow:hidden;background:#eef1f4}
+.i40-base{width:26px;height:26px;border-radius:8px;background:#14306b;color:#fff;display:grid;place-items:center;font:900 12px Archivo,sans-serif;border:2px solid #fff;box-shadow:0 2px 6px rgba(10,30,60,.35)}
+.i40-pr{max-height:320px;overflow:auto}.i40-bar{height:8px;background:#eef2f8;border-radius:9px;overflow:hidden;margin-bottom:8px}.i40-bar i{display:block;height:100%;background:#2f9e44;border-radius:9px}
+.i40-st{display:flex;gap:9px;align-items:center;padding:6px 0;border-top:1px solid #f0f3f7}.i40-st:first-of-type{border-top:0}
+.i40-st>i{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;font:900 11px Archivo,sans-serif;font-style:normal;border:2px solid #c5ccd8;color:#8a96a8}
+.i40-st.ok>i{background:#2f9e44;border-color:#2f9e44;color:#fff}.i40-st.sg>i{border-color:#14306b;color:#14306b;box-shadow:0 0 0 3px rgba(20,48,107,.15)}.i40-st.tarde>i{border-color:#e0a100;color:#8a6300}
+.i40-st b{display:block;font-size:13px}.i40-st small{font-size:11.5px;color:#667489}.i40-st.sg b{color:#14306b}.i40-st.tarde small{color:#8a6300}
+.i40-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.i40-nums>div{background:#fff;border:1px solid #e3e8ef;border-radius:16px;padding:12px 14px}
+.i40-nums b{display:block;font-size:24px;color:#14306b;line-height:1.1}.i40-nums span{display:block;font-size:12.5px;font-weight:700;color:#24344f;margin-top:2px}.i40-nums small{font-size:11.5px;color:#8a96a8}.i40-nums .am{background:#fffaf0;border-color:#f3dfa8}.i40-nums .am b{color:#8a6300}
+.i40 #ini-aten h3{display:flex}
+.i40-at{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #f0f3f7}.i40-at:first-of-type{border-top:0}.i40-at>div{flex:1;min-width:0}.i40-at b{display:block;font-size:13.5px}.i40-at small{font-size:12px;color:#667489}
+.i40-at .ico{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center}.i40-at.ro .ico{background:#fde8ef;color:#b3204f}.i40-at.am .ico{background:#fff4dc;color:#8a6300}.i40-at.az .ico{background:#e8effb;color:#14306b}.i40-at.gr .ico{background:#eef2f8;color:#5a6577}
+.i40-te{display:grid;grid-template-columns:42px 14px 1fr;gap:8px;align-items:start;padding:6px 0}.i40-te time{font:800 12px Archivo,sans-serif;color:#44516a;padding-top:1px}
+.i40-te>i{width:10px;height:10px;border-radius:50%;margin-top:4px;background:#2f9e44}.i40-te.am>i{background:#e0a100}.i40-te.ro>i{background:#d6336c}.i40-te b{display:block;font-size:13px}.i40-te small{font-size:12px;color:#667489}
+.i40-nada{font-size:13px;color:#667489;margin:4px 0}
+.i40-asis{display:flex;align-items:center;gap:8px;background:#f1faf4;border-radius:10px;padding:8px 10px;font-size:12.5px;color:#1e6b39;font-weight:700;margin-bottom:10px}.i40-asis i{width:8px;height:8px;border-radius:50%;background:#2f9e44;flex:none}.i40-asis.off{background:#f3f5f8;color:#5a6577}.i40-asis.off i{background:#8a96a8}
+.i40-sem{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.i40-sem .d{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;background:#f6f8fc;border-radius:12px;padding:8px 4px}.i40-sem .d:hover{background:#eaf0fa}
+.i40-sem b{display:block;font-size:12.5px}.i40-sem small{display:block;font-size:10.5px;color:#8a96a8}.i40-sem small.ro{color:#b3204f;font-weight:800}
+.i40-sem .br{height:56px;display:flex;align-items:flex-end;justify-content:center;margin:6px 0}.i40-sem .br i{width:22px;background:#9db7e3;border-radius:6px 6px 0 0}.i40-sem span{display:block;font:800 11.5px Archivo,sans-serif;color:#14306b}
+.i40-seg{display:inline-flex!important;background:#eef2f8;border-radius:9px;padding:3px;letter-spacing:0;text-transform:none}
+.i40 .ini-kpis{margin:0}
+.i40-ind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.i40-ind>div{background:#f6f8fc;border-radius:12px;padding:10px 12px}.i40-ind b{display:block;font-size:19px;color:#14306b}.i40-ind span{display:block;font-size:12px;font-weight:700;color:#24344f}.i40-ind small{font-size:11px;color:#8a96a8}
+</style>
+<script id="js-340">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.40 · EL MAPA NUEVO Y EL CAMIÓN EN VIVO (aprobado por Álvaro el 23 oct)
+   · M40: el mapa de fondo de todos los mapas. «Calles a color» (OpenFreeMap,
+     gratis y sin clave) por defecto; botón «Capas» con Calles a color,
+     Satélite, Claro y Oscuro. Cada quien elige y se recuerda.
+     Los mapas vectoriales se cargan solos la primera vez; mientras, o si el
+     equipo no puede dibujarlos, se usa el mismo mapa en imágenes.
+   · El camión: verde con halo mientras manda señal, ámbar sin señal, gris al
+     cerrar. Su recorrido real del GPS en verde y un destello que lo recorre.
+   ═══════════════════════════════════════════════════════════════════ */
+var M40 = { listo: false, cargando: false, mapas: [], esperan: [],
+  NOM: { calles: "Calles a color", sat: "Satélite", claro: "Claro", oscuro: "Oscuro" },
+  VEC: { calles: "https://tiles.openfreemap.org/styles/liberty", claro: "https://tiles.openfreemap.org/styles/positron", oscuro: "https://tiles.openfreemap.org/styles/dark" },
+  RAS: { calles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"],
+         claro: ["https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"],
+         oscuro: ["https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"] } };
+M40.webgl = function(){ try{ var c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }catch(e){ return false; } };
+M40.cargar = function(){
+  if(M40.listo || M40.cargando || !M40.webgl()) return;
+  M40.cargando = true;
+  var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css"; document.head.appendChild(css);
+  var s1 = document.createElement("script"); s1.src = "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js";
+  s1.onload = function(){
+    var s2 = document.createElement("script"); s2.src = "https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js";
+    s2.onload = function(){ M40.listo = !!(L && L.maplibreGL); M40.cargando = false; M40.vivos_().forEach(function(m){ if(m._m36f && m._m36f !== "sat") m36Capas_(m, m._m36f); }); };
+    s2.onerror = function(){ M40.cargando = false; }; document.head.appendChild(s2);
+  };
+  s1.onerror = function(){ M40.cargando = false; }; document.head.appendChild(s1);
+};
+M40.vivos_ = function(){ M40.mapas = M40.mapas.filter(function(m){ try{ return !m._m40fuera && m._loaded && m._mapPane && m._container && document.body.contains(m._container); }catch(e){ return false; } }); return M40.mapas; };
+m36Fondo_ = function(){ var f = ""; try{ f = localStorage.getItem("eco_fondo") || ""; }catch(e){} if(f === "calle" || !M40.NOM[f]) f = "calles"; return f; };
+m36Capas_ = function(m, fondo){
+  fondo = fondo || m36Fondo_();
+  if(m._m36capas) m._m36capas.forEach(function(c){ try{ m.removeLayer(c); }catch(e){} });
+  var c = [];
+  if(fondo === "sat"){
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Imágenes © Esri" }));
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, opacity: .75 }));
+    c.push(L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }));
+  } else if(M40.listo){
+    try{ c.push(L.maplibreGL({ style: M40.VEC[fondo], interactive: false, attribution: "© OpenFreeMap · © OpenStreetMap" })); }catch(e){ M40.listo = false; }
+  }
+  if(!c.length) { M40.RAS[fondo].forEach(function(u){ c.push(L.tileLayer(u, { maxZoom: 19, attribution: "© Esri" })); }); M40.cargar(); }
+  c.forEach(function(x){ x.addTo(m); if(x.bringToBack) x.bringToBack(); });
+  m._m36capas = c; m._m36f = fondo;
+  m.getContainer().classList.toggle("m40-osc", fondo === "oscuro" || fondo === "sat");
+  if(M40.mapas.indexOf(m) < 0){ M40.mapas.push(m); m.on('unload', function(){ m._m40fuera = true; }); }
+};
+/* el botón «Capas» dentro de cada mapa */
+m36Toggle_ = function(m){
+  var ctl = L.control({ position: "topright" });
+  ctl.onAdd = function(){
+    var d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    var pint = function(){
+      var f = m._m36f || m36Fondo_();
+      d.innerHTML = '<div class="m40-capas' + (d._ab ? ' ab' : '') + '"><button type="button" class="m40-cb" data-t="1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>' + M40.NOM[f] + '</span></button>' +
+        (d._ab ? '<div class="m40-op">' + ["calles", "sat", "claro", "oscuro"].map(function(k){ return '<button type="button" class="' + (f === k ? 'on ' : '') + 'k-' + k + '" data-f="' + k + '"><i></i>' + M40.NOM[k] + '</button>'; }).join("") + '</div>' : '') + '</div>';
+    };
+    d.addEventListener("click", function(e){ var b = e.target.closest("button"); if(!b) return;
+      if(b.getAttribute("data-t")){ d._ab = !d._ab; pint(); return; }
+      var f = b.getAttribute("data-f"); try{ localStorage.setItem("eco_fondo", f); }catch(x){}
+      M40.vivos_().forEach(function(x){ m36Capas_(x, f); if(x._m40pint) x._m40pint(); }); d._ab = false; pint(); });
+    m._m40pint = pint; pint(); return d;
+  };
+  ctl.addTo(m);
+};
+
+/* ── el camión ── */
+M40.cam = function(est, chico){
+  var col = est === "am" ? "#d99a00" : est === "gr" ? "#8a96a8" : "#2f9e44", w = chico ? 30 : 36;
+  return L.divIcon({ className: "", iconSize: [w, w], iconAnchor: [w / 2, w / 2], html: '<div class="m40-cam ' + est + (chico ? ' ch' : '') + '" style="--c:' + col + '"><svg width="' + (chico ? 15 : 18) + '" height="' + (chico ? 15 : 18) + '" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><path d="M2 6h11v10H2z"/><path d="M13 9h5l3 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div>' });
+};
+M40.est = function(x){ return x.cerrada ? "gr" : x.sinSenal ? "am" : "ve"; };
+M40.traza = function(x){ var t = (x.traza || []).map(function(p){ return [p[1], p[2]]; }); if(!x.cerrada && m36LL_(x.lat, x.lng)) t.push([x.lat, x.lng]); return t; };
+/* el destello: una luz que corre por lo recorrido hasta el camión */
+M40.destello = function(map, capa, tz){
+  if(tz.length < 3) return null;
+  var d = [0], tot = 0; for(var i = 1; i < tz.length; i++){ tot += Math.hypot(tz[i][0] - tz[i - 1][0], tz[i][1] - tz[i - 1][1]); d.push(tot); }
+  var en = function(f){ var x = f * tot; for(var k = 1; k < tz.length; k++) if(d[k] >= x){ var u = (x - d[k - 1]) / ((d[k] - d[k - 1]) || 1); return [tz[k - 1][0] + (tz[k][0] - tz[k - 1][0]) * u, tz[k - 1][1] + (tz[k][1] - tz[k - 1][1]) * u]; } return tz[tz.length - 1]; };
+  var luz = [L.polyline([], { color: "#b9ffc6", weight: 16, opacity: .25, lineCap: "round", interactive: false }), L.polyline([], { color: "#6dff8e", weight: 8, opacity: .55, lineCap: "round", interactive: false }), L.polyline([], { color: "#fff", weight: 3.5, opacity: .95, lineCap: "round", interactive: false })];
+  luz.forEach(function(l){ l.addTo(capa); });
+  var fase = 0, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce) return null;
+  var t = setInterval(function(){
+    if(map._m40fuera || !map._loaded || !map.hasLayer(capa) || document.hidden){ if(map._m40fuera || !map._loaded || !map.hasLayer(capa)) clearInterval(t); return; }
+    fase += .012; if(fase > 2.6) fase = 0;
+    if(fase > 1.15){ luz.forEach(function(l){ l.setLatLngs([]); }); return; }
+    var f1 = Math.min(fase, 1), f0 = Math.max(0, f1 - .1), seg = []; for(var q = 0; q <= 10; q++) seg.push(en(f0 + (f1 - f0) * q / 10));
+    var ap = fase > 1 ? 1 - (fase - 1) / .15 : 1;
+    luz[0].setLatLngs(seg).setStyle({ opacity: .25 * ap }); luz[1].setLatLngs(seg).setStyle({ opacity: .55 * ap }); luz[2].setLatLngs(seg.slice(5)).setStyle({ opacity: .95 * ap });
+  }, 60);
+  return t;
+};
+M40.pintarEn = function(map, capa, x, chico){
+  var tz = M40.traza(x), est = M40.est(x);
+  if(tz.length > 1){
+    L.polyline(tz, { color: "#fff", weight: chico ? 7 : 9, opacity: .85, interactive: false }).addTo(capa);
+    L.polyline(tz, { color: est === "gr" ? "#8a96a8" : "#2f9e44", weight: chico ? 4 : 5.5, opacity: .97, interactive: false }).addTo(capa);
+  }
+  var mk = L.marker([x.lat, x.lng], { zIndexOffset: 5000, icon: M40.cam(est, chico) }).addTo(capa);
+  if(est === "ve") M40.destello(map, capa, tz);
+  return mk;
+};
+M40.velTx = function(x){ return x.cerrada ? "ruta cerrada" : x.sinSenal ? "sin señal" : (x.vel != null && x.vel > 2 ? "en marcha · " + x.vel + " km/h" : "detenido"); };
+
+/* Mapa del día: el camión y su recorrido */
+MD37.pintar = function(){
+  if(!MD_MAP || !MD || MD.fecha !== MD.hoy) return;
+  if(MD37.capa){ try{ MD_MAP.removeLayer(MD37.capa); }catch(e){} }
+  MD37.capa = L.layerGroup().addTo(MD_MAP);
+  /* la primera vez, que se vean también los camiones (no solo las paradas) */
+  if(!MD_MAP._m40fit){ MD_MAP._m40fit = true; try{ var b = MD_MAP.getBounds(), ext = false;
+    (MD.camiones || []).forEach(function(x){ if(m36LL_(x.lat, x.lng) && !b.contains([x.lat, x.lng])){ b.extend([x.lat, x.lng]); ext = true; } });
+    if(ext) MD_MAP.fitBounds(b, { padding: [30, 30] }); }catch(e){} }
+  (MD.camiones || []).forEach(function(x){
+    var k = MD.rutas.findIndex(function(r){ return r.rutaId === x.rutaId; });
+    if(MD_RSEL !== null && MD_RSEL !== k) return;
+    M40.pintarEn(MD_MAP, MD37.capa, x, false)
+      .bindTooltip(esc(x.conductor) + ' · ' + esc(x.vehiculo || "") + '<br>' + M40.velTx(x) + ' · ' + (x.sinSenal ? 'última ' : 'señal ') + MD37.hace(x) + (x.km ? ' · ' + x.km + ' km hoy' : '') + (x.inicio ? ' · salió ' + x.inicio : ''));
+  });
+};
+var M40_SVG = '<svg class="m40-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 6h11v10H2z"/><path d="M13 9h5l3 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>';
+mdHoyHtml_ = (function(o){ return function(esHoy){
+  var h = o(esHoy);
+  if(esHoy && MD && MD.camiones) MD.camiones.forEach(function(x){
+    var r = MD.rutas.find(function(q){ return q.rutaId === x.rutaId; }); if(!r) return;
+    var i = h.indexOf('<i style="background:' + r.color + '"></i><b>'); if(i < 0) return;
+    var j = h.indexOf('🚚 ', i); if(j < 0) return;
+    var est = M40.est(x), chip = '<span class="m40-en ' + est + '"><i></i>' + M40.velTx(x).replace(/^./, function(c){ return c.toUpperCase(); }) + '</span> ';
+    h = h.slice(0, j) + chip + (x.inicio ? 'salió ' + x.inicio + ' · ' : '') + h.slice(j + 3);
+  });
+  return h.replace(/El camión 🚚 se ve con la hora de su última posición \(en ámbar si lleva más de 5 minutos sin señal\)\./, 'El camión va en verde mientras manda señal, en ámbar si lleva más de 5 minutos sin señal y en gris al cerrar la ruta. La línea verde es su recorrido real por el GPS.').replace(/🚚 /g, M40_SVG + ' ');
+}; })(mdHoyHtml_);
+
+/* Mi día (cel): el mapa pequeño con el mapa nuevo, el camión verde y su recorrido */
+mi38Mapa_ = function(){
+  var d = $("mi38-mapa"); if(!d || !window.L || !MI38.md) return;
+  if(MI38.map){ try{ MI38.map.remove(); }catch(e){} MI38.map = null; }
+  var m = L.map(d, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, boxZoom: false, keyboard: false, zoomAnimation: false, fadeAnimation: false });
+  m36Capas_(m); MI38.map = m;
+  var cams = (MI38.md.camiones || []).filter(function(x){ return !x.cerrada; }), pts = [], capa = L.layerGroup().addTo(m);
+  if(cams.length){
+    var ru = mi38Ruta_(cams[0].rutaId);
+    if(ru){ var ll = ru.paradas.filter(function(p){ return m36LL_(p.lat, p.lng); }).map(function(p){ return [p.lat, p.lng]; });
+      if(ll.length > 1) L.polyline(ll, { color: ru.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa);
+      ru.paradas.forEach(function(p, i){ if(!m36LL_(p.lat, p.lng)) return; pts.push([p.lat, p.lng]);
+        L.marker([p.lat, p.lng], { icon: m36Ic_('<div class="mp-n ' + (p.hecha ? 'hecha' : 'pend') + '">' + (p.hecha ? '✓' : i + 1) + '</div>', 22) }).addTo(capa); }); }
+  }
+  cams.forEach(function(x){ pts.push([x.lat, x.lng]); M40.pintarEn(m, capa, x, true); });
+  if(cams.length) m.setView([cams[0].lat, cams[0].lng], 14); else if(pts.length) m.fitBounds(pts, { padding: [20, 20] }); else m.setView([8.99, -79.52], 11);
+};
+mi38Tarjeta_ = (function(o){ return function(v, i){
+  var h = o.apply(this, arguments); if(!h) return h;
+  var cam = mi38Cam_(v.rutaId); if(!cam) return h;
+  return h.replace('<span class="mi38-tag">● En ruta</span>', '<span class="mi38-tag">● ' + (cam.vel != null && cam.vel > 2 ? 'En marcha · ' + cam.vel + ' km/h' : 'En ruta') + '</span>');
+}; })(mi38Tarjeta_);
+
+/* El teléfono del conductor no comparte la ubicación de madrugada (el servidor cuenta desde 30 min antes de la salida) */
+UB37.toca = (function(o){ return function(){ var d = new Date(); if(d.getHours() * 60 + d.getMinutes() < 5 * 60 + 30) return false; return o.apply(this, arguments); }; })(UB37.toca);
+setInterval(function(){ try{ if(PIN && !esSupervisor()) UB37.revisar(); }catch(e){} }, 5 * 60000);
+/* los avisos nuevos se prenden o apagan como los demás (Configurar › Avisos del teléfono) */
+try{ AV38_TIPOS.sup = [["inicio", "Ruta iniciada", "Cuando el camión sale"], ["llegada", "Llegó a su primera parada", "Y si llegó a tiempo"], ["velocidad", "Pasó de 80 km/h", "Una vez por cada vez"], ["detenido", "Detenido sin cliente", "Más de 15 minutos quieto lejos de un cliente"]].concat(AV38_TIPOS.sup); }catch(e){}
+
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.40 · EL INICIO NUEVO DE LOGÍSTICA EN LA COMPU (Maqueta_inicio_logistica, todas A)
+   Primero el camión en vivo; los 4 números de hoy; lo que requiere tu
+   atención con su botón; lo que pasó hoy; la semana del asistente;
+   indicadores y el mes. En el cel sigue «Mi día» (3.38).
+   ═══════════════════════════════════════════════════════════════════ */
+var I40 = { md: null, mes: null, tMes: 0, vuelo: false, sel: 0, todo: false, map: null };
+I40.ic = function(k, s){ var P = { ruta: '<path d="M2 6h11v10H2z"/><path d="M13 9h5l3 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>', ok: '<path d="M5 12l5 5 9-10"/>', alerta: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>', est: '<path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', punto: '<circle cx="12" cy="12" r="4"/>' };
+  return '<svg class="i40-ic" width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (P[k] || P.punto) + '</svg>'; };
+I40.activo = function(){ return esSupervisor() && esEscritorio_(); };
+I40.cargar = function(){
+  if(!I40.activo() || I40.vuelo || !PIN) return;
+  I40.vuelo = true;
+  llamar37_("api_mapaDia", PIN).then(function(r){ I40.vuelo = false; if(r && r.ok){ I40.md = r; if(INI && INI_TAB === "hub") pintarInicio_(); } }, function(){ I40.vuelo = false; });
+  if(Date.now() - I40.tMes > 10 * 60000){ I40.tMes = Date.now();
+    llamar37_("api_inicioLogistica", PIN, "mes").then(function(r){ if(r && r.ok){ I40.mes = r.indicadores && r.indicadores.actual; if(INI && INI_TAB === "hub") pintarInicio_(); } }, function(){}); }
+};
+cargarInicio_ = (function(o){ return function(){ var r = o.apply(this, arguments); I40.cargar(); return r; }; })(cargarInicio_);
+I40.min = function(h){ var m = String(h || "").match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+I40.hh = function(m){ m = Math.round(m); var h = Math.floor(m / 60) % 24; return ((h % 12) || 12) + ":" + ("0" + (m % 60)).slice(-2) + (h < 12 ? " a. m." : " p. m."); };
+I40.ahora = function(){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+I40.rutas = function(){ return (I40.md && I40.md.fecha === I40.md.hoy && I40.md.rutas) || []; };
+I40.cam = function(id){ return ((I40.md && I40.md.camiones) || []).find(function(x){ return x.rutaId === id; }) || null; };
+
+/* ── el camión en vivo ── */
+I40.vivo = function(){
+  var R = I40.rutas(), r = R[I40.sel] || R[0];
+  if(!r) return '<section class="i40-card i40-vacio"><small>Hoy en vivo</small><h2>No hay rutas publicadas para hoy</h2><p>Cuando una ruta salga, aquí se ve el camión moviéndose.</p><button class="pl-btn" onclick="mostrarTab(\'plan\')">' + I40.ic("cal", 14) + ' Planificar</button></section>';
+  var x = I40.cam(r.rutaId), hechas = r.paradas.filter(function(p){ return p.hecha; }).length, n = r.paradas.length;
+  var dest = x ? String(x.destino || "") : "", k = dest ? r.paradas.findIndex(function(p){ return String(p.clienteId) === dest && !p.hecha; }) : -1;
+  if(k < 0) k = r.paradas.findIndex(function(p){ return !p.hecha; });
+  var sig = k >= 0 ? r.paradas[k] : null, est = x ? M40.est(x) : (hechas ? "gr" : "no");
+  var chip = x ? '<span class="m40-en ' + est + '"><i></i>' + M40.velTx(x).replace(/^./, function(c){ return c.toUpperCase(); }) + '</span>' : '<span class="m40-en gr"><i></i>' + (/CERRADA|TERMINADA/.test(String(r.estadoRuta || "")) ? "Ruta cerrada" : "Todavía no sale") + '</span>';
+  var sub = (x && x.inicio ? 'Salió ' + x.inicio + ' · ' : '') + hechas + ' de ' + n + ' paradas · ' + nIni_(r.kg, 1) + ' kg' + (x && x.km ? ' · ' + x.km + ' km' : '') + (sig ? ' · sigue <b>' + esc(sig.nombre) + '</b>' + (sig.horaPlan ? ' (planeada ' + esc(sig.horaPlan) + ')' : '') : '');
+  var tabs = R.length > 1 ? '<div class="i40-tabs">' + R.map(function(q, i){ var c = I40.cam(q.rutaId); return '<button class="' + (q === r ? 'on' : '') + '" onclick="I40.sel=' + i + ';pintarInicio_()"><i style="background:' + (c && !c.cerrada ? (c.sinSenal ? '#d99a00' : '#2f9e44') : '#c5ccd8') + '"></i>' + esc(String(q.conductor).split(" ")[0]) + ' · ' + esc(q.vehiculo) + '</button>'; }).join("") + '</div>' : '';
+  var lista = r.paradas.map(function(p, i){ var cls = p.hecha ? "ok" : i === k ? "sg" : (mdAtrasada40_(p) ? "tarde" : "");
+    var t = p.hecha ? (p.horaHecha ? esc(p.horaHecha) + ' · hecha' : 'hecha') : i === k ? 'la que sigue' + (p.horaPlan ? ' · planeada ' + esc(p.horaPlan) : '') : (mdAtrasada40_(p) ? 'atrasada · planeada ' + esc(p.horaPlan) : (p.horaPlan ? 'planeada ' + esc(p.horaPlan) : 'pendiente'));
+    return '<div class="i40-st ' + cls + '"><i>' + (p.hecha ? I40.ic("ok", 12) : i + 1) + '</i><div><b>' + esc(p.nombre) + '</b><small>' + t + '</small></div></div>'; }).join("");
+  return '<section class="i40-card i40-vivo">' + tabs + '<div class="i40-vh"><div><small>Hoy en vivo</small><h2>' + esc(String(r.conductor || "Sin asignar").split(" ").slice(0, 2).join(" ")) + ' · ' + esc(r.vehiculo || "") + ' ' + chip + '</h2><span class="i40-vs">' + sub + '</span></div>' +
+    '<div class="i40-vb"><button class="pl-btn" onclick="mostrarTab(\'mapadia\')">' + I40.ic("ruta", 14) + ' Mapa del día</button><button class="pl-btn" onclick="mostrarTab(\'monitor\')">' + I40.ic("est", 14) + ' Cierre de rutas</button></div></div>' +
+    '<div class="i40-vg"><div id="i40-mapa"></div><div class="i40-pr"><div class="i40-bar"><i style="width:' + (n ? Math.round(hechas / n * 100) : 0) + '%"></i></div>' + lista + '</div></div></section>';
+};
+function mdAtrasada40_(p){ if(p.hecha || !p.horaPlan) return false; var m = I40.min(p.horaPlan); return m !== null && m + 20 < I40.ahora(); }
+I40.mapa = function(){
+  var d = $("i40-mapa"), R = I40.rutas(), r = R[I40.sel] || R[0]; if(!d || !window.L || !r) return;
+  if(I40.map){ try{ I40.map.remove(); }catch(e){} I40.map = null; }
+  var m = m36Mapa_("i40-mapa", { zoomControl: true, scrollWheelZoom: false }); I40.map = m;
+  var capa = L.layerGroup().addTo(m), B = I40.md.base ? [I40.md.base.lat, I40.md.base.lng] : null, pts = B ? [B] : [];
+  var ll = r.paradas.filter(function(p){ return m36LL_(p.lat, p.lng); }).map(function(p){ return [p.lat, p.lng]; }), P = B ? [B].concat(ll, [B]) : ll;
+  if(B && m36TrazoOk_(r.trazo, P)) r.trazo.legs.forEach(function(l){ L.polyline(m36Dec_(l), { color: r.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa); });
+  else if(P.length > 1) L.polyline(P, { color: r.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa);
+  r.paradas.forEach(function(p, i){ if(!m36LL_(p.lat, p.lng)) return; pts.push([p.lat, p.lng]);
+    L.marker([p.lat, p.lng], { icon: m36Ic_('<div class="mp-n ' + (p.hecha ? 'hecha' : 'pend') + '">' + (p.hecha ? '✓' : i + 1) + '</div>', 24) }).addTo(capa).bindTooltip(esc(p.nombre)); });
+  if(B) L.marker(B, { icon: m36Ic_('<div class="i40-base">B</div>', 26) }).addTo(capa);
+  var x = I40.cam(r.rutaId); if(x){ M40.pintarEn(m, capa, x, false); (x.traza || []).forEach(function(p){ pts.push([p[1], p[2]]); }); }
+  if(pts.length > 1) m.fitBounds(pts, { padding: [24, 24] }); else m.setView(B || [8.99, -79.52], 11);
+};
+
+/* ── los 4 números de hoy ── */
+I40.nums = function(){
+  var t = INI.totales || {}, R = I40.rutas(), km = 0, atr = 0, at = [];
+  ((I40.md && I40.md.camiones) || []).forEach(function(x){ km += Number(x.km) || 0; });
+  R.forEach(function(r){ r.paradas.forEach(function(p){ if(mdAtrasada40_(p)){ atr++; at.push(p.nombre); } }); });
+  return '<div class="i40-nums">' + [[(t.hechas || 0) + ' de ' + (t.total || 0), 'paradas hechas', (t.pct || 0) + '% de lo de hoy'], [nIni_(t.kg || 0, 1) + ' kg', 'recogidos hoy', (t.hechas || 0) + (t.hechas === 1 ? ' recibo' : ' recibos')], [nIni_(km, 1) + ' km', 'recorridos hoy', 'medidos con el GPS'], [atr, atr === 1 ? 'atrasada' : 'atrasadas', atr ? esc(at[0]) + (atr > 1 ? ' y ' + (atr - 1) + ' más' : '') : 'ninguna', atr ? 'am' : '']]
+    .map(function(n){ return '<div class="' + (n[3] || '') + '"><b>' + n[0] + '</b><span>' + n[1] + '</span><small>' + n[2] + '</small></div>'; }).join("") + '</div>';
+};
+/* ── lo que pasó hoy (lo mismo que los avisos del teléfono) ── */
+I40.paso = function(){
+  var E = [], R = I40.rutas(), ah = I40.ahora();
+  ((I40.md && I40.md.camiones) || []).forEach(function(x){
+    var r = R.find(function(q){ return q.rutaId === x.rutaId; }) || { paradas: [] }, q = String(x.conductor || "").split(" ")[0];
+    if(x.inicio) E.push([I40.min(x.inicio), "ve", "Ruta iniciada", q + " salió de la base · " + r.paradas.length + " paradas"]);
+    (x.llegadas || []).forEach(function(l){ var p = r.paradas.find(function(z){ return String(z.clienteId) === String(l.cliente); }); E.push([ah - Math.round((Number(l.hace) || 0) / 60), "ve", "Llegó a " + (p ? p.nombre : "una parada"), q]); });
+    (x.excesos || []).forEach(function(e){ E.push([I40.min(e.hora), "ro", "Pasó de 80 km/h", q + " iba a " + e.max + " km/h"]); });
+    (x.detenidos || []).forEach(function(e){ E.push([I40.min(e.hora), "am", "Detenido " + e.min + " min sin cliente", q + (e.sigue ? " · sigue ahí" : "")]); });
+    if(x.cerrada) E.push([ah - Math.round((Number(x.hace) || 0) / 60), "ve", "Ruta terminada", q + " · " + r.paradas.filter(function(p){ return p.hecha; }).length + " de " + r.paradas.length + " paradas"]);
+  });
+  R.forEach(function(r){ r.paradas.forEach(function(p){
+    if(p.hecha && p.horaHecha) E.push([I40.min(p.horaHecha), "ve", "Recibo cerrado · " + p.nombre, nIni_(p.kg, 1) + " kg" + (p.recibo ? " · N.º " + p.recibo : "")]);
+    if(mdAtrasada40_(p)) E.push([I40.min(p.horaPlan) + 20, "am", "Parada atrasada", p.nombre + " · planeada " + p.horaPlan]); }); });
+  E = E.filter(function(e){ return e[0] !== null && e[0] >= 0; }).sort(function(a, b){ return b[0] - a[0]; });
+  var V = I40.todo ? E : E.slice(0, 7);
+  return '<section class="i40-card"><h3>Lo que pasó hoy<span class="sp"></span>' + (E.length > 7 ? '<button class="lnk" onclick="I40.todo=!I40.todo;pintarInicio_()">' + (I40.todo ? 'Ver menos' : 'Ver todo · ' + E.length) + '</button>' : '') + '</h3>' +
+    (V.length ? '<div class="i40-tl">' + V.map(function(e){ return '<div class="i40-te ' + e[1] + '"><time>' + I40.hh(e[0]).replace(/ (a|p)\. m\./, '') + '</time><i></i><div><b>' + esc(e[2]) + '</b><small>' + esc(e[3]) + '</small></div></div>'; }).join("") + '</div>' : '<p class="i40-nada">Todavía no pasa nada hoy.</p>') + '</section>';
+};
+/* ── requiere tu atención: la misma lista, con su botón ── */
+pintarAsideIni_ = (function(o){ return function(){
+  var a = $("ini-aten"); if(!a || !$("i40")) return o.apply(this, arguments);
+  if(INI_DET) return o.apply(this, arguments);
+  var A = INI.atencion, cls = function(n){ return n === "a" || !n ? "ro" : n === "m" ? "am" : n === "b" ? "az" : "gr"; };
+  a.innerHTML = '<h3>Requiere tu atención<span class="i40-n' + (A.length ? '' : ' ok') + '">' + A.length + '</span></h3>' +
+    (A.length ? A.map(function(x, i){ return '<div class="i40-at ' + cls(x.nivel) + '"><span class="ico">' + I40.ic(cls(x.nivel) === "ro" ? "alerta" : "reloj", 16) + '</span><div><b>' + esc(x.titulo) + '</b><small>' + esc(x.texto) + '</small></div><button class="pl-btn" onclick="tocarAtencionIni_(' + i + ')">' + esc(String(x.accion || "Ver").replace(/\s*→$/, "")) + '</button></div>'; }).join("") : '<p class="i40-nada">Nada pendiente. Todo al día.</p>');
+}; })(pintarAsideIni_);
+/* ── la semana ── */
+I40.semana = function(){
+  var on = !!(window.AS_EST && AS_EST.on);
+  return '<section class="i40-card"><h3>La semana<span class="sp"></span><button class="pl-btn" onclick="mostrarTab(\'plan\')">' + I40.ic("cal", 14) + ' Planificar</button></h3>' +
+    '<div class="i40-asis' + (on ? '' : ' off') + '"><i></i>' + (on ? 'Piloto encendido · arma y acomoda las rutas solo' + (AS_EST.congelar ? ' · publica la de mañana a las ' + esc(asH12_(AS_EST.congelar)) : '') : 'Piloto apagado · las rutas se arman a mano') + '</div>' +
+    '<div class="i40-sem">' + (INI.semana || []).slice(0, 5).map(function(s){
+      var p = 0, tp = 0; s.rutas.forEach(function(r){ p += r.paradas; tp += r.tope; });
+      var w = tp ? Math.min(100, Math.round(p / tp * 100)) : 0;
+      return '<button class="d" onclick="abrirDiaIni_(\'' + s.fecha + '\',' + (s.rutas.length ? 1 : 0) + ')"><b>' + esc(fechaCortaIni_(s.fecha)) + '</b><div class="br"><i style="height:' + Math.max(w, s.rutas.length ? 6 : 0) + '%"></i></div><span>' + (s.rutas.length ? p + ' paradas' : (s.lesToca ? s.lesToca + ' le toca' : 'sin ruta')) + '</span>' + (!s.rutas.length && s.sinProgramar ? '<small class="ro">crear</small>' : '<small>' + (s.rutas.length ? s.rutas.length + (s.rutas.length === 1 ? ' ruta' : ' rutas') : '—') + '</small>') + '</button>'; }).join("") + '</div></section>';
+};
+I40.indic = function(){
+  return '<section class="i40-card"><h3>Indicadores<span class="sp"></span><span class="ini-seg i40-seg">' + [["semana","Semana"],["mes","Mes"],["anio","Año"]].map(function(p){ return '<button data-p="' + p[0] + '" class="' + (INI_PER === p[0] ? "on" : "") + '" onclick="cambiarPeriodoIni_(\'' + p[0] + '\')">' + p[1] + '</button>'; }).join("") + '</span></h3>' + htmlKpisIni_() + '</section>';
+};
+I40.mesCard = function(){
+  var a = I40.mes; if(!a) return '';
+  var M = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][new Date().getMonth()];
+  return '<section class="i40-card"><h3>' + M.charAt(0).toUpperCase() + M.slice(1) + ' hasta hoy</h3><div class="i40-ind">' +
+    [[a.hechas != null ? a.hechas : '—', 'visitas', a.programadas ? 'de ' + a.programadas + ' planeadas' : ''], [nIni_(a.kg), 'kg recogidos', ''], [nIni_(a.km), 'km recorridos', a.jornadas ? a.jornadas + ' jornadas' : ''], [a.pct == null ? '—' : a.pct + '%', 'cumplidas', '']]
+      .map(function(x){ return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span>' + (x[2] ? '<small>' + x[2] + '</small>' : '') + '</div>'; }).join("") + '</div></section>';
+};
+pintarInicio_ = (function(o){ return function(){
+  if(!I40.activo() || !INI) return o.apply(this, arguments);
+  var c = $("ini-sup"); if(!c) return;
+  var r = INI, n = r.atencion.length, R = I40.rutas(), vivos = ((I40.md && I40.md.camiones) || []).filter(function(x){ return !x.cerrada; }).length;
+  var pill = r.fase === "cierre" ? '<span class="i40-ok gr"><i></i>La operación de hoy terminó' + (r.terminoA ? ' a las ' + esc(r.terminoA) : '') + '</span>'
+    : vivos ? '<span class="i40-ok"><i></i>Operación en marcha' + (n ? ' · ' + n + (n === 1 ? ' cosa por atender' : ' cosas por atender') : ' · todo en orden') + '</span>'
+    : '<span class="i40-ok ' + (n ? 'am' : '') + '"><i></i>' + (R.length ? (R.length === 1 ? 'La ruta de hoy todavía no sale' : 'Las rutas de hoy todavía no salen') : 'Sin rutas hoy') + (n ? ' · ' + n + ' por atender' : '') + '</span>';
+  var cab = '<div class="i40-cab"><div><h1>' + saludoIni_() + '</h1><span>' + esc(fechaLargaIni_(r.hoy)) + ' · ' + esc(r.hora || '') + (R.length ? ' · ' + R.length + (R.length === 1 ? ' ruta hoy' : ' rutas hoy') : '') + '</span></div>' + pill + '</div>';
+  c.classList.remove("mi38");
+  c.innerHTML = '<div id="i40" class="i40">' + cab + '<div class="i40-g"><div>' + (I40.md ? I40.vivo() : '<section class="i40-card i40-vacio"><small>Hoy en vivo</small><p>Consultando dónde va cada camión…</p></section>') + I40.nums() + I40.paso() + I40.indic() + '</div><div><aside class="i40-card" id="ini-aten"></aside>' + I40.semana() + I40.mesCard() + '</div></div></div>';
+  pintarAsideIni_();
+  if(I40.md) setTimeout(I40.mapa, 20);
+}; })(pintarInicio_);
+</script>
 </body>
 
 </html>
