@@ -19938,6 +19938,534 @@ cal38Dia_ = (function(o){ return function(f){
   return h;
 }; })(cal38Dia_);
 </script>
+<style id="estilo-343">
+/* api 3.43 · Planificar: Día nuevo, Mes y transiciones */
+#pantalla-plan.p43-dia #pl42{display:block!important}#pantalla-plan.p43-dia #pl-cuerpo,#pantalla-plan.p43-mesv #pl-cuerpo{display:none!important}
+#pantalla-plan.p43-mesv #pl-fecha{display:none}
+/* transiciones: entra suave, sale suave, cargando sin borrar lo que había */
+@keyframes p43In{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.p43-in{animation:p43In .26s ease-out both}
+#pl42{transition:opacity .14s ease}#pl42.p43-sale{opacity:0}
+#pl42.p43-cargando{position:relative}#pl42.p43-cargando>*{opacity:.55;transition:opacity .2s;pointer-events:none}
+#pl42.p43-cargando::before{content:"";position:absolute;left:0;right:0;top:-6px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#14306b,transparent);background-size:40% 100%;background-repeat:no-repeat;animation:p43Barra 1s linear infinite;z-index:5}
+@keyframes p43Barra{from{background-position:-40% 0}to{background-position:140% 0}}
+@keyframes p43Llega{0%{box-shadow:0 0 0 3px rgba(47,158,68,.55);transform:scale(1.03)}100%{box-shadow:0 0 0 0 rgba(47,158,68,0);transform:none}}
+.p43-llega{animation:p43Llega 1.1s ease-out}
+.p43-guarda{position:relative}.p43-guarda::after{content:"guardando…";position:absolute;right:6px;top:5px;font:800 9px Archivo,sans-serif;color:#8a6300;background:#fff4dc;border-radius:99px;padding:1px 6px}
+.p43-esq{display:grid;gap:10px}.p43-esq i{display:block;border-radius:14px;background:linear-gradient(90deg,#eef1f6 25%,#f6f8fb 50%,#eef1f6 75%);background-size:200% 100%;animation:p43Brillo 1.2s linear infinite}
+.p43-esq .g{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.p43-esq .g i{height:300px}
+@keyframes p43Brillo{from{background-position:200% 0}to{background-position:-200% 0}}
+#p43-av{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:#0f2140;color:#fff;border-radius:12px;padding:9px 14px;font:700 13px Archivo,sans-serif;z-index:9500;display:flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(10,30,60,.3);transition:.22s ease;pointer-events:none;max-width:92vw}
+#p43-av.on{opacity:1;transform:translate(-50%,0)}#p43-av b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#2f9e44;font-size:12px;flex:none}#p43-av.mal b{background:#d6336c}
+.p43-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:p43Gira .7s linear infinite;flex:none}@keyframes p43Gira{to{transform:rotate(360deg)}}
+.p42-p,.p42-tc,.p43-st,.p43-tc,.p43-mp,.p43-d .rt{transition:background .15s,box-shadow .15s,transform .15s}
+/* el día */
+.p43-tira{display:flex;gap:6px;overflow-x:auto;margin:2px 0 10px;padding-bottom:2px}.p43-tira button{flex:none;border:1px solid #e1e6ee;background:#fff;border-radius:12px;padding:7px 13px;text-align:left;cursor:pointer;font-family:Archivo,sans-serif;transition:.15s}
+.p43-tira b{display:block;font-size:13.5px;color:#0f2140}.p43-tira small{font-size:11px;color:#667489}.p43-tira .on{background:#14306b;border-color:#14306b}.p43-tira .on b,.p43-tira .on small{color:#fff}.p43-tira button.sob{box-shadow:0 0 0 3px #7e9bbf;background:#f4f8ff}
+.p43-rtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.p43-rtabs button{border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:6px 12px;font:700 12.5px Archivo,sans-serif;color:#24344f;cursor:pointer}.p43-rtabs .on{background:#14306b;color:#fff;border-color:#14306b}.p43-rtabs .add{border-style:dashed;color:#14306b}
+.p43-k{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}.p43-k.m{grid-template-columns:repeat(4,minmax(0,1fr))}.p43-k>div{background:#fff;border:1px solid #e1e6ee;border-radius:12px;padding:9px 12px}.p43-k b{display:block;font-size:18px;color:#14306b}.p43-k span{font-size:11.5px;color:#667489}
+.p43-k .ro{background:#fff5f8;border-color:#f2b8c9}.p43-k .ro b{color:#b3204f}.p43-k .am{background:#fffaf0;border-color:#f0d27a}.p43-k .am b{color:#8a6300}
+.p43-linea{padding:10px 14px!important;margin-bottom:10px}.p43-linea .h{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:11.5px;color:#667489}.p43-linea .h b{color:#14306b;font-size:13.5px}.p43-linea .h i{display:inline-block;width:12px;height:8px;border-radius:2px;margin:0 3px 0 8px}
+.p43-linea .lt{position:relative;height:30px;background:#f3f6fa;border-radius:8px;margin-top:22px}.p43-linea .lt i{position:absolute;top:5px;bottom:5px;border-radius:4px;transition:left .3s,width .3s}
+.p43-linea i.mv{background:#9db7e3}.p43-linea i.cl{background:#2f9e44}.p43-linea i.es{background:#c5ccd8}.p43-linea .lt i.cl em{position:absolute;top:-17px;left:0;font:800 10px Archivo,sans-serif;font-style:normal;color:#2f6b0a}
+.p43-linea .tope{position:absolute;top:-4px;bottom:-4px;width:2px;background:#d6336c}.p43-linea .tope span{position:absolute;top:-16px;right:4px;font:800 10px Archivo,sans-serif;color:#d6336c;white-space:nowrap}
+.p43-linea .lx{position:relative;height:14px;font-size:10.5px;color:#8a96a8}.p43-linea .lx span{position:absolute;transform:translateX(-50%)}
+.p43-dg{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px;align-items:start}.p43-dr{display:grid;gap:12px}
+.p43-dl h3,#p43-d-toca h3{display:flex;align-items:center;gap:8px}.p43-dl h3 .sp,#p43-d-toca h3 .sp{flex:1}
+.p43-cfg{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:8px}.p43-cfg label{display:grid;gap:3px}.p43-cfg small{font:800 10px Archivo,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#667489}
+.p43-cfg select,.p43-cfg input{border:1.5px solid #e1e6ee;border-radius:9px;padding:6px 8px;font:700 13px Archivo,sans-serif;color:#14306b;background:#fff;max-width:220px}.p43-cfg .e{margin-left:auto}
+.p43-est{font:800 10px Archivo,sans-serif;text-transform:uppercase;letter-spacing:.3px;border-radius:99px;padding:3px 8px}.p43-est.bo{background:#fff4dc;color:#8a6300}.p43-est.pu{background:#e3f4ea;color:#1e6b39}.p43-est.su{background:#fde8ef;color:#b3204f}
+.p43-st{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-top:1px solid #eef1f5;border-radius:10px;cursor:grab;background:#fff}.p43-st:hover{background:#f7f9fc}.p43-st.sob{box-shadow:inset 0 3px 0 #14306b;background:#f4f8ff}.p43-st.drag{opacity:.45}.p43-st.mal{background:#fff7f9}
+.p43-st .h{color:#c5ccd8;font-size:14px;line-height:24px}.p43-st .n{width:24px;height:24px;flex:none;border-radius:50%;background:#14306b;color:#fff;font:900 11px/24px Archivo,sans-serif;text-align:center}.p43-st.planta .n{background:#0f9488;border-radius:7px}
+.p43-st .tx{flex:1;min-width:0}.p43-st .tx b{display:block;font-size:13.5px;color:#0f2140}.p43-st .tx small{font-size:11.5px;color:#667489}
+.p43-st .ch{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.p43-st .ch span{font:700 10.5px Archivo,sans-serif;border-radius:99px;padding:2px 7px}
+.ch .ok{background:#e9f6ec;color:#23653c}.ch .ro{background:#fde8ef;color:#b3204f}.ch .g{background:#eef2f8;color:#44516a}.ch .am{background:#fff4dc;color:#8a6300}.ch .vi{background:#efe9fb;color:#5a3cb0}.ch .az{background:#e8effb;color:#14306b}
+.p43-st .et{text-align:right;flex:none}.p43-st .et b{display:block;font-size:13.5px;color:#14306b;white-space:nowrap}.p43-st .et small{font-size:10px;color:#8a96a8}
+.p43-st .mas{border:0;background:none;font-size:18px;color:#8a96a8;cursor:pointer;padding:0 4px}
+.p43-fin{text-align:center;font-size:12px;color:#667489;padding:8px;border-top:1px solid #eef1f5}
+.p43-vac{border:1.5px dashed #c5ccd8;border-radius:12px;padding:22px;text-align:center;color:#8a96a8;font-size:13px;font-weight:700}
+.p43-ay{font-size:11.5px;color:#667489;margin:8px 2px 0}
+.p43-dm{padding:0!important;overflow:hidden}.p43-mapa{height:430px}
+.p43-tc{display:flex;gap:6px;align-items:center;background:#f6f8fc;border-radius:10px;padding:7px 8px;margin-top:5px;cursor:grab}.p43-tc>div{flex:1;min-width:0}.p43-tc b{display:block;font-size:12.5px;color:#0f2140}.p43-tc small{display:block;font-size:11px;color:#667489}
+.p43-add{width:28px;height:28px;border-radius:8px;border:0;background:#e3f4ea;color:#1e6b39;font-size:16px;font-weight:900;cursor:pointer;flex:none}
+#p43-d-toca{max-height:460px;overflow:auto}
+.p43-pie{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;position:sticky;bottom:0;background:linear-gradient(transparent,#f3f5f8 30%);padding:12px 0 6px;z-index:3}.p43-pie .sp{flex:1}.pl-btn.r{color:#b3204f}
+.p42-pin em{position:absolute;left:26px;top:1px;background:#fff;color:#14306b;font:800 10px/16px Archivo,sans-serif;font-style:normal;padding:0 5px;border-radius:5px;white-space:nowrap;box-shadow:0 1px 4px rgba(10,30,60,.3)}.p42-pin{position:relative}.p42-pin.pl{border-radius:6px;background:#0f9488!important}
+/* el mes */
+.p43-mg{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:start}.p43-mg.cel{grid-template-columns:1fr}
+.p43-mcal{padding:10px!important}.p43-gh,.p43-gb{display:grid;grid-template-columns:repeat(7,minmax(0,1fr)) 118px;gap:5px}.p43-mg.cel .p43-gh,.p43-mg.cel .p43-gb{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.p43-gh div{font:800 10.5px Archivo,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#667489;padding:2px 4px}
+.p43-d{min-height:100px;border:1px solid #e9edf3;border-radius:10px;padding:5px;background:#fff;cursor:pointer;min-width:0;transition:.15s}.p43-d:hover{border-color:#b9c7dc}.p43-d.sel{box-shadow:0 0 0 2px #14306b}.p43-d.sob{box-shadow:0 0 0 3px #7e9bbf;background:#f4f8ff}
+.p43-d.otro{opacity:.5}.p43-d.fin{background:#f7f8fa}.p43-d.pas{background:#fafbfc}.p43-d.hoy .n span{background:#14306b;color:#fff;border-radius:6px;padding:0 5px}
+.p43-d.t-colchon{background:repeating-linear-gradient(135deg,#fff 0 10px,#fafbfd 10px 20px)}.p43-d.t-viaje{background:#f6fbf7}.p43-d.t-feriado{background:#fdf3f3}
+.p43-d .n{display:flex;justify-content:space-between;align-items:baseline}.p43-d .n span{font:800 13px Archivo,sans-serif;color:#0f2140}.p43-d .n em{font:700 10px Archivo,sans-serif;color:#667489;font-style:normal}
+.p43-d .fe{font:700 10px Archivo,sans-serif;color:#b3261e;margin-top:3px}
+.p43-d .rt{margin-top:5px;border-left:4px solid var(--c);background:#f3f6fb;border-radius:7px;padding:4px 6px;position:relative;overflow:hidden}.p43-d .rt[draggable=true]{cursor:grab}.p43-d .rt.bo{background:#fffaf0}
+.p43-d .rt b{display:block;font-size:10.5px;color:#24344f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.p43-d .rt span{font-size:10.5px;color:#667489;font-weight:700}.p43-d .rt i{position:absolute;left:0;bottom:0;height:3px;background:var(--c);opacity:.6}
+.p43-d .vac{font:700 10px Archivo,sans-serif;color:#8a96a8;margin-top:5px}
+.p43-d .dots{display:flex;align-items:center;gap:3px;margin-top:6px}.p43-d .dots i{width:7px;height:7px;border-radius:50%}.p43-d .dots b{font-size:11px;color:#24344f;margin-left:2px}
+.p43-mg.cel .p43-d{min-height:52px;padding:4px}
+.p43-s{border-radius:10px;background:#eef3fb;padding:8px;display:flex;flex-direction:column;gap:2px;cursor:pointer}.p43-s span{font:800 9.5px Archivo,sans-serif;text-transform:uppercase;letter-spacing:.5px;color:#667489}.p43-s b{font-size:13px;color:#14306b}.p43-s em{font-style:normal;font:800 10.5px Archivo,sans-serif;color:#8a6300;background:#fff4dc;border-radius:6px;padding:2px 5px;margin-top:3px}.p43-s u{margin-top:auto;font:800 10.5px Archivo,sans-serif;color:#14306b;text-decoration:none}
+.p43-mpd{padding:12px!important;position:sticky;top:8px}.p43-mpd .h b{display:block;font-size:15px;color:#14306b}.p43-mpd .h span{font-size:12px;color:#667489}
+.p43-mpd .rh{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px}.p43-mpd .rh i{width:8px;height:8px;border-radius:50%}.p43-mpd .rh b{color:#24344f}.p43-mpd .rh span{margin-left:auto;font:800 9.5px Archivo,sans-serif;text-transform:uppercase;color:#667489}
+.p43-mp{display:flex;gap:8px;align-items:center;background:#f6f8fc;border-radius:9px;padding:7px 8px;margin-top:5px}.p43-mp[draggable=true]{cursor:grab}.p43-mp .n{width:20px;height:20px;border-radius:50%;color:#fff;font:900 10px/20px Archivo,sans-serif;text-align:center;flex:none}.p43-mp>div{flex:1;min-width:0}.p43-mp b{display:block;font-size:12.5px;color:#0f2140}.p43-mp small{font-size:11px;color:#667489}
+.p43-mp button{border:0;background:#e8effb;color:#14306b;border-radius:7px;padding:5px 8px;font:800 11px Archivo,sans-serif;cursor:pointer}
+.p43-mpd .acc{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+/* celular */
+@media(max-width:999px){.p43-dg{grid-template-columns:1fr}.p43-k{grid-template-columns:repeat(2,1fr)}.p43-k.m{grid-template-columns:repeat(2,1fr)}.p43-mapa{height:320px}.p43-cfg .e{margin-left:0}.p43-st .h{display:none}.p43-esq .g{grid-template-columns:1fr}.p43-esq .g i{height:120px}}
+.p43-tira .fl{font:900 16px Archivo,sans-serif;color:#14306b;padding:7px 11px}
+</style>
+<script id="js-343">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.43 · EL PLANIFICADOR: DÍA NUEVO, MES, MOVER SIN PARPADEO
+   (pedido de Álvaro, 24 oct · Maqueta_planificador_nuevo y
+   Maqueta_planificador_mes_y_pedidas, todas A)
+   · Horas: tiempo fijo entre paradas + minutos por km, aprendidos.
+   · Mover: el cliente pasa al instante; se guarda por detrás («guardando…»
+     y luego ✓). Si el servidor no acepta, vuelve a su lugar y dice por qué.
+     Al refrescar del servidor solo cambia lo que cambió, con un fundido.
+   · Día: la pantalla de la maqueta (cifras, línea del día, la ruta con horas
+     en rango, el mapa, «Le toca este día»). Por dentro es el mismo editor:
+     guarda, optimiza y publica igual que siempre.
+   · Mes: cada día con sus rutas; se arrastra una ruta o un cliente a otro día.
+   ═══════════════════════════════════════════════════════════════════ */
+var P43 = { mes: null, mesRef: "", mesSel: "", map: null, capa: null, dmap: null, dcapa: null, drag: null, vuelo: {} };
+
+/* ── las horas: fijo + por km ── */
+p42Tramo_ = function(A, a, b, t, tramo){
+  var fijo = A && A.fijo != null ? A.fijo : 8, pk = A && A.porKm ? A.porKm : 2;
+  if(tramo && Number(tramo.min) >= 1) return { min: Math.max(2, fijo + Number(tramo.min) * ((A && A.fGoogle) || 1)), km: Number(tramo.km) || 0 };
+  if(!a || !b) return { min: 20, km: 0 };
+  var km = plKm_(a, b); return { min: Math.max(3, Math.round(fijo + km * pk)), km: km };
+};
+p42Rango_ = function(A, acum){ return Math.min(45, Math.round(((A && A.err) || 10) * Math.sqrt(Math.max(1, acum / 40)))); };
+plCalc_ = function(paradas){
+  var cfg = PL.config, A = PL.aprendido, base = (cfg.baseLat && cfg.baseLng) ? [cfg.baseLat, cfg.baseLng] : null;
+  var t = plMin_(ED.horaSalida || cfg.salida) || 470, prev = base, km = 0, kg = 0, out = [], acum = 0;
+  var TZ = !paradas && base ? plTrazoVigente_() : null, k = 0;
+  (paradas || ED.paradas).forEach(function(p, i){
+    var c = plC_(p.clienteId), ll = (c.lat && c.lng) ? [c.lat, c.lng] : null, tray = 20, kmAnt = null, prevEsBase = prev === base;
+    if(ll && (prev || TZ)){ var x = p42Tramo_(A, prev, ll, t, TZ && TZ.tramos[k]); if(TZ && TZ.tramos[k]) k++; tray = Math.round(x.min); km += x.km; kmAnt = x.km; }
+    acum += tray;
+    var lleg = t + tray, esp = 0, hd = plMin_(c.hDesde), hh = plMin_(c.hHasta);
+    if(c.hTipo === "estricto" && hd !== null && lleg < hd){ esp = hd - lleg; lleg = hd; }
+    var ok = c.hTipo && hd !== null && hh !== null ? (lleg >= hd && lleg <= hh) : null, sitio = c.min || cfg.minSitio;
+    out.push({ llegada: lleg, eta: plHH_(lleg), ok: ok, estricto: c.hTipo === "estricto", espera: esp, sitio: sitio, tray: tray, rango: p42Rango_(A, acum),
+               kmAnt: kmAnt === null ? null : Math.round(kmAnt), desdeBase: prevEsBase, kmBase: base && ll ? Math.round(plKm_(base, ll)) : null });
+    t = lleg + sitio; if(ll) prev = ll; kg += Number(c.kg) || 0;
+  });
+  var vuelta = 0;
+  if(base && prev && prev !== base){ var v = p42Tramo_(A, prev, base, t, TZ && TZ.tramos[k]); vuelta = Math.round(v.min); km += v.km; }
+  return { paradas: out, km: Math.round(km), kg: Math.round(kg), salida: plHH_(plMin_(ED.horaSalida || cfg.salida) || 470), regreso: plHH_(t + vuelta), carretera: !!TZ, vuelta: vuelta,
+           regresoMin: t + vuelta, regresoMinDia: (t + vuelta) >= 1440, rango: p42Rango_(A, acum + vuelta), salidaMin: plMin_(ED.horaSalida || cfg.salida) || 470 };
+};
+
+/* ── el fundido: solo cambia lo que cambió ── */
+function p43Poner_(el, html, suave){
+  if(!el) return false;
+  if(el._p43 === html) return false;
+  el._p43 = html;
+  if(suave === false){ el.innerHTML = html; return true; }
+  el.classList.remove("p43-in"); el.innerHTML = html; void el.offsetWidth; el.classList.add("p43-in");
+  return true;
+}
+function p43Cargando_(on){ var c = $("pl42"); if(c) c.classList.toggle("p43-cargando", !!on); }
+function p43Aviso_(t, ok){
+  var a = $("p43-av"); if(!a){ a = document.createElement("div"); a.id = "p43-av"; document.body.appendChild(a); }
+  a.className = ok === false ? "mal" : ok === "g" ? "g" : "ok"; a.innerHTML = (ok === "g" ? '<i class="p43-spin"></i>' : ok === false ? '<b>!</b>' : '<b>✓</b>') + '<span>' + esc(t) + '</span>';
+  a.classList.add("on"); clearTimeout(P43.avT); if(ok !== "g") P43.avT = setTimeout(function(){ a.classList.remove("on"); }, 2600);
+}
+
+/* ════════ LA SEMANA: mover al instante, refrescar sin parpadeo ════════ */
+p42Cargar_ = function(f, silencio){
+  var c = $("pl42"); if(!c) return;
+  if(f) P42.ref = f; if(!P42.ref) P42.ref = PL_F || plHabilDespues_(hoyISO());
+  if(!silencio){ if(!P42.d || P42.d.lunes > P42.ref || P42.d.sabado < P42.ref){ if(P42.d) p43Cargando_(true); else c.innerHTML = p43Esqueleto_(); } }
+  var pide = P42.ref; P42.vuelo = pide;
+  google.script.run.withSuccessHandler(function(r){
+    if(P42.vuelo !== pide) return; P42.vuelo = false; p43Cargando_(false);
+    if(!r || !r.ok){ if(!silencio) c.innerHTML = '<div class="pl-vacio">' + esc((r && r.error) || "No se pudo abrir la semana") + '</div>'; return; }
+    if(P42.vista !== "semana") { P42.d = r; return; }
+    var nuevo = !P42.d || P42.d.lunes !== r.lunes; P42.d = r; P42.ref = r.lunes; p42Pintar_(nuevo);
+  }).withFailureHandler(function(){ P42.vuelo = false; p43Cargando_(false); if(!silencio) c.innerHTML = '<div class="pl-vacio">Sin conexión. <button class="ini-lnk" onclick="p42Cargar_()">Reintentar</button></div>'; }).api_planSemana(PIN, P42.ref);
+};
+function p43Esqueleto_(){ return '<div class="p43-esq"><i style="height:54px"></i><i style="height:40px"></i><div class="g"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'; }
+/* la semana se pinta por partes: arriba, el tablero y el mapa (el mapa no se vuelve a crear) */
+var p42PintarBase_ = p42Pintar_;
+p42Pintar_ = function(nuevaSemana){
+  var c = $("pl42"), S = P42.d; if(!c || !S) return;
+  if(P42.vista !== "semana") return;
+  if(!$("p43-sem")){ c.innerHTML = '<div id="p43-sem"><div id="p43-s-top"></div><div id="p43-s-g"></div><div id="p43-s-mc"></div></div>'; P42.map = null; }
+  /* se arma con lo de 3.42 y se reparte en las tres partes */
+  var tmp = document.createElement("div"); var real = c; P42._tmp = tmp;
+  var id = c.id; c.id = "pl42-x"; tmp.id = "pl42"; document.body.appendChild(tmp); tmp.style.display = "none";
+  var mapaOrig = p42Mapa_; p42Mapa_ = function(){};
+  try{ p42PintarBase_(); } finally { p42Mapa_ = mapaOrig; tmp.remove(); c.id = id; }
+  var top = "", g = "", mc = "";
+  [].slice.call(tmp.children).forEach(function(ch){ if(ch.classList.contains("p42-g")) g = ch.outerHTML; else if(ch.classList.contains("p42-mc")) mc = ch.outerHTML; else top += ch.outerHTML; });
+  var suave = nuevaSemana !== false;
+  p43Poner_($("p43-s-top"), top, suave);
+  var gChanged = p43Poner_($("p43-s-g"), g, nuevaSemana === true);
+  if(!$("p42-mapa")){ $("p43-s-mc").innerHTML = mc; P42.map = null; }
+  else { var ch = $("p43-s-mc").querySelector(".p42-chips"), nch = (function(){ var d = document.createElement("div"); d.innerHTML = mc; return d.querySelector(".p42-chips"); })(); if(ch && nch) ch.innerHTML = nch.innerHTML; var ap = $("p43-s-mc").querySelector(".p42-ap"), nap = (function(){ var d = document.createElement("div"); d.innerHTML = mc; return d.querySelector(".p42-ap"); })(); if(ap && nap) ap.innerHTML = nap.innerHTML; }
+  p42Mapa_();
+  if(P43.llega){ var el = document.querySelector('#p43-s-g [data-cli="' + P43.llega + '"]'); if(el){ el.classList.add("p43-llega"); } P43.llega = null; }
+};
+/* el mapa de la semana: un solo mapa, solo se cambian las capas */
+var p42MapaBase_ = p42Mapa_;
+p42Mapa_ = function(){
+  var S = P42.d, el = $("p42-mapa"); if(!S || !el) return;
+  if(P42.map && P42.map.getContainer() !== el){ try{ P42.map.remove(); }catch(e){} P42.map = null; }
+  var nuevo = !P42.map;
+  if(nuevo){ P42.map = m36Mapa_("p42-mapa", { scrollWheelZoom: false }); P43.capa = L.layerGroup().addTo(P42.map); }
+  var m = P42.map, capa = P43.capa; capa.clearLayers();
+  document.querySelectorAll("#pl42 .p42-chips button").forEach(function(b){ var oc = b.getAttribute("onclick") || ""; b.classList.toggle("on", oc.indexOf("P42.filtro='" + P42.filtro + "'") >= 0); });
+  var B = [], cfg = S.config, base = cfg.baseLat && cfg.baseLng ? [cfg.baseLat, cfg.baseLng] : null;
+  if(base){ B.push(base); L.marker(base, { icon: L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 13], html: '<div class="m2-base">B</div>' }) }).addTo(capa).bindTooltip(esc(cfg.baseNombre || "Base")); }
+  (P42.dias || []).forEach(function(d, di){
+    if(P42.filtro && P42.filtro !== d.fecha) return;
+    var col = P42_COL[di % P42_COL.length];
+    d.rutas.forEach(function(r){
+      var pts = r.paradas.map(function(p){ var c = S.clientes[p.clienteId]; return c && c.lat ? [c.lat, c.lng] : null; }).filter(Boolean);
+      var g = null; try{ if(r.geo && r.geo.length && !r.tocada) g = r.geo.map(function(x){ return m36Dec_(x); }).reduce(function(a, b){ return a.concat(b); }, []); }catch(e){ g = null; }
+      if(g && g.length) L.polyline(g, { color: col, weight: 4, opacity: d.pasado ? .45 : .85, interactive: false }).addTo(capa);
+      else if(pts.length) L.polyline((base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: col, weight: 3, opacity: d.pasado ? .4 : .8, dashArray: "6 6", interactive: false }).addTo(capa);
+      r.paradas.forEach(function(p, k){ var c = S.clientes[p.clienteId]; if(!c || !c.lat) return; B.push([c.lat, c.lng]);
+        L.marker([c.lat, c.lng], { icon: L.divIcon({ className: "", iconSize: [22, 22], iconAnchor: [11, 11], html: '<div class="p42-pin" style="background:' + col + (d.pasado ? ';opacity:.6' : '') + '">' + (k + 1) + '</div>' }) }).addTo(capa).bindTooltip(esc(c.nombre) + ' · ' + esc(p42Dia_(d.fecha)))
+          .on("click", function(){ if(!d.pasado && !d.feriado) p42Elegir_(r.rutaId, p.clienteId); }); });
+    });
+  });
+  if(!P42.filtro || P42.filtro === "toca") S.toca.forEach(function(t){ var c = S.clientes[t.id]; if(!c || !c.lat) return; B.push([c.lat, c.lng]);
+    L.marker([c.lat, c.lng], { zIndexOffset: 500, icon: L.divIcon({ className: "", iconSize: [24, 24], iconAnchor: [12, 12], html: '<div class="p42-pin h' + (t.g === "atrasado" ? ' ro' : '') + '">?</div>' }) }).addTo(capa).bindTooltip(esc(c.nombre) + ' · le toca').on("click", function(){ p42Elegir_("", t.id); }); });
+  var clave = (P42.filtro || "") + "|" + (P42.d.lunes || "");
+  if(nuevo || P43.encuadre !== clave){ P43.encuadre = clave; if(B.length > 1) m.fitBounds(B, { padding: [24, 24] }); else m.setView(B[0] || [8.99, -79.52], 12); }
+};
+/* mover en la semana: al instante */
+p42Mover_ = function(rutaId, id, f, rutaDest){
+  var S = P42.d, d = S.dias.filter(function(x){ return x.fecha === f; })[0]; if(!d) return;
+  var dest = d.rutas.filter(function(r){ return r.rutaId === rutaDest; })[0] || d.rutas.filter(function(r){ return r.estadoPlan === "borrador"; })[0] || (d.rutas.length === 1 ? d.rutas[0] : null);
+  var c = S.clientes[id] || {};
+  var hacer = function(){
+    var antes = JSON.stringify(S.dias) + "|" + JSON.stringify(S.toca), par = null;
+    /* se saca de donde estaba */
+    S.dias.forEach(function(x){ x.rutas.forEach(function(r){ if(r.rutaId === rutaId){ var i = r.paradas.findIndex(function(p){ return p.clienteId === id; }); if(i >= 0){ par = r.paradas.splice(i, 1)[0]; r.tocada = true; } } }); });
+    if(!rutaId) S.toca = S.toca.filter(function(t){ return t.id !== id; });
+    /* y se pone en el día */
+    var dr = dest; if(!dr){ dr = { rutaId: "nueva-" + f, conductor: (rutaId && par ? (S.dias.reduce(function(a, x){ return a.concat(x.rutas); }, []).filter(function(r){ return r.rutaId === rutaId; })[0] || {}).conductor : "") || (S.conductores || [])[0] || "", vehiculo: (S.vehiculos[0] || {}).placa || "", estadoPlan: "borrador", paradas: [], tipo: "recoleccion" }; d.rutas.push(dr); }
+    dr.paradas.push({ clienteId: id, horaPlan: "", origen: par ? par.origen : "", hecha: false, guardando: true }); dr.tocada = true;
+    P43.llega = id; p42Pintar_(false);
+    p43Aviso_("Guardando " + p42Corto_(c.nombre) + " → " + p42Dia_(f) + "…", "g");
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ p43Aviso_((r && r.error) || "No se pudo mover", false); p42Cargar_(S.lunes, true); return; }
+      p43Aviso_(p42Corto_(c.nombre) + " → " + p42Dia_(f) + (r.destino && r.destino.nueva ? " · ruta nueva en borrador" : "") + " · guardado");
+      if(ED && PL && (PL.fecha === f || PL.fecha === (r.destino || {}).fecha)) ED.sucio || (ED = null);
+      p42Cargar_(S.lunes, true);
+    }).withFailureHandler(function(){ p43Aviso_("Sin conexión: no se guardó", false); p42Cargar_(S.lunes, true); }).api_moverParada(PIN, rutaId || "", id, f, dest ? dest.rutaId : "");
+  };
+  if(dest && dest.estadoPlan === "publicada") preguntar({ titulo: "La ruta ya está publicada", icono: "!", boton: "Sí, agregarla",
+    texto: "La ruta del <b>" + esc(p42Dia_(f)) + "</b> ya la tiene <b>" + esc(dest.conductor) + "</b>. Se le agrega <b>" + esc(c.nombre || "") + "</b> al final y le llega en su ruta.", alAceptar: hacer });
+  else hacer();
+};
+
+/* cada parada de la semana con su cliente (para marcar la recién movida) */
+p42Ruta_ = (function(o){ return function(S, d, r){
+  var h = o.apply(this, arguments), partes = h.split(/<div class="p42-p(?=[" ])/), out = partes[0];
+  for(var i = 1; i < partes.length; i++){ var p = r.paradas[i - 1] || {}; out += '<div data-cli="' + p.clienteId + '" class="p42-p' + (p.guardando ? ' p43-guarda' : '') + partes[i]; }
+  return out;
+}; })(p42Ruta_);
+
+/* ════════ EL DÍA NUEVO ════════ */
+function p43Dia_(){
+  var c = $("pl42"); if(!c || !PL || !ED || P42.vista !== "dia") return;
+  p43Cargando_(false);
+  var viejo = $("pl-cuerpo"); if(viejo && viejo.innerHTML) viejo.innerHTML = "";
+  if(!$("p43-dia")){ c.innerHTML = '<div id="p43-dia"><div id="p43-d-top"></div><div id="p43-d-k"></div><div id="p43-d-linea"></div><div class="p43-dg"><div class="mt-card p43-dl" id="p43-d-lista"></div><div class="p43-dr"><div class="mt-card p43-dm"><div id="p43-d-mapa" class="p43-mapa"></div></div><div class="mt-card" id="p43-d-toca"></div></div></div><div id="p43-d-pie"></div></div>'; P43.dmap = null; }
+  var C = plCalc_(), A = PL.aprendido, v = PL.vehiculos.find(function(x){ return x.placa === ED.vehiculo; }) || { tope: 14 };
+  var n = ED.paradas.filter(function(p){ return p.clienteId !== "P"; }).length, tope = plMin_(PL.config.tope);
+  $("pl-sub").textContent = fechaLargaIni_(PL.fecha) + (PL.pasado ? " · ya pasó" : "") + " · " + (ED.rutaId ? (ED.estadoPlan === "borrador" ? "borrador" : "publicada") : "sin ruta") + (ED.conductor ? " · " + ED.conductor : "");
+  var fi = $("pl-fecha"); if(fi) fi.value = PL.fecha;
+  /* la tira de días */
+  var sem = PL.semana || [], l0 = new Date(PL.fecha + "T12:00:00"); l0.setDate(l0.getDate() - ((l0.getDay() + 6) % 7));
+  var dias = []; for(var di = 0; di < 6; di++){ var dd = new Date(l0.getTime() + di * 864e5); dias.push(plIso_(dd)); }
+  var conSem = P42.d && P42.d.lunes === dias[0] ? P42.d : null;
+  var cuenta = function(d){ var s = sem.find(function(x){ return x.fecha === d; }); if(s) return s;
+    var x = conSem && conSem.dias.filter(function(y){ return y.fecha === d; })[0]; return x ? { paradas: x.rutas.reduce(function(a, r){ return a + r.paradas.length; }, 0), borrador: x.rutas.some(function(r){ return r.estadoPlan === "borrador"; }) } : null; };
+  if(dias[5] && !cuenta(dias[5]) && !(conSem && conSem.dias[5] && conSem.dias[5].rutas.length)) dias.pop();
+  var tira = '<div class="p43-tira"><button class="fl" onclick="p42Flecha_(-1)" title="Día anterior">‹</button>' + dias.map(function(d){ var s = cuenta(d), pas = d < (PL.hoy || hoyISO());
+    return '<button class="' + (d === PL.fecha ? 'on' : '') + '" data-f="' + d + '" onclick="p43IrDia_(\'' + d + '\')" ondragover="p43SobreDia_(event,this)" ondragleave="this.classList.remove(\'sob\')" ondrop="p43SoltarDia_(event,\'' + d + '\')"><b>' + esc(p42Dia_(d)) + '</b><small>' + (pas ? 'ya pasó' : s ? s.paradas + (s.paradas === 1 ? ' parada' : ' paradas') + (s.borrador ? ' · borrador' : '') : '') + '</small></button>'; }).join("") + '<button class="fl" onclick="p42Flecha_(1)" title="Día siguiente">›</button></div>';
+  var top = tira + (P42.d && P42.d.faltan ? p42Faltan_(P42.d) : '');
+  if(PL.pasado) top += '<div class="pl-ban g"><div>Este día ya pasó. Lo que cambies queda solo como registro.</div></div><div id="p43-pvr"></div>';
+  /* varias rutas ese día */
+  if(PL.rutas.length > 1 || (ED.rutaId === "" && PL.rutas.length)) top += '<div class="p43-rtabs">' + PL.rutas.map(function(r){ return '<button class="' + (r.rutaId === ED.rutaId ? 'on' : '') + '" onclick="plCambiarRuta_(\'' + r.rutaId + '\')">' + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + ' · ' + r.paradas.length + '</button>'; }).join("") + (ED.rutaId === "" ? '<button class="on">Ruta nueva</button>' : '') + '<button class="add" onclick="plNuevaRuta_()">＋ Otra ruta</button></div>';
+  else if(PL.rutas.length && !PL.pasado) top += '<div class="p43-rtabs"><button class="add" onclick="plNuevaRuta_()">＋ Otra ruta este día</button></div>';
+  p43Poner_($("p43-d-top"), top, false);
+  if(PL.pasado && ED.rutaId) p43Pvr_(ED.rutaId);
+  /* las cifras */
+  var jor = n ? (C.regresoMin - C.salidaMin) / 60 : 0;
+  p43Poner_($("p43-d-k"), '<div class="p43-k">' + [
+    [n + ' de ' + (v.tope || 14), 'paradas', n > (v.tope || 14) ? 'ro' : ''],
+    [n ? C.salida + ' → ' + C.regreso : C.salida, n ? 'salida y regreso (±' + C.rango + ' min)' : 'hora de salida', tope && n && C.regresoMin > tope ? 'ro' : ''],
+    [(C.carretera ? '' : '≈ ') + C.km + ' km', C.carretera ? 'por carretera' : 'calculado', ''],
+    ['≈ ' + C.kg + ' kg', 'según su historial', ''],
+    [n ? jor.toFixed(1) + ' h' : '—', 'de jornada', '']].map(function(x){ return '<div class="' + x[2] + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div>', false);
+  /* la línea del día */
+  var t0 = C.salidaMin, t1 = Math.max(tope || 900, n ? C.regresoMin : t0 + 240) + 30, W = t1 - t0, xx = function(m){ return ((m - t0) / W * 100).toFixed(2) + '%'; }, segs = '';
+  C.paradas.forEach(function(e, i){ if(ED.paradas[i].clienteId === "P") return;
+    segs += '<i class="mv" style="left:' + xx(e.llegada - e.espera - e.tray) + ';width:' + (e.tray / W * 100) + '%"></i>' + (e.espera > 1 ? '<i class="es" style="left:' + xx(e.llegada - e.espera) + ';width:' + (e.espera / W * 100) + '%"></i>' : '') +
+      '<i class="cl" style="left:' + xx(e.llegada) + ';width:' + (e.sitio / W * 100) + '%" title="' + esc(plC_(ED.paradas[i].clienteId).nombre) + '"><em>' + (i + 1) + '</em></i>'; });
+  if(n && C.vuelta) segs += '<i class="mv" style="left:' + xx(C.regresoMin - C.vuelta) + ';width:' + (C.vuelta / W * 100) + '%"></i>';
+  if(tope) segs += '<b class="tope" style="left:' + xx(tope) + '"><span>tope ' + esc(PL.config.tope) + '</span></b>';
+  var hrs = ''; for(var h = Math.ceil(t0 / 60); h * 60 <= t1; h++) hrs += '<span style="left:' + xx(h * 60) + '">' + ((h % 12) || 12) + '</span>';
+  p43Poner_($("p43-d-linea"), n ? '<div class="mt-card p43-linea"><div class="h"><b>La línea del día</b><span><i class="mv"></i>manejando <i class="cl"></i>en el cliente <i class="es"></i>esperando que abra</span></div><div class="lt">' + segs + '</div><div class="lx">' + hrs + '</div></div>' : '', false);
+  /* la ruta */
+  var LJ = plLejanas_(C), lej = {}; LJ.forEach(function(x){ lej[x.i] = x; });
+  var avisos = '';
+  if(v.bloqueo) avisos += '<div class="pl-avis" style="background:var(--ini-rojo-l);color:#8E2A20;border-color:#F2C4BE"><b>' + esc(ED.vehiculo) + '</b> está bloqueado: ' + esc(v.bloqueo) + '. Cambie el camión o decida sobre la falla en el Inicio.</div>';
+  if(tope && n && C.regresoMin > tope) avisos += '<div class="pl-avis">Con este orden regresa a las <b>' + p42H_(C.regresoMin) + '</b>, después de la hora tope (' + esc(PL.config.tope) + '). Pase alguna parada a otro día: arrástrela a un día de arriba.</div>';
+  LJ.slice(0, 2).forEach(function(x){ var cl = plC_(ED.paradas[x.i].clienteId); avisos += '<div class="pl-avis lejos"><b>' + esc(cl.nombre) + '</b> queda a ≈ ' + x.km + ' km de ' + (x.de === "base" ? 'la base' : 'la parada anterior') + ': lo más probable es que su punto esté mal ubicado. <button onclick="plUbicar_(' + Number(ED.paradas[x.i].clienteId) + ')">Corregir la ubicación</button></div>'; });
+  var est = !ED.rutaId ? '<span class="p43-est bo">nueva · sin guardar</span>' : (ED.estadoPlan === "borrador" ? '<span class="p43-est bo">borrador</span>' : '<span class="p43-est pu">publicada</span>') + (ED.sucio ? ' <span class="p43-est su">cambios sin guardar</span>' : '');
+  var ds = PL.destinos || [];
+  var cfgH = '<div class="p43-cfg"><label><small>Conductor</small><select onchange="ED.conductor=this.value;plProponerSalida_();plSucio_()">' + (PL.operadores || []).concat(ED.conductor && (PL.operadores || []).indexOf(ED.conductor) < 0 ? [ED.conductor] : []).map(function(o){ return '<option' + (o === ED.conductor ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join("") + '</select></label>' +
+    '<label><small>Camión</small><select onchange="ED.vehiculo=this.value;plSucio_()">' + PL.vehiculos.map(function(x){ return '<option value="' + esc(x.placa) + '"' + (x.placa === ED.vehiculo ? ' selected' : '') + '>' + esc(x.placa) + (x.bloqueo ? ' · no puede salir' : '') + '</option>'; }).join("") + '</select></label>' +
+    '<label><small>Salida</small><input type="time" value="' + esc(ED.horaSalida || PL.config.salida) + '" onchange="ED.horaSalida=this.value;plSucio_()"></label>' +
+    '<label><small>Tipo</small><select onchange="plCambiarTipo_(this.value)"><option value="">Recolección</option>' + ds.map(function(d){ return '<option value="' + esc(d.id) + '"' + (ED.tipo === "planta" && ED.destinoId === d.id ? ' selected' : '') + '>Viaje a planta · ' + esc(d.nombre) + '</option>'; }).join("") + '</select></label>' +
+    '<div class="e">' + est + '</div></div>';
+  var lista = ED.paradas.map(function(p, i){
+    var e = C.paradas[i], cl = plC_(p.clienteId);
+    if(p.clienteId === "P") return '<div class="p43-st planta" data-i="' + i + '" draggable="true" ondragstart="p43Tomar_(event,' + i + ')" ondragover="p43Sobre_(event,this)" ondragleave="this.classList.remove(\'sob\')" ondrop="p43Soltar_(event,' + i + ')"><span class="n">P</span><div class="tx"><b>' + esc(cl.nombre || "Planta") + '</b><small>entrega en planta</small></div><div class="et"><b>' + p42H_(e.llegada) + '</b><small>llega</small></div><button class="mas" onclick="plMenu_(' + i + ')">⋯</button></div>';
+    var chips = '';
+    if(cl.hTipo) chips += '<span class="' + (e.ok === false ? 'ro' : 'ok') + '">' + (cl.hTipo === "estricto" ? 'Solo ' : 'Prefiere ') + esc(cl.hDesde) + '–' + esc(cl.hHasta) + (e.ok === false ? ' · no llega' : '') + '</span>';
+    else chips += '<span class="g">Sin horario</span>';
+    chips += '<span class="g">' + e.sitio + ' min en el cliente' + (cl.minFijo ? ' (fijo)' : cl.minN >= 3 ? ' · real (' + cl.minN + ' visitas)' : ' · aún sin historial') + '</span>';
+    if(e.espera > 1) chips += '<span class="am">espera ' + Math.round(e.espera) + ' min a que abra</span>';
+    if(p.origen === "recurrente") chips += '<span class="vi">recurrente</span>';
+    if(/^arrastre/.test(p.origen)) chips += '<span class="am">viene del ' + esc(nombreDia_(p.origen.split(":")[1])) + '</span>';
+    if(/^extra:/.test(p.origen)) chips += '<span class="az">extra · ' + esc(p.origen.slice(6)) + '</span>';
+    if(lej[i]) chips += '<span class="ro">a ≈ ' + lej[i].km + ' km</span>';
+    if(!cl.lat) chips += '<span class="ro">sin ubicación</span>';
+    return '<div class="p43-st' + ((e.ok === false && e.estricto) || lej[i] ? ' mal' : '') + '" data-i="' + i + '" data-cli="' + p.clienteId + '" draggable="true" ondragstart="p43Tomar_(event,' + i + ')" ondragover="p43Sobre_(event,this)" ondragleave="this.classList.remove(\'sob\')" ondrop="p43Soltar_(event,' + i + ')" ondragend="p43Fin_()">' +
+      '<span class="h">⠿</span><span class="n">' + (i + 1) + '</span><div class="tx"><b>' + esc(cl.nombre) + '</b><small>' + esc(cl.zona || "—") + (cl.frec ? ' · ' + esc(String(cl.frec).toLowerCase()) : '') + (Math.round(cl.kg) > 0 ? ' · ≈ ' + Math.round(cl.kg) + ' kg' : '') + '</small><div class="ch">' + chips + '</div></div>' +
+      '<div class="et"><b>' + p42H_(e.llegada - e.rango) + '–' + p42H_(e.llegada + e.rango) + '</b><small>llega entre</small></div><button class="mas" title="Más" onclick="plMenu_(' + i + ')">⋯</button></div>';
+  }).join("");
+  var listaH = '<h3>La ruta<span class="sp"></span><button class="pl-btn" onclick="plOptimizar_()" ' + (ED.paradas.length < 2 ? 'disabled' : '') + '>Optimizar' + (PL.google && PL.google.optimizar ? ' con Google' : '') + '</button><button class="pl-btn" onclick="plCercania_()" ' + (ED.paradas.length < 2 ? 'disabled' : '') + '>Por cercanía</button></h3>' + cfgH + avisos +
+    (ED.tipo === "planta" ? plAcopioHtml_() : '') +
+    (ED.paradas.length ? '<div class="p43-lista" ondragover="p43SobreLista_(event)" ondrop="p43SoltarLista_(event)">' + lista + '</div><div class="p43-fin">Regreso a la base ≈ ' + C.regreso + (C.regresoMinDia ? ' · día siguiente' : '') + '</div>'
+                       : '<div class="p43-vac" ondragover="p43SobreLista_(event)" ondrop="p43SoltarLista_(event)">Sin paradas todavía. Arrastre aquí clientes de «Le toca este día» o tóquelos con ＋.</div>') +
+    '<p class="p43-ay">Arrastre para cambiar el orden. Para pasar una parada a otro día, arrástrela a un día de arriba.</p>';
+  p43Poner_($("p43-d-lista"), listaH, false);
+  /* le toca este día */
+  var cands = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }), q = (P43.dq || "").toLowerCase();
+  var G = { extra: "Pedidas por el cliente", recurrentes: "Recurrentes", arrastre: "Vienen de otro día", tocan: "Le toca este día", atrasados: "Atrasados", pendientes: "Quitados", nuevos: "Nuevos" };
+  var tocaH = '<h3>Le toca este día<span class="sp"></span><small>' + cands.length + '</small></h3><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P43.dq || "") + '" oninput="P43.dq=this.value;clearTimeout(P43.dqt);P43.dqt=setTimeout(p43Dia_,250)">' +
+    (cands.filter(function(x){ var cl = plC_(x.id); return !q || String(cl.nombre).toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0; }).slice(0, 60).map(function(x){ var cl = plC_(x.id);
+      return '<div class="p43-tc" draggable="true" ondragstart="p43TomarCand_(event,' + x.id + ')"><div><b>' + esc(cl.nombre) + '</b><small><span class="pl-dot ' + x.g + '"></span>' + esc(G[x.g] || x.g) + ' · ' + esc(cl.zona || "—") + (x.x && x.x.motivo ? ' · ' + esc(x.x.motivo) : '') + '</small></div><button class="p43-add" title="Agregar a la ruta" onclick="p43Agregar_(' + x.id + ')">＋</button></div>'; }).join("") ||
+     '<div class="p42-v" style="padding:8px 2px">Nadie pendiente para este día.</div>');
+  p43Poner_($("p43-d-toca"), tocaH, false);
+  /* el pie: guardar y publicar */
+  var pub = ED.estadoPlan === "publicada" && ED.rutaId, nombreC = String(ED.conductor || "").split(" ")[0] || "el conductor", nOpt = ED.paradas.length;
+  p43Poner_($("p43-d-pie"), '<div class="p43-pie">' + (ED.rutaId ? '<button class="pl-btn" onclick="abrirAvisos(\'' + PL.fecha + '\')">Avisar a los clientes</button>' : '') + '<span class="sp"></span>' +
+    (ED.sucio ? '<button class="pl-btn" onclick="plDescartar_()">Descartar</button>' : '') + (ED.rutaId ? '<button class="pl-btn r" onclick="plBorrar_()">Borrar la ruta</button>' : '') +
+    (pub ? '<button class="pl-btn v" onclick="plGuardar_(\'publicada\')" ' + (ED.sucio ? '' : 'disabled') + '>✓ Actualizar la ruta de ' + esc(nombreC) + '</button>'
+         : '<button class="pl-btn a" onclick="plGuardar_(\'borrador\')" ' + (nOpt ? '' : 'disabled') + '>Guardar borrador</button><button class="pl-btn v" onclick="plGuardar_(\'publicada\')" ' + (nOpt ? '' : 'disabled') + '>✓ Publicar a ' + esc(nombreC) + '</button>') + '</div>', false);
+  p43MapaDia_(C);
+}
+function p43MapaDia_(C){
+  var el = $("p43-d-mapa"); if(!el) return;
+  if(P43.dmap && P43.dmap.getContainer() !== el){ try{ P43.dmap.remove(); }catch(e){} P43.dmap = null; }
+  var nuevo = !P43.dmap;
+  if(nuevo){ P43.dmap = m36Mapa_("p43-d-mapa", { scrollWheelZoom: false }); P43.dcapa = L.layerGroup().addTo(P43.dmap); }
+  var m = P43.dmap, capa = P43.dcapa; capa.clearLayers();
+  var cfg = PL.config, base = cfg.baseLat && cfg.baseLng ? [cfg.baseLat, cfg.baseLng] : null, B = [], pts = [];
+  if(base){ B.push(base); L.marker(base, { icon: L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 13], html: '<div class="m2-base">B</div>' }) }).addTo(capa); }
+  ED.paradas.forEach(function(p, i){ var cl = plC_(p.clienteId), e = C.paradas[i]; if(!cl.lat || !cl.lng) return; var ll = [cl.lat, cl.lng]; B.push(ll); pts.push(ll);
+    L.marker(ll, { zIndexOffset: 500, icon: L.divIcon({ className: "", iconSize: [24, 24], iconAnchor: [12, 12], html: '<div class="p42-pin' + (p.clienteId === "P" ? ' pl' : '') + '" style="background:#14306b">' + (p.clienteId === "P" ? 'P' : i + 1) + '<em>' + p42H_(e.llegada - e.rango) + '–' + p42H_(e.llegada + e.rango) + '</em></div>' }) }).addTo(capa).bindTooltip(esc(cl.nombre)); });
+  var tz = plTrazoVigente_ && plTrazoVigente_(), g = null;
+  try{ if(tz && tz.legs) g = tz.legs.map(function(x){ return m36Dec_(x); }).reduce(function(a, b){ return a.concat(b); }, []); }catch(e){ g = null; }
+  if(g && g.length) L.polyline(g, { color: "#1f6fd1", weight: 5, opacity: .9, interactive: false }).addTo(capa);
+  else if(pts.length) L.polyline((base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: "#1f6fd1", weight: 3, opacity: .8, dashArray: "6 6", interactive: false }).addTo(capa);
+  var clave = PL.fecha + "|" + ED.rutaId + "|" + ED.paradas.length;
+  if(nuevo || P43.dclave !== clave){ P43.dclave = clave; if(B.length > 1) m.fitBounds(B, { padding: [30, 30] }); else m.setView(B[0] || [8.99, -79.52], 12); }
+}
+/* plan contra real de un día pasado, en su lugar */
+function p43Pvr_(rutaId){
+  var put = function(D){
+    var box = $("p43-pvr"); if(!box || !ED || ED.rutaId !== rutaId) return;
+    var h = '<div class="mt-card p42-pvr"><h3>Planeado contra real<span class="sp"></span><button class="pl-btn" onclick="e41Abrir_(\'' + esc(rutaId) + '\')">Estudiar la ruta →</button></h3>';
+    if(!D || !D.ok || D.vacio) h += '<div class="md-nota">' + esc((D && D.error) || "Sin datos de esta ruta.") + '</div>';
+    else { var S = D.stats;
+      h += '<div class="p42-pk">' + [[S.salio || '—', 'salió'], [D.conGps ? S.km + ' km' : '—', 'recorridos'], [S.conHora ? S.aTiempo + ' de ' + S.conHora : '—', 'llegó a tiempo'], [S.cerro || '—', 'cerró']].map(function(x){ return '<div><b>' + esc(String(x[0])) + '</b><span>' + esc(x[1]) + '</span></div>'; }).join("") + '</div>' +
+        '<table class="m2-t"><thead><tr><th>Cliente</th><th>Planeada</th><th>Llegó</th><th>Diferencia</th><th>En el cliente</th></tr></thead><tbody>' + D.paradas.map(function(p){ var cl = p.dif === null ? '' : p.dif > 20 ? 'ro' : p.dif > 5 ? 'am' : 'ok';
+          return '<tr><td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.horaPlan || '—') + '</td><td>' + esc(p.llego || '—') + '</td><td>' + (p.dif === null ? '—' : '<span class="m2-c ' + cl + '">' + (p.dif > 0 ? '+' : '') + p.dif + ' min</span>') + '</td><td>' + (p.enLocal === null ? '—' : p.enLocal + ' min') + '</td></tr>'; }).join("") + '</tbody></table>'; }
+    p43Poner_(box, h + '</div>', true);
+  };
+  if(P42.pvr[rutaId]) return put(P42.pvr[rutaId]);
+  google.script.run.withSuccessHandler(function(D){ P42.pvr[rutaId] = D; put(D); }).withFailureHandler(function(){}).api_rutaEstudio(PIN, rutaId);
+}
+/* arrastrar dentro del día, a otro día o desde «Le toca» */
+function p43Tomar_(e, i){ P43.drag = { t: "st", i: i }; try{ e.dataTransfer.setData("text/plain", String(i)); e.dataTransfer.effectAllowed = "move"; }catch(x){} e.currentTarget.classList.add("drag"); }
+function p43TomarCand_(e, id){ P43.drag = { t: "cand", id: id }; try{ e.dataTransfer.setData("text/plain", String(id)); }catch(x){} }
+function p43Sobre_(e, el){ if(!P43.drag) return; e.preventDefault(); e.stopPropagation(); el.classList.add("sob"); }
+function p43SobreLista_(e){ if(P43.drag && P43.drag.t === "cand") e.preventDefault(); }
+function p43Fin_(){ P43.drag = null; document.querySelectorAll("#pl42 .drag,#pl42 .sob").forEach(function(x){ x.classList.remove("drag", "sob"); }); }
+function p43Soltar_(e, j){ e.preventDefault(); e.stopPropagation(); var g = P43.drag; p43Fin_(); if(!g) return;
+  if(g.t === "st"){ if(g.i === j) return; var p = ED.paradas.splice(g.i, 1)[0]; ED.paradas.splice(j, 0, p); P43.marca = p.clienteId; plSucio_(); }
+  else if(g.t === "cand"){ if(plAgregar_([g.id], true)){ var k = ED.paradas.findIndex(function(x){ return x.clienteId === g.id; }); if(k >= 0 && k !== j){ var q = ED.paradas.splice(k, 1)[0]; ED.paradas.splice(j, 0, q); } P43.marca = g.id; plSucio_(); } } }
+function p43SoltarLista_(e){ e.preventDefault(); var g = P43.drag; p43Fin_(); if(g && g.t === "cand") p43Agregar_(g.id); }
+function p43Agregar_(id){ if(plAgregar_([id], true)){ P43.marca = id; plSucio_(); p43Aviso_(p42Corto_(plC_(id).nombre) + " agregado · guarde para que quede"); } }
+function p43SobreDia_(e, el){ if(!P43.drag || P43.drag.t !== "st") return; e.preventDefault(); el.classList.add("sob"); }
+function p43SoltarDia_(e, f){ e.preventDefault(); var g = P43.drag; p43Fin_(); if(!g || g.t !== "st" || f === PL.fecha) return; p43MoverADia_(g.i, f); }
+/* pasar una parada a otro día: al instante */
+function p43MoverADia_(i, f){
+  var p = ED.paradas[i]; if(!p || p.clienteId === "P") return;
+  if(f < (PL.hoy || hoyISO())){ p43Aviso_("Ese día ya pasó", false); return; }
+  var cl = plC_(p.clienteId), rid = ED.rutaId;
+  ED.paradas.splice(i, 1); var s = (PL.semana || []).find(function(x){ return x.fecha === f; }); if(s) s.paradas++;
+  var s0 = (PL.semana || []).find(function(x){ return x.fecha === PL.fecha; }); if(s0) s0.paradas = Math.max(0, s0.paradas - 1);
+  p43Dia_(); p43Aviso_("Guardando " + p42Corto_(cl.nombre) + " → " + p42Dia_(f) + "…", "g");
+  if(!rid){ p43Aviso_(p42Corto_(cl.nombre) + " → " + p42Dia_(f) + " · guarde esta ruta", true); }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ ED.paradas.splice(i, 0, p); if(s) s.paradas--; if(s0) s0.paradas++; p43Dia_(); p43Aviso_((r && r.error) || "No se pudo mover", false); return; }
+    p43Aviso_(p42Corto_(cl.nombre) + " → " + p42Dia_(f) + (r.destino && r.destino.estadoPlan === "publicada" ? " · ruta publicada" : "") + " · guardado");
+    if(P42.d) P42.d = null;
+    if(!ED.sucio) plCargar_(PL.fecha, true);
+  }).withFailureHandler(function(){ ED.paradas.splice(i, 0, p); p43Dia_(); p43Aviso_("Sin conexión: no se movió", false); }).api_moverParada(PIN, rid || "", p.clienteId, f, "");
+}
+function p43IrDia_(f){ if(f === PL.fecha) return; p43Cargando_(true); plCargar_(f); }
+/* el menú «Mover a otro día» de siempre, ahora al instante */
+plMover_ = function(i, f){ cerrarHojaIni_(); p43MoverADia_(i, f); };
+/* el editor de siempre pinta la cara nueva */
+plPintar_ = (function(o){ return function(){
+  if(P42.vista === "dia"){ try{ p42Cab_(); }catch(e){} p43Dia_(); if(P43.marca){ var el = document.querySelector('#p43-d-lista [data-cli="' + P43.marca + '"]'); if(el) el.classList.add("p43-llega"); P43.marca = null; } return; }
+  return o.apply(this, arguments);
+}; })(plPintar_);
+plSucio_ = (function(o){ return function(){ var r = o.apply(this, arguments); if(P42.vista === "dia") plPintar_(); return r; }; })(plSucio_);
+plCargar_ = (function(o){ return function(f, conservar){ if(P42.vista === "dia" && $("p43-dia") && f && (!PL || f !== PL.fecha)) p43Cargando_(true); return o.apply(this, arguments); }; })(plCargar_);
+
+/* ════════ EL MES ════════ */
+function p43MesCargar_(m, silencio){
+  var c = $("pl42"); if(!c) return;
+  if(m) P43.mesRef = m; if(!P43.mesRef) P43.mesRef = (PL_F || hoyISO()).slice(0, 7);
+  if(!silencio){ if(P43.mes && P43.mes.mes !== P43.mesRef) p43Cargando_(true); else if(!P43.mes) c.innerHTML = p43Esqueleto_(); }
+  var pide = P43.mesRef; P43.vuelo.mes = pide;
+  google.script.run.withSuccessHandler(function(r){
+    if(P43.vuelo.mes !== pide) return; p43Cargando_(false);
+    if(!r || !r.ok){ if(!silencio) c.innerHTML = '<div class="pl-vacio">' + esc((r && r.error) || "No se pudo abrir el mes") + '</div>'; return; }
+    var nuevo = !P43.mes || P43.mes.mes !== r.mes; P43.mes = r; if(!P43.mesSel || P43.mesSel.slice(0, 7) !== r.mes) P43.mesSel = r.dias.filter(function(d){ return d.mes && d.rutas.length && !d.pasado; }).map(function(d){ return d.fecha; })[0] || (r.mes + "-01");
+    if(P42.vista === "mes") p43Mes_(nuevo);
+  }).withFailureHandler(function(){ p43Cargando_(false); if(!silencio) c.innerHTML = '<div class="pl-vacio">Sin conexión. <button class="ini-lnk" onclick="p43MesCargar_()">Reintentar</button></div>'; }).api_planMes(PIN, P43.mesRef);
+}
+var P43_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+function p43Mes_(nuevo){
+  var c = $("pl42"), M = P43.mes; if(!c || !M || P42.vista !== "mes") return;
+  p42Cab_();
+  var cel = !esEscritorio_(), nom = P43_MESES[Number(M.mes.slice(5)) - 1] + " " + M.mes.slice(0, 4);
+  var enMes = M.dias.filter(function(d){ return d.mes; }), tot = enMes.reduce(function(s, d){ return s + d.rutas.reduce(function(a, r){ return a + r.ids.length; }, 0); }, 0);
+  var conR = enMes.filter(function(d){ return d.rutas.length; }).length, kg = enMes.reduce(function(s, d){ return s + d.rutas.reduce(function(a, r){ return a + r.kg; }, 0); }, 0), toca = M.semanas.reduce(function(s, w){ return s + w.toca; }, 0);
+  $("pl-sub").textContent = nom + " · " + tot + " paradas"; var st = $("p42-semtx"); if(st) st.textContent = nom;
+  if(!$("p43-mes")){ c.innerHTML = '<div id="p43-mes"><div id="p43-m-k"></div><div class="p43-mg' + (cel ? ' cel' : '') + '"><div class="mt-card p43-mcal" id="p43-m-cal"></div><div class="mt-card p43-mpd" id="p43-m-pd"></div></div><p class="p43-ay" id="p43-m-ay"></p></div>'; }
+  p43Poner_($("p43-m-k"), '<div class="p43-k m">' + [[tot, 'paradas en el mes'], [conR, 'días con ruta'], ['≈ ' + Math.round(kg), 'kg estimados'], [toca, 'le toca sin día', toca ? 'am' : '']].map(function(x){ return '<div class="' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div>', nuevo);
+  var DS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"], h = '<div class="p43-gh">' + DS.map(function(x){ return '<div>' + x + '</div>'; }).join("") + (cel ? '' : '<div>Semana</div>') + '</div><div class="p43-gb">';
+  M.dias.forEach(function(d, i){
+    var di = d.dow - 1, col = P42_COL[di % P42_COL.length], kgD = d.rutas.reduce(function(a, r){ return a + r.kg; }, 0), puede = !d.pasado && !d.feriado;
+    h += '<div class="p43-d' + (d.mes ? '' : ' otro') + (d.dow > 5 ? ' fin' : '') + (d.pasado ? ' pas' : '') + (d.hoy ? ' hoy' : '') + (P43.mesSel === d.fecha ? ' sel' : '') + ' t-' + (d.feriado ? 'feriado' : d.tipo) + '" onclick="P43.mesSel=\'' + d.fecha + '\';p43Mes_()" ondblclick="p42AbrirDia_(\'' + d.fecha + '\')"' +
+      (puede ? ' ondragover="p43MSobre_(event,this)" ondragleave="this.classList.remove(\'sob\')" ondrop="p43MSoltar_(event,\'' + d.fecha + '\')"' : '') + '><div class="n"><span>' + Number(d.fecha.slice(8)) + '</span>' + (kgD && !cel ? '<em>' + Math.round(kgD) + ' kg</em>' : '') + '</div>';
+    if(d.feriado && !cel) h += '<div class="fe">' + esc(d.feriado) + '</div>';
+    if(cel){ if(d.rutas.length) h += '<div class="dots">' + d.rutas.map(function(){ return '<i style="background:' + col + '"></i>'; }).join("") + '<b>' + d.rutas.reduce(function(a, r){ return a + r.ids.length; }, 0) + '</b></div>'; }
+    else d.rutas.slice(0, 3).forEach(function(r){ var vt = (M.vehiculos.filter(function(x){ return x.placa === r.vehiculo; })[0] || { tope: 14 }).tope || 14;
+      h += '<div class="rt' + (r.estadoPlan === "borrador" ? ' bo' : '') + '" style="--c:' + col + '"' + (puede ? ' draggable="true" ondragstart="p43MTomarRuta_(event,\'' + esc(r.rutaId) + '\',\'' + d.fecha + '\')"' : '') + '><b>' + esc(r.vehiculo) + ' · ' + esc(String(r.conductor).split(" ")[0]) + '</b><span>' + (d.pasado && r.hechas !== null ? r.hechas + '/' + r.ids.length + ' hechas' : r.ids.length + (r.ids.length === 1 ? ' parada' : ' paradas')) + (r.estadoPlan === "borrador" && !d.pasado ? ' · borrador' : '') + '</span><i style="width:' + Math.min(100, r.ids.length / vt * 100) + '%"></i></div>'; });
+    if(!cel && !d.rutas.length && d.mes && d.dow <= 5 && !d.pasado && !d.feriado) h += '<div class="vac">' + (d.tipo === "colchon" ? 'colchón' : d.tipo === "viaje" ? 'viaje' : 'sin ruta') + '</div>';
+    h += '</div>';
+    if(!cel && d.dow === 7){ var w = M.semanas[Math.floor(i / 7)] || {}, ws = M.dias.slice(i - 6, i + 1), wp = ws.reduce(function(s, x){ return s + x.rutas.reduce(function(a, r){ return a + r.ids.length; }, 0); }, 0);
+      h += '<div class="p43-s" onclick="P42.vista=\'semana\';try{localStorage.setItem(\'eco_pl42_v\',\'semana\')}catch(e){};p42Cab_();P42.d=null;p42Cargar_(\'' + w.desde + '\')"><span>semana</span><b>' + wp + ' paradas</b>' + (w.toca ? '<em>' + w.toca + ' le toca sin día</em>' : '') + '<u>Abrir la semana →</u></div>'; }
+  });
+  p43Poner_($("p43-m-cal"), h + '</div>', nuevo);
+  /* el día elegido */
+  var D = M.dias.filter(function(x){ return x.fecha === P43.mesSel; })[0];
+  var pd = '';
+  if(D){ var puedeD = !D.pasado && !D.feriado, di2 = D.dow - 1;
+    pd = '<div class="h"><b>' + esc(fechaLargaIni_(D.fecha)) + '</b><span>' + (D.feriado ? 'Feriado · ' + esc(D.feriado) : D.pasado ? 'Ya pasó' : (P42_TIPO[D.tipo] || D.tipo)) + ' · ' + D.rutas.reduce(function(a, r){ return a + r.ids.length; }, 0) + ' paradas</span></div>';
+    D.rutas.forEach(function(r){ pd += '<div class="rh"><i style="background:' + P42_COL[di2 % P42_COL.length] + '"></i><b>' + esc(String(r.conductor).split(" ")[0]) + ' · ' + esc(r.vehiculo) + '</b><span>' + (r.estadoPlan === "borrador" ? 'borrador' : 'publicada') + '</span></div>' +
+      r.ids.map(function(id, k){ var cl = M.clientes[id] || { nombre: "Cliente " + id };
+        return '<div class="p43-mp' + (P43.mMarca === id ? ' p43-llega' : '') + '"' + (puedeD ? ' draggable="true" ondragstart="p43MTomar_(event,' + id + ',\'' + esc(r.rutaId) + '\',\'' + D.fecha + '\')"' : '') + '><span class="n" style="background:' + P42_COL[di2 % P42_COL.length] + '">' + (k + 1) + '</span><div><b>' + esc(cl.nombre) + '</b><small>' + esc(cl.zona || "") + (cl.frec ? ' · ' + esc(cl.frec.toLowerCase()) : '') + '</small></div>' + (puedeD ? '<button onclick="event.stopPropagation();p43MElegir_(' + id + ',\'' + esc(r.rutaId) + '\',\'' + D.fecha + '\')">Mover</button>' : '') + '</div>'; }).join(""); });
+    if(!D.rutas.length) pd += '<div class="p42-v" style="color:#8a96a8;padding:10px 0">Sin rutas este día.</div>';
+    pd += '<div class="acc"><button class="pl-btn" onclick="P42.vista=\'semana\';try{localStorage.setItem(\'eco_pl42_v\',\'semana\')}catch(e){};p42Cab_();P42.d=null;p42Cargar_(\'' + D.fecha + '\')">Abrir la semana</button><button class="pl-btn a" onclick="p42AbrirDia_(\'' + D.fecha + '\')">Abrir el día →</button></div>'; }
+  P43.mMarca = null;
+  p43Poner_($("p43-m-pd"), pd, true);
+  p43Poner_($("p43-m-ay"), cel ? 'Toque un día y, en su lista, «Mover» para pasarlo a otro día.' : 'Arrastre una ruta a otro día, o un cliente de la lista de la derecha a cualquier día. Doble clic en un día lo abre.', false);
+}
+function p43MTomarRuta_(e, rutaId, f){ e.stopPropagation(); P43.drag = { t: "ruta", rutaId: rutaId, f: f }; try{ e.dataTransfer.setData("text/plain", rutaId); }catch(x){} }
+function p43MTomar_(e, id, rutaId, f){ P43.drag = { t: "cli", id: id, rutaId: rutaId, f: f }; try{ e.dataTransfer.setData("text/plain", String(id)); }catch(x){} }
+function p43MSobre_(e, el){ if(!P43.drag) return; e.preventDefault(); el.classList.add("sob"); }
+function p43MSoltar_(e, f){ e.preventDefault(); var g = P43.drag; p43Fin_(); document.querySelectorAll("#p43-mes .sob").forEach(function(x){ x.classList.remove("sob"); }); if(!g || g.f === f) return;
+  if(g.t === "ruta") p43MMoverRuta_(g.rutaId, g.f, f); else if(g.t === "cli") p43MMover_(g.id, g.rutaId, g.f, f); }
+function p43MElegir_(id, rutaId, f){
+  var M = P43.mes, ops = M.dias.filter(function(d){ return d.mes && !d.pasado && !d.feriado && d.dow <= 6 && d.fecha !== f; });
+  abrirHojaIni_('<div class="ini-pt">Mover ' + esc((M.clientes[id] || {}).nombre || "") + ' a…</div><div class="p42-pop">' + ops.map(function(d){ var n = d.rutas.reduce(function(a, r){ return a + r.ids.length; }, 0);
+    return '<button style="--c:' + P42_COL[(d.dow - 1) % P42_COL.length] + '" onclick="cerrarHojaIni_();p43MMover_(' + id + ',\'' + esc(rutaId) + '\',\'' + f + '\',\'' + d.fecha + '\')"><b>' + esc(p42Dia_(d.fecha)) + '</b><small>' + n + (n === 1 ? ' parada' : ' paradas') + '</small></button>'; }).join("") + '</div>');
+}
+function p43MMover_(id, rutaId, de, a){
+  var M = P43.mes, dD = M.dias.filter(function(x){ return x.fecha === de; })[0], dA = M.dias.filter(function(x){ return x.fecha === a; })[0]; if(!dD || !dA) return;
+  var r = dD.rutas.filter(function(x){ return x.rutaId === rutaId; })[0]; if(!r) return;
+  r.ids = r.ids.filter(function(x){ return x !== id; });
+  var dest = dA.rutas.filter(function(x){ return x.estadoPlan === "borrador"; })[0] || dA.rutas[0];
+  if(!dest){ dest = { rutaId: "nueva", conductor: r.conductor, vehiculo: r.vehiculo, estadoPlan: "borrador", ids: [], kg: 0 }; dA.rutas.push(dest); }
+  dest.ids.push(id); P43.mesSel = a; P43.mMarca = id; p43Mes_(false);
+  var nom = p42Corto_((M.clientes[id] || {}).nombre || "");
+  p43Aviso_("Guardando " + nom + " → " + p42Dia_(a) + "…", "g");
+  google.script.run.withSuccessHandler(function(x){
+    if(!x || !x.ok){ p43Aviso_((x && x.error) || "No se pudo mover", false); p43MesCargar_(M.mes, true); return; }
+    p43Aviso_(nom + " → " + p42Dia_(a) + " · guardado"); P42.d = null; p43MesCargar_(M.mes, true);
+  }).withFailureHandler(function(){ p43Aviso_("Sin conexión: no se guardó", false); p43MesCargar_(M.mes, true); }).api_moverParada(PIN, rutaId, id, a, dest.rutaId === "nueva" ? "" : dest.rutaId);
+}
+function p43MMoverRuta_(rutaId, de, a){
+  var M = P43.mes, dD = M.dias.filter(function(x){ return x.fecha === de; })[0], dA = M.dias.filter(function(x){ return x.fecha === a; })[0]; if(!dD || !dA) return;
+  var r = dD.rutas.filter(function(x){ return x.rutaId === rutaId; })[0]; if(!r) return;
+  var hacer = function(){
+    dD.rutas = dD.rutas.filter(function(x){ return x !== r; }); dA.rutas.push(r); P43.mesSel = a; p43Mes_(false);
+    p43Aviso_("Guardando la ruta de " + String(r.conductor).split(" ")[0] + " → " + p42Dia_(a) + "…", "g");
+    google.script.run.withSuccessHandler(function(x){
+      if(!x || !x.ok){ p43Aviso_((x && x.error) || "No se pudo mover", false); p43MesCargar_(M.mes, true); return; }
+      p43Aviso_("Ruta → " + p42Dia_(a) + " · guardado" + (x.publicada ? " · avise a " + String(x.conductor).split(" ")[0] : "")); P42.d = null; p43MesCargar_(M.mes, true);
+    }).withFailureHandler(function(){ p43Aviso_("Sin conexión: no se guardó", false); p43MesCargar_(M.mes, true); }).api_planMoverRuta(PIN, rutaId, a);
+  };
+  if(r.estadoPlan === "publicada") preguntar({ titulo: "Mover una ruta publicada", icono: "!", boton: "Sí, moverla", texto: "La ruta del <b>" + esc(p42Dia_(de)) + "</b> ya la tiene <b>" + esc(r.conductor) + "</b>. Pasa completa al <b>" + esc(p42Dia_(a)) + "</b> y le cambia en su app.", alAceptar: hacer });
+  else hacer();
+}
+
+/* ════════ la cabecera: Semana | Día | Mes ════════ */
+p42Cab_ = (function(o){ return function(){
+  var r = o.apply(this, arguments);
+  var s = $("pantalla-plan"), tt = s && s.querySelector(".pl-tt"), sg = tt && tt.querySelector(".p42-seg");
+  if(sg && !sg.querySelector('[data-v="mes"]')) sg.insertAdjacentHTML("beforeend", '<button data-v="mes" onclick="p42Vista_(\'mes\')">Mes</button>');
+  if(sg) sg.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-v") === P42.vista); });
+  if(s){ s.classList.toggle("p42-sem", P42.vista !== "dia"); s.classList.toggle("p43-dia", P42.vista === "dia"); s.classList.toggle("p43-mesv", P42.vista === "mes"); }
+  return r;
+}; })(p42Cab_);
+p42Vista_ = function(v){
+  if(v === P42.vista && $("pl42") && $("pl42").children.length) return;
+  P42.vista = v; try{ localStorage.setItem("eco_pl42_v", v); }catch(e){}
+  var c = $("pl42"); if(c){ c.classList.add("p43-sale"); }
+  setTimeout(function(){
+    if(c){ c.classList.remove("p43-sale"); c.innerHTML = ""; P42.map = null; P43.dmap = null; }
+    p42Cab_();
+    if(v === "semana"){ if(P42.d && !P42.vuelo) p42Pintar_(true); p42Cargar_(PL_F, !!P42.d); }
+    else if(v === "mes"){ if(P43.mes) p43Mes_(true); p43MesCargar_((PL_F || hoyISO()).slice(0, 7), !!P43.mes); }
+    else { if(PL && ED) p43Dia_(); plCargar_(PL_F || (P42.d && P42.d.dias.filter(function(d){ return !d.pasado; })[0] || {}).fecha || plHabilDespues_(hoyISO()), !!(ED && ED.sucio)); }
+  }, 140);
+};
+p42Flecha_ = function(n){
+  if(P42.vista === "semana"){ if(P42.d) p42Cargar_(n < 0 ? P42.d.anterior : P42.d.siguiente); return; }
+  if(P42.vista === "mes"){ if(P43.mes) p43MesCargar_(n < 0 ? P43.mes.anterior : P43.mes.siguiente); return; }
+  if(PL) plCargar_(n < 0 ? PL.anterior : PL.siguiente);
+};
+p42AbrirDia_ = function(f){ PL_F = f; if(!(ED && ED.sucio && PL && PL.fecha !== f)) ED = null; if(P42.vista !== "dia"){ P42.vista = "dia"; try{ localStorage.setItem("eco_pl42_v", "dia"); }catch(e){} var c = $("pl42"); if(c){ c.innerHTML = ""; P42.map = null; P43.dmap = null; } } p42Cab_(); p43Cargando_(true); plCargar_(f); };
+mostrarTab = (function(o){ return function(tab){
+  var r = o.apply(this, arguments);
+  try{ if(esSupervisor() && tab === "plan"){ if(P42.vista === "mes"){ p42Cab_(); if(P43.mes && !$("p43-mes")) p43Mes_(true); p43MesCargar_(null, !!P43.mes); } else if(P42.vista === "dia"){ p42Cab_(); } } }catch(e){ console.warn(e); }
+  return r;
+}; })(mostrarTab);
+window.addEventListener("resize", function(){ clearTimeout(P43.rz); P43.rz = setTimeout(function(){ var a = document.querySelector(".pantalla.activa"); if(a && a.id === "pantalla-plan" && P42.vista === "mes" && P43.mes){ var g = document.querySelector("#p43-mes .p43-mg"); if(g && g.classList.contains("cel") !== !esEscritorio_()){ $("pl42").innerHTML = ""; p43Mes_(true); } } }, 300); });
+</script>
 </body>
 
 </html>
