@@ -498,6 +498,8 @@
       msg('');
       if (r && r.ok) {
         acierto();
+        /* app 1.6: el PIN de la cuenta también desbloquea la tablet (se guarda solo su huella cifrada, así abre sin señal) */
+        try { if (window.EcovsaApp && typeof window.EcovsaApp.bloqueoPin === 'function') window.EcovsaApp.bloqueoPin(String(pin)); } catch (x) {}
         /* api 3.38.1: con la app que lo permite, antes de entrar se ofrece guardar la huella */
         if (!porHuella && hpOfrecer()) { ofrecerHuella(pin, function () { exito(r); }); return; }
         exito(r);

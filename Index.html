@@ -21263,6 +21263,68 @@ function c44SubirFoto_(inp, id){
 }
 
 </script>
+<style id="estilo-346">
+/* app 1.6 · «Mi tablet» (el menú del nombre) */
+.mt38-g{margin:14px 0 4px}
+.mt38-g>b{display:block;font:800 13px Archivo,sans-serif;color:#14306b;margin-bottom:7px}
+.mt38-seg{display:flex;gap:6px}
+.mt38-seg button{all:unset;box-sizing:border-box;flex:1;text-align:center;padding:10px 6px;border:1.5px solid #dfe5ee;border-radius:11px;font:700 13px Archivo,sans-serif;color:#44546f;cursor:pointer}
+.mt38-seg button.on{border-color:#14306b;background:#e8effb;color:#14306b}
+.mt38-rg{width:100%;margin:8px 0 2px}
+.mt38-n{font-size:12px;color:#667489;margin:6px 0 0;line-height:1.4}
+</style>
+<script id="js-346">
+/* ═══ app 1.6 · «Mi tablet» y «estoy ocupado» ═══
+   · Mi tablet: lo que el conductor ajusta por su cuenta, sin el administrador: modo (automático, Mañana clara, Noche serena),
+     cómo desbloquea (con su PIN o con un patrón), el brillo y la barra de atajos (Emergencia siempre queda a la vista).
+   · ecoOcupado: la app recarga sola las pantallas cuando el portal cambia, pero nunca mientras se navega o se firma.
+   · el PIN de la cuenta se entrega a la app para desbloquear la tablet con él (también sin señal). */
+IC38.tablet = '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M11 18h2"/>';
+APP38.tablet = function(){ try{ return JSON.parse(EcovsaApp.miTablet() || "{}"); }catch(e){ return {}; } };
+APP38.opcionesMenu = (function(o){ return function(){
+  var l = o.apply(this, arguments);
+  try{ if(APP38.tiene("miTablet")) l.unshift('<button class="op" onclick="C38.cerrarMenu();APP38.hojaTablet()"><span class="ic">' + ic38_("tablet") + '</span><span>Mi tablet<small>Modo, desbloqueo, brillo y barra de atajos</small></span></button>'); }catch(e){}
+  return l;
+}; })(APP38.opcionesMenu);
+APP38.mt = function(k, v){ try{ EcovsaApp.tabletSet(k, String(v)); }catch(e){} };
+APP38.mtSeg = function(b, k, v){ b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x === b); }); APP38.mt(k, v); };
+APP38.hojaTablet = function(){
+  var m = APP38.tablet();
+  var seg = function(k, ops, act){ return '<div class="mt38-seg">' + ops.map(function(o){ return '<button class="' + (o[0] === act ? 'on' : '') + '" onclick="APP38.mtSeg(this,\'' + k + '\',\'' + o[0] + '\')">' + o[1] + '</button>'; }).join("") + '</div>'; };
+  var fila = function(k, t, s, on){ return '<label class="av38-f"><span><b>' + t + '</b><small>' + s + '</small></span><input type="checkbox" data-mt="' + k + '"' + (on ? ' checked' : '') + ' onchange="APP38.mt(\'' + k + '\', this.checked ? 1 : 0)"><i></i></label>'; };
+  var auto = m.brillo === undefined || m.brillo < 0;
+  var h = '<div class="hj"><div class="asa"></div><h3 class="av38-t">Mi tablet</h3>' +
+    '<p class="av38-p">Lo que puedes ajustar tú. Cada cambio se aplica al momento.</p>' +
+    '<div class="mt38-g"><b>Modo</b>' + seg("tema", [["auto", "Automático"], ["dia", "Mañana clara"], ["noche", "Noche serena"]], m.tema || "auto") +
+      '<p class="mt38-n">Automático: claro de 6:00 a 18:00 y oscuro el resto. Mañana clara si la luz es muy intensa; Noche serena si te molestan los brillos.</p></div>' +
+    '<div class="mt38-g"><b>Desbloquear la tablet</b>' + seg("desbloqueo", [["pin", "Con mi PIN"], ["patron", "Con un patrón"]], m.desbloqueo || "pin") +
+      '<button class="c38-btn" style="width:100%;margin-top:8px" onclick="EcovsaApp.patronCrear()">' + (m.hayPatron ? "Cambiar mi patrón" : "Crear mi patrón") + '</button>' +
+      '<p class="mt38-n">' + (m.hayPin === false ? 'Entra otra vez con tu PIN para activar el desbloqueo con él. ' : '') + 'Si olvidas el patrón, entras con tu PIN.</p></div>' +
+    '<div class="mt38-g"><b>Brillo</b>' + fila("brilloAuto", "Automático", "La tablet lo ajusta con la luz", auto) +
+      '<input class="mt38-rg" type="range" min="10" max="100" value="' + (auto ? 60 : m.brillo) + '"' + (auto ? ' disabled' : '') + ' onchange="APP38.mt(\'brillo\', this.value)"></div>' +
+    fila("barra", "Barra de atajos", "Emergencia siempre queda a la vista", m.barra !== false) +
+    fila("sonido", "Sonido de los avisos", "Cuando llega un mensaje nuevo", m.sonido !== false) +
+    '<button class="c38-btn pri" style="width:100%;margin-top:14px" onclick="document.getElementById(\'mt38\').remove()">Listo</button></div>';
+  var d = document.createElement("div"); d.className = "c38-menu"; d.id = "mt38"; d.innerHTML = h;
+  d.onclick = function(e){ if(e.target === d) d.remove(); };
+  /* el interruptor «Automático» del brillo prende o apaga la barra de brillo */
+  d.querySelector('input[data-mt="brilloAuto"]').onchange = function(){
+    var r = d.querySelector(".mt38-rg"); r.disabled = this.checked;
+    APP38.mt("brillo", this.checked ? -1 : r.value);
+  };
+  document.body.appendChild(d);
+};
+window.ecoOcupado = function(){
+  try{
+    if(window.NV37 && NV37.abierta && NV37.abierta()) return true;
+    var f = document.getElementById("capa-firma"); if(f && getComputedStyle(f).display !== "none") return true;
+    var e = document.getElementById("en-canvas"); if(e && e.offsetParent) return true;
+    if(document.querySelector(".c38-menu")) return true;
+  }catch(x){}
+  return false;
+};
+setTimeout(function(){ try{ if(PIN && APP38.es() && APP38.tiene("bloqueoPin")) EcovsaApp.bloqueoPin(String(PIN)); }catch(e){} }, 6000);
+</script>
 </body>
 
 </html>
