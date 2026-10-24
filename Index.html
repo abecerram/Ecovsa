@@ -20466,6 +20466,802 @@ mostrarTab = (function(o){ return function(tab){
 }; })(mostrarTab);
 window.addEventListener("resize", function(){ clearTimeout(P43.rz); P43.rz = setTimeout(function(){ var a = document.querySelector(".pantalla.activa"); if(a && a.id === "pantalla-plan" && P42.vista === "mes" && P43.mes){ var g = document.querySelector("#p43-mes .p43-mg"); if(g && g.classList.contains("cel") !== !esEscritorio_()){ $("pl42").innerHTML = ""; p43Mes_(true); } } }, 300); });
 </script>
+<style id="estilo-344">
+/* api 3.44 · optimizar y publicar desde la semana */
+.p44-ra{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.p44-ra button{border:1px solid #d5dce8;background:#fff;border-radius:8px;padding:4px 8px;font:800 11px Archivo,sans-serif;color:#14306b;cursor:pointer}.p44-ra button.v{background:#2f9e44;border-color:#2f9e44;color:#fff}
+.p44-ok{font:800 10.5px Archivo,sans-serif;color:#1e6b39;background:#e3f4ea;border-radius:8px;padding:4px 8px}
+.p44-barra{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid #e1e6ee;border-radius:12px;padding:9px 12px;margin-bottom:10px}.p44-barra>div{flex:1;min-width:200px}.p44-barra b{display:block;font-size:13.5px;color:#14306b}.p44-barra span{font-size:12px;color:#667489}
+.p44-t{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}.p44-t th{text-align:left;font-size:11px;color:#667489;background:#f3f6fa;padding:7px}.p44-t td{padding:8px 7px;border-top:1px solid #eef1f5}.p44-t .ok,.p44-t b.ok{color:#1e6b39}.p44-t b.ro{color:#b3204f}
+.p44-ord{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.p44-ord span{display:inline-flex;align-items:center;gap:5px;background:#f3f6fb;border-radius:8px;padding:4px 8px;font:700 12px Archivo,sans-serif;color:#24344f}.p44-ord i{width:18px;height:18px;border-radius:50%;background:#14306b;color:#fff;font:900 10px/18px Archivo,sans-serif;text-align:center;font-style:normal}
+.p44-igual{background:#e9f6ec;color:#23653c;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;margin:6px 0}
+.p44-acc{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}.p44-ck{display:flex;gap:6px;align-items:center;font-size:13px;color:#44516a;margin-top:6px}
+.ini-hoja.p44-ancha{max-width:860px}
+
+/* api 3.44 · lo que pide el cliente */
+.p42-tg h4.pe{color:#0f7d73}
+.p44-h{border-left:3px solid #c5d3ea;padding:5px 9px;margin-top:6px}.p44-h small{display:block;font-size:10.5px;color:#8a96a8}.p44-h b{display:block;font-size:12.5px;color:#0f2140}.p44-h span{font-size:11.5px;color:#667489}
+#p44-hist{max-height:320px;overflow:auto}
+.p44-regla{margin-bottom:12px}.p44-regla .h b{font-size:17px;color:#14306b}.p44-regla>p{font-size:12.5px;color:#667489;margin:4px 0 6px}
+.p44-rf{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #eef1f5}.p44-rf b{display:block;font-size:14px;color:#0f2140}.p44-rf small{display:block;font-size:12px;color:#667489;margin-top:2px;max-width:620px}.p44-rf .c{flex:none}
+
+/* api 3.44 · C · Clientes: la hoja de vida */
+#pantalla-cli2.c44{max-width:1320px}
+#pantalla-cli2.c44 .c2-tt .c2-busca{display:none}
+.c44-ic{vertical-align:-3px;flex:none}
+.c44-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid #dfe5ee;background:#fff;border-radius:9px;padding:7px 11px;font:800 12.5px/1.2 inherit;font-family:inherit;color:var(--ini-navy,#14306b);cursor:pointer;text-decoration:none;white-space:nowrap}
+.c44-btn:hover{background:#f3f6fb}.c44-btn.v{background:#2f9e44;color:#fff;border-color:#2f9e44}.c44-btn.v:hover{background:#278a3a}
+.c44-lnk{border:0;background:none;padding:0;color:#1f5fb8;font:800 12.5px inherit;font-family:inherit;text-decoration:underline;cursor:pointer}
+.c44-izq{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:12px;max-width:940px}
+.c44-der{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:18px 22px}
+.c44-lt{display:grid;gap:8px}
+.c44-tg{display:flex;background:#eef2f8;border-radius:9px;padding:3px}.c44-tg button{flex:1;border:0;background:none;border-radius:7px;padding:7px;font:800 12.5px inherit;font-family:inherit;color:#44516a;cursor:pointer}.c44-tg .on{background:#fff;color:#14306b;box-shadow:0 1px 3px rgba(15,33,64,.15)}
+.c44-bus{display:flex;gap:6px}.c44-bus input{flex:1;min-width:0;border:1px solid #dfe5ee;border-radius:9px;padding:9px 11px;font:600 13px inherit;font-family:inherit;color:#14306b}.c44-bus select{border:1px solid #dfe5ee;border-radius:9px;padding:0 8px;font:700 12.5px inherit;font-family:inherit;color:#44516a;background:#fff;max-width:42%}
+.c44-fil{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 6px}.c44-fil button{border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:5px 10px;font:700 12px inherit;font-family:inherit;color:#44516a;cursor:pointer}.c44-fil .on{background:#14306b;color:#fff;border-color:#14306b}.c44-fil .rv:not(.on){color:#b3204f;border-color:#f2c4d3}
+.c44-alias{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;background:#fffaf0;border:1px solid #f3dfa8;border-radius:10px;padding:7px 10px;font-size:12.5px;color:#5c4500}.c44-alias.ro{background:#fff5f8;border-color:#f2c4d3;color:#8a1c40}.c44-alias span{flex:1;min-width:180px}
+.c44-lote{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0;background:#eef3fc;border-radius:10px;padding:8px 10px;font-size:13px;color:#14306b}.c44-lote .sp{flex:1}
+.c44-lista{margin-top:4px}
+.c44-emp{display:flex;align-items:center;gap:8px;padding:10px 6px;border-top:1px solid #eef1f5;border-radius:10px}.c44-emp.on{background:#e8effb}
+.c44-emp .fl{display:grid;place-items:center;border:0;background:#eef2f8;border-radius:6px;width:26px;height:26px;color:#14306b;cursor:pointer;flex:none}
+.c44-emp .tx{flex:1;min-width:0;cursor:pointer}.c44-emp b{display:block;font-size:14px;color:#0f2140}.c44-emp small{font-size:12px;color:#667489}.c44-emp em{font-style:normal;font-weight:800}.c44-emp em.ro{color:#b3204f}
+.c44-n{background:#14306b;color:#fff;border-radius:99px;font:800 11px/20px inherit;font-family:inherit;padding:0 8px}
+.c44-f{display:flex;align-items:center;gap:8px;padding:9px 6px;border-top:1px solid #eef1f5;cursor:pointer;border-radius:10px;transition:background .15s}.c44-f:hover{background:#f6f9ff}.c44-f.on{background:#e8effb}
+.c44-f.hija{margin-left:24px;border-top:0;border-left:2px solid #e1e6ee;border-radius:0 10px 10px 0;padding-left:10px}
+.c44-ck{width:15px;height:15px;accent-color:#14306b;flex:none;opacity:.35;cursor:pointer}.c44-f:hover .c44-ck,.c44-ck:checked{opacity:1}
+.c44-f .tx{flex:1;min-width:0}.c44-f b{display:block;font-size:13.5px;color:#0f2140}.c44-f small{display:block;font-size:11.5px;color:#667489}.c44-f small.emp{color:#8a96a8}
+.c44-f small .fq{font-weight:800;color:#14306b}.c44-f small em{font-style:normal;font-weight:800}.c44-f small em.am{color:#8a5a00}.c44-f small em.gr{color:#5a6577}.c44-f small em.az{color:#1f5fb8}.c44-f small em.ro{color:#b3204f}
+.c44-f .px{text-align:right;flex:none}.c44-f .px b{font-size:12.5px}.c44-f .px small{font-size:11px}
+.c44-dot{width:9px;height:9px;border-radius:50%;flex:none}.c44-dot.ro{background:#d6336c}.c44-dot.az{background:#1f6fd1}.c44-dot.ve{background:#2f9e44}.c44-dot.am{background:#e0a100}.c44-dot.gr{background:#9aa4b2}
+b.ro{color:#b3204f}b.az{color:#1f5fb8}b.am{color:#8a6300}b.gr{color:#5a6577}
+.c44-vac{color:#667489;padding:30px;text-align:center;font-size:13px}
+.c44-rev{margin-top:6px}
+.c44-ch{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 9px;font:800 11.5px inherit;font-family:inherit}.c44-ch.ro{background:#fde8ef;color:#b3204f}.c44-ch.az{background:#e6edf9;color:#14306b}.c44-ch.ve{background:#e9f6ec;color:#23653c}.c44-ch.am{background:#fff4dc;color:#8a6300}.c44-ch.g,.c44-ch.gr{background:#eef2f8;color:#44516a;font-weight:700}
+.c44-ch.s i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.c44-nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}.c44-nav .sp{flex:1}.c44-cu{font:700 12px inherit;font-family:inherit;color:#667489}
+.c44-cab{border-bottom:1px solid #eef1f5;padding-bottom:14px}
+.c44-mig{border:0;background:none;padding:0;font:800 12.5px inherit;font-family:inherit;color:#1f5fb8;cursor:pointer}.c44-mig.g{color:#667489;cursor:default}
+.c44-tt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}.c44-tt h2{margin:0;font-size:28px;line-height:1.15;color:#14306b}.c44-sub{font-size:13px;color:#667489;margin-top:4px}
+.c44-estado{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin-top:14px}
+.c44-estado>div,.c44-svc{border-radius:14px;padding:12px 14px;border:1px solid #e1e6ee;background:#fff}
+.c44-estado small,.c44-svc small{display:block;font:800 10.5px inherit;font-family:inherit;letter-spacing:.6px;text-transform:uppercase;color:#667489}
+.c44-estado b,.c44-svc b{display:flex;align-items:center;gap:8px;font-size:22px;margin:3px 0 2px;color:#0f2140}.c44-estado span,.c44-svc span{display:block;font-size:12.5px;color:#44516a}
+.c44-svc i{width:12px;height:12px;border-radius:50%;background:currentColor;flex:none}
+.c44-svc.ve{background:#eef8f0;border-color:#cfe9d6}.c44-svc.ve b{color:#23653c}.c44-svc.am{background:#fff7e6;border-color:#f3d793}.c44-svc.am b{color:#8a5a00}.c44-svc.gr{background:#f1f3f6;border-color:#d8dde5}.c44-svc.gr b{color:#5a6577}.c44-svc.az{background:#eef3fc;border-color:#cddaf3}.c44-svc.az b{color:#14306b}
+.c44-svb{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.c44-frq b{color:#14306b}.c44-pr{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.c44-pr i{font-style:normal;font:700 11.5px inherit;font-family:inherit;background:#e8effb;color:#14306b;border-radius:99px;padding:2px 9px}.c44-pr i.g{background:#eef2f8;color:#8a96a8}
+.c44-vis.ro b{color:#b3204f}.c44-vis.ve b{color:#23653c}.c44-vis.az b{color:#1f5fb8}.c44-vis.am b{color:#8a6300}.c44-vis.gr b{color:#5a6577}
+.c44-chs{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}.c44-acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.c44-idx{position:sticky;top:0;background:#fff;z-index:5;display:flex;gap:4px;padding:9px 0;border-bottom:1px solid #eef1f5;margin-bottom:4px;overflow-x:auto;scrollbar-width:none}
+.c44-idx a{flex:none;font:800 12px inherit;font-family:inherit;color:#44516a;padding:6px 10px;border-radius:8px;cursor:pointer;background:#f3f6fa}.c44-idx a:hover{background:#e8effb;color:#14306b}
+.c44-dc{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px}
+.c44-sec{padding:14px 0 6px;scroll-margin-top:56px}.c44-sec h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 9px;font-size:15px;color:#14306b}.c44-sec h3 .sp{flex:1}
+.c44-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.c44-k>div{background:#f6f8fc;border-radius:12px;padding:10px 12px}.c44-k b{display:block;font-size:17px;color:#14306b}.c44-k span{display:block;font-size:12px;font-weight:700;color:#24344f}.c44-k small{font-size:11px;color:#667489}
+.c44-k .ro{background:#fff5f8}.c44-k .ro b{color:#b3204f}.c44-k .ve b{color:#23653c}.c44-k .am{background:#fffaf0}.c44-k .am b{color:#8a6300}
+.c44-pl{font:700 12px inherit;font-family:inherit;color:#44516a;background:#eef2f8;border-radius:99px;padding:3px 10px}
+.c44-pb{position:relative;display:flex;gap:6px;align-items:flex-end;height:120px;padding-top:16px;margin-bottom:20px}
+.c44-pb .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.c44-pb .c i{width:100%;background:#9fc7a8;border-radius:5px 5px 0 0;transition:height .4s}.c44-pb .c i.o{background:#e8708f}.c44-pb .c i.u{opacity:.55}
+.c44-pb .c em{font:800 10px inherit;font-family:inherit;color:#b3204f;font-style:normal;height:14px;white-space:nowrap}.c44-pb .c span{position:absolute;bottom:-17px;font-size:10px;color:#8a96a8}
+.c44-pb .lin{position:absolute;left:0;right:0;border-top:2px dashed #14306b;z-index:2;pointer-events:none}.c44-pb .lin span{position:absolute;right:0;top:-17px;font:800 10px inherit;font-family:inherit;color:#14306b;background:#fff;padding:0 4px}
+.c44-pres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.c44-pres>div{background:#f6f8fc;border-radius:10px;padding:8px 10px}.c44-pres b{display:block;font-size:15px;color:#14306b}.c44-pres span{font-size:11.5px;color:#667489}
+.c44-pres .ro b{color:#b3204f}.c44-pres .am{background:#fffaf0}.c44-pres .am b{color:#8a6300}.c44-pres .ve b{color:#23653c}
+.c44-vf{display:flex;gap:3px;flex-wrap:wrap}.c44-vf button{border:1px solid #e1e6ee;background:#fff;border-radius:99px;padding:3px 9px;font:700 11.5px inherit;font-family:inherit;color:#44516a;cursor:pointer}.c44-vf .on{background:#14306b;color:#fff;border-color:#14306b}
+.c44-vida{position:relative;padding-left:18px}.c44-vida::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#e1e6ee}
+.c44-ev{position:relative;display:flex;padding:6px 0;animation:c44in .25s ease}.c44-ev>i{position:absolute;left:-17px;top:10px;width:10px;height:10px;border-radius:50%;background:#14306b;box-shadow:0 0 0 3px #fff}
+.c44-ev.visita>i{background:#2f9e44}.c44-ev.falla>i{background:#d6336c}.c44-ev.doc>i{background:#1f6fd1}.c44-ev.sol>i{background:#7b4fd6}.c44-ev.cambio>i{background:#e0a100}.c44-ev.fum>i{background:#0f9488}.c44-ev.inicio>i{background:#14306b}
+.c44-ev.peso>i{background:#e8708f}.c44-ev.contacto>i{background:#e0a100}.c44-ev.ruta>i{background:#fff;box-shadow:0 0 0 2px #14306b,0 0 0 4px #fff}.c44-ev.fut{opacity:.8}
+.c44-ev small{display:block;font-size:11px;color:#8a96a8}.c44-ev b{display:block;font-size:13px;color:#0f2140}.c44-ev span{display:block;font-size:12px;color:#667489}
+@keyframes c44in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.c44-fotos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.c44-fotos figure{margin:0;border:1px solid #e1e6ee;border-radius:12px;overflow:hidden;background:#fff}
+.c44-fotos .ph{position:relative;aspect-ratio:16/10;background:#eef2f8;overflow:hidden}.c44-fotos .ph img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.c44-sat{position:absolute;inset:0}.c44-pt{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px;border-radius:50%;background:#2f9e44;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,158,68,.35);z-index:500;pointer-events:none}
+.c44-sinf{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#8a96a8;font-size:12.5px;font-weight:700}
+.c44-fotos figcaption{padding:8px 10px}.c44-fotos figcaption b{display:block;font-size:12.5px;color:#0f2140}.c44-fotos figcaption small{font-size:11px;color:#667489}
+.c44-dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.c44-dt{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid #eef1f5;font-size:12.5px}.c44-dt b{color:#24344f;flex:none}.c44-dt span{color:#44516a;text-align:right}
+.c44-mini{position:relative;border-radius:12px;overflow:hidden;min-height:200px;background:#eef2f8}#c44-mapa{position:absolute;inset:0}.c44-mini.c44-sinf{position:relative}
+.c44-docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.c44-docs button{display:grid;grid-template-columns:28px 1fr;align-items:center;column-gap:6px;text-align:left;border:1px solid #e1e6ee;background:#fff;border-radius:10px;padding:9px;cursor:pointer;font-family:inherit}.c44-docs button:hover:not([disabled]){background:#f6f9ff}.c44-docs button[disabled]{cursor:default}
+.c44-docs .c44-ic{grid-row:1/3;color:#14306b}.c44-docs b{font-size:12.5px;color:#0f2140}.c44-docs small{font-size:11px;color:#667489}
+.c44-tw{overflow-x:auto}.c44-t{width:100%;border-collapse:collapse;font-size:12.5px}.c44-t th{text-align:left;font-size:11px;color:#667489;background:#f3f6fa;padding:8px;white-space:nowrap}.c44-t td{padding:9px 8px;border-top:1px solid #eef1f5}
+.c44-t tbody tr{cursor:pointer}.c44-t tbody tr:hover{background:#f6f9ff}.c44-t td small{display:block;color:#8a96a8;font-size:11px}.c44-t td small.ro{display:inline;color:#b3204f;font-weight:800}b.fq{color:#14306b}
+.c44-esq{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin-top:14px}.c44-esq.l{grid-template-columns:1fr 1fr}.c44-esq i{display:block;height:96px;border-radius:14px;background:linear-gradient(90deg,#f1f4f8,#e7ecf3,#f1f4f8);background-size:200% 100%;animation:c44esq 1.2s infinite linear}
+@keyframes c44esq{from{background-position:100% 0}to{background-position:-100% 0}}
+.c44-velo{position:fixed;inset:0;background:rgba(15,33,64,.35);z-index:3000;display:flex;justify-content:flex-end;animation:c44v .18s ease}.c44-velo.fuera{opacity:0;transition:opacity .18s}
+@keyframes c44v{from{opacity:0}to{opacity:1}}
+.c44-hoja{width:min(520px,100%);height:100%;background:#fff;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(15,33,64,.2);animation:c44h .22s ease}
+@keyframes c44h{from{transform:translateX(30px);opacity:.6}to{transform:none;opacity:1}}
+.c44-velo:has(.chica){align-items:center;justify-content:center}.c44-hoja.chica{height:auto;max-height:90vh;border-radius:16px;width:min(460px,94vw)}
+.c44-hc{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #eef1f5}.c44-hc>div{flex:1;min-width:0}.c44-hc small{display:block;font:800 10.5px inherit;font-family:inherit;letter-spacing:.6px;text-transform:uppercase;color:#667489}.c44-hc b{font-size:17px;color:#14306b}
+.c44-x{border:0;background:#eef2f8;border-radius:9px;width:34px;height:34px;display:grid;place-items:center;color:#14306b;cursor:pointer}
+.c44-tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid #eef1f5;overflow-x:auto;scrollbar-width:none}.c44-tabs button{flex:none;border:0;background:none;padding:10px;font:800 12.5px inherit;font-family:inherit;color:#667489;border-bottom:3px solid transparent;cursor:pointer}.c44-tabs .on{color:#14306b;border-color:#14306b}
+.c44-hb{flex:1;overflow-y:auto;padding:12px 16px 24px}.c44-hb.c2-fic{border:0;box-shadow:none;border-radius:0;background:#fff}
+.c44-nota{font-size:12px;color:#5e6b7e;margin:6px 0}.c44-fila{display:flex;gap:6px}.c44-fila .c2-in{flex:1}
+.c44-op{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13.5px;font-weight:700;color:#14306b;cursor:pointer}
+.c44-tomar{display:flex!important;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+@media(max-width:999px){
+  .c44-der{padding:14px 12px;border-radius:12px}.c44-izq{padding:10px}
+  .c44-estado,.c44-esq,.c44-esq.l{grid-template-columns:1fr}.c44-k,.c44-pres{grid-template-columns:1fr 1fr}.c44-dos{grid-template-columns:1fr}
+  .c44-tt h2{font-size:24px}.c44-nav .c44-cu{display:none}.c44-nav .c44-btn{padding:7px 9px}
+  .c44-f.hija{margin-left:14px}.c44-ck{display:none}.c44-hoja{width:100%}
+}
+
+</style>
+<script id="js-344">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.44 · A · OPTIMIZAR Y PUBLICAR DESDE LA SEMANA (pedido de Álvaro, 24 oct)
+   · En cada ruta de la semana: «Optimizar» (Google con los horarios; sin
+     Google, aquí con lo aprendido) muestra antes y después, y «Publicar»
+     la carga al conductor con su camino por carretera.
+   · «Optimizar y publicar la semana»: recorre las rutas de los días que
+     vienen, muestra un resumen por día y publica las que usted marque.
+   Guarda igual que el Día (api_guardarPlan), así que valen las mismas reglas.
+   ═══════════════════════════════════════════════════════════════════ */
+var P44 = { prop: {} };
+function p44Ruta_(rutaId){ var S = P42.d, out = null; (S ? S.dias : []).forEach(function(d){ d.rutas.forEach(function(r){ if(r.rutaId === rutaId) out = { d: d, r: r }; }); }); return out; }
+function p44Base_(){ var c = P42.d && P42.d.config; return c && c.baseLat && c.baseLng ? [c.baseLat, c.baseLng] : null; }
+/* lo de cada parada que necesitan Google y el cálculo local */
+function p44Req_(d, r){
+  var S = P42.d, cfg = S.config;
+  return { fecha: d.fecha, salida: r.horaSalida || cfg.salida, conductor: r.conductor, destinoId: "",
+    paradas: r.paradas.map(function(p){ var c = S.clientes[p.clienteId] || {}; return c.lat && c.lng ? { id: p.clienteId, lat: c.lat, lng: c.lng, min: c.min || cfg.minSitio || 15, hTipo: c.hTipo || "", hDesde: c.hDesde || "", hHasta: c.hHasta || "" } : null; }).filter(Boolean) };
+}
+/* el orden aquí mismo, con lo aprendido del GPS (si Google no está o no responde) */
+function p44OptLocal_(req){
+  var B = p44Base_(), A = P42.d.aprendido, S = req.paradas.map(function(p){ return { id: String(p.id), ll: [p.lat, p.lng], min: p.min, t: p.hTipo, d: plMin_(p.hDesde), h: plMin_(p.hHasta) }; });
+  var tr = function(a, b, t){ return a && b ? p42Tramo_(A, a, b, t).min : 20; };
+  var sim = function(ord, t0){ var t = t0, prev = B, km = 0, pen = 0, out = [];
+    ord.forEach(function(i){ var s = S[i]; if(prev) km += plKm_(prev, s.ll); t += tr(prev, s.ll, t); var w = 0;
+      if(s.t === "estricto" && s.d !== null && t < s.d){ w = s.d - t; t = s.d; }
+      var late = s.h !== null && t > s.h ? t - s.h : 0; pen += s.t === "estricto" ? late * 1e3 : late * 2;
+      out.push({ i: i, llega: t, espera: w, late: late }); t += s.min; prev = s.ll; });
+    if(B && prev){ km += plKm_(prev, B); t += tr(prev, B, t); }
+    return { out: out, km: km, fin: t, costo: pen * 100 + (t - t0) + km * 0.5 }; };
+  var t0 = plMin_(req.salida) || 450, best = S.map(function(_, i){ return i; }), bc = sim(best, t0).costo, ok = true, v = 0;
+  while(ok && v++ < 40){ ok = false;
+    for(var a = 0; a < best.length; a++) for(var b = 0; b < best.length; b++){ if(a === b) continue; var o = best.slice(), x = o.splice(a, 1)[0]; o.splice(b, 0, x); var c = sim(o, t0).costo; if(c < bc - 0.01){ best = o; bc = c; ok = true; } }
+    for(var a2 = 0; a2 < best.length - 1; a2++) for(var b2 = a2 + 2; b2 <= best.length; b2++){ var o2 = best.slice(0, a2).concat(best.slice(a2, b2).reverse(), best.slice(b2)), c2 = sim(o2, t0).costo; if(c2 < bc - 0.01){ best = o2; bc = c2; ok = true; } } }
+  var s2 = sim(best, t0), ll = {}; s2.out.forEach(function(o){ ll[S[o.i].id] = plHH_(o.llega); });
+  return { fuente: "local", orden: best.map(function(i){ return S[i].id; }), llegadas: ll, noCaben: s2.out.filter(function(o){ return S[o.i].t === "estricto" && o.late > 0.5; }).map(function(o){ return { id: S[o.i].id }; }),
+           km: Math.round(s2.km * 1.35 * 10) / 10, regreso: plHH_(s2.fin), legs: null, tramos: null };
+}
+/* cuántos quedan fuera de su horario con un orden */
+function p44Fuera_(r, orden){ var S = P42.d, R = { paradas: orden.map(function(id){ return { clienteId: Number(id) }; }), horaSalida: r.horaSalida, tramos: null, km: null };
+  var K = p42Calc_(R, S); return { fuera: K.p.filter(function(e){ return e.ok === false; }).length, regreso: K.regreso, km: K.km }; }
+/* pedir la propuesta: Google si está; si no, aquí */
+function p44Proponer_(rutaId, listo){
+  var x = p44Ruta_(rutaId); if(!x) return listo(null, "No encontré la ruta");
+  var req = p44Req_(x.d, x.r); if(req.paradas.length < 2) return listo(null, "Hacen falta al menos 2 paradas con ubicación");
+  if(!p44Base_()) return listo(null, "Primero fije la base (en el Día › Base): de ahí sale y ahí vuelve el camión");
+  var g = P42.d.google || {};
+  var fin = function(res, aviso){ var antes = p44Fuera_(x.r, x.r.paradas.map(function(p){ return p.clienteId; })), despues = p44Fuera_(x.r, res.orden.map(Number));
+    if(res.km) despues.km = res.km; P44.prop[rutaId] = { res: res, antes: antes, despues: despues, aviso: aviso || "" }; listo(P44.prop[rutaId]); };
+  if(!g.optimizar) return fin(p44OptLocal_(req), "");
+  google.script.run.withSuccessHandler(function(r){ if(r && r.ok && r.res) fin(r.res, ""); else fin(p44OptLocal_(req), (r && (r.googleError || r.aviso || r.error)) || "Google no respondió: se ordenó aquí con lo aprendido."); })
+    .withFailureHandler(function(){ fin(p44OptLocal_(req), "Sin conexión con Google: se ordenó aquí con lo aprendido."); }).api_mapaOptimizar(PIN, req);
+}
+/* aplicar (y publicar) una propuesta */
+function p44Aplicar_(rutaId, publicar, listo){
+  var x = p44Ruta_(rutaId), P = P44.prop[rutaId]; if(!x || !P) return listo && listo(false, "Sin propuesta");
+  var r = x.r, res = P.res, base = p44Base_(), S = P42.d, porId = {}; r.paradas.forEach(function(p){ porId[String(p.clienteId)] = p; });
+  var orden = res.orden.map(String).filter(function(id){ return porId[id]; }); r.paradas.forEach(function(p){ if(orden.indexOf(String(p.clienteId)) < 0) orden.push(String(p.clienteId)); });
+  var K = p42Calc_({ paradas: orden.map(function(id){ return { clienteId: Number(id) }; }), horaSalida: r.horaSalida, tramos: res.tramos && res.tramos.length === orden.length + 1 ? res.tramos : null, km: res.km }, S);
+  var paradas = orden.map(function(id, i){ var p = porId[id]; return { clienteId: Number(id), origen: p.origen || "", horaPlan: res.llegadas && res.llegadas[id] && /^\d{1,2}:\d{2}$/.test(res.llegadas[id]) ? ("0" + res.llegadas[id]).slice(-5) : plHH_(K.p[i].lleg) }; });
+  var pts = [base].concat(orden.map(function(id){ var c = S.clientes[id] || {}; return c.lat && c.lng ? [c.lat, c.lng] : null; }).filter(Boolean)).concat([base]);
+  var guardar = function(trazo){
+    var d = { rutaId: r.rutaId, fecha: x.d.fecha, conductor: r.conductor, vehiculo: r.vehiculo, horaSalida: r.horaSalida || "", estadoPlan: publicar ? "publicada" : r.estadoPlan, tipo: "recoleccion", paradas: paradas, regresoMin: Math.round(K.regreso) };
+    if(trazo) d.trazo = trazo;
+    google.script.run.withSuccessHandler(function(z){
+      if(!z || !z.ok){ listo && listo(false, (z && z.error) || "No se pudo guardar"); return; }
+      r.paradas = orden.map(function(id){ var p = porId[id]; p.horaPlan = paradas.filter(function(q){ return String(q.clienteId) === id; })[0].horaPlan; return p; });
+      if(publicar) r.estadoPlan = "publicada"; r.tramos = trazo ? trazo.tramos : null; r.geo = trazo ? trazo.legs : null; r.km = trazo ? trazo.km : r.km; r.tocada = !trazo;
+      delete P44.prop[rutaId]; listo && listo(true);
+    }).withFailureHandler(function(){ listo && listo(false, "Sin conexión"); }).api_guardarPlan(PIN, d);
+  };
+  if(res.legs && res.legs.length === pts.length - 1) return guardar({ legs: res.legs, tramos: res.tramos || [], km: res.km, min: res.min, firma: m36Firma_(pts), fuente: "google" });
+  var g = S.google || {};
+  if(!g.rutas || pts.length < 3) return guardar(null);
+  google.script.run.withSuccessHandler(function(t){ guardar(t && t.ok && t.trazo && t.trazo.legs ? Object.assign(t.trazo, { firma: m36Firma_(pts) }) : null); })
+    .withFailureHandler(function(){ guardar(null); }).api_mapaTrazo(PIN, { puntos: pts.map(function(p){ return { lat: p[0], lng: p[1] }; }) });
+}
+/* una ruta: ver antes y después */
+function p44Optimizar_(rutaId){
+  var x = p44Ruta_(rutaId); if(!x) return;
+  abrirHojaIni_('<div class="ini-pt">Optimizar · ' + esc(String(x.r.conductor).split(" ")[0]) + ' · ' + esc(p42Dia_(x.d.fecha)) + '</div><div class="ini-ps">' + ((P42.d.google || {}).optimizar ? 'Google está buscando el mejor orden por carretera, con los horarios de cada cliente…' : 'Buscando el mejor orden con lo que aprendió del GPS…') + '</div><div class="p43-esq"><i style="height:120px"></i></div>');
+  p44Proponer_(rutaId, function(P, err){
+    if(!P){ cerrarHojaIni_(); p43Aviso_(err || "No se pudo optimizar", false); return; }
+    var S = P42.d, nom = function(id){ return p42Corto_((S.clientes[id] || {}).nombre || id); }, A = P.antes, D = P.despues, igual = P.res.orden.map(String).join() === x.r.paradas.map(function(p){ return String(p.clienteId); }).join();
+    var fila = function(t, a, b, mejor){ return '<tr><td>' + t + '</td><td>' + a + '</td><td class="' + (mejor ? 'ok' : '') + '"><b>' + b + '</b></td></tr>'; };
+    abrirHojaIni_('<div class="ini-pt">Optimizar · ' + esc(String(x.r.conductor).split(" ")[0]) + ' · ' + esc(p42Dia_(x.d.fecha)) + '</div><div class="ini-ps">' + (P.res.fuente === "local" ? 'Ordenado aquí con lo aprendido del GPS' : 'Ordenado por Google, por carretera y con los horarios') + (P.aviso ? ' · ' + esc(P.aviso) : '') + '</div>' +
+      '<table class="p44-t"><thead><tr><th></th><th>Como está</th><th>Optimizada</th></tr></thead><tbody>' +
+      fila('Regreso', p42H_(A.regreso), p42H_(D.regreso), D.regreso < A.regreso - 2) + fila('Km', '≈ ' + Math.round(A.km), '≈ ' + Math.round(D.km), D.km < A.km - 0.5) + fila('Fuera de su horario', A.fuera, D.fuera, D.fuera < A.fuera) + '</tbody></table>' +
+      (igual ? '<div class="p44-igual">El orden que tiene ya es el mejor.</div>' : '<div class="p44-ord">' + P.res.orden.map(function(id, i){ return '<span><i>' + (i + 1) + '</i>' + esc(nom(id)) + '</span>'; }).join('') + '</div>') +
+      (P.res.noCaben && P.res.noCaben.length ? '<div class="pl-avis">No alcanzan su horario: ' + esc(P.res.noCaben.map(function(n){ return nom(n.id); }).join(', ')) + '. Páselos a otro día.</div>' : '') +
+      '<div class="p44-acc"><button class="pl-btn" onclick="cerrarHojaIni_()">Dejar como está</button>' + (igual ? '' : '<button class="pl-btn a" onclick="p44Hacer_(\'' + esc(rutaId) + '\',false)">Aplicar el orden</button>') +
+      '<button class="pl-btn v" onclick="p44Hacer_(\'' + esc(rutaId) + '\',true)">' + (igual ? 'Publicar a ' : 'Aplicar y publicar a ') + esc(String(x.r.conductor).split(" ")[0]) + '</button></div>');
+  });
+}
+function p44Hacer_(rutaId, publicar){
+  var x = p44Ruta_(rutaId); cerrarHojaIni_(); p43Aviso_((publicar ? "Publicando" : "Guardando") + " la ruta de " + String(x.r.conductor).split(" ")[0] + "…", "g");
+  p44Aplicar_(rutaId, publicar, function(ok, err){ if(!ok){ p43Aviso_(err, false); return; } p43Aviso_((publicar ? "Publicada a " + String(x.r.conductor).split(" ")[0] : "Orden aplicado") + " · " + p42Dia_(x.d.fecha)); p42Pintar_(false); p42Cargar_(P42.d.lunes, true); });
+}
+function p44Publicar_(rutaId){
+  var x = p44Ruta_(rutaId); if(!x) return;
+  P44.prop[rutaId] = { res: { orden: x.r.paradas.map(function(p){ return String(p.clienteId); }), llegadas: {}, km: x.r.km, legs: x.r.geo || null, tramos: x.r.tramos || null } };
+  p44Hacer_(rutaId, true);
+}
+/* toda la semana */
+function p44Semana_(){
+  var S = P42.d; if(!S) return;
+  var L = []; S.dias.forEach(function(d){ if(d.pasado || d.feriado) return; d.rutas.forEach(function(r){ if(r.tipo !== "planta" && r.paradas.length && String(r.rutaId).indexOf("nueva") !== 0) L.push(r.rutaId); }); });
+  if(!L.length){ p43Aviso_("No hay rutas por publicar en los días que vienen", false); return; }
+  P44.sem = { L: L, hechos: 0 };
+  abrirHojaIni_('<div class="ini-pt">Optimizar y publicar la semana</div><div class="ini-ps" id="p44-sp">Revisando ' + L.length + ' rutas…</div><div class="p43-esq"><i style="height:160px"></i></div>');
+  var i = 0, sig = function(){ if(i >= L.length) return p44Resumen_(); var id = L[i++]; var e = $("p44-sp"); if(e) e.textContent = 'Revisando ' + i + ' de ' + L.length + '…';
+    var x = p44Ruta_(id); if(x.r.paradas.length < 2){ P44.prop[id] = { res: { orden: x.r.paradas.map(function(p){ return String(p.clienteId); }), llegadas: {} }, antes: p44Fuera_(x.r, [x.r.paradas[0].clienteId]), despues: p44Fuera_(x.r, [x.r.paradas[0].clienteId]), solo: true }; return sig(); }
+    p44Proponer_(id, function(){ sig(); }); };
+  sig();
+}
+function p44Resumen_(){
+  var S = P42.d, L = P44.sem.L;
+  var h = '<div class="ini-pt">Optimizar y publicar la semana</div><div class="ini-ps">Marque las rutas que quiere cargar a los conductores. Las que no marque quedan como están.</div><table class="p44-t s"><thead><tr><th></th><th>Día</th><th>Conductor</th><th>Paradas</th><th>Regreso</th><th>Km</th><th>Fuera de horario</th><th>Ahora</th></tr></thead><tbody>' +
+    L.map(function(id){ var x = p44Ruta_(id), P = P44.prop[id]; if(!x) return ''; if(!P) return '<tr><td></td><td>' + esc(p42Dia_(x.d.fecha)) + '</td><td colspan="6">No se pudo optimizar: ábrala en el Día</td></tr>';
+      var A = P.antes, D = P.despues, pub = x.r.estadoPlan === "publicada";
+      return '<tr><td><input type="checkbox" class="c2-ck" data-r="' + esc(id) + '"' + (pub && P.res.orden.join() === x.r.paradas.map(function(p){ return String(p.clienteId); }).join() ? '' : ' checked') + '></td><td><b>' + esc(p42Dia_(x.d.fecha)) + '</b></td><td>' + esc(String(x.r.conductor).split(" ")[0]) + ' · ' + esc(x.r.vehiculo) + '</td><td>' + x.r.paradas.length + '</td>' +
+        '<td>' + p42H_(A.regreso) + (D.regreso < A.regreso - 2 ? ' → <b class="ok">' + p42H_(D.regreso) + '</b>' : '') + '</td><td>≈ ' + Math.round(A.km) + (D.km < A.km - 0.5 ? ' → <b class="ok">' + Math.round(D.km) + '</b>' : '') + '</td><td>' + (D.fuera ? '<b class="ro">' + D.fuera + '</b>' : '0') + '</td><td>' + (pub ? '<span class="p43-est pu">publicada</span>' : '<span class="p43-est bo">borrador</span>') + '</td></tr>'; }).join('') + '</tbody></table>' +
+    '<div class="p44-ck"><input type="checkbox" class="c2-ck" id="p44-solo"><span onclick="var c=$(\'p44-solo\');c.checked=!c.checked">Solo ordenar, sin publicar</span></div>' +
+    '<div class="p44-acc"><button class="pl-btn" onclick="cerrarHojaIni_()">Cancelar</button><button class="pl-btn v" onclick="p44HacerSemana_()">Aplicar a las marcadas</button></div>';
+  abrirHojaIni_(h);
+  var hj = document.querySelector(".ini-hoja"); if(hj) hj.classList.add("p44-ancha");
+}
+function p44HacerSemana_(){
+  var ids = [].slice.call(document.querySelectorAll(".p44-t input[data-r]:checked")).map(function(x){ return x.getAttribute("data-r"); }), solo = ($("p44-solo") || {}).checked;
+  cerrarHojaIni_(); if(!ids.length) return;
+  var i = 0, bien = 0, mal = [], sig = function(){
+    if(i >= ids.length){ p43Aviso_(bien + (bien === 1 ? " ruta " : " rutas ") + (solo ? "ordenadas" : "publicadas") + (mal.length ? " · " + mal.length + " con problema: " + mal[0] : ""), mal.length ? false : true); p42Pintar_(false); p42Cargar_(P42.d.lunes, true); return; }
+    var id = ids[i++]; p43Aviso_((solo ? "Ordenando " : "Publicando ") + i + " de " + ids.length + "…", "g");
+    p44Aplicar_(id, !solo, function(ok, err){ if(ok) bien++; else { var x = p44Ruta_(id); mal.push((x ? p42Dia_(x.d.fecha) + ": " : "") + err); } sig(); });
+  };
+  sig();
+}
+/* los botones en el tablero y arriba de la semana */
+p42Ruta_ = (function(o){ return function(S, d, r){
+  var h = o.apply(this, arguments);
+  if(d.pasado || d.feriado || r.tipo === "planta" || !r.paradas.length || String(r.rutaId).indexOf("nueva") === 0) return h;
+  var pub = r.estadoPlan === "publicada", nom = esc(String(r.conductor).split(" ")[0]);
+  var acc = '<div class="p44-ra">' + (r.paradas.length > 1 ? '<button onclick="event.stopPropagation();p44Optimizar_(\'' + esc(r.rutaId) + '\')">Optimizar</button>' : '') + (pub ? '<span class="p44-ok">✓ la tiene ' + nom + '</span>' : '<button class="v" onclick="event.stopPropagation();p44Publicar_(\'' + esc(r.rutaId) + '\')">Publicar a ' + nom + '</button>') + '</div>';
+  var k = h.lastIndexOf('</div>'); return h.slice(0, k) + acc + h.slice(k);
+}; })(p42Ruta_);
+p42Faltan_ = (function(o){ return function(S){
+  var h = o.apply(this, arguments);
+  if(P42.vista !== "semana" || !S || !S.dias) return h;
+  var n = 0; S.dias.forEach(function(d){ if(!d.pasado && !d.feriado) d.rutas.forEach(function(r){ if(r.tipo !== "planta" && r.paradas.length) n++; }); });
+  var bor = 0; S.dias.forEach(function(d){ if(!d.pasado) d.rutas.forEach(function(r){ if(r.estadoPlan === "borrador" && r.paradas.length) bor++; }); });
+  return h + (n ? '<div class="p44-barra"><div><b>' + (bor ? bor + (bor === 1 ? ' ruta en borrador' : ' rutas en borrador') : 'Todas las rutas de la semana están publicadas') + '</b><span>' + (bor ? 'Los conductores todavía no las tienen.' : 'Si movió algo, optimice y vuelva a publicar.') + '</span></div><button class="pl-btn v" onclick="p44Semana_()">Optimizar y publicar la semana</button></div>' : '');
+}; })(p42Faltan_);
+
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.44 · B · LO QUE PIDE EL CLIENTE, EN PLANIFICAR
+   · «Pedidas por el cliente» arriba de «Le toca» (semana y día), con el día
+     que pidió, su horario y ✦ el día que sugiere el asistente.
+   · Soltarla en un día la pone en esa ruta. No es oficial para el cliente
+     hasta que la ruta se publica (entonces ve «Confirmada»).
+   · El historial de cada ruta: quién movió qué.
+   · ⚙ La regla nueva: «Lo que piden los clientes».
+   ═══════════════════════════════════════════════════════════════════ */
+P42_G = (function(o){ var n = { pedida: ["Pedidas por el cliente", "pe"] }; Object.keys(o).forEach(function(k){ n[k] = o[k]; }); return n; })(P42_G);
+PL_GR.unshift(["pedidas", "Pedidas por el cliente"]);
+/* mover: si viene de «Pedidas por el cliente», se pone con su solicitud */
+p42Mover_ = (function(o){ return function(rutaId, id, f, rutaDest){
+  var S = P42.d, t = !rutaId && S && S.toca.filter(function(x){ return x.id === id && x.g === "pedida"; })[0];
+  if(!t) return o.apply(this, arguments);
+  var d = S.dias.filter(function(x){ return x.fecha === f; })[0]; if(!d) return;
+  var dest = d.rutas.filter(function(r){ return r.rutaId === rutaDest; })[0] || d.rutas.filter(function(r){ return r.estadoPlan === "borrador"; })[0] || (d.rutas.length === 1 ? d.rutas[0] : null);
+  var c = S.clientes[id] || {}, otro = t.pref && t.pref !== f;
+  var hacer = function(){
+    S.toca = S.toca.filter(function(x){ return x !== t; });
+    if(t.actual) S.dias.forEach(function(x){ if(x.fecha === t.actual) x.rutas.forEach(function(r){ r.paradas = r.paradas.filter(function(p){ return p.clienteId !== id; }); }); });
+    var dr = dest; if(!dr){ dr = { rutaId: "nueva-" + f, conductor: (S.conductores || [])[0] || "", vehiculo: (S.vehiculos[0] || {}).placa || "", estadoPlan: "borrador", paradas: [], tipo: "recoleccion" }; d.rutas.push(dr); }
+    dr.paradas.push({ clienteId: id, horaPlan: "", origen: "pedida:" + t.folio, hecha: false, guardando: true }); dr.tocada = true;
+    P43.llega = id; p42Pintar_(false);
+    p43Aviso_("Poniendo lo que pidió " + p42Corto_(c.nombre) + " el " + p42Dia_(f) + "…", "g");
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ p43Aviso_((r && r.error) || "No se pudo", false); p42Cargar_(S.lunes, true); return; }
+      p43Aviso_(p42Corto_(c.nombre) + " → " + p42Dia_(f) + (r.destino.estadoPlan === "publicada" ? " · confirmada al cliente" : " · se le confirma al publicar"));
+      p42Cargar_(S.lunes, true);
+    }).withFailureHandler(function(){ p43Aviso_("Sin conexión: no se guardó", false); p42Cargar_(S.lunes, true); }).api_planPonerPedida(PIN, t.pendienteId, f, dest ? dest.rutaId : "");
+  };
+  var txt = "<b>" + esc(c.nombre || "") + "</b> pidió " + (t.pref ? "el <b>" + esc(p42Dia_(t.pref)) + "</b>" : "una visita") + (otro ? "; usted la pone el <b>" + esc(p42Dia_(f)) + "</b>" : "") + ".";
+  if(dest && dest.estadoPlan === "publicada") preguntar({ titulo: "La ruta ya está publicada", icono: "!", boton: "Sí, agregarla y confirmar",
+    texto: txt + "<br><br>La ruta ya la tiene <b>" + esc(dest.conductor) + "</b>: se le agrega al final y el cliente la ve <b>confirmada</b> en su portal" + (otro ? ", con la explicación de por qué es otro día" : "") + ".", alAceptar: hacer });
+  else hacer();
+}; })(p42Mover_);
+/* el Día: lo pedido entra con su solicitud */
+plAgregar_ = (function(o){ return function(ids){
+  var n = o.apply(this, arguments);
+  try{ (PL.grupos.pedidas || []).forEach(function(x){ ED.paradas.forEach(function(p){ if(p.clienteId === x.id && !p.origen) p.origen = "pedida:" + x.folio; }); }); }catch(e){}
+  return n;
+}; })(plAgregar_);
+/* el historial de la ruta y el nombre del grupo en el Día */
+var p44DiaBase_ = p43Dia_;
+p43Dia_ = function(){
+  p44DiaBase_.apply(this, arguments);
+  try{
+    var tc = $("p43-d-toca"); if(tc) tc.querySelectorAll(".p43-tc small").forEach(function(s){ s.innerHTML = s.innerHTML.replace(/>pedidas · /, ">Pedidas por el cliente · "); });
+    var R = (PL && PL.registro && ED && PL.registro[ED.rutaId]) || [], box = $("p44-hist");
+    if(!box && $("p43-d-toca")){ box = document.createElement("div"); box.id = "p44-hist"; box.className = "mt-card"; $("p43-d-toca").parentNode.appendChild(box); }
+    if(box) p43Poner_(box, R.length ? '<h3>Historial de esta ruta</h3>' + R.slice().reverse().slice(0, 12).map(function(x){ return '<div class="p44-h"><small>' + esc(x.en) + ' · ' + esc(x.por) + '</small><b>' + esc(x.que.charAt(0).toUpperCase() + x.que.slice(1)) + (x.cliente ? ' ' + esc(x.cliente) : '') + '</b>' + (x.detalle ? '<span>' + esc(x.detalle) + '</span>' : '') + '</div>'; }).join("") : '', false);
+    if(box) box.style.display = R.length ? "" : "none";
+  }catch(e){ console.warn(e); }
+};
+/* ⚙ la regla nueva */
+asPintar_ = (function(o){ return function(){
+  var r = o.apply(this, arguments);
+  try{
+    var c = $("as-cuerpo"), E = AS_EDIT || {}; if(!c || $("p44-regla")) return r;
+    var sel = function(id, v, ops){ return '<select class="as-in" id="' + id + '">' + ops.map(function(x){ return '<option value="' + x[0] + '"' + (String(v) === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join("") + '</select>'; };
+    var fila = function(t, s, ctl){ return '<div class="p44-rf"><div><b>' + t + '</b><small>' + s + '</small></div><div class="c">' + ctl + '</div></div>'; };
+    var h = '<div class="mt-card p44-regla" id="p44-regla"><div class="h"><b>Lo que piden los clientes</b></div><p>Las visitas que el cliente pide en su portal: «Programar visita», «Cambio de fecha» y «Primera recolección». No son oficiales hasta que se cargan a una ruta; el cliente las ve confirmadas cuando la ruta se publica. Piden con al menos 12 horas.</p>' +
+      fila('Qué hace el asistente', 'Me pregunta: las deja en «Pedidas por el cliente» con ✦ el día que sugiere. Hace solo: si el día que pidió pasa un camión por su zona y no pasa del cupo, la pone en esa ruta (con el piloto encendido).', sel("p44-ped", E.pedidas || "pide", [["pide", "Me pregunta"], ["solo", "Hace solo"]])) +
+      fila('Días que le ofrecemos en el portal', 'Los días en que pasa un camión por su zona y hay espacio, en las próximas', sel("p44-sem", String(E.pedSemanas || 2), [["1", "1 semana"], ["2", "2 semanas"], ["3", "3 semanas"], ["4", "4 semanas"]])) +
+      fila('Cuántas pedidas caben por día', 'Para no llenar los días con lo pedido. Lleno el cupo, ese día no se ofrece.', '<input class="as-in n" type="number" min="1" max="20" id="p44-cupo" value="' + esc(E.pedCupo || 4) + '">') +
+      fila('Al confirmar', 'El cliente siempre lo ve en su portal. El WhatsApp:', sel("p44-wa", E.pedWhats || "toco", [["toco", "Solo si lo toco"], ["siempre", "Siempre"]])) + '</div>';
+    var v = c.querySelector(".p42-volver"); if(v) v.insertAdjacentHTML("afterend", h); else c.insertAdjacentHTML("afterbegin", h);
+  }catch(e){ console.warn(e); }
+  return r;
+}; })(asPintar_);
+asLeer_ = (function(o){ return function(){
+  var E = o.apply(this, arguments);
+  try{ if(E && $("p44-ped")){ E.pedidas = $("p44-ped").value; E.pedSemanas = Number($("p44-sem").value); E.pedCupo = Number($("p44-cupo").value) || 4; E.pedWhats = $("p44-wa").value; } }catch(e){}
+  return E;
+}; })(asLeer_);
+
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.44 · C · CLIENTES: LA HOJA DE VIDA (Maqueta_clientes_hoja_de_vida v2, las 9 A)
+   · La lista por empresa con sus sucursales adentro; las de una sola sede
+     salen como siempre. Filtros por servicio y por visitas.
+   · Al abrir un cliente la hoja ocupa toda la pantalla: Lista · Anterior ·
+     Siguiente. Arriba la empresa, el nombre de la sucursal y tres cuadros
+     grandes: servicio, frecuencia (con las próximas fechas) y visitas.
+   · Una sola hoja con índice: Resumen · Peso y plan · Línea de vida ·
+     Cómo es el local · La sede · Su servicio · Documentos.
+   · La hoja de la empresa: sus números y la tabla de sucursales.
+   · «Editar» abre los editores de siempre (horario, recurrencia, contacto y
+     ubicación) más la empresa (con aviso de nombres parecidos) y el servicio.
+   · El conductor toma la foto de la entrada al marcar «Llegué» (la primera
+     vez, cada 6 meses o cuando logística la pide).
+   ═══════════════════════════════════════════════════════════════════ */
+var C44 = { modo: "lista", emp: "", vista: "emp", fil: "todos", abiertas: {}, vf: "todo", orden: [], ed: false, edTab: "Contacto", empF: null, mapas: [] };
+var C44_P = { mas: '<path d="M12 5v14M5 12h14"/>', tel: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>', chat: '<path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/>',
+  ir: '<path d="M3 11l18-8-8 18-2-8z"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>', reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', pin: '<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>', cam: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  rep: '<path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M20 4v5h-5M4 20v-5h5"/>', bicho: '<ellipse cx="12" cy="13" rx="4" ry="6"/><path d="M12 7V4M8 10l-4-2M16 10l4-2M8 14H4M16 14h4M8 18l-3 2M16 18l3 2"/>', con: '<path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+  ant: '<path d="M15 5l-7 7 7 7"/>', sig: '<path d="M9 5l7 7-7 7"/>', abajo: '<path d="M5 9l7 7 7-7"/>', lista: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>', bajar: '<path d="M12 4v12M6 11l6 6 6-6M4 20h16"/>',
+  aviso: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', unir: '<path d="M8 7h8M8 17h8M4 12h16"/>', emp: '<path d="M4 21V5l8-2v18M12 9h8v12M7 8h2M7 12h2M7 16h2M15 13h2M15 17h2"/>' };
+function c44Ic_(k, s){ return '<svg class="c44-ic" width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + (C44_P[k] || "") + '</svg>'; }
+var C44_VIS = { atrasado: ["Atrasado", "ro"], vencido: ["Vencido", "ro"], semana: ["Toca esta semana", "az"], aldia: ["Al día", "ve"], sinfecha: ["Sin fecha", "am"], fuera: ["Fuera de servicio", "gr"] };
+var C44_SVC = { activo: ["Activo", "ve"], suspendido: ["Suspendido", "gr"], sincontacto: ["Sin contacto", "am"], inicio: ["Por iniciar", "az"], fuera: ["De baja", "gr"] };
+var C44_FREC = { semanal: "cada semana", quincenal: "cada 15 días", mensual: "una vez al mes", bimestral: "cada 2 meses", trimestral: "cada 3 meses", semestral: "cada 6 meses", anual: "una vez al año" };
+function c44On_(){ return typeof esSupervisor === "function" && esSupervisor(); }
+function c44Svc_(c){ return (c && c.servicio && C44_SVC[c.servicio.k]) ? c.servicio.k : (c && c.activo === false ? "fuera" : "activo"); }
+function c44Vis_(c){ return C44_VIS[c.urg] || ["—", "gr"]; }
+function c44F_(iso){ return iso ? nombreDia_(iso) : "—"; }
+function c44Corta_(iso){ if(!iso) return "—"; var M = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return Number(iso.slice(8, 10)) + " " + M[Number(iso.slice(5, 7)) - 1]; }
+function c44Nom_(c){ return c.sucursal || c.nombre; }
+
+/* ── los filtros de la lista ── */
+var C44_FIL = [["todos", "Todos"], ["activo", "Activos"], ["sincontacto", "Sin contacto"], ["suspendido", "Suspendidos"], ["inicio", "Por iniciar"], ["atrasado", "Atrasados"], ["semana", "Toca esta semana"], ["revisar", "Por revisar"], ["fuera", "De baja"]];
+function c44Pasa_(c, f){
+  var k = c44Svc_(c);
+  if(f === "todos") return k !== "fuera";
+  if(f === "atrasado") return k !== "fuera" && (c.urg === "atrasado" || c.urg === "vencido");
+  if(f === "semana") return k !== "fuera" && c.urg === "semana";
+  if(f === "revisar") return c.problemas && c.problemas.length > 0;
+  return k === f;
+}
+function c44Busca_(c){
+  var q = String(C2_Q || "").toLowerCase().trim(); if(!q) return true;
+  return [c.nombre, c.empresa, c.sucursal, c.zona, c.contacto, c.ruc, c.direccion, c.telefono].join(" ").toLowerCase().indexOf(q) >= 0;
+}
+function c44Lista_(){ if(!C2) return []; return C2.clientes.filter(function(c){ return c44Pasa_(c, C44.fil) && c44Busca_(c) && (!C2_Z || c.zona === C2_Z); }); }
+/* las empresas en el orden de su sede más urgente */
+function c44Grupos_(l){
+  var G = [], por = {};
+  l.forEach(function(c){ var k = c.empKey || ("C" + c.id); if(!por[k]){ por[k] = { clave: k, nombre: c.empresa || c.nombre, sedes: [] }; G.push(por[k]); } por[k].sedes.push(c); });
+  return G;
+}
+function c44EmpTodas_(k){ return C2 ? C2.clientes.filter(function(c){ return c.empKey === k; }) : []; }
+
+/* ═══ la lista ═══ */
+function c44Fila_(c, hija){
+  var k = c44Svc_(c), sv = C44_SVC[k], v = c44Vis_(c), on = C2_ID === c.id && C44.modo === "sede";
+  var multi = c44EmpTodas_(c.empKey).length > 1;
+  var nom = hija ? c44Nom_(c) : (multi && C44.vista === "todas" ? c44Nom_(c) : c.nombre);
+  var px = k === "suspendido" ? ["suspendido", "gr", "en pausa"] : k === "fuera" ? ["de baja", "gr", ""] : k === "inicio" && !c.proxima ? ["por iniciar", "am", "sin fecha de inicio"] :
+    [c.proxima ? c44Corta_(c.proxima) : "sin fecha", v[1] === "ve" ? "" : v[1], c.enRuta ? "en ruta" : (c.urg === "atrasado" || c.urg === "vencido") && c.diasA < 0 ? (-c.diasA) + (c.diasA === -1 ? " día tarde" : " días tarde") : (c.ultima ? "última " + c44Corta_(c.ultima) : "sin visitas")];
+  return '<div class="c44-f' + (hija ? ' hija' : '') + (on ? ' on' : '') + '" onclick="c44Sede_(' + c.id + ')">' +
+    '<input type="checkbox" class="c44-ck" ' + (C2_SEL[c.id] ? "checked" : "") + ' onclick="event.stopPropagation();C2_SEL[' + c.id + ']=this.checked;pintarC2_()" title="Marcar">' +
+    '<span class="c44-dot ' + sv[1] + '" title="' + sv[0] + '"></span><div class="tx"><b>' + esc(nom) + '</b>' +
+    (multi && C44.vista === "todas" ? '<small class="emp">' + esc(c.empresa) + '</small>' : '') +
+    '<small><span class="fq">' + esc(c.frecuencia || "—") + '</span> · ' + esc(c.zona || "—") + (k !== "activo" ? ' · <em class="' + sv[1] + '">' + sv[0] + '</em>' : '') + (c.problemas && c.problemas.length ? ' · <em class="ro">por revisar</em>' : '') + '</small></div>' +
+    '<div class="px"><b class="' + px[1] + '">' + esc(px[0]) + '</b><small>' + esc(px[2]) + '</small></div></div>';
+}
+function c44HtmlLista_(){
+  var l = c44Lista_(), h = '';
+  var cuenta = function(f){ return C2.clientes.filter(function(c){ return c44Pasa_(c, f); }).length; };
+  var zonas = []; C2.clientes.forEach(function(c){ if(c.zona && zonas.indexOf(c.zona) < 0) zonas.push(c.zona); }); zonas.sort();
+  h += '<div class="c44-lt"><div class="c44-tg"><button class="' + (C44.vista === "emp" ? "on" : "") + '" onclick="C44.vista=\'emp\';pintarC2_()">Por empresa</button><button class="' + (C44.vista === "todas" ? "on" : "") + '" onclick="C44.vista=\'todas\';pintarC2_()">Todas las sedes</button></div>' +
+    '<div class="c44-bus"><input id="c44-q" placeholder="Buscar empresa, sucursal, RUC o contacto…" value="' + esc(C2_Q || "") + '" oninput="C2_Q=this.value;c44Repintar_()">' +
+    '<select onchange="C2_Z=this.value;pintarC2_()"><option value="">Todas las zonas</option>' + zonas.map(function(z){ return '<option' + (C2_Z === z ? ' selected' : '') + '>' + esc(z) + '</option>'; }).join("") + '</select></div></div>';
+  h += '<div class="c44-fil">' + C44_FIL.map(function(f){ var n = cuenta(f[0]); if(!n && f[0] !== "todos" && C44.fil !== f[0]) return ""; return '<button class="' + (C44.fil === f[0] ? "on" : "") + (f[0] === "revisar" ? " rv" : "") + '" onclick="C44.fil=\'' + f[0] + '\';C2_F=\'' + (f[0] === "revisar" ? "revisar" : "todos") + '\';pintarC2_()">' + f[1] + ' · ' + n + '</button>'; }).join("") + '</div>';
+  /* nombres de empresa que se escriben parecido */
+  (C2.parecidos || []).slice(0, 3).forEach(function(p, i){
+    h += '<div class="c44-alias">' + c44Ic_("aviso", 14) + '<span>«' + esc(p.an) + '» y «' + esc(p.bn) + '» se escriben parecido. ¿Son la misma empresa?</span><button class="c44-lnk" onclick="c44UnirEmp_(' + i + ')">Unirlas</button></div>';
+  });
+  var n = c2NSel_();
+  if(n) h += '<div class="c44-lote"><b>' + n + (n === 1 ? ' marcado' : ' marcados') + '</b><span class="sp"></span>' +
+    '<button class="c44-btn v" onclick="dlgRutaC2_(c2Ids_())">' + c44Ic_("mas", 14) + ' A la ruta de…</button><button class="c44-btn" onclick="dlgRecC2_(c2Ids_())">' + c44Ic_("rep", 14) + ' Hacer recurrentes</button>' +
+    '<button class="c44-btn" onclick="dlgWaC2_(c2Ids_())">' + c44Ic_("chat", 14) + ' Avisar por WhatsApp</button><button class="c44-btn" onclick="exportarC2_(c2Ids_())">' + c44Ic_("bajar", 14) + ' Exportar</button><button class="c44-lnk" onclick="C2_SEL={};pintarC2_()">Quitar</button></div>';
+  if(C44.fil === "revisar"){ C2_F = "revisar"; C44.orden = l.map(function(c){ return c.id; }); return h + '<div class="c44-rev">' + htmlRevisarC2_() + '</div>'; }
+  if(!l.length) return h + '<div class="c44-vac">Ningún cliente con ese filtro.</div>';
+  var orden = [], cuerpo = '';
+  if(C44.vista === "todas") l.forEach(function(c){ orden.push(c.id); cuerpo += c44Fila_(c, false); });
+  else c44Grupos_(l).forEach(function(g){
+    var todas = c44EmpTodas_(g.clave);
+    if(todas.length < 2){ g.sedes.forEach(function(c){ orden.push(c.id); cuerpo += c44Fila_(c, false); }); return; }
+    var ab = C44.abiertas[g.clave] || String(C2_Q || "").trim(), at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido")); }).length;
+    cuerpo += '<div class="c44-emp' + (C44.modo === "empresa" && C44.emp === g.clave ? ' on' : '') + '"><button class="fl" onclick="C44.abiertas[\'' + g.clave + '\']=!C44.abiertas[\'' + g.clave + '\'];pintarC2_()" title="' + (ab ? 'Cerrar' : 'Abrir') + '">' + c44Ic_(ab ? "abajo" : "sig", 13) + '</button>' +
+      '<div class="tx" onclick="c44Empresa_(\'' + g.clave + '\')"><b>' + esc(g.nombre) + '</b><small>' + todas.length + ' sucursales' + (at ? ' · <em class="ro">' + at + ' por atender</em>' : ' · todas al día') + '</small></div><span class="c44-n">' + todas.length + '</span></div>';
+    g.sedes.forEach(function(c){ orden.push(c.id); if(ab) cuerpo += c44Fila_(c, true); });
+  });
+  C44.orden = orden;
+  return h + '<div class="c44-lista">' + cuerpo + '</div>';
+}
+
+/* ═══ la hoja de una sede ═══ */
+function c44Nav_(){
+  var o = C44.orden.length ? C44.orden : c44Lista_().map(function(c){ return c.id; }), k = o.indexOf(C2_ID);
+  if(k < 0) return '<div class="c44-nav"><button class="c44-btn" onclick="c44ALista_()">' + c44Ic_("lista", 14) + ' Lista</button></div>';
+  return '<div class="c44-nav"><button class="c44-btn" onclick="c44ALista_()">' + c44Ic_("lista", 14) + ' Lista</button><span class="sp"></span>' +
+    '<button class="c44-btn" onclick="c44Sede_(' + o[(k + o.length - 1) % o.length] + ')">' + c44Ic_("ant", 14) + ' Anterior</button><span class="c44-cu">' + (k + 1) + ' de ' + o.length + '</span>' +
+    '<button class="c44-btn" onclick="c44Sede_(' + o[(k + 1) % o.length] + ')">Siguiente ' + c44Ic_("sig", 14) + '</button></div>';
+}
+function c44HtmlSede_(){
+  var c0 = c2Cli_(C2_ID) || {}, F = (C2_FI && C2_FI.cliente.id === C2_ID) ? C2_FI : null;
+  var nav = c44Nav_();
+  if(!F) return nav + '<div class="c44-cab"><div class="c44-tt"><h2>' + esc(c44Nom_(c0)) + '</h2></div></div><div class="c44-esq"><i></i><i></i><i></i></div><div class="c44-esq l"><i></i><i></i></div>';
+  var c = F.cliente, p = F.plan || {}, R = F.resumen || {}, E = F.empresa, sv = F.servicio || c0.servicio || { k: "activo", txt: "" }, S = C44_SVC[sv.k] || C44_SVC.activo, V = c44Vis_({ urg: p.urg || c0.urg });
+  var tel = c2Tel_(c), fr = String(c.frecuencia || "").toLowerCase();
+  var nomSede = F.sucursal || c.nombre, k = E ? E.sedes.map(function(s){ return s.id; }).indexOf(c.id) : -1;
+  var cab = nav + '<div class="c44-cab">' + (E ? '<button class="c44-mig" onclick="c44Empresa_(\'' + esc(E.clave) + '\')">' + esc(E.nombre) + ' ›</button>' : '') +
+    '<div class="c44-tt"><h2>' + esc(nomSede) + '</h2></div><div class="c44-sub">' + esc(c.zona || "—") + (c.direccion ? ' · ' + esc(c.direccion) : '') + ' · ' + (E ? 'sucursal ' + (k + 1) + ' de ' + E.sedes.length : 'una sola sede') + '</div>' +
+    (c0.problemas || []).map(function(q){ return '<div class="c44-alias ro">' + c44Ic_("aviso", 14) + '<span>' + esc(q.texto) + '</span>' +
+      (q.tipo === "nombre" ? '<button class="c44-lnk" onclick="unirC2_(' + c.id + ',\'' + esc(q.nombre).replace(/'/g, "\\'") + '\')">Unir ese nombre</button>' : '') +
+      (q.tipo === "ubicacion" ? '<button class="c44-lnk" onclick="ubicarC2_(' + c.id + ')">Ubicarlo en el mapa</button>' : '') + '</div>'; }).join("") +
+    '<div class="c44-estado"><div class="c44-svc ' + S[1] + '"><small>Estado del servicio</small><b><i></i>' + S[0] + '</b><span>' + esc(sv.txt || "") + '</span>' +
+      (sv.k === "sincontacto" ? '<div class="c44-svb">' + (tel ? '<a class="c44-btn" href="tel:' + tel + '">' + c44Ic_("tel", 14) + ' Llamar</a><a class="c44-btn" target="_blank" rel="noopener" href="https://wa.me/' + tel + '">' + c44Ic_("chat", 14) + ' WhatsApp</a>' : '') +
+        '<button class="c44-btn" onclick="c44Intento_()">Registrar intento</button><button class="c44-btn" onclick="c44Contacto_(\'contesto\')">Contestó</button></div>' : '') + '</div>' +
+    '<div class="c44-frq"><small>Frecuencia</small><b>' + esc(c.frecuencia || "Sin frecuencia") + '</b><span>' + esc(C44_FREC[fr] || "") + (p.recTxt ? (C44_FREC[fr] ? ' · ' : '') + esc(p.recTxt) : '') + '</span>' +
+      '<div class="c44-pr">' + ((F.proximas || []).length && sv.k !== "suspendido" && sv.k !== "fuera" ? F.proximas.map(function(f){ return '<i>' + c44Corta_(f) + '</i>'; }).join("") : '<i class="g">sin próximas fechas</i>') + '</div></div>' +
+    '<div class="c44-vis ' + V[1] + '"><small>Visitas</small><b>' + V[0] + '</b><span>' + (p.proxima ? 'próxima ' + c44F_(p.proxima) + (p.diasA < 0 ? ' · ' + (-p.diasA) + (p.diasA === -1 ? ' día tarde' : ' días tarde') : '') : 'sin próxima fecha') + '</span><span>' + (p.ultima ? 'última ' + c44F_(p.ultima) : 'todavía sin visitas') + '</span></div></div>' +
+    '<div class="c44-chs">' + (c.horario.tipo ? '<span class="c44-ch g">' + c44Ic_("reloj", 13) + ' ' + (c.horario.tipo === "estricto" ? "Solo " : "Prefiere ") + esc(c.horario.desde) + '–' + esc(c.horario.hasta) + '</span>' : '<span class="c44-ch g">' + c44Ic_("reloj", 13) + ' Sin horario</span>') +
+      (c.lat ? '<span class="c44-ch g">' + c44Ic_("pin", 13) + ' Con ubicación</span>' : '<span class="c44-ch ro">' + c44Ic_("pin", 13) + ' Sin ubicación</span>') +
+      (c.reciboDigital ? '<span class="c44-ch g">' + c44Ic_("correo", 13) + ' Recibo por ' + (c.reciboDigital === "ambos" ? "WhatsApp y correo" : esc(c.reciboDigital)) + '</span>' : '') +
+      (c.vencimiento ? '<span class="c44-ch ' + (c.vencimiento < (C2_FI.hoy || "") ? "ro" : "g") + '">' + c44Ic_("con", 13) + ' Contrato vence ' + c44F_(c.vencimiento) + '</span>' : '') +
+      ((F.vida || []).some(function(v){ return v.k === "fum"; }) ? '<span class="c44-ch g">' + c44Ic_("bicho", 13) + ' Con fumigación</span>' : '') + '</div>' +
+    '<div class="c44-acc"><button class="c44-btn v" onclick="dlgRutaC2_([C2_ID])">' + c44Ic_("mas", 14) + ' A una ruta</button>' +
+      (tel ? '<a class="c44-btn" href="tel:' + tel + '">' + c44Ic_("tel", 14) + ' Llamar</a><a class="c44-btn" target="_blank" rel="noopener" href="https://wa.me/' + tel + '">' + c44Ic_("chat", 14) + ' WhatsApp</a>' : '') +
+      (c.lat ? '<a class="c44-btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + c.lat + ',' + c.lng + '">' + c44Ic_("ir", 14) + ' Cómo llegar</a>' : '') +
+      '<button class="c44-btn" onclick="c44Editar_()">' + c44Ic_("edit", 14) + ' Editar</button></div></div>';
+
+  /* Resumen */
+  var cumpl = R.programadas ? Math.round(R.cumplidas / R.programadas * 100) : null;
+  var cob = F.cobros ? (F.cobros.vencido > 0.009 ? ["Vencido", "ro", bIni_(F.cobros.vencido) + " vencido"] : F.cobros.saldo > 0.009 ? ["Al día", "ve", bIni_(F.cobros.saldo) + " por vencer"] : ["Al día", "ve", "sin facturas vencidas"]) : ["—", "", "sin RUC para cruzar"];
+  var resumen = '<section class="c44-sec" id="c44-resumen"><h3>Resumen</h3><div class="c44-k">' +
+    [[R.minSitio === null || R.minSitio === undefined ? "—" : R.minSitio + " min", "en el local", "promedio real de las visitas"], [cumpl === null ? "—" : cumpl + "%", "visitas cumplidas", R.programadas ? R.cumplidas + " de " + R.programadas + " en el año" : "sin rutas en 12 meses"],
+     [nIni_(R.kg12, 1) + " kg", "en 12 meses", R.kgVisita ? "~" + nIni_(R.kgVisita, 1) + " kg por visita" : "sin visitas"], [cob[0], "pagos", cob[2], cob[1]]]
+    .map(function(x){ return '<div class="' + (x[3] || "") + '"><b>' + x[0] + '</b><span>' + x[1] + '</span><small>' + x[2] + '</small></div>'; }).join("") + '</div></section>';
+
+  /* Peso y plan */
+  var M = ["E","F","M","A","M","J","J","A","S","O","N","D"], ms = F.meses || [], plan = F.planKg || 0;
+  var mx = Math.max.apply(null, ms.map(function(m){ return m.kg; }).concat([plan || 1, 1])) * 1.08;
+  var cerr = ms.slice(0, 11), sobre = plan ? cerr.filter(function(m){ return m.kg > plan; }) : [];
+  var ult6 = cerr.slice(-6), prom = cerr.length ? cerr.reduce(function(a, m){ return a + m.kg; }, 0) / cerr.length : 0, prom6 = ult6.length ? ult6.reduce(function(a, m){ return a + m.kg; }, 0) / ult6.length : 0;
+  var s6 = plan ? ult6.filter(function(m){ return m.kg > plan; }).length : 0, sug = Math.ceil(prom6 / 5) * 5;
+  var peso = '<section class="c44-sec" id="c44-peso"><h3>Su peso contra su plan<span class="sp"></span><span class="c44-pl">' + (plan ? 'Plan: ' + nIni_(plan, 0) + ' kg al mes' : 'Sin plan de kg en su ficha') + '</span></h3>' +
+    '<div class="c44-pb">' + (plan ? '<div class="lin" style="bottom:' + (plan / mx * 100).toFixed(1) + '%"><span>' + nIni_(plan, 0) + ' kg</span></div>' : '') +
+    ms.map(function(m, i){ var o = plan && m.kg > plan; return '<div class="c" title="' + m.mes + ': ' + m.kg + ' kg"><em>' + (o && i < 11 ? '+' + nIni_(m.kg - plan, 1) : '') + '</em><i class="' + (o ? 'o' : '') + (i === ms.length - 1 ? ' u' : '') + '" style="height:' + Math.max(m.kg / mx * 100, m.kg ? 2 : 0).toFixed(1) + '%"></i><span>' + M[Number(m.mes.slice(5, 7)) - 1] + '</span></div>'; }).join("") + '</div>' +
+    '<div class="c44-pres">' + (plan ? '<div class="' + (sobre.length ? "ro" : "") + '"><b>' + sobre.length + ' de ' + cerr.length + '</b><span>meses con sobrepeso</span></div>' +
+      '<div><b>+' + nIni_(sobre.reduce(function(a, m){ return a + m.kg - plan; }, 0), 1) + ' kg</b><span>sobre el plan en el año</span></div>' : '<div><b>' + nIni_(prom6, 1) + ' kg</b><span>promedio de los últimos 6 meses</span></div>') +
+      '<div><b>' + nIni_(prom, 1) + ' kg</b><span>promedio al mes</span></div>' +
+      (plan && s6 >= 3 ? '<div class="am"><b>Revisar plan</b><span>' + s6 + ' de los últimos 6 meses pasó: conviene ofrecerle ' + Math.max(sug, plan + 5) + ' kg</span></div>' :
+       plan ? '<div class="ve"><b>Dentro del plan</b><span>' + (s6 ? s6 + ' de los últimos 6 meses pasó' : 'ningún mes reciente pasó') + '</span></div>' : '<div><b>' + (R.visitas12 || 0) + '</b><span>visitas en 12 meses</span></div>') + '</div></section>';
+
+  /* Línea de vida */
+  var V2 = F.vida || [], FIL = [["todo", "Todo"], ["visita", "Visitas"], ["peso", "Sobrepeso"], ["contacto", "Contacto"], ["falla", "Incidencias"], ["sol", "Pedidos"], ["ruta", "Rutas"], ["cambio", "Cambios"], ["fum", "Fumigación"]];
+  var hay = {}; V2.forEach(function(v){ hay[v.k] = 1; }); if(hay.inicio) hay.cambio = 1;
+  var vf = hay[C44.vf] || C44.vf === "todo" ? C44.vf : "todo";
+  var lv = V2.filter(function(v){ return vf === "todo" || v.k === vf || (vf === "cambio" && v.k === "inicio"); });
+  var vida = '<section class="c44-sec" id="c44-vida"><h3>Línea de vida<span class="sp"></span><span class="c44-vf">' + FIL.filter(function(f){ return f[0] === "todo" || hay[f[0]]; }).map(function(f){ return '<button class="' + (vf === f[0] ? 'on' : '') + '" onclick="C44.vf=\'' + f[0] + '\';c44Repintar_()">' + f[1] + '</button>'; }).join("") + '</span></h3>' +
+    (lv.length ? '<div class="c44-vida">' + lv.slice(0, C44.vidaN || 25).map(function(v){ return '<div class="c44-ev ' + v.k + (v.f > (C2_FI.hoy || "") ? ' fut' : '') + '"><i></i><div><small>' + c44F_(v.f) + '</small><b>' + esc(v.t) + '</b>' + (v.d ? '<span>' + esc(v.d) + '</span>' : '') + '</div></div>'; }).join("") + '</div>' +
+      (lv.length > (C44.vidaN || 25) ? '<button class="c44-lnk" onclick="C44.vidaN=(C44.vidaN||25)+40;c44Repintar_()">Ver más</button>' : '') : '<div class="c44-vac">Nada que mostrar todavía.</div>') + '</section>';
+
+  /* Cómo es el local */
+  var ft = F.foto;
+  var fotos = '<section class="c44-sec" id="c44-fotos"><h3>Cómo es el local<span class="sp"></span>' +
+    (F.fotoPedida ? '<span class="c44-pl">Foto pedida para la próxima visita · <button class="c44-lnk" onclick="c44PedirFoto_(true)">quitar</button></span>' : '<button class="c44-btn" onclick="c44PedirFoto_()">' + c44Ic_("cam", 14) + ' Pedir foto en la próxima visita</button>') + '</h3>' +
+    '<div class="c44-fotos"><figure><div class="ph">' + (ft && ft.url ? '<img src="' + esc(ft.url) + '" alt="La entrada" loading="lazy" onclick="window.open(this.src,\'_blank\')">' : '<div class="c44-sinf">' + c44Ic_("cam", 26) + '<span>' + (ft ? 'Foto guardada · no se pudo abrir ahora' : 'Aún sin foto') + '</span></div>') + '</div>' +
+      '<figcaption><b>La entrada</b><small>' + (ft ? 'La tomó ' + esc(ft.por || "el conductor") + ' al marcar «Llegué» · ' + c44F_(String(ft.en).slice(0, 10)) : 'El conductor la toma al marcar «Llegué» en la próxima visita') + '</small></figcaption></figure>' +
+    '<figure><div class="ph">' + (c.lat ? '<div class="c44-sat" id="c44-sat"></div><i class="c44-pt"></i>' : '<div class="c44-sinf">' + c44Ic_("pin", 26) + '<span>Sin ubicación</span></div>') + '</div><figcaption><b>Desde arriba</b><small>' + (c.lat ? 'Satélite · ayuda a ver por dónde se entra y dónde parar' : '<button class="c44-lnk" onclick="ubicarC2_(' + c.id + ')">Ubicarlo en el mapa</button>') + '</small></figcaption></figure></div></section>';
+
+  /* La sede */
+  var dt = function(a, b){ return '<div class="c44-dt"><b>' + a + '</b><span>' + b + '</span></div>'; };
+  var sede = '<section class="c44-sec" id="c44-sede"><h3>La sede</h3><div class="c44-dos"><div>' +
+    dt("Dirección", esc(c.direccion || "—")) + dt("Nota para el conductor", esc(c.notaConductor || "—")) +
+    dt("Horario", c.horario.tipo ? esc(c.horario.desde) + ' a ' + esc(c.horario.hasta) + ' · ' + (c.horario.tipo === "estricto" ? "estricto" : "de preferencia") + (c.horario.nota ? ' · ' + esc(c.horario.nota) : '') : 'sin horario') +
+    dt("Contacto en el local", esc([c.contacto, c.telefono].filter(Boolean).join(" · ") || "—") + (tel ? ' · WhatsApp' : '')) +
+    dt("Tiempo en el local", R.minSitio ? R.minSitio + ' min de promedio' : '—') + dt("Fuera de horario", c.horario.tipo === "estricto" ? (R.fueraHorario ? R.fueraHorario + (R.fueraHorario === 1 ? ' vez' : ' veces') + ' en el año' : 'nunca') : 'no aplica') +
+    '</div>' + (c.lat ? '<div class="c44-mini"><div id="c44-mapa"></div></div>' : '<div class="c44-mini c44-sinf">' + c44Ic_("pin", 26) + '<span>Sin ubicación · <button class="c44-lnk" onclick="ubicarC2_(' + c.id + ')">ubicarlo</button></span></div>') + '</div></section>';
+
+  /* Su servicio */
+  var serv = '<section class="c44-sec" id="c44-serv"><h3>Su servicio</h3><div class="c44-dos"><div>' +
+    dt("Frecuencia", esc(c.frecuencia || "—") + (C44_FREC[fr] ? ' · ' + C44_FREC[fr] : '')) + dt("Recurrencia", p.recurrencia ? esc(p.recTxt || "sí") + (p.pausada ? ' · en pausa' : '') : 'no tiene') +
+    dt("Modalidad", esc(F.modalidad || "—") + (plan ? ' · ' + nIni_(plan, 0) + ' kg incluidos al mes' : '')) +
+    dt("Contrato", esc(c.contrato || "—") + (c.inicio ? ' · desde ' + c44F_(c.inicio) : '') + (c.vencimiento ? ' · vence ' + c44F_(c.vencimiento) : '')) +
+    dt("Facturación", E ? 'Empresa con ' + E.sedes.length + ' sedes' + (c.ruc ? ' · RUC ' + esc(c.ruc) : '') : (c.ruc ? 'RUC ' + esc(c.ruc) + (c.dv ? ' DV ' + esc(c.dv) : '') : '—')) + '</div><div>' +
+    dt("Recibo", c.reciboDigital ? 'Digital por ' + (c.reciboDigital === "ambos" ? "WhatsApp y correo" : esc(c.reciboDigital)) + ' · ' + (R.digitales || 0) + ' de ' + (R.visitas12 || 0) : 'En papel') +
+    dt("Cobros", F.cobros ? (F.cobros.saldo > 0.009 ? bIni_(F.cobros.saldo) + ' pendiente' + (F.cobros.vencido ? ' · ' + bIni_(F.cobros.vencido) + ' vencido' : '') : 'Al día') : 'sin RUC para cruzar') +
+    dt("Visitas en 12 meses", (R.visitas12 || 0) + ' · ' + nIni_(R.kg12, 1) + ' kg') + '</div></div></section>';
+
+  /* Documentos */
+  var rec = (F.visitas || []).filter(function(v){ return v.recibo; }), cons = V2.filter(function(v){ return v.k === "fum" && /constancia/.test(v.d || ""); });
+  var docs = '<section class="c44-sec" id="c44-docs"><h3>Documentos</h3><div class="c44-docs">' +
+    '<button onclick="verHistorialCliente(\'' + esc(c.nombre).replace(/'/g, "\\'") + '\')">' + c44Ic_("doc", 18) + '<b>Recibos</b><small>' + (rec.length ? rec.length + ' · el último N.º ' + esc(rec[0].recibo) + ' del ' + c44Corta_(rec[0].fecha) : 'sin recibos') + '</small></button>' +
+    '<button onclick="c2Certificados_()">' + c44Ic_("doc", 18) + '<b>Certificados de disposición</b><small>los del año</small></button>' +
+    (cons.length ? '<button onclick="mostrarTab(\'fum\')">' + c44Ic_("bicho", 18) + '<b>Constancias de fumigación</b><small>' + cons.length + ' · la última ' + c44Corta_(cons[0].f) + '</small></button>' : '') +
+    (c.contrato ? '<button disabled>' + c44Ic_("con", 18) + '<b>Contrato ' + esc(c.contrato) + '</b><small>' + (c.vencimiento ? 'vence ' + c44Corta_(c.vencimiento) : 'sin vencimiento') + '</small></button>' : '') +
+    '<button onclick="exportarVisitasC2_()">' + c44Ic_("bajar", 18) + '<b>Exportar sus visitas</b><small>en Excel</small></button></div></section>';
+
+  var secs = [["resumen", "Resumen"], ["peso", "Peso y plan"], ["vida", "Línea de vida"], ["fotos", "Cómo es el local"], ["sede", "La sede"], ["serv", "Su servicio"], ["docs", "Documentos"]];
+  var idx = '<div class="c44-idx">' + secs.map(function(t){ return '<a onclick="c44Ir_(\'' + t[0] + '\')">' + t[1] + '</a>'; }).join("") + '</div>';
+  return cab + idx + (esEscritorio_() ? '<div class="c44-dc"><div>' + resumen + peso + vida + '</div><div>' + fotos + sede + serv + docs + '</div></div>' : resumen + peso + vida + fotos + sede + serv + docs);
+}
+function c44Ir_(k){ var e = $("c44-" + k); if(e && e.scrollIntoView) e.scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+/* ═══ la hoja de la empresa ═══ */
+function c44HtmlEmpresa_(){
+  var todas = c44EmpTodas_(C44.emp), nav = '<div class="c44-nav"><button class="c44-btn" onclick="c44ALista_()">' + c44Ic_("lista", 14) + ' Lista</button></div>';
+  if(!todas.length) return nav + '<div class="c44-vac">Esa empresa ya no tiene sedes.</div>';
+  var E = C44.empF && C44.empF.empresa && C44.empF.empresa.clave === C44.emp ? C44.empF.empresa : null, por = {};
+  if(E) E.sedes.forEach(function(s){ por[s.id] = s; });
+  var nom = todas[0].empresa, at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido")); });
+  var cuenta = {}; todas.forEach(function(c){ var k = c44Svc_(c); cuenta[k] = (cuenta[k] || 0) + 1; });
+  var kgMes = E ? E.sedes.reduce(function(a, s){ return a + (s.kgMes || 0); }, 0) : null, sob = E ? E.sedes.filter(function(s){ return s.planKg && s.kgMes > s.planKg; }) : [];
+  var ruc = todas.map(function(c){ return c.ruc; }).filter(Boolean)[0] || "";
+  var h = nav + '<div class="c44-cab"><div class="c44-mig g">Empresa · ' + todas.length + ' sucursales</div><div class="c44-tt"><h2>' + esc(nom) + '</h2>' + (at.length ? '<span class="c44-ch ro">' + at.length + ' por atender</span>' : '<span class="c44-ch ve">Todas al día</span>') + '</div>' +
+    '<div class="c44-sub">' + (ruc ? 'RUC ' + esc(ruc) + ' · ' : '') + todas.map(function(c){ return esc(c.zona || "—"); }).filter(function(z, i, a){ return a.indexOf(z) === i; }).join(", ") + '</div>' +
+    '<div class="c44-acc"><button class="c44-btn v" onclick="dlgRutaC2_(c44EmpTodas_(C44.emp).filter(function(c){return c.activo;}).map(function(c){return c.id;}))">' + c44Ic_("mas", 14) + ' Varias sedes a una ruta</button>' +
+    '<button class="c44-btn" onclick="c44RenEmp_()">' + c44Ic_("edit", 14) + ' Cambiar el nombre</button><button class="c44-btn" onclick="c44SumarSede_()">' + c44Ic_("unir", 14) + ' Unir otra sede</button></div></div>';
+  h += '<section class="c44-sec"><h3>La empresa en números</h3><div class="c44-k">' +
+    [[todas.length, "sucursales", Object.keys(cuenta).map(function(k){ return cuenta[k] + " " + C44_SVC[k][0].toLowerCase(); }).join(" · ")], [at.length, "por atender", at.slice(0, 3).map(c44Nom_).join(", ") || "ninguna", at.length ? "ro" : ""],
+     [kgMes === null ? "…" : nIni_(kgMes, 1) + " kg", "este mes", "todas las sedes"], [E ? sob.length + " de " + todas.length : "…", "con sobrepeso este mes", sob.map(function(s){ return s.sucursal; }).join(", ") || "ninguna", sob.length ? "am" : ""]]
+    .map(function(x){ return '<div class="' + (x[3] || "") + '"><b>' + x[0] + '</b><span>' + x[1] + '</span><small>' + esc(x[2]) + '</small></div>'; }).join("") + '</div></section>';
+  h += '<section class="c44-sec"><h3>Sus sucursales</h3><div class="c44-tw"><table class="c44-t"><thead><tr><th>Sucursal</th><th>Servicio</th><th>Frecuencia</th><th>Visitas</th><th>Última</th><th>Próxima</th><th>Kg por visita</th><th>Kg este mes</th></tr></thead><tbody>' +
+    todas.map(function(c){ var k = c44Svc_(c), v = c44Vis_(c), s = por[c.id];
+      return '<tr onclick="c44Sede_(' + c.id + ')"><td><b>' + esc(c44Nom_(c)) + '</b><small>' + esc(c.zona || "—") + '</small></td><td><span class="c44-ch s ' + C44_SVC[k][1] + '"><i></i>' + C44_SVC[k][0] + '</span></td><td><b class="fq">' + esc(c.frecuencia || "—") + '</b></td>' +
+        '<td><span class="c44-ch ' + v[1] + '">' + v[0] + '</span></td><td>' + c44Corta_(c.ultima) + '</td><td>' + (c.proxima ? c44Corta_(c.proxima) : "—") + '</td><td>' + (c.kgVisita ? nIni_(c.kgVisita, 1) : "—") + '</td>' +
+        '<td>' + (s ? nIni_(s.kgMes, 1) + (s.planKg ? ' <small class="' + (s.kgMes > s.planKg ? "ro" : "") + '">de ' + nIni_(s.planKg, 0) + '</small>' : '') : "…") + '</td></tr>'; }).join("") + '</tbody></table></div></section>';
+  return h;
+}
+
+/* ═══ pintar ═══ */
+var c44PintarViejo_ = pintarC2_;
+pintarC2_ = function(){
+  if(!c44On_()) return c44PintarViejo_();
+  if(!C2) return;
+  var pan = $("pantalla-cli2"); if(pan) pan.classList.add("c44");
+  var act = C2.clientes.filter(function(c){ return c44Svc_(c) !== "fuera"; }), cu = {}; act.forEach(function(c){ var k = c44Svc_(c); cu[k] = (cu[k] || 0) + 1; });
+  var nEmp = c44Grupos_(C2.clientes).length;
+  var sub = $("c2-sub"); if(sub) sub.textContent = nEmp + " empresas · " + C2.clientes.length + " sedes · " + (cu.activo || 0) + " activas" + (cu.sincontacto ? " · " + cu.sincontacto + " sin contacto" : "") + (cu.suspendido ? " · " + cu.suspendido + (cu.suspendido === 1 ? " suspendida" : " suspendidas") : "") + (cu.inicio ? " · " + cu.inicio + " por iniciar" : "");
+  var cuerpo = $("c2-cuerpo"), h;
+  if(C44.modo === "sede" && C2_ID) h = '<div class="c44-der" id="c44-der">' + c44HtmlSede_() + '</div>';
+  else if(C44.modo === "empresa" && C44.emp) h = '<div class="c44-der" id="c44-der">' + c44HtmlEmpresa_() + '</div>';
+  else { C44.modo = "lista"; h = '<div class="c44-izq">' + c44HtmlLista_() + '</div>'; }
+  var cambio = cuerpo._c44m !== C44.modo + C2_ID + C44.emp;
+  cuerpo._c44m = C44.modo + C2_ID + C44.emp;
+  if(p43Poner_(cuerpo, h, cambio)) c44Mapas_();
+  if(C44.ed) c44PintarEd_();
+};
+function c44Repintar_(){
+  pintarC2_();
+  if(C44.modo === "lista"){ var q = $("c44-q"); if(q && document.activeElement !== q && String(C2_Q || "")){ q.focus(); try{ q.setSelectionRange(q.value.length, q.value.length); }catch(e){} } }
+}
+/* los dos mapas de la hoja: satélite y la sede */
+function c44Mapas_(){
+  C44.mapas.forEach(function(m){ try{ m.remove(); }catch(e){} }); C44.mapas = [];
+  var F = C2_FI; if(C44.modo !== "sede" || !F || !F.cliente || !F.cliente.lat || typeof L === "undefined") return;
+  var ll = [F.cliente.lat, F.cliente.lng], op = { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false };
+  try{
+    if($("c44-sat")){ var s = L.map("c44-sat", op).setView(ll, 18); L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(s); C44.mapas.push(s); }
+    if($("c44-mapa")){ var m = m36Mapa_("c44-mapa", op); m.setView(ll, 16); L.circleMarker(ll, { radius: 9, color: "#fff", weight: 3, fillColor: "#2f9e44", fillOpacity: 1 }).addTo(m); C44.mapas.push(m); }
+  }catch(e){}
+}
+
+/* ═══ abrir y moverse ═══ */
+function c44Sede_(id){
+  C2_ID = Number(id); C44.modo = "sede"; C44.vf = "todo"; C44.vidaN = 25;
+  if(C2_FI && C2_FI.cliente.id !== C2_ID) C2_FI = null;
+  pintarC2_(); c44Arriba_();
+  cargarFichaC2_(C2_ID);
+}
+function c44Empresa_(k){
+  C44.modo = "empresa"; C44.emp = k; C44.abiertas[k] = true;
+  pintarC2_(); c44Arriba_();
+  var t = c44EmpTodas_(k)[0];
+  if(t && !(C44.empF && C44.empF.empresa && C44.empF.empresa.clave === k))
+    google.script.run.withSuccessHandler(function(r){ if(r && r.ok){ C44.empF = r; if(C44.modo === "empresa") pintarC2_(); } }).withFailureHandler(function(){}).api_fichaCliente(PIN, t.id);
+}
+function c44ALista_(){ C44.modo = "lista"; C44.ed = false; var e = $("c44-ed"); if(e) e.remove(); pintarC2_(); setTimeout(function(){ var o = document.querySelector(".c44-f.on"); if(o && o.scrollIntoView) o.scrollIntoView({ block: "center" }); }, 30); }
+function c44Arriba_(){ var p = $("pantalla-cli2"); if(p && p.scrollIntoView) p.scrollIntoView({ block: "start" }); window.scrollTo(0, 0); }
+var c44AbrirViejo_ = abrirFichaC2_;
+abrirFichaC2_ = function(id){ if(!c44On_()) return c44AbrirViejo_(id); c44Sede_(id); };
+var c44FichaViejo_ = pintarFichaC2_;
+pintarFichaC2_ = function(){
+  if(!c44On_()) return c44FichaViejo_();
+  if(C44.modo === "sede") pintarC2_();
+  if(C44.ed) c44PintarEd_();
+};
+
+/* ═══ Editar: los editores de siempre, la empresa y el servicio ═══ */
+function c44Editar_(t){ C44.ed = true; if(t) C44.edTab = t; c44PintarEd_(); }
+function c44CerrarEd_(){ C44.ed = false; var e = $("c44-ed"); if(e){ e.classList.add("fuera"); setTimeout(function(){ e.remove(); }, 180); } }
+function c44PintarEd_(){
+  var F = C2_FI; if(!F || F.cliente.id !== C2_ID) return;
+  var e = $("c44-ed");
+  if(!e){ e = document.createElement("div"); e.id = "c44-ed"; e.className = "c44-velo"; e.addEventListener("click", function(ev){ if(ev.target === e) c44CerrarEd_(); }); document.body.appendChild(e); }
+  var T = [["Contacto", "Contacto y ubicación"], ["Horario", "Horario"], ["Recurrencia", "Recurrencia"], ["Empresa", "Empresa"], ["Servicio", "Servicio"]];
+  if(!T.some(function(x){ return x[0] === C44.edTab; })) C44.edTab = "Contacto";
+  C2_TAB = C44.edTab;
+  var cuerpo = C44.edTab === "Empresa" ? c44EdEmpresa_(F) : C44.edTab === "Servicio" ? c44EdServicio_(F) :
+    ({ Horario: fHorarioC2_, Recurrencia: fRecurrenciaC2_, Contacto: fContactoC2_ }[C44.edTab])(F, c2Cli_(C2_ID) || {});
+  var foco = document.activeElement && e.contains(document.activeElement) ? document.activeElement.id : "";
+  e.innerHTML = '<div class="c44-hoja"><div class="c44-hc"><div><small>Editar</small><b>' + esc(F.sucursal || F.cliente.nombre) + '</b></div><button class="c44-x" onclick="c44CerrarEd_()" title="Cerrar">' + c44Ic_("x", 18) + '</button></div>' +
+    '<div class="c44-tabs">' + T.map(function(t){ return '<button class="' + (C44.edTab === t[0] ? "on" : "") + '" onclick="C44.edTab=\'' + t[0] + '\';c44PintarEd_()">' + t[1] + '</button>'; }).join("") + '</div><div class="c44-hb c2-fic">' + cuerpo + '</div></div>';
+  if(foco && $(foco)) $(foco).focus();
+}
+function c44EdEmpresa_(F){
+  var c = F.cliente, nombres = [];
+  (C2.clientes || []).forEach(function(x){ if(x.empresa && nombres.indexOf(x.empresa) < 0) nombres.push(x.empresa); }); nombres.sort();
+  return '<label class="c2-f">Empresa</label><input class="c2-in" id="c44-emp" list="c44-emps" value="' + esc(F.empresaTxt || "") + '" placeholder="' + esc(c.razon || c.nombre) + '" oninput="c44Parecido_()">' +
+    '<datalist id="c44-emps">' + nombres.map(function(n){ return '<option value="' + esc(n) + '">'; }).join("") + '</datalist>' +
+    '<div class="c44-nota">Las sedes con el mismo nombre de empresa salen juntas en la lista. Si queda vacía se usa la razón social' + (c.razon ? ' («' + esc(c.razon) + '»)' : '') + '.</div><div id="c44-par"></div>' +
+    '<div class="c2-act"><button class="c2-btn v" onclick="c44GuardarEmp_([C2_ID], $(\'c44-emp\').value)">Guardar</button></div>';
+}
+function c44Tok_(s){ return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\b(S\.?\s?A\.?|INC\.?|CORP\.?|CORPORACION|LTDA\.?|DE|DEL|LA|EL|Y)\b/g, " ").replace(/[^A-Z0-9 ]/g, " ").split(/\s+/).filter(function(t){ return t.length > 2; }); }
+function c44Parecido_(){
+  var v = ($("c44-emp") || {}).value || "", a = c44Tok_(v), out = [], vis = {};
+  if(a.length) (C2.clientes || []).forEach(function(x){ var n = x.empresa; if(!n || vis[n] || n.toUpperCase() === v.trim().toUpperCase()) return; vis[n] = 1;
+    var b = c44Tok_(n), com = a.filter(function(t){ return b.indexOf(t) >= 0; }).length; if(b.length && com && com / Math.min(a.length, b.length) >= .6) out.push(n); });
+  var d = $("c44-par"); if(d) d.innerHTML = out.length ? '<div class="c44-alias">' + c44Ic_("aviso", 14) + '<span>Se parece a ' + out.slice(0, 3).map(function(n){ return '«<button class="c44-lnk" onclick="$(\'c44-emp\').value=this.textContent;c44Parecido_()">' + esc(n) + '</button>»'; }).join(", ") + '. Si es la misma, escríbala igual.</span></div>' : '';
+}
+function c44GuardarEmp_(ids, v){
+  v = String(v || "").trim(); if(v.length < 2){ toast("Escriba el nombre de la empresa"); return; }
+  c44Aviso_("Guardando…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ c44Aviso_((r && r.error) || "No se pudo guardar", true); return; }
+    c44Aviso_("Guardado ✓"); C44.empF = null; if(C2_FI) C2_FI.empresaTxt = v;
+    if(C44.modo === "empresa") C44.emp = "";
+    cargarC2_(true); if(C44.modo === "sede") cargarFichaC2_(C2_ID, true);
+    if(C44.modo === "empresa"){ C44.modo = "lista"; }
+  }).withFailureHandler(function(){ c44Aviso_("Sin señal · no se guardó", true); }).api_guardarEmpresa(PIN, ids, v);
+}
+function c44RenEmp_(){
+  var t = c44EmpTodas_(C44.emp); if(!t.length) return;
+  var v = prompt("Nombre de la empresa (lo llevan sus " + t.length + " sedes):", t[0].empresa); if(v === null) return;
+  c44GuardarEmp_(t.map(function(c){ return c.id; }), v);
+}
+function c44SumarSede_(){
+  var t = c44EmpTodas_(C44.emp); if(!t.length) return;
+  var otros = C2.clientes.filter(function(c){ return c.empKey !== C44.emp; }).sort(function(a, b){ return String(a.nombre).localeCompare(String(b.nombre)); });
+  var v = document.createElement("div"); v.className = "c44-velo"; v.id = "c44-sum";
+  v.innerHTML = '<div class="c44-hoja chica"><div class="c44-hc"><div><small>Unir a ' + esc(t[0].empresa) + '</small><b>¿Qué sede es de esta empresa?</b></div><button class="c44-x" onclick="$(\'c44-sum\').remove()">' + c44Ic_("x", 18) + '</button></div><div class="c44-hb">' +
+    '<select class="c2-in" id="c44-sum-s"><option value="">Elija el cliente…</option>' + otros.map(function(c){ return '<option value="' + c.id + '">' + esc(c.nombre) + ' · ' + esc(c.zona || "—") + '</option>'; }).join("") + '</select>' +
+    '<div class="c2-act"><button class="c2-btn v" onclick="var x=$(\'c44-sum-s\').value;if(!x){toast(\'Elija el cliente\');return;}$(\'c44-sum\').remove();c44GuardarEmp_([Number(x)],\'' + esc(t[0].empresa).replace(/'/g, "\\'") + '\')">Unir</button></div></div></div>';
+  v.addEventListener("click", function(e){ if(e.target === v) v.remove(); }); document.body.appendChild(v);
+}
+function c44UnirEmp_(i){
+  var p = (C2.parecidos || [])[i]; if(!p) return;
+  var A = C2.clientes.filter(function(c){ return c.empKey === p.a; }), B = C2.clientes.filter(function(c){ return c.empKey === p.b; });
+  var v = document.createElement("div"); v.className = "c44-velo"; v.id = "c44-sum";
+  var op = function(n, k){ return '<label class="c44-op"><input type="radio" name="c44-un" value="' + k + '"' + (k === "a" ? " checked" : "") + '> «' + esc(n) + '»</label>'; };
+  v.innerHTML = '<div class="c44-hoja chica"><div class="c44-hc"><div><small>Unir empresas</small><b>¿Con qué nombre quedan?</b></div><button class="c44-x" onclick="$(\'c44-sum\').remove()">' + c44Ic_("x", 18) + '</button></div><div class="c44-hb">' +
+    op(p.an, "a") + op(p.bn, "b") + '<div class="c44-nota">Quedan juntas ' + (A.length + B.length) + ' sedes: ' + A.concat(B).map(function(c){ return esc(c.nombre); }).join(", ") + '.</div>' +
+    '<div class="c2-act"><button class="c2-btn v" id="c44-un-ok">Unir</button></div></div></div>';
+  v.addEventListener("click", function(e){ if(e.target === v) v.remove(); }); document.body.appendChild(v);
+  $("c44-un-ok").onclick = function(){ var k = (document.querySelector('input[name="c44-un"]:checked') || {}).value; v.remove(); c44GuardarEmp_(A.concat(B).map(function(c){ return c.id; }), k === "b" ? p.bn : p.an); };
+}
+function c44EdServicio_(F){
+  var sv = F.servicio || { k: "activo", txt: "" }, S = C44_SVC[sv.k] || C44_SVC.activo, sit = F.situacion || "activo";
+  return '<div class="c44-svc ' + S[1] + '" style="margin-bottom:12px"><small>Ahora</small><b><i></i>' + S[0] + '</b><span>' + esc(sv.txt) + '</span></div>' +
+    '<div class="c2-lab">Contacto para confirmar la visita</div>' +
+    '<div class="c44-nota">Cada intento queda en la línea de vida. Al tercero sin respuesta pasa a «Sin contacto»; «Contestó» o la siguiente visita lo devuelven a activo.</div>' +
+    '<div class="c44-fila"><select class="c2-in" id="c44-medio"><option>llamada</option><option>WhatsApp</option><option>correo</option></select><input class="c2-in" id="c44-cnota" placeholder="Nota (opcional)"></div>' +
+    '<div class="c2-act"><button class="c2-btn" onclick="c44Contacto_(\'intento\')">Registrar intento</button><button class="c2-btn" onclick="c44Contacto_(\'contesto\')">Contestó</button>' + (sv.k !== "sincontacto" ? '<button class="c2-btn" onclick="c44Contacto_(\'sincontacto\')">Marcar sin contacto</button>' : '') + '</div>' +
+    '<div class="c2-lab">Pausa o baja</div>' +
+    '<select class="c2-in" id="c44-sit">' + [["activo", "Activo · en servicio"], ["pausa", "Pausa temporal · a solicitud del cliente"], ["mora", "Suspendido por mora · vuelve si paga"], ["cierre", "Baja · cerró el establecimiento"], ["retiro", "Baja · se retiró"]].map(function(o){ return '<option value="' + o[0] + '"' + (sit === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select>' +
+    '<input class="c2-in" id="c44-mot" placeholder="Motivo (obligatorio si no es activo)">' +
+    '<div class="c44-nota">En pausa o de baja no sale para planificar ni en el portal para pedir visitas.</div>' +
+    '<div class="c2-act"><button class="c2-btn v" onclick="c44Situacion_()">Guardar</button></div>';
+}
+function c44Intento_(){ c44Editar_("Servicio"); }
+function c44Contacto_(acc){
+  var m = ($("c44-medio") || {}).value || "llamada", n = ($("c44-cnota") || {}).value || "";
+  c44Aviso_("Guardando…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ c44Aviso_((r && r.error) || "No se pudo guardar", true); return; }
+    c44Aviso_(acc === "intento" ? (r.sinContacto ? "Anotado · pasa a «Sin contacto»" : "Intento " + r.intentos + " anotado") : acc === "contesto" ? "Anotado · vuelve a activo" : "Marcado sin contacto");
+    cargarFichaC2_(C2_ID, true); cargarC2_(true);
+  }).withFailureHandler(function(){ c44Aviso_("Sin señal · no se guardó", true); }).api_contactoCliente(PIN, C2_ID, acc, m, n);
+}
+function c44Situacion_(){
+  var s = $("c44-sit").value, m = $("c44-mot").value.trim();
+  if(s !== "activo" && !m){ toast("Escriba el motivo"); return; }
+  c44Aviso_("Guardando…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ c44Aviso_((r && r.error) || "No se pudo guardar", true); return; }
+    c44Aviso_("Guardado ✓"); cargarFichaC2_(C2_ID, true); cargarC2_(true);
+  }).withFailureHandler(function(){ c44Aviso_("Sin señal · no se guardó", true); }).api_cambiarEstadoCliente(PIN, C2_ID, s, m);
+}
+function c44PedirFoto_(quitar){
+  c44Aviso_("Guardando…");
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ c44Aviso_((r && r.error) || "No se pudo", true); return; }
+    c44Aviso_(quitar ? "Ya no se pide" : "Listo · el conductor la toma en la próxima visita"); cargarFichaC2_(C2_ID, true);
+  }).withFailureHandler(function(){ c44Aviso_("Sin señal", true); }).api_pedirFotoLocal(PIN, C2_ID, !!quitar);
+}
+function c44Aviso_(t, mal){ if(typeof p43Aviso_ === "function") p43Aviso_(t, mal ? false : (/…$/.test(t) ? "g" : true)); else toast(t); }
+
+/* al salir de Clientes y volver, se queda donde estaba */
+if(typeof mostrarTab === "function"){
+  var c44MostrarViejo_ = mostrarTab;
+  mostrarTab = function(t){ var r = c44MostrarViejo_.apply(this, arguments); if(t !== "clientes" && t !== "cli2"){ C44.ed = false; var e = $("c44-ed"); if(e) e.remove(); } return r; };
+}
+
+/* ═══ el conductor: la foto de la entrada al marcar «Llegué» ═══ */
+if(typeof cdLlegue_ === "function"){
+  var c44LlegueViejo_ = cdLlegue_;
+  cdLlegue_ = function(clienteId){
+    var r = c44LlegueViejo_.apply(this, arguments);
+    if(clienteId > 0 && navigator.onLine !== false) setTimeout(function(){ c44PideFoto_(clienteId); }, 900);
+    return r;
+  };
+}
+function c44PideFoto_(id){
+  var k = "c44foto_" + id + "_" + new Date().toISOString().slice(0, 10);
+  try{ if(localStorage.getItem(k)) return; }catch(e){}
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok || !r.pide) return;
+    try{ localStorage.setItem(k, "1"); }catch(e){}
+    cdHoja_('<h3>Foto de la entrada</h3><p>' + esc(r.cliente || "") + ' · ' + (r.pedida ? 'logística la pidió' : r.ultima ? 'la última es de hace más de 6 meses' : 'todavía no tiene') + '. Ayuda al próximo conductor a reconocer el local.</p>' +
+      '<label class="btn c44-tomar">' + c44Ic_("cam", 18) + ' Tomar la foto<input type="file" accept="image/*" capture="environment" style="display:none" onchange="c44SubirFoto_(this,' + id + ')"></label>' +
+      '<button class="btn sec" style="margin-top:8px" onclick="cdCerrarHoja_()">Ahora no</button>');
+  }).withFailureHandler(function(){}).api_fotoLocalPide(PIN, id);
+}
+function c44SubirFoto_(inp, id){
+  leerFoto_(inp, function(d){
+    if(!d){ toast("No se pudo leer la foto"); return; }
+    cdCerrarHoja_(); toast("Subiendo la foto…");
+    var blob = inc38Blob_(d);
+    google.script.run.withSuccessHandler(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo subir"); return; }
+      if(!r.subida){ toast(r.almacenError || "El espacio de archivos no respondió. Intente en la próxima visita."); return; }
+      ARCH.subir(r.subida, { blob: blob, meta: { mime: "image/jpeg", tamano: blob.size } }).then(function(){
+        google.script.run.withSuccessHandler(function(){ toast("Foto guardada ✓"); }).withFailureHandler(function(){ toast("Sin señal"); }).api_registrarFotoLocal(PIN, id, r.archivoId);
+      }, function(){ toast("No se pudo subir la foto"); });
+    }).withFailureHandler(function(){ toast("Sin señal"); }).api_subirFotoLocal(PIN, id, { nombre: "entrada.jpg", mime: "image/jpeg", tamano: blob.size });
+  });
+}
+
+</script>
 </body>
 
 </html>
