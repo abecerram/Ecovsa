@@ -21263,6 +21263,381 @@ function c44SubirFoto_(inp, id){
 }
 
 </script>
+<style id="estilo-346">
+/* app 1.6 · «Mi tablet» (el menú del nombre) */
+.mt38-g{margin:14px 0 4px}
+.mt38-g>b{display:block;font:800 13px Archivo,sans-serif;color:#14306b;margin-bottom:7px}
+.mt38-seg{display:flex;gap:6px}
+.mt38-seg button{all:unset;box-sizing:border-box;flex:1;text-align:center;padding:10px 6px;border:1.5px solid #dfe5ee;border-radius:11px;font:700 13px Archivo,sans-serif;color:#44546f;cursor:pointer}
+.mt38-seg button.on{border-color:#14306b;background:#e8effb;color:#14306b}
+.mt38-rg{width:100%;margin:8px 0 2px}
+.mt38-n{font-size:12px;color:#667489;margin:6px 0 0;line-height:1.4}
+</style>
+<script id="js-346">
+/* ═══ app 1.6 · «Mi tablet» y «estoy ocupado» ═══
+   · Mi tablet: lo que el conductor ajusta por su cuenta, sin el administrador: modo (automático, Mañana clara, Noche serena),
+     cómo desbloquea (con su PIN o con un patrón), el brillo y la barra de atajos (Emergencia siempre queda a la vista).
+   · ecoOcupado: la app recarga sola las pantallas cuando el portal cambia, pero nunca mientras se navega o se firma.
+   · el PIN de la cuenta se entrega a la app para desbloquear la tablet con él (también sin señal). */
+IC38.tablet = '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M11 18h2"/>';
+APP38.tablet = function(){ try{ return JSON.parse(EcovsaApp.miTablet() || "{}"); }catch(e){ return {}; } };
+APP38.opcionesMenu = (function(o){ return function(){
+  var l = o.apply(this, arguments);
+  try{ if(APP38.tiene("miTablet")) l.unshift('<button class="op" onclick="C38.cerrarMenu();APP38.hojaTablet()"><span class="ic">' + ic38_("tablet") + '</span><span>Mi tablet<small>Modo, desbloqueo, brillo y barra de atajos</small></span></button>'); }catch(e){}
+  return l;
+}; })(APP38.opcionesMenu);
+APP38.mt = function(k, v){ try{ EcovsaApp.tabletSet(k, String(v)); }catch(e){} };
+APP38.mtSeg = function(b, k, v){ b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x === b); }); APP38.mt(k, v); };
+APP38.hojaTablet = function(){
+  var m = APP38.tablet();
+  var seg = function(k, ops, act){ return '<div class="mt38-seg">' + ops.map(function(o){ return '<button class="' + (o[0] === act ? 'on' : '') + '" onclick="APP38.mtSeg(this,\'' + k + '\',\'' + o[0] + '\')">' + o[1] + '</button>'; }).join("") + '</div>'; };
+  var fila = function(k, t, s, on){ return '<label class="av38-f"><span><b>' + t + '</b><small>' + s + '</small></span><input type="checkbox" data-mt="' + k + '"' + (on ? ' checked' : '') + ' onchange="APP38.mt(\'' + k + '\', this.checked ? 1 : 0)"><i></i></label>'; };
+  var auto = m.brillo === undefined || m.brillo < 0;
+  var h = '<div class="hj"><div class="asa"></div><h3 class="av38-t">Mi tablet</h3>' +
+    '<p class="av38-p">Lo que puedes ajustar tú. Cada cambio se aplica al momento.</p>' +
+    '<div class="mt38-g"><b>Modo</b>' + seg("tema", [["auto", "Automático"], ["dia", "Mañana clara"], ["noche", "Noche serena"]], m.tema || "auto") +
+      '<p class="mt38-n">Automático: claro de 6:00 a 18:00 y oscuro el resto. Mañana clara si la luz es muy intensa; Noche serena si te molestan los brillos.</p></div>' +
+    '<div class="mt38-g"><b>Desbloquear la tablet</b>' + seg("desbloqueo", [["pin", "Con mi PIN"], ["patron", "Con un patrón"]], m.desbloqueo || "pin") +
+      '<button class="c38-btn" style="width:100%;margin-top:8px" onclick="EcovsaApp.patronCrear()">' + (m.hayPatron ? "Cambiar mi patrón" : "Crear mi patrón") + '</button>' +
+      '<p class="mt38-n">' + (m.hayPin === false ? 'Entra otra vez con tu PIN para activar el desbloqueo con él. ' : '') + 'Si olvidas el patrón, entras con tu PIN.</p></div>' +
+    '<div class="mt38-g"><b>Brillo</b>' + fila("brilloAuto", "Automático", "La tablet lo ajusta con la luz", auto) +
+      '<input class="mt38-rg" type="range" min="10" max="100" value="' + (auto ? 60 : m.brillo) + '"' + (auto ? ' disabled' : '') + ' onchange="APP38.mt(\'brillo\', this.value)"></div>' +
+    fila("barra", "Barra de atajos", "Emergencia siempre queda a la vista", m.barra !== false) +
+    fila("sonido", "Sonido de los avisos", "Cuando llega un mensaje nuevo", m.sonido !== false) +
+    '<button class="c38-btn pri" style="width:100%;margin-top:14px" onclick="document.getElementById(\'mt38\').remove()">Listo</button></div>';
+  var d = document.createElement("div"); d.className = "c38-menu"; d.id = "mt38"; d.innerHTML = h;
+  d.onclick = function(e){ if(e.target === d) d.remove(); };
+  /* el interruptor «Automático» del brillo prende o apaga la barra de brillo */
+  d.querySelector('input[data-mt="brilloAuto"]').onchange = function(){
+    var r = d.querySelector(".mt38-rg"); r.disabled = this.checked;
+    APP38.mt("brillo", this.checked ? -1 : r.value);
+  };
+  document.body.appendChild(d);
+};
+window.ecoOcupado = function(){
+  try{
+    if(window.NV37 && NV37.abierta && NV37.abierta()) return true;
+    var f = document.getElementById("capa-firma"); if(f && getComputedStyle(f).display !== "none") return true;
+    var e = document.getElementById("en-canvas"); if(e && e.offsetParent) return true;
+    if(document.querySelector(".c38-menu")) return true;
+  }catch(x){}
+  return false;
+};
+setTimeout(function(){ try{ if(PIN && APP38.es() && APP38.tiene("bloqueoPin")) EcovsaApp.bloqueoPin(String(PIN)); }catch(e){} }, 6000);
+</script>
+<style id="estilo-tfr">
+/* ═══ tablet · frente del conductor (api 3.47): el mapa es el inicio · Maqueta aprobada el 24 oct ═══
+   Solo en la tablet del conductor (la APK en quiosco) o con ecovsa_frente=1. */
+body.h47{--h47-top:60px}
+body.h47 #pantalla-hub.activa,body.h47.h47-esp #pantalla-hub{display:block!important;position:fixed;left:0;right:0;top:var(--h47-top);bottom:0;margin:0;padding:0;overflow:hidden;z-index:10;animation:none!important;background:#e9edf2}
+body.h47 #pantalla-hub .hub-saludo,body.h47 #pantalla-hub #ini-sup{display:none!important}
+#h47-mapa{position:absolute;inset:0;z-index:0;isolation:isolate}
+#h47-mapa .leaflet-bottom{bottom:230px}
+#h47-mapa .leaflet-top.leaflet-right{top:66px}
+#h47-leg{position:absolute;left:12px;right:12px;top:12px;z-index:500;background:#fff;border-radius:16px;padding:8px 10px;box-shadow:0 4px 16px rgba(15,33,64,.18);display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;align-items:center}
+#h47-leg::-webkit-scrollbar{display:none}
+#h47-leg b.t{font:800 11px Archivo,sans-serif;letter-spacing:.08em;color:#667489;text-transform:uppercase;flex:none;padding:0 4px}
+#h47-leg button{all:unset;cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:99px;border:1.5px solid #e1e7f0;font:800 13.5px Archivo,sans-serif;color:#0f2140;white-space:nowrap;flex:none}
+#h47-leg button i{width:12px;height:12px;border-radius:50%;flex:none}
+#h47-leg button.on{background:#eef3fb;border-color:#14306b}
+#h47-leg button:focus-visible{outline:3px solid #F5B301;outline-offset:2px}
+#h47-hoja{position:absolute;left:0;right:0;bottom:0;height:min(600px,calc(100vh - var(--h47-top) - 90px));z-index:600;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 34px rgba(15,33,64,.28);transition:transform .45s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;max-width:760px;margin:0 auto}
+#h47-hoja.pk{transform:translateY(calc(100% - 218px))}#h47-hoja.md{transform:none}
+#h47-hoja .agarre{all:unset;cursor:pointer;display:block;padding:12px 0 9px;flex:none;touch-action:none}
+#h47-hoja .agarre i{display:block;width:46px;height:5px;border-radius:5px;background:#cfd6e1;margin:0 auto}
+#h47-hoja .agarre:focus-visible{outline:3px solid #F5B301;outline-offset:-3px}
+#h47-hoja .cu{overflow:auto;padding:0 14px 16px;flex:1;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+#h47-hoja #hub-operador{display:flex!important;flex-direction:column;margin:0!important;flex:none}
+#h47-hoja .tb-cab{order:1}#h47-hoja .tb-go{order:2;margin-top:12px}#h47-hoja .tb-sig{order:3}#h47-hoja .tb-linea{order:4}#h47-hoja .tb-lb{order:5}#h47-hoja .tb-kpis{order:6}
+#h47-hoja .tb-t2,#h47-hoja .tb-linea,#h47-hoja .tb-lb{display:none!important}
+#h47-hoja #c38-acc,#h47-hoja #inc38-strip,#h47-hoja #hub-fallas{flex:none}
+#h47-scrim{position:absolute;inset:0;background:rgba(8,16,32,.5);z-index:800;opacity:0;pointer-events:none;transition:opacity .4s}
+body.h47-esp #h47-scrim{opacity:1;pointer-events:auto}
+body.h47-esp #h47-hoja{transform:translateY(105%)}body.h47-esp #h47-leg{opacity:0;pointer-events:none;transition:opacity .3s}
+body.h47-esp .pantalla.h47-hoja{position:fixed!important;left:0;right:0;top:calc(var(--h47-top) + 72px);bottom:0;z-index:3500;overflow:auto;background:#eef2f7;border-radius:24px 24px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.35);padding:22px 14px 14px!important;animation:h47Up .45s cubic-bezier(.2,.8,.2,1) both!important;max-width:none}
+body.h47-esp .pantalla.h47-hoja.h47-cierra{animation:h47Down .3s cubic-bezier(.5,0,.8,.4) both!important}
+body.h47-esp .pantalla.h47-hoja::before{content:"";position:absolute;left:50%;top:9px;width:46px;height:5px;margin-left:-23px;border-radius:5px;background:#c3ccd9}
+@keyframes h47Up{from{transform:translateY(100%)}to{transform:none}}@keyframes h47Down{from{transform:none}to{transform:translateY(100%)}}
+@media (min-aspect-ratio:1/1){
+  #h47-hoja{left:12px;right:auto;bottom:12px;width:450px;border-radius:22px;max-height:calc(100vh - var(--h47-top) - 24px);margin:0}
+  #h47-hoja.pk{transform:translateY(calc(100% - 218px))}
+  #h47-leg{left:474px}
+  #h47-mapa .leaflet-bottom{bottom:0}
+  body.h47-esp .pantalla.h47-hoja{left:auto;right:0;width:620px;top:calc(var(--h47-top) + 10px);border-radius:24px 0 0 0}
+}
+@media (prefers-reduced-motion:reduce){#h47-hoja,#h47-scrim{transition:none}body.h47-esp .pantalla.h47-hoja{animation:none!important}}
+/* la marca de la parada en el mapa de inicio */
+.h47-n{width:30px;height:30px;border-radius:50%;color:#fff;border:3px solid #fff;font:900 14px Archivo,sans-serif;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.h47-n.s{width:40px;height:40px;font-size:17px;box-shadow:0 0 0 6px rgba(245,179,1,.35),0 3px 10px rgba(0,0,0,.3)}
+.h47-n.h{width:22px;height:22px;font-size:12px;opacity:.85}
+/* navegación: tarjeta que se minimiza, banner más bajo, foto de la entrada */
+#pantalla-navegar.h47n .nv-ins{padding:calc(10px + env(safe-area-inset-top)) 14px 9px;border-radius:0 0 18px 18px}
+#pantalla-navegar.h47n .nv-ins .fl{width:44px;height:44px;border-radius:13px}
+#pantalla-navegar.h47n .nv-ins b{font-size:24px}
+#pantalla-navegar.h47n .nv-ins span{font-size:14px;margin-top:2px}
+#pantalla-navegar.h47n .nv-ins .lu{display:none}
+#pantalla-navegar.h47n .nv-ins .x{width:30px;height:30px;font-size:15px;top:calc(8px + env(safe-area-inset-top))}
+#pantalla-navegar.h47n #nv-voz{top:86px!important}
+#pantalla-navegar.h47n #nv-cen{top:140px!important}
+#pantalla-navegar.h47n .nv-hoja{transition:none}
+.h47-asa{all:unset;cursor:pointer;display:block;width:100%;padding:0 0 10px}.h47-asa i{display:block;width:44px;height:5px;border-radius:5px;background:#cfd6e1;margin:0 auto}
+.h47-peek{all:unset;cursor:pointer;display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:2px 0 2px}
+.h47-peek .n{width:34px;height:34px;border-radius:10px;background:#14306b;color:#fff;display:grid;place-items:center;font-weight:900;flex:none}
+.h47-peek .t{flex:1;min-width:0}
+.h47-peek b{display:block;font-size:16px;font-weight:900;color:#0f2140;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h47-peek small{display:block;font-size:13px;color:#667489;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h47-peek em{font-style:normal;color:#2f6b0a;font-weight:900}
+.h47-peek .mini{width:46px;height:46px;border-radius:10px;overflow:hidden;flex:none;box-shadow:0 0 0 1px #d3d9e2}
+.h47-peek .mini img,.h47-fo img{width:100%;height:100%;object-fit:cover;display:block}
+.h47-peek .chev{width:36px;height:36px;flex:none;border-radius:50%;background:#eef1f4;display:grid;place-items:center}
+.nv-hoja.h47-pk{padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.h47-fo{all:unset;cursor:pointer;display:block;width:100%;height:132px;border-radius:14px;overflow:hidden;position:relative;margin:6px 0 10px;box-shadow:0 0 0 1px #d3d9e2}
+.h47-fo.ch{width:104px;height:78px;float:left;margin:4px 12px 8px 0}
+.h47-fo span{position:absolute;left:0;right:0;bottom:0;padding:16px 12px 7px;background:linear-gradient(transparent,rgba(10,22,44,.78));color:#fff;font:700 12.5px Archivo,sans-serif;text-align:left}
+.h47-fo.ch span{display:none}
+#h47-lb{position:fixed;inset:0;z-index:9500;background:rgba(8,16,32,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px}
+#h47-lb img{max-width:min(92vw,720px);max-height:70vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#h47-lb p{margin:0;color:#dbe6fb;font:700 14px Archivo,sans-serif}
+#h47-lb button{border:0;background:#fff;color:#14306b;border-radius:12px;padding:12px 28px;font:900 15px Archivo,sans-serif;cursor:pointer}
+body.h47-nb #pantalla-navegar.h47n .nv-hoja:not(.h47-lado){padding-right:84px}
+@media (min-aspect-ratio:1/1){
+  #pantalla-navegar.h47n .nv-ins{right:auto;width:364px;left:12px;top:12px;border-radius:18px;padding-top:10px}
+  #pantalla-navegar.h47n .nv-ins .x{top:8px}
+  #pantalla-navegar.h47n .nv-hoja{left:12px!important;right:auto!important;width:364px;bottom:auto!important;margin:0!important;border-radius:18px;max-width:none}
+  #pantalla-navegar.h47n #nv-voz{top:14px!important}
+  #pantalla-navegar.h47n #nv-cen{top:68px!important}
+  #pantalla-navegar.h47n .nv-gps{bottom:14px!important}
+  body.h47-nb #pantalla-navegar.h47n .nv-hoja{padding-right:18px}
+}
+</style>
+<script id="js-tfr">
+/* ═══ tablet · frente del conductor (api 3.47) ═══ */
+var H47 = { rutas: [], sel: "", cap: null, map: null, yo: null, foto: {}, fotoT: {} };
+H47.activo = function(){
+  try{
+    if(typeof c38Es_ !== "function" || !c38Es_()) return false;
+    var f = localStorage.getItem("ecovsa_frente"); if(f === "1") return true; if(f === "0") return false;
+    if(window.EcovsaApp && EcovsaApp.miTablet){ var m = JSON.parse(EcovsaApp.miTablet()); return !!(m && m.quiosco); }
+  }catch(e){}
+  return false;
+};
+H47.alto = function(){ var h = document.querySelector("header"), t = h ? h.offsetHeight : 60; document.body.style.setProperty("--h47-top", t + "px"); return t; };
+H47.COL = ["#2f9e44", "#e0a000", "#8e44ad", "#e4572e", "#0f6e6e"];
+/* ── el inicio: mapa + hoja ── */
+H47.montar = function(){
+  var hub = $("pantalla-hub"); if(!hub || $("h47-hoja")) return;
+  document.body.classList.add("h47"); H47.alto();
+  var mw = document.createElement("div"); mw.id = "h47-mapa"; hub.insertBefore(mw, hub.firstChild);
+  var leg = document.createElement("div"); leg.id = "h47-leg"; leg.hidden = true; hub.appendChild(leg);
+  leg.onclick = function(e){ var b = e.target.closest("button"); if(b) H47.elegir(b.dataset.r); };
+  var sc = document.createElement("div"); sc.id = "h47-scrim"; sc.onclick = function(){ mostrarTab("hub"); }; hub.appendChild(sc);
+  var h = document.createElement("div"); h.id = "h47-hoja"; h.className = "pk";
+  h.innerHTML = '<button class="agarre" aria-label="Subir o bajar la hoja"><i></i></button><div class="cu"></div>';
+  var cu = h.querySelector(".cu");
+  ["hub-fallas", "hub-operador", "c38-acc", "inc38-strip"].forEach(function(id){ var e = $(id); if(e) cu.appendChild(e); });
+  var ag = h.querySelector(".agarre"), y0 = null;
+  ag.onpointerdown = function(e){ y0 = e.clientY; try{ ag.setPointerCapture(e.pointerId); }catch(x){} };
+  ag.onpointerup = function(e){
+    var dy = y0 === null ? 0 : e.clientY - y0; y0 = null;
+    if(dy < -24) H47.hoja("md"); else if(dy > 24) H47.hoja("pk"); else H47.hoja(h.classList.contains("pk") ? "md" : "pk");
+  };
+  ag.onpointercancel = function(){ y0 = null; };
+  ag.onkeydown = function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); H47.hoja(h.classList.contains("pk") ? "md" : "pk"); } };
+  hub.appendChild(h);
+  window.addEventListener("resize", function(){ H47.alto(); if(H47.map) H47.map.invalidateSize(); });
+};
+H47.hoja = function(est){ var h = $("h47-hoja"); if(!h) return; h.classList.toggle("pk", est === "pk"); h.classList.toggle("md", est === "md"); setTimeout(function(){ if(H47.map) H47.map.invalidateSize(); }, 480); };
+H47.mostrar = function(est){
+  H47.montar(); H47.alto();
+  if(est) H47.hoja(est);
+  setTimeout(function(){ H47.mapaListo(); }, 40);
+  H47.cargar(false);
+};
+H47.mapaListo = function(){
+  var d = $("h47-mapa"); if(!d || !window.L || !d.offsetHeight) return;
+  if(!H47.map){
+    H47.map = m36Mapa_("h47-mapa", { zoomControl: false }); H47.cap = L.layerGroup().addTo(H47.map);
+    H47.map.on("dragstart", function(){ H47.libre = true; });
+  }
+  H47.map.invalidateSize(); H47.dibujar(!H47.libre);
+  H47.posicion();
+};
+H47.posicion = function(){
+  if(!navigator.geolocation || H47.posT && Date.now() - H47.posT < 60000) return; H47.posT = Date.now();
+  navigator.geolocation.getCurrentPosition(function(p){ H47.yo = [p.coords.latitude, p.coords.longitude]; H47.dibujar(false); }, function(){}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+};
+/* las rutas por hacer: hoy y la semana que viene, con el color de cada una */
+H47.cargar = function(forzar){
+  if(!PIN || !window.google || !google.script) return;
+  if(!forzar && H47.cargaT && Date.now() - H47.cargaT < 300000) return; H47.cargaT = Date.now();
+  var f = new Date(); f.setDate(f.getDate() + 7); var hasta = new Date(f.getTime() - f.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok || !r.dias) return;
+    H47.rutas = r.dias.filter(function(d){ return d.rutaId && !d.borrador && !d.estadoRuta && (d.paradas || []).some(function(p){ return p.clienteId && !p.hecha; }); });
+    try{ localStorage.setItem("ecovsa_h47_rutas", JSON.stringify(H47.rutas)); }catch(e){}
+    H47.leyenda(); H47.dibujar(!H47.libre);
+  }).withFailureHandler(function(){ H47.cargaT = 0; }).api_agenda(PIN, null, hoyISO(), hasta);
+};
+H47.lista = function(){
+  if(!H47.rutas.length){ try{ H47.rutas = JSON.parse(localStorage.getItem("ecovsa_h47_rutas") || "[]"); }catch(e){} }
+  var hoy = hoyISO(), nHoy = H47.rutas.filter(function(d){ return d.fecha === hoy; }).length, k = 0, ih = 0, act = RUTA && RUTA.rutaId || "";
+  return H47.rutas.filter(function(d){ return d.fecha >= hoy; }).map(function(d){
+    var activa = d.rutaId === act, col = activa ? "#1A73E8" : H47.COL[(k++) % H47.COL.length];
+    var n = (d.paradas || []).filter(function(p){ return !p.hecha; }).length, nom;
+    if(d.fecha === hoy){ ih++; nom = "Hoy" + (nHoy > 1 ? " " + ih : ""); }
+    else { var t = new Date(d.fecha + "T12:00:00").toLocaleDateString("es-PA", { weekday: "long", day: "numeric" }); nom = t.charAt(0).toUpperCase() + t.slice(1); }
+    return { id: d.rutaId, d: d, activa: activa, col: col, hoy: d.fecha === hoy, txt: nom + " · " + n + (n === 1 ? " parada" : " paradas") };
+  });
+};
+H47.leyenda = function(){
+  var leg = $("h47-leg"); if(!leg) return; var L = H47.lista();
+  leg.hidden = L.length === 0; if(!L.length) return;
+  if(!H47.sel || !L.some(function(r){ return r.id === H47.sel; })) H47.sel = (L.find(function(r){ return r.activa; }) || L[0]).id;
+  leg.innerHTML = '<b class="t">Rutas por hacer</b>' + L.map(function(r){ return '<button data-r="' + esc(r.id) + '" class="' + (r.id === H47.sel ? "on" : "") + '" aria-pressed="' + (r.id === H47.sel) + '"><i style="background:' + r.col + '"></i>' + esc(r.txt) + '</button>'; }).join("");
+};
+H47.elegir = function(id){ H47.sel = id; H47.libre = false; H47.leyenda(); H47.dibujar(true); };
+H47.dibujar = function(fit){
+  if(!H47.map || !H47.cap || !window.L) return;
+  H47.cap.clearLayers();
+  var L_ = H47.lista(), sel = H47.sel, bounds = {}, todos = [];
+  var marca = function(ll, col, txt, cls){ return L.marker(ll, { icon: m36Ic_('<div class="h47-n ' + (cls || "") + '" style="background:' + col + '">' + txt + '</div>', cls === "s" ? 40 : (cls === "h" ? 22 : 30)) }).addTo(H47.cap); };
+  var tenue = function(r){ return sel && r.id !== sel; };
+  L_.forEach(function(r){
+    var pts = [];
+    if(r.activa){
+      var seq = cdSecuencia_(), info = RUTA.info || {}, B = info.base ? [info.base.lat, info.base.lng] : null, ll = [];
+      seq.forEach(function(x){ if(x.ll) ll.push(x.ll); });
+      var P = B ? [B].concat(ll, [B]) : ll;
+      var op = tenue(r) ? .25 : .95;
+      if(B && m36TrazoOk_(info.trazo, P)){ info.trazo.legs.forEach(function(l){ var g = m36Dec_(l); L.polyline(g, { color: "#fff", weight: 8, opacity: op * .8 }).addTo(H47.cap); L.polyline(g, { color: r.col, weight: 5, opacity: op }).addTo(H47.cap); pts = pts.concat(g); }); }
+      else if(P.length > 1){ L.polyline(P, { color: r.col, weight: 4, opacity: op, dashArray: "7 8" }).addTo(H47.cap); pts = P.slice(); }
+      var k = seq.findIndex(function(x){ return !x.hecha; }), n = 0;
+      seq.forEach(function(x, i){ if(x.tipo === "cli") n++; if(!x.ll) return; var m = marca(x.ll, x.hecha ? "#2f9e44" : (i === k ? "#F5B301" : r.col), x.hecha ? "✓" : (x.tipo === "planta" ? "P" : n), x.hecha ? "h" : (i === k ? "s" : "")); if(tenue(r)) m.setOpacity(.3); });
+      if(B) pts.push(B);
+    } else {
+      var ps = (r.d.paradas || []).filter(function(p){ return !p.hecha && p.clienteId; }).map(function(p){ var c = cli(p.clienteId) || {}; return m36LL_(c.lat, c.lng) ? [Number(c.lat), Number(c.lng)] : null; }).filter(Boolean);
+      var op2 = tenue(r) ? .25 : .9;
+      if(ps.length > 1) L.polyline(ps, { color: r.col, weight: 5, opacity: op2, dashArray: r.hoy ? null : "10 9" }).addTo(H47.cap);
+      ps.forEach(function(ll, i){ var m = marca(ll, r.col, i + 1); if(tenue(r)) m.setOpacity(.3); });
+      pts = ps;
+    }
+    bounds[r.id] = pts; pts.forEach(function(p){ todos.push(p); });
+  });
+  if(H47.yo) L.marker(H47.yo, { zIndexOffset: 3000, icon: m36Ic_('<div class="mc-yo"></div>', 18) }).addTo(H47.cap);
+  if(!fit) return;
+  var ptsFit = (sel && bounds[sel] && bounds[sel].length) ? bounds[sel].slice() : todos;
+  if(H47.yo) ptsFit.push(H47.yo);
+  var land = innerWidth > innerHeight;
+  if(ptsFit.length > 1) H47.map.fitBounds(ptsFit, { paddingTopLeft: [land ? 480 : 40, 80], paddingBottomRight: [40, land ? 40 : 250], maxZoom: 16, animate: false });
+  else if(ptsFit.length) H47.map.setView(ptsFit[0], 15, { animate: false });
+  else H47.map.setView([8.99, -79.52], 11, { animate: false });
+};
+/* lo que la hoja lleva dentro se vuelve a meter si el portal lo repinta o lo crea después */
+H47.reubicar = function(){
+  var cu = document.querySelector("#h47-hoja .cu"); if(!cu) return;
+  ["hub-fallas", "hub-operador", "c38-acc", "inc38-strip"].forEach(function(id){ var e = $(id); if(e && e.parentNode !== cu) cu.appendChild(e); });
+};
+["pintarHubConductor_", "inc38Franja_"].forEach(function(n){
+  if(typeof window[n] !== "function") return;
+  window[n] = (function(o){ return function(){ var r = o.apply(this, arguments); try{ if(H47.activo()) H47.reubicar(); }catch(e){} return r; }; })(window[n]);
+});
+if(typeof c38Conductor_ === "function") c38Conductor_ = (function(o){ return function(){
+  var r = o.apply(this, arguments);
+  try{ if(H47.activo() && INI_TAB === "hub" && !$("h47-hoja")) setTimeout(function(){ H47.mostrar(); H47.reubicar(); }, 0); }catch(e){}
+  return r; }; })(c38Conductor_);
+/* repintar el mapa cuando cambia la ruta o el tablero */
+if(typeof pintarTablero === "function") pintarTablero = (function(o){ return function(){ var r = o.apply(this, arguments); try{ if(H47.activo() && H47.map){ H47.leyenda(); H47.dibujar(!H47.libre); } }catch(e){} return r; }; })(pintarTablero);
+
+/* ── cada espacio sube como una hoja sobre el mapa ── */
+mostrarTab = (function(m0){
+  return function(t){
+    if(!H47.activo()) return m0.apply(this, arguments);
+    var limpiar = function(){ document.querySelectorAll(".h47-hoja,.h47-cierra").forEach(function(e){ e.classList.remove("h47-hoja", "h47-cierra"); }); };
+    if(t === "hub" || t === "mapa"){
+      var sh = document.querySelector(".pantalla.h47-hoja"), esp = document.body.classList.contains("h47-esp");
+      var fin = function(){ document.body.classList.remove("h47-esp"); limpiar(); var r = m0.call(window, "hub"); H47.mostrar(t === "mapa" ? "pk" : null); return r; };
+      if(esp && sh){ sh.classList.add("h47-cierra"); setTimeout(fin, 300); return; }
+      return fin();
+    }
+    var hoja = t !== "paradas" && t !== "navegar" && !!$("pantalla-" + t);
+    if(!hoja){ document.body.classList.remove("h47-esp"); limpiar(); return m0.apply(this, arguments); }
+    limpiar(); H47.montar(); document.body.classList.add("h47-esp");
+    var r2 = m0.apply(this, arguments);
+    var p = $("pantalla-" + t); if(p) p.classList.add("h47-hoja");
+    return r2;
+  };
+})(mostrarTab);
+if(window.C38 && C38.titulo) C38.titulo = (function(o){ return function(){ var r = o.apply(this, arguments); try{ if(document.body.classList.contains("h47") && !document.body.classList.contains("h47-esp") && INI_TAB === "hub") document.body.classList.remove("c38-sub", "c38-parada"); }catch(e){} return r; }; })(C38.titulo);
+
+/* ── navegación: tarjeta que se minimiza y foto de la entrada ── */
+H47.fotoDe = function(cid){
+  if(!cid || cid < 1 || !PIN) return "";
+  var t = H47.fotoT[cid];
+  if(t === undefined || Date.now() - t > 480000){
+    H47.fotoT[cid] = Date.now();
+    google.script.run.withSuccessHandler(function(r){
+      if(r && r.ok && r.url){ H47.foto[cid] = r.url; try{ if(NV37.abierta() && NV37.cid === cid) NV37.pintar(); }catch(e){} }
+    }).withFailureHandler(function(){}).api_fotoLocalVer(PIN, cid);
+  }
+  return H47.foto[cid] || "";
+};
+H47.nvAbrir = function(){ NV37.h47abierta = true; NV37.pintar(); };
+H47.nvMin = function(){ NV37.h47abierta = false; NV37.pintar(); };
+H47.ampliar = function(url, nombre){
+  var d = document.createElement("div"); d.id = "h47-lb"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "Foto de la entrada");
+  var im = document.createElement("img"); im.src = url; im.alt = "La entrada";
+  var p = document.createElement("p"); p.textContent = "La entrada · " + (nombre || "");
+  var b = document.createElement("button"); b.textContent = "Cerrar"; b.onclick = function(){ d.remove(); };
+  d.onclick = function(e){ if(e.target === d) d.remove(); };
+  d.appendChild(im); d.appendChild(p); d.appendChild(b); document.body.appendChild(d);
+};
+H47.nvAjusta = function(){
+  var s = $("pantalla-navegar"), hoja = $("nv-hoja"), ins = $("nv-ins"); if(!s || !hoja || !ins || !NV37.dest) return;
+  s.classList.add("h47n");
+  var cerca = !!NV37.llegando, abierta = cerca || !!NV37.h47abierta, cid = NV37.cid, url = H47.fotoDe(cid), nombre = NV37.dest.nombre || "";
+  if(!abierta){
+    var eta = hoja.querySelector(".nv-eta"), b = eta && eta.querySelector("b"), sp = eta && eta.querySelector("span"), n = hoja.querySelector(".nv-cli .n");
+    hoja.className = "nv-hoja h47-pk";
+    hoja.innerHTML = '<button class="h47-peek" onclick="H47.nvAbrir()" aria-label="Abrir la tarjeta"><span class="n">' + esc(n ? n.textContent : "➤") + '</span><span class="t"><b>' + esc(nombre) + '</b><small><em>' + esc(b ? b.textContent : "") + '</em> · ' + esc(sp ? sp.textContent : "") + '</small></span>' +
+      (url ? '<span class="mini"></span>' : '') + '<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14306b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span></button>';
+    if(url){ var m = hoja.querySelector(".mini"), im = document.createElement("img"); im.src = url; im.alt = ""; m.appendChild(im); }
+  } else {
+    hoja.className = "nv-hoja";
+    var asa = hoja.querySelector(".asa");
+    if(asa && !cerca){ var bt = document.createElement("button"); bt.className = "h47-asa"; bt.setAttribute("aria-label", "Minimizar la tarjeta"); bt.onclick = H47.nvMin; bt.innerHTML = "<i></i>"; asa.replaceWith(bt); }
+    if(url){
+      var cli = hoja.querySelector(".nv-cli"), f = document.createElement("button");
+      f.className = "h47-fo" + (cerca ? "" : " ch"); f.setAttribute("aria-label", "Ver la foto de la entrada"); f.onclick = function(){ H47.ampliar(url, nombre); };
+      var im2 = document.createElement("img"); im2.src = url; im2.alt = "La entrada"; f.appendChild(im2);
+      var sp2 = document.createElement("span"); sp2.textContent = "La entrada · toque para ampliar"; f.appendChild(sp2);
+      if(cli) cli.parentNode.insertBefore(f, cli);
+    }
+  }
+  var land = innerWidth > innerHeight;
+  if(land){ hoja.style.top = (ins.offsetHeight + 20) + "px"; } else { hoja.style.top = ""; }
+  var g = $("nv-gps"); if(g && !land) g.style.bottom = (hoja.offsetHeight + 12) + "px";
+};
+if(window.NV37){
+  NV37.pintar = (function(o){ return function(){ var r = o.apply(this, arguments); try{ if(H47.activo()) H47.nvAjusta(); }catch(e){ console.error(e); } return r; }; })(NV37.pintar);
+  NV37.abrir = (function(o){ return function(){ if(H47.activo()){ NV37.h47abierta = false; H47.nbOculta(true); } return o.apply(this, arguments); }; })(NV37.abrir);
+  NV37.cerrar = (function(o){ return function(){ if(H47.activo()) H47.nbOculta(false); return o.apply(this, arguments); }; })(NV37.cerrar);
+}
+H47.nbOculta = function(v){ try{ if(window.EcovsaApp && typeof EcovsaApp.barraOculta === "function"){ EcovsaApp.barraOculta(!!v); document.body.classList.toggle("h47-nb", !!v); } }catch(e){} };
+
+/* ── «atrás» de Android: la foto, las hojas y el inicio ── */
+window.ecoAtras = (function(o){ return function(){
+  try{
+    var lb = $("h47-lb"); if(lb){ lb.remove(); return true; }
+    if(H47.activo() && NV37.abierta() && NV37.h47abierta && !NV37.llegando){ H47.nvMin(); return true; }
+  }catch(e){}
+  var r = o ? o.apply(this, arguments) : false;
+  try{
+    if(!r && H47.activo() && INI_TAB === "hub"){ var h = $("h47-hoja"); if(h && h.classList.contains("md")){ H47.hoja("pk"); return true; } }
+  }catch(e){}
+  return r;
+}; })(window.ecoAtras);
+</script>
+
 </body>
 
 </html>
