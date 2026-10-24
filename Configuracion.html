@@ -910,7 +910,7 @@ function vEntrada() {
    la invitación va al WhatsApp de la ficha, sirve una vez y vence en 48 h. */
 var PTL = null, PTL_V = false, PTL_T = 'ped', PTL_F = 'todas';
 /* api 3.23: desde el tablero, #ptl-ped (pedidos), #ptl-venc (invitaciones vencidas) y #ptl-pro (con prórroga) abren su pestaña */
-(function () { var m = String(location.hash || '').match(/^#ptl-(ped|venc|pro|cli)$/); if (!m) return; PTL_T = m[1] === 'ped' ? 'ped' : 'cli'; if (m[1] === 'venc' || m[1] === 'pro') PTL_F = m[1];
+(function () { var m = String(location.hash || '').match(/^#ptl-(ped|venc|pro|cli|uso)$/); if (!m) return; PTL_T = m[1] === 'ped' ? 'ped' : m[1] === 'uso' ? 'uso' : 'cli'; if (m[1] === 'venc' || m[1] === 'pro') PTL_F = m[1];
   try { history.replaceState(null, '', location.pathname + location.search + '#ptl'); } catch (e) {} })();
 function ptlCargar() { PTL_V = true; return MK.api('api_ptlAdmin', PIN).then(function (r) { PTL_V = false; PTL = r || { ok: false }; MK.repintar(); }, function () { PTL_V = false; PTL = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
 function ptlEst(a) { return a.estado === 'activo' ? '<span class="tag t-ok">Activo</span>' : a.vencida ? '<span class="tag t-warn">Invitación vencida</span>' : '<span class="tag t-warn">Invitado</span>'; }   // api 3.23
@@ -920,7 +920,7 @@ function vPortal() {
   if (!PTL.ok) return cab + '<div class="aviso am">' + MK.esc(PTL.error || 'No se pudo') + ' <a href="#" onclick="PTL=null;MK.repintar();return false">Reintentar</a></div>';
   var R = PTL.resumen, pend = PTL.pedidos.filter(function (p) { return p.estado === 'pendiente'; });
   var h = cab + MK.kpis([{ e: 'Accesos activos', v: R.accesos, s: 'personas que ya crearon su PIN' }, { e: 'Invitados', v: R.invitados, s: 'falta que creen su PIN' }, { e: 'Pedidos', v: R.pendientes, s: R.pendientes ? 'esperan tu respuesta' : 'nada pendiente', c: R.pendientes ? 'warn' : '' }, { e: 'Cuentas', v: R.cuentas, s: R.sedes + ' sedes activas' }]);
-  h += '<div style="margin:14px 0 12px">' + MK.chips([['ped', 'Pedidos', pend.length], ['cli', 'Clientes y sedes'], ['ent', 'Entrega de distintivos'], ['his', 'Historial'], ['aj', 'Ajustes']], PTL_T, 'ptlTab') + '</div>';
+  h += '<div style="margin:14px 0 12px">' + MK.chips([['ped', 'Pedidos', pend.length], ['cli', 'Clientes y sedes'], ['uso', 'Uso'], ['ent', 'Entrega de distintivos'], ['his', 'Historial'], ['aj', 'Ajustes']], PTL_T, 'ptlTab') + '</div>';
   if (PTL_T === 'ped') {
     var L = PTL.pedidos.slice(0, 80), TT = { activar: 'Activar mi acceso', olvide: 'Olvidé mi PIN', alta: 'Acceso nuevo (lo pide el corporativo)', baja: 'Quitar un acceso (lo pide el corporativo)' };
     h += '<div class="card">' + (L.length ? L.map(function (p) {
@@ -951,6 +951,8 @@ function vPortal() {
         c.sedes.map(function (s, si) { return '<div style="border-top:1px solid #eef1f5;margin-top:8px;padding-top:8px"><div class="fila" style="justify-content:space-between"><span><b style="font-weight:600">' + MK.esc(s.nombre) + '</b> <span class="muted small">' + MK.esc(s.contacto || '') + (s.telefono ? ' · ' + MK.esc(s.telefono) : ' · sin WhatsApp en la ficha') + (s.distintivo ? ' · distintivo ' + MK.esc(MK.fechaCorta ? MK.fechaCorta(s.distintivo) : s.distintivo) : '') + '</span></span>' +
           '<button class="btn sm gh" onclick="ptlInvitar(\'' + (c.macro ? 'sede' : 'micro') + '\',' + ci + ',' + si + ')">' + MK.ic('alta', 14) + 'Invitar</button></div>' + s.accesos.map(fa).join('') + '</div>'; }).join('') + '</div>';
     }).join('') : '<div class="card">' + MK.vacio('Nada con ese filtro.') + '</div>';
+  } else if (PTL_T === 'uso') {
+    h += vUso();   // api 3.45
   } else if (PTL_T === 'ent') {
     var M = PTL.cuentas.filter(function (c) { return c.macro; }), m = PTL.cuentas.filter(function (c) { return !c.macro; });
     var fila = function (c) { var i = PTL.cuentas.indexOf(c), hechas = c.sedes.filter(function (s) { return s.distintivo; }).length;
@@ -966,6 +968,87 @@ function vPortal() {
       '<div style="width:380px;max-width:100%"><input class="in" id="ptl-url" value="' + MK.esc(PTL.url) + '"></div></div><div class="fila" style="justify-content:flex-end;margin-top:10px"><button class="btn pri" onclick="ptlGuardarUrl(this)">Guardar</button></div></div>';
   }
   return h;
+}
+/* ═══════════ api 3.45 · ¿LO ESTÁN USANDO? Y VER SU PORTAL (Maqueta_uso_del_portal, aprobada por Álvaro el 24 oct, todas A) ═══════════
+   La pestaña «Uso» de Portal de clientes: qué secciones usan, quién se enfrió, quién nunca entró, y «Ver su portal» en solo lectura. */
+var USO = null, USO_V = false, USO_PER = 'mes', USO_FIL = 'todos';
+var USO_EST = { usa: ['Lo usa', 'ok'], frio: ['Se enfrió', 'warn'], nunca: ['Nunca entró', 'gris'], sindato: ['Sin datos todavía', 'info'] };
+var USO_PN = { sem: 'esta semana', mes: 'este mes', tri: 'los últimos 3 meses' };
+function usoCargar() { USO_V = true; return MK.api('api_ptlUsoAdmin', PIN, USO_PER).then(function (r) { USO_V = false; USO = r || { ok: false }; MK.repintar(); }, function () { USO_V = false; USO = { ok: false, error: 'Sin conexión' }; MK.repintar(); }); }
+function usoPer(p) { USO_PER = p; USO = null; MK.repintar(); }
+function usoFiltro(f) { USO_FIL = f; MK.repintar(); var e = document.getElementById('uso-cli'); if (e) e.scrollIntoView({ behavior: 'smooth' }); }
+function usoCuando(s) { s = String(s || ''); if (!s) return ''; var d = s.slice(0, 10), h = s.slice(11, 16), hoy = MK.hoy || '';
+  var hm = h ? (function () { var x = h.split(':'), n = Number(x[0]); return (n % 12 || 12) + ':' + x[1] + (n < 12 ? ' a. m.' : ' p. m.'); })() : '';
+  if (d === hoy) return 'Hoy' + (hm ? ' ' + hm : ''); return ptlFecha(d).replace(/ \d{4}$/, '') + (d.slice(0, 4) !== hoy.slice(0, 4) ? ' ' + d.slice(0, 4) : ''); }
+function vUso() {
+  var h = '<div class="fila" style="justify-content:space-between;margin-bottom:12px"><div class="small muted" style="flex:1;min-width:220px">Cuenta los días que cada persona abre el portal y cada sección. No cuenta cuando ECOVSA mira el portal de un cliente.</div>' +
+    MK.chips([['sem', 'Esta semana'], ['mes', 'Este mes'], ['tri', 'Últimos 3 meses']], USO_PER, 'usoPer') + '</div>';
+  if (!USO) { if (!USO_V) usoCargar(); return h + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
+  if (!USO.ok) return h + '<div class="aviso am">' + MK.esc(USO.error || 'No se pudo') + ' <a href="#" onclick="USO=null;MK.repintar();return false">Reintentar</a></div>';
+  var R = USO.resumen, ent = R.entraron || 0, pct = function (v, t) { return t ? Math.round(v / t * 100) : 0; };
+  var cmp = R.antes == null ? '' : R.antes === 0 ? '' : ' · ' + (ent >= R.antes ? '<span style="color:#2f9e44">▲ ' : '<span style="color:#c0392b">▼ ') + Math.abs(pct(ent - R.antes, R.antes)) + ' % contra el periodo anterior</span>';
+  if (USO.inicioUso && USO.inicioUso > USO.desde) h += '<div class="aviso az" style="margin-bottom:12px">El uso se anota desde el ' + MK.esc(ptlFecha(USO.inicioUso)) + ' (cuando se instaló esta versión). Antes solo se sabía cuándo escribían el PIN.</div>';
+  else if (!USO.inicioUso) h += '<div class="aviso az" style="margin-bottom:12px">Todavía no hay uso anotado: se empieza a contar desde hoy, cada vez que un cliente abra su portal.</div>';
+  h += MK.kpis([
+    { e: 'Personas que entraron', v: ent + ' <small style="font-size:14px;color:var(--muted)">de ' + R.personas + '</small>', s: pct(ent, R.personas) + ' % de quienes tienen acceso' + cmp },
+    { e: 'Clientes que lo usan', v: R.usan + ' <small style="font-size:14px;color:var(--muted)">de ' + R.clientes + '</small>', s: 'al menos una persona entró ' + USO_PN[USO.periodo] },
+    { e: 'Se enfriaron', v: R.frios, s: 'entraban y llevan más de ' + USO.friodias + ' días sin entrar', c: R.frios ? 'warn' : '', ir: "usoFiltro('frio')" },
+    { e: 'Nunca han entrado', v: R.nunca, s: 'invitados sin estrenar el portal', c: R.nunca ? 'warn' : '', ir: "usoFiltro('nunca')" }]);
+  var poco = USO.secciones.filter(function (s) { return ent && s.p / ent < 0.15; });
+  var porque = { servicios: 'Quizás no saben que pueden cotizar ahí.', ayuda: 'Normal si el recorrido ya lo explicó todo.', seguimiento: 'Solo sirve el día de la visita: es normal que se vea poco.', equipo: 'Solo lo tiene el corporativo.', sedes: 'Solo lo tiene el corporativo.' };
+  h += '<div class="grid g2" style="gap:12px;align-items:start;margin-top:12px">' +
+    '<div class="card"><h3>Lo que más usan</h3><div class="small muted" style="margin:-4px 0 8px">Personas que abrieron cada sección ' + USO_PN[USO.periodo] + (ent ? ' (de ' + ent + ' que entraron)' : '') + '</div>' +
+      (USO.secciones.length ? MK.hbar(USO.secciones.map(function (s) { return { e: s.n, d: s.d, v: s.p, c: ent && s.p / ent < 0.15 ? '#c9a227' : 'var(--navy2)' }; }), { fmt: function (v) { return v + ' · ' + pct(v, ent) + ' %'; } }) : MK.vacio('Nadie ha entrado ' + USO_PN[USO.periodo] + '.')) + '</div>' +
+    '<div><div class="card"><h3>Lo que casi no usan</h3>' + (poco.length ? poco.map(function (s) {
+        return '<div class="fila" style="padding:8px 0;border-top:1px solid #eef1f5;align-items:flex-start"><span style="flex:1"><b style="font-weight:600">' + MK.esc(s.n) + '</b> <span class="muted small">' + s.p + ' persona' + (s.p === 1 ? '' : 's') + '</span>' + (porque[s.k] ? '<div class="small muted">' + porque[s.k] + '</div>' : '') + '</span></div>'; }).join('') :
+        MK.vacio(ent ? 'Todas las secciones que abren las usa más del 15 % de quienes entran.' : 'Sin datos todavía.')) + '</div>' +
+      '<div class="card" style="margin-top:12px"><h3>Lo que hacen en el portal</h3>' + (USO.acciones.length ? MK.hbar(USO.acciones.map(function (a) { return { e: a.n, v: a.v, c: '#2f9e44' }; }), { fmt: function (v) { return v + ' ' + (v === 1 ? 'vez' : 'veces'); } }) : MK.vacio('Nada ' + USO_PN[USO.periodo] + '.')) + '</div></div></div>';
+  var C = USO.como;
+  h += '<div class="grid g2" style="gap:12px;align-items:start;margin-top:12px">' +
+    '<div class="card"><h3>Personas que entran por semana</h3>' + MK.barras(USO.semanas.map(function (s, i) { return { e: ptlFecha(s.e).replace(/ \d{4}$/, ''), v: s.v, c: i === USO.semanas.length - 1 ? 'var(--navy2)' : '#9fb3d6' }; }), { alto: 150 }) + '</div>' +
+    '<div class="card"><h3>Cómo entran</h3>' + (ent ? MK.hbar([{ e: 'Desde el celular', v: C.cel, c: 'var(--navy2)' }, { e: 'Desde la compu', v: C.pc, c: 'var(--navy2)' }, { e: 'Con el portal instalado', d: 'el ícono de ECOVSA en el celular', v: C.inst, c: '#2f9e44' }], { fmt: function (v) { return v + ' · ' + pct(v, ent) + ' %'; } }) +
+      '<div class="nota" style="margin-top:8px">Si casi todos entran por el celular, las mejoras se piensan primero para el celular.</div>' : MK.vacio('Sin datos todavía.')) + '</div></div>';
+  var cuenta = function (e) { return USO.clientes.filter(function (c) { return c.estado === e; }).length; };
+  var L = USO.clientes.filter(function (c) { return USO_FIL === 'todos' || c.estado === USO_FIL; });
+  h += '<div class="card" id="uso-cli" style="margin-top:12px"><div class="fila" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">Cliente por cliente</h3>' +
+    MK.chips([['todos', 'Todos', USO.clientes.length], ['usa', 'Lo usan', cuenta('usa')], ['frio', 'Se enfriaron', cuenta('frio')], ['nunca', 'Nunca entraron', cuenta('nunca')]].concat(cuenta('sindato') ? [['sindato', 'Sin datos todavía', cuenta('sindato')]] : []), USO_FIL, 'usoFiltro') + '</div>' +
+    MK.tabla(['Cliente', 'Personas', 'Última vez', '>Días que entró', 'Lo que más mira', 'Cómo', 'Estado', ''], L.map(function (c) {
+      var i = USO.clientes.indexOf(c);
+      return ['<b style="font-weight:600">' + MK.esc(c.nombre) + '</b>' + (c.empresa && c.empresa.toUpperCase() !== c.nombre.toUpperCase() ? '<div class="small muted">' + MK.esc(c.empresa) + '</div>' : '') + (c.nota ? '<div class="small muted">' + MK.esc(c.nota.replace(/\d{4}-\d{2}-\d{2}/g, ptlFecha)) + '</div>' : ''),
+        c.act + ' de ' + c.per, MK.esc(usoCuando(c.ult)) || '<span class="muted">—</span>', c.dias || '<span class="muted">0</span>', MK.esc(c.top) || '<span class="muted">—</span>', '<span class="small">' + MK.esc(c.disp) + '</span>',
+        MK.tag(USO_EST[c.estado][0], USO_EST[c.estado][1]),
+        '<div class="fila" style="gap:6px;justify-content:flex-end;flex-wrap:nowrap">' + (c.invitar ? '<button class="btn sm" onclick="ptlReenviar(\'' + MK.esc(c.invitar) + '\',false,this)">Reenviar invitación</button>' :
+          '<button class="btn sm gh" onclick="usoDetalle(' + i + ')">Ver uso</button>' + (c.vistaAcceso && c.estado !== 'nunca' ? '<button class="btn sm" onclick="usoVer(' + i + ')">' + MK.ic('ojo', 14) + 'Ver su portal</button>' : '')) + '</div>'];
+    }), { vacio: 'Nadie en este grupo.' }) +
+    '<div class="nota" style="margin-top:10px">«Se enfrió»: entraba y lleva más de ' + USO.friodias + ' días sin entrar; conviene una llamada o un WhatsApp. «Días que entró» cuenta un día aunque entre varias veces.</div></div>';
+  return h;
+}
+function usoDetalle(i) {
+  var c = USO.clientes[i];
+  MK.lado('<div style="padding-right:36px"><div class="small muted">USO DEL PORTAL</div><h2 style="margin:2px 0 4px">' + MK.esc(c.nombre) + '</h2><div class="small muted">' + (c.empresa ? MK.esc(c.empresa) + ' · ' : '') + (c.tipo === 'corp' ? 'cuenta completa' : c.tipo) + '</div></div>' +
+    '<div style="margin:12px 0">' + MK.kpis([{ e: 'Última vez', v: '<span style="font-size:17px">' + (MK.esc(usoCuando(c.ult)) || '—') + '</span>' }, { e: 'Días ' + USO_PN[USO.periodo], v: c.dias, c: c.estado === 'frio' ? 'warn' : '' }, { e: 'Personas', v: c.entraron + '/' + c.per, s: 'entraron / con acceso' }], 3) + '</div>' +
+    (c.estado === 'frio' ? '<div class="aviso am" style="margin-bottom:12px">Lleva más de ' + USO.friodias + ' días sin entrar. Conviene escribirle o llamarle para recordarle su portal.</div>' : '') +
+    '<div class="card"><h3>Quién entra</h3>' + c.personas.map(function (p) { return '<div class="fila" style="padding:7px 0;border-top:1px solid #eef1f5"><span style="flex:1"><b style="font-weight:600">' + MK.esc(p.nombre) + '</b>' + (p.cargo ? ' <span class="muted small">· ' + MK.esc(p.cargo) + '</span>' : '') + (p.estado !== 'activo' ? ' ' + MK.tag('Invitado', 'warn') : '') + '</span><span class="small muted">' + (MK.esc(usoCuando(p.ult)) || '—') + (p.disp ? ' · ' + MK.esc(p.disp) : '') + '</span></div>'; }).join('') + '</div>' +
+    '<div class="card" style="margin-top:12px"><h3>Lo que mira</h3>' + (c.secciones.length ? MK.hbar(c.secciones.map(function (s) { return { e: s.n, v: s.v }; }), { fmt: function (v) { return v + (v === 1 ? ' día' : ' días'); } }) : MK.vacio('Sin uso ' + USO_PN[USO.periodo] + '.')) + '</div>' +
+    '<div class="card" style="margin-top:12px"><h3>Lo último que hizo</h3>' + (c.linea.length ? c.linea.map(function (l) { return '<div class="fila" style="padding:7px 0;border-top:1px solid #eef1f5;align-items:flex-start;flex-wrap:nowrap"><span class="small muted" style="width:110px;flex:none">' + MK.esc(usoCuando(l.en)) + '</span><span style="flex:1">' + MK.esc(l.t) + '</span></div>'; }).join('') : MK.vacio('Nada anotado todavía.')) + '</div>' +
+    (c.vistaAcceso && c.estado !== 'nunca' ? '<div class="fila" style="margin-top:14px;justify-content:flex-end"><button class="btn pri" onclick="usoVer(' + i + ')">' + MK.ic('ojo', 15) + 'Ver su portal</button></div>' : ''), { ancho: true });
+}
+/* «Ver su portal»: primero avisa; la pestaña se abre al tocar (si no, el navegador la bloquea) y luego recibe la dirección */
+function usoVer(i) {
+  var c = USO.clientes[i]; MK.cerrarLado();
+  MK.hoja('<h2 style="margin-top:0">Ver el portal de ' + MK.esc(c.nombre) + '</h2><div class="pasa" style="margin:10px 0">' +
+    '<div>' + MK.ic('ojo') + '<span><b>Tal como lo ve el cliente</b>, con sus datos de hoy: recibos, calendario, facturas.</span></div>' +
+    '<div>' + MK.ic('candado') + '<span><b>Solo para mirar.</b> Los botones de pedir, pagar o agendar no envían nada; el cliente no recibe nada.</span></div>' +
+    '<div>' + MK.ic('reloj') + '<span><b>Se cierra sola en 30 minutos.</b> No cuenta como uso del cliente.</span></div>' +
+    '<div>' + MK.ic('historial') + '<span><b>Queda en el historial:</b> «' + MK.esc((MK.usuario && MK.usuario.nombre) || 'Tú') + ' vio el portal de ' + MK.esc(c.nombre) + '».</span></div></div>' +
+    '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="uso-ver">' + MK.ic('ojo', 15) + 'Ver su portal</button></div>');
+  document.getElementById('uso-ver').onclick = function () {
+    var b = this, w = window.open('', '_blank'); MK.ocupado(b, true);
+    MK.api('api_ptlVista', PIN, c.vistaAcceso).then(function (r) { MK.ocupado(b, false);
+      if (!r || !r.ok) { if (w) w.close(); MK.aviso((r && r.error) || 'No se pudo abrir'); return; }
+      MK.cerrarHoja(); if (w) w.location.href = r.url; else location.href = r.url;
+      }, function () { MK.ocupado(b, false); if (w) w.close(); MK.aviso('Sin conexión'); });
+  };
 }
 function ptlTab(t) { PTL_T = t; MK.repintar(); }
 function ptlFiltro(f) { PTL_F = f; MK.repintar(); }
