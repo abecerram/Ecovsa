@@ -16698,7 +16698,7 @@ NV37.abrir = function(dest){
   mostrarTab("navegar");
   if(!NV37.m){
     NV37.m = L.map("nv-mapa", { zoomControl: false, attributionControl: false, zoomAnimation: false, fadeAnimation: false });
-    m36Capas_(NV37.m, "calle");
+    m36Capas_(NV37.m);
     NV37.m.on("dragstart", function(){ NV37.sigue = false; var b = $("nv-cen"); if(b) b.style.display = "grid"; });
   }
   setTimeout(function(){ NV37.m.invalidateSize(); }, 60);
@@ -18960,6 +18960,7 @@ M40.vivos_ = function(){ M40.mapas = M40.mapas.filter(function(m){ try{ return !
 m36Fondo_ = function(){ var f = ""; try{ f = localStorage.getItem("eco_fondo") || ""; }catch(e){} if(f === "calle" || !M40.NOM[f]) f = "calles"; return f; };
 m36Capas_ = function(m, fondo){
   fondo = fondo || m36Fondo_();
+  if(!M40.NOM[fondo]) fondo = "calles";   /* un nombre que no existe (el viejo «calle») ya no rompe el mapa */
   if(m._m36capas) m._m36capas.forEach(function(c){ try{ m.removeLayer(c); }catch(e){} });
   var c = [];
   if(fondo === "sat"){
