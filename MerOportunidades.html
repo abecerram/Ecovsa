@@ -170,6 +170,54 @@
 body.solo-ver #bt-nueva,body.solo-ver [data-chk],body.solo-ver [data-todos],body.solo-ver label.chk:has([data-todos]),body.solo-ver [data-formulario],body.solo-ver [data-completar],body.solo-ver [data-nueva-tarea],body.solo-ver #bulk{display:none!important}
 body.solo-ver [data-tarea]{cursor:default}
 </style>
+<style id="estilo-pros48">
+/* ── api 3.48 · Prospección (pestaña de Oportunidades) ── */
+body.pros-on #v-embudo,body.pros-on #v-tabla,body.pros-on #v-completar,body.pros-on #fb,body.pros-on #colw,body.pros-on #bt-csv,body.pros-on #bt-nueva{display:none!important}
+#v-pros{display:none}
+body.pros-on #v-pros{display:block}
+.pr-ph{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pr-ph h2{font-size:17px;font-weight:700}.pr-ph p{color:var(--muted);font-size:13px;margin-top:2px;max-width:640px}
+.pr-ph .sp{flex:1}
+.pr-dias button small:first-child{text-transform:none}
+.pr-l{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pr-g{display:flex;align-items:center;gap:6px;padding:9px 14px;background:#fafbfd;border-bottom:1px solid var(--line2);font-size:11.5px;font-weight:700;letter-spacing:.5px;color:#5b6a80;text-transform:uppercase}
+.pr-it{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid var(--line2);padding:11px 14px;cursor:pointer;font:inherit;color:inherit}
+.pr-it:last-child{border-bottom:0}
+.pr-it:hover{background:var(--hover)}
+.pr-it.sel{background:#eef3fb}
+.pr-pt{flex:none;width:44px;height:44px;border-radius:11px;background:var(--info-bg);color:var(--navy2);display:grid;place-items:center;position:relative}
+.pr-pt b{font-size:16px;font-variant-numeric:tabular-nums}
+.pr-pt i{position:absolute;bottom:-5px;right:-5px;font-style:normal;font-size:9px;font-weight:800;background:var(--amber);color:#3d2a00;border-radius:6px;padding:1px 4px}
+.pr-tx{flex:1;min-width:0}
+.pr-tx b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-tx small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-tx small.pr-rz{color:#51607a;font-size:11.5px}
+.pr-de{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11.5px;color:var(--muted);max-width:220px}
+.pr-de small{display:inline-flex;align-items:center;gap:4px}
+.pr-vacio{text-align:center;padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted)}
+.pr-vacio b{color:var(--ink);font-size:14px}.pr-vacio p{max-width:560px;font-size:13px}
+.pr-pie{margin-top:10px}
+.pr-f h2{font-size:18px;margin:6px 0 2px;padding-right:34px}
+.pr-k{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.pr-k>div{border:1px solid var(--line2);border-radius:10px;padding:8px 10px;min-width:0}
+.pr-k small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-k b{display:block;font-size:14px}
+.pr-tel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.pr-f textarea{width:100%;resize:vertical;font:500 13px/1.5 Archivo,sans-serif}
+.pr-acc{justify-content:flex-start!important;flex-wrap:wrap}
+.pr-fin{justify-content:flex-start!important;flex-wrap:wrap;border-top:1px solid var(--line2);padding-top:12px;margin-top:14px}
+.pr-hist{list-style:none;margin:4px 0 0;padding:0;font-size:12.5px}
+.pr-hist li{padding:5px 0;border-bottom:1px dashed var(--line2);color:#3a4a63}
+.pr-hist li span{display:inline-block;min-width:54px;color:var(--muted);font-weight:600}
+.pr-res{margin:10px 0 0 18px;font-size:13px;line-height:1.7}
+.pr-cand{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:10px}
+@media(max-width:760px){
+  .pr-ph .btn .tx{display:none}
+  .pr-it{flex-wrap:wrap}
+  .pr-de{flex-direction:row;align-items:center;max-width:none;width:100%;padding-left:56px;justify-content:space-between}
+  .pr-tx b,.pr-tx small{white-space:normal}
+}
+</style>
 </head>
 <body class="mk">
 <script src="cargador.js" data-modulo="Mercadeo"></script>
@@ -906,6 +954,430 @@ body.solo-ver [data-tarea]{cursor:default}
     var alCambiarPantalla = function () { if (D) pintar(); };
     if (CEL.addEventListener) CEL.addEventListener('change', alCambiarPantalla); else if (CEL.addListener) CEL.addListener(alCambiarPantalla);
   });
+})();
+</script>
+<script id="js-pros48">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.48 · PROSPECCIÓN (Oportunidades › pestaña «Prospección»)
+   Establecimientos que todavía no conocen a ECOVSA, ordenados por la ruta
+   que ya pasa cerca. La persona escribe por el WhatsApp de ECOVSA; la tocada
+   se anota solo cuando confirma «Lo envié». Máximo dos, con 15 días entre
+   una y otra. «No contactar» se respeta. La IA califica y adapta el borrador,
+   nunca envía.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  var P = null, ON = false, CARG = false, F = { q: '', tipo: '', est: 'porContactar', dia: '' }, SEL = '';
+  var esc = MK.esc;
+  function $(id) { return document.getElementById(id); }
+  function soloVer() { return document.body.classList.contains('solo-ver') || (P && !P.puedeEditar); }
+  var EST = { porContactar: 'Por contactar', segunda: 'Toca la segunda', tocados: 'Esperando respuesta', convertido: 'Pasaron a oportunidad',
+              descartado: 'Descartados', nocontactar: 'No contactar', vencido: 'Vencidos (Google)', todos: 'Todos' };
+  function hoy() { return (P && P.hoy) || MK.hoy || MK.hoyLocal(); }
+  function puedeTocar(p) {
+    if (['nuevo', 'tocado'].indexOf(p.estado) < 0) return false;
+    if (p.tocadas.length >= (P.maxTocadas || 2)) return false;
+    return !p.proximaDesde || p.proximaDesde <= hoy();
+  }
+  function enEstado(p, e) {
+    if (e === 'todos') return true;
+    if (e === 'porContactar') return p.estado === 'nuevo';
+    if (e === 'segunda') return p.estado === 'tocado' && puedeTocar(p);
+    if (e === 'tocados') return p.estado === 'tocado';
+    return p.estado === e;
+  }
+  function puntos(p) { return p.iaPuntaje != null ? p.iaPuntaje : p.puntaje; }
+  function dist(m) { return m == null ? '' : m >= 1000 ? (m / 1000).toFixed(1) + ' km' : m + ' m'; }
+  function tel(t) { var n = String(t || '').replace(/\D/g, '').replace(/^507/, ''); return n.length === 7 || n.length === 8 ? n : ''; }
+  function esCel(t) { return /^6\d{7}$/.test(tel(t)); }
+  function telTxt(t) { var n = tel(t); return n.length === 8 ? n.slice(0, 4) + '-' + n.slice(4) : n.length === 7 ? n.slice(0, 3) + '-' + n.slice(3) : (t || ''); }
+  function porId(id) { return ((P && P.prospectos) || []).filter(function (p) { return p.prosId === id; })[0]; }
+  function nPend() { return ((P && P.prospectos) || []).filter(function (p) { return p.estado === 'nuevo' || (p.estado === 'tocado' && puedeTocar(p)); }).length; }
+  function SV(n, s) { return MK.ic(n, s || 15); }
+
+  /* ── la pestaña ── */
+  function ponerPestana() {
+    var t = $('tabs'); if (!t || t.querySelector('[data-pros]')) return;
+    var b = document.createElement('button'); b.setAttribute('data-pros', '1'); b.type = 'button';
+    b.innerHTML = 'Prospección <span class="n">' + (P ? nPend() : '') + '</span>';
+    t.appendChild(b);
+    if (ON) { [].forEach.call(t.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); }); }
+  }
+  function contar() { var b = document.querySelector('#tabs [data-pros] .n'); if (b) b.textContent = P ? nPend() : ''; }
+  function abrir() {
+    ON = true; document.body.classList.add('pros-on'); ponerPestana();
+    [].forEach.call(document.querySelectorAll('#tabs button'), function (x) { x.classList.toggle('on', x.hasAttribute('data-pros')); });
+    var v = $('v-pros'); if (!v) { v = document.createElement('div'); v.id = 'v-pros'; var m = $('v-completar'); m.parentNode.insertBefore(v, m.nextSibling); }
+    try { history.replaceState(null, '', location.pathname + '?vista=prospeccion'); } catch (e) {}
+    if (P) pintar(); else MK.cargando(v, 'Cargando la prospección…');
+    cargar();
+  }
+  function cerrar() {
+    ON = false; document.body.classList.remove('pros-on');
+    try { if (MK.param('vista') === 'prospeccion') history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
+  function cargar(alListo) {
+    if (CARG) return; CARG = true;
+    MK.api('api_prosLista', MK.pin).then(function (r) {
+      CARG = false;
+      if (!r || !r.ok) { if (ON) MK.error('v-pros', (r && r.error) || 'No se pudo cargar la prospección.'); return; }
+      P = r; contar(); if (ON) pintar(); if (alListo) alListo();
+    }, function (e) { CARG = false; if (ON && !P) MK.error('v-pros', 'Sin conexión: ' + e.message); });
+  }
+
+  /* ── la pantalla ── */
+  function lista() {
+    var q = F.q.toLowerCase();
+    return P.prospectos.filter(function (p) {
+      if (!enEstado(p, F.est)) return false;
+      if (F.tipo && p.tipo !== F.tipo) return false;
+      if (F.dia && (F.dia === '—' ? p.rutaDia : p.rutaDia !== F.dia)) return false;
+      if (q && (p.nombre + ' ' + p.direccion + ' ' + p.zona + ' ' + p.tipoN + ' ' + p.cercaDe).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+  /* por ruta con holgura: primero el día con más tiempo libre; dentro, el mejor calificado */
+  function ordenar(l) {
+    var orden = {}; (P.dias || []).forEach(function (d, i) { orden[d.dia] = i; });
+    return l.slice().sort(function (a, b) {
+      var x = a.rutaDia && orden[a.rutaDia] != null ? orden[a.rutaDia] : a.rutaDia ? 50 : 99, y = b.rutaDia && orden[b.rutaDia] != null ? orden[b.rutaDia] : b.rutaDia ? 50 : 99;
+      return x - y || puntos(b) - puntos(a) || (a.metros == null ? 1e9 : a.metros) - (b.metros == null ? 1e9 : b.metros);
+    });
+  }
+  function pintar() {
+    var v = $('v-pros'); if (!v || !P) return;
+    var R = P.resumen || {}, g = P.google || {}, sv = soloVer();
+    var cuenta = function (e) { return P.prospectos.filter(function (p) { return enEstado(p, e); }).length; };
+    var h = '<div class="pr-ph"><div><h2>Prospección</h2><p>Establecimientos que todavía no conocen a ECOVSA, ordenados por la ruta que ya pasa cerca. Usted les escribe: el sistema nunca envía solo.</p></div><span class="sp"></span>' +
+      (sv ? '' : '<button class="btn" data-pr="lista">' + SV('subir') + '<span class="tx"> Cargar una lista</span></button>' +
+        (P.ia ? '<button class="btn" data-pr="ia">' + SV('estrella') + '<span class="tx"> Calificar con la IA</span></button>' : '') +
+        '<button class="btn pri" data-pr="google"' + (g.conectado ? '' : ' disabled title="Google no está conectado"') + '>' + SV('buscar') + '<span class="tx"> Buscar cerca de las rutas</span></button>') + '</div>';
+    h += '<div class="tot"><button data-est="porContactar" class="' + (F.est === 'porContactar' ? 'on' : '') + '"><b>' + cuenta('porContactar') + '</b><span>por contactar</span></button>' +
+      '<button data-est="segunda" class="' + (F.est === 'segunda' ? 'on' : '') + '"><b class="' + (cuenta('segunda') ? 'am' : '') + '">' + cuenta('segunda') + '</b><span>les toca la segunda</span></button>' +
+      '<button data-est="tocados" class="' + (F.est === 'tocados' ? 'on' : '') + '"><b>' + (R.tocados || 0) + '</b><span>esperando respuesta</span></button>' +
+      '<button data-est="convertido" class="' + (F.est === 'convertido' ? 'on' : '') + '"><b>' + (R.convertidos || 0) + '</b><span>pasaron a oportunidad</span></button>' +
+      '<div><b>' + (g.usadas || 0) + ' <small class="muted" style="font-size:12px;font-weight:600">de ' + (g.tope || 0) + '</small></b><span>búsquedas de Google hoy</span></div></div>';
+    /* los días de ruta: dónde sobra tiempo */
+    var dias = P.dias || [];
+    h += '<div class="fc-t"><b>Las rutas que vienen</b> · toque un día para ver a quién le queda</div><div class="fc pr-dias">' + (dias.length ? dias.map(function (d) {
+      var n = P.prospectos.filter(function (p) { return p.rutaDia === d.dia && enEstado(p, F.est === 'todos' ? 'todos' : F.est); }).length;
+      var hol = d.holgura == null ? '' : d.holgura > 0 ? 'le sobran ' + d.holgura + ' min' : 'va llena';
+      return '<button data-dia="' + esc(d.dia) + '" class="' + (F.dia === d.dia ? 'on' : '') + '"><small>' + esc(d.dia.charAt(0).toUpperCase() + d.dia.slice(1)) + ' · ' + esc(d.conductores.join(', ') || 'sin conductor') + '</small>' +
+        '<b>' + n + '</b><small class="' + (d.holgura != null && d.holgura <= 0 ? 'pas' : '') + '">' + esc(hol) + (d.zonas.length ? ' · ' + esc(d.zonas.join(', ')) : '') + '</small></button>';
+    }).join('') + '<button data-dia="—" class="' + (F.dia === '—' ? 'on' : '') + '"><small>Sin ruta cerca</small><b>' + P.prospectos.filter(function (p) { return !p.rutaDia && enEstado(p, F.est); }).length + '</b><small>más de 5 km o sin ubicación</small></button>'
+      : '<div class="vac">No hay rutas programadas en las próximas tres semanas: la lista no se puede ordenar por ruta.</div>') + '</div>';
+    h += '<div class="fb"><div class="fb-q">' + SV('buscar') + '<input id="pr-q" placeholder="Nombre, dirección, zona…" value="' + esc(F.q) + '" aria-label="Buscar"></div>' +
+      '<select class="sel' + (F.tipo ? ' on' : '') + '" id="pr-tipo" aria-label="Tipo"><option value="">Tipo</option>' + Object.keys(P.tipos).map(function (k) { return '<option value="' + k + '"' + (F.tipo === k ? ' selected' : '') + '>' + esc(P.tipos[k]) + '</option>'; }).join('') + '</select>' +
+      '<select class="sel' + (F.est !== 'porContactar' ? ' on' : '') + '" id="pr-est" aria-label="Estado">' + Object.keys(EST).map(function (k) { return '<option value="' + k + '"' + (F.est === k ? ' selected' : '') + '>' + esc(EST[k]) + ' (' + cuenta(k) + ')</option>'; }).join('') + '</select>' +
+      ((F.q || F.tipo || F.dia || F.est !== 'porContactar') ? '<button class="btn sm gh" data-pr="limpiar">Limpiar</button>' : '') + '</div>';
+    var L = ordenar(lista());
+    if (!P.prospectos.length) {
+      h += '<div class="card pr-vacio">' + SV('edificio', 28) + '<b>Todavía no hay establecimientos cargados</b><p class="muted">Toque «Buscar cerca de las rutas» para que Google traiga las clínicas, odontologías, laboratorios, veterinarias y farmacias que están cerca de las paradas de nuestros camiones, o cargue una lista (Excel o el listado del MINSA).</p></div>';
+    } else if (!L.length) h += '<div class="card">' + MK.vacio('Nada en este grupo.') + '</div>';
+    else {
+      var g0 = null;
+      h += '<div class="pr-l">' + L.map(function (p) {
+        var cab = '';
+        var gk = p.rutaDia || '—';
+        if (gk !== g0) { g0 = gk; var d = dias.filter(function (z) { return z.dia === p.rutaDia; })[0];
+          cab = '<div class="pr-g">' + SV(p.rutaDia ? 'camion' : 'alerta', 14) + ' ' + (p.rutaDia ? 'Ruta del ' + esc(p.rutaDia) + (d && d.holgura != null ? ' · ' + (d.holgura > 0 ? 'le sobran ' + d.holgura + ' min' : 'va llena') : '') : 'Sin ruta cerca') + '</div>'; }
+        var toc = p.tocadas.length, pu = puntos(p);
+        var est = p.estado === 'convertido' ? '<span class="tag t-ok">En oportunidades</span>' : p.estado === 'descartado' ? '<span class="tag t-gris">Descartado</span>' : p.estado === 'nocontactar' ? '<span class="tag t-bad">No contactar</span>'
+          : p.estado === 'vencido' ? '<span class="tag t-gris">Vencido</span>' : toc ? (puedeTocar(p) ? '<span class="tag t-warn">Toca la segunda</span>' : '<span class="tag t-info">' + toc + ' de ' + P.maxTocadas + (p.proximaDesde ? ' · otra desde ' + esc(MK.fechaCorta(p.proximaDesde)) : '') + '</span>') : '<span class="tag t-gris">Sin tocar</span>';
+        return cab + '<button class="pr-it' + (SEL === p.prosId ? ' sel' : '') + '" data-ver="' + esc(p.prosId) + '">' +
+          '<span class="pr-pt" title="' + (p.iaPuntaje != null ? 'Calificación de la IA' : 'Calificación por reglas') + '"><b>' + pu + '</b>' + (p.iaPuntaje != null ? '<i>IA</i>' : '') + '</span>' +
+          '<span class="pr-tx"><b>' + esc(p.nombre) + '</b><small>' + esc(p.tipoN) + (p.zona ? ' · ' + esc(p.zona) : '') + (p.metros != null ? ' · ' + dist(p.metros) + ' de ' + esc(p.cercaDe) : ' · sin ubicación') + '</small>' +
+          '<small class="pr-rz">' + esc(p.iaRazon || p.razon) + '</small></span>' +
+          '<span class="pr-de">' + est + '<small>' + (tel(p.telefono) ? SV(esCel(p.telefono) ? 'whatsapp' : 'telefono', 13) + ' ' + esc(telTxt(p.telefono)) : 'sin teléfono') + '</small></span></button>';
+      }).join('') + '</div>';
+    }
+    h += '<p class="small muted pr-pie">Solo datos del establecimiento (Ley 81): nunca de personas. Lo que viene de Google vence a los 30 días si nadie lo contactó.</p>';
+    v.innerHTML = h;
+  }
+
+  /* ── la ficha (panel al lado) ── */
+  function ficha(id) {
+    var p = porId(id); if (!p) return; SEL = id; pintar();
+    var sv = soloVer(), n = p.tocadas.length + 1, puede = puedeTocar(p), b = (P.borradores || {})[id] || '';
+    var h = '<div class="pr-f"><span class="tag t-gris">' + esc(p.tipoN) + '</span><h2>' + esc(p.nombre) + '</h2><p class="muted small">' + esc(p.direccion || 'Sin dirección') + (p.zona ? ' · ' + esc(p.zona) : '') + '</p>' +
+      '<div class="pr-k"><div><small>Ruta</small><b>' + (p.rutaDia ? 'Del ' + esc(p.rutaDia) : 'Ninguna cerca') + '</b><small>' + (p.conductor ? esc(p.conductor) : '') + (p.rutaFecha ? ' · próxima ' + esc(MK.fechaCorta(p.rutaFecha)) : '') + '</small></div>' +
+      '<div><small>Distancia</small><b>' + (p.metros != null ? dist(p.metros) : '—') + '</b><small>' + (p.cercaDe ? 'de ' + esc(p.cercaDe) : 'sin ubicación') + '</small></div>' +
+      '<div><small>Holgura</small><b>' + (p.holgura == null || !p.rutaDia ? '—' : p.holgura > 0 ? p.holgura + ' min' : 'Llena') + '</b><small>tiempo libre de esa ruta</small></div>' +
+      '<div><small>Calificación</small><b>' + puntos(p) + '</b><small>' + (p.iaPuntaje != null ? 'de la IA' : 'por reglas') + '</small></div></div>' +
+      '<div class="aviso az small">' + esc(p.iaRazon || p.razon) + (p.iaRazon && p.razon ? '<br><span class="muted">Reglas: ' + esc(p.razon) + '</span>' : '') + '</div>';
+    h += '<label class="lb">TELÉFONO DEL ESTABLECIMIENTO</label><div class="pr-tel">' + (tel(p.telefono) ? '<b>' + esc(telTxt(p.telefono)) + '</b> <span class="muted small">' + (esCel(p.telefono) ? 'celular · WhatsApp' : 'fijo · mejor llamar') + '</span>' : '<span class="muted">Sin teléfono</span>') +
+      (sv ? '' : ' <button class="btn sm gh" data-pr="editar">' + SV('lapiz', 13) + ' Corregir</button>') + '</div>';
+    if (!sv && !(p.lat && p.lng) && ['nuevo', 'tocado'].indexOf(p.estado) >= 0)
+      h += '<div class="aviso am small" style="margin-top:10px">Llegó sin ubicación: no sabemos qué ruta le queda. <button class="btn sm" data-pr="ubicar">' + SV('buscar', 13) + ' Ubicar con Google</button></div>';
+    if (['nuevo', 'tocado'].indexOf(p.estado) >= 0 && !sv) {
+      if (puede) {
+        h += '<label class="lb">' + (n === 1 ? 'PRIMER CONTACTO' : 'SEGUNDA Y ÚLTIMA TOCADA') + ' · borrador que usted revisa</label>' +
+          '<textarea class="in" id="pr-bor" rows="8">' + esc(b) + '</textarea>' +
+          (P.ia ? '<button class="btn sm gh" data-pr="mejorar" style="margin-top:6px">' + SV('estrella', 13) + ' Adaptarlo con la IA</button>' : '') +
+          '<div class="pie pr-acc">' + (esCel(p.telefono) ? '<button class="btn pri" data-pr="whatsapp">' + SV('whatsapp') + ' Abrir WhatsApp</button>' : '') +
+          (tel(p.telefono) ? '<button class="btn" data-pr="llame">' + SV('telefono') + ' Llamé</button>' : '') + '</div>' +
+          '<p class="small muted">La tocada se anota solo cuando usted confirma que la envió. ' + (n === 1 ? 'Si no responde, la segunda se puede desde 15 días después.' : 'Es la última: después no se le insiste más.') + '</p>';
+      } else if (p.estado === 'tocado') h += '<div class="aviso small" style="margin-top:12px">' + (p.tocadas.length >= P.maxTocadas ? 'Ya se le escribió ' + P.maxTocadas + ' veces: no se le insiste más. Si responde, páselo a Oportunidades.' : 'La segunda tocada se puede desde el ' + esc(MK.fechaLarga(p.proximaDesde)) + '.') + '</div>';
+      h += '<div class="pie pr-fin"><button class="btn sm" data-pr="convertir">' + SV('flecha', 13) + ' Le interesa: pasar a Oportunidades</button><button class="btn sm" data-pr="descartar">' + SV('x', 13) + ' Descartar</button>' +
+        '<button class="btn sm bad" data-pr="nocontactar">' + SV('candado', 13) + ' No contactar</button></div>';
+    } else if (p.estado === 'convertido') h += '<div class="aviso vd" style="margin-top:12px">Está en Oportunidades. <a href="MerOportunidad.html?id=' + encodeURIComponent(p.codigoPropuesta) + '">Abrir ' + esc(p.codigoPropuesta) + '</a></div>';
+    else if (p.estado === 'descartado') h += '<div class="aviso" style="margin-top:12px">Descartado: ' + esc(p.motivo) + (sv ? '' : ' <button class="btn sm gh" data-pr="reabrir">Volver a la lista</button>') + '</div>';
+    else if (p.estado === 'nocontactar') h += '<div class="aviso rj" style="margin-top:12px">Pidió que no le escribamos. No se le contacta más.</div>';
+    else if (p.estado === 'vencido') h += '<div class="aviso" style="margin-top:12px">Los datos de Google vencieron (30 días sin contacto). Vuelve si una búsqueda lo trae de nuevo.</div>';
+    if (p.nota) h += '<label class="lb">NOTA INTERNA</label><p class="small">' + esc(p.nota) + '</p>';
+    h += '<label class="lb">LO QUE HA PASADO</label><ul class="pr-hist"><li><span>' + esc(MK.fechaCorta(p.cargadoEn)) + '</span> Cargado desde ' + esc({ google: 'Google', minsa: 'el listado del MINSA', lista: 'una lista' }[p.fuente] || p.fuente) + (p.fuenteDet ? ' (' + esc(p.fuenteDet) + ')' : '') + (p.cargadoPor ? ' por ' + esc(p.cargadoPor.split(' ')[0]) : '') + '</li>' +
+      p.tocadas.map(function (t) { return '<li><span>' + esc(MK.fechaCorta(String(t.en).slice(0, 10))) + '</span> ' + (t.n === 1 ? 'Primera' : 'Segunda') + ' tocada por ' + (t.canal === 'llamada' ? 'llamada' : 'WhatsApp') + ' · ' + esc(String(t.por || '').split(' ')[0]) + (t.nota ? ' · ' + esc(t.nota) : '') + '</li>'; }).join('') +
+      (p.estado === 'descartado' || p.estado === 'nocontactar' || p.estado === 'convertido' ? '<li><span>' + esc(MK.fechaCorta(String(p.actualizadoEn).slice(0, 10))) + '</span> ' + esc(p.estado === 'convertido' ? 'Pasó a Oportunidades (' + p.codigoPropuesta + ')' : p.motivo) + '</li>' : '') + '</ul></div>';
+    var l = MK.lado(h); l.setAttribute('data-pros-id', id);
+  }
+  function enLado() { var l = $('mk-lado'); return l && l.classList.contains('si') ? l.getAttribute('data-pros-id') : ''; }
+  function recargarFicha(id) { cargar(function () { if (id && enLado() === id) ficha(id); }); }
+
+  /* ── enviar: abre WhatsApp y pregunta ── */
+  function whatsapp(id) {
+    var p = porId(id), t = ($('pr-bor') || {}).value || '';
+    if (!t.trim()) { MK.aviso('Escriba el mensaje.'); return; }
+    window.open('https://wa.me/507' + tel(p.telefono) + '?text=' + encodeURIComponent(t), '_blank');
+    MK.hoja('<h2>¿Lo envió?</h2><p class="muted" style="margin-top:6px">Se abrió WhatsApp con el mensaje para ' + esc(p.nombre) + '. La tocada se anota solo si usted lo envió.</p>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Todavía no</button><button class="btn pri" id="pr-envie">' + SV('check') + ' Sí, lo envié</button></div>');
+    $('pr-envie').onclick = function () { tocada(id, 'whatsapp', t, '', this); };
+  }
+  function llame(id) {
+    var p = porId(id);
+    MK.hoja('<h2>Llamada a ' + esc(p.nombre) + '</h2><label class="lb" for="pr-ln">¿QUÉ DIJERON? <span class="muted">(opcional)</span></label><input class="in" id="pr-ln" placeholder="Ej. que llame el lunes la administradora" autofocus>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-lok">Anotar la llamada</button></div>');
+    $('pr-lok').onclick = function () { tocada(id, 'llamada', '', $('pr-ln').value, this); };
+  }
+  function tocada(id, canal, texto, nota, btn) {
+    MK.ocupado(btn, true);
+    MK.api('api_prosTocada', MK.pin, id, { canal: canal, texto: texto, nota: nota }).then(function (r) {
+      MK.ocupado(btn, false);
+      if (!r || !r.ok) { MK.cerrarHoja(); MK.aviso((r && r.error) || 'No se pudo anotar.'); return; }
+      MK.cerrarHoja(); MK.aviso(r.proximaDesde ? 'Anotada. La segunda se puede desde el ' + MK.fechaCorta(r.proximaDesde) + '.' : 'Anotada. Era la última tocada.');
+      recargarFicha(id);
+    }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+  function mejorar(id, btn) {
+    MK.ocupado(btn, true, 'Pensando…');
+    MK.api('api_prosBorradorIA', MK.pin, id).then(function (r) {
+      MK.ocupado(btn, false);
+      var t = r && r.ok && r.texto; if (t && typeof t === 'object') t = t.ok ? t.texto : (MK.aviso(t.error || 'La IA no respondió.'), '');
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'La IA no respondió.'); return; }
+      if (t && $('pr-bor')) { $('pr-bor').value = t; MK.aviso('Borrador adaptado: revíselo antes de enviar.'); }
+    }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+  function convertir(id) {
+    var p = porId(id);
+    MK.hoja('<h2>Pasar a Oportunidades</h2><p class="muted small">' + esc(p.nombre) + ' entra al embudo como «Registrado», con fuente «Prospección» y la tarea de la evaluación sin costo.</p>' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="pr-cc">CONTACTO <span class="muted">(si lo dio)</span></label><input class="in" id="pr-cc" placeholder="Nombre de quien atiende"></div>' +
+      '<div><label class="lb" for="pr-cg">CARGO</label><input class="in" id="pr-cg" placeholder="Administradora"></div></div>' +
+      '<label class="lb" for="pr-cf">EVALUACIÓN SIN COSTO</label><input class="in" type="date" id="pr-cf" value="' + esc(p.rutaFecha && p.rutaFecha > hoy() ? p.rutaFecha : MK.masDias(hoy(), 2)) + '">' +
+      (p.rutaDia ? '<p class="small muted" style="margin-top:4px">El camión pasa por ahí el ' + esc(p.rutaDia) + (p.rutaFecha ? ' (' + esc(MK.fechaCorta(p.rutaFecha)) + ')' : '') + '.</p>' : '') +
+      '<label class="lb" for="pr-cn">NOTA</label><input class="in" id="pr-cn" placeholder="Lo que dijo, lo que necesita">' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-cok">Pasar a Oportunidades</button></div>');
+    $('pr-cok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.api('api_prosConvertir', MK.pin, id, { contacto: $('pr-cc').value, cargo: $('pr-cg').value, fecha: $('pr-cf').value, nota: $('pr-cn').value }).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+        MK.cerrarHoja(); MK.cerrarLado(); MK.cambio({ tipo: 'captura', codigo: r.codigoPropuesta });
+        MK.hoja('<h2>Ya está en Oportunidades</h2><p class="muted" style="margin-top:6px">' + esc(p.nombre) + ' quedó como «Registrado» (' + esc(r.codigoPropuesta) + ')' + (r.tarea ? ', con la evaluación sin costo para el ' + esc(MK.fechaCorta(r.tarea.fecha)) : '') + '.</p>' +
+          '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir en Prospección</button><button class="btn pri" onclick="MK.irOportunidad(\'' + esc(r.codigoPropuesta) + '\')">Abrir la oportunidad</button></div>');
+        cargar();
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+    };
+  }
+  function descartar(id) {
+    var p = porId(id);
+    MK.hoja('<h2>Descartar</h2><p class="muted small">' + esc(p.nombre) + ' sale de la lista. Se puede volver si fue un error.</p><label class="lb">¿POR QUÉ?</label>' + MK.chips('motivo', P.motivos, '') +
+      '<label class="lb" for="pr-dn">NOTA <span class="muted">(opcional)</span></label><input class="in" id="pr-dn">' +
+      '<div id="pr-dm" class="small" style="color:var(--bad);margin-top:6px"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-dok">Descartar</button></div>');
+    var hj = document.querySelector('#hoja .cuerpo'); MK.activarChips(hj);
+    $('pr-dok').onclick = function () {
+      var m = MK.valorChips(hj, 'motivo'); if (!m) { $('pr-dm').textContent = 'Elija el motivo.'; return; }
+      var b = this; MK.ocupado(b, true);
+      MK.api('api_prosDescartar', MK.pin, id, m, $('pr-dn').value).then(function (r) {
+        MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+        MK.cerrarHoja(); MK.cerrarLado(); MK.aviso('Descartado.'); cargar();
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+    };
+  }
+  function noContactar(id) {
+    var p = porId(id);
+    MK.hoja('<h2>No contactar</h2><p class="muted" style="margin-top:6px">' + esc(p.nombre) + ' pidió que no le escribamos. No vuelve a la lista aunque una búsqueda lo traiga de nuevo, y no se puede deshacer desde aquí.</p>' +
+      '<label class="lb" for="pr-nn">NOTA <span class="muted">(opcional)</span></label><input class="in" id="pr-nn">' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="pr-nok">No contactar más</button></div>');
+    $('pr-nok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.api('api_prosNoContactar', MK.pin, id, $('pr-nn').value).then(function (r) {
+        MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+        MK.cerrarHoja(); MK.cerrarLado(); MK.aviso('Anotado: no se le contacta más.'); cargar();
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+    };
+  }
+  function editar(id) {
+    var p = porId(id);
+    MK.hoja('<h2>Corregir datos</h2><p class="muted small">Solo datos del establecimiento.</p>' +
+      '<label class="lb" for="pr-et">TELÉFONO</label><input class="in" id="pr-et" inputmode="tel" value="' + esc(telTxt(p.telefono)) + '">' +
+      '<label class="lb" for="pr-ey">TIPO</label><select class="in" id="pr-ey">' + Object.keys(P.tipos).map(function (k) { return '<option value="' + k + '"' + (p.tipo === k ? ' selected' : '') + '>' + esc(P.tipos[k]) + '</option>'; }).join('') + '</select>' +
+      '<label class="lb" for="pr-ed">DIRECCIÓN</label><input class="in" id="pr-ed" value="' + esc(p.direccion) + '">' +
+      '<label class="lb" for="pr-en">NOTA INTERNA</label><input class="in" id="pr-en" value="' + esc(p.nota) + '">' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-eok">Guardar</button></div>');
+    $('pr-eok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.api('api_prosEditar', MK.pin, id, { telefono: $('pr-et').value, tipo: $('pr-ey').value, direccion: $('pr-ed').value, nota: $('pr-en').value }).then(function (r) {
+        MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+        MK.cerrarHoja(); MK.aviso('Guardado.'); recargarFicha(id);
+      }, function (e) { MK.ocupado(b, false); MK.aviso('Sin conexión: ' + e.message); });
+    };
+  }
+  function ubicar(id, btn) {
+    MK.ocupado(btn, true, 'Buscando…');
+    MK.api('api_prosUbicar', MK.pin, id).then(function (r) {
+      MK.ocupado(btn, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; }
+      if (!r.conectado) { MK.aviso('Google no está conectado en el servidor.'); return; }
+      if (r.topeLleno) { MK.aviso(r.aviso); return; }
+      var C = Array.isArray(r.candidatos) ? r.candidatos : [];
+      if (!C.length) { MK.aviso('Google no lo encontró. Corrija la dirección y pruebe otra vez.'); return; }
+      MK.hoja('<h2>¿Es este?</h2><p class="muted small">Elija el que corresponde. Se guarda su ubicación para saber qué ruta le queda.</p><div class="pr-cand">' + C.map(function (c, i) {
+        return '<button class="pr-it" data-c="' + i + '"><span class="pr-tx"><b>' + esc(c.nombre) + '</b><small>' + esc(c.direccion) + (c.telefono ? ' · ' + esc(c.telefono) : '') + '</small></span></button>'; }).join('') +
+        '</div><p class="small muted" style="margin-top:8px">Datos de Google.</p><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Ninguno</button></div>');
+      [].forEach.call(document.querySelectorAll('#hoja [data-c]'), function (b) {
+        b.onclick = function () { var c = C[Number(b.getAttribute('data-c'))];
+          MK.api('api_prosPonerUbicacion', MK.pin, id, { lat: c.lat, lng: c.lng, placeId: c.placeId, telefono: c.telefono }).then(function (x) {
+            if (!x || !x.ok) { MK.aviso((x && x.error) || 'No se pudo.'); return; }
+            MK.cerrarHoja(); MK.aviso(x.ruta && x.ruta.rutaDia ? 'Ubicado: le queda la ruta del ' + x.ruta.rutaDia + '.' : 'Ubicado. No hay ruta cerca.'); recargarFicha(id);
+          }, function (e) { MK.aviso('Sin conexión: ' + e.message); }); };
+      });
+    }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+
+  /* ── cargar: Google cerca de las rutas ── */
+  function hojaGoogle() {
+    var g = P.google || {}, libres = Math.max(0, (g.tope || 0) - (g.usadas || 0));
+    MK.hoja('<h2>Buscar cerca de las rutas</h2><p class="muted small">Google trae las clínicas, odontologías, laboratorios, veterinarias y farmacias que están a menos de 1.5 km de las paradas de nuestras rutas. ' +
+      'Se cruzan solos contra la cartera, Oportunidades y lo ya cargado. Cada punto de búsqueda cuenta: hoy quedan ' + libres + ' de ' + (g.tope || 0) + '. Un mismo lugar no se vuelve a buscar en 30 días.</p>' +
+      '<label class="lb">¿ALREDEDOR DE QUÉ RUTAS?</label>' + MK.chips('dia', [['', 'Todas']].concat((P.dias || []).map(function (d) { return [d.dia, 'Las del ' + d.dia]; })), F.dia && F.dia !== '—' ? F.dia : '') +
+      '<div id="pr-gm" class="small" style="margin-top:10px"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-gok"' + (libres ? '' : ' disabled') + '>' + SV('buscar') + ' Buscar (hasta ' + Math.min(g.porVez || 8, libres) + ' puntos)</button></div>');
+    var hj = document.querySelector('#hoja .cuerpo'); MK.activarChips(hj);
+    $('pr-gok').onclick = function () {
+      var b = this, msg = $('pr-gm'); MK.ocupado(b, true, 'Buscando en Google…');
+      MK.api('api_prosBuscarGoogle', MK.pin, { dia: MK.valorChips(hj, 'dia') }).then(function (r) {
+        if (!r || !r.ok) { MK.ocupado(b, false); msg.textContent = (r && r.error) || 'No se pudo.'; return; }
+        if (!r.conectado || r.topeLleno || !r.anclas) { MK.ocupado(b, false); msg.textContent = r.aviso || r.error || 'Google no está conectado.'; return; }
+        var filas = [], errores = 0;
+        (r.resultados || []).forEach(function (x) { if (Array.isArray(x)) filas = filas.concat(x); else errores++; });
+        if (!filas.length) { MK.ocupado(b, false); msg.textContent = errores ? 'Google no respondió. Intente más tarde.' : 'Google no encontró nada nuevo cerca de esas paradas.'; return; }
+        MK.ocupado(b, true, 'Cruzando con la cartera…');
+        MK.api('api_prosCargar', MK.pin, { fuente: 'google', detalle: 'Cerca de ' + r.anclas + ' parada' + (r.anclas === 1 ? '' : 's'), filas: filas }).then(function (c) {
+          MK.ocupado(b, false); resultado(c, r.quedan);
+        }, function (e) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: ' + e.message; });
+      }, function (e) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  function resultado(c, quedan) {
+    if (!c || !c.ok) { MK.aviso((c && c.error) || 'No se pudo cargar.'); return; }
+    var li = function (n, t) { return n ? '<li><b>' + n + '</b> ' + t + '</li>' : ''; };
+    MK.hoja('<h2>' + (c.nuevos + (c.revividos || 0) ? (c.nuevos + (c.revividos || 0)) + ' por descubrir' : 'Nada nuevo') + '</h2><ul class="pr-res">' +
+      li(c.nuevos, c.nuevos === 1 ? 'establecimiento nuevo en la lista' : 'establecimientos nuevos en la lista') + li(c.revividos, 'volvieron con datos nuevos') +
+      li(c.yaClientes.length, 'ya son clientes' + (c.yaClientes.length ? ': ' + esc(c.yaClientes.slice(0, 5).join(', ')) + (c.yaClientes.length > 5 ? '…' : '') : '')) +
+      li(c.yaProspectos.length, 'ya están en Oportunidades' + (c.yaProspectos.length ? ': ' + esc(c.yaProspectos.slice(0, 5).join(', ')) : '')) +
+      li(c.repetidos, 'ya estaban cargados') + li(c.fueraDeTipo, 'no son de peligrosos (hoteles, restaurantes…) o no se supo el tipo') + li(c.cerrados, 'cerraron') + li(c.sinNombre, 'sin nombre') + '</ul>' +
+      (quedan ? '<p class="small muted">Quedan ' + quedan + ' puntos de ruta sin buscar: se pueden buscar otro día.</p>' : '') +
+      '<div class="pie"><button class="btn pri" onclick="MK.cerrarHoja()">Ver la lista</button></div>');
+    F.est = 'porContactar'; cargar();
+  }
+  /* ── cargar: una lista (Excel, CSV o el MINSA) ── */
+  function partir(txt) {
+    var lin = String(txt || '').replace(/\r/g, '').split('\n').filter(function (l) { return l.trim(); }); if (!lin.length) return [];
+    var sep = lin[0].indexOf('\t') >= 0 ? '\t' : (lin[0].split(';').length > lin[0].split(',').length ? ';' : ',');
+    var cel = function (l) { var o = [], c = '', q = false; for (var i = 0; i < l.length; i++) { var ch = l[i]; if (ch === '"') { if (q && l[i + 1] === '"') { c += '"'; i++; } else q = !q; } else if (ch === sep && !q) { o.push(c); c = ''; } else c += ch; } o.push(c); return o.map(function (x) { return x.trim(); }); };
+    var cab = cel(lin[0]).map(function (x) { return x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); });
+    var idx = function (re) { for (var i = 0; i < cab.length; i++) if (re.test(cab[i])) return i; return -1; };
+    var iN = idx(/nombre|establec|razon|empresa/), iT = idx(/tipo|categ|giro/), iD = idx(/direcc|ubicac|domicil/), iF = idx(/tel|celu|movil/), iLa = idx(/^lat/), iLo = idx(/^(lng|lon)/), iZ = idx(/zona|region|distrito/);
+    var conCab = iN >= 0;
+    if (!conCab) { iN = 0; iT = 1; iD = 2; iF = 3; iLa = 4; iLo = 5; }
+    return lin.slice(conCab ? 1 : 0).map(cel).map(function (c) {
+      var t = String(c[iT] || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      var tipo = /odont|dental/.test(t) ? 'odontologia' : /veterin/.test(t) ? 'veterinaria' : /laborat/.test(t) ? 'laboratorio' : /farmac/.test(t) ? 'farmacia' : /clinic|consult|medic|policl|hospital/.test(t) ? 'clinica' : (c[iT] || '');
+      return { nombre: c[iN] || '', tipo: tipo, direccion: iD >= 0 ? c[iD] || '' : '', telefono: iF >= 0 ? c[iF] || '' : '', lat: iLa >= 0 ? Number(String(c[iLa]).replace(',', '.')) : '', lng: iLo >= 0 ? Number(String(c[iLo]).replace(',', '.')) : '', zona: iZ >= 0 ? c[iZ] || '' : '' };
+    }).filter(function (f) { return f.nombre; });
+  }
+  function hojaLista() {
+    MK.hoja('<h2>Cargar una lista</h2><p class="muted small">Copie las filas desde Excel y péguelas aquí, o suba un archivo CSV. Columnas: <b>nombre</b>, tipo, dirección, teléfono, lat, lng (las que tenga). Solo establecimientos de peligrosos; nada de datos de personas.</p>' +
+      '<label class="lb">¿DE DÓNDE VIENE?</label>' + MK.chips('fu', [['lista', 'Una lista propia'], ['minsa', 'Listado del MINSA']], 'lista') +
+      '<label class="lb" for="pr-ld">¿CUÁL LISTA? <span class="muted">(para saber de dónde salió)</span></label><input class="in" id="pr-ld" placeholder="Ej. Asociación odontológica 2026, levantado por el conductor">' +
+      '<label class="lb" for="pr-lt">LAS FILAS</label><textarea class="in mono" id="pr-lt" rows="7" placeholder="nombre\ttipo\tdirección\tteléfono"></textarea>' +
+      '<div style="margin-top:8px"><label class="btn sm">' + SV('subir', 13) + ' Subir un CSV<input type="file" id="pr-lf" accept=".csv,.txt,text/csv" hidden></label> <span id="pr-lc" class="small muted"></span></div>' +
+      '<div id="pr-lm" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="pr-lok">Cargar y cruzar</button></div>', { ancha: true });
+    var hj = document.querySelector('#hoja .cuerpo'); MK.activarChips(hj);
+    var ta = $('pr-lt'), cu = function () { var n = partir(ta.value).length; $('pr-lc').textContent = n ? n + ' fila' + (n === 1 ? '' : 's') + ' con nombre' : ''; };
+    ta.oninput = cu;
+    $('pr-lf').onchange = function () { var f = this.files && this.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { ta.value = String(rd.result || ''); cu(); }; rd.readAsText(f, 'utf-8'); };
+    $('pr-lok').onclick = function () {
+      var filas = partir(ta.value), b = this;
+      if (!filas.length) { $('pr-lm').textContent = 'Pegue las filas o suba el archivo.'; return; }
+      if (filas.length > 600) { $('pr-lm').textContent = 'Son ' + filas.length + ' filas: cargue hasta 600 por vez.'; return; }
+      MK.ocupado(b, true, 'Cruzando…');
+      MK.api('api_prosCargar', MK.pin, { fuente: MK.valorChips(hj, 'fu') || 'lista', detalle: $('pr-ld').value, filas: filas }).then(function (c) { MK.ocupado(b, false); resultado(c); },
+        function (e) { MK.ocupado(b, false); $('pr-lm').textContent = 'Sin conexión: ' + e.message; });
+    };
+  }
+  function calificarIA(btn) {
+    MK.ocupado(btn, true, 'La IA está calificando…');
+    MK.api('api_prosCalificarIA', MK.pin).then(function (r) {
+      if (!r || !r.ok) { MK.ocupado(btn, false); MK.aviso((r && r.error) || 'No se pudo.'); return; }
+      if (r.nada) { MK.ocupado(btn, false); MK.aviso(r.aviso); return; }
+      var t = r.respuesta || {}; if (!t.ok) { MK.ocupado(btn, false); MK.aviso(t.error || 'La IA no respondió.'); return; }
+      MK.api('api_prosGuardarIA', MK.pin, t.texto).then(function (g) {
+        MK.ocupado(btn, false);
+        if (!g || !g.ok) { MK.aviso((g && g.error) || 'No se pudo.'); return; }
+        MK.aviso('La IA calificó ' + g.calificados + '. Usted decide a quién escribir.'); cargar();
+      }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+    }, function (e) { MK.ocupado(btn, false); MK.aviso('Sin conexión: ' + e.message); });
+  }
+
+  /* ── eventos ── */
+  document.addEventListener('click', function (e) {
+    var t = e.target, b;
+    if (t.closest('#tabs [data-vista-b]')) { if (ON) { cerrar(); MK.cerrarLado(); } return; }
+    if (t.closest('#tabs [data-pros]')) { e.preventDefault(); abrir(); return; }
+    if (!ON) return;
+    var lado = t.closest('#mk-lado'), id = lado ? lado.getAttribute('data-pros-id') : '';
+    if ((b = t.closest('#v-pros [data-ver]'))) { ficha(b.getAttribute('data-ver')); return; }
+    if ((b = t.closest('#v-pros [data-est]'))) { F.est = b.getAttribute('data-est'); pintar(); return; }
+    if ((b = t.closest('#v-pros [data-dia]'))) { var d = b.getAttribute('data-dia'); F.dia = F.dia === d ? '' : d; pintar(); return; }
+    if ((b = t.closest('[data-pr]')) && (t.closest('#v-pros') || lado)) {
+      var a = b.getAttribute('data-pr');
+      if (a === 'google') hojaGoogle(); else if (a === 'lista') hojaLista(); else if (a === 'ia') calificarIA(b);
+      else if (a === 'limpiar') { F = { q: '', tipo: '', est: 'porContactar', dia: '' }; pintar(); }
+      else if (a === 'whatsapp') whatsapp(id); else if (a === 'llame') llame(id); else if (a === 'mejorar') mejorar(id, b);
+      else if (a === 'convertir') convertir(id); else if (a === 'descartar') descartar(id); else if (a === 'nocontactar') noContactar(id);
+      else if (a === 'editar') editar(id); else if (a === 'ubicar') ubicar(id, b);
+      else if (a === 'reabrir') MK.api('api_prosReabrir', MK.pin, id).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo.'); return; } MK.aviso('De vuelta en la lista.'); recargarFicha(id); });
+    }
+  }, true);
+  var tq = null;
+  document.addEventListener('input', function (e) {
+    if (!ON) return;
+    if (e.target.id === 'pr-q') { clearTimeout(tq); var v = e.target.value; tq = setTimeout(function () { F.q = v; pintar(); var i = $('pr-q'); if (i) { i.focus(); i.setSelectionRange(v.length, v.length); } }, 250); }
+  });
+  document.addEventListener('change', function (e) {
+    if (!ON) return;
+    if (e.target.id === 'pr-tipo') { F.tipo = e.target.value; pintar(); }
+    if (e.target.id === 'pr-est') { F.est = e.target.value; pintar(); }
+  });
+  /* la pestaña aparece cada vez que Oportunidades repinta sus pestañas */
+  var arranque = setInterval(function () {
+    var t = $('tabs'); if (!t) return;
+    clearInterval(arranque);
+    new MutationObserver(function () { ponerPestana(); }).observe(t, { childList: true });
+    ponerPestana();
+    if (MK.param('vista') === 'prospeccion') abrir(); else cargar();
+  }, 150);
+  window.addEventListener('mk:cambio', function () { if (P) cargar(); });
 })();
 </script>
 </body>
