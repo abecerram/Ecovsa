@@ -799,13 +799,12 @@
         mk.addTo(g); D._mk[i].push(mk);
         if (p.gps && p.gps[0]) {
           L.circleMarker(p.gps, { radius: 5, color: '#8A6300', fillColor: '#F5B301', fillOpacity: 1, weight: 1 }).addTo(g);
-          if (p.lejos) L.polyline([ll, p.gps], { color: '#d64045', weight: 2, dashArray: '5 5' }).addTo(g);
         }
       });
       if (h.patioInfo && h.patioInfo.lat) { var pl0 = [h.patioInfo.lat, h.patioInfo.lng]; L.marker(pl0, { icon: L.divIcon({ className: '', html: '<div class="sv-num" style="background:#F5B301;color:#0f2140;border-radius:7px">P</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).bindPopup('<b>' + e(h.patio) + '</b><br>Salida y regreso · ' + e(h.nombre || h.hojaId)).addTo(g); linea.unshift(pl0); }   /* api 3.28 */
       var dl = llDe(h.destinoInfo); if (dl) { L.marker(dl, { icon: pinDP('D', '#0f2140', '#fff') }).bindPopup('<b>' + e(h.destinoInfo.nombre) + '</b><br>Descarga · ' + e(h.nombre || h.hojaId)).addTo(g); linea.push(dl); }   /* api 3.28.1 · circuito */
       if (h.patioInfo && h.patioInfo.lat && linea.length) linea.push([h.patioInfo.lat, h.patioInfo.lng]);
-      if (linea.length > 1) L.polyline(linea, { color: col, weight: 3, opacity: .7 }).addTo(g);
+      if (linea.length > 1) window.G47 && G47.linea(g, linea, { color: col, weight: 3.5, opacity: .8 });
     });
     D.dia.candidatos.forEach(function (p) { var mk = null; if (p.lat) { mk = L.circleMarker([p.lat, p.lng], { radius: 6, color: '#868e96', fillColor: '#adb5bd', fillOpacity: .9, weight: 1 }).bindPopup('<b>' + e(p.nombre) + '</b><br>Le toca y no está en ninguna hoja'); mk.addTo(D._cand); } D._candMk.push(mk); });
     capasMapa(true);
@@ -2087,10 +2086,10 @@
       var DL = llDe(h.destinoInfo), descargo = (h.viajes || []).length > 0 && s < 0 && !h.sinTicket;   /* api 3.28.1 · circuito */
       if (DL) { L.marker(DL, { icon: pinDP('D', '#0f2140', '#fff') }).addTo(m).bindTooltip(e(h.destinoInfo.nombre) + ' · descarga'); pts.push(DL); if (descargo) hecho.push(DL); }
       if (P0 && h.estado === 'cerrada') hecho.push(P0);
-      if (hecho.length > 1) L.polyline(hecho, { color: '#2f9e44', weight: 5, opacity: .85 }).addTo(m);
+      if (hecho.length > 1) window.G47 && G47.linea(m, hecho, { color: '#2f9e44', weight: 5, opacity: .85 });
       var falta = hecho.length ? [hecho[hecho.length - 1]] : []; h.paradas.forEach(function (p) { if (!p.salida && !p.llegada && p.lat) falta.push([p.lat, p.lng]); });
       if (DL && !descargo) falta.push(DL); if (P0 && h.estado !== 'cerrada') falta.push(P0);
-      if (falta.length > 1) L.polyline(falta, { color: '#14306b', weight: 4, dashArray: '8 8', opacity: .6 }).addTo(m);
+      if (falta.length > 1) window.G47 && G47.linea(m, falta, { color: '#14306b', weight: 4, dashArray: '8 8', opacity: .7 });
       if (pts.length) m.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); else m.setView([9.0, -79.5], 11);
       setTimeout(function () { try { m.invalidateSize(); } catch (er) {} }, 150);
     });
@@ -2268,7 +2267,7 @@
       var dl = llDe(h.destinoInfo), pl2 = llDe(h.patioInfo);   /* api 3.28.1 · circuito: descarga y regreso al patio */
       if (dl) { pts.push(dl); L.marker(dl, { icon: pinDP('D', '#0f2140', '#fff') }).addTo(mp).bindPopup('<b>' + e(h.destinoInfo.nombre) + '</b><br>Descarga'); }
       var lin = pts.slice(); if (pl2 && lin.length > 1) lin.push(pl2);
-      if (lin.length > 1) { L.polyline(lin, { color: '#0b4f93', weight: 3, dashArray: '6 5' }).addTo(mp); mp.fitBounds(pts, { padding: [24, 24] }); } else if (pts.length) mp.setView(pts[0], 16);
+      if (lin.length > 1) { window.G47 && G47.linea(mp, lin, { color: '#0b4f93', weight: 4 }); mp.fitBounds(pts, { padding: [24, 24] }); } else if (pts.length) mp.setView(pts[0], 16);
       setTimeout(function () { mp.invalidateSize(); }, 200);
     }],
     tickets: ['Descarga y pesos', 'camion', function () {   /* api 3.27.1 · en planta el conductor no anota peso ni ticket */
