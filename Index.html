@@ -21998,7 +21998,7 @@ APP38.hojaTablet = (function(o){ return function(){
 (function(){
   if(typeof NV37 === "undefined" || typeof GEO37 === "undefined") return;
   var $ = function(id){ return document.getElementById(id); };
-  var N = window.NAVX = { S: 1500, modo: "inc", g: null, foto: "", fotoG: null, fotoCid: -1, menu: false, general: false, gps: "", aviso: "" };
+  var N = window.NAVX = { S: 1250, modo: "plano", libre: false, trans: false, g: null, foto: "", fotoG: null, fotoCid: -1, menu: false, general: false, gps: "", aviso: "" };
   var K_VISTA = "eco_nav_vista";
   var O = { pos: NV37.posicion, pin: NV37.pintar, dib: NV37.dibujar, gps: NV37.pintarGps, prender: GEO37.prender };   /* lo de antes, para quien no es la tablet */
   function act(){ try{ return typeof H47 !== "undefined" && H47.activo(); }catch(e){ return false; } }
@@ -22008,7 +22008,7 @@ APP38.hojaTablet = (function(o){ return function(){
    '#nvx-tilt{position:absolute;inset:0;transform-origin:var(--px) var(--py);transform:perspective(780px) rotateX(var(--tilt))}',
    '#nvx-rot{position:absolute;width:var(--S);height:var(--S);left:calc(var(--px) - var(--S)/2);top:calc(var(--py) - var(--S)/2);transform-origin:50% 50%;transition:transform .8s linear}',
    '#nvx-rot #nv-mapa{position:absolute;left:0;top:0;width:100%!important;height:100%!important}',
-   '#nvx-vista.plano #nvx-tilt{transform:none}',
+   '#nvx-rot{will-change:transform}#nvx-vista.plano #nvx-tilt{transform:none}',
    '#nvx-vista.general #nvx-rot{left:0;top:0;width:100%;height:100%;transform:none!important;transition:none}#nvx-vista.general #nvx-tilt{transform:none}',
    '#nvx-vista .leaflet-control-container{display:none!important}',
    '#nvx-vista.fil .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.8)}',
@@ -22020,7 +22020,9 @@ APP38.hojaTablet = (function(o){ return function(){
    '#nvx-ban{position:absolute;left:0;right:0;top:0;z-index:520;font-family:Archivo,system-ui,sans-serif;color:#fff;padding-top:env(safe-area-inset-top)}',
    '#nvx-ban .m{display:flex;align-items:center;background:#0f2a57;padding:13px 62px 12px 14px;border-radius:0 0 22px 22px;box-shadow:0 10px 28px rgba(8,26,58,.4)}',
    '#nvx-ban .mc{display:flex;align-items:center;gap:14px;min-width:0;flex:1}',
-   '#nvx-ban.verde .m{background:#2d6a0b}#nvx-ban.gris .m{background:#3d4a60}#nvx-ban.rojo .m{background:#8a2b24}',
+   '#nvx-ban .m{background:rgba(15,42,87,.92);transition:opacity .25s ease}#nvx-ban.verde .m{background:rgba(45,106,11,.94)}#nvx-ban.gris .m{background:rgba(61,74,96,.94)}#nvx-ban.rojo .m{background:rgba(138,43,36,.94)}',
+   '#nvx-pan{background:rgba(255,255,255,.88);transition:opacity .25s ease}body.t47-noche #nvx-pan{background:rgba(15,26,48,.88)}',
+   '#pantalla-navegar.nvx-trans #nvx-pan{opacity:.15;pointer-events:none}#pantalla-navegar.nvx-trans #nvx-ban .m,#pantalla-navegar.nvx-trans #nvx-lu{opacity:.5}',
    '#nvx-ban .fl{width:66px;height:66px;flex:none;border-radius:18px;background:rgba(255,255,255,.14);display:grid;place-items:center}#nvx-ban .fl svg{width:46px;height:46px}',
    '#nvx-ban .d{font-size:40px;font-weight:900;line-height:1;letter-spacing:-.5px}#nvx-ban .d i{font-style:normal;font-size:20px;font-weight:800;margin-left:3px;color:#cfe0ff}',
    '#nvx-ban .v{font-size:15px;font-weight:700;line-height:1.25;color:#dbe6fb;margin-top:4px}#nvx-ban .v b{display:block;font-size:19px;font-weight:800;color:#fff}',
@@ -22054,9 +22056,9 @@ APP38.hojaTablet = (function(o){ return function(){
    'body.t47-noche #nvx-mas button{color:#e8eefb}body.t47-noche #nvx-mas button+button{border-color:#24365a}body.t47-noche #nvx-vel,body.t47-noche .nvx-bt{background:#16253f;color:#e8eefb}body.t47-noche #nvx-vel span{color:#9fb0c9}body.t47-noche #nvx-vel b{color:#fff}',
    'body.t47-noche #nvx-pan .a .lg.off{background:#24365a;color:#9fb0c9}body.t47-noche #nvx-pan .asa{background:#2b3c5f}body.t47-noche .nvx-bt.on{background:#7fa5ee;color:#0f1a30}',
    '@media (min-aspect-ratio:1/1){',
-   ' #nvx-ban{right:auto;width:372px;left:10px;top:10px;padding-top:0}#nvx-ban .m{border-radius:20px;padding-right:56px}#nvx-ban .fl{width:58px;height:58px}#nvx-ban .d{font-size:34px}#nvx-ban .x{top:22px}',
-   ' #nvx-pan{right:auto;width:372px;left:10px;bottom:10px;border-radius:22px;padding-bottom:12px}body.h47-nb #nvx-pan{padding-right:16px}#nvx-vel{left:392px}',
-   ' #nvx-vista{--px:calc(50% + 190px);--py:68%}#nvx-mas{left:10px;right:auto;width:372px}body.h47-nb #nvx-mas{right:auto}',
+   ' #nvx-ban{right:auto;width:330px;left:10px;top:10px;padding-top:0}#nvx-ban .m{border-radius:18px;padding:9px 50px 9px 10px}#nvx-ban .mc{gap:10px}#nvx-ban .fl{width:46px;height:46px;border-radius:14px}#nvx-ban .fl svg{width:32px;height:32px}#nvx-ban .d{font-size:28px}#nvx-ban .d i{font-size:16px}#nvx-ban .v{font-size:13px;margin-top:2px}#nvx-ban .v b{font-size:15.5px}#nvx-ban .x{top:12px;right:8px;width:32px;height:32px}#nvx-lu{margin:6px 0 0 8px;padding:5px 11px 5px 8px;font-size:12.5px}',
+   ' #nvx-pan{right:auto;width:330px;left:10px;bottom:10px;border-radius:18px;padding:8px 12px 10px}#nvx-pan .asa{display:none}#nvx-pan .e b{font-size:24px}#nvx-pan .e span{font-size:13px}#nvx-pan .tf{display:none}#nvx-pan .p{margin-top:7px;padding-top:7px;gap:10px}#nvx-pan .p .n{width:32px;height:32px;font-size:16px;border-radius:10px}#nvx-pan .p b{font-size:15px}#nvx-pan .p small{font-size:11.5px}#nvx-pan .p .tel{width:38px;height:38px}#nvx-pan .a{margin-top:8px}#nvx-pan .a .lg{padding:10px;font-size:16px}#nvx-pan .a .mas{width:50px}#nvx-pan .ft{margin-top:7px;padding:6px}#nvx-pan .ft img{width:72px;height:54px}body.h47-nb #nvx-pan{padding-right:12px}#nvx-vel{left:352px}',
+   ' #nvx-vista{--px:calc(50% + 170px);--py:68%}#nvx-mas{left:10px;right:auto;width:330px}body.h47-nb #nvx-mas{right:auto}',
    '}',
    '@media (prefers-reduced-motion:reduce){#nvx-rot,#nvx-car .c{transition:none}}'
   ].join("\n");
@@ -22071,6 +22073,7 @@ APP38.hojaTablet = (function(o){ return function(){
    mas:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>',
    lista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>',
    vista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>',
+   cen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>',
    salir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
    rec:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
    ok:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>'
@@ -22100,6 +22103,12 @@ APP38.hojaTablet = (function(o){ return function(){
     s.insertBefore(v, s.firstChild);
     $("nvx-rot").appendChild($("nv-mapa"));
     v.style.setProperty("--S", N.S + "px");
+    /* un toque en el mapa vuelve transparentes las tarjetas; arrastrarlo lo suelta para mirar por dónde uno quiera */
+    var pd = null;
+    v.addEventListener("pointerdown", function(e){ pd = { x: e.clientX, y: e.clientY, t: Date.now(), mov: false }; N.reposo(); }, true);
+    v.addEventListener("pointermove", function(e){ if(!pd || pd.mov) return; if(Math.abs(e.clientX - pd.x) + Math.abs(e.clientY - pd.y) > 14){ pd.mov = true; if(!N.libre) N.entrarLibre(); else N.reposo(); } }, true);
+    v.addEventListener("pointerup", function(){ if(pd && !pd.mov && Date.now() - pd.t < 500) N.toca(); pd = null; }, true);
+    v.addEventListener("pointercancel", function(){ pd = null; }, true);
     var o = document.createElement("div"); o.id = "nvx-ui";
     o.innerHTML = '<div id="nvx-ban"><div class="m"><div class="mc" id="nvx-bc"></div><button class="x" onclick="NV37.salir()" aria-label="Cerrar la navegación">' + IC.salir + '</button></div><div id="nvx-ex"></div></div>' +
       '<div id="nvx-sb"></div><div id="nvx-vel"><b>0</b><span>km/h</span></div>' +
@@ -22152,12 +22161,14 @@ APP38.hojaTablet = (function(o){ return function(){
     var v = $("nvx-vista"), land = !!v && v.clientWidth > v.clientHeight, top = land ? 14 : 168, voz = NV37.vozOn();
     slot("nvx-sb", '<button class="nvx-bt" style="top:' + top + 'px" onclick="NV37.voz();NAVX.pintar()" aria-label="Voz">' + (voz ? IC.voz : IC.mute) + '</button>' +
       '<button class="nvx-bt' + (N.general ? ' on' : '') + '" style="top:' + (top + 62) + 'px" onclick="NAVX.verTodo()" aria-label="Vista general de la ruta">' + IC.gen + '</button>' +
-      '<button class="nvx-bt' + (N.modo === "norte" ? ' on' : '') + '" style="top:' + (top + 124) + 'px" onclick="NAVX.cambiaVista()" aria-label="Cambiar la vista del mapa">' + IC.nor + '</button>');
+      '<button class="nvx-bt' + (N.modo === "norte" ? ' on' : '') + '" style="top:' + (top + 124) + 'px" onclick="NAVX.cambiaVista()" aria-label="Cambiar la vista del mapa">' + IC.nor + '</button>' +
+      (N.libre ? '<button class="nvx-bt on" style="top:' + (top + 186) + 'px" onclick="NAVX.seguir()" aria-label="Volver a seguir la ruta">' + IC.cen + '</button>' : ''));
     var resto = pos ? pos.resto : (NV37.dLocal ? NV37.dLocal * 1.3 : null), vel = NV37.ruta && NV37.ruta.m && NV37.ruta.seg ? NV37.ruta.m / NV37.ruta.seg : 6.1;
     var min = resto == null ? null : Math.max(1, Math.round(resto / vel / 60)), lleg = min == null ? "" : new Date(Date.now() + min * 60000).toTimeString().slice(0, 5), km = resto == null ? ["—", ""] : nd(resto);
     var tr = NV37.ruta && NV37.ruta.trafico, tf = tr ? '<i class="tf ' + esc(tr) + '">tráfico ' + esc(tr) + '</i>' : "";
     slot("nvx-e", llega ? '<b>Ya estás aquí</b><span>a ' + nd(NV37.dLocal || 60).join(" ") + ' del local</span>' : min == null ? '<b>—</b><span>esperando el GPS</span>' : '<b>' + min + ' min</b><span>' + km[0] + ' ' + km[1] + ' · llegas ' + lleg + '</span>' + tf);
     N.alto = !!(llega && N.foto);
+    if(llega && N.trans){ N.trans = false; var sn = $("pantalla-navegar"); if(sn) sn.classList.remove("nvx-trans"); }
     slot("nvx-ft", (llega && N.foto) ? '<div class="ft"><img alt="La entrada" src="' + esc(N.foto) + '"><span><b>Así se ve la entrada</b>' + (N.fotoG ? 'Foto de Google' + ((N.fotoG.autor || [])[0] && N.fotoG.autor[0].nombre ? ' · ' + esc(N.fotoG.autor[0].nombre) : '') : 'Foto de la guía del local') + '</span></div>' : "");
     slot("nvx-p", '<div class="n">' + (i >= 0 ? i + 1 : '➤') + '</div><div><b>' + esc(D.nombre) + '</b><small>' + (i >= 0 ? 'Parada ' + (i + 1) + ' de ' + nP + (D.dir ? ' · ' + esc(D.dir) : '') : 'Destino') + '</small></div>' + (D.tel ? '<a class="tel" href="tel:' + esc(D.tel) + '" aria-label="Llamar al cliente">' + IC.tel + '</a>' : ''));
     var btn = llega ? '<button class="lg" onclick="' + (NV37.cid > 0 ? 'NV37.llegue()' : 'NV37.salir();cdLlegue_(-1)') + '">✓ Llegué</button>'
@@ -22178,6 +22189,21 @@ APP38.hojaTablet = (function(o){ return function(){
     slot("nvx-mn", mn);
     N.pivote();
   };
+  N.toca = function(){
+    N.trans = !N.trans; var s = $("pantalla-navegar"); if(s) s.classList.toggle("nvx-trans", N.trans);
+    if(N.libre) N.reposo();
+  };
+  N.entrarLibre = function(){
+    N.libre = true; N.general = false;
+    if(NV37.m){ ["dragging", "touchZoom", "doubleClickZoom"].forEach(function(k){ try{ if(NV37.m[k]) NV37.m[k].enable(); }catch(e){} }); }
+    N.vista(true); N.pintar(); N.reposo();
+  };
+  N.seguir = function(){
+    clearTimeout(N.libreT); N.libre = false;
+    if(NV37.m){ ["dragging", "touchZoom", "doubleClickZoom"].forEach(function(k){ try{ if(NV37.m[k]) NV37.m[k].disable(); }catch(e){} }); if(N.yoL){ try{ NV37.m.removeLayer(N.yoL); }catch(e){} N.yoL = null; } }
+    N.vista(true); N.pintar();
+  };
+  N.reposo = function(){ clearTimeout(N.libreT); if(N.libre) N.libreT = setTimeout(function(){ if(NV37.abierta() && N.libre) N.seguir(); }, 12000); };
   N.abrirMenu = function(){ N.menu = true; N.pintar(); };
   N.cerrarMenu = function(){ N.menu = false; N.pintar(); };
   N.probarVoz = function(){ N.menu = false; N.pintar(); var ok = true; try{ if(window.EcovsaApp && EcovsaApp.probarVoz) ok = EcovsaApp.probarVoz(); else NV37.decir("Prueba de voz de ECOVSA"); }catch(e){} if(!ok){ N.aviso = "Esta tablet no tiene voz en español: avisa a ECOVSA"; N.pintar(); setTimeout(function(){ N.aviso = ""; if(NV37.abierta()) N.pintar(); }, 6000); } };
@@ -22188,8 +22214,10 @@ APP38.hojaTablet = (function(o){ return function(){
   /* ── el mapa: gira hacia el rumbo y se inclina; el camión queda fijo abajo ── */
   N.vista = function(duro){
     var v = $("nvx-vista"), y = GEO37.yo; if(!v || !NV37.m) return;
-    var land = v.clientWidth > v.clientHeight, gen = N.general, norte = N.modo === "norte";
-    v.classList.toggle("general", gen); v.classList.toggle("plano", gen || N.modo !== "inc");
+    var land = v.clientWidth > v.clientHeight, gen = N.general, libre = N.libre, norte = N.modo === "norte" || libre;
+    var S = N.modo === "inc" && !libre ? 1500 : 1250;
+    if(S !== N.S){ N.S = S; v.style.setProperty("--S", S + "px"); NV37.m.invalidateSize({ animate: false }); duro = true; }
+    v.classList.toggle("general", gen); v.classList.toggle("plano", gen || libre || N.modo !== "inc");
     try{ v.classList.toggle("fil", !!document.body.classList.contains("t47-noche") && !NV37.m._g47g); }catch(e){}
     v.style.setProperty("--tilt", "34deg"); N.pivote();
     var rot = $("nvx-rot"), car = $("nvx-car");
@@ -22197,8 +22225,13 @@ APP38.hojaTablet = (function(o){ return function(){
     if(N.hs == null || duro){ N.hs = hd; } else { N.hs = (N.hs + ang(N.hs, hd) * .6 + 360) % 360; }
     var rg = gen || norte ? 0 : -N.hs;
     if(N.rg == null) N.rg = rg; else N.rg = N.rg + ang(N.rg, rg);   /* el camino corto, sin dar la vuelta entera */
-    if(!gen && rot) rot.style.transform = "rotate(" + N.rg.toFixed(1) + "deg)";
-    if(car){ car.style.display = gen ? "none" : ""; car.classList.toggle("imp", !!NV37.impreciso); var c = car.querySelector(".c"); if(c) c.style.transform = "rotate(" + (norte ? N.hs : 0).toFixed(1) + "deg)"; }
+    if(!gen && rot){ if(duro || Math.abs(ang(N.rgPuesto == null ? 0 : N.rgPuesto, N.rg)) > 2){ rot.style.transform = "rotate(" + N.rg.toFixed(1) + "deg)"; N.rgPuesto = N.rg; } }
+    if(car){ car.style.display = gen || libre ? "none" : ""; car.classList.toggle("imp", !!NV37.impreciso); var c = car.querySelector(".c"); if(c) c.style.transform = "rotate(" + (norte ? N.hs : 0).toFixed(1) + "deg)"; }
+    if(libre && N.g){
+      if(!N.yoL && window.L) N.yoL = window.L.circleMarker([N.g.lat, N.g.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#14306b", fillOpacity: 1 }).addTo(NV37.m);
+      if(N.yoL) N.yoL.setLatLng([N.g.lat, N.g.lng]);
+      return;
+    }
     if(gen){ if(NV37.m && NV37.pts.length){ NV37.m.invalidateSize({ animate: false }); NV37.m.fitBounds(window.L.latLngBounds(NV37.pts.map(function(q){ return [q.lat, q.lng]; })), { paddingTopLeft: [26, land ? 40 : 210], paddingBottomRight: [land ? 26 : 70, land ? 40 : 250], animate: false }); } return; }
     if(y){
       var cerca = NV37.pos && NV37.pos.finPaso < 250, vm = N.vel || 0, z = cerca ? 17 : (vm > 14 ? 15 : 16);
@@ -22214,9 +22247,13 @@ APP38.hojaTablet = (function(o){ return function(){
   /* ── la línea de la ruta: borde blanco, lo recorrido en gris, el tráfico por colores si el servidor lo da ── */
   N.dibujar = function(){
     if(!NV37.m || !NV37.capa) return;
-    if(NV37.linea) NV37.capa.removeLayer(NV37.linea);
     var P = NV37.pts; if(!P.length) return;
-    var i0 = NV37.pos ? NV37.pos.i : 0, L = window.L, g = [];
+    var i0 = NV37.pos ? NV37.pos.i : 0;
+    /* dibujar miles de puntos cada segundo es lo que más pesa: solo cuando la ruta cambia o ya se avanzó un buen tramo */
+    if(NV37.linea && N._dP === P && Math.abs(i0 - (N._dI || 0)) < 6 && NV37.capa.hasLayer(NV37.linea)) return;
+    N._dP = P; N._dI = i0;
+    if(NV37.linea) NV37.capa.removeLayer(NV37.linea);
+    var L = window.L, g = [];
     var ll = function(a, b){ return P.slice(a, b + 1).map(function(q){ return [q.lat, q.lng]; }); };
     g.push(L.polyline(ll(0, P.length - 1), { color: "#fff", weight: 14, opacity: 1, lineCap: "round", lineJoin: "round" }));
     if(i0 > 0) g.push(L.polyline(ll(0, i0), { color: "#9aa7bb", weight: 9, opacity: 1, lineCap: "round" }));
@@ -22320,7 +22357,7 @@ APP38.hojaTablet = (function(o){ return function(){
     var antes = NV37.abierta(), r = o.apply(this, arguments);
     try{
       if(act() && NV37.abierta()){
-        N.montar(); N.menu = false; N.general = false; N.aviso = ""; N.hs = null; N.rg = null; G.s = null; G.malos = 0; N.g = null;
+        N.montar(); N.menu = false; N.general = false; N.libre = false; N.trans = false; N.aviso = ""; N.hs = null; N.rg = null; N.rgPuesto = null; G.s = null; G.malos = 0; N.g = null; N._dP = null; N.yoL = null; { var sn = $("pantalla-navegar"); if(sn) sn.classList.remove("nvx-trans"); }
         N.fotoDe();
         if(app("navegando")) { try{ EcovsaApp.navegando(true); }catch(e){} }
         setTimeout(function(){ if(NV37.m){ NV37.m.invalidateSize({ animate: false }); N.vista(true); N.pintar(); } }, 120);
