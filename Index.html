@@ -21906,8 +21906,9 @@ APP38.hojaTablet = (function(o){ return function(){
    · La APK avisa la carga con ecoBateria({nivel, cargando}) y se puede leer con EcovsaApp.bateria().
      Cargando: un aro verde se llena alrededor del logo y se repite; al 100 % queda lleno. Siempre, el porcentaje arriba, junto al logo
      (amarillo con 20 % o menos, rojo con 10 % o menos).
-   · Modo mapa (tablet en horizontal): la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
-     transparente; otro toque la devuelve. */
+   · Modo mapa: en horizontal la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
+     transparente; otro toque la devuelve. En vertical pasa lo mismo cuando el conductor pone en el mapa la ruta de una de las
+     etiquetas («Rutas por hacer»): el mapa queda con toda la atención y un toque en cualquier parte lo devuelve. */
 (function(){
   var st = document.createElement("style");
   st.textContent = [
@@ -21923,11 +21924,12 @@ APP38.hojaTablet = (function(o){ return function(){
     '.bat-chip .rayo{color:#2f9e44}body.t47-noche .bat-chip .rayo{color:#5fd17a}',
     '@media (prefers-reduced-motion:reduce){.bat-ring.carga .prog{animation:none}}',
     /* modo mapa: solo en horizontal */
+    'html body.h47 #h47-hoja{transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .28s ease}',
+    'html body.h47.h47-trans #h47-hoja{opacity:.16;pointer-events:none}',
+    'html body.h47.h47-trans #h47-hoja .agarre{pointer-events:auto}',
     '@media (min-aspect-ratio:1/1){',
-    ' html body.h47 #h47-hoja{height:min(520px,calc(100vh - var(--h47-top) - 70px));transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .28s ease}',
+    ' html body.h47 #h47-hoja{height:min(520px,calc(100vh - var(--h47-top) - 70px))}',
     ' html body.h47 #h47-hoja.pk{transform:translateY(calc(100% - 112px))}',
-    ' html body.h47.h47-trans #h47-hoja{opacity:.16;pointer-events:none}',
-    ' html body.h47.h47-trans #h47-hoja .agarre{pointer-events:auto}',
     '}'
   ].join("\n");
   document.head.appendChild(st);
@@ -21975,11 +21977,368 @@ APP38.hojaTablet = (function(o){ return function(){
   function liga(){
     if(!act() || !H47.map || H47.map._tf3) return;
     H47.map._tf3 = true;
-    H47.map.on("click", function(){ if(hor && hor.matches) document.body.classList.toggle("h47-trans"); });
+    H47.map.on("click", function(){ var b = document.body; if((hor && hor.matches) || b.classList.contains("h47-ruta")) b.classList.toggle("h47-trans"); });
     var ag = document.querySelector("#h47-hoja .agarre"); if(ag) ag.addEventListener("click", function(){ document.body.classList.remove("h47-trans"); }, true);
+    /* en vertical: al poner una ruta en el mapa (etiqueta de «Rutas por hacer») la hoja se vuelve transparente */
+    var lg = document.getElementById("h47-leg");
+    if(lg) lg.addEventListener("click", function(e){ if(e.target.closest("button")){ document.body.classList.add("h47-ruta", "h47-trans"); } }, true);
+    if(typeof H47.hoja === "function" && !H47.hoja._tf3){ var o = H47.hoja; H47.hoja = function(){ document.body.classList.remove("h47-trans"); return o.apply(this, arguments); }; H47.hoja._tf3 = true; }
   }
   setInterval(liga, 1200);
-  window.addEventListener("resize", function(){ if(!(hor && hor.matches)) document.body.classList.remove("h47-trans"); });
+  window.addEventListener("resize", function(){ if(!(hor && hor.matches) && !document.body.classList.contains("h47-ruta")) document.body.classList.remove("h47-trans"); });
+})();
+</script>
+<script id="js-tf4">
+/* ═══ APK 1.6.4 · LA NAVEGACIÓN DEL CONDUCTOR (maqueta aprobada por Álvaro el 25 oct: maquetas/Navegacion_conductor.html) ═══
+   Un solo bloque, al final: reemplaza lo que NV37 pinta (banda de giros, panel, mapa que gira con el rumbo, llegada con la foto de la
+   entrada a 150 m) y cómo se toma la posición del GPS (posición fresca, se descartan las malas, se pega a la ruta, rumbo de la ruta).
+   No cambia el servidor: usa api_navRuta, api_fotoLocalVer y lo de NV37/NV47. Se enciende solo en la tablet del conductor (H47.activo()).
+   · Vista (botón de la brújula): «Rumbo inclinado» (mapa de frente, inclinado), «Rumbo plano» o «Norte arriba». Se recuerda.
+   · GPS: la APK 1.6.4 entrega la posición propia cada segundo en ecoPos(json) mientras se navega; sin ella se usa la del navegador. */
+(function(){
+  if(typeof NV37 === "undefined" || typeof GEO37 === "undefined") return;
+  var $ = function(id){ return document.getElementById(id); };
+  var N = window.NAVX = { S: 1500, modo: "inc", g: null, foto: "", fotoG: null, fotoCid: -1, menu: false, general: false, gps: "", aviso: "" };
+  var K_VISTA = "eco_nav_vista";
+  var O = { pos: NV37.posicion, pin: NV37.pintar, dib: NV37.dibujar, gps: NV37.pintarGps, prender: GEO37.prender };   /* lo de antes, para quien no es la tablet */
+  function act(){ try{ return typeof H47 !== "undefined" && H47.activo(); }catch(e){ return false; } }
+  try{ var m0 = localStorage.getItem(K_VISTA); if(m0 === "inc" || m0 === "plano" || m0 === "norte") N.modo = m0; }catch(e){}
+  var css = [
+   '#nvx-vista{position:absolute;inset:0;overflow:hidden;background:#d9e1ec;--S:1500px;--px:50%;--py:62%;--tilt:34deg}',
+   '#nvx-tilt{position:absolute;inset:0;transform-origin:var(--px) var(--py);transform:perspective(780px) rotateX(var(--tilt))}',
+   '#nvx-rot{position:absolute;width:var(--S);height:var(--S);left:calc(var(--px) - var(--S)/2);top:calc(var(--py) - var(--S)/2);transform-origin:50% 50%;transition:transform .8s linear}',
+   '#nvx-rot #nv-mapa{position:absolute;left:0;top:0;width:100%!important;height:100%!important}',
+   '#nvx-vista.plano #nvx-tilt{transform:none}',
+   '#nvx-vista.general #nvx-rot{left:0;top:0;width:100%;height:100%;transform:none!important;transition:none}#nvx-vista.general #nvx-tilt{transform:none}',
+   '#nvx-vista .leaflet-control-container{display:none!important}',
+   '#nvx-vista.fil .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.8)}',
+   '#nvx-car{position:absolute;left:var(--px);top:var(--py);width:0;height:0;z-index:420;pointer-events:none}',
+   '#nvx-car .halo{position:absolute;left:-46px;top:-46px;width:92px;height:92px;border-radius:50%;background:radial-gradient(rgba(47,158,68,.28),rgba(47,158,68,0) 70%)}',
+   '#nvx-car .c{position:absolute;left:-23px;top:-23px;width:46px;height:46px;border-radius:50%;background:#14306b;border:4px solid #fff;box-shadow:0 4px 14px rgba(8,26,58,.45);display:grid;place-items:center;transition:transform .8s linear}',
+   '#nvx-car svg{width:22px;height:22px}#nvx-car.imp .halo{background:radial-gradient(rgba(217,154,0,.35),rgba(217,154,0,0) 70%);width:150px;height:150px;left:-75px;top:-75px}',
+   '#pantalla-navegar.nvx .nv-ins,#pantalla-navegar.nvx .nv-hoja,#pantalla-navegar.nvx .nv-gps,#pantalla-navegar.nvx #nv-voz,#pantalla-navegar.nvx #nv-cen,#pantalla-navegar.nvx .nv-yo{display:none!important}',
+   '#nvx-ban{position:absolute;left:0;right:0;top:0;z-index:520;font-family:Archivo,system-ui,sans-serif;color:#fff;padding-top:env(safe-area-inset-top)}',
+   '#nvx-ban .m{display:flex;align-items:center;background:#0f2a57;padding:13px 62px 12px 14px;border-radius:0 0 22px 22px;box-shadow:0 10px 28px rgba(8,26,58,.4)}',
+   '#nvx-ban .mc{display:flex;align-items:center;gap:14px;min-width:0;flex:1}',
+   '#nvx-ban.verde .m{background:#2d6a0b}#nvx-ban.gris .m{background:#3d4a60}#nvx-ban.rojo .m{background:#8a2b24}',
+   '#nvx-ban .fl{width:66px;height:66px;flex:none;border-radius:18px;background:rgba(255,255,255,.14);display:grid;place-items:center}#nvx-ban .fl svg{width:46px;height:46px}',
+   '#nvx-ban .d{font-size:40px;font-weight:900;line-height:1;letter-spacing:-.5px}#nvx-ban .d i{font-style:normal;font-size:20px;font-weight:800;margin-left:3px;color:#cfe0ff}',
+   '#nvx-ban .v{font-size:15px;font-weight:700;line-height:1.25;color:#dbe6fb;margin-top:4px}#nvx-ban .v b{display:block;font-size:19px;font-weight:800;color:#fff}',
+   '#nvx-ban .x{position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;padding:0}#nvx-ban .x svg{width:20px;height:20px}',
+   '#nvx-ban .rt{margin-top:9px;background:#fff;color:#8a2b24;border:0;border-radius:99px;padding:8px 16px;font:800 14px Archivo,sans-serif}',
+   '#nvx-lu{display:inline-flex;align-items:center;gap:8px;margin:8px 0 0 14px;background:#14306b;color:#fff;border-radius:99px;padding:7px 13px 7px 9px;font-size:13.5px;font-weight:700;box-shadow:0 6px 18px rgba(8,26,58,.35);max-width:calc(100% - 28px)}',
+   '#nvx-lu svg{width:20px;height:20px;flex:none}#nvx-lu span{color:#bcd0f3;font-weight:600}',
+   '#nvx-aviso{margin:8px 0 0 14px;display:inline-flex;gap:8px;align-items:center;background:#fff4d6;color:#6b4a00;border:1px solid #f0d58a;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;max-width:calc(100% - 28px)}#nvx-aviso i{width:9px;height:9px;border-radius:50%;background:#d99a00;flex:none}',
+   '.nvx-bt{position:absolute;right:12px;z-index:520;width:50px;height:50px;border-radius:50%;border:0;background:#fff;box-shadow:0 5px 16px rgba(15,33,64,.28);display:grid;place-items:center;color:#14306b;padding:0}.nvx-bt svg{width:24px;height:24px}.nvx-bt.on{background:#14306b;color:#fff}',
+   '#nvx-vel{position:absolute;left:12px;z-index:520;width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 5px 16px rgba(15,33,64,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Archivo,sans-serif;color:#0f2a57}#nvx-vel b{font-size:23px;font-weight:900;line-height:1}#nvx-vel span{font-size:10px;font-weight:800;color:#5a6880}',
+   '#nvx-pan{position:absolute;left:0;right:0;bottom:0;z-index:520;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(8,26,58,.28);padding:10px 16px calc(14px + env(safe-area-inset-bottom));font-family:Archivo,system-ui,sans-serif;color:#0f2a57}',
+   'body.h47-nb #nvx-pan{padding-right:84px}',
+   '#nvx-pan .asa{width:42px;height:4px;border-radius:4px;background:#d3d9e2;margin:0 auto 9px}',
+   '#nvx-pan .e{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}#nvx-pan .e b{font-size:30px;font-weight:900;color:#2f6b0a;line-height:1}#nvx-pan .e span{font-size:15px;font-weight:700;color:#4a5b78}',
+   '#nvx-pan .tf{font-style:normal;font-size:11.5px;font-weight:800;border-radius:99px;padding:3px 9px;background:#fff4d6;color:#8a6300;margin-left:auto}#nvx-pan .tf.fluido{background:#e3f5ea;color:#1f6b35}#nvx-pan .tf.pesado{background:#fdecea;color:#a3271f}',
+   '#nvx-pan .p{display:flex;align-items:center;gap:12px;margin-top:11px;padding-top:11px;border-top:1px solid #e6ebf2}',
+   '#nvx-pan .p .n{width:38px;height:38px;border-radius:12px;background:#14306b;color:#fff;font-weight:900;font-size:19px;display:grid;place-items:center;flex:none}',
+   '#nvx-pan .p b{display:block;font-size:17px;font-weight:800;line-height:1.15}#nvx-pan .p small{display:block;font-size:12.5px;color:#5a6880;font-weight:600;margin-top:2px}',
+   '#nvx-pan .p .tel{margin-left:auto;width:44px;height:44px;border-radius:50%;background:#e8effb;color:#14306b;display:grid;place-items:center;flex:none;text-decoration:none}#nvx-pan .p .tel svg{width:22px;height:22px}',
+   '#nvx-pan .a{display:flex;gap:10px;margin-top:12px}',
+   '#nvx-pan .a .lg{flex:1;border:0;border-radius:15px;background:#1fa855;color:#fff;font:900 18px Archivo,sans-serif;padding:14px;box-shadow:0 6px 16px rgba(31,168,85,.35)}#nvx-pan .a .lg.off{background:#e3e8ef;color:#7a879b;box-shadow:none;font-size:15px;font-weight:800}',
+   '#nvx-pan .a .mas{width:58px;border:0;border-radius:15px;background:#e8effb;color:#14306b;display:grid;place-items:center;padding:0}#nvx-pan .a .mas svg{width:26px;height:26px}',
+   '#nvx-pan .ft{display:flex;gap:12px;align-items:center;margin-top:11px;padding:9px;border-radius:16px;background:#f3f6fb}#nvx-pan .ft img{width:92px;height:68px;border-radius:12px;object-fit:cover;flex:none;border:1px solid #d9e1ec}#nvx-pan .ft span{font-size:13px;font-weight:700;color:#35476b;line-height:1.35}#nvx-pan .ft b{display:block;font-size:14px;color:#0f2a57}',
+   '#nvx-scrim{position:absolute;inset:0;z-index:555;background:rgba(8,26,58,.35)}',
+   '#nvx-mas{position:absolute;left:12px;right:12px;bottom:14px;z-index:560;background:#fff;border-radius:22px;box-shadow:0 18px 50px rgba(8,26,58,.5);padding:8px;font-family:Archivo,sans-serif;color:#0f2a57}',
+   'body.h47-nb #nvx-mas{right:84px}',
+   '#nvx-mas button{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;font:800 17px Archivo,sans-serif;color:#0f2a57;padding:15px 14px;border-radius:14px;text-align:left}#nvx-mas button+button{border-top:1px solid #eef2f7}',
+   '#nvx-mas button svg{width:24px;height:24px;flex:none}#nvx-mas button small{display:block;font-size:12.5px;color:#5a6880;font-weight:600}#nvx-mas .rj{color:#a3271f}',
+   'body.t47-noche #nvx-pan,body.t47-noche #nvx-mas{background:#0f1a30;color:#e8eefb}body.t47-noche #nvx-pan .e span,body.t47-noche #nvx-pan .p small,body.t47-noche #nvx-mas button small{color:#9fb0c9}',
+   'body.t47-noche #nvx-pan .e b{color:#5fd17a}body.t47-noche #nvx-pan .p{border-color:#24365a}body.t47-noche #nvx-pan .p .tel,body.t47-noche #nvx-pan .a .mas{background:#1d2f55;color:#cfe0ff}body.t47-noche #nvx-pan .ft{background:#16253f}body.t47-noche #nvx-pan .ft span{color:#c7d4ec}body.t47-noche #nvx-pan .ft b{color:#fff}',
+   'body.t47-noche #nvx-mas button{color:#e8eefb}body.t47-noche #nvx-mas button+button{border-color:#24365a}body.t47-noche #nvx-vel,body.t47-noche .nvx-bt{background:#16253f;color:#e8eefb}body.t47-noche #nvx-vel span{color:#9fb0c9}body.t47-noche #nvx-vel b{color:#fff}',
+   'body.t47-noche #nvx-pan .a .lg.off{background:#24365a;color:#9fb0c9}body.t47-noche #nvx-pan .asa{background:#2b3c5f}body.t47-noche .nvx-bt.on{background:#7fa5ee;color:#0f1a30}',
+   '@media (min-aspect-ratio:1/1){',
+   ' #nvx-ban{right:auto;width:372px;left:10px;top:10px;padding-top:0}#nvx-ban .m{border-radius:20px;padding-right:56px}#nvx-ban .fl{width:58px;height:58px}#nvx-ban .d{font-size:34px}#nvx-ban .x{top:22px}',
+   ' #nvx-pan{right:auto;width:372px;left:10px;bottom:10px;border-radius:22px;padding-bottom:12px}body.h47-nb #nvx-pan{padding-right:16px}#nvx-vel{left:392px}',
+   ' #nvx-vista{--px:calc(50% + 190px);--py:68%}#nvx-mas{left:10px;right:auto;width:372px}body.h47-nb #nvx-mas{right:auto}',
+   '}',
+   '@media (prefers-reduced-motion:reduce){#nvx-rot,#nvx-car .c{transition:none}}'
+  ].join("\n");
+  var st = document.createElement("style"); st.id = "css-tf4"; st.textContent = css; document.head.appendChild(st);
+
+  var IC = {
+   voz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+   mute:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+   gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+   nor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l5 9h-10z" fill="currentColor"/><path d="M12 12v9"/></svg>',
+   tel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+   mas:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>',
+   lista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>',
+   vista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>',
+   salir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+   rec:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
+   ok:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>'
+  };
+  function arrow(man, c){
+    man = String(man || "");
+    var s = 'fill="none" stroke="' + (c || '#fff') + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+    var d = /UTURN/.test(man) ? '<path d="M17 21V10a5 5 0 0 0-10 0v4"/><path d="M3 11l4 4 4-4"/>'
+      : /ROUNDABOUT/.test(man) ? '<circle cx="12" cy="10" r="4"/><path d="M12 21v-7"/><path d="M16 6l2-3"/>'
+      : /SLIGHT_LEFT/.test(man) ? '<path d="M17 21v-6l-7-6"/><path d="M9 14V8h6"/>'
+      : /SLIGHT_RIGHT/.test(man) ? '<path d="M7 21v-6l7-6"/><path d="M15 14V8H9"/>'
+      : /LEFT/.test(man) ? '<path d="M18 21V12a3 3 0 0 0-3-3H5"/><path d="M9 4L4.5 9 9 14"/>'
+      : /RIGHT/.test(man) ? '<path d="M6 21V12a3 3 0 0 1 3-3h10"/><path d="M15 4l4.5 5L15 14"/>'
+      : '<path d="M12 21V4"/><path d="M6 10l6-6 6 6"/>';
+    return '<svg viewBox="0 0 24 24" ' + s + '>' + d + '</svg>';
+  }
+  function nd(m){ m = Math.max(0, m); if(m >= 1000) return [(Math.round(m / 100) / 10).toString().replace(".", ","), "km"]; return [String(m >= 100 ? Math.round(m / 50) * 50 : Math.max(10, Math.round(m / 10) * 10)), "m"]; }
+  function hablada(m){ var r = nd(m); return r[1] === "km" ? r[0] + " kilómetros" : r[0] + " metros"; }
+  function ang(a, b){ return ((b - a + 540) % 360) - 180; }
+
+  /* ── el armado: el mapa de NV37 pasa a un contenedor que gira y se inclina ── */
+  N.montar = function(){
+    var s = $("pantalla-navegar"); if(!s || $("nvx-vista") || !$("nv-mapa")) return;
+    s.classList.add("nvx");
+    var v = document.createElement("div"); v.id = "nvx-vista";
+    v.innerHTML = '<div id="nvx-tilt"><div id="nvx-rot"></div></div><div id="nvx-car"><i class="halo"></i><div class="c"><svg viewBox="0 0 12 12"><path d="M6 1l4 10-4-2.5L2 11z" fill="#fff"/></svg></div></div>';
+    s.insertBefore(v, s.firstChild);
+    $("nvx-rot").appendChild($("nv-mapa"));
+    v.style.setProperty("--S", N.S + "px");
+    var o = document.createElement("div"); o.id = "nvx-ui";
+    o.innerHTML = '<div id="nvx-ban"><div class="m"><div class="mc" id="nvx-bc"></div><button class="x" onclick="NV37.salir()" aria-label="Cerrar la navegación">' + IC.salir + '</button></div><div id="nvx-ex"></div></div>' +
+      '<div id="nvx-sb"></div><div id="nvx-vel"><b>0</b><span>km/h</span></div>' +
+      '<div id="nvx-pan"><div class="asa"></div><div class="e" id="nvx-e"></div><div id="nvx-ft"></div><div class="p" id="nvx-p"></div><div class="a" id="nvx-a"></div></div><div id="nvx-mn"></div>';
+    s.appendChild(o);
+    if(NV37.m){
+      NV37.m.invalidateSize();
+      ["dragging", "touchZoom", "doubleClickZoom", "scrollWheelZoom", "boxZoom", "keyboard", "tap"].forEach(function(k){ try{ if(NV37.m[k]) NV37.m[k].disable(); }catch(e){} });
+    }
+  };
+  N.pivote = function(){ var v = $("nvx-vista"); if(!v) return; var land = v.clientWidth > v.clientHeight; v.style.setProperty("--py", land ? "68%" : (N.alto ? "50%" : "62%")); };
+
+  /* ── lo que se pinta: banda de arriba, botones, panel ── */
+  /* se cambia solo lo que cambió: así un toque en un botón nunca se pierde porque la pantalla se redibujó justo en ese momento */
+  var CACHE = {};
+  function slot(id, html){ if(CACHE[id] === html) return; var e = $(id); if(!e) return; CACHE[id] = html; e.innerHTML = html; }
+  N.pintar = function(){
+    N.montar();
+    var ui = $("nvx-ui"); if(!ui || !NV37.dest) return;
+    var y = GEO37.yo, D = NV37.dest, pos = NV37.pos, pasos = NV37.pasos || [];
+    var i = NV37.cid > 0 ? (RUTA.paradas || []).findIndex(function(p){ return p.clienteId === NV37.cid; }) : -1, nP = (RUTA.paradas || []).length;
+    var llega = !!NV37.llegando, recalc = !!NV37.recalculando && !NV37.ruta, gps = !!NV37.impreciso;
+    var sinRuta = !NV37.ruta && !NV37.recalculando && !!NV37.sinGoogle;
+    var cls = "", cuerpo = "", extra = "";
+    if(!y){ cls = "gris"; cuerpo = '<div class="fl">' + IC.rec + '</div><div><div class="d" style="font-size:26px">Buscando el GPS…</div><div class="v">Revisa que la ubicación esté prendida</div></div>'; }
+    else if(recalc){ cls = "gris"; cuerpo = '<div class="fl">' + IC.rec + '</div><div><div class="d" style="font-size:28px">Recalculando…</div><div class="v">Buscando el mejor camino desde aquí</div></div>'; }
+    else if(llega){
+      var ya = NV37.dLocal != null && NV37.dLocal <= 40, dl = nd(NV37.dLocal || 100);
+      cls = "verde";
+      cuerpo = ya ? '<div class="fl">' + IC.ok + '</div><div><div class="d" style="font-size:32px">Llegaste</div><div class="v"><b>' + esc(D.nombre) + '</b></div></div>'
+        : '<div class="fl">' + arrow("STRAIGHT") + '</div><div><div class="d">' + dl[0] + '<i>' + dl[1] + '</i></div><div class="v">Llegando a<b>' + esc(D.nombre) + '</b></div></div>';
+    }
+    else if(pos && pasos.length){
+      var sig = pasos[pos.k + 1], ult = !sig, t = ult ? "Tu destino" : NV37.linea1(sig.txt), man = ult ? "STRAIGHT" : sig.man, dd = nd(ult ? pos.resto : pos.finPaso);
+      var mm = t.match(/^(.*?)\s+(?:en|por|hacia)\s+(.+)$/i), acc = mm ? mm[1] : t, via = mm ? mm[2] : "";
+      cuerpo = '<div class="fl">' + arrow(man) + '</div><div><div class="d">' + dd[0] + '<i>' + dd[1] + '</i></div><div class="v">' + esc(acc) + '<b>' + esc(via) + '</b></div></div>';
+      var lu = pasos[pos.k + 2];
+      if(lu && !ult) extra += '<div id="nvx-lu">' + arrow(lu.man) + '<span>Luego</span> ' + esc(NV37.linea1(lu.txt).replace(/^Gira /, "gira ")) + '</div>';
+      else if(!ult) extra += '<div id="nvx-lu">' + arrow("STRAIGHT") + '<span>Luego</span> tu destino</div>';
+    }
+    else if(sinRuta){
+      cls = "rojo";
+      cuerpo = '<div class="fl">' + arrow("STRAIGHT") + '</div><div><div class="d" style="font-size:25px">No pude calcular la ruta</div><div class="v">' + esc(String(NV37.sinGoogle).slice(0, 80)) + '<br><button class="rt" onclick="NAVX.reintentar()">Reintentar</button></div></div>';
+    }
+    else cuerpo = '<div class="fl">' + arrow("STRAIGHT") + '</div><div><div class="d" style="font-size:26px">Calculando…</div><div class="v">Buscando el camino a ' + esc(D.nombre) + '</div></div>';
+    if(gps && !recalc) extra += '<div id="nvx-aviso"><i></i>Señal de GPS débil · el punto puede no ir sobre la calle</div>';
+    else if(N.aviso) extra += '<div id="nvx-aviso"><i></i>' + esc(N.aviso) + '</div>';
+    var ban = $("nvx-ban"); if(ban) ban.className = cls;
+    slot("nvx-bc", cuerpo); slot("nvx-ex", extra);
+    var v = $("nvx-vista"), land = !!v && v.clientWidth > v.clientHeight, top = land ? 14 : 168, voz = NV37.vozOn();
+    slot("nvx-sb", '<button class="nvx-bt" style="top:' + top + 'px" onclick="NV37.voz();NAVX.pintar()" aria-label="Voz">' + (voz ? IC.voz : IC.mute) + '</button>' +
+      '<button class="nvx-bt' + (N.general ? ' on' : '') + '" style="top:' + (top + 62) + 'px" onclick="NAVX.verTodo()" aria-label="Vista general de la ruta">' + IC.gen + '</button>' +
+      '<button class="nvx-bt' + (N.modo === "norte" ? ' on' : '') + '" style="top:' + (top + 124) + 'px" onclick="NAVX.cambiaVista()" aria-label="Cambiar la vista del mapa">' + IC.nor + '</button>');
+    var resto = pos ? pos.resto : (NV37.dLocal ? NV37.dLocal * 1.3 : null), vel = NV37.ruta && NV37.ruta.m && NV37.ruta.seg ? NV37.ruta.m / NV37.ruta.seg : 6.1;
+    var min = resto == null ? null : Math.max(1, Math.round(resto / vel / 60)), lleg = min == null ? "" : new Date(Date.now() + min * 60000).toTimeString().slice(0, 5), km = resto == null ? ["—", ""] : nd(resto);
+    var tr = NV37.ruta && NV37.ruta.trafico, tf = tr ? '<i class="tf ' + esc(tr) + '">tráfico ' + esc(tr) + '</i>' : "";
+    slot("nvx-e", llega ? '<b>Ya estás aquí</b><span>a ' + nd(NV37.dLocal || 60).join(" ") + ' del local</span>' : min == null ? '<b>—</b><span>esperando el GPS</span>' : '<b>' + min + ' min</b><span>' + km[0] + ' ' + km[1] + ' · llegas ' + lleg + '</span>' + tf);
+    N.alto = !!(llega && N.foto);
+    slot("nvx-ft", (llega && N.foto) ? '<div class="ft"><img alt="La entrada" src="' + esc(N.foto) + '"><span><b>Así se ve la entrada</b>' + (N.fotoG ? 'Foto de Google' + ((N.fotoG.autor || [])[0] && N.fotoG.autor[0].nombre ? ' · ' + esc(N.fotoG.autor[0].nombre) : '') : 'Foto de la guía del local') + '</span></div>' : "");
+    slot("nvx-p", '<div class="n">' + (i >= 0 ? i + 1 : '➤') + '</div><div><b>' + esc(D.nombre) + '</b><small>' + (i >= 0 ? 'Parada ' + (i + 1) + ' de ' + nP + (D.dir ? ' · ' + esc(D.dir) : '') : 'Destino') + '</small></div>' + (D.tel ? '<a class="tel" href="tel:' + esc(D.tel) + '" aria-label="Llamar al cliente">' + IC.tel + '</a>' : ''));
+    var btn = llega ? '<button class="lg" onclick="' + (NV37.cid > 0 ? 'NV37.llegue()' : 'NV37.salir();cdLlegue_(-1)') + '">✓ Llegué</button>'
+      : (NV37.cid > 0 ? '<button class="lg off" onclick="toast(\'«Llegué» se activa a 150 m del local. Si ya estás, abre la lista de paradas.\')">«Llegué» se activa a 150 m</button>' : '<button class="lg off" disabled>Destino</button>');
+    slot("nvx-a", btn + '<button class="mas" onclick="NAVX.abrirMenu()" aria-label="Más opciones">' + IC.mas + '</button>');
+    var vv = y && y.vel != null && !isNaN(y.vel) ? Math.round(y.vel * 3.6) : 0, ve = $("nvx-vel");
+    if(ve){ ve.style.display = llega ? "none" : ""; ve.style.bottom = ((land ? 20 : 0) + 228) + "px"; var b = ve.firstChild; if(b && b.textContent !== String(vv)) b.textContent = vv; }
+    var mn = "";
+    if(N.menu){
+      var vn = { inc: "Rumbo inclinado", plano: "Rumbo plano", norte: "Norte arriba" }[N.modo];
+      mn = '<div id="nvx-scrim" onclick="NAVX.cerrarMenu()"></div><div id="nvx-mas">' +
+        '<button onclick="NAVX.cerrarMenu();NV37.salir();continuarRuta()">' + IC.lista + '<span>Ver la lista de paradas<small>Para ir a otra parada, tócala en la lista</small></span></button>' +
+        '<button onclick="NAVX.cambiaVista()">' + IC.vista + '<span>Vista del mapa<small>' + vn + ' · toca para cambiar</small></span></button>' +
+        '<button onclick="NAVX.probarVoz()">' + IC.voz + '<span>Prueba de voz</span></button>' +
+        ((window.EcovsaApp && EcovsaApp.llamarDespacho) ? '<button onclick="NAVX.cerrarMenu();EcovsaApp.llamarDespacho()">' + IC.tel + '<span>Llamar al despacho</span></button>' : '') +
+        '<button class="rj" onclick="NAVX.cerrarMenu();NV37.salir()">' + IC.salir + '<span>Salir de la navegación</span></button></div>';
+    }
+    slot("nvx-mn", mn);
+    N.pivote();
+  };
+  N.abrirMenu = function(){ N.menu = true; N.pintar(); };
+  N.cerrarMenu = function(){ N.menu = false; N.pintar(); };
+  N.probarVoz = function(){ N.menu = false; N.pintar(); var ok = true; try{ if(window.EcovsaApp && EcovsaApp.probarVoz) ok = EcovsaApp.probarVoz(); else NV37.decir("Prueba de voz de ECOVSA"); }catch(e){} if(!ok){ N.aviso = "Esta tablet no tiene voz en español: avisa a ECOVSA"; N.pintar(); setTimeout(function(){ N.aviso = ""; if(NV37.abierta()) N.pintar(); }, 6000); } };
+  N.reintentar = function(){ NV37.sinGoogle = ""; NV37.pedidoEn = 0; NV37.ruta = null; if(GEO37.yo) NV37.pedirRuta(GEO37.yo); N.pintar(); };
+  N.cambiaVista = function(){ N.modo = N.modo === "inc" ? "plano" : N.modo === "plano" ? "norte" : "inc"; try{ localStorage.setItem(K_VISTA, N.modo); }catch(e){} N.general = false; N.vista(true); N.pintar(); };
+  N.verTodo = function(){ N.general = !N.general; N.vista(true); N.pintar(); };
+
+  /* ── el mapa: gira hacia el rumbo y se inclina; el camión queda fijo abajo ── */
+  N.vista = function(duro){
+    var v = $("nvx-vista"), y = GEO37.yo; if(!v || !NV37.m) return;
+    var land = v.clientWidth > v.clientHeight, gen = N.general, norte = N.modo === "norte";
+    v.classList.toggle("general", gen); v.classList.toggle("plano", gen || N.modo !== "inc");
+    try{ v.classList.toggle("fil", !!document.body.classList.contains("t47-noche") && !NV37.m._g47g); }catch(e){}
+    v.style.setProperty("--tilt", "34deg"); N.pivote();
+    var rot = $("nvx-rot"), car = $("nvx-car");
+    var hd = N.g && N.g.rumbo != null ? N.g.rumbo : (y && y.rumbo != null ? y.rumbo : 0);
+    if(N.hs == null || duro){ N.hs = hd; } else { N.hs = (N.hs + ang(N.hs, hd) * .6 + 360) % 360; }
+    var rg = gen || norte ? 0 : -N.hs;
+    if(N.rg == null) N.rg = rg; else N.rg = N.rg + ang(N.rg, rg);   /* el camino corto, sin dar la vuelta entera */
+    if(!gen && rot) rot.style.transform = "rotate(" + N.rg.toFixed(1) + "deg)";
+    if(car){ car.style.display = gen ? "none" : ""; car.classList.toggle("imp", !!NV37.impreciso); var c = car.querySelector(".c"); if(c) c.style.transform = "rotate(" + (norte ? N.hs : 0).toFixed(1) + "deg)"; }
+    if(gen){ if(NV37.m && NV37.pts.length){ NV37.m.invalidateSize({ animate: false }); NV37.m.fitBounds(window.L.latLngBounds(NV37.pts.map(function(q){ return [q.lat, q.lng]; })), { paddingTopLeft: [26, land ? 40 : 210], paddingBottomRight: [land ? 26 : 70, land ? 40 : 250], animate: false }); } return; }
+    if(y){
+      var cerca = NV37.pos && NV37.pos.finPaso < 250, vm = N.vel || 0, z = cerca ? 17 : (vm > 14 ? 15 : 16);
+      if(norte || N.modo === "plano") z = Math.max(15, z);
+      var ll = [N.g ? N.g.lat : y.lat, N.g ? N.g.lng : y.lng];
+      if(duro || Math.abs((NV37.m.getZoom() || z) - z) >= 1) NV37.m.setView(ll, z, { animate: false });
+      else NV37.m.panTo(ll, { animate: true, duration: .9, easeLinearity: 1, noMoveStart: true });
+    }
+    [].forEach.call(document.querySelectorAll("#nvx-rot .nv-pin"), function(e){ e.style.transform = "rotate(" + ((norte || gen ? 0 : -N.rg) - 45).toFixed(1) + "deg)"; });
+  };
+  window.addEventListener("resize", function(){ if(NV37.abierta() && NV37.m){ setTimeout(function(){ NV37.m.invalidateSize({ animate: false }); N.vista(true); N.pintar(); }, 200); } });
+
+  /* ── la línea de la ruta: borde blanco, lo recorrido en gris, el tráfico por colores si el servidor lo da ── */
+  N.dibujar = function(){
+    if(!NV37.m || !NV37.capa) return;
+    if(NV37.linea) NV37.capa.removeLayer(NV37.linea);
+    var P = NV37.pts; if(!P.length) return;
+    var i0 = NV37.pos ? NV37.pos.i : 0, L = window.L, g = [];
+    var ll = function(a, b){ return P.slice(a, b + 1).map(function(q){ return [q.lat, q.lng]; }); };
+    g.push(L.polyline(ll(0, P.length - 1), { color: "#fff", weight: 14, opacity: 1, lineCap: "round", lineJoin: "round" }));
+    if(i0 > 0) g.push(L.polyline(ll(0, i0), { color: "#9aa7bb", weight: 9, opacity: 1, lineCap: "round" }));
+    g.push(L.polyline(ll(i0, P.length - 1), { color: "#1f56b3", weight: 9, opacity: 1, lineCap: "round", lineJoin: "round" }));
+    NV37.linea = L.layerGroup(g).addTo(NV37.capa);
+  };
+
+  /* ── el GPS: posición fresca, sin las malas, pegada a la ruta ── */
+  var G = { ult: null, s: null, v: 0, tPrev: 0, malos: 0, nativo: 0, pt: null };
+  function proyectar(y){   /* el punto más cercano de la ruta y cuánto se ha avanzado hasta él */
+    var P = NV37.pts; if(!P || P.length < 2) return null;
+    var kx = 111320 * Math.cos(y.lat * Math.PI / 180), ky = 110574, mejor = null, acc = 0;
+    for(var i = 0; i < P.length - 1; i++){
+      var ax = (P[i].lng - y.lng) * kx, ay = (P[i].lat - y.lat) * ky, bx = (P[i + 1].lng - y.lng) * kx, by = (P[i + 1].lat - y.lat) * ky;
+      var dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)), px = ax + dx * t, py = ay + dy * t, d = Math.sqrt(px * px + py * py), seg = Math.sqrt(L2);
+      if(!mejor || d < mejor.d) mejor = { d: d, i: i, t: t, s: acc + t * seg, lat: P[i].lat + (P[i + 1].lat - P[i].lat) * t, lng: P[i].lng + (P[i + 1].lng - P[i].lng) * t, rumbo: Math.atan2(dx, dy) * 180 / Math.PI };
+      acc += seg;
+    }
+    if(mejor) mejor.rumbo = (mejor.rumbo + 360) % 360;
+    return mejor;
+  }
+  function puntoEn(s){
+    var P = NV37.pts, kx = 111320 * Math.cos(P[0].lat * Math.PI / 180), ky = 110574, acc = 0;
+    for(var i = 0; i < P.length - 1; i++){
+      var dx = (P[i + 1].lng - P[i].lng) * kx, dy = (P[i + 1].lat - P[i].lat) * ky, d = Math.sqrt(dx * dx + dy * dy);
+      if(acc + d >= s || i === P.length - 2){ var t = d ? Math.max(0, Math.min(1, (s - acc) / d)) : 0; return { lat: P[i].lat + (P[i + 1].lat - P[i].lat) * t, lng: P[i].lng + (P[i + 1].lng - P[i].lng) * t, rumbo: (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360 }; }
+      acc += d;
+    }
+    return null;
+  }
+  N.entrada = function(f){
+    if(!f || isNaN(f.lat) || isNaN(f.lng)) return;
+    var ahora = Date.now(), t = f.t && f.t > 1e12 ? f.t : ahora;
+    if(f.prov === "web" && ahora - G.nativo < 4000) return;          /* si la app ya entrega la posición, la del navegador sobra */
+    if(ahora - t > 3500) return;                                     /* posición vieja: no se pinta */
+    var prec = f.prec == null || isNaN(f.prec) ? 20 : Number(f.prec);
+    var bueno = prec <= 40;
+    if(!bueno){ G.malos++; if(G.malos < 6 && G.ult) { NV37.impreciso = true; N.refrescar(); return; } }   /* con 6 malas seguidas se usa lo que haya */
+    else G.malos = 0;
+    var dt = G.ult ? Math.max(.3, Math.min(5, (ahora - G.tPrev) / 1000)) : 1;
+    var v = f.vel != null && !isNaN(f.vel) && f.vel >= 0 ? Number(f.vel) : (G.ult ? m37_(G.ult, f) / dt : 0);
+    G.v = G.v ? G.v * .5 + v * .5 : v; N.vel = G.v;
+    var y = { t: ahora, lat: f.lat, lng: f.lng, prec: prec, vel: v, rumbo: f.rumbo != null && !isNaN(f.rumbo) && v > 2 ? Number(f.rumbo) : (G.ult ? G.ult.rumbo : null), snap: false };
+    var pr = NV37.pts.length ? proyectar(f) : null;
+    if(pr && pr.d <= Math.max(35, Math.min(60, prec * 1.5))){
+      if(G.s == null || Math.abs(pr.s - G.s) > 120) G.s = pr.s; else { var pred = G.s + G.v * dt; G.s = pred + .45 * (pr.s - pred); }
+      var q = puntoEn(G.s); if(q){ y.lat = q.lat; y.lng = q.lng; y.rumbo = q.rumbo; y.snap = true; }
+    } else { G.s = null; if(G.ult && m37_(G.ult, y) > 8 && v > 2 && (y.rumbo == null)) y.rumbo = Math.atan2((y.lng - G.ult.lng) * Math.cos(y.lat * Math.PI / 180), y.lat - G.ult.lat) * 180 / Math.PI; }
+    if(y.rumbo != null) y.rumbo = (y.rumbo + 360) % 360;
+    NV37.impreciso = prec > 45 && !y.snap;
+    G.ult = y; G.tPrev = ahora; N.g = y;
+    GEO37.yo = y; GEO37.error = null;
+    GEO37.oy.forEach(function(fn){ try{ fn(y); }catch(e){ console.error(e); } });
+  };
+  N.refrescar = function(){ try{ if(NV37.abierta()){ NV37.pintar(); } }catch(e){} };
+  /* la posición que entrega la app (APK 1.6.4), un fix por segundo mientras se navega */
+  window.ecoPos = function(j){ try{ var f = typeof j === "string" ? JSON.parse(j) : j; G.nativo = Date.now(); f.prov = "app"; f.t = f.edad != null ? Date.now() - Number(f.edad) : Date.now(); N.entrada(f); }catch(e){} };
+  N.prender = function(){
+    if(GEO37.w !== null || !navigator.geolocation) return;
+    GEO37.w = navigator.geolocation.watchPosition(function(pos){ var c = pos.coords; N.entrada({ lat: c.latitude, lng: c.longitude, prec: c.accuracy, vel: c.speed, rumbo: c.heading, t: pos.timestamp, prov: "web" }); },
+      function(e){ GEO37.error = e && e.code === 1 ? "permiso" : "senal"; try{ UB37.chip(); NV37.pintarGps(); NV37.pintar(); }catch(x){} }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+  };
+  function app(f){ return !!(window.EcovsaApp && typeof EcovsaApp[f] === "function"); }
+
+  /* ── la posición del camión en cada fix: llegada, giros, voz (500 m, 150 m y ahora) y fuera del camino ── */
+  N.posicion = function(y){
+    if(!NV37.abierta() || !NV37.dest || !y) return;
+    N.montar();
+    NV37.dLocal = m37_(y, NV37.dest);
+    var antes = NV37.llegando, antes40 = NV37.cerca40;
+    NV37.llegando = NV37.dLocal <= 150; NV37.cerca40 = NV37.dLocal <= 40;
+    if(NV37.llegando && !antes) NV37.decir("Estás llegando a " + NV37.dest.nombre);
+    if(NV37.cerca40 && !antes40) NV37.decir("Llegaste. " + NV37.dest.nombre + ".");
+    if(!NV37.ruta && !NV37.sinGoogle) NV37.pedirRuta(y);
+    if(NV37.ruta){ NV37._tuvo = true; NV37.recalculando = false; clearTimeout(NV47.rt); }
+    NV37.pos = NV37.pts.length ? NV37.donde(y) : null;
+    if(NV37.pos && NV37.pos.lejos > 60 && (y.prec || 0) < 50 && !NV37.llegando){ NV37.fuera++; if(NV37.fuera >= 2){ NV37.ruta = null; NV37.pts = []; NV37.pasos = []; NV37.fuera = 0; G.s = null; NV37.pedirRuta(y); } }
+    else NV37.fuera = 0;
+    if(NV37.pos && !NV37.llegando){
+      var k = NV37.pos.k, sig = NV37.pasos[k + 1], fp = NV37.pos.finPaso, d = NV37.dicho;
+      if(sig){
+        var txt = NV37.linea1(sig.txt);
+        if(fp <= 560 && fp > 200 && !d[k + "a"] && NV37.pasos[k].m > 650){ d[k + "a"] = 1; NV37.decir("En 500 metros, " + txt); }
+        else if(fp <= 200 && fp > 60 && !d[k + "b"]){ d[k + "b"] = 1; d[k + "a"] = 1; NV37.decir("En " + hablada(fp) + ", " + txt); }
+        else if(fp <= 60 && !d[k + "c"]){ d[k + "c"] = 1; d[k + "b"] = 1; d[k + "a"] = 1; NV37.decir(txt); }
+      }
+      if(k !== NV37.k){ NV37.k = k; N.cambioPaso = Date.now(); }
+    }
+    N.alto = !!(NV37.llegando && N.foto);
+    try{ NV37.dibujar(); }catch(e){}
+    NV37.pintar(); N.vista(false);
+  };
+  NV37.posicion = function(y){ return act() ? N.posicion(y) : O.pos.apply(this, arguments); };
+  NV37.pintar = function(){ return act() ? N.pintar() : O.pin.apply(this, arguments); };
+  NV37.dibujar = function(){ return act() ? N.dibujar() : O.dib.apply(this, arguments); };
+  NV37.pintarGps = function(){ return act() ? undefined : O.gps.apply(this, arguments); };
+  GEO37.prender = function(){ return act() ? N.prender.apply(this, arguments) : O.prender.apply(this, arguments); };
+
+  /* ── al abrir y cerrar la navegación ── */
+  NV37.abrir = (function(o){ return function(dest){
+    var antes = NV37.abierta(), r = o.apply(this, arguments);
+    try{
+      if(act() && NV37.abierta()){
+        N.montar(); N.menu = false; N.general = false; N.aviso = ""; N.hs = null; N.rg = null; G.s = null; G.malos = 0; N.g = null;
+        N.fotoDe();
+        if(app("navegando")) { try{ EcovsaApp.navegando(true); }catch(e){} }
+        setTimeout(function(){ if(NV37.m){ NV37.m.invalidateSize({ animate: false }); N.vista(true); N.pintar(); } }, 120);
+      }
+    }catch(e){ console.error(e); }
+    return r;
+  }; })(NV37.abrir);
+  NV37.cerrar = (function(o){ return function(){ try{ if(app("navegando")) EcovsaApp.navegando(false); }catch(e){} return o.apply(this, arguments); }; })(NV37.cerrar);
+  N.fotoDe = function(){
+    var cid = NV37.cid; N.foto = ""; N.fotoG = null; N.fotoCid = cid;
+    if(!(cid > 0) || !window.google || !google.script) return;
+    google.script.run.withSuccessHandler(function(r){
+      if(N.fotoCid !== cid || !r || !r.ok) return;
+      N.foto = r.url || (r.google && r.google.url) || ""; N.fotoG = !r.url && r.google && r.google.url ? r.google : null;
+    }).withFailureHandler(function(){}).api_fotoLocalVer(PIN, cid);
+  };
+  /* si cambia el tema, el mapa y los colores se repintan */
+  try{ new MutationObserver(function(){ if(NV37.abierta()){ N.vista(false); } }).observe(document.body, { attributes: true, attributeFilter: ["class"] }); }catch(e){}
 })();
 </script>
 
