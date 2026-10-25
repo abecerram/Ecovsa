@@ -21550,7 +21550,7 @@ mostrarTab = (function(m0){
       if(esp && sh){ sh.classList.add("h47-cierra"); setTimeout(fin, 300); return; }
       return fin();
     }
-    var hoja = t !== "paradas" && t !== "navegar" && !!$("pantalla-" + t);
+    var hoja = ["agenda", "recibos", "clientes", "monitor"].indexOf(t) >= 0 && !!$("pantalla-" + t);   /* solo las listas suben como hoja; la entrega a planta, la revisión del camión y las demás van a pantalla completa */
     if(!hoja){ document.body.classList.remove("h47-esp"); limpiar(); return m0.apply(this, arguments); }
     limpiar(); H47.montar(); document.body.classList.add("h47-esp");
     var r2 = m0.apply(this, arguments);
@@ -21855,6 +21855,22 @@ window.ecoAtras = (function(o){ return function(){
   return o ? o.apply(this, arguments) : false;
 }; })(window.ecoAtras);
 
+/* ── en la tablet no hay Google Maps ni navegador: «Cómo llegar» abre la navegación de ECOVSA y WhatsApp usa su propio esquema ── */
+H47.abrirExterno = function(url){ location.href = url; };
+document.addEventListener("click", function(e){
+  try{
+    var a = e.target.closest && e.target.closest("a[href]"); if(!a || !H47.activo()) return;
+    var h = a.getAttribute("href") || "", m = h.match(/google\.com\/maps\/dir\/.*destination=(-?[\d.]+),(-?[\d.]+)/);
+    if(m && window.NV37){
+      e.preventDefault(); e.stopPropagation();
+      var la = +m[1], ln = +m[2], c = (CLIENTES || []).find(function(x){ return Math.abs(Number(x.lat) - la) < 1e-6 && Math.abs(Number(x.lng) - ln) < 1e-6; });
+      CLI47.cerrar(); NV37.abrir({ lat: la, lng: ln, nombre: c ? c.nombre : "el destino" }); return;
+    }
+    var w = h.match(/^https:\/\/wa\.me\/(\d+)(?:\?(.*))?$/);
+    if(w && window.EcovsaApp){ e.preventDefault(); e.stopPropagation(); H47.abrirExterno("whatsapp://send?phone=" + w[1] + (w[2] ? "&" + w[2] : "")); }
+  }catch(x){ console.error(x); }
+}, true);
+
 /* ── Mañana clara / Noche serena en la tablet (la APK dice cuál toca; «Automático» claro de 6:00 a 18:00) ── */
 var T47 = {};
 T47.leer = function(){
@@ -21884,6 +21900,87 @@ APP38.hojaTablet = (function(o){ return function(){
   }catch(e){ console.error(e); }
   return r;
 }; })(APP38.hojaTablet);
+</script>
+<script id="js-tf3">
+/* ═══ APK 1.6.3 · batería en el logo y «modo mapa» en horizontal (solo en la tablet) ═══
+   · La APK avisa la carga con ecoBateria({nivel, cargando}) y se puede leer con EcovsaApp.bateria().
+     Cargando: un aro verde se llena alrededor del logo y se repite; al 100 % queda lleno. Siempre, el porcentaje arriba, junto al logo
+     (amarillo con 20 % o menos, rojo con 10 % o menos).
+   · Modo mapa (tablet en horizontal): la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
+     transparente; otro toque la devuelve. */
+(function(){
+  var st = document.createElement("style");
+  st.textContent = [
+    '.bat-ring{position:absolute;width:52px;height:52px;pointer-events:none;z-index:3;overflow:visible}',
+    '.bat-ring circle{fill:none;stroke-width:3.4;stroke-linecap:round}',
+    '.bat-ring .prog{transform:rotate(-90deg);transform-origin:26px 26px}',
+    '.bat-ring.carga .prog{animation:batLlena 2.4s ease-in-out infinite}',
+    '@keyframes batLlena{0%{stroke-dasharray:0 145;opacity:1}78%{stroke-dasharray:145 145;opacity:1}92%{stroke-dasharray:145 145;opacity:0}100%{stroke-dasharray:0 145;opacity:0}}',
+    '.bat-chip{display:inline-flex;align-items:center;gap:3px;font:800 14px Archivo,sans-serif;margin-right:10px;white-space:nowrap}',
+    '.bat-chip svg{width:13px;height:13px;fill:currentColor;flex:none}',
+    'body.t47-claro .bat-chip{color:#0f2a57}body.t47-noche .bat-chip{color:#e8eefb}',
+    '.bat-chip.ama{color:#b97d00!important}body.t47-noche .bat-chip.ama{color:#ffb21f!important}.bat-chip.rojo{color:#d93025!important}body.t47-noche .bat-chip.rojo{color:#ff7b70!important}',
+    '.bat-chip .rayo{color:#2f9e44}body.t47-noche .bat-chip .rayo{color:#5fd17a}',
+    '@media (prefers-reduced-motion:reduce){.bat-ring.carga .prog{animation:none}}',
+    /* modo mapa: solo en horizontal */
+    '@media (min-aspect-ratio:1/1){',
+    ' html body.h47 #h47-hoja{height:min(520px,calc(100vh - var(--h47-top) - 70px));transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .28s ease}',
+    ' html body.h47 #h47-hoja.pk{transform:translateY(calc(100% - 112px))}',
+    ' html body.h47.h47-trans #h47-hoja{opacity:.16;pointer-events:none}',
+    ' html body.h47.h47-trans #h47-hoja .agarre{pointer-events:auto}',
+    '}'
+  ].join("\n");
+  document.head.appendChild(st);
+
+  function act(){ try{ return typeof H47 !== "undefined" && H47.activo(); }catch(e){ return false; } }
+  var BOLT = '<svg class="rayo" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>';
+  var B3 = { nivel: -1, car: false, clave: "" };
+  function clave(){ return B3.nivel + "|" + B3.car + "|" + (document.body.classList.contains("t47-noche") ? "n" : "c"); }
+  function pintar(){
+    if(!act() || B3.nivel < 0) return;
+    var l = document.querySelector("header .logo-img-header"), bs = document.querySelector("header .barra-sync");
+    if(!l || !bs) return;
+    if(B3.clave === clave() && bs.querySelector(".bat-chip")) return;
+    B3.clave = clave();
+    var pa = l.parentNode, pct = B3.nivel, car = B3.car, noche = document.body.classList.contains("t47-noche"), col = noche ? "#5fd17a" : "#2f9e44";
+    pa.style.position = "relative";
+    [].forEach.call(pa.querySelectorAll(".bat-ring"), function(e){ e.remove(); });
+    if(car){
+      var C = 2 * Math.PI * 23, s = document.createElement("div");
+      s.className = "bat-ring" + (pct < 100 ? " carga" : "");
+      s.style.left = (l.offsetLeft - 6) + "px"; s.style.top = (l.offsetTop - 6) + "px";
+      var dash = pct >= 100 ? "stroke-dasharray:" + C + " " + C + ";" : "";
+      s.innerHTML = '<svg viewBox="0 0 52 52" width="52" height="52"><circle cx="26" cy="26" r="23" stroke="' + (noche ? "rgba(143,163,199,.28)" : "rgba(20,48,107,.14)") + '"/><circle class="prog" cx="26" cy="26" r="23" stroke="' + col + '" style="' + dash + '"/></svg>';
+      pa.appendChild(s);
+    }
+    [].forEach.call(bs.querySelectorAll(".bat-chip"), function(e){ e.remove(); });
+    var c = document.createElement("span");
+    c.className = "bat-chip" + (!car && pct <= 10 ? " rojo" : !car && pct <= 20 ? " ama" : "");
+    c.innerHTML = (car ? BOLT : "") + pct + " %";
+    bs.insertBefore(c, bs.firstChild);
+  }
+  window.ecoBateria = function(j){
+    try{ var o = typeof j === "string" ? JSON.parse(j) : j; B3.nivel = Number(o.nivel); B3.car = !!o.cargando; B3.clave = ""; pintar(); }catch(e){}
+  };
+  function leer(){ try{ if(window.EcovsaApp && typeof EcovsaApp.bateria === "function") window.ecoBateria(EcovsaApp.bateria()); }catch(e){} }
+  /* la barra de arriba se vuelve a dibujar y el tema cambia: se repinta si hizo falta */
+  var tm = 0;
+  function pronto(){ clearTimeout(tm); tm = setTimeout(pintar, 250); }
+  try{ new MutationObserver(pronto).observe(document.body, { attributes: true, attributeFilter: ["class"] }); }catch(e){}
+  setTimeout(function(){ var h = document.querySelector("header"); if(h){ try{ new MutationObserver(pronto).observe(h, { childList: true, subtree: true }); }catch(e){} } }, 1500);
+  setTimeout(leer, 1200); setTimeout(leer, 4000);
+
+  /* modo mapa: un toque en el fondo del mapa vuelve transparente la hoja (solo en horizontal) */
+  var hor = window.matchMedia ? window.matchMedia("(min-aspect-ratio: 1/1)") : null;
+  function liga(){
+    if(!act() || !H47.map || H47.map._tf3) return;
+    H47.map._tf3 = true;
+    H47.map.on("click", function(){ if(hor && hor.matches) document.body.classList.toggle("h47-trans"); });
+    var ag = document.querySelector("#h47-hoja .agarre"); if(ag) ag.addEventListener("click", function(){ document.body.classList.remove("h47-trans"); }, true);
+  }
+  setInterval(liga, 1200);
+  window.addEventListener("resize", function(){ if(!(hor && hor.matches)) document.body.classList.remove("h47-trans"); });
+})();
 </script>
 
 
