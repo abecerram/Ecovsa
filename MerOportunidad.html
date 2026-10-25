@@ -657,6 +657,7 @@
   }
 
   /* ═════════ pestañas ═════════ */
+  window.MO49 = { D: function () { return D; }, COD: COD, ro: function () { return ro(); }, card: function (a, b, c) { return card(a, b, c); }, pintar: function () { pintarPanel(); } };
   function pintarPanel() {
     var p = $('panel');
     if (TAB === 'resumen') p.innerHTML = tabResumen();
@@ -952,7 +953,7 @@
       campo('canal envio', 'Enviar facturas por', { ops: [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']] }) + '</div>' +
       '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS (el 3.5 % del subtotal) y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado. Los <b>exentos</b> no pagan ITBMS: su factura sale sin ITBMS.</span></div>';
     return '<div class="b2"><div class="stack">' + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
-      serviciosCard() +
+      (window.SUC49 ? SUC49.card() : '') + serviciosCard() +
       card('Notas de la propuesta', '<div id="notas-box"></div>') + card('Para facturación', fact) + '</div>' +
       '<div class="stack">' + propuestaCard() + card('Inspección técnica', inspeccionHtml()) + '</div></div>';
   }
@@ -1535,7 +1536,7 @@
       campo('horario recoleccion', 'Horario de recolección') + campo('representante legal', 'Representante legal', { req: 1 }) + campo('cedula representante', 'Cédula del representante', { req: 1 }) +
       campo('folio registro', 'Folio de Registro Público', { req: 1 }) + campo('genero representante', 'Género del representante', { ops: [['varón', 'Varón'], ['mujer', 'Mujer']], req: 1 }) +
       campo('nacionalidad representante', 'Nacionalidad del representante', { req: 1, ph: 'panameña' }) +
-      campo('direccion', 'Dirección, sucursales y horarios (va en el contrato)', { t: 'area', w2: true, rows: 3, req: 1 }) + '</div>' +
+      campo('direccion', 'Dirección, sucursales y horarios (va en el contrato)', { t: 'area', w2: true, rows: 3, req: 1, hint: D.sucursales && D.sucursales.lista && D.sucursales.lista.length ? 'El contrato lista las ' + D.sucursales.lista.length + ' sucursales del apartado «Sucursales» (pestaña Propuesta), cada una con lo suyo.' : '' }) + '</div>' +
       '<div class="pista">' + IC('persona', 14) + '<span>El cargo, el correo y el teléfono del contrato salen del <b>contacto principal</b>: ' + E([v('cargo') || 'sin cargo', v('correo') || 'sin correo', v('telefono') || 'sin teléfono'].join(' · ')) +
       (ro() ? '' : ' · <a href="#" data-a="contacto-principal">Editar</a>') + '</span></div>';
     var f = reqFaltan(), dc = docsContratoFaltan(), nD = REQ.length - f.length, nC = 5 - dc.length;
@@ -2259,6 +2260,105 @@
       };
     }, function () {});
   }
+})();
+</script>
+<style id="estilo-349">
+.s49t td,.s49t th{vertical-align:top}.s49m td.c{text-align:center}.s49m small{display:block;color:#64748b;font-size:11px}
+.s49ok{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#e6f4ea;color:#1e6b34;align-items:center;justify-content:center}
+.s49-blq{border:1px solid #e3e9f0;border-radius:12px;padding:12px;margin:0 0 10px;background:#fbfcfe}
+.s49-srv{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:4px}.s49-srv label{display:flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer}
+.s49-fi{display:flex;gap:6px;align-items:center;margin:4px 0}.s49-fi .sel{flex:1;min-width:0}
+</style>
+<script id="js-349">
+/* ═══ api 3.49 · Sucursales de la propuesta (Mercadeo › Oportunidad) ═══
+   Una fila por cada lugar donde se presta el servicio y lo que se contrata en cada uno.
+   Al pasar a cartera nace una solicitud de alta por sucursal; Logística las recibe
+   juntas por razón social. El contrato lista cada sucursal con lo suyo. */
+var SUC49 = (function () {
+  var E = MK.esc, IC = MK.ic, ED = null;
+  var SRV = [['peligrosos', 'Recolección de peligrosos'], ['solidos', 'Recolección de sólidos'], ['fumigacion', 'Fumigación']];
+  var CADA = [['visita', 'En cada visita'], ['mes', 'Al mes'], ['bimestre', 'Cada 2 meses'], ['trimestre', 'Cada 3 meses'], ['semestre', 'Cada 6 meses']];
+  var FUM = { mes: 'Cada mes', bimestre: 'Cada 2 meses', trimestre: 'Cada 3 meses', semestre: 'Cada 6 meses' };
+  var CHK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  function S() { return (window.MO49 && MO49.D() && MO49.D().sucursales) || null; }
+  function cadaTx(c) { for (var i = 0; i < CADA.length; i++) if (CADA[i][0] === c) return CADA[i][1].toLowerCase(); return 'al mes'; }
+  function insNom(id) { var L = (S() || {}).insumos || []; for (var i = 0; i < L.length; i++) if (L[i].id === id) return L[i].nombre; return ''; }
+  function card() {
+    var su = S(); if (!su || su.unica) return '';
+    if (su.gran) return MO49.card('Sucursales', '<p class="small muted">En una cuenta con sedes, las sedes y lo que lleva cada grupo se arman en la cuenta.</p>');
+    var L = su.lista || [], ro = MO49.ro();
+    var pie = ro ? '' : '<button class="btn sm" data-s49="editar">' + IC(L.length ? 'lapiz' : 'mas', 13) + (L.length ? ' Editar' : ' Armar sucursales') + '</button>';
+    if (!L.length) {
+      var g = (su.sugerida || [])[0] || {};
+      return MO49.card('Sucursales', '<p class="small muted">Una fila por cada lugar donde se presta el servicio. Cada sucursal nace como su propia ficha en Logística, con lo que contrató, y el contrato las lista una por una.</p>' +
+        (g.direccion ? '<div class="pista" style="margin-top:8px">' + IC('alerta', 14) + '<span>Hoy la dirección está como texto: «' + E(g.direccion) + '». Si son varios locales, ármelos aquí: así no llegan juntos en una sola ficha.</span></div>' : ''), pie);
+    }
+    var h = '<table class="vt s49t"><tr><th>Sucursal</th><th>Dirección</th><th>Horario · frecuencia</th></tr>' + L.map(function (s, i) {
+      return '<tr><td><b>' + E(s.nombre || (L.length === 1 ? 'Única' : 'Sucursal ' + (i + 1))) + '</b>' + (s.lat ? '<small class="muted" style="display:block">con punto en el mapa</small>' : '') + '</td><td>' + E(s.direccion || '—') + '</td><td>' + E([s.horario, (s.frecuencia || '').toLowerCase()].filter(Boolean).join(' · ') || '—') + (s.costo ? '<small class="muted" style="display:block">B/. ' + Number(s.costo).toFixed(2) + ' por visita</small>' : '') + '</td></tr>';
+    }).join('') + '</table>';
+    h += '<div class="small" style="margin:12px 0 4px;font-weight:700">Qué se contrata en cada sucursal</div><table class="vt s49t s49m"><tr><th>Servicio</th>' + L.map(function (s, i) { return '<th>' + E(s.nombre || 'Única') + '</th>'; }).join('') + '</tr>' +
+      SRV.map(function (r) { return '<tr><td>' + r[1] + '</td>' + L.map(function (s) { var on = s.servicios && s.servicios[r[0]]; return '<td class="c">' + (on ? '<span class="s49ok">' + CHK + '</span>' + (r[0] === 'fumigacion' ? '<small>' + E((FUM[s.servicios.fumFrec] || 'Cada mes').toLowerCase()) + '</small>' : '') : '<span class="muted">—</span>') + '</td>'; }).join('') + '</tr>'; }).join('');
+    var ids = {}; L.forEach(function (s) { (s.insumos || []).forEach(function (x) { ids[x.catId] = x.nombre || insNom(x.catId); }); });
+    Object.keys(ids).forEach(function (id) {
+      h += '<tr><td>Insumo: ' + E(ids[id]) + '</td>' + L.map(function (s) { var x = (s.insumos || []).filter(function (z) { return z.catId === id; })[0]; return '<td class="c">' + (x ? '<b>' + x.cantidad + '</b> <small>' + E(cadaTx(x.cada)) + '</small>' : '<span class="muted">—</span>') + '</td>'; }).join('') + '</tr>';
+    });
+    h += '</table><p class="small muted" style="margin-top:8px">Al pasar a cartera: ' + (L.length > 1 ? L.length + ' solicitudes de alta (una por sucursal), que Logística recibe juntas.' : 'una solicitud de alta con lo contratado.') + ' El contrato lista cada sucursal con lo suyo.</p>';
+    return MO49.card('Sucursales', h, pie);
+  }
+  function abrir() {
+    var su = S(); if (!su) return;
+    var base = (su.lista && su.lista.length ? su.lista : su.sugerida) || [];
+    ED = JSON.parse(JSON.stringify(base)).map(function (s) { s.servicios = s.servicios || { peligrosos: true }; s.insumos = s.insumos || []; s.coords = s.lat && s.lng ? s.lat + ', ' + s.lng : ''; return s; });
+    if (!ED.length) ED.push(nueva());
+    MK.hoja('<h2>Sucursales de la propuesta</h2><p class="small muted">Una por cada lugar donde se presta el servicio. Con más de una, cada una lleva su nombre (por ejemplo «Obarrio»).</p><div id="s49-ed"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="s49-ok">Guardar</button></div>', { ancha: true });
+    pintarEd();
+    document.getElementById('s49-ok').onclick = guardar;
+  }
+  function nueva() { return { nombre: '', direccion: '', horario: '', frecuencia: '', contacto: '', telefono: '', costo: '', coords: '', servicios: { peligrosos: true, solidos: false, fumigacion: false, fumFrec: 'mes' }, insumos: [] }; }
+  function pintarEd() {
+    var su = S(), F = su.frecuencias || [], CAT = su.insumos || [], box = document.getElementById('s49-ed'); if (!box) return;
+    var inp = function (i, k, ph, t) { return '<input class="in" ' + (t ? 'type="' + t + '" ' : '') + 'value="' + E(ED[i][k] == null ? '' : ED[i][k]) + '" placeholder="' + E(ph || '') + '" oninput="SUC49.set(' + i + ',\'' + k + '\',this.value)">'; };
+    box.innerHTML = ED.map(function (s, i) {
+      return '<div class="s49-blq"><div class="row"><b>' + (ED.length > 1 ? 'Sucursal ' + (i + 1) : 'Sucursal') + '</b><span class="sp"></span>' + (ED.length > 1 ? '<button class="btn sm gh" onclick="SUC49.quitar(' + i + ')">' + IC('basura', 13) + ' Quitar</button>' : '') + '</div>' +
+        '<div class="grid g2" style="gap:8px;margin-top:6px"><div><label class="lb">NOMBRE</label>' + inp(i, 'nombre', ED.length > 1 ? 'Obarrio' : 'Opcional si es una sola') + '</div>' +
+        '<div><label class="lb">FRECUENCIA</label><select class="sel" onchange="SUC49.set(' + i + ',\'frecuencia\',this.value)"><option value="">La de la propuesta</option>' + F.map(function (f) { return '<option' + (s.frecuencia === f ? ' selected' : '') + '>' + E(f) + '</option>'; }).join('') + '</select></div>' +
+        '<div style="grid-column:1/-1"><label class="lb">DIRECCIÓN</label>' + inp(i, 'direccion', 'Calle, edificio, local') + '</div>' +
+        '<div><label class="lb">HORARIO</label>' + inp(i, 'horario', '8:00 a 11:00') + '</div>' +
+        '<div><label class="lb">PUNTO EN EL MAPA (OPCIONAL)</label>' + inp(i, 'coords', 'lat, lng (de Google Maps)') + '</div>' +
+        '<div><label class="lb">CONTACTO EN EL LUGAR</label>' + inp(i, 'contacto', 'Si es otro') + '</div>' +
+        '<div><label class="lb">TELÉFONO</label>' + inp(i, 'telefono', '') + '</div>' +
+        '<div><label class="lb">COSTO POR VISITA (B/.)</label>' + inp(i, 'costo', 'El de la propuesta', 'number') + '</div></div>' +
+        '<div class="lb" style="margin-top:10px">QUÉ SE CONTRATA AQUÍ</div><div class="s49-srv">' + SRV.map(function (r) {
+          return '<label><input type="checkbox"' + (s.servicios[r[0]] ? ' checked' : '') + ' onchange="SUC49.srv(' + i + ',\'' + r[0] + '\',this.checked)"> ' + r[1] + '</label>' +
+            (r[0] === 'fumigacion' && s.servicios.fumigacion ? '<select class="sel" style="max-width:160px" onchange="SUC49.srv(' + i + ',\'fumFrec\',this.value)">' + Object.keys(FUM).map(function (k) { return '<option value="' + k + '"' + ((s.servicios.fumFrec || 'mes') === k ? ' selected' : '') + '>' + FUM[k] + '</option>'; }).join('') + '</select>' : '');
+        }).join('') + '</div>' +
+        '<div class="lb" style="margin-top:8px">INSUMOS QUE SE ENTREGAN</div>' + s.insumos.map(function (x, n) {
+          return '<div class="s49-fi"><input class="in" type="number" min="1" style="width:70px" value="' + E(x.cantidad) + '" oninput="SUC49.ins(' + i + ',' + n + ',\'cantidad\',this.value)">' +
+            '<select class="sel" onchange="SUC49.ins(' + i + ',' + n + ',\'catId\',this.value)">' + CAT.map(function (c) { return '<option value="' + E(c.id) + '"' + (c.id === x.catId ? ' selected' : '') + '>' + E(c.nombre) + '</option>'; }).join('') + '</select>' +
+            '<select class="sel" onchange="SUC49.ins(' + i + ',' + n + ',\'cada\',this.value)">' + CADA.map(function (c) { return '<option value="' + c[0] + '"' + (x.cada === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select>' +
+            '<button class="btn sm gh" onclick="SUC49.insQuitar(' + i + ',' + n + ')" title="Quitar">' + IC('basura', 13) + '</button></div>';
+        }).join('') + (CAT.length ? '<button class="btn sm gh" onclick="SUC49.insMas(' + i + ')">' + IC('mas', 13) + ' Agregar insumo</button>' : '<p class="small muted">No hay insumos en el catálogo.</p>') + '</div>';
+    }).join('') + '<button class="btn" style="margin-top:6px" onclick="SUC49.mas()">' + IC('mas', 14) + ' Agregar sucursal</button>';
+  }
+  function guardar() {
+    var b = document.getElementById('s49-ok');
+    var L = ED.map(function (s) { var c = String(s.coords || '').split(','), lat = parseFloat(c[0]), lng = parseFloat(c[1]);
+      return Object.assign({}, s, { lat: isFinite(lat) && isFinite(lng) ? lat : '', lng: isFinite(lat) && isFinite(lng) ? lng : '' }); });
+    MK.ocupado(b, true);
+    MK.llamar('api_sucGuardarOp', MK.pin, MO49.COD, L).then(function (r) {
+      MK.ocupado(b, false); MO49.D().sucursales = r.sucursales; MK.cerrarHoja(); MK.aviso('Sucursales guardadas'); MO49.pintar();
+    }, function () { MK.ocupado(b, false); });
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-s49]'); if (b && b.getAttribute('data-s49') === 'editar') abrir(); });
+  return { card: card,
+    set: function (i, k, v) { ED[i][k] = v; },
+    srv: function (i, k, v) { ED[i].servicios[k] = v; if (k === 'fumigacion') pintarEd(); },
+    ins: function (i, n, k, v) { ED[i].insumos[n][k] = k === 'cantidad' ? Number(v) : v; },
+    insMas: function (i) { var C = (S().insumos || [])[0]; if (C) ED[i].insumos.push({ catId: C.id, cantidad: 1, cada: 'mes' }); pintarEd(); },
+    insQuitar: function (i, n) { ED[i].insumos.splice(n, 1); pintarEd(); },
+    mas: function () { ED.push(nueva()); pintarEd(); },
+    quitar: function (i) { ED.splice(i, 1); pintarEd(); } };
 })();
 </script>
 </body>

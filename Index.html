@@ -23706,6 +23706,283 @@ function c48WhatsGuardar_(v){
 }
 
 </script>
+
+<style id="estilo-349">
+.s49-ch{display:inline-block;margin:2px 4px 2px 0;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#eef2f6;color:#334155}
+.s49-ch.v{background:#e6f4ea;color:#1e6b34}.s49-ch.az{background:#e7f0fb;color:#0b5394}.s49-ch.am{background:#fff4e0;color:#8a5a00}
+.s49-alta{margin:8px 0 4px;padding:8px 10px;border-radius:10px;background:#f6f9fc;border:1px solid #e3e9f0}
+.s49-suc{font-size:12.5px;color:#475569;margin-bottom:4px}.s49-suc b{color:#0f172a}
+.s49-ok{font-size:12px;color:#1e6b34;margin-top:4px;display:flex;gap:6px;align-items:center}.s49-ok svg{width:14px;height:14px}
+.s49-aviso{display:flex;gap:8px;align-items:flex-start;margin:6px 0;padding:8px 10px;border-radius:10px;background:#fff4e0;color:#7a4b00;font-size:12.5px;font-weight:600}
+.s49-aviso svg{width:16px;height:16px;flex:none;margin-top:1px}
+.s49-cont{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#f6f9fc;border:1px solid #e3e9f0}
+.s49-ct{font-size:12.5px;font-weight:800;color:#0f172a;margin-bottom:4px}
+.s49-n{font-size:12px;color:#64748b;margin:4px 0 8px;line-height:1.45}
+.s49-mod{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9000;padding:16px}
+.s49-box{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.s49-box h3{margin:0 0 4px;font-size:18px}
+.s49-sec{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#64748b;margin:14px 0 6px}
+.s49-ck{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:#0f172a}
+.s49-ck input{width:18px;height:18px}
+.s49-in{font:inherit;font-size:13.5px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;margin:2px 0 4px 26px;max-width:calc(100% - 26px);box-sizing:border-box}
+.s49-fi{display:flex;gap:6px;align-items:center;margin:4px 0}.s49-fi .s49-in{margin:0;flex:1;min-width:0}.s49-fi .s49-in.q{flex:none;width:64px}
+.s49-x{border:0;background:#f1f5f9;border-radius:8px;width:30px;height:30px;font-size:18px;cursor:pointer;color:#64748b}
+.s49-btn{font:inherit;font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.s49-btn svg{width:14px;height:14px}.s49-btn.p{background:#2d6a0b;border-color:#2d6a0b;color:#fff}.s49-btn.l{border-style:dashed;margin-top:4px}
+.s49-btn:disabled{opacity:.6}
+.s49-pie{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.s49-rev{margin-top:6px}.s49-emp{font-size:12px;font-weight:800;color:#0b5394;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.03em}
+.s49-rf{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #eef2f6}
+.s49-rt{flex:1;min-width:0}.s49-rt b{display:block;font-size:14px}.s49-rt small{display:block;font-size:12px;color:#64748b;margin:1px 0 3px}
+.s49-ra{display:flex;gap:6px;flex:none}
+@media(max-width:600px){.s49-rf{flex-direction:column;align-items:stretch}.s49-ra{justify-content:flex-end}.s49-box{padding:16px 14px}}
+</style>
+<script id="js-349">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.49 · SUCURSALES Y LO CONTRATADO (Logística y conductor)
+   · El alta llega agrupada por razón social: una tarjeta con todas sus
+     sucursales, lo contratado en cada una y «Aprobar las N sucursales».
+   · La Bandeja: «Firmó fumigación · agendar la primera», «Insumos a
+     entregar», los pedidos de un mismo envío del portal y la revisión de
+     lo contratado (una sola vez).
+   · La ficha del cliente muestra y corrige lo contratado en esa sucursal.
+   · El conductor ve cada insumo con su frecuencia real y lo que el cliente
+     pidió en su portal.
+   ═══════════════════════════════════════════════════════════════════ */
+Object.assign(SVG38, { alerta: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>' });
+var S49 = { sse: {}, ed: null, rev: null };
+var S49_SRV = [["peligrosos", "Recolección de peligrosos"], ["solidos", "Recolección de sólidos"], ["fumigacion", "Fumigación"]];
+var S49_FUM = { mes: "Cada mes", bimestre: "Cada 2 meses", trimestre: "Cada 3 meses", semestre: "Cada 6 meses" };
+var S49_CADA = [["visita", "En cada visita"], ["mes", "Al mes"], ["bimestre", "Cada 2 meses"], ["trimestre", "Cada 3 meses"], ["semestre", "Cada 6 meses"]];
+function s49Ch_(t, c){ return '<span class="s49-ch' + (c ? ' ' + c : '') + '">' + esc(t) + '</span>'; }
+function s49Modal_(html){
+  var m = $("s49-mod");
+  if(!m){ m = document.createElement("div"); m.id = "s49-mod"; m.className = "s49-mod"; document.body.appendChild(m); m.onclick = function(e){ if(e.target === m) s49Cerrar_(); }; }
+  m.innerHTML = '<div class="s49-box">' + html + '</div>'; m.style.display = "flex";
+}
+function s49Cerrar_(){ var m = $("s49-mod"); if(m) m.style.display = "none"; S49.ed = null; }
+function s49ServTxt_(sv){
+  var t = []; if(!sv) return t;
+  if(sv.peligrosos) t.push("Peligrosos"); if(sv.solidos) t.push("Sólidos"); if(sv.fumigacion) t.push("Fumigación " + String(S49_FUM[sv.fumFrec] || "cada mes").toLowerCase());
+  return t;
+}
+
+/* ── 1 · El alta: lo contratado en cada sucursal y el aviso de la misma razón social ── */
+function s49Hermanas_(s){
+  if(!s || !s.grupoAlta) return [];
+  var L = (SQ && SQ.nuevos && SQ.nuevos.pendientes) || (typeof PR !== "undefined" && PR && PR.pendientes) || [];
+  return L.filter(function(o){ return o.grupoAlta === s.grupoAlta; });
+}
+sqTarjetaNuevo_ = (function(o){ return function(s){
+  var h = o.apply(this, arguments), x = '';
+  if(s.latSede && s.lngSede && !s.plusCode) h = h.replace('<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>', '<b style="color:var(--verde-bandera)">Punto marcado por Mercadeo: revíselo en el mapa</b>');
+  if(s.sucursal || (s.contratado && s.contratado.length)){
+    x += '<div class="s49-alta">' + (s.sucursal ? '<div class="s49-suc">Sucursal <b>' + esc(s.sucursal) + '</b>' + (s.razonSocial ? ' · ' + esc(s.razonSocial) : '') + (s.ruc ? ' · RUC ' + esc(s.ruc) + (s.dv ? ' DV ' + esc(s.dv) : '') : '') + '</div>' : '') +
+      '<div class="s49-chs">' + (s.contratado || []).map(function(t){ return s49Ch_(t, /Fumig/.test(t) ? "v" : ""); }).join("") +
+      (s.insumosTxt || []).map(function(t){ return s49Ch_(t, "az"); }).join("") + '</div>' +
+      '</div>';
+  }
+  if(s.enCartera) x += '<div class="s49-aviso">' + sv38_("alerta") + '<span>Esta razón social ya tiene ' + s.enCartera + (s.enCartera === 1 ? ' sucursal' : ' sucursales') + ' en la cartera' +
+    (s.enCarteraNombres && s.enCarteraNombres.length ? ' (' + esc(s.enCarteraNombres.join(", ")) + ')' : '') + '. Revise que no sea la misma.</span></div>';
+  if(!x) return h;
+  var k = h.indexOf('<div class="sq-acc">');
+  return k >= 0 ? h.slice(0, k) + x + h.slice(k) : h + x;
+}; })(sqTarjetaNuevo_);
+/* el punto que marcó Mercadeo entra a la revisión como coordenadas */
+abrirRevisionPR = (function(o){ return function(id){
+  o.apply(this, arguments);
+  var s = (PR && PR.pendientes || []).filter(function(x){ return x.solicitudId === id; })[0], c = $("pr-coords");
+  if(s && s.latSede && s.lngSede && c && !c.value && !s.plusCode) c.value = s.latSede + ", " + s.lngSede;
+}; })(abrirRevisionPR);
+/* «Aprobar las N sucursales»: cada una con su ubicación; si a alguna le falta, se revisa sola primero */
+function s49AprobarGrupo_(g){
+  var L = s49Hermanas_({ grupoAlta: g });
+  if(!L.length) return;
+  var falta = L.filter(function(s){ return !s.plusCode && !(s.latSede && s.lngSede); });
+  if(falta.length){ toast("Falta ubicar: " + falta.map(function(s){ return s.sucursal || s.empresa; }).join(", ") + ". Use «Revisar y aprobar» en esa."); return; }
+  var n = 0, err = [];
+  var sig = function(i){
+    if(i >= L.length){
+      toast(err.length ? "Aprobadas " + n + " de " + L.length + " · " + err.join(" · ") : "Aprobadas las " + n + " sucursales ✓ Nació una ficha por cada una, con lo contratado");
+      if(typeof cargarPorRevisar === "function") cargarPorRevisar(false);
+      if(typeof cargarSolicitudes === "function") cargarSolicitudes(true);
+      if(typeof sincronizar === "function") sincronizar(true);
+      return;
+    }
+    toast("Aprobando " + (i + 1) + " de " + L.length + "…");
+    google.script.run.withSuccessHandler(function(r){ if(r && r.ok) n++; else err.push((L[i].sucursal || L[i].empresa) + ": " + ((r && r.error) || "no se pudo")); sig(i + 1); })
+      .withFailureHandler(function(){ err.push((L[i].sucursal || L[i].empresa) + ": sin señal"); sig(i + 1); })
+      .api_aprobarSolicitud(PIN, L[i].solicitudId, {});
+  };
+  sig(0);
+}
+
+/* ── 2 · La Bandeja ── */
+bq38Items_ = (function(o){ return function(){
+  var L = o.apply(this, arguments), I = BQ.inc || {};
+  L.forEach(function(x){
+    var k = x.k || "";
+    if(k.indexOf("fumt:") === 0 && x.fum && x.fum.nuevo){ x.t = "Firmó fumigación · " + x.fum.cliente; x.s = "Agendar la primera · después el sistema avisa cada vez que le toca"; x.o = "Cliente nuevo · " + (x.fum.frec || ""); x.b = "Agendar la primera"; }
+    if(k.indexOf("srv:") === 0) x.t = String(x.t).replace("Para llevar en la visita · ", "Insumos a entregar · ");
+    var p = x.ptl || x.otra;
+    if(p && p.grupoN > 1) x.o = x.o + " · mismo pedido de " + p.grupoN;
+    if(p && p.insumos){ x.t = "Insumos para la próxima visita · " + p.cliente; x.s = String(p.item || "").replace(/^Insumos: /, "") + " · van con su próxima visita"; }
+  });
+  if(typeof SQ !== "undefined" && SQ){
+    var S = sqListas_(), porG = {}, vistos = {};
+    S.cli.forEach(function(s){ if(s.grupoAlta) (porG[s.grupoAlta] = porG[s.grupoAlta] || []).push(s); });
+    L = L.filter(function(x){
+      if(String(x.k).indexOf("cli:") !== 0) return true;
+      var s = S.cli.filter(function(c){ return c.solicitudId === x.k.slice(4); })[0];
+      if(s && s.latSede && !s.plusCode) x.s = String(x.s).replace(/^Sin ubicación/, 'Punto marcado por Mercadeo');
+      if(!s || !s.grupoAlta || porG[s.grupoAlta].length < 2) return true;
+      if(vistos[s.grupoAlta]) return false; vistos[s.grupoAlta] = 1;
+      var G = porG[s.grupoAlta];
+      x.t = "Cliente nuevo · " + (s.razonSocial || String(s.empresa).replace(/\s-\s.*$/, "")) + " · " + G.length + " sucursales";
+      x.s = G.map(function(g){ return g.sucursal || g.empresa; }).join(" · ") + " · lo mandó " + (s.registradoPor || "Mercadeo");
+      x.grupo49 = s.grupoAlta;
+      return true;
+    });
+  }
+  if(I.revisionContratado > 0) L.push({ k: "rev49", car: "men", sub: "mer", cat: "mer", ic: "doc", c: "c38-g", f: hoyISO(), d: 0, g: "esp", hr: 0,
+    o: "Una sola vez · lo de antes", t: "Revisión de lo contratado · " + I.revisionContratado + (I.revisionContratado === 1 ? " ficha" : " fichas"), s: "Confirmar en cada sucursal qué servicios e insumos tiene", b: "Revisar" });
+  return L;
+}; })(bq38Items_);
+bq38Det_ = (function(o){ return function(){
+  var k = String(BQ.sel || "");
+  if(k === "rev49") return '<div class="dh"><i class="bic big c38-g">' + sv38_("doc") + '</i><div><div class="bo">Una sola vez</div><h2>Revisión de lo contratado</h2></div></div>' +
+    '<div class="rel" style="font-style:normal;font-size:12.5px">Las fichas de antes no tienen guardado qué servicios e insumos contrató cada sucursal. Cliente por cliente: lo que dice su propuesta firmada, para confirmarlo con un toque o corregirlo. Desde ahí el portal sabe qué puede pedir cada sucursal y el conductor qué lleva.</div>' +
+    '<div class="bb"><button class="p" onclick="s49Revision_()">' + sv38_("check") + ' Abrir la revisión</button></div>';
+  if(k.indexOf("cli:") === 0 && typeof SQ !== "undefined" && SQ){
+    var S = sqListas_(), s = S.cli.filter(function(c){ return c.solicitudId === k.slice(4); })[0], G = s ? s49Hermanas_(s) : [];
+    if(s && G.length > 1){
+      var falta = G.filter(function(z){ return !z.plusCode && !(z.latSede && z.lngSede); }).length;
+      return '<div class="dh"><i class="bic big c38-v">' + sv38_("persona") + '</i><div><div class="bo">Mercadeo · propuesta ' + esc(s.codigoPropuesta || s.grupoAlta) + ' · lo mandó ' + esc(s.registradoPor || "Mercadeo") + '</div>' +
+          '<h2>' + esc(s.razonSocial || String(s.empresa).replace(/\s-\s.*$/, "")) + ' · ' + G.length + ' sucursales</h2></div></div>' +
+        (s.ruc ? '<div class="s49-suc" style="margin:0 0 8px">RUC ' + esc(s.ruc) + (s.dv ? ' DV ' + esc(s.dv) : '') + ' · un solo contrato</div>' : '') +
+        G.map(function(z){ return '<div class="sq-emb">' + sqTarjetaNuevo_(z) + '</div>'; }).join("") +
+        '<div class="bb" style="margin-top:10px"><button class="p" onclick="s49AprobarGrupo_(\'' + esc(s.grupoAlta) + '\')"' + (falta ? ' title="Falta ubicar ' + falta + '"' : '') + '>' + sv38_("check") + ' Aprobar las ' + G.length + ' sucursales</button></div>' +
+        (falta ? '<div class="bn-nota a">' + sv38_("alerta") + '<span>' + falta + (falta === 1 ? ' sucursal no tiene' : ' sucursales no tienen') + ' ubicación: ábrala con «Revisar y aprobar» y toque el punto en el mapa.</span></div>' : '');
+    }
+  }
+  return o.apply(this, arguments);
+}; })(bq38Det_);
+bn48DetFumToca_ = (function(o){ return function(it){
+  var h = o.apply(this, arguments);
+  if(it && it.fum && it.fum.nuevo) h = h.replace("Le toca la fumigación · ", "Firmó fumigación · ").replace("Agendar la fumigación", "Agendar la primera")
+    .replace('<div class="bn-nota">', '<div class="bn-nota v">' + sv38_("check") + '<span>Viene en su contrato. Se agenda la primera; después el sistema avisa sola cada vez que le toca.</span></div><div class="bn-nota">');
+  return h;
+}; })(bn48DetFumToca_);
+
+/* ── 3 · Lo contratado en la ficha y su editor ── */
+function s49Cargar_(id, forzar){
+  var R = S49.sse[id];
+  if(R && !forzar && (R.cargando || R.ok)) return R;
+  S49.sse[id] = { cargando: true };
+  google.script.run.withSuccessHandler(function(r){
+    S49.sse[id] = r && r.ok ? r : { error: (r && r.error) || "No se pudo abrir" };
+    if(typeof C2_ID !== "undefined" && C2_ID === id) s49Repintar_();
+  }).withFailureHandler(function(){ S49.sse[id] = { error: "Sin señal" }; }).api_serviciosSede(PIN, id);
+  return S49.sse[id];
+}
+function s49Bloque_(id){
+  var R = s49Cargar_(id);
+  if(R.cargando) return '<div class="c2-vacio">Cargando lo contratado…</div>';
+  if(R.error) return '<div class="c2-ob r"><b>' + esc(R.error) + '</b></div>';
+  var f = R.ficha;
+  return '<div class="s49-cont"><div class="s49-ct">Lo contratado en esta sucursal' + (f.revisado ? '' : ' <span class="s49-ch am">sin confirmar</span>') + '</div>' +
+    '<div class="s49-chs">' + s49ServTxt_(f.servicios).map(function(t){ return s49Ch_(t, /Fumig/.test(t) ? "v" : ""); }).join("") +
+    (f.insumos || []).map(function(i){ return s49Ch_(i.cantidad + " " + i.nombre + " · " + String(i.cadaTxt || "").toLowerCase(), "az"); }).join("") + '</div>' +
+    (f.revisado ? '' : '<div class="s49-n">Ficha de antes: se toma con recolección de peligrosos hasta que se confirme.</div>') +
+    (R.puede ? '<button class="s49-btn" style="margin-top:8px" onclick="s49Editar_(' + id + ')">' + (f.revisado ? 'Cambiar lo contratado' : 'Confirmar lo contratado') + '</button>' : '') + '</div>';
+}
+fLlevaC2_ = (function(o){ return function(F){ return s49Bloque_(F.cliente.id) + o.apply(this, arguments); }; })(fLlevaC2_);
+/* la ficha nueva (3.44): dentro de «Su servicio» */
+if(typeof c44HtmlSede_ === "function") c44HtmlSede_ = (function(o){ return function(){
+  var h = o.apply(this, arguments), id = typeof C2_ID !== "undefined" ? C2_ID : null, t = '<h3>Su servicio</h3>', k = h.indexOf(t);
+  return id && k >= 0 ? h.slice(0, k + t.length) + s49Bloque_(id) + h.slice(k + t.length) : h;
+}; })(c44HtmlSede_);
+function s49Repintar_(){ if(typeof c44Repintar_ === "function" && typeof C44 !== "undefined" && C44.modo !== "lista") c44Repintar_(); else if(typeof pintarFichaC2_ === "function") pintarFichaC2_(); }
+function s49Editar_(id, desdeRev){
+  var R = S49.sse[id], f = null, CAT = [];
+  if(desdeRev && S49.rev){ f = (S49.rev.pendientes || []).filter(function(x){ return String(x.clienteId) === String(id); })[0]; CAT = S49.rev.insumos || []; }
+  else if(R && R.ok){ f = R.ficha; CAT = R.insumos || []; }
+  if(!f){ toast("Abriendo…"); return; }
+  S49.ed = { id: id, nombre: f.nombre, desdeRev: !!desdeRev, cat: CAT, sv: JSON.parse(JSON.stringify(f.servicios || {})),
+             ins: (f.insumos || []).map(function(i){ return { catId: i.catId, cantidad: i.cantidad, cada: i.cada }; }) };
+  s49PintarEd_();
+}
+function s49PintarEd_(){
+  var e = S49.ed; if(!e) return;
+  var opc = function(sel){ return e.cat.map(function(c){ return '<option value="' + esc(c.id) + '"' + (c.id === sel ? ' selected' : '') + '>' + esc(c.nombre) + '</option>'; }).join(""); };
+  s49Modal_('<h3>Lo contratado · ' + esc(e.nombre) + '</h3><div class="s49-n">Lo que tiene esta sucursal. Con esto el portal sabe qué puede pedir y el conductor qué entrega.</div>' +
+    '<div class="s49-sec">Servicios</div>' + S49_SRV.map(function(s){
+      return '<label class="s49-ck"><input type="checkbox" ' + (e.sv[s[0]] ? 'checked' : '') + ' onchange="S49.ed.sv.' + s[0] + '=this.checked;s49PintarEd_()"> ' + s[1] + '</label>' +
+        (s[0] === "fumigacion" && e.sv.fumigacion ? '<select class="s49-in" onchange="S49.ed.sv.fumFrec=this.value">' + Object.keys(S49_FUM).map(function(k){ return '<option value="' + k + '"' + ((e.sv.fumFrec || "mes") === k ? ' selected' : '') + '>' + S49_FUM[k] + '</option>'; }).join("") + '</select>' : '');
+    }).join("") +
+    '<div class="s49-sec">Insumos que se entregan</div>' + (e.ins.length ? e.ins.map(function(i, n){
+      return '<div class="s49-fi"><input class="s49-in q" type="number" min="1" max="999" value="' + esc(i.cantidad) + '" onchange="S49.ed.ins[' + n + '].cantidad=Number(this.value)">' +
+        '<select class="s49-in" onchange="S49.ed.ins[' + n + '].catId=this.value">' + opc(i.catId) + '</select>' +
+        '<select class="s49-in" onchange="S49.ed.ins[' + n + '].cada=this.value">' + S49_CADA.map(function(c){ return '<option value="' + c[0] + '"' + (i.cada === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join("") + '</select>' +
+        '<button class="s49-x" title="Quitar" onclick="S49.ed.ins.splice(' + n + ',1);s49PintarEd_()">×</button></div>';
+    }).join("") : '<div class="s49-n">Ninguno.</div>') +
+    (e.cat.length ? '<button class="s49-btn l" onclick="S49.ed.ins.push({catId:S49.ed.cat[0].id,cantidad:1,cada:\'mes\'});s49PintarEd_()">+ Agregar insumo</button>' : '') +
+    '<div class="s49-pie"><button class="s49-btn" onclick="s49Cerrar_()">Cancelar</button><button class="s49-btn p" id="s49-ok" onclick="s49GuardarEd_()">Guardar</button></div>');
+}
+function s49GuardarEd_(){
+  var e = S49.ed; if(!e) return;
+  var b = $("s49-ok"); if(b){ b.disabled = true; b.textContent = "Guardando…"; }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); if(b){ b.disabled = false; b.textContent = "Guardar"; } return; }
+    toast("Guardado ✓"); var id = e.id, rev = e.desdeRev; s49Cerrar_();
+    delete S49.sse[id]; if(typeof C2_REP !== "undefined") delete C2_REP[id];
+    if(rev) s49Revision_(); else s49Repintar_();
+    if(BQ && BQ.inc && BQ.inc.revisionContratado && rev) BQ.inc.revisionContratado = Math.max(0, BQ.inc.revisionContratado - 1);
+  }).withFailureHandler(function(){ toast("Sin señal"); if(b){ b.disabled = false; b.textContent = "Guardar"; } }).api_guardarServiciosSede(PIN, e.id, { servicios: e.sv, insumos: e.ins });
+}
+
+/* ── 4 · Revisión de lo contratado (una sola vez) ── */
+function s49Revision_(){
+  s49Modal_('<h3>Revisión de lo contratado</h3><div class="s49-n">Consultando…</div>');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ s49Modal_('<h3>Revisión de lo contratado</h3><div class="s49-aviso">' + esc((r && r.error) || "No se pudo") + '</div><div class="s49-pie"><button class="s49-btn" onclick="s49Cerrar_()">Cerrar</button></div>'); return; }
+    S49.rev = r; s49PintarRev_();
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_revisionContratado(PIN);
+}
+function s49PintarRev_(){
+  var r = S49.rev, L = r.pendientes || [], emp = "";
+  var CAT = {}; (r.insumos || []).forEach(function(c){ CAT[c.id] = c.nombre; });
+  s49Modal_('<h3>Revisión de lo contratado</h3><div class="s49-n">' + (L.length ? 'Faltan <b>' + L.length + '</b> de ' + r.total + ' fichas. Lo que dice cada propuesta firmada ya viene marcado: confírmelo con un toque o cámbielo.' : 'Todas las fichas tienen lo contratado confirmado.') + '</div>' +
+    '<div class="s49-rev">' + L.map(function(f){
+      var cab = f.empresa !== emp ? '<div class="s49-emp">' + esc(f.empresa) + '</div>' : ''; emp = f.empresa;
+      return cab + '<div class="s49-rf"><div class="s49-rt"><b>' + esc(f.nombre) + '</b><small>' + esc(f.frecuencia || "") + (f.propuesta ? ' · ' + esc(f.propuesta) : ' · sin propuesta en el sistema') + (f.dicePropuesta ? ' · la propuesta dice: ' + esc(f.dicePropuesta) : '') + '</small>' +
+        '<div class="s49-chs">' + s49ServTxt_(f.servicios).map(function(t){ return s49Ch_(t, /Fumig/.test(t) ? "v" : ""); }).join("") +
+        (f.insumos || []).map(function(i){ return s49Ch_(i.cantidad + " " + (CAT[i.catId] || i.nombre || "") + " · " + (i.cadaTxt || i.cada), "az"); }).join("") + '</div></div>' +
+        (r.puede ? '<div class="s49-ra"><button class="s49-btn" onclick="s49Editar_(' + f.clienteId + ',true)">Cambiar</button><button class="s49-btn p" onclick="s49Confirmar_(' + f.clienteId + ')">' + sv38_("check") + ' Confirmar</button></div>' : '') + '</div>';
+    }).join("") + '</div><div class="s49-pie"><button class="s49-btn" onclick="s49Cerrar_()">Cerrar</button></div>');
+}
+function s49Confirmar_(id){
+  var f = (S49.rev.pendientes || []).filter(function(x){ return String(x.clienteId) === String(id); })[0]; if(!f) return;
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+    S49.rev.pendientes = S49.rev.pendientes.filter(function(x){ return x !== f; }); S49.rev.revisados++;
+    if(BQ && BQ.inc && BQ.inc.revisionContratado) BQ.inc.revisionContratado = Math.max(0, BQ.inc.revisionContratado - 1);
+    delete S49.sse[id]; toast("Confirmado ✓ " + f.nombre); s49PintarRev_();
+  }).withFailureHandler(function(){ toast("Sin señal"); })
+    .api_guardarServiciosSede(PIN, id, { servicios: f.servicios, insumos: (f.insumos || []).map(function(i){ return { catId: i.catId, cantidad: i.cantidad, cada: i.cada }; }) });
+}
+
+/* ── 5 · El conductor: cada insumo con su frecuencia real y lo pedido en el portal ── */
+reponerParada_ = function(p, i, c){
+  var L = repDe_(c); if(!L.length) return '';
+  return '<div class="pc-rep"><div class="pc-rep-t">ENTREGAR EN ESTA VISITA</div>' + L.map(function(r){
+    var on = repMarcado_(p, r), ct = String(r.cadaTxt || "").toLowerCase();
+    var txt = r.pedido ? 'Lo pidió en su portal' : r.cada === 'visita' ? 'En cada visita' : r.cada === 'mes' ? (r.toca ? 'Recambio del mes' : 'Ya se entregó este mes') : (r.toca ? 'Le toca · ' + ct : 'Ya se entregó · ' + ct);
+    return '<div class="pc-rep-it" onclick="toggleRep(' + i + ',\'' + esc(r.repId) + '\')"><span class="pc-rep-ck' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span>' +
+      '<div style="flex:1"><b>' + esc(r.nombre) + '</b><small>' + esc(txt) + '</small></div><span class="pc-rep-q">' + r.cantidad + '</span></div>';
+  }).join('') + '<div class="pc-rep-n">Lo marcado sale en el recibo y se descuenta del inventario.</div></div>';
+};
+</script>
 </body>
 
 </html>

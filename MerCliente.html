@@ -475,7 +475,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var h = MK.hoja('<h2>Reponer en la visita</h2><p class="small muted">' + E(R.cliente.nombre) + '</p>' +
       '<label class="lb" for="rp-cat">PRODUCTO</label><select class="sel" id="rp-cat">' + (r.productos || []).map(function (p) { return '<option value="' + E(p.id) + '">' + E(p.nombre) + (p.stock != null ? ' · quedan ' + p.stock : ' · sin inventario') + '</option>'; }).join('') + '</select>' +
       '<div class="grid g2" style="gap:10px"><div><label class="lb" for="rp-can">CANTIDAD</label><input class="in" type="number" min="1" id="rp-can" value="1"></div>' +
-      '<div><label class="lb" for="rp-cad">CADA CUÁNTO</label><select class="sel" id="rp-cad"><option value="mes">Una vez al mes</option><option value="visita">En cada visita</option></select></div></div>' +
+      '<div><label class="lb" for="rp-cad">CADA CUÁNTO</label><select class="sel" id="rp-cad"><option value="mes">Una vez al mes</option><option value="visita">En cada visita</option><option value="bimestre">Cada 2 meses</option><option value="trimestre">Cada 3 meses</option><option value="semestre">Cada 6 meses</option></select></div></div>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="rp-ok">Guardar</button></div>');
     document.getElementById('rp-ok').onclick = function () {
       var b = this; MK.ocupado(b, true);
@@ -561,7 +561,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   }
   function sucCompacto() {
     var c = R.cliente, S = R.sucursales || [];
-    var h = '';
+    var h = window.MC49 ? MC49.card(c) : '';
     if (c.cuenta && S.length) {
       h += card('Cuenta ' + E(c.cuenta) + ' · ' + (S.length + 1) + ' sucursales', 'edificio', S.map(function (x) {
         var n = (x.situacion === 'cierre' || x.situacion === 'retiro') ? ['De baja', 'gris'] : (NIV[x.salud.nivel] || NIV.sano);
@@ -900,6 +900,90 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       }, function (e) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: no se guardó. ' + e.message; });
     };
   }
+})();
+</script>
+<style id="estilo-349">
+.s49-srv{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:4px}.s49-srv label{display:flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer}
+.s49-fi{display:flex;gap:6px;align-items:center;margin:4px 0}.s49-fi .sel{flex:1;min-width:0}
+</style>
+<script id="js-349">
+/* ═══ api 3.49 · Mercadeo › Cliente: lo contratado en esta sucursal y «Agregar sucursal» ═══
+   Una sucursal nueva de un cliente que ya tenemos (el caso Madenta) no se escribe junto a la de
+   siempre: se agrega aquí, con lo que contrata, y a Logística le llega su alta para verificarla. */
+var MC49 = (function () {
+  var E = MK.esc, IC = MK.ic, CLI = null, X = null, ED = null;
+  var SRV = [['peligrosos', 'Recolección de peligrosos'], ['solidos', 'Recolección de sólidos'], ['fumigacion', 'Fumigación']];
+  var CADA = [['visita', 'En cada visita'], ['mes', 'Al mes'], ['bimestre', 'Cada 2 meses'], ['trimestre', 'Cada 3 meses'], ['semestre', 'Cada 6 meses']];
+  var FUM = { mes: 'Cada mes', bimestre: 'Cada 2 meses', trimestre: 'Cada 3 meses', semestre: 'Cada 6 meses' };
+  function servTx(sv) { var t = []; if (!sv) return t; if (sv.peligrosos) t.push('Peligrosos'); if (sv.solidos) t.push('Sólidos'); if (sv.fumigacion) t.push('Fumigación ' + String(FUM[sv.fumFrec] || 'cada mes').toLowerCase()); return t; }
+  function card(c) {
+    CLI = c; setTimeout(cargar, 0);
+    return '<div class="card" id="mc49"><h3>' + IC('caja', 16) + 'Lo contratado en esta sucursal</h3><div class="small muted">Cargando…</div></div>';
+  }
+  function cargar() {
+    if (!CLI) return;
+    MK.api('api_serviciosSede', MK.pin, CLI.id).then(function (r) { if (r && r.ok) { X = r; pintar(); } }, function () {});
+  }
+  function pintar() {
+    var el = document.getElementById('mc49'); if (!el || !X) return;
+    var f = X.ficha;
+    el.innerHTML = '<h3>' + IC('caja', 16) + 'Lo contratado en esta sucursal<span class="sp"></span>' + (X.puede ? '<button class="btn sm" data-mc49="editar">' + IC('lapiz', 13) + (f.revisado ? 'Cambiar' : 'Confirmar') + '</button>' : '') + '</h3>' +
+      '<div class="row w" style="gap:6px">' + servTx(f.servicios).map(function (t) { return '<span class="tag ' + (/Fumig/.test(t) ? 't-ok' : 't-info') + '">' + E(t) + '</span>'; }).join('') +
+      (f.insumos || []).map(function (i) { return '<span class="tag t-gris">' + E(i.cantidad + ' ' + i.nombre + ' · ' + (i.cadaTxt || '').toLowerCase()) + '</span>'; }).join('') + '</div>' +
+      (f.revisado ? '' : '<p class="small muted" style="margin-top:6px">Ficha de antes: se toma con recolección de peligrosos hasta que alguien lo confirme.</p>') +
+      '<p class="small muted" style="margin-top:8px">El portal del cliente usa esta lista: lo que no está aquí le sale como «¿Desea contratarlo?» y te llega como servicio adicional.</p>' +
+      (X.puede ? '<div class="row w" style="margin-top:10px"><button class="btn sm" data-mc49="sucursal">' + IC('mas', 14) + 'Agregar sucursal</button></div>' : '');
+  }
+  function editar() {
+    var f = X.ficha;
+    ED = { sv: JSON.parse(JSON.stringify(f.servicios)), ins: (f.insumos || []).map(function (i) { return { catId: i.catId, cantidad: i.cantidad, cada: i.cada }; }) };
+    MK.hoja('<h2>Lo contratado · ' + E(f.nombre) + '</h2><div id="mc49-ed"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="mc49-ok">Guardar</button></div>');
+    pintarEd('mc49-ed', ED);
+    document.getElementById('mc49-ok').onclick = function () {
+      var b = this; MK.ocupado(b, true);
+      MK.llamar('api_guardarServiciosSede', MK.pin, CLI.id, { servicios: ED.sv, insumos: ED.ins }).then(function (r) { X.ficha = r.ficha; MK.cerrarHoja(); MK.aviso('Guardado'); pintar(); }, function () { MK.ocupado(b, false); });
+    };
+  }
+  function pintarEd(id, o) {
+    var box = document.getElementById(id), CAT = X.insumos || []; if (!box) return;
+    box.innerHTML = '<div class="lb" style="margin-top:6px">SERVICIOS</div><div class="s49-srv">' + SRV.map(function (r) {
+      return '<label><input type="checkbox"' + (o.sv[r[0]] ? ' checked' : '') + ' onchange="MC49.srv(\'' + id + '\',\'' + r[0] + '\',this.checked)"> ' + r[1] + '</label>' +
+        (r[0] === 'fumigacion' && o.sv.fumigacion ? '<select class="sel" style="max-width:160px" onchange="MC49.srv(\'' + id + '\',\'fumFrec\',this.value)">' + Object.keys(FUM).map(function (k) { return '<option value="' + k + '"' + ((o.sv.fumFrec || 'mes') === k ? ' selected' : '') + '>' + FUM[k] + '</option>'; }).join('') + '</select>' : '');
+    }).join('') + '</div><div class="lb" style="margin-top:10px">INSUMOS QUE SE ENTREGAN</div>' + o.ins.map(function (x, n) {
+      return '<div class="s49-fi"><input class="in" type="number" min="1" style="width:70px" value="' + E(x.cantidad) + '" oninput="MC49.ins(\'' + id + '\',' + n + ',\'cantidad\',this.value)">' +
+        '<select class="sel" onchange="MC49.ins(\'' + id + '\',' + n + ',\'catId\',this.value)">' + CAT.map(function (c) { return '<option value="' + E(c.id) + '"' + (c.id === x.catId ? ' selected' : '') + '>' + E(c.nombre) + '</option>'; }).join('') + '</select>' +
+        '<select class="sel" onchange="MC49.ins(\'' + id + '\',' + n + ',\'cada\',this.value)">' + CADA.map(function (c) { return '<option value="' + c[0] + '"' + (x.cada === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select>' +
+        '<button class="btn sm gh" onclick="MC49.insQuitar(\'' + id + '\',' + n + ')" title="Quitar">' + IC('basura', 13) + '</button></div>';
+    }).join('') + (CAT.length ? '<button class="btn sm gh" onclick="MC49.insMas(\'' + id + '\')">' + IC('mas', 13) + ' Agregar insumo</button>' : '');
+  }
+  function obj(id) { return id === 'mc49-ed' ? ED : ED.nueva; }
+  function sucursal() {
+    var c = CLI;
+    ED = { nueva: { sv: { peligrosos: true, solidos: false, fumigacion: false, fumFrec: 'mes' }, ins: [] } };
+    MK.hoja('<h2>Agregar sucursal · ' + E(c.nombre) + '</h2><p class="small muted">Misma razón social y mismo contrato. A Logística le llega el alta de esta sucursal para verificar la dirección; al aprobarla nace su propia ficha con lo que contrata aquí. La ficha de hoy no cambia de nombre (sus recibos siguen igual).</p>' +
+      '<div class="grid g2" style="gap:8px"><div><label class="lb">NOMBRE DE LA SUCURSAL</label><input class="in" id="mc49-n" placeholder="Santa María Plaza"></div>' +
+      '<div><label class="lb">FRECUENCIA</label><select class="sel" id="mc49-f"><option value="">La de esta ficha</option>' + ['SEMANAL', '2X SEMANA', 'QUINCENAL', 'MENSUAL', 'BIMESTRAL', 'TRIMESTRAL', 'SEMESTRAL', 'ANUAL', 'DIARIA'].map(function (f) { return '<option>' + f + '</option>'; }).join('') + '</select></div>' +
+      '<div style="grid-column:1/-1"><label class="lb">DIRECCIÓN</label><input class="in" id="mc49-d" placeholder="Calle, edificio, local"></div>' +
+      '<div><label class="lb">HORARIO</label><input class="in" id="mc49-h" placeholder="8:00 a 11:00"></div><div><label class="lb">PUNTO EN EL MAPA (OPCIONAL)</label><input class="in" id="mc49-c" placeholder="lat, lng"></div>' +
+      '<div><label class="lb">CONTACTO EN EL LUGAR</label><input class="in" id="mc49-k"></div><div><label class="lb">TELÉFONO</label><input class="in" id="mc49-t"></div>' +
+      '<div><label class="lb">COSTO POR VISITA (B/.)</label><input class="in" id="mc49-p" type="number" placeholder="El de esta ficha"></div>' +
+      '<div style="grid-column:1/-1"><label class="lb">DIRECCIÓN DE ESTA FICHA (SI TENÍA LAS DOS JUNTAS)</label><input class="in" id="mc49-a" value="' + E(c.direccion || '') + '"></div></div>' +
+      '<div id="mc49-nv"></div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="mc49-ok">Enviar el alta a Logística</button></div>', { ancha: true });
+    pintarEd('mc49-nv', ED.nueva);
+    document.getElementById('mc49-ok').onclick = function () {
+      var b = this, v = function (k) { return document.getElementById(k).value.trim(); }, cc = v('mc49-c').split(','), lat = parseFloat(cc[0]), lng = parseFloat(cc[1]);
+      MK.ocupado(b, true);
+      MK.llamar('api_merAgregarSucursal', MK.pin, c.id, { nombre: v('mc49-n'), direccion: v('mc49-d'), frecuencia: v('mc49-f'), horario: v('mc49-h'), contacto: v('mc49-k'), telefono: v('mc49-t'), costo: v('mc49-p'),
+        lat: isFinite(lat) && isFinite(lng) ? lat : '', lng: isFinite(lat) && isFinite(lng) ? lng : '', direccionActual: v('mc49-a'), servicios: ED.nueva.sv, insumos: ED.nueva.ins })
+        .then(function (r) { MK.cerrarHoja(); MK.aviso('Alta enviada a Logística: ' + r.nombre); }, function () { MK.ocupado(b, false); });
+    };
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-mc49]'); if (!b || !X) return; var a = b.getAttribute('data-mc49'); if (a === 'editar') editar(); else if (a === 'sucursal') sucursal(); });
+  return { card: card,
+    srv: function (id, k, v) { obj(id).sv[k] = v; if (k === 'fumigacion') pintarEd(id, obj(id)); },
+    ins: function (id, n, k, v) { obj(id).ins[n][k] = k === 'cantidad' ? Number(v) : v; },
+    insMas: function (id) { var C = (X.insumos || [])[0]; if (C) obj(id).ins.push({ catId: C.id, cantidad: 1, cada: 'mes' }); pintarEd(id, obj(id)); },
+    insQuitar: function (id, n) { obj(id).ins.splice(n, 1); pintarEd(id, obj(id)); } };
 })();
 </script>
 </body>
