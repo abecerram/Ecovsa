@@ -21906,8 +21906,9 @@ APP38.hojaTablet = (function(o){ return function(){
    · La APK avisa la carga con ecoBateria({nivel, cargando}) y se puede leer con EcovsaApp.bateria().
      Cargando: un aro verde se llena alrededor del logo y se repite; al 100 % queda lleno. Siempre, el porcentaje arriba, junto al logo
      (amarillo con 20 % o menos, rojo con 10 % o menos).
-   · Modo mapa (tablet en horizontal): la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
-     transparente; otro toque la devuelve. */
+   · Modo mapa: en horizontal la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
+     transparente; otro toque la devuelve. En vertical pasa lo mismo cuando el conductor pone en el mapa la ruta de una de las
+     etiquetas («Rutas por hacer»): el mapa queda con toda la atención y un toque en cualquier parte lo devuelve. */
 (function(){
   var st = document.createElement("style");
   st.textContent = [
@@ -21923,11 +21924,12 @@ APP38.hojaTablet = (function(o){ return function(){
     '.bat-chip .rayo{color:#2f9e44}body.t47-noche .bat-chip .rayo{color:#5fd17a}',
     '@media (prefers-reduced-motion:reduce){.bat-ring.carga .prog{animation:none}}',
     /* modo mapa: solo en horizontal */
+    'html body.h47 #h47-hoja{transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .28s ease}',
+    'html body.h47.h47-trans #h47-hoja{opacity:.16;pointer-events:none}',
+    'html body.h47.h47-trans #h47-hoja .agarre{pointer-events:auto}',
     '@media (min-aspect-ratio:1/1){',
-    ' html body.h47 #h47-hoja{height:min(520px,calc(100vh - var(--h47-top) - 70px));transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .28s ease}',
+    ' html body.h47 #h47-hoja{height:min(520px,calc(100vh - var(--h47-top) - 70px))}',
     ' html body.h47 #h47-hoja.pk{transform:translateY(calc(100% - 112px))}',
-    ' html body.h47.h47-trans #h47-hoja{opacity:.16;pointer-events:none}',
-    ' html body.h47.h47-trans #h47-hoja .agarre{pointer-events:auto}',
     '}'
   ].join("\n");
   document.head.appendChild(st);
@@ -21975,11 +21977,15 @@ APP38.hojaTablet = (function(o){ return function(){
   function liga(){
     if(!act() || !H47.map || H47.map._tf3) return;
     H47.map._tf3 = true;
-    H47.map.on("click", function(){ if(hor && hor.matches) document.body.classList.toggle("h47-trans"); });
+    H47.map.on("click", function(){ var b = document.body; if((hor && hor.matches) || b.classList.contains("h47-ruta")) b.classList.toggle("h47-trans"); });
     var ag = document.querySelector("#h47-hoja .agarre"); if(ag) ag.addEventListener("click", function(){ document.body.classList.remove("h47-trans"); }, true);
+    /* en vertical: al poner una ruta en el mapa (etiqueta de «Rutas por hacer») la hoja se vuelve transparente */
+    var lg = document.getElementById("h47-leg");
+    if(lg) lg.addEventListener("click", function(e){ if(e.target.closest("button")){ document.body.classList.add("h47-ruta", "h47-trans"); } }, true);
+    if(typeof H47.hoja === "function" && !H47.hoja._tf3){ var o = H47.hoja; H47.hoja = function(){ document.body.classList.remove("h47-trans"); return o.apply(this, arguments); }; H47.hoja._tf3 = true; }
   }
   setInterval(liga, 1200);
-  window.addEventListener("resize", function(){ if(!(hor && hor.matches)) document.body.classList.remove("h47-trans"); });
+  window.addEventListener("resize", function(){ if(!(hor && hor.matches) && !document.body.classList.contains("h47-ruta")) document.body.classList.remove("h47-trans"); });
 })();
 </script>
 
