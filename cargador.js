@@ -28,6 +28,9 @@
   var MANUAL = !!(yo && yo.hasAttribute('data-manual'));
   var SOLO = !!(yo && yo.hasAttribute('data-solo'));   /* solo el emblema (documentos y páginas del cliente) */
   var QUIETO = false; try { QUIETO = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* App 1.6.6 · en la tablet del conductor (quiosco) la entrada de ECOVSA ya la pone la APK, que se queda hasta que la página abre:
+     esta segunda cortina quedaba como otra pantalla de carga distinta justo después. Allí no se pone. */
+  var TABLET = false; try { if (window.EcovsaApp && typeof window.EcovsaApp.miTablet === 'function') { var mt_ = JSON.parse(window.EcovsaApp.miTablet()); TABLET = !!(mt_ && mt_.quiosco); } } catch (e) {}
 
   /* ── estilos: una sola vez ── */
   var css =
@@ -93,6 +96,7 @@
   /* ── la cortina ── */
   var C = null, t0 = 0, tGira = null, tMax = null, cerrando = false;
   function cortina(op) {
+    if (TABLET) return;
     op = op || {};
     var mod = op.modulo || MOD;
     if (C && C.parentNode && !cerrando) { if (op.mensaje) mensaje(op.mensaje); return; }
