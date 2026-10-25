@@ -6485,7 +6485,7 @@ function crMapaDibujar_(r, pts){
     if(CR.base) foco.push([CR.base.lat, CR.base.lng]);
     r.real.legs.forEach(function(lg){ var g = m36Dec_(lg); L.polyline(g, { color: "#fff", weight: 7, opacity: .8 }).addTo(CR_MAP); L.polyline(g, { color: "#0B5394", weight: 4, opacity: .9 }).addTo(CR_MAP); });
     if(CR.base) L.marker([CR.base.lat, CR.base.lng], { icon: L.divIcon({ className: "", html: '<div class="mc-base">🏠</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(CR_MAP).bindPopup(esc(CR.base.nombre || "Base"));
-  } else L.polyline(ll, { color: "#0B5394", weight: 4, opacity: .8 }).addTo(CR_MAP);
+  } else window.G47 && G47.linea(CR_MAP, ll, [{ color: "#fff", weight: 7, opacity: .8 }, { color: "#0B5394", weight: 4, opacity: .9 }]);
   pts.forEach(function(p){ L.marker([p.lat, p.lng], { icon: L.divIcon({ className: "", html: '<span class="cr-p' + (p.fuera ? ' f' : '') + '" style="position:relative;left:9px;top:0">' + p.n + '</span>', iconSize: [18, 18] }) }).addTo(CR_MAP).bindPopup(esc(p.cliente) + " · " + p.hi); });
   CR_MAP.fitBounds(foco, { padding: [24, 24] });
 }
@@ -9573,7 +9573,7 @@ iconSize:[28,28],iconAnchor:[14,14]})}).addTo(capaM).bindPopup('<b>'+(i+1)+'. '+
 
 });
 
-if(pts.length>1) L.polyline(pts,{color:"var(--eco-azul-osc)",weight:4,dashArray:"4 6"}).addTo(capaL);
+if(pts.length>1) window.G47 && G47.linea(capaL, pts, [{color:"#fff",weight:7,opacity:.8},{color:"#14306b",weight:4}]);
 
 if(pts.length) mapa.fitBounds(L.latLngBounds(pts).pad(.2));
 
@@ -13349,7 +13349,7 @@ function plMapa_(){
   (PL.rutas || []).forEach(function(r){
     if(r.rutaId === ED.rutaId) return;
     var ll = r.paradas.map(function(p){ var c = plC_(p.clienteId); return m36LL_(c.lat, c.lng) ? [c.lat, c.lng, c.nombre] : null; }).filter(Boolean);
-    if(B && ll.length) L.polyline([B].concat(ll.map(function(x){ return [x[0], x[1]]; })).concat([B]), { color: "#1aa39a", weight: 3, opacity: .45, dashArray: "2 6" }).addTo(PL_MAP);
+    if(B && ll.length) window.G47 && G47.linea(PL_MAP, [B].concat(ll.map(function(x){ return [x[0], x[1]]; })).concat([B]), { color: "#1aa39a", weight: 3, opacity: .45, dashArray: "2 6" });
     ll.forEach(function(x){ L.marker([x[0], x[1]], { icon: m36Ic_('<div class="mp-c" style="background:#1aa39a;opacity:.75"></div>', 14) }).addTo(PL_MAP).bindTooltip(esc(x[2]) + ' · ruta de ' + esc(String(r.conductor).split(" ")[0])); });
   });
   /* los que le toca */
@@ -13362,9 +13362,9 @@ function plMapa_(){
   var ll = B ? [B] : [];
   ED.paradas.forEach(function(p){ var c = plC_(p.clienteId); if(m36LL_(c.lat, c.lng)) ll.push([c.lat, c.lng]); });
   if(B) ll.push(B);
-  if(PL_NUM){ if(PL_NUM.length) L.polyline((B ? [B] : []).concat(PL_NUM.map(function(id){ var c = plC_(id); return [c.lat, c.lng]; })), { color: "#2f8a3b", weight: 4, opacity: .9 }).addTo(PL_MAP); }
+  if(PL_NUM){ if(PL_NUM.length) window.G47 && G47.linea(PL_MAP, (B ? [B] : []).concat(PL_NUM.map(function(id){ var c = plC_(id); return [c.lat, c.lng]; })), [{ color: "#fff", weight: 7, opacity: .8 }, { color: "#2f8a3b", weight: 4, opacity: .9 }]); }
   else if(tz){ var geo = []; tz.legs.forEach(function(l){ geo = geo.concat(m36Dec_(l)); }); L.polyline(geo, { color: "#ffffff", weight: 8, opacity: .85 }).addTo(PL_MAP); L.polyline(geo, { color: "#1f6fb2", weight: 4.5, opacity: 1 }).addTo(PL_MAP); }
-  else if(ll.length > 1) L.polyline(ll, { color: "#16305c", weight: 3.5, opacity: .8, dashArray: "6 7" }).addTo(PL_MAP);
+  else if(ll.length > 1) window.G47 && G47.linea(PL_MAP, ll, [{ color: "#ffffff", weight: 8, opacity: .85 }, { color: "#1f6fb2", weight: 4.5, opacity: .95 }]);
   if(B) L.marker(B, { icon: m36Ic_('<div class="mp-base">🏠</div>', 28) }).addTo(PL_MAP).bindTooltip(esc(PL.config.baseNombre || "Base") + ' · salida ' + C.salida + (ED.paradas.length ? ' · regreso ≈ ' + C.regreso : ''));
   var nNum = 0;
   ED.paradas.forEach(function(p, i){
@@ -13717,8 +13717,8 @@ function mdMapaHoy_(){
       r.trazo.legs.forEach(function(l, j){ var g = m36Dec_(l), hecho = j < hechoHasta;
         L.polyline(g, { color: "#fff", weight: hecho ? 6 : 7, opacity: .7 }).addTo(MD_MAP); L.polyline(g, { color: r.color, weight: hecho ? 4.5 : 3.5, opacity: .95, dashArray: hecho ? null : "7 6" }).addTo(MD_MAP); });
     } else if(P.length > 1){
-      L.polyline(P, { color: "#fff", weight: 5, opacity: .6 }).addTo(MD_MAP); L.polyline(P, { color: r.color, weight: 3, opacity: .9, dashArray: "5 7" }).addTo(MD_MAP);
-      if(hechoHasta) L.polyline(P.slice(0, hechoHasta + (B ? 1 : 0)), { color: r.color, weight: 4.5, opacity: .9 }).addTo(MD_MAP);
+      window.G47 && G47.linea(MD_MAP, P, [{ color: "#fff", weight: 7, opacity: .7 }, { color: r.color, weight: 3.5, opacity: .95, dashArray: "7 6" }]);
+      if(hechoHasta) window.G47 && G47.linea(MD_MAP, P.slice(0, hechoHasta + (B ? 1 : 0)), { color: r.color, weight: 4.5, opacity: .95 });
     }
     seq.forEach(function(x){
       var q = mdLL_(x); if(!q) return; pts.push(q);
@@ -13810,7 +13810,7 @@ function mdVerPropuesta_(ubId){
   setTimeout(function(){
     var m = m36Mapa_("md-pr-m"), p = [[x.lat, x.lng]];
     L.circleMarker([x.lat, x.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#1A73E8", fillOpacity: 1 }).addTo(m);
-    if(x.antes){ p.push([x.antes.lat, x.antes.lng]); L.circleMarker([x.antes.lat, x.antes.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#C0392B", fillOpacity: 1 }).addTo(m); L.polyline(p, { color: "#fff", weight: 2, dashArray: "4 5" }).addTo(m); }
+    if(x.antes){ p.push([x.antes.lat, x.antes.lng]); L.circleMarker([x.antes.lat, x.antes.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#C0392B", fillOpacity: 1 }).addTo(m); }
     if(p.length > 1) m.fitBounds(p, { padding: [34, 34] }); else m.setView(p[0], 16);
   }, 40);
 }
@@ -13920,8 +13920,8 @@ function cdDibujar_(seq, k, B){
       else { L.polyline(g, { color: "#fff", weight: 7, opacity: .8 }).addTo(CD_MAP); L.polyline(g, { color: "#1A73E8", weight: 4 }).addTo(CD_MAP); } });
   } else if(P.length > 1){
     var cut = hechoHasta + (B ? 1 : 0);
-    if(cut > 1) L.polyline(P.slice(0, cut), { color: "#4ADE80", weight: 4, opacity: .9, dashArray: "2 7" }).addTo(CD_MAP);
-    L.polyline(P.slice(Math.max(0, cut - 1)), { color: "#1A73E8", weight: 3.5, opacity: .85, dashArray: "6 7" }).addTo(CD_MAP);
+    if(cut > 1) window.G47 && G47.linea(CD_MAP, P.slice(0, cut), { color: "#4ADE80", weight: 4, opacity: .9, dashArray: "2 7" });
+    window.G47 && G47.linea(CD_MAP, P.slice(Math.max(0, cut - 1)), [{ color: "#fff", weight: 7, opacity: .8 }, { color: "#1A73E8", weight: 4 }]);
   }
   if(B) L.marker(B, { icon: m36Ic_('<div class="mc-base">🏠</div>', 26) }).addTo(CD_MAP);
   var foco = [], nCli = 0;
@@ -13994,7 +13994,7 @@ function cdMalUbicada_(clienteId){
     m.setView(guard || CD_YO || [8.99, -79.52], guard ? 16 : 12);
     var poner = function(){
       L.marker(CD_YO, { icon: m36Ic_('<div class="mc-yo"></div>', 18) }).addTo(m);
-      if(guard){ L.polyline([guard, CD_YO], { color: "#fff", weight: 2, dashArray: "4 5" }).addTo(m); m.fitBounds([guard, CD_YO], { padding: [30, 30] }); }
+      if(guard){ m.fitBounds([guard, CD_YO], { padding: [30, 30] }); }
       else m.setView(CD_YO, 17);
       var t = guard ? Math.round(plKm_(guard, CD_YO) / 1.35 * 1000) : null;
       $("cd-ub-d").innerHTML = guard ? 'el punto guardado está a <b>' + (t >= 1000 ? (t / 1000).toFixed(1) + ' km' : t + ' m') + '</b> de donde estás' : 'estás aquí';
@@ -16738,7 +16738,7 @@ NV37.pedirRuta = function(y){
 NV37.dibujar = function(){
   if(!NV37.m) return;
   if(NV37.linea) NV37.capa.removeLayer(NV37.linea);
-  var y = GEO37.yo, ll = NV37.pts.length ? NV37.pts.map(function(q){ return [q.lat, q.lng]; }) : (y ? [[y.lat, y.lng], [NV37.dest.lat, NV37.dest.lng]] : []);
+  var y = GEO37.yo, ll = NV37.pts.length ? NV37.pts.map(function(q){ return [q.lat, q.lng]; }) : [];
   if(!ll.length) return;
   NV37.linea = L.layerGroup([L.polyline(ll, { color: "#fff", weight: 11, opacity: .95 }), L.polyline(ll, { color: "#14306b", weight: 7, dashArray: NV37.pts.length ? null : "2 10" })]).addTo(NV37.capa);
 };
@@ -17554,7 +17554,7 @@ function mi38Mapa_(){
   if(cams.length){
     var ru = mi38Ruta_(cams[0].rutaId);
     if(ru){ var ll = ru.paradas.filter(function(p){ return m36LL_(p.lat, p.lng); }).map(function(p){ return [p.lat, p.lng]; });
-      if(ll.length > 1) L.polyline(ll, { color: ru.color || "#14306b", weight: 3, opacity: .8, dashArray: "6 6" }).addTo(m);
+      if(ll.length > 1) window.G47 && G47.linea(m, ll, { color: ru.color || "#14306b", weight: 3.5, opacity: .85 });
       ru.paradas.forEach(function(p, i){ if(!m36LL_(p.lat, p.lng)) return; pts.push([p.lat, p.lng]);
         L.marker([p.lat, p.lng], { icon: m36Ic_('<div class="mp-n ' + (p.hecha ? 'hecha' : 'pend') + '">' + (p.hecha ? '✓' : i + 1) + '</div>', 22) }).addTo(m); }); }
   }
@@ -19072,7 +19072,7 @@ mi38Mapa_ = function(){
   if(cams.length){
     var ru = mi38Ruta_(cams[0].rutaId);
     if(ru){ var ll = ru.paradas.filter(function(p){ return m36LL_(p.lat, p.lng); }).map(function(p){ return [p.lat, p.lng]; });
-      if(ll.length > 1) L.polyline(ll, { color: ru.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa);
+      if(ll.length > 1) window.G47 && G47.linea(capa, ll, { color: ru.color || "#14306b", weight: 3.5, opacity: .8 });
       ru.paradas.forEach(function(p, i){ if(!m36LL_(p.lat, p.lng)) return; pts.push([p.lat, p.lng]);
         L.marker([p.lat, p.lng], { icon: m36Ic_('<div class="mp-n ' + (p.hecha ? 'hecha' : 'pend') + '">' + (p.hecha ? '✓' : i + 1) + '</div>', 22) }).addTo(capa); }); }
   }
@@ -19141,7 +19141,7 @@ I40.mapa = function(){
   var capa = L.layerGroup().addTo(m), B = I40.md.base ? [I40.md.base.lat, I40.md.base.lng] : null, pts = B ? [B] : [];
   var ll = r.paradas.filter(function(p){ return m36LL_(p.lat, p.lng); }).map(function(p){ return [p.lat, p.lng]; }), P = B ? [B].concat(ll, [B]) : ll;
   if(B && m36TrazoOk_(r.trazo, P)) r.trazo.legs.forEach(function(l){ L.polyline(m36Dec_(l), { color: r.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa); });
-  else if(P.length > 1) L.polyline(P, { color: r.color || "#14306b", weight: 3, opacity: .7, dashArray: "6 6" }).addTo(capa);
+  else if(P.length > 1) window.G47 && G47.linea(capa, P, { color: r.color || "#14306b", weight: 3.5, opacity: .8 });
   r.paradas.forEach(function(p, i){ if(!m36LL_(p.lat, p.lng)) return; pts.push([p.lat, p.lng]);
     L.marker([p.lat, p.lng], { icon: m36Ic_('<div class="mp-n ' + (p.hecha ? 'hecha' : 'pend') + '">' + (p.hecha ? '✓' : i + 1) + '</div>', 24) }).addTo(capa).bindTooltip(esc(p.nombre)); });
   if(B) L.marker(B, { icon: m36Ic_('<div class="i40-base">B</div>', 26) }).addTo(capa);
@@ -19775,7 +19775,7 @@ function p42Mapa_(){
       var pts = r.paradas.map(function(p){ var c = S.clientes[p.clienteId]; return c && c.lat ? [c.lat, c.lng] : null; }).filter(Boolean);
       var g = null; try{ if(r.geo && r.geo.length) g = r.geo.map(function(x){ return m36Dec_(x); }).reduce(function(a, b){ return a.concat(b); }, []); }catch(e){ g = null; }
       if(g && g.length) L.polyline(g, { color: col, weight: 4, opacity: d.pasado ? .45 : .85, interactive: false }).addTo(m);
-      else if(pts.length) L.polyline((base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: col, weight: 3, opacity: d.pasado ? .4 : .8, dashArray: "6 6", interactive: false }).addTo(m);
+      else if(pts.length) window.G47 && G47.linea(m, (base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: col, weight: 4, opacity: d.pasado ? .45 : .85, interactive: false });
       r.paradas.forEach(function(p, k){ var c = S.clientes[p.clienteId]; if(!c || !c.lat) return; B.push([c.lat, c.lng]);
         L.marker([c.lat, c.lng], { icon: L.divIcon({ className: "", iconSize: [22, 22], iconAnchor: [11, 11], html: '<div class="p42-pin" style="background:' + col + (d.pasado ? ';opacity:.6' : '') + '">' + (k + 1) + '</div>' }) }).addTo(m).bindTooltip(esc(c.nombre) + ' · ' + esc(p42Dia_(d.fecha)))
           .on("click", function(){ if(!d.pasado && !d.feriado) p42Elegir_(r.rutaId, p.clienteId); }); });
@@ -20130,7 +20130,7 @@ p42Mapa_ = function(){
       var pts = r.paradas.map(function(p){ var c = S.clientes[p.clienteId]; return c && c.lat ? [c.lat, c.lng] : null; }).filter(Boolean);
       var g = null; try{ if(r.geo && r.geo.length && !r.tocada) g = r.geo.map(function(x){ return m36Dec_(x); }).reduce(function(a, b){ return a.concat(b); }, []); }catch(e){ g = null; }
       if(g && g.length) L.polyline(g, { color: col, weight: 4, opacity: d.pasado ? .45 : .85, interactive: false }).addTo(capa);
-      else if(pts.length) L.polyline((base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: col, weight: 3, opacity: d.pasado ? .4 : .8, dashArray: "6 6", interactive: false }).addTo(capa);
+      else if(pts.length) window.G47 && G47.linea(capa, (base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: col, weight: 4, opacity: d.pasado ? .45 : .85, interactive: false });
       r.paradas.forEach(function(p, k){ var c = S.clientes[p.clienteId]; if(!c || !c.lat) return; B.push([c.lat, c.lng]);
         L.marker([c.lat, c.lng], { icon: L.divIcon({ className: "", iconSize: [22, 22], iconAnchor: [11, 11], html: '<div class="p42-pin" style="background:' + col + (d.pasado ? ';opacity:.6' : '') + '">' + (k + 1) + '</div>' }) }).addTo(capa).bindTooltip(esc(c.nombre) + ' · ' + esc(p42Dia_(d.fecha)))
           .on("click", function(){ if(!d.pasado && !d.feriado) p42Elegir_(r.rutaId, p.clienteId); }); });
@@ -20283,7 +20283,7 @@ function p43MapaDia_(C){
   var tz = plTrazoVigente_ && plTrazoVigente_(), g = null;
   try{ if(tz && tz.legs) g = tz.legs.map(function(x){ return m36Dec_(x); }).reduce(function(a, b){ return a.concat(b); }, []); }catch(e){ g = null; }
   if(g && g.length) L.polyline(g, { color: "#1f6fd1", weight: 5, opacity: .9, interactive: false }).addTo(capa);
-  else if(pts.length) L.polyline((base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: "#1f6fd1", weight: 3, opacity: .8, dashArray: "6 6", interactive: false }).addTo(capa);
+  else if(pts.length) window.G47 && G47.linea(capa, (base ? [base] : []).concat(pts).concat(base ? [base] : []), { color: "#1f6fd1", weight: 5, opacity: .9, interactive: false });
   var clave = PL.fecha + "|" + ED.rutaId + "|" + ED.paradas.length;
   if(nuevo || P43.dclave !== clave){ P43.dclave = clave; if(B.length > 1) m.fitBounds(B, { padding: [30, 30] }); else m.setView(B[0] || [8.99, -79.52], 12); }
 }
@@ -21514,14 +21514,14 @@ H47.dibujar = function(fit){
       seq.forEach(function(x){ if(x.ll) ll.push(x.ll); });
       var P = B ? [B].concat(ll, [B]) : ll, op = esSel ? .95 : .35;
       if(B && m36TrazoOk_(info.trazo, P)){ info.trazo.legs.forEach(function(l){ var g = m36Dec_(l); L.polyline(g, { color: "#fff", weight: 7, opacity: op * .8 }).addTo(H47.cap); L.polyline(g, { color: r.col, weight: 4, opacity: op }).addTo(H47.cap); }); }
-      else if(P.length > 1){ L.polyline(P, { color: "#fff", weight: 7, opacity: op * .8 }).addTo(H47.cap); L.polyline(P, { color: r.col, weight: 4, opacity: op, dashArray: "7 8" }).addTo(H47.cap); }
+      else if(P.length > 1){ window.G47 && G47.linea(H47.cap, P, [{ color: "#fff", weight: 7, opacity: op * .8 }, { color: r.col, weight: 4, opacity: op }]); }
       var k = seq.findIndex(function(x){ return !x.hecha; }), n = 0;
       seq.forEach(function(x, i){ if(x.tipo === "cli") n++; if(!x.ll) return; var m = marca(x.ll, x.hecha ? "#2f9e44" : (i === k ? "#F5B301" : r.col), x.hecha ? "✓" : (x.tipo === "planta" ? "P" : n), i === k); if(!esSel) m.setOpacity(.45); });
       ps = ll.slice(); if(B) ps.push(B);
     } else {
       ps = (r.d.paradas || []).filter(function(p){ return !p.hecha && p.clienteId; }).map(function(p){ var c = cli(p.clienteId) || {}; return m36LL_(c.lat, c.lng) ? [Number(c.lat), Number(c.lng)] : null; }).filter(Boolean);
       if(esSel){
-        if(ps.length > 1){ L.polyline(ps, { color: "#fff", weight: 7, opacity: .8 }).addTo(H47.cap); L.polyline(ps, { color: r.col, weight: 4, opacity: .95, dashArray: r.hoy ? null : "10 9" }).addTo(H47.cap); }
+        if(ps.length > 1){ window.G47 && G47.linea(H47.cap, ps, [{ color: "#fff", weight: 7, opacity: .8 }, { color: r.col, weight: 4, opacity: .95, dashArray: r.hoy ? null : "10 9" }]); }
         ps.forEach(function(ll, i){ marca(ll, r.col, i + 1); });
       } else ps.forEach(function(ll){ punto(ll, r.col); });
     }
@@ -21572,7 +21572,7 @@ H47.fotoDe = function(cid){
     H47.fotoT[cid] = Date.now(); H47.fotoPrune(cid);
     var listo = function(inf){ H47.fotoInf[cid] = inf; H47.foto[cid] = inf.url || ""; try{ if(NV37.abierta() && NV37.cid === cid) NV37.pintar(); }catch(e){} };
     google.script.run.withSuccessHandler(function(r){
-      if(r && r.ok) return listo({ url: r.url || "", pedida: !!r.pedida, cargada: true });
+      if(r && r.ok) return listo({ url: r.url || (r.google && r.google.url) || "", google: !r.url && r.google && r.google.url ? r.google : null, pedida: !!r.pedida, cargada: true });
       /* el servidor todavía no tiene api_fotoLocalVer: se sabe al menos si hay foto y si logística la pidió */
       google.script.run.withSuccessHandler(function(q){ if(q && q.ok) listo({ url: "", pedida: !!q.pedida, sin: !q.ultima, cargada: true }); }).withFailureHandler(function(){}).api_fotoLocalPide(PIN, cid);
     }).withFailureHandler(function(){}).api_fotoLocalVer(PIN, cid);
@@ -21612,7 +21612,7 @@ H47.nvAjusta = function(){
       var cli = hoja.querySelector(".nv-cli"), f = document.createElement("button");
       f.className = "h47-fo" + (cerca ? "" : " ch"); f.setAttribute("aria-label", "Ver la foto de la entrada"); f.onclick = function(){ H47.ampliar(url, nombre); };
       var im2 = document.createElement("img"); im2.src = url; im2.alt = "La entrada"; f.appendChild(im2);
-      var sp2 = document.createElement("span"); sp2.textContent = "La entrada · toque para ampliar"; f.appendChild(sp2);
+      var sp2 = document.createElement("span"); sp2.textContent = inf.google ? "Foto de Google" + ((inf.google.autor || [])[0] && inf.google.autor[0].nombre ? " · " + inf.google.autor[0].nombre : "") + " · toque para ampliar" : "La entrada · toque para ampliar"; f.appendChild(sp2);
       if(cli) cli.parentNode.insertBefore(f, cli);
       if(inf.pedida && cid > 0 && cli){ var ac = document.createElement("button"); ac.className = "h47-bt"; ac.innerHTML = cam + 'Actualizar foto del local'; ac.onclick = function(){ FOT47.elegir(cid, true); }; cli.parentNode.insertBefore(ac, cli); }
     }
@@ -21708,7 +21708,7 @@ body.t47-noche #h47-hoja .tb{background:linear-gradient(160deg,#1a3f8f,#12295f)!
 body.t47-noche #c38-acc{background:#111d36!important;border-color:#22304d!important}body.t47-noche #c38-acc button{color:#e8eefb!important;border-color:#22304d!important}body.t47-noche #c38-acc button small{color:#9aa9c2!important}body.t47-noche #c38-acc .ic{filter:brightness(.82) saturate(.9)}
 body.t47-noche #inc38-strip{background:#2a1618!important;border-color:#5a2a2a!important}body.t47-noche #inc38-strip *{color:#ffd6d2!important}
 body.t47-noche #h47-leg{background:#111d36!important}body.t47-noche #h47-leg b.t{color:#8fa3c7!important}body.t47-noche #h47-leg button{color:#e8eefb!important;border-color:#2a3b5e!important}body.t47-noche #h47-leg button.on{background:#1d2f55!important;border-color:#7fa5ee!important}
-body.t47-noche #h47-mapa .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.8)}
+body.t47-noche #h47-mapa:not(.g47-map) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.8)}
 body.t47-noche .c38-av{background:#1b2d52!important;color:#fff!important}
 </style>
 
@@ -21787,7 +21787,7 @@ CLI47.abrir = function(nombre){
   var c = (CLIENTES || []).find(function(x){ return x.nombre === nombre; }); if(!c) return false;
   CLI47.cerrar(); CLI47.c = c; CLI47.h = null; CLI47.foto = ""; CLI47.ver = false; CLI47.pintar();
   google.script.run.withSuccessHandler(function(r){ if(CLI47.c === c && r && r.ok){ CLI47.h = r; CLI47.pintar(true); } }).withFailureHandler(function(){ if(CLI47.c === c){ CLI47.h = { ok: false, recolecciones: [] }; CLI47.pintar(true); } }).api_historialCliente(PIN, c.nombre);
-  google.script.run.withSuccessHandler(function(r){ if(CLI47.c === c && r && r.ok && r.url){ CLI47.foto = r.url; CLI47.pintar(true); } }).withFailureHandler(function(){}).api_fotoLocalVer(PIN, c.id);
+  google.script.run.withSuccessHandler(function(r){ var u = r && r.ok ? (r.url || (r.google && r.google.url) || "") : ""; if(CLI47.c === c && u){ CLI47.foto = u; CLI47.fotoG = !r.url && r.google ? r.google : null; CLI47.pintar(true); } }).withFailureHandler(function(){}).api_fotoLocalVer(PIN, c.id);
   return true;
 };
 CLI47.cerrar = function(){ ["cli47", "cli47-sc", "cli47-qr"].forEach(function(i){ var e = $(i); if(e) e.remove(); }); CLI47.c = null; CLI47.h = null; CLI47.foto = ""; };
@@ -21797,7 +21797,7 @@ CLI47.pintar = function(conservar){
   var px = CLI47.prox(c), tl = CLI47.tel(c.telefono), wa = CLI47.tel(c.whatsapp || c.telefono), V = CLI47.visitas(), r = CLI47.h;
   var hor = c.horarioTipo ? (c.horarioTipo === "estricto" ? "Solo de " : "Prefiere de ") + esc(c.horarioDesde || "") + " a " + esc(c.horarioHasta || "") : "Sin horario";
   var h = '<h2>' + esc(c.nombre) + '</h2><div><div class="sub">' + esc([c.region, c.frecuencia].filter(Boolean).join(" · ")) + '</div><div class="prox ' + px[1] + '">' + esc(px[0]) + '</div></div>';
-  if(CLI47.foto) h += '<button class="foto" id="cli47-foto" aria-label="Ver la foto de la entrada"><img decoding="async" alt="La entrada"><span>La entrada · toque para ampliar</span></button>';
+  if(CLI47.foto) h += '<button class="foto" id="cli47-foto" aria-label="Ver la foto de la entrada"><img decoding="async" alt="La entrada"><span>' + (CLI47.fotoG ? "Foto de Google" + ((CLI47.fotoG.autor || [])[0] && CLI47.fotoG.autor[0].nombre ? " · " + esc(CLI47.fotoG.autor[0].nombre) : "") : "La entrada") + ' · toque para ampliar</span></button>';
   h += '<div class="acc">' + (tl ? '<a class="bt" href="tel:+' + tl + '">' + CLI47.ic("tel") + 'Llamar</a>' : '<span class="bt" style="opacity:.45">' + CLI47.ic("tel") + 'Llamar</span>') +
     (wa ? '<a class="bt" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">' + CLI47.ic("wa") + 'WhatsApp</a>' : '<span class="bt" style="opacity:.45">' + CLI47.ic("wa") + 'WhatsApp</span>') +
     (c.lat != null ? '<a class="bt" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + c.lat + ',' + c.lng + '">' + CLI47.ic("ir") + 'Cómo llegar</a>' : '<span class="bt" style="opacity:.45">' + CLI47.ic("ir") + 'Cómo llegar</span>') + '</div>';
@@ -21886,6 +21886,459 @@ APP38.hojaTablet = (function(o){ return function(){
 }; })(APP38.hojaTablet);
 </script>
 
+
+
+
+
+
+<style id="estilo-347">
+/* api 3.47 · el mapa de Google */
+.leaflet-right .g47-logo{margin:0 6px 4px 0!important}.g47-logo{margin:0 0 6px 8px!important;line-height:0;pointer-events:none}.g47-logo img{height:17px;width:auto;display:block}
+.g47-datos{margin:0!important;background:rgba(255,255,255,.75);color:#3c4043;font:500 10px/1.5 Roboto,Arial,sans-serif;padding:0 5px;border-radius:2px 0 0 0;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g47-osc .g47-datos{background:rgba(20,28,48,.7);color:#dfe5ee}
+.leaflet-control-attribution:empty{display:none}
+.g47-trazando::after{content:"Trazando la ruta…";position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:800;background:rgba(15,33,64,.86);color:#fff;font:800 12px/1 inherit;font-family:inherit;padding:7px 12px;border-radius:99px;pointer-events:none;animation:g47p 1.2s ease-in-out infinite alternate}
+@keyframes g47p{from{opacity:.65}to{opacity:1}}
+.m40-op .g47-tr{border-top:1px solid #e1e6ee!important;margin-top:4px}.m40-op .g47-tr i{background:linear-gradient(90deg,#34a853 0 33%,#fbbc04 33% 66%,#ea4335 66%)!important}
+.g47-tf{display:inline-block;margin-left:6px;font-style:normal;font-weight:900;font-size:.82em;padding:1px 7px;border-radius:99px;background:#e9f6ec;color:#23653c}.g47-tf.moderado{background:#fff4dc;color:#8a6300}.g47-tf.pesado{background:#fde8ef;color:#b3204f}
+.g47-giro{display:block;width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:g47g .8s linear infinite}
+@keyframes g47g{to{transform:rotate(360deg)}}
+.c47-hl{width:min(560px,96vw)}
+.c47-cand{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #eef1f5}.c47-cand img,.c47-sf{width:86px;height:58px;border-radius:9px;object-fit:cover;flex:none;background:#eef2f8;display:grid;place-items:center;color:#8a96a8}
+.c47-cand>div{flex:1;min-width:0}.c47-cand b{display:block;font-size:13.5px;color:#0f2140}.c47-cand small{display:block;font-size:11.5px;color:#667489}.c47-cand small.a{color:#8a96a8}
+#c47-sv .ph img{cursor:zoom-in}
+</style>
+<script id="js-347">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.47 · G47: EL MAPA DE GOOGLE EN TODOS LOS MAPAS (Index y portal)
+   · El fondo: Map Tiles API de Google (calles, satélite, claro, oscuro y el
+     tráfico encima). La sesión de cada estilo dura ~2 semanas y se guarda.
+   · El logo de Google Maps abajo a la izquierda y los datos del mapa
+     («Map data ©2026 Google») abajo a la derecha, como pide su política.
+   · Toda capa de mosaicos vieja (OpenStreetMap, Esri) se cambia sola por la de
+     Google: los mapas no tienen que saber nada.
+   · G47.linea: nunca una línea recta. Pide el trazo por calles de esos puntos,
+     mientras llega no dibuja nada (solo están los puntos de las paradas) y lo
+     recuerda unos días en el equipo (Google deja hasta 30).
+   · Mientras no esté la clave de mapas, se ve el fondo de antes.
+   ═══════════════════════════════════════════════════════════════════ */
+var G47 = window.G47 || {};
+(function(G){
+  G.clave = ""; G.ses = {}; G.capas = []; G.esp = []; G.cola = []; G.vuelo = 0; G.cache = null; G.pedirClave = G.pedirClave || null; G.pedirTrazo = G.pedirTrazo || null;
+  G.LOGO = { claro: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjUuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHdpZHRoPSIxMDVweCIgaGVpZ2h0PSIyMnB4IiB2aWV3Qm94PSIwIDAgMTA1IDIyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxMDUgMjIiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8ZyBpZD0iTG9nbyI+Cgk8ZyBpZD0iT3V0bGluZSIgb3BhY2l0eT0iMC44Ij4KCQk8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNNTkuNzcsMTEuNDRsLTAuOTMtMi4zMmMtMC4xNi0wLjQtMC4zNi0wLjgxLTAuNjEtMS4yMmMtMC4yNi0wLjQyLTAuNi0wLjg1LTEuMDEtMS4yNwoJCQljLTAuNDktMC41LTEuMS0wLjktMS44LTEuMmMtMC43MS0wLjMtMS40OS0wLjQ2LTIuMy0wLjQ2Yy0xLjE2LDAtMi4yNSwwLjMtMy4xOSwwLjg3VjAuNDhoLTUuOTh2NC43N0g0MgoJCQljLTAuNTQtMC4xOC0xLjEyLTAuMjctMS43Mi0wLjI3Yy0xLjY4LDAtMy4yMSwwLjY2LTQuNDQsMS45MmMtMC4wOSwwLjA5LTAuMTgsMC4xOS0wLjI2LDAuMjljLTAuMS0wLjEyLTAuMjEtMC4yNC0wLjMzLTAuMzUKCQkJYy0xLjI2LTEuMjMtMi44MS0xLjg2LTQuNi0xLjg2Yy0xLjc3LDAtMy4zNiwwLjY0LTQuNiwxLjg2Yy0wLjExLDAuMTEtMC4yMiwwLjIyLTAuMzIsMC4zNGMtMC4xLTAuMTItMC4yMS0wLjIzLTAuMzItMC4zNAoJCQljLTEuMjYtMS4yMy0yLjgxLTEuODYtNC42LTEuODZjLTEuNTUsMC0yLjkxLDAuNDYtNC4wNiwxLjM4aC0yLjQ3bDIuNDYtMi40NmwtMS40OC0xLjQxQzEzLjUzLDAuODMsMTEuNDYsMCw5LjA4LDAKCQkJQzYuNjIsMCw0LjQ3LDAuODgsMi43LDIuNjJDMC45MSw0LjM4LDAsNi41MSwwLDguOThzMC45MSw0LjYxLDIuNyw2LjM2YzEuNzgsMS43NCwzLjkzLDIuNjIsNi4zOSwyLjYyCgkJCWMyLjU2LDAsNC42OC0wLjg3LDYuMjgtMi41NGMwLjA0LTAuMDQsMC4wOC0wLjA4LDAuMTItMC4xM2MwLjIxLDAuMjksMC40NCwwLjU2LDAuNywwLjgxYzEuMjQsMS4yMiwyLjgzLDEuODYsNC42LDEuODYKCQkJYzEuOCwwLDMuMzQtMC42Miw0LjYtMS44NmMwLjExLTAuMTEsMC4yMi0wLjIyLDAuMzItMC4zNGMwLjEsMC4xMiwwLjIxLDAuMjMsMC4zMiwwLjM0YzEuMjQsMS4yMiwyLjgzLDEuODYsNC42LDEuODYKCQkJYzEuMjYsMCwyLjQtMC4zMSwzLjQtMC45MmwwLjQ1LDEuMDdjMC40MywxLjAyLDEuMTMsMS45MSwyLjA4LDIuNjZjMS4wNCwwLjgxLDIuMywxLjIzLDMuNzUsMS4yM2MxLjc4LDAsMy4yOS0wLjU4LDQuNDctMS43MwoJCQljMC43MS0wLjY5LDEuMjEtMS41NSwxLjUtMi41OGgzLjY0di0wLjY3YzEsMC42MiwyLjE2LDAuOTQsMy40MiwwLjk0YzEuMywwLDIuNDQtMC4zMiwzLjM5LTAuOTRjMC44NS0wLjU1LDEuNTMtMS4yMSwyLjAyLTEuOTQKCQkJbDEuMTEtMS42NmwtMS44Ny0xLjI1TDU5Ljc3LDExLjQ0eiIvPgoJCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0xMDUsMTAuMTFsLTAuNzQtMS44NGMtMC40Mi0xLjA1LTEuMTMtMS44Ni0yLjEtMi40M2MtMC44OS0wLjUxLTEuODktMC43Ny0yLjk4LTAuNzcKCQkJYy0xLjMxLDAtMi40OCwwLjM1LTMuNDgsMS4wNWMtMC4yNCwwLjE3LTAuNDUsMC4zNi0wLjY1LDAuNTZjLTEuMTEtMS4wNS0yLjQ2LTEuNjEtMy45NS0xLjYxYy0wLjYzLDAtMS4yMiwwLjA5LTEuNzgsMC4yN2gtNC42MwoJCQl2MC42Yy0wLjkzLTAuNTgtMi0wLjg3LTMuMjEtMC44N2MtMS4yNiwwLTIuMzQsMC4zMS0zLjIyLDAuOVYxLjVoLTQuNzNsLTMuMTEsNS40NWwtMy4xLTUuNDVINjIuNnYxNi4xOWg1LjU3VjE1LjFoMC42NWgzLjI0CgkJCWgwLjY1djIuNTloNS41N3YtMC4zN2MwLjc3LDAuNDIsMS42NSwwLjY0LDIuNjIsMC42NGMwLjY0LDAsMS4yMy0wLjA5LDEuNzgtMC4yN2gyLjAzdjMuNjhoNS41N3YtMy40NgoJCQljMC4yNywwLjA0LDAuNTYsMC4wNiwwLjg0LDAuMDZjMS41LDAsMi44Ny0wLjU3LDMuOTgtMS42NGMwLjIsMC4yLDAuNDIsMC4zOSwwLjY1LDAuNTZjMC45NiwwLjcyLDIuMTQsMS4wOCwzLjUxLDEuMDgKCQkJYzEuNDMsMCwyLjY1LTAuNCwzLjYzLTEuMmMxLjA4LTAuODgsMS42Ni0yLjA3LDEuNjYtMy40MmMwLTAuOTctMC4zMi0xLjg5LTAuOTMtMi42NkwxMDUsMTAuMTF6Ii8+Cgk8L2c+Cgk8ZyBpZD0iSW5uZXJfdGV4dCI+CgkJPGc+CgkJCTxwYXRoIGZpbGw9IiM0NzQ3NDciIGQ9Ik05LjA4LDguMzV2MS45aDQuNThjLTAuMTQsMS4wNC0wLjQ4LDEuODQtMS4wNCwyLjRjLTAuOTQsMC45My0yLjExLDEuNC0zLjUzLDEuNAoJCQkJYy0xLjQsMC0yLjU4LTAuNDktMy41NS0xLjQ4Yy0wLjk3LTAuOTgtMS40Ni0yLjE4LTEuNDYtMy41OWMwLTEuNDEsMC40OC0yLjYsMS40NS0zLjU5QzYuNSw0LjQsNy42OCwzLjkxLDkuMDgsMy45MQoJCQkJYzEuMzMsMCwyLjQ3LDAuNDUsMy40NCwxLjM2bDEuMzUtMS4zNUMxMi41MywyLjY0LDEwLjkzLDIsOS4wOCwyQzcuMTUsMiw1LjQ5LDIuNjgsNC4wOSw0LjA1QzIuNyw1LjQyLDIsNy4wNiwyLDguOTgKCQkJCWMwLDEuOTIsMC43LDMuNTYsMi4wOSw0LjkzYzEuNCwxLjM3LDMuMDYsMi4wNSw0Ljk5LDIuMDVjMiwwLDMuNjMtMC42NSw0Ljg3LTEuOTZjMS4xLTEuMSwxLjY1LTIuNTksMS42NS00LjQ2CgkJCQljMC0wLjQ1LTAuMDMtMC44NS0wLjEtMS4xOUg5LjA4eiIvPgoJCQk8cGF0aCBmaWxsPSIjNDc0NzQ3IiBkPSJNNDIuNzIsNy45N2gtMC4wN2MtMC4yNC0wLjI5LTAuNTctMC41My0wLjk4LTAuNzJjLTAuNDItMC4xOS0wLjg4LTAuMjktMS4zOS0wLjI5CgkJCQljLTEuMTQsMC0yLjE1LDAuNDQtMy4wMSwxLjMyYy0wLjg2LDAuODgtMS4yOSwxLjk0LTEuMjksMy4xOWMwLDEuMjQsMC40MywyLjMsMS4yOSwzLjE3YzAuODYsMC44NywxLjg2LDEuMzEsMy4wMSwxLjMxCgkJCQljMS4wMiwwLDEuODEtMC4zNCwyLjM3LTEuMDJoMC4wN3YwLjY1YzAsMC44NS0wLjIxLDEuNTEtMC42NCwxLjk2Yy0wLjQyLDAuNDUtMS4wMSwwLjY4LTEuNzYsMC42OGMtMC41NSwwLTEuMDItMC4xNi0xLjQxLTAuNDgKCQkJCWMtMC4zOC0wLjMxLTAuNjctMC42OS0wLjg1LTEuMTJsLTEuNzIsMC43MmMwLjI5LDAuNzEsMC43OCwxLjMzLDEuNDYsMS44NmMwLjY4LDAuNTMsMS41MiwwLjgsMi41MiwwLjgKCQkJCWMxLjI1LDAsMi4yNy0wLjM5LDMuMDctMS4xN2MwLjgtMC43OCwxLjItMS45NSwxLjItMy41MlY3LjI0aC0xLjg3VjcuOTd6IE00Mi4xNiwxMy40MmMtMC40NiwwLjUxLTEuMDMsMC43Ny0xLjcxLDAuNzcKCQkJCWMtMC42OSwwLTEuMjgtMC4yNi0xLjc3LTAuNzhjLTAuNDktMC41MS0wLjczLTEuMTYtMC43My0xLjkzYzAtMC43OCwwLjI0LTEuNDQsMC43My0xLjk2YzAuNDktMC41MiwxLjA4LTAuNzgsMS43Ny0wLjc4CgkJCQljMC42OCwwLDEuMjUsMC4yNiwxLjcxLDAuNzljMC40NiwwLjUyLDAuNjksMS4xOCwwLjY5LDEuOTZDNDIuODUsMTIuMjYsNDIuNjIsMTIuOSw0Mi4xNiwxMy40MnoiLz4KCQkJPHBhdGggZmlsbD0iIzQ3NDc0NyIgZD0iTTIwLjgsNi45N2MtMS4yNiwwLTIuMzMsMC40My0zLjIsMS4yOXMtMS4zMSwxLjkzLTEuMzEsMy4yMWMwLDEuMjgsMC40NCwyLjM1LDEuMzEsMy4yMQoJCQkJczEuOTQsMS4yOSwzLjIsMS4yOXMyLjMzLTAuNDMsMy4yLTEuMjljMC44OC0wLjg2LDEuMzEtMS45MywxLjMxLTMuMjFjMC0xLjI4LTAuNDQtMi4zNS0xLjMxLTMuMjFTMjIuMDYsNi45NywyMC44LDYuOTd6CgkJCQkgTTIyLjU5LDEzLjQyYy0wLjUsMC41MS0xLjEsMC43Ny0xLjc5LDAuNzdzLTEuMjktMC4yNS0xLjc5LTAuNzdjLTAuNS0wLjUyLTAuNzUtMS4xNy0wLjc1LTEuOTVjMC0wLjgsMC4yNS0xLjQ1LDAuNzQtMS45NgoJCQkJYzAuNS0wLjUxLDEuMS0wLjc3LDEuOC0wLjc3UzIyLjEsOSwyMi42LDkuNTFjMC40OSwwLjUxLDAuNzQsMS4xNywwLjc0LDEuOTZDMjMuMzQsMTIuMjUsMjMuMDksMTIuOSwyMi41OSwxMy40MnoiLz4KCQkJPHJlY3QgeD0iNDUuOTUiIHk9IjIuNDgiIGZpbGw9IiM0NzQ3NDciIHdpZHRoPSIxLjk4IiBoZWlnaHQ9IjEzLjIxIi8+CgkJCTxwYXRoIGZpbGw9IiM0NzQ3NDciIGQ9Ik01My4zNCwxNC4yYy0wLjk5LDAtMS43MS0wLjQ1LTIuMTgtMS4zNmw2LjAxLTIuNDlsLTAuMi0wLjUxYy0wLjExLTAuMy0wLjI2LTAuNTktMC40NC0wLjg5CgkJCQljLTAuMTgtMC4yOS0wLjQyLTAuNi0wLjczLTAuOTFjLTAuMzEtMC4zMi0wLjY5LTAuNTctMS4xNi0wLjc3Yy0wLjQ3LTAuMi0wLjk3LTAuMy0xLjUyLTAuM2MtMS4xOSwwLTIuMTksMC40Mi0zLjAxLDEuMjYKCQkJCWMtMC44MiwwLjg0LTEuMjMsMS45Mi0xLjIzLDMuMjRjMCwxLjI3LDAuNDMsMi4zNCwxLjI4LDMuMmMwLjg1LDAuODYsMS45MSwxLjI5LDMuMTgsMS4yOWMwLjkxLDAsMS42OC0wLjIsMi4yOS0wLjYKCQkJCWMwLjYzLTAuNDEsMS4xMS0wLjg3LDEuNDUtMS4zOGwtMS41My0xLjAyQzU0Ljk5LDEzLjc5LDU0LjI1LDE0LjIsNTMuMzQsMTQuMnogTTUxLjU2LDkuNDNjMC41MS0wLjQ4LDEuMDUtMC43MiwxLjYzLTAuNzIKCQkJCWMwLjM5LDAsMC43MywwLjA4LDEuMDQsMC4yNmMwLjMxLDAuMTgsMC41MiwwLjQxLDAuNjMsMC42OWwtNC4wMiwxLjY3QzUwLjgyLDEwLjU0LDUxLjA2LDkuOSw1MS41Niw5LjQzeiIvPgoJCQk8cGF0aCBmaWxsPSIjNDc0NzQ3IiBkPSJNMzAuNjUsNi45N2MtMS4yNiwwLTIuMzMsMC40My0zLjIsMS4yOXMtMS4zMSwxLjkzLTEuMzEsMy4yMWMwLDEuMjgsMC40NCwyLjM1LDEuMzEsMy4yMQoJCQkJczEuOTQsMS4yOSwzLjIsMS4yOWMxLjI2LDAsMi4zMy0wLjQzLDMuMi0xLjI5YzAuODctMC44NiwxLjMxLTEuOTMsMS4zMS0zLjIxYzAtMS4yOC0wLjQ0LTIuMzUtMS4zMS0zLjIxUzMxLjkxLDYuOTcsMzAuNjUsNi45NwoJCQkJeiBNMzIuNDQsMTMuNDJjLTAuNSwwLjUxLTEuMSwwLjc3LTEuNzksMC43N3MtMS4yOS0wLjI1LTEuNzktMC43N2MtMC41LTAuNTItMC43NS0xLjE3LTAuNzUtMS45NWMwLTAuOCwwLjI1LTEuNDUsMC43NC0xLjk2CgkJCQljMC41LTAuNTEsMS4xLTAuNzcsMS44LTAuNzdjMC43MSwwLDEuMzEsMC4yNiwxLjgsMC43N3MwLjc0LDEuMTcsMC43NCwxLjk2QzMzLjE5LDEyLjI1LDMyLjk0LDEyLjksMzIuNDQsMTMuNDJ6Ii8+CgkJPC9nPgoJCTxnPgoJCQk8cG9seWdvbiBmaWxsPSIjNDc0NzQ3IiBwb2ludHM9IjcwLjQ4LDEwLjkyIDcwLjQxLDEwLjkyIDY2LjE3LDMuNSA2NC42LDMuNSA2NC42LDE1LjY5IDY2LjE3LDE1LjY5IDY2LjE3LDguNDUgNjYuMSw2LjQxIAoJCQkJNjYuMTcsNi40MSA2OS45OCwxMy4xIDcwLjksMTMuMSA3NC43Miw2LjQxIDc0Ljc5LDYuNDEgNzQuNzIsOC40NSA3NC43MiwxNS42OSA3Ni4yOSwxNS42OSA3Ni4yOSwzLjUgNzQuNzIsMy41IAkJCSIvPgoJCQk8cGF0aCBmaWxsPSIjNDc0NzQ3IiBkPSJNODEuNSw3LjA3Yy0wLjkzLDAtMS42OCwwLjIxLTIuMjUsMC42NFM3OC4zLDguNiw3OC4xMSw5LjFsMS40NCwwLjYxYzAuMTQtMC4zOCwwLjM5LTAuNjcsMC43Ni0wLjg5CgkJCQljMC4zNi0wLjIxLDAuNzgtMC4zMiwxLjIzLTAuMzJjMC42MSwwLDEuMTMsMC4xOCwxLjU1LDAuNTVjMC40MiwwLjM3LDAuNjMsMC44NiwwLjYzLDEuNDd2MC4yNGMtMC41OS0wLjM0LTEuMzQtMC41MS0yLjI2LTAuNTEKCQkJCWMtMS4wNCwwLTEuOTEsMC4yNS0yLjYxLDAuNzdjLTAuNzEsMC41Mi0xLjA2LDEuMjMtMS4wNiwyLjE0YzAsMC44NCwwLjI5LDEuNTIsMC44OSwyLjAzYzAuNTksMC41MSwxLjMzLDAuNzcsMi4yMiwwLjc3CgkJCQljMS4yMSwwLDIuMTItMC40NywyLjc1LTEuNDNoMC4wN3YxLjE2aDEuNXYtNS4wNGMwLTEuMTQtMC4zNi0yLjAyLTEuMDYtMi42NEM4My40NSw3LjM4LDgyLjU3LDcuMDcsODEuNSw3LjA3eiBNODIuOTIsMTMuODEKCQkJCWMtMC41MywwLjQ4LTEuMTEsMC43Mi0xLjc2LDAuNzJjLTAuNDYsMC0wLjg2LTAuMTItMS4yMS0wLjM1Yy0wLjM1LTAuMjQtMC41My0wLjU2LTAuNTMtMC45N2MwLTAuNDQsMC4xOS0wLjgzLDAuNTgtMS4xNgoJCQkJczAuOTYtMC40OSwxLjcyLTAuNDljMC44OCwwLDEuNTUsMC4xOCwxLjk5LDAuNTRDODMuNzEsMTIuNzYsODMuNDUsMTMuMzMsODIuOTIsMTMuODF6Ii8+CgkJCTxwYXRoIGZpbGw9IiM0NzQ3NDciIGQ9Ik05MS4xMiw3LjA4Yy0wLjYzLDAtMS4yLDAuMTQtMS43MSwwLjQxYy0wLjUsMC4yNy0wLjg4LDAuNjEtMS4xMywxLjAyaC0wLjA3VjcuMzVoLTEuNXYxMi4wMmgxLjU3di0zLjY4CgkJCQlsLTAuMDctMS4xNmgwLjA3YzAuMjUsMC40MSwwLjYyLDAuNzUsMS4xMywxLjAyYzAuNSwwLjI3LDEuMDcsMC40MSwxLjcxLDAuNDFjMS4wOCwwLDIuMDEtMC40MiwyLjc5LTEuMjYKCQkJCWMwLjc5LTAuODUsMS4xOC0xLjkxLDEuMTgtMy4xN2MwLTEuMjYtMC40LTIuMzItMS4xOC0zLjE3QzkzLjEzLDcuNTEsOTIuMiw3LjA4LDkxLjEyLDcuMDh6IE05Mi43MywxMy43CgkJCQljLTAuNTIsMC41NS0xLjE0LDAuODMtMS44NywwLjgzYy0wLjczLDAtMS4zNi0wLjI3LTEuODgtMC44MmMtMC41MS0wLjU1LTAuNzctMS4yOC0wLjc3LTIuMnMwLjI1LTEuNjYsMC43Ny0yLjIKCQkJCWMwLjUxLTAuNTUsMS4xNC0wLjgyLDEuODgtMC44MmMwLjcyLDAsMS4zNSwwLjI4LDEuODcsMC44M2MwLjUyLDAuNTUsMC43OCwxLjI4LDAuNzgsMi4xOUM5My41MSwxMi40Miw5My4yNSwxMy4xNSw5Mi43MywxMy43eiIKCQkJCS8+CgkJCTxwYXRoIGZpbGw9IiM0NzQ3NDciIGQ9Ik0xMDEuOTYsMTEuODRjLTAuMzgtMC40NS0wLjk2LTAuNzYtMS43NC0wLjk0bC0xLjY1LTAuMzljLTAuNzQtMC4xNy0xLjExLTAuNDktMS4xMS0wLjk3CgkJCQljMC0wLjMzLDAuMTYtMC41OSwwLjQ4LTAuNzhzMC43MS0wLjI5LDEuMTgtMC4yOWMwLjk3LDAsMS42LDAuMzcsMS45MSwxLjExbDEuMzYtMC41NmMtMC4yNS0wLjYzLTAuNjYtMS4xLTEuMjQtMS40NAoJCQkJYy0wLjU4LTAuMzMtMS4yNC0wLjUtMS45OC0wLjVjLTAuODksMC0xLjY3LDAuMjMtMi4zMiwwLjY5Yy0wLjY1LDAuNDYtMC45OCwxLjA2LTAuOTgsMS44YzAsMC42NSwwLjI0LDEuMTYsMC43MiwxLjU0CgkJCQlzMC45OSwwLjYzLDEuNTIsMC43N2wxLjY5LDAuNDFjMC43NiwwLjIsMS4xNCwwLjU3LDEuMTQsMS4xMWMwLDAuMzUtMC4xNiwwLjYzLTAuNDcsMC44NWMtMC4zMSwwLjIxLTAuNzEsMC4zMi0xLjIsMC4zMgoJCQkJYy0xLjA2LDAtMS44Mi0wLjUzLTIuMjYtMS41N2wtMS40LDAuNThjMC4yOSwwLjY4LDAuNzMsMS4yNSwxLjM0LDEuN2MwLjYxLDAuNDUsMS4zOCwwLjY4LDIuMzEsMC42OGMwLjk2LDAsMS43NS0wLjI1LDIuMzQtMC43NQoJCQkJYzAuNjEtMC41LDAuOTItMS4xMiwwLjkyLTEuODdDMTAyLjUyLDEyLjc4LDEwMi4zMywxMi4yOCwxMDEuOTYsMTEuODR6Ii8+CgkJPC9nPgoJPC9nPgo8L2c+Cjwvc3ZnPgo=", oscuro: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjUuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHdpZHRoPSIxMDVweCIgaGVpZ2h0PSIyMnB4IiB2aWV3Qm94PSIwIDAgMTA1IDIyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxMDUgMjIiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8ZyBpZD0iTG9nbyI+Cgk8ZyBpZD0iT3V0bGluZSIgb3BhY2l0eT0iMC44Ij4KCQk8cGF0aCBmaWxsPSIjMUUxRTFFIiBkPSJNNTkuNzcsMTEuNDRsLTAuOTMtMi4zMmMtMC4xNi0wLjQtMC4zNi0wLjgxLTAuNjEtMS4yMmMtMC4yNi0wLjQyLTAuNi0wLjg1LTEuMDEtMS4yNwoJCQljLTAuNDktMC41LTEuMS0wLjktMS44LTEuMmMtMC43MS0wLjMtMS40OS0wLjQ2LTIuMy0wLjQ2Yy0xLjE2LDAtMi4yNSwwLjMtMy4xOSwwLjg3VjAuNDhoLTUuOTh2NC43N0g0MgoJCQljLTAuNTQtMC4xOC0xLjEyLTAuMjctMS43Mi0wLjI3Yy0xLjY4LDAtMy4yMSwwLjY2LTQuNDQsMS45MmMtMC4wOSwwLjA5LTAuMTgsMC4xOS0wLjI2LDAuMjljLTAuMS0wLjEyLTAuMjEtMC4yNC0wLjMzLTAuMzUKCQkJYy0xLjI2LTEuMjMtMi44MS0xLjg2LTQuNi0xLjg2Yy0xLjc3LDAtMy4zNiwwLjY0LTQuNiwxLjg2Yy0wLjExLDAuMTEtMC4yMiwwLjIyLTAuMzIsMC4zNGMtMC4xLTAuMTItMC4yMS0wLjIzLTAuMzItMC4zNAoJCQljLTEuMjYtMS4yMy0yLjgxLTEuODYtNC42LTEuODZjLTEuNTUsMC0yLjkxLDAuNDYtNC4wNiwxLjM4aC0yLjQ3bDIuNDYtMi40NmwtMS40OC0xLjQxQzEzLjUzLDAuODMsMTEuNDYsMCw5LjA4LDAKCQkJQzYuNjIsMCw0LjQ3LDAuODgsMi43LDIuNjJDMC45MSw0LjM4LDAsNi41MSwwLDguOThzMC45MSw0LjYxLDIuNyw2LjM2YzEuNzgsMS43NCwzLjkzLDIuNjIsNi4zOSwyLjYyCgkJCWMyLjU2LDAsNC42OC0wLjg3LDYuMjgtMi41NGMwLjA0LTAuMDQsMC4wOC0wLjA4LDAuMTItMC4xM2MwLjIxLDAuMjksMC40NCwwLjU2LDAuNywwLjgxYzEuMjQsMS4yMiwyLjgzLDEuODYsNC42LDEuODYKCQkJYzEuOCwwLDMuMzQtMC42Miw0LjYtMS44NmMwLjExLTAuMTEsMC4yMi0wLjIyLDAuMzItMC4zNGMwLjEsMC4xMiwwLjIxLDAuMjMsMC4zMiwwLjM0YzEuMjQsMS4yMiwyLjgzLDEuODYsNC42LDEuODYKCQkJYzEuMjYsMCwyLjQtMC4zMSwzLjQtMC45MmwwLjQ1LDEuMDdjMC40MywxLjAyLDEuMTMsMS45MSwyLjA4LDIuNjZjMS4wNCwwLjgxLDIuMywxLjIzLDMuNzUsMS4yM2MxLjc4LDAsMy4yOS0wLjU4LDQuNDctMS43MwoJCQljMC43MS0wLjY5LDEuMjEtMS41NSwxLjUtMi41OGgzLjY0di0wLjY3YzEsMC42MiwyLjE2LDAuOTQsMy40MiwwLjk0YzEuMywwLDIuNDQtMC4zMiwzLjM5LTAuOTRjMC44NS0wLjU1LDEuNTMtMS4yMSwyLjAyLTEuOTQKCQkJbDEuMTEtMS42NmwtMS44Ny0xLjI1TDU5Ljc3LDExLjQ0eiIvPgoJCTxwYXRoIGZpbGw9IiMxRTFFMUUiIGQ9Ik0xMDUsMTAuMTFsLTAuNzQtMS44NGMtMC40Mi0xLjA1LTEuMTMtMS44Ni0yLjEtMi40M2MtMC44OS0wLjUxLTEuODktMC43Ny0yLjk4LTAuNzcKCQkJYy0xLjMxLDAtMi40OCwwLjM1LTMuNDgsMS4wNWMtMC4yNCwwLjE3LTAuNDUsMC4zNi0wLjY1LDAuNTZjLTEuMTEtMS4wNS0yLjQ2LTEuNjEtMy45NS0xLjYxYy0wLjYzLDAtMS4yMiwwLjA5LTEuNzgsMC4yN2gtNC42MwoJCQl2MC42Yy0wLjkzLTAuNTgtMi0wLjg3LTMuMjEtMC44N2MtMS4yNiwwLTIuMzQsMC4zMS0zLjIyLDAuOVYxLjVoLTQuNzNsLTMuMTEsNS40NWwtMy4xLTUuNDVINjIuNnYxNi4xOWg1LjU3VjE1LjFoMC42NWgzLjI0CgkJCWgwLjY1djIuNTloNS41N3YtMC4zN2MwLjc3LDAuNDIsMS42NSwwLjY0LDIuNjIsMC42NGMwLjY0LDAsMS4yMy0wLjA5LDEuNzgtMC4yN2gyLjAzdjMuNjhoNS41N3YtMy40NgoJCQljMC4yNywwLjA0LDAuNTYsMC4wNiwwLjg0LDAuMDZjMS41LDAsMi44Ny0wLjU3LDMuOTgtMS42NGMwLjIsMC4yLDAuNDIsMC4zOSwwLjY1LDAuNTZjMC45NiwwLjcyLDIuMTQsMS4wOCwzLjUxLDEuMDgKCQkJYzEuNDMsMCwyLjY1LTAuNCwzLjYzLTEuMmMxLjA4LTAuODgsMS42Ni0yLjA3LDEuNjYtMy40MmMwLTAuOTctMC4zMi0xLjg5LTAuOTMtMi42NkwxMDUsMTAuMTF6Ii8+Cgk8L2c+Cgk8ZyBpZD0iSW5uZXJfdGV4dCI+CgkJPGc+CgkJCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik05LjA4LDguMzV2MS45aDQuNThjLTAuMTQsMS4wNC0wLjQ4LDEuODQtMS4wNCwyLjRjLTAuOTQsMC45My0yLjExLDEuNC0zLjUzLDEuNAoJCQkJYy0xLjQsMC0yLjU4LTAuNDktMy41NS0xLjQ4Yy0wLjk3LTAuOTgtMS40Ni0yLjE4LTEuNDYtMy41OWMwLTEuNDEsMC40OC0yLjYsMS40NS0zLjU5QzYuNSw0LjQsNy42OCwzLjkxLDkuMDgsMy45MQoJCQkJYzEuMzMsMCwyLjQ3LDAuNDUsMy40NCwxLjM2bDEuMzUtMS4zNUMxMi41MywyLjY0LDEwLjkzLDIsOS4wOCwyQzcuMTUsMiw1LjQ5LDIuNjgsNC4wOSw0LjA1QzIuNyw1LjQyLDIsNy4wNiwyLDguOTgKCQkJCWMwLDEuOTIsMC43LDMuNTYsMi4wOSw0LjkzYzEuNCwxLjM3LDMuMDYsMi4wNSw0Ljk5LDIuMDVjMiwwLDMuNjMtMC42NSw0Ljg3LTEuOTZjMS4xLTEuMSwxLjY1LTIuNTksMS42NS00LjQ2CgkJCQljMC0wLjQ1LTAuMDMtMC44NS0wLjEtMS4xOUg5LjA4eiIvPgoJCQk8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNNDIuNzIsNy45N2gtMC4wN2MtMC4yNC0wLjI5LTAuNTctMC41My0wLjk4LTAuNzJjLTAuNDItMC4xOS0wLjg4LTAuMjktMS4zOS0wLjI5CgkJCQljLTEuMTQsMC0yLjE1LDAuNDQtMy4wMSwxLjMyYy0wLjg2LDAuODgtMS4yOSwxLjk0LTEuMjksMy4xOWMwLDEuMjQsMC40MywyLjMsMS4yOSwzLjE3YzAuODYsMC44NywxLjg2LDEuMzEsMy4wMSwxLjMxCgkJCQljMS4wMiwwLDEuODEtMC4zNCwyLjM3LTEuMDJoMC4wN3YwLjY1YzAsMC44NS0wLjIxLDEuNTEtMC42NCwxLjk2Yy0wLjQyLDAuNDUtMS4wMSwwLjY4LTEuNzYsMC42OGMtMC41NSwwLTEuMDItMC4xNi0xLjQxLTAuNDgKCQkJCWMtMC4zOC0wLjMxLTAuNjctMC42OS0wLjg1LTEuMTJsLTEuNzIsMC43MmMwLjI5LDAuNzEsMC43OCwxLjMzLDEuNDYsMS44NmMwLjY4LDAuNTMsMS41MiwwLjgsMi41MiwwLjgKCQkJCWMxLjI1LDAsMi4yNy0wLjM5LDMuMDctMS4xN2MwLjgtMC43OCwxLjItMS45NSwxLjItMy41MlY3LjI0aC0xLjg3VjcuOTd6IE00Mi4xNiwxMy40MmMtMC40NiwwLjUxLTEuMDMsMC43Ny0xLjcxLDAuNzcKCQkJCWMtMC42OSwwLTEuMjgtMC4yNi0xLjc3LTAuNzhjLTAuNDktMC41MS0wLjczLTEuMTYtMC43My0xLjkzYzAtMC43OCwwLjI0LTEuNDQsMC43My0xLjk2YzAuNDktMC41MiwxLjA4LTAuNzgsMS43Ny0wLjc4CgkJCQljMC42OCwwLDEuMjUsMC4yNiwxLjcxLDAuNzljMC40NiwwLjUyLDAuNjksMS4xOCwwLjY5LDEuOTZDNDIuODUsMTIuMjYsNDIuNjIsMTIuOSw0Mi4xNiwxMy40MnoiLz4KCQkJPHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTIwLjgsNi45N2MtMS4yNiwwLTIuMzMsMC40My0zLjIsMS4yOXMtMS4zMSwxLjkzLTEuMzEsMy4yMWMwLDEuMjgsMC40NCwyLjM1LDEuMzEsMy4yMQoJCQkJczEuOTQsMS4yOSwzLjIsMS4yOXMyLjMzLTAuNDMsMy4yLTEuMjljMC44OC0wLjg2LDEuMzEtMS45MywxLjMxLTMuMjFjMC0xLjI4LTAuNDQtMi4zNS0xLjMxLTMuMjFTMjIuMDYsNi45NywyMC44LDYuOTd6CgkJCQkgTTIyLjU5LDEzLjQyYy0wLjUsMC41MS0xLjEsMC43Ny0xLjc5LDAuNzdzLTEuMjktMC4yNS0xLjc5LTAuNzdjLTAuNS0wLjUyLTAuNzUtMS4xNy0wLjc1LTEuOTVjMC0wLjgsMC4yNS0xLjQ1LDAuNzQtMS45NgoJCQkJYzAuNS0wLjUxLDEuMS0wLjc3LDEuOC0wLjc3UzIyLjEsOSwyMi42LDkuNTFjMC40OSwwLjUxLDAuNzQsMS4xNywwLjc0LDEuOTZDMjMuMzQsMTIuMjUsMjMuMDksMTIuOSwyMi41OSwxMy40MnoiLz4KCQkJPHJlY3QgeD0iNDUuOTUiIHk9IjIuNDgiIGZpbGw9IiNGRkZGRkYiIHdpZHRoPSIxLjk4IiBoZWlnaHQ9IjEzLjIxIi8+CgkJCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik01My4zNCwxNC4yYy0wLjk5LDAtMS43MS0wLjQ1LTIuMTgtMS4zNmw2LjAxLTIuNDlsLTAuMi0wLjUxYy0wLjExLTAuMy0wLjI2LTAuNTktMC40NC0wLjg5CgkJCQljLTAuMTgtMC4yOS0wLjQyLTAuNi0wLjczLTAuOTFjLTAuMzEtMC4zMi0wLjY5LTAuNTctMS4xNi0wLjc3Yy0wLjQ3LTAuMi0wLjk3LTAuMy0xLjUyLTAuM2MtMS4xOSwwLTIuMTksMC40Mi0zLjAxLDEuMjYKCQkJCWMtMC44MiwwLjg0LTEuMjMsMS45Mi0xLjIzLDMuMjRjMCwxLjI3LDAuNDMsMi4zNCwxLjI4LDMuMmMwLjg1LDAuODYsMS45MSwxLjI5LDMuMTgsMS4yOWMwLjkxLDAsMS42OC0wLjIsMi4yOS0wLjYKCQkJCWMwLjYzLTAuNDEsMS4xMS0wLjg3LDEuNDUtMS4zOGwtMS41My0xLjAyQzU0Ljk5LDEzLjc5LDU0LjI1LDE0LjIsNTMuMzQsMTQuMnogTTUxLjU2LDkuNDNjMC41MS0wLjQ4LDEuMDUtMC43MiwxLjYzLTAuNzIKCQkJCWMwLjM5LDAsMC43MywwLjA4LDEuMDQsMC4yNmMwLjMxLDAuMTgsMC41MiwwLjQxLDAuNjMsMC42OWwtNC4wMiwxLjY3QzUwLjgyLDEwLjU0LDUxLjA2LDkuOSw1MS41Niw5LjQzeiIvPgoJCQk8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMzAuNjUsNi45N2MtMS4yNiwwLTIuMzMsMC40My0zLjIsMS4yOXMtMS4zMSwxLjkzLTEuMzEsMy4yMWMwLDEuMjgsMC40NCwyLjM1LDEuMzEsMy4yMQoJCQkJczEuOTQsMS4yOSwzLjIsMS4yOWMxLjI2LDAsMi4zMy0wLjQzLDMuMi0xLjI5YzAuODctMC44NiwxLjMxLTEuOTMsMS4zMS0zLjIxYzAtMS4yOC0wLjQ0LTIuMzUtMS4zMS0zLjIxUzMxLjkxLDYuOTcsMzAuNjUsNi45NwoJCQkJeiBNMzIuNDQsMTMuNDJjLTAuNSwwLjUxLTEuMSwwLjc3LTEuNzksMC43N3MtMS4yOS0wLjI1LTEuNzktMC43N2MtMC41LTAuNTItMC43NS0xLjE3LTAuNzUtMS45NWMwLTAuOCwwLjI1LTEuNDUsMC43NC0xLjk2CgkJCQljMC41LTAuNTEsMS4xLTAuNzcsMS44LTAuNzdjMC43MSwwLDEuMzEsMC4yNiwxLjgsMC43N3MwLjc0LDEuMTcsMC43NCwxLjk2QzMzLjE5LDEyLjI1LDMyLjk0LDEyLjksMzIuNDQsMTMuNDJ6Ii8+CgkJPC9nPgoJCTxnPgoJCQk8cG9seWdvbiBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjcwLjQ4LDEwLjkyIDcwLjQxLDEwLjkyIDY2LjE3LDMuNSA2NC42LDMuNSA2NC42LDE1LjY5IDY2LjE3LDE1LjY5IDY2LjE3LDguNDUgNjYuMSw2LjQxIAoJCQkJNjYuMTcsNi40MSA2OS45OCwxMy4xIDcwLjksMTMuMSA3NC43Miw2LjQxIDc0Ljc5LDYuNDEgNzQuNzIsOC40NSA3NC43MiwxNS42OSA3Ni4yOSwxNS42OSA3Ni4yOSwzLjUgNzQuNzIsMy41IAkJCSIvPgoJCQk8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNODEuNSw3LjA3Yy0wLjkzLDAtMS42OCwwLjIxLTIuMjUsMC42NFM3OC4zLDguNiw3OC4xMSw5LjFsMS40NCwwLjYxYzAuMTQtMC4zOCwwLjM5LTAuNjcsMC43Ni0wLjg5CgkJCQljMC4zNi0wLjIxLDAuNzgtMC4zMiwxLjIzLTAuMzJjMC42MSwwLDEuMTMsMC4xOCwxLjU1LDAuNTVjMC40MiwwLjM3LDAuNjMsMC44NiwwLjYzLDEuNDd2MC4yNGMtMC41OS0wLjM0LTEuMzQtMC41MS0yLjI2LTAuNTEKCQkJCWMtMS4wNCwwLTEuOTEsMC4yNS0yLjYxLDAuNzdjLTAuNzEsMC41Mi0xLjA2LDEuMjMtMS4wNiwyLjE0YzAsMC44NCwwLjI5LDEuNTIsMC44OSwyLjAzYzAuNTksMC41MSwxLjMzLDAuNzcsMi4yMiwwLjc3CgkJCQljMS4yMSwwLDIuMTItMC40NywyLjc1LTEuNDNoMC4wN3YxLjE2aDEuNXYtNS4wNGMwLTEuMTQtMC4zNi0yLjAyLTEuMDYtMi42NEM4My40NSw3LjM4LDgyLjU3LDcuMDcsODEuNSw3LjA3eiBNODIuOTIsMTMuODEKCQkJCWMtMC41MywwLjQ4LTEuMTEsMC43Mi0xLjc2LDAuNzJjLTAuNDYsMC0wLjg2LTAuMTItMS4yMS0wLjM1Yy0wLjM1LTAuMjQtMC41My0wLjU2LTAuNTMtMC45N2MwLTAuNDQsMC4xOS0wLjgzLDAuNTgtMS4xNgoJCQkJczAuOTYtMC40OSwxLjcyLTAuNDljMC44OCwwLDEuNTUsMC4xOCwxLjk5LDAuNTRDODMuNzEsMTIuNzYsODMuNDUsMTMuMzMsODIuOTIsMTMuODF6Ii8+CgkJCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik05MS4xMiw3LjA4Yy0wLjYzLDAtMS4yLDAuMTQtMS43MSwwLjQxYy0wLjUsMC4yNy0wLjg4LDAuNjEtMS4xMywxLjAyaC0wLjA3VjcuMzVoLTEuNXYxMi4wMmgxLjU3di0zLjY4CgkJCQlsLTAuMDctMS4xNmgwLjA3YzAuMjUsMC40MSwwLjYyLDAuNzUsMS4xMywxLjAyYzAuNSwwLjI3LDEuMDcsMC40MSwxLjcxLDAuNDFjMS4wOCwwLDIuMDEtMC40MiwyLjc5LTEuMjYKCQkJCWMwLjc5LTAuODUsMS4xOC0xLjkxLDEuMTgtMy4xN2MwLTEuMjYtMC40LTIuMzItMS4xOC0zLjE3QzkzLjEzLDcuNTEsOTIuMiw3LjA4LDkxLjEyLDcuMDh6IE05Mi43MywxMy43CgkJCQljLTAuNTIsMC41NS0xLjE0LDAuODMtMS44NywwLjgzYy0wLjczLDAtMS4zNi0wLjI3LTEuODgtMC44MmMtMC41MS0wLjU1LTAuNzctMS4yOC0wLjc3LTIuMnMwLjI1LTEuNjYsMC43Ny0yLjIKCQkJCWMwLjUxLTAuNTUsMS4xNC0wLjgyLDEuODgtMC44MmMwLjcyLDAsMS4zNSwwLjI4LDEuODcsMC44M2MwLjUyLDAuNTUsMC43OCwxLjI4LDAuNzgsMi4xOUM5My41MSwxMi40Miw5My4yNSwxMy4xNSw5Mi43MywxMy43eiIKCQkJCS8+CgkJCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0xMDEuOTYsMTEuODRjLTAuMzgtMC40NS0wLjk2LTAuNzYtMS43NC0wLjk0bC0xLjY1LTAuMzljLTAuNzQtMC4xNy0xLjExLTAuNDktMS4xMS0wLjk3CgkJCQljMC0wLjMzLDAuMTYtMC41OSwwLjQ4LTAuNzhzMC43MS0wLjI5LDEuMTgtMC4yOWMwLjk3LDAsMS42LDAuMzcsMS45MSwxLjExbDEuMzYtMC41NmMtMC4yNS0wLjYzLTAuNjYtMS4xLTEuMjQtMS40NAoJCQkJYy0wLjU4LTAuMzMtMS4yNC0wLjUtMS45OC0wLjVjLTAuODksMC0xLjY3LDAuMjMtMi4zMiwwLjY5Yy0wLjY1LDAuNDYtMC45OCwxLjA2LTAuOTgsMS44YzAsMC42NSwwLjI0LDEuMTYsMC43MiwxLjU0CgkJCQlzMC45OSwwLjYzLDEuNTIsMC43N2wxLjY5LDAuNDFjMC43NiwwLjIsMS4xNCwwLjU3LDEuMTQsMS4xMWMwLDAuMzUtMC4xNiwwLjYzLTAuNDcsMC44NWMtMC4zMSwwLjIxLTAuNzEsMC4zMi0xLjIsMC4zMgoJCQkJYy0xLjA2LDAtMS44Mi0wLjUzLTIuMjYtMS41N2wtMS40LDAuNThjMC4yOSwwLjY4LDAuNzMsMS4yNSwxLjM0LDEuN2MwLjYxLDAuNDUsMS4zOCwwLjY4LDIuMzEsMC42OGMwLjk2LDAsMS43NS0wLjI1LDIuMzQtMC43NQoJCQkJYzAuNjEtMC41LDAuOTItMS4xMiwwLjkyLTEuODdDMTAyLjUyLDEyLjc4LDEwMi4zMywxMi4yOCwxMDEuOTYsMTEuODR6Ii8+CgkJPC9nPgoJPC9nPgo8L2c+Cjwvc3ZnPgo=" };
+  var OSC = [{ elementType: "geometry", stylers: [{ color: "#1d2c4d" }] }, { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] }, { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] }, { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] }, { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#6f9ba5" }] },
+    { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#023e58" }] }, { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#98a5be" }] }, { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#255763" }] }, { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] }, { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] }];
+  var CLA = [{ featureType: "poi", stylers: [{ saturation: -55 }, { lightness: 18 }] }, { featureType: "landscape", stylers: [{ saturation: -45 }, { lightness: 12 }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ saturation: -70 }] }, { featureType: "transit", stylers: [{ saturation: -60 }] }];
+  /* qué se le pide a Google para cada estilo */
+  G.pedidoSesion = function(v){
+    var b = { language: "es-419", region: "PA" }, k = v.split("+"), tipo = k[0];
+    if(tipo === "sat"){ b.mapType = "satellite"; b.layerTypes = ["layerRoadmap"]; b.overlay = false; }
+    else { b.mapType = "roadmap"; if(tipo === "oscuro") b.styles = OSC; if(tipo === "claro") b.styles = CLA; }
+    if(k.indexOf("t") > 0){ b.layerTypes = (b.layerTypes || []).concat(["layerTraffic"]); b.overlay = false; }
+    if(k.indexOf("g") > 0){ b.scale = "scaleFactor2x"; b.highDpi = true; }
+    return b;
+  };
+  var leer = function(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v === null ? d : v; }catch(e){ return d; } };
+  var poner = function(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+  G.listo = function(){ return !!G.clave; };
+  G.iniciar = function(){
+    var c = leer("g47_clave", null);
+    if(c && c.k && Date.now() - c.t < 7 * 864e5) G.usarClave(c.k);
+    if(G.pedirClave) G.pedirClave(function(k){ if(k){ poner("g47_clave", { k: k, t: Date.now() }); if(k !== G.clave) G.usarClave(k); } });
+  };
+  G.usarClave = function(k){
+    G.clave = k; G.ses = leer("g47_ses_" + k.slice(-6), {}) || {};
+    G.capas.forEach(function(l){ G.sesion(l._g47v, function(){ l._g47url(); }); });
+  };
+  G.sesion = function(v, cb){
+    var s = G.ses[v];
+    if(s && s.s && s.e * 1000 > Date.now() + 864e5){ cb(s.s); return; }
+    if(!G.clave) return;
+    G.esp.push([v, cb]); if(G.esp.filter(function(x){ return x[0] === v; }).length > 1) return;
+    fetch("https://tile.googleapis.com/v1/createSession?key=" + encodeURIComponent(G.clave), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(G.pedidoSesion(v)) })
+      .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+        if(j && j.session){ G.ses[v] = { s: j.session, e: Number(j.expiry) || (Date.now() / 1000 + 12 * 86400) }; poner("g47_ses_" + G.clave.slice(-6), G.ses); }
+        var l = G.esp.filter(function(x){ return x[0] === v; }); G.esp = G.esp.filter(function(x){ return x[0] !== v; });
+        if(j && j.session) l.forEach(function(x){ x[1](j.session); });
+      }).catch(function(){ G.esp = G.esp.filter(function(x){ return x[0] !== v; }); });
+  };
+  var ORIG = window.L && L.tileLayer;
+  G.urlDe = function(tipo){
+    if(tipo === "sat") return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+    if(tipo === "oscuro") return "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+    return "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  };
+  /* una capa de Google; mientras no hay sesión, el fondo de antes */
+  G.capa = function(tipo, op){
+    op = op || {};
+    var v = tipo + (op.trafico ? "+t" : "") + (op.grande ? "+g" : "");
+    var l = new L.TileLayer(op.antes || G.urlDe(tipo), { maxZoom: 21, maxNativeZoom: 20, attribution: "", className: "g47-fondo" });
+    l._g47v = v; l._g47tipo = tipo;
+    l._g47url = function(){ var s = G.ses[v]; if(s && s.s && G.clave){ l._g47si = true; l.setUrl("https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=" + encodeURIComponent(s.s) + "&key=" + encodeURIComponent(G.clave)); if(l._map) G.atrib(l._map, l); } };
+    l.on("add", function(){ if(G.capas.indexOf(l) < 0) G.capas.push(l); if(l._g47si) G.atrib(l._map, l); });
+    l.on("remove", function(){ G.capas = G.capas.filter(function(x){ return x !== l; }); var m = this._mapAntes; });
+    if(G.clave) G.sesion(v, function(){ l._g47url(); });
+    return l;
+  };
+  /* las capas viejas se cambian solas */
+  G.envolver = function(){
+    if(!window.L || !L.tileLayer || L.tileLayer._g47) return;
+    ORIG = L.tileLayer;
+    L.tileLayer = function(url, op){
+      var u = String(url || "");
+      if(/Reference\/|_Reference\//.test(u)) return L.layerGroup();               // las etiquetas encima de Esri: Google ya las trae
+      if(/World_Imagery/.test(u)) return G.capa("sat", { antes: u });
+      if(/Dark_Gray/.test(u)) return G.capa("oscuro", { antes: u });
+      if(/Light_Gray/.test(u)) return G.capa("claro", { antes: u });
+      if(/openstreetmap|World_Street_Map|basemaps\.cartocdn/.test(u)) return G.capa("calles", { antes: u });
+      return ORIG.apply(this, arguments);
+    };
+    L.tileLayer._g47 = true;
+  };
+  /* logo y datos del mapa, uno por mapa */
+  G.atrib = function(m, capa){
+    if(!m || !capa) return;
+    var osc = capa._g47tipo === "oscuro" || capa._g47tipo === "sat";
+    if(!m._g47logo){
+      var lg = L.control({ position: m._g47pos || "bottomleft" });
+      lg.onAdd = function(){ var d = L.DomUtil.create("div", "g47-logo"); d.innerHTML = '<img alt="Google Maps" width="80" height="17">'; return d; };
+      var tx = L.control({ position: "bottomright" });
+      tx.onAdd = function(){ var d = L.DomUtil.create("div", "g47-datos"); d.textContent = "Google"; return d; };
+      tx.addTo(m); m._g47tx = tx; lg.addTo(m); m._g47logo = lg;   /* abajo a la derecha: los datos abajo y el logo encima */
+      var t = 0; m.on("moveend zoomend", function(){ clearTimeout(t); t = setTimeout(function(){ G.datos(m); }, 900); });
+      m.getContainer().classList.add("g47-map");
+    }
+    var im = m._g47logo.getContainer() && m._g47logo.getContainer().querySelector("img");
+    if(im) im.src = osc ? G.LOGO.oscuro : G.LOGO.claro;
+    m._g47capa = capa; m.getContainer().classList.toggle("g47-osc", osc);
+    G.datos(m);
+  };
+  G.datos = function(m){
+    var c = m._g47capa, s = c && G.ses[c._g47v]; if(!s || !G.clave || !m._loaded) return;
+    var b = m.getBounds(), z = Math.round(m.getZoom()), k = [z, b.getNorth().toFixed(2), b.getWest().toFixed(2), c._g47v].join("|");
+    if(m._g47k === k) return; m._g47k = k;
+    fetch("https://tile.googleapis.com/tile/v1/viewport?session=" + encodeURIComponent(s.s) + "&key=" + encodeURIComponent(G.clave) + "&zoom=" + z +
+      "&north=" + b.getNorth() + "&south=" + b.getSouth() + "&east=" + b.getEast() + "&west=" + b.getWest())
+      .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ var d = m._g47tx && m._g47tx.getContainer(); if(d && j && j.copyright) d.textContent = j.copyright; }).catch(function(){});
+  };
+
+  /* ══════ NUNCA UNA LÍNEA RECTA ══════ */
+  var CK = "g47_tz", TTL = 6 * 864e5;
+  var clave = function(P){ return P.map(function(p){ var a = p.lat !== undefined ? [p.lat, p.lng] : p; return Number(a[0]).toFixed(5) + "," + Number(a[1]).toFixed(5); }).join(";"); };
+  var cacheL = function(){ if(!G.cache){ G.cache = leer(CK, {}) || {}; var ya = Date.now(); Object.keys(G.cache).forEach(function(k){ if(ya - G.cache[k].t > TTL) delete G.cache[k]; }); } return G.cache; };
+  var cacheP = function(k, v){ var c = cacheL(); c[k] = { t: Date.now(), l: v }; var ks = Object.keys(c); if(ks.length > 250){ ks.sort(function(a, b){ return c[a].t - c[b].t; }).slice(0, ks.length - 250).forEach(function(x){ delete c[x]; }); } poner(CK, c); };
+  G.dec = function(s){ var o = [], i = 0, la = 0, ln = 0; s = String(s || ""); while(i < s.length){ var b, sh = 0, r = 0; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while(b >= 32); la += (r & 1) ? ~(r >> 1) : (r >> 1); sh = 0; r = 0; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while(b >= 32); ln += (r & 1) ? ~(r >> 1) : (r >> 1); o.push([la / 1e5, ln / 1e5]); } return o; };
+  G.trazoGuardado = function(P){ var c = cacheL()[clave(P)]; return c ? c.l : null; };
+  /* dibuja la línea por calles de P en capa; estilos: uno o varios (el blanco de abajo y el color) */
+  G.linea = function(capa, P, estilos, op){
+    op = op || {};
+    var g = L.layerGroup(); if(capa) g.addTo(capa);
+    P = (P || []).map(function(p){ return p && p.lat !== undefined ? [Number(p.lat), Number(p.lng)] : p; }).filter(function(p){ return p && isFinite(p[0]) && isFinite(p[1]); });
+    if(P.length < 2) return g;
+    var E = Array.isArray(estilos) ? estilos : [estilos || { color: "#14306b", weight: 4 }];
+    var pinta = function(legs){ if(capa && !g._map && !(capa.hasLayer && capa.hasLayer(g))) return; var geo = []; legs.forEach(function(s){ geo = geo.concat(G.dec(s)); }); if(geo.length < 2) return;
+      E.forEach(function(e){ L.polyline(geo, Object.assign({}, e)).addTo(g); }); if(op.listo) op.listo(geo, g); };
+    var tramos = []; for(var i = 0; i < P.length - 1; i += 25) tramos.push(P.slice(i, Math.min(P.length, i + 26)));
+    var res = new Array(tramos.length), faltan = 0;
+    tramos.forEach(function(T, k){
+      var ya = G.trazoGuardado(T);
+      if(ya){ res[k] = ya; return; }
+      faltan++;
+      G.pedir(T, function(l){ res[k] = l || null; faltan--; if(!faltan && res.every(Boolean)) pinta([].concat.apply([], res)); G.marcar(capa, -1); });
+      G.marcar(capa, 1);
+    });
+    if(!faltan) pinta([].concat.apply([], res));
+    return g;
+  };
+  G.marcar = function(capa, d){ var m = capa && (capa._map || (capa.getContainer ? capa : null)); if(!m || !m.getContainer) return; m._g47n = Math.max(0, (m._g47n || 0) + d); m.getContainer().classList.toggle("g47-trazando", m._g47n > 0); };
+  G.pedir = function(T, cb){
+    var k = clave(T), c = cacheL()[k]; if(c){ cb(c.l); return; }
+    var y = G.cola.filter(function(x){ return x.k === k; })[0];
+    if(y){ y.cbs.push(cb); return; }
+    G.cola.push({ k: k, T: T, cbs: [cb] }); G.correr();
+  };
+  G.correr = function(){
+    if(G.vuelo >= 2 || !G.cola.length || !G.pedirTrazo) return;
+    var x = G.cola.shift(); G.vuelo++;
+    G.pedirTrazo(x.T, function(tz){
+      G.vuelo--;
+      var legs = tz && tz.legs && tz.legs.length ? tz.legs.filter(Boolean) : null;
+      if(legs && legs.length) cacheP(x.k, legs);
+      x.cbs.forEach(function(f){ try{ f(legs); }catch(e){} });
+      setTimeout(G.correr, 60);
+    });
+  };
+})(G47);
+G47.envolver();
+
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.47 · TODO CON GOOGLE en las pantallas del equipo (Index.html)
+   · Fondo de Google en todos los mapas (con «Capas» y «Tráfico»).
+   · Mapas del conductor: letras más grandes y tráfico encima; de noche, oscuro.
+   · Navegación: recalcula en segundos («Recalculando…»), avisa si el GPS es
+     impreciso y no da indicaciones finas mientras tanto, el camión se mueve
+     suave, el acercamiento va según la velocidad y la próxima vuelta, y dice
+     cómo está el tráfico hasta el local.
+   · Saltar una parada: pregunta qué pasa con la que tocaba y reordena lo que
+     falta desde ahí (respetando horarios); logística lo ve en el historial.
+   · ⚙ del planificador: Peajes (evitar / permitir) y Tráfico.
+   · Clientes: foto de Google (con su autor) cuando no hay foto propia, la
+     fachada desde la calle y «Buscar el local en Google».
+   ═══════════════════════════════════════════════════════════════════ */
+G47.pedirClave = function(cb){
+  var t = setInterval(function(){
+    if(!PIN || !window.google || !google.script) return; clearInterval(t);
+    google.script.run.withSuccessHandler(function(r){ cb(r && r.ok && r.listo ? r.clave : ""); }).withFailureHandler(function(){}).api_mapaClave(PIN);
+  }, 1200);
+};
+G47.pedirTrazo = function(T, cb){
+  if(!PIN || !window.google || !google.script){ cb(null); return; }
+  google.script.run.withSuccessHandler(function(r){ cb(r && r.ok && r.trazo ? r.trazo : null); }).withFailureHandler(function(){ cb(null); })
+    .api_trazoPuntos(PIN, { puntos: T.map(function(p){ return { lat: p[0], lng: p[1] }; }) });
+};
+/* con la clave lista, los mapas abiertos pasan a Google (el mapa vectorial viejo ya no hace falta) */
+G47.usarClave = (function(o){ return function(k){ o.apply(this, arguments);
+  setTimeout(function(){ try{ M40.vivos_().forEach(function(m){ if((m._m36capas || []).some(function(c){ return c._g47v; })) return; try{ m36Capas_(m, m._m36f); if(m._m40pint) m._m40pint(); }catch(e){} }); }catch(e){} }, 300); }; })(G47.usarClave);
+G47.iniciar();
+if(window.M40) M40.cargar = (function(o){ return function(){ if(G47.listo()) return; var c = null; try{ c = JSON.parse(localStorage.getItem("g47_clave") || "null"); }catch(e){} if(c && c.k) return; return o.apply(this, arguments); }; })(M40.cargar);
+
+/* el tráfico: lo elige cada quien; de entrada, encendido en los mapas del día y del conductor */
+function g47TrafPref_(){ try{ return localStorage.getItem("eco_trafico") !== "no"; }catch(e){ return true; } }
+function g47Noche_(){ return document.body.classList.contains("t47-noche"); }
+var g47Capas0_ = m36Capas_;
+m36Capas_ = function(m, fondo){
+  if(!G47.listo()) return g47Capas0_(m, fondo);
+  fondo = fondo || m36Fondo_(); if(!M40.NOM[fondo]) fondo = "calles";
+  if(m._g47cond && g47Noche_() && fondo !== "sat") fondo = "oscuro";
+  if(m._m36capas) m._m36capas.forEach(function(c){ try{ m.removeLayer(c); }catch(e){} });
+  if(/^(h47-mapa|nv-mapa)$/.test(m.getContainer().id)) m._g47pos = "bottomright";   /* la tarjeta del conductor tapa la esquina izquierda */
+  var c = G47.capa(fondo, { trafico: m._g47t === true, grande: !!m._g47g });
+  c.addTo(m); if(c.bringToBack) c.bringToBack();
+  m._m36capas = [c]; m._m36f = fondo;
+  m.getContainer().classList.toggle("m40-osc", fondo === "oscuro" || fondo === "sat");
+  if(M40.mapas.indexOf(m) < 0){ M40.mapas.push(m); m.on("unload", function(){ m._m40fuera = true; }); }
+};
+var G47_TRAF = { "md-mapa": 1, "h47-mapa": 2, "nv-mapa": 2 };   /* 1 = tráfico; 2 = tráfico y letras grandes (conductor) */
+m36Mapa_ = function(id, op){
+  var m = L.map(id, Object.assign({ zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }, op || {}));
+  var t = G47_TRAF[id]; if(t){ m._g47t = g47TrafPref_(); m._g47g = t === 2; m._g47cond = t === 2; }
+  m36Capas_(m); m36Toggle_(m); return m;
+};
+/* «Capas» con el botón de tráfico en los mapas que lo usan */
+m36Toggle_ = function(m){
+  var ctl = L.control({ position: "topright" });
+  ctl.onAdd = function(){
+    var d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    var pint = function(){
+      var f = m._m36f || m36Fondo_(), tr = m._g47t !== undefined;
+      d.innerHTML = '<div class="m40-capas' + (d._ab ? ' ab' : '') + '"><button type="button" class="m40-cb" data-t="1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>' + M40.NOM[f] + (tr && m._g47t ? ' · tráfico' : '') + '</span></button>' +
+        (d._ab ? '<div class="m40-op">' + ["calles", "sat", "claro", "oscuro"].map(function(k){ return '<button type="button" class="' + (f === k ? 'on ' : '') + 'k-' + k + '" data-f="' + k + '"><i></i>' + M40.NOM[k] + '</button>'; }).join("") +
+          (tr && G47.listo() ? '<button type="button" class="g47-tr' + (m._g47t ? ' on' : '') + '" data-tr="1"><i></i>Tráfico ' + (m._g47t ? 'encendido' : 'apagado') + '</button>' : '') + '</div>' : '') + '</div>';
+    };
+    d.addEventListener("click", function(e){ var b = e.target.closest("button"); if(!b) return;
+      if(b.getAttribute("data-t")){ d._ab = !d._ab; pint(); return; }
+      if(b.getAttribute("data-tr")){ var on = !m._g47t; try{ localStorage.setItem("eco_trafico", on ? "si" : "no"); }catch(x){}
+        M40.vivos_().forEach(function(x){ if(x._g47t !== undefined){ x._g47t = on; m36Capas_(x, x._m36f); if(x._m40pint) x._m40pint(); } }); pint(); return; }
+      var f = b.getAttribute("data-f"); try{ localStorage.setItem("eco_fondo", f); }catch(x){}
+      M40.vivos_().forEach(function(x){ m36Capas_(x, f); if(x._m40pint) x._m40pint(); }); d._ab = false; pint(); });
+    m._m40pint = pint; pint(); return d;
+  };
+  ctl.addTo(m);
+};
+/* de noche, los mapas del conductor van oscuros (el estilo nocturno de Google) */
+if(window.T47 && T47.aplicar) T47.aplicar = (function(o){ return function(){
+  var antes = g47Noche_(), r = o.apply(this, arguments);
+  if(antes !== g47Noche_()) [window.H47 && H47.map, window.NV37 && NV37.m].forEach(function(m){ if(m && m._g47cond){ m36Capas_(m, m36Fondo_()); if(m._m40pint) m._m40pint(); } });
+  return r;
+}; })(T47.aplicar);
+
+/* ══════════ LA NAVEGACIÓN ══════════ */
+var NV47 = { ok: {}, prev: null, anim: 0, rc: 0, vel: 0 };
+if(window.NV37){
+  /* el mapa de navegar: tráfico y letras grandes */
+  NV37.abrir = (function(o){ return function(dest){
+    /* saltar una parada: si va a otra que no es la que tocaba, primero se pregunta */
+    if(typeof dest !== "object" && dest && !NV47.ok[dest]){
+      var esp = nv47Esperada_();
+      if(esp && esp.p.clienteId !== Number(dest) && RUTA && RUTA.rutaId && RUTA.fecha === hoyISO() && !RUTA.cierre){ nv47Preguntar_(Number(dest), esp); return; }
+    }
+    var nuevo = !NV37.m, r = o.apply(this, arguments);
+    if(NV37.m && !NV37.m._g47cond){ NV37.m._g47t = g47TrafPref_(); NV37.m._g47g = true; NV37.m._g47cond = true; m36Capas_(NV37.m); if(nuevo || !NV37.m._g47tg){ NV37.m._g47tg = 1; m36Toggle_(NV37.m); } }
+    NV37.recalculando = false; NV37.impreciso = false; NV47.prev = null;
+    return r;
+  }; })(NV37.abrir);
+  /* recalcular en segundos cuando se sale del camino */
+  NV37.pedirRuta = (function(o){ return function(y){
+    if(!NV37.ruta && NV37._tuvo && !NV37.pts.length){
+      if(!NV37.recalculando){ NV37.recalculando = true; NV37.decir("Recalculando"); try{ NV37.dibujar(); }catch(e){} }
+      var falta = 6000 - (Date.now() - NV47.rc);
+      if(falta <= 0){ NV47.rc = Date.now(); NV37.pedidoEn = 0; }
+      else { clearTimeout(NV47.rt); NV47.rt = setTimeout(function(){ if(!NV37.ruta && NV37.abierta() && GEO37.yo) NV37.pedirRuta(GEO37.yo); }, falta + 50); }
+    }
+    return o.apply(this, arguments);
+  }; })(NV37.pedirRuta);
+  /* con el GPS impreciso no se dan indicaciones finas */
+  NV37.decir = (function(o){ return function(t){
+    if(NV37.impreciso && !/Recalculando|Llegaste|Voz activada|imprecis/i.test(String(t || ""))) return;
+    return o.apply(this, arguments);
+  }; })(NV37.decir);
+  /* el camión se mueve suave y el mapa lo sigue sin saltos */
+  NV37.posicion = (function(o){ return function(y){
+    if(!y) return o.apply(this, arguments);
+    var antes = NV47.prev, seguir = NV37.sigue;
+    var imp = (y.prec || 0) > 45;
+    if(imp !== !!NV37.impreciso){ NV37.impreciso = imp; if(imp) NV37.decir("Ubicación imprecisa"); setTimeout(function(){ try{ NV37.pintarGps(); }catch(e){} }, 0); }
+    if(antes){ var dt = Math.max(.5, (Date.now() - antes.t) / 1000), dm = m37_(antes, y); NV47.vel = NV47.vel * .6 + (dm / dt) * .4; }
+    NV37.sigue = false;
+    var r = o.apply(this, arguments);
+    NV37.sigue = seguir;
+    if(NV37.ruta){ NV37._tuvo = true; NV37.recalculando = false; clearTimeout(NV47.rt); }
+    if(NV37.m && NV37.yoM){
+      var a = antes ? [antes.lat, antes.lng] : [y.lat, y.lng], b = [y.lat, y.lng], t0 = performance.now(), dur = antes ? 900 : 0;
+      cancelAnimationFrame(NV47.anim);
+      var paso = function(t){ var k = dur ? Math.min(1, (t - t0) / dur) : 1, p = [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+        NV37.yoM.setLatLng(p); if(k < 1) NV47.anim = requestAnimationFrame(paso); };
+      NV37.yoM.setLatLng(a); NV47.anim = requestAnimationFrame(paso);
+      if(seguir){
+        var cerca = NV37.pos && NV37.pos.finPaso < 250, z = cerca ? 17 : (NV47.vel > 14 ? 15 : 16);
+        if(Math.abs((NV37.m.getZoom() || z) - z) >= 1) NV37.m.setView(b, z, { animate: false });
+        else NV37.m.panTo(b, { animate: true, duration: dur / 1000 || .01, easeLinearity: 1 });
+      }
+    }
+    NV47.prev = { lat: y.lat, lng: y.lng, t: Date.now() };
+    return r;
+  }; })(NV37.posicion);
+  /* lo que se ve arriba y abajo: recalculando, GPS impreciso y el tráfico */
+  NV37.pintar = (function(o){ return function(){
+    var r = o.apply(this, arguments);
+    try{
+      var ins = $("nv-ins");
+      if(ins && NV37.recalculando && !NV37.ruta && !NV37.llegando){
+        ins.className = "nv-ins gris";
+        ins.innerHTML = '<button class="x" onclick="NV37.salir()" aria-label="Cerrar">✕</button><div class="f"><div class="fl"><i class="g47-giro"></i></div><div><b>Recalculando…</b><span>Buscando el mejor camino desde aquí</span></div></div>';
+      }
+      var h = $("nv-hoja"), eta = h && h.querySelector(".nv-eta span"), tr = NV37.ruta && NV37.ruta.trafico;
+      if(eta && tr && !eta.querySelector(".g47-tf")){ var s = document.createElement("i"); s.className = "g47-tf " + tr; s.textContent = "tráfico " + tr; eta.appendChild(s); }
+    }catch(e){}
+    return r;
+  }; })(NV37.pintar);
+  NV37.pintarGps = (function(o){ return function(){
+    var r = o.apply(this, arguments);
+    var g = $("nv-gps"); if(g && NV37.impreciso){ g.className = "nv-gps am"; g.innerHTML = '<i></i>Ubicación imprecisa · las indicaciones pueden fallar'; }
+    return r;
+  }; })(NV37.pintarGps);
+}
+/* la parada que tocaba: la primera sin hacer, en el orden de la ruta */
+function nv47Esperada_(){
+  if(!RUTA || !RUTA.paradas || typeof cdSecuencia_ !== "function") return null;
+  var s = cdSecuencia_(); for(var i = 0; i < s.length; i++){ if(s[i].hecha) continue; if(s[i].tipo !== "cli") return null; return s[i]; }
+  return null;
+}
+function nv47Preguntar_(dest, esp){
+  var cd = cli(dest) || { nombre: "Cliente " + dest }, ce = esp.c || { nombre: "Cliente " + esp.p.clienteId }, n = esp.i + 1;
+  cdHoja_('<h3>¿Te saltas la parada ' + n + '?</h3><p>Tocaba <b>' + esc(ce.nombre) + '</b> y vas a <b>' + esc(cd.nombre) + '</b>. ¿Qué pasa con ' + esc(ce.nombre) + '?</p>' +
+    '<button class="btn" id="nv47-des" onclick="nv47Despues_(' + dest + ',' + esp.p.clienteId + ')">La dejo para después</button>' +
+    '<p style="margin:6px 0 10px;font-size:12px">El sistema reordena lo que falta desde ' + esc(cd.nombre) + ', respetando los horarios. Logística lo ve en el historial de la ruta.</p>' +
+    '<button class="btn sec" onclick="cdCerrarHoja_();nr38Abrir_(' + esp.i + ')">No se pudo recolectar ahí</button>' +
+    '<button class="btn sec" style="margin-top:8px" onclick="cdCerrarHoja_();NV47.ok[' + esp.p.clienteId + ']=1;NV37.abrir(' + esp.p.clienteId + ')">Mejor voy primero a ' + esc(ce.nombre) + '</button>');
+}
+function nv47Despues_(dest, salt){
+  var b = $("nv47-des"); if(b){ b.disabled = true; b.textContent = "Reordenando…"; }
+  var seq = cdSecuencia_(), pend = seq.filter(function(x){ return x.tipo === "cli" && !x.hecha; }).map(function(x){ return x.p.clienteId; });
+  var hechas = (RUTA.paradas || []).filter(function(p){ return pAtendida_(p); }).map(function(p){ return p.clienteId; });
+  var y = window.GEO37 && GEO37.yo, rid = RUTA.rutaId;
+  var seguir = function(msg){ cdCerrarHoja_(); if(msg) toast(msg); NV47.ok[dest] = 1; NV37.abrir(dest); };
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ seguir((r && r.error) || "No se pudo reordenar: sigue la ruta como estaba"); return; }
+    var mid = r.res ? (r.res.orden || []).filter(function(x){ return x !== "PLANTA"; }).map(Number).concat((r.res.noCaben || []).map(function(x){ return Number(x.id); })) : (r.orden || []).map(Number);
+    var orden = hechas.concat(r.res && r.primero ? [r.primero] : []).concat(mid).concat(r.res && r.ultimo ? [r.ultimo] : []), vistos = {};
+    orden = orden.filter(function(id){ if(vistos[id]) return false; vistos[id] = 1; return true; });
+    (RUTA.paradas || []).forEach(function(p){ if(!vistos[p.clienteId]){ vistos[p.clienteId] = 1; orden.push(p.clienteId); } });
+    google.script.run.withSuccessHandler(function(q){
+      if(!q || !q.ok){ seguir((q && q.error) || "No se pudo guardar el orden nuevo"); return; }
+      RUTA.paradas.sort(function(a, b){ return orden.indexOf(a.clienteId) - orden.indexOf(b.clienteId); });
+      if(RUTA.info) RUTA.info.trazo = null;
+      try{ guardarLocal(K_PAR, RUTA); }catch(e){}
+      try{ renderTodo(); }catch(e){}
+      seguir("Ruta reordenada · " + (cli(salt) || {}).nombre + " queda para después");
+    }).withFailureHandler(function(){ seguir("Sin señal: sigue la ruta como estaba"); }).api_navAplicarOrden(PIN, rid, { orden: orden, siguiente: dest, saltada: salt });
+  }).withFailureHandler(function(){ seguir("Sin señal: sigue la ruta como estaba"); }).api_navReordenar(PIN, rid, { pendientes: pend, siguiente: dest, saltada: salt, lat: y ? y.lat : null, lng: y ? y.lng : null });
+}
+
+/* ══════════ ⚙ PEAJES Y TRÁFICO ══════════ */
+if(typeof asPintar_ === "function") asPintar_ = (function(o){ return function(){
+  var r = o.apply(this, arguments);
+  try{
+    var c = $("as-cuerpo"), E = AS_EDIT || {}; if(!c || $("p47-regla")) return r;
+    var sel = function(id, v, ops){ return '<select class="as-in" id="' + id + '">' + ops.map(function(x){ return '<option value="' + x[0] + '"' + (String(v) === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join("") + '</select>'; };
+    var fila = function(t, s, ctl){ return '<div class="p44-rf"><div><b>' + t + '</b><small>' + s + '</small></div><div class="c">' + ctl + '</div></div>'; };
+    var h = '<div class="mt-card p44-regla" id="p47-regla"><div class="h"><b>Las rutas en Google</b></div><p>Vale para todo: el trazo de cada ruta, «Optimizar» y la navegación del conductor.</p>' +
+      fila('Peajes', 'Hoy ECOVSA va sin peajes. Cuando tengan Panapass, póngalo en «Permitir» y Google usará los corredores si convienen.', sel("p47-peajes", E.peajes || "evitar", [["evitar", "Evitar peajes"], ["permitir", "Permitir peajes"]])) +
+      fila('Tráfico', 'Google calcula los tiempos y el camino con el tráfico del momento (o el esperado para la hora de salida).', sel("p47-trafico", E.trafico === false ? "no" : "si", [["si", "Con tráfico"], ["no", "Sin tráfico"]])) + '</div>';
+    var v = $("p44-regla") || c.querySelector(".p42-volver"); if(v) v.insertAdjacentHTML("afterend", h); else c.insertAdjacentHTML("afterbegin", h);
+  }catch(e){ console.warn(e); }
+  return r;
+}; })(asPintar_);
+if(typeof asLeer_ === "function") asLeer_ = (function(o){ return function(){
+  var E = o.apply(this, arguments);
+  try{ if(E && $("p47-peajes")){ E.peajes = $("p47-peajes").value; E.trafico = $("p47-trafico").value !== "no"; } }catch(e){}
+  return E;
+}; })(asLeer_);
+
+/* ══════════ CLIENTES: LA FOTO DE GOOGLE Y LA FACHADA ══════════ */
+if(typeof c44HtmlSede_ === "function") c44HtmlSede_ = (function(o){ return function(){
+  var h = o.apply(this, arguments), F = C2_FI;
+  try{
+    if(!F || !F.cliente || F.cliente.id !== C2_ID || h.indexOf('id="c44-fotos"') < 0) return h;
+    var c = F.cliente, g = F.fotoGoogle && F.fotoGoogle.url ? F.fotoGoogle : null, propia = F.foto && F.foto.url;
+    var aut = g && g.autor && g.autor[0] ? (g.autor[0].url ? '<a href="' + esc(g.autor[0].url) + '" target="_blank" rel="noopener">' + esc(g.autor[0].nombre) + '</a>' : esc(g.autor[0].nombre)) : '';
+    if(!propia && g){
+      h = h.replace(/(<div class="c44-fotos"><figure><div class="ph">)[\s\S]*?(<\/figure>)/, '$1<img src="' + esc(g.url) + '" alt="El local según Google" loading="lazy" referrerpolicy="no-referrer" onclick="window.open(this.src,\'_blank\')"></div>' +
+        '<figcaption><b>El local · foto de Google</b><small>' + (aut ? 'Foto: ' + aut + ' · ' : '') + 'Si la entrada de recolección es otra, suba una foto de guía</small></figcaption>$2');
+    }
+    var calle = c.lat && G47.clave ? '<figure id="c47-sv"><div class="ph"><img alt="La fachada desde la calle" loading="lazy" referrerpolicy="origin" src="https://maps.googleapis.com/maps/api/streetview?size=640x400&location=' + c.lat + ',' + c.lng + '&fov=80&source=outdoor&return_error_code=true&key=' + encodeURIComponent(G47.clave) + '" onerror="var f=document.getElementById(\'c47-sv\');if(f)f.remove()" onclick="window.open(this.src,\'_blank\')"></div><figcaption><b>Desde la calle</b><small>Street View de Google · mirando hacia el punto del cliente</small></figcaption></figure>' : '';
+    h = h.replace(/(<div class="c44-fotos">[\s\S]*?)(<\/div><\/section>)/, function(m, a, b){ return a + calle + b; });
+    var lug = F.lugar ? '<span class="c44-pl">En Google · <button class="c44-lnk" onclick="c47Lugar_()">cambiar</button></span>' : '<button class="c44-btn" onclick="c47Lugar_()">' + c44Ic_("pin", 14) + ' Buscar el local en Google</button>';
+    h = h.replace('<section class="c44-sec" id="c44-fotos"><h3>Cómo es el local<span class="sp"></span>', '<section class="c44-sec" id="c44-fotos"><h3>Cómo es el local<span class="sp"></span>' + lug);
+  }catch(e){ console.warn(e); }
+  return h;
+}; })(c44HtmlSede_);
+/* buscar el local en Google y confirmar que es ese: se guarda solo su código de lugar */
+function c47Lugar_(texto){
+  var v = $("c47-lug"); if(!v){ v = document.createElement("div"); v.className = "c44-velo"; v.id = "c47-lug"; v.addEventListener("click", function(e){ if(e.target === v) v.remove(); }); document.body.appendChild(v); }
+  var F = C2_FI, c = F && F.cliente; if(!c) return;
+  var cab = '<div class="c44-hoja chica c47-hl"><div class="c44-hc"><div><small>Buscar en Google</small><b>' + esc(F.sucursal || c.nombre) + '</b></div><button class="c44-x" onclick="$(\'c47-lug\').remove()">' + c44Ic_("x", 18) + '</button></div><div class="c44-hb">' +
+    '<div class="c44-fila"><input class="c2-in" id="c47-q" placeholder="Nombre y dirección" value="' + esc(texto || "") + '"><button class="c2-btn" onclick="c47Lugar_($(\'c47-q\').value)">Buscar</button></div><div id="c47-res"><div class="c44-vac">Buscando…</div></div></div></div>';
+  v.innerHTML = cab;
+  google.script.run.withSuccessHandler(function(r){
+    var d = $("c47-res"); if(!d) return;
+    if(!r || !r.ok){ d.innerHTML = '<div class="c44-vac">' + esc((r && r.error) || "No se pudo buscar") + '</div>'; return; }
+    if(!r.conectado){ d.innerHTML = '<div class="c44-vac">Falta conectar Google.</div>'; return; }
+    if(!texto && $("c47-q")) $("c47-q").value = r.texto || "";
+    var L_ = r.candidatos || [];
+    d.innerHTML = (L_.length ? L_.map(function(x, i){ var a = x.autor && x.autor[0];
+      return '<div class="c47-cand">' + (x.foto ? '<img src="' + esc(x.foto) + '" alt="" referrerpolicy="no-referrer">' : '<span class="c47-sf">' + c44Ic_("cam", 20) + '</span>') +
+        '<div><b>' + esc(x.nombre) + '</b><small>' + esc(x.direccion) + (x.metros !== null ? ' · a ' + (x.metros >= 1000 ? (x.metros / 1000).toFixed(1) + ' km' : x.metros + ' m') + ' del punto' : '') + '</small>' + (a ? '<small class="a">Foto: ' + esc(a.nombre) + '</small>' : '') + '</div>' +
+        '<button class="c2-btn v" onclick="c47Elegir_(' + i + ')">Sí, es este</button></div>'; }).join("") : '<div class="c44-vac">Google no encontró ese local. Pruebe con otro nombre o la dirección.</div>') +
+      (F.lugar ? '<div class="c2-act"><button class="c2-btn" onclick="c47Elegir_(-1)">Quitar el lugar de Google</button></div>' : '');
+    C47_CAND = L_;
+  }).withFailureHandler(function(){ var d = $("c47-res"); if(d) d.innerHTML = '<div class="c44-vac">Sin señal.</div>'; }).api_lugarBuscar(PIN, C2_ID, texto || "");
+}
+var C47_CAND = [];
+function c47Elegir_(i){
+  var x = i >= 0 ? C47_CAND[i] : null;
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo guardar"); return; }
+    var v = $("c47-lug"); if(v) v.remove(); toast(x ? "Listo · se usa la foto de Google" : "Quitado"); cargarFichaC2_(C2_ID, true);
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_lugarConfirmar(PIN, C2_ID, x ? x.placeId : "", x ? x.nombre : "");
+}
+</script>
 </body>
 
 </html>
