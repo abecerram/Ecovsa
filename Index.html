@@ -21906,9 +21906,9 @@ APP38.hojaTablet = (function(o){ return function(){
    · La APK avisa la carga con ecoBateria({nivel, cargando}) y se puede leer con EcovsaApp.bateria().
      Cargando: un aro verde se llena alrededor del logo y se repite; al 100 % queda lleno. Siempre, el porcentaje arriba, junto al logo
      (amarillo con 20 % o menos, rojo con 10 % o menos).
-   · Modo mapa: en horizontal la hoja baja a una tira delgada pegada a la barra y, al tocar el fondo del mapa, se vuelve
-     transparente; otro toque la devuelve. En vertical pasa lo mismo cuando el conductor pone en el mapa la ruta de una de las
-     etiquetas («Rutas por hacer»): el mapa queda con toda la atención y un toque en cualquier parte lo devuelve. */
+   · Modo mapa: al tocar el fondo del mapa (en vertical y en horizontal) la hoja se vuelve transparente y otro toque la devuelve; en
+     horizontal además baja a una tira delgada pegada a la barra. Al poner en el mapa la ruta de una etiqueta («Rutas por hacer»)
+     la hoja también se vuelve transparente. */
 (function(){
   var st = document.createElement("style");
   st.textContent = [
@@ -21977,7 +21977,7 @@ APP38.hojaTablet = (function(o){ return function(){
   function liga(){
     if(!act() || !H47.map || H47.map._tf3) return;
     H47.map._tf3 = true;
-    H47.map.on("click", function(){ var b = document.body; if((hor && hor.matches) || b.classList.contains("h47-ruta")) b.classList.toggle("h47-trans"); });
+    H47.map.on("click", function(){ document.body.classList.toggle("h47-trans"); });
     var ag = document.querySelector("#h47-hoja .agarre"); if(ag) ag.addEventListener("click", function(){ document.body.classList.remove("h47-trans"); }, true);
     /* en vertical: al poner una ruta en el mapa (etiqueta de «Rutas por hacer») la hoja se vuelve transparente */
     var lg = document.getElementById("h47-leg");
@@ -21985,7 +21985,7 @@ APP38.hojaTablet = (function(o){ return function(){
     if(typeof H47.hoja === "function" && !H47.hoja._tf3){ var o = H47.hoja; H47.hoja = function(){ document.body.classList.remove("h47-trans"); return o.apply(this, arguments); }; H47.hoja._tf3 = true; }
   }
   setInterval(liga, 1200);
-  window.addEventListener("resize", function(){ if(!(hor && hor.matches) && !document.body.classList.contains("h47-ruta")) document.body.classList.remove("h47-trans"); });
+  
 })();
 </script>
 <script id="js-tf4">
@@ -22000,6 +22000,23 @@ APP38.hojaTablet = (function(o){ return function(){
   var $ = function(id){ return document.getElementById(id); };
   var N = window.NAVX = { S: 1250, modo: "plano", libre: false, trans: false, g: null, foto: "", fotoG: null, fotoCid: -1, menu: false, general: false, gps: "", aviso: "" };
   var K_VISTA = "eco_nav_vista";
+  /* el estilo del mapa (claro u oscuro) se puede elegir aparte del modo de la tablet: «Como el modo», «Siempre claro» o «Siempre oscuro» */
+  var K_MAPA = "eco_mapa_estilo";
+  N.estiloMapa = function(){ try{ var v = localStorage.getItem(K_MAPA); return v === "claro" || v === "oscuro" ? v : "auto"; }catch(e){ return "auto"; } };
+  /* g47Noche_ se define en un bloque que viene después de este: se le pone el estilo apenas exista */
+  function instalaEstilo(){
+    if(N._estiloOk || typeof g47Noche_ !== "function") return;
+    N._estiloOk = true; var g47N0_ = g47Noche_;
+    g47Noche_ = function(){ var e = N.estiloMapa(); return e === "oscuro" ? true : e === "claro" ? false : g47N0_(); };
+  }
+  instalaEstilo(); document.addEventListener("DOMContentLoaded", instalaEstilo); setTimeout(instalaEstilo, 0); setTimeout(instalaEstilo, 800); setTimeout(instalaEstilo, 3000);
+  N.repintaMapas = function(){
+    [window.H47 && H47.map, window.NV37 && NV37.m, window.CD_MAP].forEach(function(m){ try{ if(m && m._g47cond){ m36Capas_(m, m36Fondo_()); if(m._m40pint) m._m40pint(); } }catch(e){} });
+    try{ var v = $("nvx-vista"); if(v) v.classList.toggle("fil", g47Noche_() && !(NV37.m && NV37.m._g47g)); }catch(e){}
+  };
+  N.ponEstilo = function(v){ try{ localStorage.setItem(K_MAPA, v); }catch(e){} N.repintaMapas(); if(NV37.abierta()) N.pintar(); };
+  N.estilo = function(btn, v){ N.ponEstilo(v); if(btn && btn.parentNode) [].forEach.call(btn.parentNode.children, function(b){ b.classList.toggle("on", b === btn); }); };
+  N.cicloEstilo = function(){ var e = N.estiloMapa(); N.ponEstilo(e === "auto" ? "claro" : e === "claro" ? "oscuro" : "auto"); };
   var O = { pos: NV37.posicion, pin: NV37.pintar, dib: NV37.dibujar, gps: NV37.pintarGps, prender: GEO37.prender };   /* lo de antes, para quien no es la tablet */
   function act(){ try{ return typeof H47 !== "undefined" && H47.activo(); }catch(e){ return false; } }
   try{ var m0 = localStorage.getItem(K_VISTA); if(m0 === "inc" || m0 === "plano" || m0 === "norte") N.modo = m0; }catch(e){}
@@ -22073,6 +22090,7 @@ APP38.hojaTablet = (function(o){ return function(){
    mas:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>',
    lista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>',
    vista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>',
+   mapa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
    cen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>',
    salir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
    rec:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
@@ -22182,6 +22200,7 @@ APP38.hojaTablet = (function(o){ return function(){
       mn = '<div id="nvx-scrim" onclick="NAVX.cerrarMenu()"></div><div id="nvx-mas">' +
         '<button onclick="NAVX.cerrarMenu();NV37.salir();continuarRuta()">' + IC.lista + '<span>Ver la lista de paradas<small>Para ir a otra parada, tócala en la lista</small></span></button>' +
         '<button onclick="NAVX.cambiaVista()">' + IC.vista + '<span>Vista del mapa<small>' + vn + ' · toca para cambiar</small></span></button>' +
+        '<button onclick="NAVX.cicloEstilo()">' + IC.mapa + '<span>Mapa<small>' + ({ auto: "Como el modo de la tablet", claro: "Siempre claro", oscuro: "Siempre oscuro" })[N.estiloMapa()] + ' · toca para cambiar</small></span></button>' +
         '<button onclick="NAVX.probarVoz()">' + IC.voz + '<span>Prueba de voz</span></button>' +
         ((window.EcovsaApp && EcovsaApp.llamarDespacho) ? '<button onclick="NAVX.cerrarMenu();EcovsaApp.llamarDespacho()">' + IC.tel + '<span>Llamar al despacho</span></button>' : '') +
         '<button class="rj" onclick="NAVX.cerrarMenu();NV37.salir()">' + IC.salir + '<span>Salir de la navegación</span></button></div>';
@@ -22351,6 +22370,23 @@ APP38.hojaTablet = (function(o){ return function(){
   NV37.dibujar = function(){ return act() ? N.dibujar() : O.dib.apply(this, arguments); };
   NV37.pintarGps = function(){ return act() ? undefined : O.gps.apply(this, arguments); };
   GEO37.prender = function(){ return act() ? N.prender.apply(this, arguments) : O.prender.apply(this, arguments); };
+
+  /* ── «Mi tablet»: el estilo del mapa ── */
+  if(window.APP38 && APP38.hojaTablet){
+    APP38.hojaTablet = (function(o){ return function(){
+      var r = o.apply(this, arguments);
+      try{
+        var d = $("mt38"); if(!d) return r;
+        var gs = d.querySelectorAll(".mt38-g"), br = gs[gs.length - 1], act = N.estiloMapa();
+        var ops = [["auto", "Como el modo"], ["claro", "Siempre claro"], ["oscuro", "Siempre oscuro"]];
+        var g = document.createElement("div"); g.className = "mt38-g";
+        g.innerHTML = '<b>Mapa</b><div class="mt38-seg">' + ops.map(function(x){ return '<button class="' + (x[0] === act ? "on" : "") + '" onclick="NAVX.estilo(this,\'' + x[0] + '\')">' + x[1] + '</button>'; }).join("") + '</div>' +
+          '<p class="mt38-n">El mapa puede ir claro aunque la tablet esté en Noche serena, o al revés. «Como el modo» lo deja igual que la tablet.</p>';
+        if(br) br.after(g); else d.appendChild(g);
+      }catch(e){ console.error(e); }
+      return r;
+    }; })(APP38.hojaTablet);
+  }
 
   /* ── al abrir y cerrar la navegación ── */
   NV37.abrir = (function(o){ return function(dest){
