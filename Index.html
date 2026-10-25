@@ -21855,6 +21855,22 @@ window.ecoAtras = (function(o){ return function(){
   return o ? o.apply(this, arguments) : false;
 }; })(window.ecoAtras);
 
+/* ── en la tablet no hay Google Maps ni navegador: «Cómo llegar» abre la navegación de ECOVSA y WhatsApp usa su propio esquema ── */
+H47.abrirExterno = function(url){ location.href = url; };
+document.addEventListener("click", function(e){
+  try{
+    var a = e.target.closest && e.target.closest("a[href]"); if(!a || !H47.activo()) return;
+    var h = a.getAttribute("href") || "", m = h.match(/google\.com\/maps\/dir\/.*destination=(-?[\d.]+),(-?[\d.]+)/);
+    if(m && window.NV37){
+      e.preventDefault(); e.stopPropagation();
+      var la = +m[1], ln = +m[2], c = (CLIENTES || []).find(function(x){ return Math.abs(Number(x.lat) - la) < 1e-6 && Math.abs(Number(x.lng) - ln) < 1e-6; });
+      CLI47.cerrar(); NV37.abrir({ lat: la, lng: ln, nombre: c ? c.nombre : "el destino" }); return;
+    }
+    var w = h.match(/^https:\/\/wa\.me\/(\d+)(?:\?(.*))?$/);
+    if(w && window.EcovsaApp){ e.preventDefault(); e.stopPropagation(); H47.abrirExterno("whatsapp://send?phone=" + w[1] + (w[2] ? "&" + w[2] : "")); }
+  }catch(x){ console.error(x); }
+}, true);
+
 /* ── Mañana clara / Noche serena en la tablet (la APK dice cuál toca; «Automático» claro de 6:00 a 18:00) ── */
 var T47 = {};
 T47.leer = function(){
