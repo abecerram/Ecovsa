@@ -1050,6 +1050,7 @@ body.pros-on #v-pros{display:block}
     var h = '<div class="pr-ph"><div><h2>Prospección</h2><p>Establecimientos que todavía no conocen a ECOVSA, ordenados por la ruta que ya pasa cerca. Usted les escribe: el sistema nunca envía solo.</p></div><span class="sp"></span>' +
       (sv ? '' : '<button class="btn" data-pr="lista">' + SV('subir') + '<span class="tx"> Cargar una lista</span></button>' +
         (P.ia ? '<button class="btn" data-pr="ia">' + SV('estrella') + '<span class="tx"> Calificar con la IA</span></button>' : '') +
+        (P.limpiables ? '<button class="btn" data-pr="limpiarRes" title="Saca de la lista lo que trajo la búsqueda y nadie contactó">' + SV('basura') + '<span class="tx"> Limpiar resultados</span></button>' : '') +
         '<button class="btn pri" data-pr="google"' + (g.conectado ? '' : ' disabled title="Google no está conectado"') + '>' + SV('buscar') + '<span class="tx"> Buscar cerca de las rutas</span></button>') + '</div>';
     h += '<div class="tot"><button data-est="porContactar" class="' + (F.est === 'porContactar' ? 'on' : '') + '"><b>' + cuenta('porContactar') + '</b><span>por contactar</span></button>' +
       '<button data-est="segunda" class="' + (F.est === 'segunda' ? 'on' : '') + '"><b class="' + (cuenta('segunda') ? 'am' : '') + '">' + cuenta('segunda') + '</b><span>les toca la segunda</span></button>' +
@@ -1063,7 +1064,7 @@ body.pros-on #v-pros{display:block}
       var hol = d.holgura == null ? '' : d.holgura > 0 ? 'le sobran ' + d.holgura + ' min' : 'va llena';
       return '<button data-dia="' + esc(d.dia) + '" class="' + (F.dia === d.dia ? 'on' : '') + '"><small>' + esc(d.dia.charAt(0).toUpperCase() + d.dia.slice(1)) + ' · ' + esc(d.conductores.join(', ') || 'sin conductor') + '</small>' +
         '<b>' + n + '</b><small class="' + (d.holgura != null && d.holgura <= 0 ? 'pas' : '') + '">' + esc(hol) + (d.zonas.length ? ' · ' + esc(d.zonas.join(', ')) : '') + '</small></button>';
-    }).join('') + '<button data-dia="—" class="' + (F.dia === '—' ? 'on' : '') + '"><small>Sin ruta cerca</small><b>' + P.prospectos.filter(function (p) { return !p.rutaDia && enEstado(p, F.est); }).length + '</b><small>más de 5 km o sin ubicación</small></button>'
+    }).join('') + '<button data-dia="—" class="' + (F.dia === '—' ? 'on' : '') + '"><small>Sin ruta cerca</small><b>' + P.prospectos.filter(function (p) { return !p.rutaDia && enEstado(p, F.est); }).length + '</b><small>más de 1.5 km o sin ubicación</small></button>'
       : '<div class="vac">No hay rutas programadas en las próximas tres semanas: la lista no se puede ordenar por ruta.</div>') + '</div>';
     h += '<div class="fb"><div class="fb-q">' + SV('buscar') + '<input id="pr-q" placeholder="Nombre, dirección, zona…" value="' + esc(F.q) + '" aria-label="Buscar"></div>' +
       '<select class="sel' + (F.tipo ? ' on' : '') + '" id="pr-tipo" aria-label="Tipo"><option value="">Tipo</option>' + Object.keys(P.tipos).map(function (k) { return '<option value="' + k + '"' + (F.tipo === k ? ' selected' : '') + '>' + esc(P.tipos[k]) + '</option>'; }).join('') + '</select>' +
@@ -1071,7 +1072,7 @@ body.pros-on #v-pros{display:block}
       ((F.q || F.tipo || F.dia || F.est !== 'porContactar') ? '<button class="btn sm gh" data-pr="limpiar">Limpiar</button>' : '') + '</div>';
     var L = ordenar(lista());
     if (!P.prospectos.length) {
-      h += '<div class="card pr-vacio">' + SV('edificio', 28) + '<b>Todavía no hay establecimientos cargados</b><p class="muted">Toque «Buscar cerca de las rutas» para que Google traiga las clínicas, odontologías, laboratorios, veterinarias y farmacias que están cerca de las paradas de nuestros camiones, o cargue una lista (Excel o el listado del MINSA).</p></div>';
+      h += '<div class="card pr-vacio">' + SV('edificio', 28) + '<b>Todavía no hay establecimientos cargados</b><p class="muted">Toque «Buscar cerca de las rutas» para que Google traiga las clínicas, odontologías, laboratorios y veterinarias que están cerca de las paradas de nuestros camiones, o cargue una lista (Excel o el listado del MINSA).</p></div>';
     } else if (!L.length) h += '<div class="card">' + MK.vacio('Nada en este grupo.') + '</div>';
     else {
       var g0 = null;
@@ -1094,6 +1095,15 @@ body.pros-on #v-pros{display:block}
     v.innerHTML = h;
   }
 
+  /* api 3.50 · «Limpiar resultados»: lo que nadie contactó sale de la lista; lo ya tocado se queda */
+  function limpiarRes() {
+    MK.confirmar('Salen de la lista los ' + P.limpiables + ' establecimientos que todavía nadie contactó. Los que ya se tocaron, los que pasaron a Oportunidades y los de «No contactar» se quedan. Después puede volver a buscar alrededor de las mismas paradas.', function () {
+      MK.api('api_prosLimpiar', MK.pin).then(function (r) {
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo limpiar.'); return; }
+        MK.aviso('Lista limpia: salieron ' + r.limpiados + '.'); cargar();
+      }, function (e) { MK.aviso('Sin conexión: ' + e.message); });
+    }, { titulo: 'Limpiar resultados', boton: 'Limpiar' });
+  }
   /* ── la ficha (panel al lado) ── */
   function ficha(id) {
     var p = porId(id); if (!p) return; SEL = id; pintar();
@@ -1255,7 +1265,7 @@ body.pros-on #v-pros{display:block}
   /* ── cargar: Google cerca de las rutas ── */
   function hojaGoogle() {
     var g = P.google || {}, libres = Math.max(0, (g.tope || 0) - (g.usadas || 0));
-    MK.hoja('<h2>Buscar cerca de las rutas</h2><p class="muted small">Google trae las clínicas, odontologías, laboratorios, veterinarias y farmacias que están a menos de 1.5 km de las paradas de nuestras rutas. ' +
+    MK.hoja('<h2>Buscar cerca de las rutas</h2><p class="muted small">Google trae las clínicas, odontologías, laboratorios y veterinarias que están a menos de 800 m de los clientes por donde el camión pasa seguido (primero donde más pasamos). ' +
       'Se cruzan solos contra la cartera, Oportunidades y lo ya cargado. Cada punto de búsqueda cuenta: hoy quedan ' + libres + ' de ' + (g.tope || 0) + '. Un mismo lugar no se vuelve a buscar en 30 días.</p>' +
       '<label class="lb">¿ALREDEDOR DE QUÉ RUTAS?</label>' + MK.chips('dia', [['', 'Todas']].concat((P.dias || []).map(function (d) { return [d.dia, 'Las del ' + d.dia]; })), F.dia && F.dia !== '—' ? F.dia : '') +
       '<div id="pr-gm" class="small" style="margin-top:10px"></div>' +
@@ -1353,6 +1363,7 @@ body.pros-on #v-pros{display:block}
       var a = b.getAttribute('data-pr');
       if (a === 'google') hojaGoogle(); else if (a === 'lista') hojaLista(); else if (a === 'ia') calificarIA(b);
       else if (a === 'limpiar') { F = { q: '', tipo: '', est: 'porContactar', dia: '' }; pintar(); }
+      else if (a === 'limpiarRes') limpiarRes();
       else if (a === 'whatsapp') whatsapp(id); else if (a === 'llame') llame(id); else if (a === 'mejorar') mejorar(id, b);
       else if (a === 'convertir') convertir(id); else if (a === 'descartar') descartar(id); else if (a === 'nocontactar') noContactar(id);
       else if (a === 'editar') editar(id); else if (a === 'ubicar') ubicar(id, b);
