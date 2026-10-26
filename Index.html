@@ -23367,8 +23367,9 @@ function parseVoz(texto, alt){
     for(i = 0; i < S.length; i++){ if(S[i].k === "med" && S[i - 1] && S[i - 1].k === "n") return { vals: [r2(S[i - 1].v + 0.5)], seguro: true };
       if(S[i].k === "med" && S[i - 1] && S[i - 1].k === "y" && S[i - 2] && S[i - 2].k === "n") return { vals: [r2(S[i - 2].v + 0.5)], seguro: true }; }
     /* decimales */
-    var vals = [], seguro = true, cur = null, prev = null;
-    function fin(){ if(cur){ var v = cur.ent + (cur.dec ? parseFloat("0." + cur.dec) : 0); vals.push(r2(v)); } cur = null; }
+    var vals = [], seguro = true, cur = null, prev = null, incompleto = false;
+    /* «quince punto» (se perdió el último dígito) NO vale 15: se marca incompleto y se pide repetir */
+    function fin(){ if(cur){ if(cur.dec === "") incompleto = true; else { var v = cur.ent + (cur.dec ? parseFloat("0." + cur.dec) : 0); vals.push(r2(v)); } } cur = null; }
     S.forEach(function(x){
       if(x.k === "n"){
         if(x.dec){ fin(); vals.push(r2(x.v)); prev = null; return; }
@@ -23386,23 +23387,26 @@ function parseVoz(texto, alt){
       }
     });
     fin();
-    return { vals: vals, seguro: seguro };
+    return { vals: vals, seguro: seguro, incompleto: incompleto };
   }
 
   function una(t){
     var n = norm(t); if(!n) return { tipo: "nada" };
     var E = grupos(elementos(n)), segs = [[]];
     E.forEach(function(x){ if(x.k === "cut") segs.push([]); else segs[segs.length - 1].push(x); });
-    var vals = [], seguro = true, soloCero = true, hayNum = false;
+    var vals = [], seguro = true, soloCero = true, hayNum = false, incompleto = false;
     segs.forEach(function(s){
       var tieneNum = s.some(function(x){ return x.k === "n" || x.k === "med"; });
       if(!tieneNum) return;
       hayNum = true;
       var r = tramo(s);
       if(!r.seguro) seguro = false;
+      if(r.incompleto) incompleto = true;
       r.vals.forEach(function(v){ if(v > 0 && v <= 1000) vals.push(v); });
     });
     var sepAlgun = E.some(function(x){ return x.k === "sep"; });
+    if(incompleto && vals.length <= 1) return { tipo: "nada", incompleto: true };   /* el reconocedor perdió un dígito: que repita */
+    if(incompleto) seguro = false;
     if(vals.length === 1) return { tipo: "peso", valor: vals[0] };
     if(vals.length > 1) return { tipo: "multi", valores: vals, seguro: seguro && segs.length >= vals.length };
     /* órdenes */
