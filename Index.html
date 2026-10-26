@@ -23079,7 +23079,7 @@ body.t47-noche .dsp-bn{color:#e8eefb}
 #kp-vel .kp-c i{width:16px;height:16px;border-radius:50%;flex:none}
 #kp-vel .kp-c b{display:block;font-size:19px;font-weight:800;line-height:1.15}
 #kp-vel .kp-c span{font-size:13px;opacity:.85}
-#kp-vel .kp-cu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px;padding:14px 18px;overflow:auto;min-height:0}
+#kp-vel .kp-cu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-auto-rows:min-content;align-content:start;gap:14px;padding:14px 18px;overflow:auto;min-height:0}
 #kp-vel .kp-ci{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:12px;display:flex;flex-direction:column;min-height:0}
 #kp-vel .kp-ci h5{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#667489;font-weight:800}
 #kp-vel .kp-li{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:90px;max-height:230px}
@@ -23104,7 +23104,10 @@ body.t47-noche .dsp-bn{color:#e8eefb}
 #kp-vel .kp-bn{border:1px solid #e1e6ee;background:#fff;color:#14306b;border-radius:10px;padding:11px 16px;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
 #kp-vel .kp-bp{border:0;background:#14306b;color:#fff;border-radius:10px;padding:12px 24px;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer}
 #kp-vel .kp-bp[disabled]{opacity:.45}
-@media (max-width:700px){#kp-vel .kp-cu{grid-template-columns:1fr}#kp-vel .kp-li{max-height:190px;min-height:112px}#kp-vel .kp-h{max-height:100%;border-radius:0}}
+@media (max-width:700px){#kp-vel .kp-cu{grid-template-columns:1fr;gap:8px;padding:10px 12px}#kp-vel .kp-li{max-height:104px;min-height:44px}#kp-vel .kp-h{max-height:100%;border-radius:0}
+  #kp-vel .kp-c{padding:8px 12px}#kp-vel .kp-ci{padding:8px 10px}#kp-vel .kp-su{margin-top:6px;padding-top:6px}#kp-vel .kp-su b{font-size:24px}
+  #kp-vel .kp-pa{font-size:28px;min-height:44px}#kp-vel .kp-pd button{min-height:44px;font-size:22px}#kp-vel .kp-mas{min-height:48px;font-size:20px}#kp-vel .kp-vac{padding:8px 6px;font-size:13px}
+  #kp-vel .kp-pi{padding:8px 12px}#kp-vel .kp-bn{padding:9px 12px;font-size:14px}#kp-vel .kp-bp{padding:10px 16px;font-size:16px}#kp-vel .vz-d{display:none}}
 /* noche: la tablet de noche no debe encandilar */
 #kp-vel.kp-noche .kp-h{background:#0f1a30;color:#e8eefb}
 #kp-vel.kp-noche .kp-ci,#kp-vel.kp-noche .kp-pa,#kp-vel.kp-noche .kp-pi,#kp-vel.kp-noche .kp-fb{background:#14233f;border-color:#26406e;color:#e8eefb}
@@ -23230,6 +23233,457 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   function estado_(){ var D = D_(); return { abierto: !!K.t, t: K.t, i: K.i, n: K.pes.length, total: Math.round(suma_() * 100) / 100, unidad: D ? unidad_() : "", nom: D ? D.nom : "", pes: K.pes.slice() }; }
   window.ecoCalcPesos = { abrir: abre_, agregar: agregar_, deshacer: deshacer_, estado: estado_, listo: function(){ return listo_(true); }, cierra: cierra_, ganchos: G };
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", instala_); else instala_();
+})();
+</script>
+<style id="css-tf8">
+/* Calculadora de pesos · fase 2: voz y resumen */
+#kp-vel .vz-sw{margin-left:auto;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:8px 14px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:8px}
+#kp-vel .vz-sw i{width:34px;height:20px;border-radius:99px;background:rgba(255,255,255,.3);position:relative;flex:none}
+#kp-vel .vz-sw i::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+#kp-vel .vz-sw.on{background:#2f9e44;border-color:#2f9e44}
+#kp-vel .vz-sw.on i{background:rgba(255,255,255,.35)}
+#kp-vel .vz-sw.on i::after{left:17px}
+#kp-vel .vz-no{margin-left:auto;font-size:12px;opacity:.85;max-width:240px;text-align:right}
+#kp-vel .vz-p{background:#fff;border:1px solid #e1e6ee;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+#kp-vel .vz-e{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#667489;display:flex;align-items:center;gap:8px}
+#kp-vel .vz-e::before{content:"";width:10px;height:10px;border-radius:50%;background:#98a3b5;flex:none}
+#kp-vel .vz-e.escuchando{color:#2f9e44}#kp-vel .vz-e.escuchando::before{background:#2f9e44;animation:vzlat 1s infinite}
+#kp-vel .vz-e.hablando{color:#14306b}#kp-vel .vz-e.hablando::before{background:#3b6fd4}
+#kp-vel .vz-e.pausa{color:#8a6200}#kp-vel .vz-e.pausa::before{background:#d99a00}
+@keyframes vzlat{50%{transform:scale(1.5);opacity:.6}}
+#kp-vel .vz-t{font-size:16px;font-weight:700;color:#0f2140;min-height:22px}
+#kp-vel .vz-d{font-size:13px;color:#667489}
+#kp-vel .vz-mic{border:0;background:#14306b;color:#fff;border-radius:10px;padding:11px 16px;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
+#kp-vel.kp-noche .vz-p{background:#14233f;border-color:#26406e}
+#kp-vel.kp-noche .vz-t{color:#e8eefb}
+#kp-vel.kp-noche .vz-e.hablando{color:#9db8f0}
+#kp-vel.kp-noche .vz-mic{background:#3b6fd4}
+/* el resumen que queda en pantalla al cerrar por voz */
+#vz-res{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6600;width:min(560px,calc(100vw - 24px));background:#0f2a57;color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-family:'Archivo',system-ui,sans-serif;display:none}
+#vz-res.ver{display:block}
+#vz-res b{display:block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:6px}
+#vz-res div{font-size:17px;font-weight:700;line-height:1.35}
+#vz-res button{margin-top:10px;border:1px solid rgba(255,255,255,.45);background:none;color:#fff;border-radius:10px;padding:9px 16px;font-weight:800;font-family:inherit;font-size:14px;cursor:pointer}
+</style>
+<script id="js-tf8">
+/* Calculadora de pesos · fase 2 (26 oct): (A) cada pesada viaja con el recibo (campo «pesadas» del registro) y (B) voz: diálogo guiado.
+   Voz opcional (interruptor «Voz» en la calculadora). Sin IA: reconocimiento de Android (puente EcovsaApp.hablarYEscuchar) + lector de números en español.
+   Todo defensivo: si la APK no trae el puente, no se muestra nada de voz y la calculadora sigue como en la fase 1. */
+(function(){
+/* Lector de números y órdenes en español para la calculadora de pesos (fase 2). Funciones puras.
+   parseVoz(texto, alt) -> {tipo:'peso', valor}
+                         | {tipo:'multi', valores:[…], seguro:bool}
+                         | {tipo:'cmd', cmd:'total'|'no'|'borra'|'si'|'cero'|'bio'|'pun'|'ana', cero?:bool}
+                         | {tipo:'nada'}
+   numeroHablado(v)  -> «dos punto tres» (lo que la tablet dice en voz alta). */
+function parseVoz(texto, alt){
+  var UN = { cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15,
+    dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiun: 21, veintiuno: 21, veintiuna: 21, veintidos: 22, veintitres: 23, veinticuatro: 24, veinticinco: 25,
+    veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29 };
+  var DEC = { treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90 };
+  var CEN = { cien: 100, ciento: 100, doscientos: 200, doscientas: 200, trescientos: 300, trescientas: 300, cuatrocientos: 400, cuatrocientas: 400, quinientos: 500, quinientas: 500,
+    seiscientos: 600, seiscientas: 600, setecientos: 700, setecientas: 700, ochocientos: 800, ochocientas: 800, novecientos: 900, novecientas: 900 };
+  var CORTE = { mas: 1, siguiente: 1, otra: 1, luego: 1, despues: 1, proxima: 1, proximo: 1, nueva: 1, nuevo: 1 };
+  var CMD_TOTAL = { total: 1, listo: 1, lista: 1, termine: 1, termino: 1, terminado: 1, terminamos: 1, fin: 1, cierra: 1, cerrar: 1, finalizar: 1, finalizo: 1 };
+  var CMD_BORRA = { borra: 1, borrar: 1, borralo: 1, borrala: 1, cancela: 1, cancelar: 1, elimina: 1, eliminar: 1, quita: 1, quitar: 1, quitalo: 1 };
+  var CMD_NO = { no: 1, nada: 1, incorrecto: 1, error: 1, mal: 1, negativo: 1, nope: 1, ninguno: 1, ninguna: 1, ningun: 1 };
+  var CMD_SI = { si: 1, correcto: 1, dale: 1, afirmativo: 1, exacto: 1, claro: 1, ok: 1, okay: 1, aja: 1, vale: 1, adelante: 1, confirmo: 1, confirmado: 1, cierto: 1 };
+  var T_PUN = { punzocortante: 1, punzocortantes: 1, cortopunzante: 1, cortopunzantes: 1, punzo: 1 };
+  var T_BIO = { bioinfeccioso: 1, bioinfecciosos: 1, bio: 1, infeccioso: 1, infecciosos: 1 };
+  var T_ANA = { anatomopatologico: 1, anatomopatologicos: 1, anatomopatologica: 1, anatomo: 1 };
+
+  function norm(t){
+    var s = String(t == null ? "" : t).toLowerCase();
+    try{ s = s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }catch(e){}
+    s = s.replace(/(\d)\s*,\s*(\d)/g, "$1.$2").replace(/corto\s+punzante/g, "cortopunzante").replace(/\bkg\b|\bkilogramos?\b/g, "kilos").replace(/de acuerdo|esta bien/g, "vale");
+    s = s.replace(/[^a-z0-9.\s]/g, " ");
+    /* el punto solo vale entre dos dígitos («2.3»); los demás son puntuación */
+    s = s.split("").map(function(c, i, a){ return c === "." && !(/[0-9]/.test(a[i - 1] || "") && /[0-9]/.test(a[i + 1] || "")) ? " " : c; }).join("");
+    return s.replace(/\s+/g, " ").trim();
+  }
+  function elementos(n){
+    var tk = n.split(" ").filter(Boolean), E = [];
+    tk.forEach(function(w){
+      if(/^\d+(\.\d+)?$/.test(w)) E.push({ k: "n", v: parseFloat(w), dec: w.indexOf(".") >= 0, dig: true });
+      else if(w in UN) E.push({ k: "w", v: UN[w] });
+      else if(w in DEC) E.push({ k: "w", v: DEC[w], d10: true });
+      else if(w in CEN) E.push({ k: "w", v: CEN[w], cen: true });
+      else if(w === "punto" || w === "coma" || w === "con") E.push({ k: "sep" });
+      else if(w === "kilos" || w === "kilo") E.push({ k: "K" });
+      else if(w === "gramos" || w === "gramo") E.push({ k: "G" });
+      else if(w === "medio" || w === "media") E.push({ k: "med" });
+      else if(w === "y") E.push({ k: "y" });
+      else if(w in CORTE) E.push({ k: "cut" });
+      else E.push({ k: "o", s: w });
+    });
+    return E;
+  }
+  /* palabras-número consecutivas -> un entero: «treinta y cinco» = 35, «ciento veinte» = 120. Dos unidades sueltas quedan como dos números. */
+  function grupos(E){
+    var R = [], i = 0;
+    while(i < E.length){
+      var e = E[i];
+      if(e.k !== "w"){ R.push(e); i++; continue; }
+      var val = e.v, j = i + 1;
+      if(e.cen){
+        if(E[j] && E[j].k === "w" && !E[j].cen){
+          var s2 = E[j]; val += s2.v; j++;
+          if(s2.d10 && E[j] && E[j].k === "y" && E[j + 1] && E[j + 1].k === "w" && E[j + 1].v >= 1 && E[j + 1].v <= 9 && !E[j + 1].d10 && !E[j + 1].cen){ val += E[j + 1].v; j += 2; }
+        }
+      } else if(e.d10){
+        if(E[j] && E[j].k === "y" && E[j + 1] && E[j + 1].k === "w" && E[j + 1].v >= 1 && E[j + 1].v <= 9 && !E[j + 1].d10 && !E[j + 1].cen){ val += E[j + 1].v; j += 2; }
+      }
+      R.push({ k: "n", v: val, dec: false });
+      i = j;
+    }
+    return R;
+  }
+  function r2(v){ return Math.round(v * 100) / 100; }
+  function esU(x){ return x && x.k === "n" && !x.dec && x.v >= 0 && x.v <= 9; }
+
+  /* un tramo (sin cortes) -> { vals:[], seguro:bool } */
+  function tramo(S){
+    S = S.filter(function(x){ return x.k !== "o"; });
+    var i, haySep = S.some(function(x){ return x.k === "sep"; });
+    /* kilos y gramos: «tres kilos doscientos gramos», «tres kilos y medio», «medio kilo», «trescientos gramos» */
+    for(i = 0; !haySep && i < S.length; i++){
+      if(S[i].k === "K"){
+        var p = S[i - 1], a = null, desde = i;
+        if(p && p.k === "n"){ a = p.v; desde = i - 1; }
+        else if(p && p.k === "med"){ return { vals: [0.5], seguro: true }; }
+        var j = i + 1, extra = 0;
+        if(S[j] && S[j].k === "y") j++;
+        if(S[j] && S[j].k === "med") extra = 0.5;
+        else if(S[j] && S[j].k === "n" && S[j + 1] && S[j + 1].k === "G") extra = S[j].v / 1000;
+        else if(S[j] && S[j].k === "n" && !S[j].dec && S[j].v >= 100 && S[j].v < 1000) extra = S[j].v / 1000;
+        if(a !== null) return { vals: [r2(a + extra)], seguro: true };
+      }
+      if(S[i].k === "G" && S[i - 1] && S[i - 1].k === "n" && !(S[i + 1] && false)) {
+        var prevK = false; for(var q = 0; q < i; q++) if(S[q].k === "K") prevK = true;
+        if(!prevK) return { vals: [r2(S[i - 1].v / 1000)], seguro: true };
+      }
+    }
+    /* «dos y medio» */
+    for(i = 0; i < S.length; i++){ if(S[i].k === "med" && S[i - 1] && S[i - 1].k === "n") return { vals: [r2(S[i - 1].v + 0.5)], seguro: true };
+      if(S[i].k === "med" && S[i - 1] && S[i - 1].k === "y" && S[i - 2] && S[i - 2].k === "n") return { vals: [r2(S[i - 2].v + 0.5)], seguro: true }; }
+    /* decimales */
+    var vals = [], seguro = true, cur = null, prev = null;
+    function fin(){ if(cur){ var v = cur.ent + (cur.dec ? parseFloat("0." + cur.dec) : 0); vals.push(r2(v)); } cur = null; }
+    S.forEach(function(x){
+      if(x.k === "n"){
+        if(x.dec){ fin(); vals.push(r2(x.v)); prev = null; return; }
+        if(cur === null){ cur = { ent: x.v, dec: null, u: esU(x) }; }
+        else if(cur.dec === null){
+          if(cur.u && esU(x)){ cur.dec = String(x.v); }      /* «2 3» = 2.3 */
+          else { fin(); seguro = false; cur = { ent: x.v, dec: null, u: esU(x) }; }
+        } else { cur.dec += String(x.v); }                      /* «dos punto tres cinco» = 2.35 */
+      } else if(x.k === "sep"){
+        if(cur === null) return;
+        if(cur.dec === null) cur.dec = "";
+        else if(cur.dec.length >= 2){                           /* segundo «punto»: el último dígito es el entero del siguiente */
+          var ult = cur.dec.slice(-1); cur.dec = cur.dec.slice(0, -1); fin(); seguro = false; cur = { ent: parseInt(ult, 10), dec: "", u: true };
+        } else { fin(); seguro = false; cur = null; }
+      }
+    });
+    fin();
+    return { vals: vals, seguro: seguro };
+  }
+
+  function una(t){
+    var n = norm(t); if(!n) return { tipo: "nada" };
+    var E = grupos(elementos(n)), segs = [[]];
+    E.forEach(function(x){ if(x.k === "cut") segs.push([]); else segs[segs.length - 1].push(x); });
+    var vals = [], seguro = true, soloCero = true, hayNum = false;
+    segs.forEach(function(s){
+      var tieneNum = s.some(function(x){ return x.k === "n" || x.k === "med"; });
+      if(!tieneNum) return;
+      hayNum = true;
+      var r = tramo(s);
+      if(!r.seguro) seguro = false;
+      r.vals.forEach(function(v){ if(v > 0 && v <= 1000) vals.push(v); });
+    });
+    var sepAlgun = E.some(function(x){ return x.k === "sep"; });
+    if(vals.length === 1) return { tipo: "peso", valor: vals[0] };
+    if(vals.length > 1) return { tipo: "multi", valores: vals, seguro: seguro && segs.length >= vals.length };
+    /* órdenes */
+    var tk = n.split(" ").filter(Boolean);
+    function hay(M){ return tk.some(function(w){ return w in M; }); }
+    var tipo = hay(T_PUN) ? "pun" : hay(T_ANA) ? "ana" : hay(T_BIO) ? "bio" : "";
+    var ceroP = tk.some(function(w){ return w === "cero" || w in CMD_NO; });
+    if(tipo) return { tipo: "cmd", cmd: tipo, cero: ceroP };
+    if(hay(CMD_TOTAL) || (tk.length === 1 && tk[0] === "ya")) return { tipo: "cmd", cmd: "total" };
+    if(hay(CMD_BORRA)) return { tipo: "cmd", cmd: "borra" };
+    if(hay(CMD_NO)) return { tipo: "cmd", cmd: "no" };
+    if(hay(CMD_SI)) return { tipo: "cmd", cmd: "si" };
+    if(hayNum && !sepAlgun && tk.every(function(w){ return w === "cero" || w === "0" || w === "kilos" || w === "kilo"; })) return { tipo: "cmd", cmd: "cero" };
+    if(tk.length === 1 && tk[0] === "cero") return { tipo: "cmd", cmd: "cero" };
+    return { tipo: "nada" };
+  }
+  var lista = [texto].concat(Array.isArray(alt) ? alt : []).filter(function(x){ return typeof x === "string" && x.trim(); });
+  var primero = { tipo: "nada" };
+  for(var i = 0; i < lista.length; i++){
+    var r = una(lista[i]);
+    if(i === 0) primero = r;
+    if(r.tipo !== "nada") return r;
+  }
+  return primero;
+}
+
+function numeroHablado(v){
+  var U = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve", "veinte",
+    "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
+  var D = { 3: "treinta", 4: "cuarenta", 5: "cincuenta", 6: "sesenta", 7: "setenta", 8: "ochenta", 9: "noventa" };
+  var C = { 1: "ciento", 2: "doscientos", 3: "trescientos", 4: "cuatrocientos", 5: "quinientos", 6: "seiscientos", 7: "setecientos", 8: "ochocientos", 9: "novecientos" };
+  function ent(n){
+    if(n < 30) return U[n];
+    if(n < 100){ var d = Math.floor(n / 10), u = n % 10; return D[d] + (u ? " y " + U[u] : ""); }
+    if(n === 100) return "cien";
+    if(n < 1000){ var c = Math.floor(n / 100), r = n % 100; return C[c] + (r ? " " + ent(r) : ""); }
+    return String(n);
+  }
+  var x = Math.round(Number(v) * 100) / 100; if(!isFinite(x)) return "";
+  var s = x.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""), p = s.split(".");
+  var out = ent(parseInt(p[0], 10));
+  if(p[1]) out += " punto " + p[1].split("").map(function(c){ return U[+c]; }).join(" ");
+  return out;
+}
+
+
+  var API = function(){ return window.ecoCalcPesos; };
+  var KEY = "eco_voz_pesos";
+  var V = { i: -1, on: false, fase: "quieto", pend: null, ultimo: false, fallos: 0, estado: "quieto", texto: "", interno: false, cerrando: false, resTimer: 0 };
+  function num_(x){ var n = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(n) ? n : 0; }
+  function puente_(){ return window.EcovsaApp && typeof EcovsaApp.hablarYEscuchar === "function" ? EcovsaApp : null; }
+  function ok_(){
+    var a = puente_(); if(!a) return { hay: false, ok: false };
+    var r = { ok: true }; try{ if(typeof a.vozPesosOk === "function") r = JSON.parse(a.vozPesosOk() || "{}"); }catch(e){}
+    r.hay = true; r.ok = r.ok !== false; return r;
+  }
+  function pref_(){ try{ return localStorage.getItem(KEY) === "1"; }catch(e){ return false; } }
+  function guardaPref_(v){ try{ localStorage.setItem(KEY, v ? "1" : "0"); }catch(e){} }
+  function esc_(s){ return String(s).replace(/[&<>"]/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function D_(t){ return (typeof DESECHOS_ !== "undefined" && DESECHOS_[t]) || null; }
+  function uni_(t, plural){ var D = D_(t); var u = D && /^recipiente/i.test(D.sub) ? "recipiente" : "bolsa"; return plural ? u + "s" : u; }
+  function nom_(t){ var D = D_(t); return D ? D.nom : t; }
+  /* «una bolsa», «un recipiente», «dos bolsas» */
+  function cuenta_(n, t){ return n === 1 ? (uni_(t, false) === "bolsa" ? "una bolsa" : "un recipiente") : numeroHablado(n) + " " + uni_(t, true); }
+
+  /* ── voz ── */
+  function repinta_(){ var s = API() && API().estado(); if(s && s.abierto){ var v = document.getElementById("kp-vel"); if(v) pintaVoz_(v); } }
+  function dice_(texto, escuchar){
+    var a = puente_(); if(!a) return;
+    V.estado = texto ? "hablando" : (escuchar ? "escuchando" : "quieto"); repinta_();
+    try{ a.hablarYEscuchar(String(texto || ""), !!escuchar); }catch(e){}
+  }
+  function detener_(){
+    V.fase = "quieto"; V.estado = "quieto"; V.pend = null; V.ultimo = false; V.fallos = 0;
+    var a = puente_(); try{ if(a && typeof a.detenerVoz === "function") a.detenerVoz(); }catch(e){}
+    repinta_();
+  }
+  function escucha_(){ dice_("", true); }
+
+  /* ── resumen al terminar ── */
+  function resumen_(i){
+    var p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!p) return detener_();
+    var partes = [], pantalla = [], tot = 0;
+    ["bio", "pun", "ana"].forEach(function(t){
+      var D = D_(t); if(!D) return; var kg = num_(p[D.kg]), n = num_(p[D.cant]);
+      if(kg > 0 || n > 0){ tot += kg; var u = n === 1 ? uni_(t, false) : uni_(t, true);
+        partes.push(D.nom + ", " + cuenta_(n, t) + ", " + numeroHablado(kg) + " kilos");
+        pantalla.push(D.nom + ": " + n + " " + u + ", " + (Math.round(kg * 100) / 100) + " kg"); }
+    });
+    var totR = Math.round(tot * 100) / 100;
+    var habla = partes.length ? "Resumen. " + partes.join(". ") + ". Total, " + numeroHablado(totR) + " kilos. Falta la firma y enviar el recibo." : "No hay pesos anotados. Puede escribirlos con el teclado.";
+    V.fase = "quieto"; V.pend = null; V.ultimo = false;
+    API().cierra();
+    if(partes.length) muestraRes_(pantalla, totR);
+    dice_(habla, false);
+  }
+  function muestraRes_(lineas, tot){
+    var r = document.getElementById("vz-res"); if(!r){ r = document.createElement("div"); r.id = "vz-res"; document.body.appendChild(r); }
+    r.innerHTML = "<b>Resumen de pesos</b><div>" + lineas.map(esc_).join("<br>") + "<br>Total: " + tot + " kg</div><button type=\"button\" id=\"vz-res-ok\">Entendido</button>";
+    r.className = "ver"; document.getElementById("vz-res-ok").onclick = function(){ r.className = ""; };
+    clearTimeout(V.resTimer); V.resTimer = setTimeout(function(){ r.className = ""; }, 20000);
+  }
+
+  /* ── flujo guiado ── */
+  function inicia_(){
+    var s = API().estado(); if(!s.abierto) return;
+    V.fase = "pesos"; V.ultimo = false; V.fallos = 0; V.pend = null;
+    dice_(nom_(s.t) + ", diga los pesos.", true);
+  }
+  function tras_(r){   /* se cerró un tipo: ¿qué sigue? */
+    var texto = nom_(r.t) + ", " + cuenta_(r.n, r.t) + ", " + numeroHablado(r.total) + " kilos.";
+    V.i = r.i;
+    if(r.t === "bio"){
+      V.fase = "pregunta_pun"; V.ultimo = false;
+      dice_(texto + " ¿" + nom_("pun") + "s?", true);
+    } else { V.cerrando = false; resumen_(r.i); }
+  }
+  function cierraTipo_(){
+    var s = API().estado();
+    V.cerrando = true; var r = API().listo(); V.cerrando = false;
+    if(r && r.ok){ tras_(r); return; }
+    V.fase = "pesos"; dice_("Todavía no hay pesadas. Diga el peso, o diga cero.", true);
+  }
+  function ponCero_(t, i){
+    var D = D_(t), p = RUTA.paradas[i]; if(!D || !p) return;
+    setCampo(i, D.kg, "0"); setCampo(i, D.cant, "0"); setCampo(i, "pes_" + t, []);
+    var e = document.getElementById(D.id + i); if(e) e.value = "0";
+    var c = document.getElementById("cnt-" + i + "-" + D.cant); if(c) c.textContent = "0";
+    try{ totalParada_(i); }catch(x){}
+  }
+  function cero_(){
+    var s = API().estado(), t = s.t, i = s.i;
+    V.cerrando = true; API().cierra(); V.cerrando = false;
+    ponCero_(t, i); V.i = i;
+    if(t === "bio"){ V.fase = "pregunta_pun"; dice_(nom_("bio") + ", cero. ¿" + nom_("pun") + "s?", true); }
+    else resumen_(i);
+  }
+  function abreTipo_(t, i, decir){
+    V.interno = true; API().abrir(t, i); V.interno = false;
+    V.fase = "pesos"; V.ultimo = false; V.fallos = 0;
+    dice_(decir || (nom_(t) + ", diga los pesos."), true);
+  }
+  function alta_(vals){
+    var s, ultTxt = [];
+    for(var k = 0; k < vals.length; k++){
+      var res = API().agregar(vals[k], false);
+      if(res.rara){ V.fase = "confirma_raro"; V.pend = vals.slice(k); dice_("¿" + numeroHablado(res.valor) + " kilos?", true); return; }
+      if(!res.ok){ continue; }
+      ultTxt.push(numeroHablado(res.valor) + " kilos, " + uni_(API().estado().t, false) + " " + numeroHablado(res.n));
+    }
+    V.ultimo = ultTxt.length > 0; V.fase = "pesos";
+    dice_(ultTxt.length ? ultTxt.join(". ") : "No entendí el peso. Repítalo.", true);
+  }
+  function procesa_(r){
+    var s = API().estado(), f = V.fase;
+    if(!s.abierto && f !== "pregunta_pun"){ detener_(); return; }
+    if(f === "confirma_raro" || f === "confirma_multi"){
+      if(r.tipo === "cmd" && r.cmd === "si"){
+        var lista = V.pend || []; V.pend = null; V.fase = "pesos";
+        var out = [];
+        lista.forEach(function(v){ var res = API().agregar(v, true); if(res.ok) out.push(numeroHablado(res.valor) + " kilos, " + uni_(API().estado().t, false) + " " + numeroHablado(res.n)); });
+        V.ultimo = out.length > 0; dice_(out.join(". ") || "Diga el peso.", true); return;
+      }
+      if(r.tipo === "cmd" && (r.cmd === "no" || r.cmd === "borra")){ V.pend = null; V.fase = "pesos"; dice_("Descartado. Diga el peso.", true); return; }
+      dice_(f === "confirma_raro" ? "Responda sí o no. ¿" + numeroHablado((V.pend || [0])[0]) + " kilos?" : "Responda sí o no.", true); return;
+    }
+    if(f === "pregunta_pun"){
+      if(r.tipo === "cmd" && (r.cmd === "si" || r.cmd === "pun")){ if(r.cmd === "pun" && r.cero) return resumen_(V.i); return abreTipo_("pun", V.i); }
+      if(r.tipo === "cmd" && (r.cmd === "no" || r.cmd === "borra" || r.cmd === "cero" || r.cmd === "total")){ return resumen_(V.i); }
+      if(r.tipo === "cmd" && r.cmd === "ana"){ return abreTipo_("ana", V.i); }
+      dice_("Responda sí o no. ¿" + nom_("pun") + "s?", true); return;
+    }
+    /* fase «pesos» */
+    if(r.tipo === "peso"){ alta_([r.valor]); return; }
+    if(r.tipo === "multi"){
+      if(r.seguro){ alta_(r.valores); return; }
+      V.fase = "confirma_multi"; V.pend = r.valores.slice();
+      dice_("Entendí " + r.valores.map(numeroHablado).join(" y ") + " kilos. ¿Es correcto?", true); return;
+    }
+    if(r.tipo === "cmd"){
+      if(r.cmd === "total"){ if(s.n === 0) dice_("Todavía no hay pesadas. Diga el peso, o diga cero.", true); else cierraTipo_(); return; }
+      if(r.cmd === "borra" || (r.cmd === "no" && V.ultimo)){
+        if(s.n > 0){ var antes = s.n; API().deshacer(); V.ultimo = false; dice_("Borrada la " + uni_(s.t, false) + " " + numeroHablado(antes) + ". Siga con el peso.", true); }
+        else dice_("No hay nada que borrar. Diga el peso.", true);
+        return;
+      }
+      if(r.cmd === "no"){ dice_("Diga el peso.", true); return; }
+      if(r.cmd === "cero"){ if(s.n === 0) cero_(); else dice_("Ya hay pesadas. Diga total para cerrar.", true); return; }
+      if(r.cmd === "bio" || r.cmd === "pun" || r.cmd === "ana"){
+        if(r.cmd === s.t && !r.cero){ dice_("Ya estamos en " + nom_(s.t) + ". Diga el peso.", true); return; }
+        var i = s.i;
+        if(r.cmd !== s.t){ if(s.n > 0){ V.cerrando = true; API().listo(); V.cerrando = false; } else { V.cerrando = true; API().cierra(); V.cerrando = false; } }
+        if(r.cero){ ponCero_(r.cmd, i); if(r.cmd === "bio"){ V.fase = "pregunta_pun"; dice_(nom_("bio") + ", cero. ¿" + nom_("pun") + "s?", true); return; } return resumen_(i); }
+        return abreTipo_(r.cmd, i);
+      }
+      if(r.cmd === "si"){ dice_("Diga el peso, o diga total para cerrar.", true); return; }
+    }
+    escucha_();
+  }
+  window.ecoVoz = function(j){
+    var o; try{ o = typeof j === "string" ? JSON.parse(j) : j; }catch(e){ return; }
+    if(!o || !V.on || V.fase === "quieto" || V.fase === "pausa") return;
+    if(o.err){
+      V.fallos++;
+      if(V.fallos >= 3){ V.fase = "pausa"; V.estado = "pausa"; repinta_(); return; }
+      escucha_(); return;
+    }
+    V.fallos = 0; V.texto = String(o.texto || "");
+    var r = parseVoz(o.texto, o.alt);
+    if(r.tipo === "nada"){ repinta_(); escucha_(); return; }
+    repinta_();
+    procesa_(r);
+  };
+  window.ecoVozEstado = function(e){ if(!V.on) return; if(e === "hablando" || e === "escuchando" || e === "quieto"){ V.estado = e; repinta_(); } };
+
+  /* ── interruptor y panel dentro de la calculadora ── */
+  function pintaVoz_(v){
+    var st = ok_(); if(!st.hay) return;
+    var cab = v.querySelector(".kp-c"); if(!cab) return;
+    [].forEach.call(v.querySelectorAll(".vz-sw,.vz-no,.vz-p"), function(x){ x.remove(); });
+    if(!st.ok){
+      var n = document.createElement("div"); n.className = "vz-no"; n.textContent = "Voz no disponible: " + (st.motivo || "esta tablet no tiene reconocimiento de voz"); cab.appendChild(n); return;
+    }
+    var b = document.createElement("button"); b.type = "button"; b.className = "vz-sw" + (V.on ? " on" : ""); b.setAttribute("aria-pressed", V.on ? "true" : "false");
+    b.innerHTML = "Voz <i></i>"; b.onclick = function(){ alterna_(); }; cab.appendChild(b);
+    if(!V.on) return;
+    var te = v.querySelector(".kp-te"); if(!te) return;
+    var estTxt = V.estado === "escuchando" ? "Escuchando" : V.estado === "hablando" ? "Hablando" : V.fase === "pausa" ? "En pausa: no se oyó nada" : "Voz lista";
+    var p = document.createElement("div"); p.className = "vz-p";
+    p.innerHTML = '<div class="vz-e ' + (V.fase === "pausa" ? "pausa" : V.estado) + '">' + estTxt + '</div><div class="vz-t">' + (V.texto ? "«" + esc_(V.texto) + "»" : "&nbsp;") + '</div>' +
+      '<div class="vz-d">Diga el peso; «total» cierra; «no» o «borra» quita el último.</div>' +
+      ((V.fase === "pausa" || V.fase === "quieto") ? '<button type="button" class="vz-mic">Tocar para hablar</button>' : "");
+    te.insertBefore(p, te.firstChild);
+    var m = p.querySelector(".vz-mic"); if(m) m.onclick = function(){ V.fallos = 0; if(V.fase === "quieto" || V.fase === "pausa"){ if(V.fase === "pausa" && API().estado().abierto){ V.fase = "pesos"; escucha_(); } else inicia_(); } };
+  }
+  function alterna_(){
+    V.on = !V.on; guardaPref_(V.on);
+    if(V.on){ var s = API().estado(); if(s.abierto) inicia_(); else repinta_(); } else { detener_(); }
+    repinta_();
+  }
+
+  /* ── ganchos de la calculadora (fase 1) ── */
+  function engancha_(){
+    var A = API(); if(!A || !A.ganchos) return false;
+    V.on = pref_() && ok_().ok;
+    A.ganchos.alPintar = function(v){ try{ pintaVoz_(v); }catch(e){} };
+    A.ganchos.alAbrir = function(){ if(V.interno) return; V.on = pref_() && ok_().ok; if(V.on && puente_()){ inicia_(); } };
+    A.ganchos.alCerrar = function(){ if(V.cerrando) return; if(V.fase !== "quieto" && V.fase !== "resumen"){ detener_(); } };
+    A.ganchos.alListo = function(t, i, n, total){ /* el botón «Listo» a mano termina la voz: sin charla */ };
+    return true;
+  }
+
+  /* ── (A) las pesadas viajan con el recibo ── */
+  function adjunta_(){
+    if(typeof COLA === "undefined" || !COLA || !COLA.length || typeof RUTA === "undefined" || !RUTA || !RUTA.paradas) return;
+    var cambio = false;
+    COLA.forEach(function(reg){
+      if(!reg || reg.pesadas) return;
+      var p = RUTA.paradas.filter(function(x){ return x && x.registroId && x.registroId === reg.registroId; })[0]; if(!p) return;
+      var o = {}, hay = false;
+      [["bio", "kgBolsas"], ["pun", "kgPunzo"], ["ana", "kgAnatomo"]].forEach(function(par){
+        var L = p["pes_" + par[0]]; if(!Array.isArray(L) || !L.length) return;
+        var nums = L.map(num_).filter(function(x){ return x > 0 && x <= 1000; }).slice(0, 60).map(function(x){ return Math.round(x * 100) / 100; });
+        var sum = nums.reduce(function(a, b){ return a + b; }, 0);
+        if(nums.length && Math.abs(sum - num_(reg[par[1]])) < 0.011){ o[par[0]] = nums; hay = true; }
+      });
+      if(hay){ var js = JSON.stringify(o); if(js.length <= 1500){ reg.pesadas = js; cambio = true; } }
+    });
+    if(cambio){ try{ guardarLocal(K_COLA, COLA); }catch(e){} }
+  }
+  function envuelve_(){
+    if(typeof window.sincronizar !== "function" || window.sincronizar.__pesadas) return;
+    var o = window.sincronizar;
+    var f = function(){ try{ adjunta_(); }catch(e){} return o.apply(this, arguments); };
+    f.__pesadas = true; window.sincronizar = f;
+  }
+
+  function instala_(){ engancha_(); envuelve_(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", instala_); else instala_();
+  document.addEventListener("visibilitychange", function(){ if(document.hidden && V.fase !== "quieto") detener_(); });
+  window.ecoPesosVoz = { parseVoz: parseVoz, numeroHablado: numeroHablado, estado: function(){ return { on: V.on, fase: V.fase, estado: V.estado }; }, _adjunta: adjunta_ };
 })();
 </script>
 <style id="estilo-347">
