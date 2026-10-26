@@ -22453,6 +22453,596 @@ APP38.hojaTablet = (function(o){ return function(){
   try{ new MutationObserver(function(){ if(NV37.abierta()){ N.vista(false); } }).observe(document.body, { attributes: true, attributeFilter: ["class"] }); }catch(e){}
 })();
 </script>
+<style id="css-tf6">
+/* ═══ APK 1.6.12 · CHAT CON DESPACHO (maqueta aprobada por Álvaro el 26 oct: maquetas/Maqueta_despacho_chat.html) ═══
+   Conductor: hoja a toda la pantalla de la página (la barra de la APK queda abajo). Supervisor: detalle dentro de la Bandeja e historial. */
+.dsp-chat,.dsp-hist,.dsp-det{--dn:#0f2a57;--dn2:#14306b;--df:#f3f5f8;--dt:#fff;--dl:#e1e6ee;--di:#0f2140;--dg:#667489;--dok:#2f9e44;--dokf:#eaf6e4;--dw:#d99a00;--dwf:#fff4d6;--db:#d64045;--dbf:#fdecea;--dinf:#e8effb;--dinfo:#3b6fd4;font-family:Archivo,system-ui,sans-serif;color:var(--di)}
+body.t47-noche .dsp-chat,body.t47-noche .dsp-hist,body.t47-noche .dsp-det{--df:#0a1e40;--dt:#13264a;--dl:#264273;--di:#e8eefb;--dg:#a9b9d6;--dokf:#173a2b;--dwf:#3a2f10;--dbf:#3a1d24;--dinf:#1e2d4d;--dinfo:#9db8f0}
+.dsp-chat svg,.dsp-hist svg,.dsp-det svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.dsp-chat *,.dsp-hist *,.dsp-det *{box-sizing:border-box}
+/* ── el chat del conductor ── */
+.dsp-chat{position:fixed;inset:0;z-index:9000;background:var(--df);display:none;flex-direction:column}
+.dsp-chat.ver{display:flex}
+.dsp-cab{background:var(--dn);color:#fff;display:flex;align-items:center;gap:14px;padding:12px 18px;flex:none}
+.dsp-cab .av{width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--dn2);flex:none}
+.dsp-cab .av svg{width:26px;height:26px}
+.dsp-cab .tt{min-width:0;flex:1}.dsp-cab b{display:block;font-size:20px;font-weight:800;line-height:1.2}.dsp-cab span{display:block;font-size:13.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsp-cab .sin{background:var(--dw);color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800}
+.dsp-ll{border:0;background:var(--dok);color:#fff;border-radius:10px;padding:11px 18px;font-weight:800;font-size:16px;display:flex;gap:8px;align-items:center;font-family:inherit}
+.dsp-x{border:1px solid rgba(255,255,255,.45);background:none;color:#fff;border-radius:10px;padding:11px 16px;font-weight:700;font-size:15px;font-family:inherit}
+.dsp-ms{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+.dsp-dia{align-self:center;font-size:12.5px;color:var(--dg);background:rgba(120,140,170,.18);border-radius:99px;padding:2px 14px;font-weight:700}
+.dsp-ctx{align-self:center;font-size:12.5px;color:var(--dinfo);background:var(--dinf);border-radius:8px;padding:3px 12px;font-weight:700;text-align:center}
+.dsp-b{max-width:min(72%,620px);padding:10px 15px;border-radius:15px;font-size:18px;line-height:1.35;overflow-wrap:anywhere}
+.dsp-b small{display:block;font-size:12.5px;opacity:.78;margin-top:3px;font-weight:600}
+.dsp-b.yo{align-self:flex-end;background:var(--dn2);color:#fff;border-bottom-right-radius:4px}
+.dsp-b.ellos{align-self:flex-start;background:var(--dt);border:1px solid var(--dl);border-bottom-left-radius:4px}
+.dsp-b.ellos .q{display:block;font-size:12.5px;font-weight:800;color:var(--dinfo);margin-bottom:2px}
+.dsp-b.err{background:var(--db)}
+.dsp-b button{border:0;background:rgba(255,255,255,.2);color:inherit;border-radius:7px;padding:2px 9px;font-weight:800;font-size:12.5px;font-family:inherit;margin-left:4px}
+.dsp-vac{margin:auto;text-align:center;color:var(--dg);font-size:15px;max-width:360px;padding:20px}
+.dsp-pie{background:var(--dt);border-top:1px solid var(--dl);padding:11px 18px 13px;display:flex;flex-direction:column;gap:9px;flex:none}
+.dsp-rap{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dsp-rap button{border:1px solid var(--dl);background:var(--dt);color:var(--dn2);border-radius:11px;padding:8px 6px;font-weight:800;font-size:15px;line-height:1.15;min-height:54px;font-family:inherit}
+body.t47-noche .dsp-rap button{color:#e8eefb}
+.dsp-rap button:active{background:var(--dinf)}
+.dsp-rap button.mal{color:var(--db);border-color:#f0c4c6;background:var(--dbf)}
+.dsp-esc{display:flex;gap:8px;align-items:center}
+.dsp-esc input{flex:1;min-width:0;border:1px solid var(--dl);border-radius:11px;padding:0 14px;height:54px;font-family:inherit;font-size:18px;background:var(--dt);color:var(--di)}
+.dsp-esc input:disabled{background:rgba(120,140,170,.16);color:#98a3b5}
+.dsp-rd{width:54px;height:54px;border-radius:50%;border:1px solid var(--dl);background:var(--dt);color:var(--dn2);display:grid;place-items:center;flex:none;font-family:inherit}
+body.t47-noche .dsp-rd{color:#e8eefb}
+.dsp-rd svg{width:26px;height:26px}
+.dsp-rd.gra{background:var(--db);color:#fff;border-color:var(--db);animation:dspLat 1s infinite}
+@keyframes dspLat{50%{transform:scale(1.1)}}
+.dsp-env{border:0;background:var(--dn2);color:#fff;border-radius:11px;padding:0 24px;height:54px;font-weight:800;font-size:17px;font-family:inherit}
+.dsp-env:disabled{opacity:.45}
+.dsp-mov{background:var(--dwf);color:#7a5600;border-radius:9px;padding:8px 14px;font-size:14.5px;font-weight:700}
+body.t47-noche .dsp-mov{color:#f3d98a}
+.dsp-ban{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9500;background:#0f2a57;color:#fff;border:2px solid #8fd46a;border-radius:16px;padding:12px 20px;font-family:Archivo,system-ui,sans-serif;font-size:16px;font-weight:700;max-width:92vw;display:none;box-shadow:0 8px 24px rgba(10,25,50,.35)}
+.dsp-ban.ver{display:block}.dsp-ban small{display:block;font-weight:600;opacity:.85;font-size:13.5px}
+@media (max-width:760px){
+  .dsp-rap{grid-template-columns:repeat(2,1fr)}.dsp-rap button{min-height:46px;font-size:14px}
+  .dsp-b{max-width:88%;font-size:16.5px}.dsp-cab b{font-size:18px}.dsp-ll{padding:10px 12px}.dsp-ll span{display:none}.dsp-x{padding:10px 12px}
+  .dsp-esc input,.dsp-rd,.dsp-env{height:48px}.dsp-rd{width:48px}.dsp-env{padding:0 16px}
+}
+@media (max-height:520px){.dsp-rap button{min-height:40px;font-size:13.5px}.dsp-b{font-size:16px}.dsp-cab{padding:8px 14px}}
+/* ── Bandeja: el mensaje del conductor ── */
+.dsp-det{display:flex;flex-direction:column;gap:10px}
+.dsp-det .dh{display:flex;gap:11px;align-items:center}
+.dsp-det .dh i{width:42px;height:42px;border-radius:12px;background:var(--dinf);color:var(--dinfo);display:grid;place-items:center;flex:none}
+.dsp-det .dh .bo{font-size:12px;color:var(--dg)}.dsp-det .dh h2{margin:0;font-size:19px;color:var(--dn2)}
+body.t47-noche .dsp-det .dh h2{color:#e8eefb}
+.dsp-det .etq{display:inline-block;font-size:11.5px;font-weight:800;border-radius:99px;padding:2px 10px}
+.dsp-det .e-b{background:var(--dbf);color:var(--db)}.dsp-det .e-ok{background:var(--dokf);color:var(--dok)}.dsp-det .e-w{background:var(--dwf);color:#8a6200}
+.dsp-det .resp{font-size:13px;color:var(--dg)}.dsp-det .resp b{color:var(--di)}
+.dsp-hilo{background:rgba(120,140,170,.12);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:7px;max-height:300px;overflow-y:auto}
+.dsp-hilo .b2{max-width:82%;padding:7px 11px;border-radius:11px;font-size:14px;overflow-wrap:anywhere}
+.dsp-hilo .b2.c{align-self:flex-start;background:var(--dt);border:1px solid var(--dl)}
+.dsp-hilo .b2.d{align-self:flex-end;background:var(--dn2);color:#fff}
+.dsp-hilo .b2 small{display:block;font-size:11px;opacity:.72;margin-top:1px}
+.dsp-hilo .sep{align-self:center;font-size:11.5px;font-weight:800;color:var(--dg);background:rgba(120,140,170,.2);border-radius:99px;padding:1px 11px}
+.dsp-rr{display:flex;gap:6px;flex-wrap:wrap}
+.dsp-rr button{border:1px solid var(--dl);background:var(--dt);color:var(--dn2);border-radius:99px;padding:5px 12px;font-weight:700;font-size:13px;font-family:inherit}
+body.t47-noche .dsp-rr button{color:#e8eefb}
+.dsp-rb{display:flex;gap:7px}
+.dsp-rb input{flex:1;min-width:0;border:1px solid var(--dl);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14.5px;background:var(--dt);color:var(--di)}
+.dsp-bp{border:0;background:var(--dn2);color:#fff;border-radius:10px;padding:9px 16px;font-weight:800;font-size:14px;font-family:inherit}
+.dsp-bp:disabled{opacity:.5}
+.dsp-bn{border:1px solid var(--dl);background:var(--dt);color:var(--dn2);border-radius:10px;padding:8px 14px;font-weight:700;font-size:13.5px;font-family:inherit}
+body.t47-noche .dsp-bn{color:#e8eefb}
+.dsp-acc{display:flex;gap:7px;flex-wrap:wrap}
+.dsp-hbtn{border:1px solid var(--dl,#e1e6ee);background:#fff;color:#14306b;border-radius:99px;padding:5px 13px;font-weight:700;font-size:13px;font-family:inherit;display:inline-flex;gap:6px;align-items:center}
+.dsp-hbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* ── historial ── */
+.dsp-hist{position:fixed;inset:0;z-index:9100;background:var(--df);display:none;flex-direction:column}
+.dsp-hist.ver{display:flex}
+.dsp-hist .cab{background:var(--dn);color:#fff;display:flex;gap:12px;align-items:center;padding:12px 18px;flex:none}
+.dsp-hist .cab b{flex:1;font-size:18px}
+.dsp-hist .bus{padding:10px 18px;background:var(--dt);border-bottom:1px solid var(--dl);flex:none}
+.dsp-hist .bus input{width:100%;border:1px solid var(--dl);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14.5px;background:var(--dt);color:var(--di)}
+.dsp-hist .cuerpo{flex:1;display:grid;grid-template-columns:230px 300px minmax(0,1fr);min-height:0}
+.dsp-hist .col{overflow-y:auto;padding:10px;border-right:1px solid var(--dl);min-width:0}
+.dsp-hist .col:last-child{border-right:0}
+.dsp-hist h5{margin:2px 6px 8px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dg);font-weight:800}
+.dsp-hist .it{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;border-radius:10px;border:1px solid transparent;font-size:14px;cursor:pointer;background:none;width:100%;text-align:left;font-family:inherit;color:var(--di)}
+.dsp-hist .it:hover{background:rgba(120,140,170,.1)}.dsp-hist .it.sel{background:var(--dinf);border-color:#c9d8f5}
+.dsp-hist .it b{font-weight:800}.dsp-hist .it span{color:var(--dg);font-size:12px}
+.dsp-hist .it .u{background:var(--db);color:#fff;border-radius:99px;font-size:10.5px;padding:0 7px;font-weight:800;align-self:center}
+.dsp-hist .it .tx{min-width:0}.dsp-hist .it .tx span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsp-hist .vacio{color:var(--dg);font-size:13.5px;padding:24px 10px;text-align:center}
+.dsp-hist .volver{display:none;border:0;background:none;color:var(--dn2);font-weight:800;font-size:14px;padding:8px 6px;font-family:inherit}
+@media (max-width:999px){
+  .dsp-hist .cuerpo{grid-template-columns:1fr}
+  .dsp-hist .col{display:none;border-right:0}
+  .dsp-hist[data-paso="dias"] .col.c1,.dsp-hist[data-paso="hilos"] .col.c2,.dsp-hist[data-paso="hilo"] .col.c3{display:block}
+  .dsp-hist .volver{display:block}
+}
+</style>
+<script id="js-tf6">
+/* ═══ APK 1.6.12 · CHAT CON DESPACHO (maqueta aprobada por Álvaro el 26 oct: maquetas/Maqueta_despacho_chat.html · contrato: claude/DISENO_chat_despacho.md) ═══
+   Conductor: la tecla «Despacho» de la APK llama a ecoIr('despacho') y abre la hoja del chat (atajos grandes, voz y teclado; en movimiento solo atajos y voz).
+   Supervisor: los mensajes sin responder salen en la Bandeja («Conductores»), con el hilo, respuestas listas, «Tomar», «Ya lo atendí» e historial por día.
+   Un solo bloque, al final: envuelve funciones que ya existen (ecoIr, bq38Items_, bq38Det_, bq38Despues_, renderSolicitudes, ecoPos). Si el servidor aún no trae
+   las funciones api_dsp*, la tecla Despacho llama como siempre y la Bandeja no muestra nada nuevo. Si la APK es vieja (sin dictar/mensajeNuevo/puntoDespacho), nada se rompe. */
+(function(){
+  if(window.DSP || typeof llamar37_ !== "function") return;
+  var $ = function(id){ return document.getElementById(id); };
+  var D = window.DSP = { v: "1.6.12" };
+  var K_COLA = "eco_dsp_cola";
+  var ATAJOS = [["Llegué a la parada"], ["Cliente no está"], ["Cliente pide otra hora"], ["Salgo hacia la siguiente"], ["Me desvío por tráfico"], ["Falla del camión", 1], ["Terminé la ruta"], ["Necesito ayuda", 1]];
+  var RESPUESTAS = ["Recibido", "Espere indicaciones", "Voy a llamar al cliente", "Llámeme cuando pueda"];
+  var IC = {
+    tel: '<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
+    mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+    user: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+    chat: '<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+    reloj: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+  };
+  try{ if(typeof SVG38 !== "undefined" && !SVG38.dspchat) SVG38.dspchat = '<path d="M4 5h16v11H9l-5 4z"/>'; }catch(e){}
+
+  /* ── utilidades ── */
+  function esOperador(){ return !!PIN && typeof esSupervisor === "function" && !esSupervisor(); }
+  function esSup(){ return !!PIN && typeof esSupervisor === "function" && esSupervisor(); }
+  function llamar(fn){ var a = Array.prototype.slice.call(arguments, 1); return llamar37_.apply(null, [fn].concat(a)); }
+  function nom1(s){ return String(s || "").trim().split(/\s+/)[0] || ""; }
+  function hora12(h){ try{ var t = hora12_(h); return t || String(h || ""); }catch(e){ return String(h || ""); } }
+  function horaAhora(){ var d = new Date(); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+  function num(x){ var n = Number(x); return isFinite(n) ? n : 0; }
+  function sinFuncion(r){ return !!r && r.ok === false && !r.requiereLogin && /no existe|desconoc|not found|no encontr|funci[oó]n|undefined|no es una/i.test(String(r.error || "")); }
+  function msgErr(e){ return String((e && e.message) || e || ""); }
+  function plin(){
+    try{
+      var A = window.AudioContext || window.webkitAudioContext; if(!A) return; var c = D._ac || (D._ac = new A()), t = c.currentTime;
+      [[880, 0], [1320, .14]].forEach(function(n){ var o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = n[0]; g.gain.setValueAtTime(0, t + n[1]); g.gain.linearRampToValueAtTime(.22, t + n[1] + .02); g.gain.exponentialRampToValueAtTime(.001, t + n[1] + .3); o.connect(g); g.connect(c.destination); o.start(t + n[1]); o.stop(t + n[1] + .32); });
+    }catch(e){}
+  }
+  D.plin = plin;
+  function lsGet(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
+  function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function llamarDespacho(){ try{ if(window.EcovsaApp && typeof EcovsaApp.llamarDespacho === "function"){ EcovsaApp.llamarDespacho(); return true; } }catch(e){} return false; }
+
+  /* ── velocidad: la APK la entrega en ecoPos (m/s); sin ella, la del navegador ── */
+  D.vel = 0; D.velT = 0;
+  if(typeof window.ecoPos === "function"){
+    var oPos = window.ecoPos;
+    window.ecoPos = function(j){
+      try{ var f = typeof j === "string" ? JSON.parse(j) : j; if(f && f.vel != null && isFinite(Number(f.vel))){ D.vel = Number(f.vel) * 3.6; D.velT = Date.now(); } }catch(e){}
+      return oPos.apply(this, arguments);
+    };
+  }
+  D.enMovimiento = function(){
+    var now = Date.now(), kmh = 0;
+    if(now - D.velT < 10000) kmh = D.vel;
+    else try{ var y = GEO37 && GEO37.yo; if(y && now - y.t < 10000 && y.vel != null && isFinite(y.vel)) kmh = y.vel * 3.6; }catch(e){}
+    return kmh > 5;
+  };
+
+  /* ═════════════ EL CONDUCTOR ═════════════ */
+  var C = D.c = { msgs: [], max: "", cola: [], noLeidos: 0, abierto: false, ultPoll: 0, vuelo: false, enviando: false, sin: false, offline: false, borr: "", grab: false, movPrev: null, verif: false };
+  function quienSoy(){ return String((typeof USUARIO !== "undefined" && USUARIO && USUARIO.nombre) || "").trim(); }
+  function leerCola(){
+    var q = lsGet(K_COLA, []), yo = quienSoy().toLowerCase();
+    C.cola = (Array.isArray(q) ? q : []).filter(function(x){ return x && x.texto && String(x.quien || "").toLowerCase() === yo; });
+  }
+  function guardaCola(){ lsSet(K_COLA, C.cola.slice(-40).map(function(x){ x.quien = x.quien || quienSoy(); return x; })); }
+  function idNum(m){ return num(m && m.id); }
+  function mezclar(lista){
+    var nuevos = [];
+    (lista || []).forEach(function(m){
+      if(!m || m.id == null) return;
+      var i = -1; C.msgs.forEach(function(x, k){ if(String(x.id) === String(m.id)) i = k; });
+      if(i >= 0) C.msgs[i] = m; else { C.msgs.push(m); nuevos.push(m); }
+    });
+    C.msgs.sort(function(a, b){ return idNum(a) - idNum(b); });
+    return nuevos;
+  }
+  function ctxActual(){
+    var c = { ruta: "", parada: "", clienteId: "", n: 0 };
+    try{
+      if(typeof RUTA !== "undefined" && RUTA && RUTA.rutaId && !RUTA.cierre){
+        c.ruta = String(RUTA.rutaId);
+        var i = siguientePendiente(0);
+        if(i >= 0){ var p = RUTA.paradas[i], k = cli(p.clienteId); c.parada = k ? String(k.nombre || "") : ""; c.clienteId = String(p.clienteId); c.n = i + 1; }
+      }
+    }catch(e){}
+    return c;
+  }
+  /* un mensaje nuevo del conductor: los atajos y la voz esperan 3 s con «Deshacer» (para que un toque sin querer no salga) */
+  D.poner = function(texto, conDeshacer){
+    texto = String(texto || "").replace(/\s+/g, " ").trim().slice(0, 500); if(!texto || !esOperador()) return;
+    var ahora = Date.now();
+    C.cola.push({ tmp: "t" + ahora.toString(36) + Math.floor(Math.random() * 1e4).toString(36), texto: texto, ctx: ctxActual(), t: ahora, hora: horaAhora(), estado: conDeshacer ? "deshacer" : "cola", hasta: conDeshacer ? ahora + 3000 : 0, quien: quienSoy() });
+    guardaCola(); pintaChat(); D.drena();
+    if(conDeshacer) setTimeout(function(){ pintaChat(); D.drena(); }, 3100);
+  };
+  D.deshacer = function(tmp){ C.cola = C.cola.filter(function(x){ return x.tmp !== tmp || x.estado !== "deshacer"; }); guardaCola(); pintaChat(); };
+  D.drena = function(){
+    if(C.enviando || !esOperador()) return;
+    var ahora = Date.now();
+    var m = C.cola.filter(function(x){ return x.estado !== "error" && (x.estado !== "deshacer" || ahora >= x.hasta) && (!x.reint || ahora >= x.reint); })[0];
+    if(!m) return;
+    m.estado = "enviando"; C.enviando = true; pintaChat();
+    llamar("api_dspEnviar", PIN, m.texto, { ruta: m.ctx.ruta, parada: m.ctx.parada, clienteId: m.ctx.clienteId, cid: m.tmp }).then(function(r){
+      C.enviando = false; C.offline = false;
+      if(r && r.ok && r.msg){ C.cola = C.cola.filter(function(x){ return x !== m; }); mezclar([r.msg]); }
+      else if(r && r.requiereLogin){ m.estado = "cola"; m.reint = Date.now() + 30000; }
+      else { m.estado = "error"; m.error = String((r && r.error) || "No se pudo enviar"); if(sinFuncion(r)) C.sin = true; }
+      guardaCola(); pintaChat(); setTimeout(D.drena, 300);
+    }, function(){ C.enviando = false; C.offline = true; m.estado = "cola"; m.reint = Date.now() + 15000; guardaCola(); pintaChat(); });
+  };
+  D.reintentar = function(tmp){ C.cola.forEach(function(x){ if(x.tmp === tmp){ x.estado = "cola"; x.reint = 0; delete x.error; } }); guardaCola(); pintaChat(); D.drena(); };
+  D.quitarError = function(tmp){ C.cola = C.cola.filter(function(x){ return x.tmp !== tmp; }); guardaCola(); pintaChat(); };
+
+  /* respuestas del Despacho: cada 30 s (10 s con el chat abierto) mientras la sesión es de conductor */
+  function pollC(){
+    if(C.vuelo || !esOperador()) return;
+    C.vuelo = true; C.ultPoll = Date.now();
+    var primera = C.max === "";
+    llamar("api_dspMiHilo", PIN, C.max, !!C.abierto).then(function(r){
+      C.vuelo = false; C.offline = false;
+      if(!r || !r.ok){ if(sinFuncion(r)) C.sin = true; return; }
+      C.verif = true; C.sin = false;
+      var lista = Array.isArray(r.mensajes) ? r.mensajes : [], antes = C.noLeidos;
+      var nuevos = mezclar(lista);
+      var mx = r.max != null && r.max !== "" ? String(r.max) : (lista.length ? String(Math.max.apply(null, lista.map(idNum))) : C.max);
+      if(mx !== "" && (C.max === "" || num(mx) > num(C.max))) C.max = mx; else if(C.max === "") C.max = "0";
+      C.noLeidos = C.abierto ? 0 : num(r.noLeidos);
+      if(!primera && !C.abierto){
+        var d = nuevos.filter(function(m){ return m.de === "d"; });
+        if(d.length) D.avisa(d[d.length - 1]);
+      }
+      if(C.noLeidos !== antes) punto();
+      if(C.abierto) pintaChat();
+    }, function(){ C.vuelo = false; C.offline = true; if(C.abierto) pintaChat(); });
+  }
+  D.poll = pollC;
+  function punto(){ try{ if(window.EcovsaApp && typeof EcovsaApp.puntoDespacho === "function") EcovsaApp.puntoDespacho(C.noLeidos); }catch(e){} }
+  D.avisa = function(m){
+    var t = "Mensaje del Despacho", x = (m.autor ? nom1(m.autor) + ": " : "") + String(m.texto || "");
+    if(window.EcovsaApp && typeof EcovsaApp.mensajeNuevo === "function"){ try{ EcovsaApp.mensajeNuevo(t, x); return; }catch(e){} }
+    plin(); var b = $("dsp-ban");
+    if(!b){ b = document.createElement("div"); b.id = "dsp-ban"; b.className = "dsp-ban"; b.onclick = function(){ b.classList.remove("ver"); D.ir(); }; document.body.appendChild(b); }
+    b.innerHTML = esc(t) + '<small>' + esc(x) + '</small>'; b.classList.add("ver"); clearTimeout(b._h); b._h = setTimeout(function(){ b.classList.remove("ver"); }, 7000);
+  };
+
+  /* la hoja */
+  function armaChat(){
+    var r = $("dsp-chat"); if(r) return r;
+    r = document.createElement("div"); r.id = "dsp-chat"; r.className = "dsp-chat";
+    r.innerHTML = '<div class="dsp-cab"><div class="av">' + IC.user + '</div><div class="tt"><b>Despacho</b><span id="dsp-sub"></span></div><span class="sin" id="dsp-sin" style="display:none">Sin señal</span>' +
+      '<button class="dsp-ll" id="dsp-ll" onclick="DSP.llamar()">' + IC.tel + '<span>Llamar</span></button><button class="dsp-x" onclick="DSP.cerrar()">Cerrar</button></div>' +
+      '<div class="dsp-ms" id="dsp-ms"></div><div class="dsp-pie" id="dsp-pie"></div>';
+    document.body.appendChild(r);
+    r.addEventListener("click", function(e){ var b = e.target.closest && e.target.closest("[data-a]"); if(b) D.poner(b.getAttribute("data-a"), true); });
+    return r;
+  }
+  function bubbleMio(m){
+    var est = m.estado === "deshacer" ? 'Se envía en unos segundos · <button onclick="DSP.deshacer(\'' + m.tmp + '\')">Deshacer</button>'
+      : m.estado === "enviando" ? "Enviando…"
+      : m.estado === "error" ? esc(m.error || "No se pudo enviar") + ' · <button onclick="DSP.reintentar(\'' + m.tmp + '\')">Reintentar</button><button onclick="DSP.quitarError(\'' + m.tmp + '\')">Quitar</button>'
+      : "Sin enviar · saldrá al volver la señal";
+    return '<div class="dsp-b yo' + (m.estado === "error" ? " err" : "") + '">' + esc(m.texto) + '<small>' + esc(hora12(m.hora)) + ' · ' + est + '</small></div>';
+  }
+  function pintaMsgs(){
+    var ms = $("dsp-ms"); if(!ms) return;
+    var cerca = ms.scrollHeight - ms.scrollTop - ms.clientHeight < 90, h = "", ult = "";
+    if(!C.msgs.length && !C.cola.length) h = '<div class="dsp-vac">Escríbale al Despacho. Si es urgente, toque «Llamar».</div>';
+    else h += '<div class="dsp-dia">Hoy</div>';
+    C.msgs.forEach(function(m){
+      var cx = String(m.parada || ""); if(cx && cx !== ult){ h += '<div class="dsp-ctx">Parada · ' + esc(cx) + '</div>'; ult = cx; }
+      if(m.de === "c"){
+        var le = m.atendidoPor ? "Leído por " + esc(nom1(m.atendidoPor)) : "Enviado";
+        h += '<div class="dsp-b yo">' + esc(m.texto) + '<small>' + esc(hora12(m.hora)) + ' · ' + le + '</small></div>';
+      } else h += '<div class="dsp-b ellos"><span class="q">Despacho' + (m.autor ? ' · ' + esc(nom1(m.autor)) : '') + '</span>' + esc(m.texto) + '<small>' + esc(hora12(m.hora)) + '</small></div>';
+    });
+    C.cola.forEach(function(m){ var cx = String((m.ctx && m.ctx.parada) || ""); if(cx && cx !== ult){ h += '<div class="dsp-ctx">Parada · ' + esc(cx) + '</div>'; ult = cx; } h += bubbleMio(m); });
+    var k = ms.getAttribute("data-k") || "", nk = C.msgs.map(function(x){ return x.id + (x.atendidoPor || ""); }).join(",") + "|" + C.cola.map(function(x){ return x.tmp + x.estado; }).join(",");
+    if(k === nk) return; ms.setAttribute("data-k", nk); ms.innerHTML = h;
+    if(cerca || k === "") ms.scrollTop = ms.scrollHeight;
+  }
+  function pintaPie(){
+    var pie = $("dsp-pie"); if(!pie) return;
+    var mov = D.enMovimiento(), dictar = !!((window.EcovsaApp && typeof EcovsaApp.dictar === "function") || window.SpeechRecognition || window.webkitSpeechRecognition);
+    var clave = (mov ? "m" : "q") + (dictar ? "d" : "n") + (C.grab ? "g" : "");
+    if(pie.getAttribute("data-k") === clave) return; pie.setAttribute("data-k", clave);
+    var h = "";
+    if(mov) h += '<div class="dsp-mov">En movimiento: use los atajos o la voz. El teclado se activa al detenerse.</div>';
+    h += '<div class="dsp-rap">' + ATAJOS.map(function(a){ return '<button data-a="' + esc(a[0]) + '" class="' + (a[1] ? "mal" : "") + '">' + esc(a[0]) + '</button>'; }).join("") + '</div>';
+    h += '<div class="dsp-esc"><input id="dsp-txt" maxlength="500" autocomplete="off" placeholder="' + (mov ? "Detenga el camión para escribir" : "Escriba un mensaje al Despacho…") + '"' + (mov ? " disabled" : "") + '>' +
+      (dictar ? '<button class="dsp-rd' + (C.grab ? " gra" : "") + '" id="dsp-voz" title="Dictar" onclick="DSP.dictar()">' + IC.mic + '</button>' : '') +
+      '<button class="dsp-env" id="dsp-env"' + (mov ? " disabled" : "") + ' onclick="DSP.enviarTxt()">Enviar</button></div>';
+    pie.innerHTML = h;
+    var t = $("dsp-txt"); if(t){ t.value = C.borr; t.oninput = function(){ C.borr = t.value; }; t.onkeydown = function(e){ if(e.key === "Enter"){ e.preventDefault(); D.enviarTxt(); } }; }
+  }
+  function pintaChat(){
+    var r = $("dsp-chat"); if(!r || !C.abierto) return;
+    var ult = null; C.msgs.forEach(function(m){ if(m.de === "d") ult = m; });
+    var s = $("dsp-sub"); if(s) s.textContent = ult && ult.autor ? "Atiende " + nom1(ult.autor) : "Despacho de ECOVSA";
+    var sn = $("dsp-sin"); if(sn) sn.style.display = C.offline ? "" : "none";
+    var ll = $("dsp-ll"); if(ll) ll.style.display = (window.EcovsaApp && typeof EcovsaApp.llamarDespacho === "function") ? "" : "none";
+    pintaMsgs(); pintaPie();
+  }
+  D.enviarTxt = function(){ var t = $("dsp-txt"); if(!t || t.disabled) return; var v = t.value.trim(); if(!v) return; t.value = ""; C.borr = ""; D.poner(v, false); };
+  D.llamar = function(){ if(!llamarDespacho()) toast("Llame al Despacho desde la tecla de la barra"); };
+  D.dictar = function(){
+    if(C.grab) return;
+    try{ if(window.EcovsaApp && typeof EcovsaApp.dictar === "function"){ C.grab = true; pintaChat(); EcovsaApp.dictar(); setTimeout(function(){ if(C.grab){ C.grab = false; pintaChat(); } }, 20000); return; } }catch(e){}
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR){ toast("Este equipo no puede dictar"); return; }
+    try{ var rec = new SR(); rec.lang = "es-PA"; rec.interimResults = false; C.grab = true; pintaChat();
+      rec.onresult = function(e){ var t = e.results && e.results[0] && e.results[0][0] && e.results[0][0].transcript; if(t) window.ecoDictado(t); };
+      rec.onend = rec.onerror = function(){ C.grab = false; pintaChat(); }; rec.start(); }catch(e){ C.grab = false; pintaChat(); }
+  };
+  /* la APK devuelve lo dictado aquí; sale con «Deshacer», sin tocar el teclado */
+  window.ecoDictado = function(t){ C.grab = false; t = String(t || "").trim(); if(t && esOperador()) D.poner(t, true); pintaChat(); };
+  D.abrir = function(){
+    if(!esOperador()) return;
+    armaChat(); leerCola(); C.abierto = true; C.noLeidos = 0; punto();
+    $("dsp-chat").classList.add("ver"); var ms = $("dsp-ms"); if(ms) ms.removeAttribute("data-k");
+    try{ history.pushState({ dsp: 1 }, ""); D._h = true; }catch(e){}
+    pintaChat(); pollC(); D.drena();
+  };
+  D.cerrar = function(volver){
+    if(!C.abierto) return; C.abierto = false;
+    var r = $("dsp-chat"); if(r) r.classList.remove("ver");
+    if(D._h && volver !== true){ D._h = false; try{ history.back(); }catch(e){} } else D._h = false;
+  };
+  window.addEventListener("popstate", function(){ if(C.abierto){ D._h = false; D.cerrar(true); } if(H.abierto){ H.abierto = false; var h = $("dsp-hist"); if(h) h.classList.remove("ver"); H._h = false; } });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ if(H.abierto) D.hist.cerrar(); else if(C.abierto) D.cerrar(); } });
+
+  /* ═════════════ EL SUPERVISOR · LA BANDEJA ═════════════ */
+  var S = D.s = { hilos: null, dias: [], fecha: "", t: 0, vuelo: false, ult: 0, hilo: null, borr: "", sinRespPrev: -1, mantener: "" };
+  function clave(h){ return "dsp:" + h.conductor + "|" + h.fecha; }
+  function hilosHoy(){
+    if(S.hilos) return S.hilos;
+    var d = typeof BQ !== "undefined" && BQ && BQ.inc && BQ.inc.despacho; return (d && Array.isArray(d.hilos)) ? d.hilos : [];
+  }
+  S.items = function(){
+    var L = [], hoy = hoyISO();
+    hilosHoy().forEach(function(h){
+      var k = clave(h), sel = typeof BQ !== "undefined" && BQ.sel === k;
+      if(!(num(h.sinResponder) > 0) && !sel) return;
+      var u = h.ultimo || {}, urg = num(h.sinResponder) > 0 && /ayuda|falla|accidente|choque|emergencia|lesi/i.test(String(u.texto || ""));
+      L.push({ k: k, cat: "cond", ic: "dspchat", c: "c38-t", f: h.fecha, h: u.hora || "", d: 0, g: urg ? "urg" : "hoy",
+        o: "Conductor · " + (h.fecha === hoy ? "hoy" : h.fecha) + (u.hora ? " " + u.hora : ""),
+        t: "Mensaje del conductor · " + nom1(h.conductor), s: (num(h.sinResponder) > 1 ? h.sinResponder + " sin responder · " : "") + (u.de === "d" ? "Usted: " : "") + String(u.texto || ""),
+        b: num(h.sinResponder) > 0 ? "Responder" : "Ver" });
+    });
+    return L;
+  };
+  S.partes = function(k){ var m = String(k || "").match(/^dsp:(.*)\|(\d{4}-\d{2}-\d{2})$/); return m ? { conductor: m[1], fecha: m[2] } : null; };
+  S.resumen = function(p){ return hilosHoy().filter(function(h){ return h.conductor === p.conductor && h.fecha === p.fecha; })[0] || null; };
+  function burb2(m, i, a){
+    var sep = ""; if(m.parada && (i === 0 || a[i - 1].parada !== m.parada)) sep = '<div class="sep">Parada · ' + esc(m.parada) + '</div>';
+    return sep + '<div class="b2 ' + (m.de === "c" ? "c" : "d") + '">' + esc(m.texto) + '<small>' + esc(nom1(m.autor) || (m.de === "c" ? "Conductor" : "Despacho")) + ' · ' + esc(hora12(m.hora)) + '</small></div>';
+  }
+  S.html = function(){
+    var p = S.partes(BQ.sel); if(!p) return '<div class="vacio">Elige algo de la lista.</div>';
+    var res = S.resumen(p) || {}, hy = S.hilo && S.hilo.conductor === p.conductor && S.hilo.fecha === p.fecha ? S.hilo : null;
+    var ms = hy ? hy.mensajes : [], hoy = p.fecha === hoyISO(), sin = num(res.sinResponder), atiende = (hy && hy.atiende) || res.atiende || "";
+    var et = sin > 0 ? '<span class="etq e-b">Sin responder</span>' : '<span class="etq e-ok">Respondido</span>';
+    var resp = atiende ? '<b>Lo atiende ' + esc(nom1(atiende)) + '</b>' : '<b>Sin responsable</b> · al contestar, queda usted';
+    var h = '<div class="dsp-det"><div class="dh"><i>' + IC.chat + '</i><div><div class="bo">' + esc(p.conductor) + ' · ' + (hoy ? "hoy" : esc(nombreDia_(p.fecha))) + '</div><h2>Mensaje del conductor</h2></div></div>' +
+      '<div>' + et + '</div><div class="resp">' + resp + '</div>' +
+      '<div class="dsp-hilo" id="dsp-s-hilo">' + (ms.length ? ms.map(burb2).join("") : '<div class="vacio" style="text-align:center;color:#8a96a8;padding:14px">' + (hy ? "Sin mensajes." : "Cargando el hilo…") + '</div>') + '</div>';
+    if(hoy){
+      h += '<div class="dsp-rr">' + RESPUESTAS.map(function(r, i){ return '<button onclick="DSP.s.rr(' + i + ')">' + esc(r) + '</button>'; }).join("") + '</div>' +
+        '<div class="dsp-rb"><input id="dsp-s-txt" maxlength="500" placeholder="Respuesta para el conductor…" value="' + esc(S.borr) + '" oninput="DSP.s.borr=this.value" onkeydown="if(event.key===\'Enter\'){DSP.s.enviar()}"><button class="dsp-bp" onclick="DSP.s.enviar()">Enviar a la tablet</button></div>' +
+        '<div class="dsp-acc">' + (atiende ? '' : '<button class="dsp-bn" onclick="DSP.s.tomar()">Tomar este mensaje</button>') + '<button class="dsp-bn" onclick="DSP.s.llamar()">Llamar al conductor</button>' + (sin > 0 ? '<button class="dsp-bn" onclick="DSP.s.atendido()">Ya lo atendí</button>' : '') + '</div>';
+    } else h += '<div class="resp">Es un día anterior: solo se puede leer. Para escribirle, use el hilo de hoy.</div>';
+    return h + '</div>';
+  };
+  S.abre = function(k){
+    var p = S.partes(k); if(!p || !esSup()) return;
+    S.mantener = k;
+    var igual = S.hilo && S.hilo.conductor === p.conductor && S.hilo.fecha === p.fecha;
+    if(!igual) S.hilo = { conductor: p.conductor, fecha: p.fecha, mensajes: [], atiende: "", cargado: false };
+    S.cargaHilo(p);
+  };
+  S.cargaHilo = function(p){
+    if(S.hv) return; S.hv = true;
+    llamar("api_dspHilo", PIN, p.conductor, p.fecha).then(function(r){
+      S.hv = false; if(!r || !r.ok) return;
+      var cambio = !S.hilo || !S.hilo.cargado || (S.hilo.mensajes || []).length !== (r.mensajes || []).length || S.hilo.atiende !== (r.atiende || "");
+      S.hilo = { conductor: p.conductor, fecha: p.fecha, mensajes: r.mensajes || [], atiende: r.atiende || "", cargado: true };
+      if(cambio) S.pinta();
+    }, function(){ S.hv = false; });
+  };
+  S.pinta = function(){
+    var p = S.partes(BQ.sel), det = $("bq38-det"); if(!p || !det) return;
+    var cur = det.querySelector(".dsp-det"); if(!cur){ if(typeof renderSolicitudes === "function") renderSolicitudes(); return; }
+    var fe = document.activeElement, escribiendo = fe && fe.id === "dsp-s-txt", val = escribiendo ? fe.value : null, hv = $("dsp-s-hilo");
+    var cerca = !hv || hv.scrollHeight - hv.scrollTop - hv.clientHeight < 80;
+    var tmp = document.createElement("div"); tmp.innerHTML = S.html(); var nuevo = tmp.firstChild; if(!nuevo) return;
+    cur.parentNode.replaceChild(nuevo, cur);
+    if(escribiendo){ var t = $("dsp-s-txt"); if(t){ t.value = val; S.borr = val; try{ t.focus(); }catch(e){} } }
+    var h2 = $("dsp-s-hilo"); if(h2 && cerca) h2.scrollTop = h2.scrollHeight;
+  };
+  S.rr = function(i){ S.responde(RESPUESTAS[i]); };
+  S.enviar = function(){ var t = $("dsp-s-txt"), v = (t ? t.value : S.borr).trim(); if(!v) return; S.responde(v); };
+  S.responde = function(txt){
+    var p = S.partes(BQ.sel); if(!p || p.fecha !== hoyISO()) return;
+    llamar("api_dspResponder", PIN, p.conductor, txt).then(function(r){
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo enviar"); return; }
+      S.borr = ""; var t = $("dsp-s-txt"); if(t) t.value = "";
+      if(S.hilo && r.msg) S.hilo.mensajes.push(r.msg);
+      toast("Enviado a la tablet"); S.pinta(); S.poll(true); S.cargaHilo(p);
+    }, function(){ toast("Sin señal: intente de nuevo"); });
+  };
+  S.tomar = function(){
+    var p = S.partes(BQ.sel); if(!p) return;
+    llamar("api_dspTomar", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Lo atiende usted"); if(S.hilo) S.hilo.atiende = quienSoy(); S.poll(true); S.cargaHilo(p); S.pinta(); }, function(){ toast("Sin señal: intente de nuevo"); });
+  };
+  S.atendido = function(){
+    var p = S.partes(BQ.sel); if(!p) return;
+    llamar("api_dspAtendido", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Marcado como atendido"); S.poll(true); S.cargaHilo(p); }, function(){ toast("Sin señal: intente de nuevo"); });
+  };
+  S.llamar = function(){
+    var p = S.partes(BQ.sel), res = p ? S.resumen(p) : null, tel = String((res && res.telefono) || (S.hilo && S.hilo.telefono) || "").replace(/[^\d+]/g, "");
+    if(tel){ location.href = "tel:" + tel; return; }
+    toast("Falta el teléfono del conductor en su ficha de usuario");
+  };
+  /* consulta con la Bandeja abierta: cada 20 s */
+  function bandejaAbierta(){ return typeof INI_TAB !== "undefined" && INI_TAB === "solicitudes" && !document.hidden; }
+  S.poll = function(ya){
+    if(S.vuelo || !esSup()) return;
+    S.vuelo = true; S.ult = Date.now();
+    llamar("api_dspBandeja", PIN, "").then(function(r){
+      S.vuelo = false; if(!r || !r.ok) return;
+      var antes = S.sinRespPrev, sr = (r.hilos || []).reduce(function(a, h){ return a + num(h.sinResponder); }, 0);
+      var cambio = !S.hilos || JSON.stringify(S.hilos) !== JSON.stringify(r.hilos || []);
+      S.hilos = r.hilos || []; S.dias = r.dias || []; S.fecha = r.fecha || ""; S.t = Date.now(); S.sinRespPrev = sr;
+      if(antes >= 0 && sr > antes) plin();
+      if(cambio && bandejaAbierta() && typeof renderSolicitudes === "function"){
+        var fe = document.activeElement; if(fe && fe.id === "dsp-s-txt") S.pinta(); else renderSolicitudes();
+      }
+      if(typeof bq38Contar_ === "function"){ try{ bq38Contar_(); }catch(e){} }
+    }, function(){ S.vuelo = false; });
+  };
+
+  /* ── se engancha a la Bandeja que ya existe ── */
+  if(typeof bq38Items_ === "function"){
+    var oItems = bq38Items_;
+    bq38Items_ = function(){
+      var L = oItems.apply(this, arguments);
+      try{ if(esSup()){ var X = S.items(); if(X.length){ X.forEach(function(x){ L.push(x); }); var G = { urg: 0, hoy: 1, esp: 2 }; L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); }); } } }catch(e){ console.error(e); }
+      return L;
+    };
+  }
+  if(typeof bq38Det_ === "function"){
+    var oDet = bq38Det_;
+    bq38Det_ = function(){ try{ if(typeof BQ !== "undefined" && String(BQ.sel || "").indexOf("dsp:") === 0) return S.html(); }catch(e){ console.error(e); } return oDet.apply(this, arguments); };
+  }
+  if(typeof bq38Despues_ === "function"){
+    var oDesp = bq38Despues_;
+    bq38Despues_ = function(){ var r = oDesp.apply(this, arguments); try{ if(String(BQ.sel || "").indexOf("dsp:") === 0) S.abre(BQ.sel); }catch(e){ console.error(e); } return r; };
+  }
+  if(typeof renderSolicitudes === "function"){
+    var oRend = renderSolicitudes;
+    renderSolicitudes = function(){
+      var r = oRend.apply(this, arguments);
+      try{
+        if(esSup()){
+          var bf = document.querySelector("#bq38 .bf");
+          if(bf && !bf.querySelector(".dsp-hbtn")) bf.insertAdjacentHTML("beforeend", '<button class="dsp-hbtn" onclick="DSP.hist.abrir()">' + IC.chat + 'Mensajes · historial</button>');
+          if(!S.t && !S.vuelo) S.poll();
+        }
+      }catch(e){ console.error(e); }
+      return r;
+    };
+  }
+
+  /* ── el historial por día ── */
+  var H = D.hist = { abierto: false, paso: "dias", fecha: "", conductor: "", cache: {}, hilo: null, q: "", cargando: false };
+  function armaHist(){
+    var r = $("dsp-hist"); if(r) return r;
+    r = document.createElement("div"); r.id = "dsp-hist"; r.className = "dsp-hist"; r.setAttribute("data-paso", "dias");
+    r.innerHTML = '<div class="cab"><b>Mensajes de los conductores · historial</b><button class="dsp-x" onclick="DSP.hist.cerrar()">Cerrar</button></div>' +
+      '<div class="bus"><input id="dsp-h-q" placeholder="Buscar por conductor, cliente o palabra" autocomplete="off" oninput="DSP.hist.buscar(this.value)"></div>' +
+      '<div class="cuerpo"><div class="col c1" id="dsp-h-c1"></div><div class="col c2" id="dsp-h-c2"></div><div class="col c3" id="dsp-h-c3"></div></div>';
+    document.body.appendChild(r); return r;
+  }
+  H.abrir = function(){
+    if(!esSup()) return; var r = armaHist(); H.abierto = true; r.classList.add("ver"); H.paso = "dias"; r.setAttribute("data-paso", "dias");
+    try{ history.pushState({ dsph: 1 }, ""); H._h = true; }catch(e){}
+    H.q = ""; var q = $("dsp-h-q"); if(q) q.value = "";
+    H.pinta(); if(!S.t) S.poll(); else H.pinta();
+    if(!S.dias.length) setTimeout(function(){ if(H.abierto) H.pinta(); }, 1200);
+    var tries = 0, w = setInterval(function(){ if(!H.abierto || S.t || ++tries > 8) clearInterval(w); if(S.t && H.abierto) H.pinta(); }, 700);
+  };
+  H.cerrar = function(){
+    var r = $("dsp-hist"); if(r) r.classList.remove("ver"); H.abierto = false;
+    if(H._h){ H._h = false; try{ history.back(); }catch(e){} }
+  };
+  H.dia = function(f){
+    H.fecha = f; H.conductor = ""; H.hilo = null; H.paso = "hilos"; var r = $("dsp-hist"); if(r) r.setAttribute("data-paso", "hilos"); H.pinta();
+    if(H.cache[f]) return;
+    llamar("api_dspBandeja", PIN, f).then(function(x){ if(x && x.ok){ H.cache[f] = x.hilos || []; if(H.abierto) H.pinta(); } }, function(){});
+  };
+  H.hilo_ = function(f, c){
+    H.fecha = f; H.conductor = c; H.paso = "hilo"; var r = $("dsp-hist"); if(r) r.setAttribute("data-paso", "hilo");
+    H.hilo = { fecha: f, conductor: c, mensajes: null }; H.pinta();
+    llamar("api_dspHilo", PIN, c, f).then(function(x){ if(x && x.ok && H.hilo && H.hilo.conductor === c && H.hilo.fecha === f){ H.hilo = { fecha: f, conductor: c, mensajes: x.mensajes || [], atiende: x.atiende || "" }; if(H.abierto) H.pinta(); } }, function(){});
+  };
+  H.volver = function(){ var r = $("dsp-hist"); H.paso = H.paso === "hilo" ? "hilos" : "dias"; if(r) r.setAttribute("data-paso", H.paso); };
+  H.buscar = function(v){
+    H.q = String(v || "").trim().toLowerCase(); H.pinta();
+    if(H.q.length < 2) return;
+    var faltan = (S.dias || []).filter(function(d){ return num(d.n) > 0 && !H.cache[d.fecha]; }).slice(0, 30), i = 0;
+    function sig(){ if(!H.abierto || i >= faltan.length || H.q.length < 2) return; var f = faltan[i++].fecha; llamar("api_dspBandeja", PIN, f).then(function(x){ if(x && x.ok) H.cache[f] = x.hilos || []; H.pinta(); sig(); }, sig); }
+    sig(); sig();
+  };
+  function resHilo(h){ var u = h.ultimo || {}; return String(u.texto || ""); }
+  H.pinta = function(){
+    var c1 = $("dsp-h-c1"), c2 = $("dsp-h-c2"), c3 = $("dsp-h-c3"); if(!c1) return;
+    var dias = S.dias || [];
+    c1.innerHTML = '<h5>Últimos 30 días</h5>' + (dias.length ? dias.map(function(d){
+      return '<button class="it' + (H.fecha === d.fecha ? " sel" : "") + '" onclick="DSP.hist.dia(\'' + d.fecha + '\')"><div class="tx"><b>' + (d.fecha === hoyISO() ? "Hoy" : esc(nombreDia_(d.fecha))) + '</b><span>' + num(d.n) + (num(d.n) === 1 ? " mensaje" : " mensajes") + '</span></div>' + (num(d.sinResponder) ? '<em class="u">' + d.sinResponder + '</em>' : '') + '</button>'; }).join("") : '<div class="vacio">' + (S.t ? "Todavía no hay mensajes." : "Consultando…") + '</div>');
+    var l2 = '<button class="volver" onclick="DSP.hist.volver()">← Volver</button>';
+    if(H.q.length >= 2){
+      var res = [];
+      Object.keys(H.cache).sort().reverse().forEach(function(f){ (H.cache[f] || []).forEach(function(h){
+        var blob = (h.conductor + " " + resHilo(h) + " " + (Array.isArray(h.paradas) ? h.paradas.join(" ") : String(h.paradas || ""))).toLowerCase();
+        if(blob.indexOf(H.q) >= 0) res.push(h); }); });
+      l2 += '<h5>Resultados · ' + res.length + '</h5>' + (res.length ? res.map(function(h){ return itHilo(h, true); }).join("") : '<div class="vacio">Nada con «' + esc(H.q) + '» en los días ya consultados.</div>');
+    } else if(H.fecha){
+      var hs = H.cache[H.fecha];
+      l2 += '<h5>' + (H.fecha === hoyISO() ? "Hoy" : esc(nombreDia_(H.fecha))) + '</h5>' + (!hs ? '<div class="vacio">Consultando…</div>' : hs.length ? hs.map(function(h){ return itHilo(h, false); }).join("") : '<div class="vacio">Sin mensajes ese día.</div>');
+    } else l2 += '<div class="vacio">Elija un día.</div>';
+    c2.innerHTML = l2;
+    var l3 = '<button class="volver" onclick="DSP.hist.volver()">← Volver</button>';
+    if(H.hilo){
+      var ms = H.hilo.mensajes;
+      l3 += '<h5>' + esc(H.hilo.conductor) + ' · ' + (H.hilo.fecha === hoyISO() ? "hoy" : esc(nombreDia_(H.hilo.fecha))) + '</h5><div class="dsp-hilo" style="max-height:none">' + (ms ? (ms.length ? ms.map(burb2).join("") : '<div class="vacio">Sin mensajes.</div>') : '<div class="vacio">Cargando…</div>') + '</div>' +
+        '<div class="resp" style="font-size:12.5px;color:var(--dg);margin-top:8px">Solo lectura. Para contestar, abra el mensaje en la Bandeja.</div>';
+    } else l3 += '<div class="vacio">Elija una conversación.</div>';
+    c3.innerHTML = l3;
+  };
+  function itHilo(h, conFecha){
+    var u = h.ultimo || {}, sel = H.hilo && H.hilo.conductor === h.conductor && H.hilo.fecha === h.fecha;
+    return '<button class="it' + (sel ? " sel" : "") + '" onclick="DSP.hist.hilo_(\'' + h.fecha + '\',\'' + esc(h.conductor).replace(/'/g, "\\'") + '\')"><div class="tx"><b>' + esc(h.conductor) + (conFecha ? ' · ' + esc(nombreDia_(h.fecha)) : '') + '</b><span>' + (u.de === "d" ? "Despacho: " : "") + esc(resHilo(h)) + '</span></div>' + (num(h.sinResponder) ? '<em class="u">' + h.sinResponder + '</em>' : '') + '</button>';
+  }
+
+  /* ═════════════ LA ENTRADA: la tecla «Despacho» ═════════════ */
+  D.ir = function(){
+    if(!PIN){ if(!llamarDespacho()) toast("Entre con su PIN"); return; }
+    if(esSup()){
+      try{ if(window.C38 && C38.cerrarMenu) C38.cerrarMenu(); }catch(e){}
+      try{ BQ.f = "cond"; var X = S.items(); BQ.sel = X.length ? X[0].k : ""; }catch(e){}
+      mostrarTab("solicitudes"); if(!S.t) S.poll(); return;
+    }
+    if(C.sin){ if(!llamarDespacho()) toast("El chat todavía no está disponible"); return; }
+    D.abrir();
+    /* si el servidor todavía no trae el chat, se cierra y se llama como siempre */
+    var antes = C.verif;
+    setTimeout(function(){ if(C.sin && C.abierto && !antes){ D.cerrar(); llamarDespacho(); } }, 2500);
+  };
+  var oIr = window.ecoIr;
+  window.ecoIr = function(ir){
+    if(String(ir || "") === "despacho"){ try{ D.ir(); }catch(e){ console.error(e); llamarDespacho(); } return; }
+    return typeof oIr === "function" ? oIr.apply(this, arguments) : undefined;
+  };
+  window.ecoDespacho = function(){ try{ D.ir(); }catch(e){ console.error(e); llamarDespacho(); } };
+
+  /* ── el reloj: respuestas del Despacho (conductor) y mensajes nuevos (supervisor) ── */
+  leerCola();
+  setInterval(function(){
+    if(!PIN || document.hidden) return;
+    var now = Date.now();
+    if(esOperador()){
+      if(!C.cola.length && C.max === "" && !C.vuelo && now - C.ultPoll > 4000) pollC();
+      else if(now - C.ultPoll >= (C.abierto ? 10000 : 30000)) pollC();
+      D.drena(); if(C.abierto) pintaChat();
+    } else if(esSup()){
+      if(bandejaAbierta() && now - S.ult >= 20000) S.poll();
+      var s = S.mantener && BQ.sel === S.mantener && String(BQ.sel).indexOf("dsp:") === 0;
+      if(s && bandejaAbierta() && now - (S._hl || 0) >= 20000){ S._hl = now; var p = S.partes(BQ.sel); if(p) S.cargaHilo(p); }
+    }
+  }, 3000);
+  /* el chat se arma al cambiar el movimiento (el teclado se bloquea/desbloquea) */
+  setInterval(function(){ if(C.abierto){ var m = D.enMovimiento(); if(m !== C.movPrev){ C.movPrev = m; var pie = $("dsp-pie"); if(pie) pie.removeAttribute("data-k"); if(m){ var t = $("dsp-txt"); if(t) t.blur(); } pintaChat(); } } }, 1500);
+})();
+</script>
 
 
 
