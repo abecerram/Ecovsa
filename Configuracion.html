@@ -1254,5 +1254,80 @@ function iaQuitar() {
 }
 
 </script>
+<style id="estilo-353">
+.ad53-av{display:flex;gap:10px;align-items:flex-start;background:#fff8e6;border:1px solid #f1d58a;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;color:#5c4300}.ad53-av b{display:block;color:#7a4b00}
+.ad53-box{margin-top:8px;padding:10px 12px;border-radius:12px;background:#f2f6fd;border:1px solid #d6e2f5;font-size:13.5px}.ad53-box .t{font-size:11.5px;letter-spacing:.6px;color:var(--marca,#14306b);font-weight:800}
+.ad53-x{background:#eef6ff;border:1px solid #c6dcf7;border-radius:12px;padding:10px 12px;font-size:13px;color:#14306b;margin:10px 0}
+.ad53-s{display:flex;gap:10px;align-items:center;border:1.5px solid #e1e6ee;border-radius:12px;padding:10px 12px;margin:0 0 8px;cursor:pointer}.ad53-s input{width:18px;height:18px;accent-color:#14306b}.ad53-s small{display:block;color:#667489}
+</style>
+<script id="js-353">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.53 · PORTAL DE CLIENTES › ADMINISTRADORA DE SEDES (aprobado por Álvaro el 26 oct)
+   · ECOVSA nombra a una persona que ya entra por su sede administradora de otras sedes, elegidas una por una
+     (no es el «Encargado de la cuenta» corporativo). Sigue con su mismo PIN.
+   · En una cuenta con varias sedes sin quien las administre, la tarjeta lo avisa.
+   · Se puede cambiar de sedes o quitar el rol; todo queda en el historial del portal.
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+if(typeof vPortal!=='function') return;
+function sedesTodas(){ var L=[]; (PTL.cuentas||[]).forEach(function(c){ c.sedes.forEach(function(s){ L.push({ clienteId:s.clienteId, nombre:s.nombre, raz:c.razonSocial }); }); }); return L; }
+function buscar(id){ var r=null; (PTL.cuentas||[]).forEach(function(c,ci){ c.sedes.forEach(function(s,si){ s.accesos.forEach(function(a){ if(a.accesoId===id) r={ c:c, ci:ci, s:s, a:a }; }); }); }); return r; }
+function nomDe(id){ var x=sedesTodas().filter(function(s){ return s.clienteId===id; })[0]; return x?x.nombre:id; }
+function decorar(){
+  if(!PTL||!PTL.ok||PTL_T!=='cli') return;
+  PTL.cuentas.forEach(function(c,ci){
+    var b=document.querySelector('button[onclick^="ptlInvitar(\'sede\','+ci+',"],button[onclick^="ptlInvitar(\'micro\','+ci+',"]'), card=b&&b.closest('.card'); if(!card||card.querySelector('.ad53-hecho')) return;
+    card.insertAdjacentHTML('beforeend','<i class="ad53-hecho" hidden></i>');
+    var adm=[], activos=[];
+    c.sedes.forEach(function(s){ s.accesos.forEach(function(a){
+      if(a.estado!=='activo') return; activos.push({ a:a, s:s });
+      var q=card.querySelector('button[onclick^="ptlQuitar(\''+a.accesoId+'\'"]'); if(!q) return;
+      if((a.adminSedes||[]).length){ adm.push({ a:a, s:s });
+        q.insertAdjacentHTML('beforebegin','<button class="btn sm" onclick="ad53Abrir(\''+a.accesoId+'\')">'+MK.ic('llave',14)+'Sedes que administra</button>');
+        var tx=q.closest('.fila'), sp=tx&&tx.querySelector('span'); if(sp) sp.insertAdjacentHTML('beforeend',' <span class="tag t-info">Administra '+(a.adminSedes.length+1)+' sedes</span>');
+      } else if(c.macro) q.insertAdjacentHTML('beforebegin','<button class="btn sm" onclick="ad53Abrir(\''+a.accesoId+'\')">'+MK.ic('llave',14)+'Hacerla administradora de sedes</button>');
+    }); });
+    adm.forEach(function(x){ card.insertAdjacentHTML('beforeend','<div class="ad53-box"><div class="t">ADMINISTRADORA DE SEDES</div><b>'+MK.esc(x.a.nombre)+'</b> administra '+[x.s.nombre].concat(x.a.adminSedes.map(nomDe)).map(MK.esc).join(', ')+
+      ': visitas, pedidos, recibos, certificados, facturas y pagos. <a href="#" onclick="ad53Abrir(\''+x.a.accesoId+'\');return false">Cambiar sedes</a></div>'); });
+    var otra=[]; (PTL.cuentas||[]).forEach(function(o){ if(o===c) return; o.sedes.forEach(function(s){ s.accesos.forEach(function(a){ if(a.estado==='activo'&&(a.adminSedes||[]).some(function(id){ return c.sedes.some(function(z){ return z.clienteId===id; }); })) otra.push(a); }); }); });
+    otra.forEach(function(a){ card.insertAdjacentHTML('beforeend','<div class="ad53-box"><div class="t">LA ADMINISTRA</div><b>'+MK.esc(a.nombre)+'</b> (entra por '+MK.esc(nomDe(a.clienteId))+') <a href="#" onclick="ad53Abrir(\''+a.accesoId+'\');return false">Ver</a></div>'); });
+    if(c.macro&&!c.corp.length&&!adm.length&&!otra.length&&activos.length)
+      card.insertAdjacentHTML('beforeend','<div class="ad53-av">'+MK.ic('alerta',16)+'<span><b>Esta cuenta tiene '+c.sedes.length+' sedes y nadie las administra</b>Cada sede se maneja por separado. Si una persona administra varias, hágala administradora: sigue con su mismo PIN.</span></div>');
+  });
+}
+var v0=vPortal;
+vPortal=function(){ var h=v0.apply(this,arguments); setTimeout(function(){ try{ decorar(); }catch(e){ if(window.console) console.error(e); } },0); return h; };
+var SEL53={};
+window.ad53Abrir=function(id){
+  var x=buscar(id); if(!x) return;
+  var a=x.a, ya=a.adminSedes||[], lista=x.c.sedes.map(function(s){ return { clienteId:s.clienteId, nombre:s.nombre }; });
+  ya.forEach(function(i){ if(!lista.some(function(s){ return s.clienteId===i; })) lista.push({ clienteId:i, nombre:nomDe(i) }); });
+  SEL53={}; lista.forEach(function(s){ SEL53[s.clienteId]=s.clienteId===a.clienteId||ya.indexOf(s.clienteId)>=0||!ya.length; });
+  window._ad53={ x:x, lista:lista };
+  ad53Pintar();
+};
+window.ad53Pintar=function(){
+  var x=_ad53.x, a=x.a, ya=(a.adminSedes||[]).length, lista=_ad53.lista, fuera=sedesTodas().filter(function(s){ return !lista.some(function(z){ return z.clienteId===s.clienteId; }); });
+  MK.lado('<h2>Administradora de sedes</h2><div class="sub">'+MK.esc(a.nombre)+(a.cargo?' · '+MK.esc(a.cargo):'')+' · entra por '+MK.esc(x.s.nombre)+'</div>'+
+    '<label class="lb">¿Qué sedes administra?</label>'+lista.map(function(s){ var casa=s.clienteId===a.clienteId; return '<label class="ad53-s"><input type="checkbox"'+(SEL53[s.clienteId]?' checked':'')+(casa?' disabled':'')+' onchange="SEL53_(\''+s.clienteId+'\',this.checked)"><span><b>'+MK.esc(s.nombre)+'</b><small>'+(casa?'la suya':'N.º '+MK.esc(s.clienteId))+'</small></span></label>'; }).join('')+
+    (fuera.length?'<label class="lb">Agregar otra sede</label><select class="in" onchange="if(this.value){ _ad53.lista.push({ clienteId:this.value, nombre:this.options[this.selectedIndex].text }); SEL53_(this.value,true); }"><option value="">Elija…</option>'+fuera.map(function(s){ return '<option value="'+MK.esc(s.clienteId)+'">'+MK.esc(s.nombre)+'</option>'; }).join('')+'</select>':'')+
+    '<div class="ad53-x"><b>Lo que podrá hacer en esas sedes:</b> ver y pedir visitas, cambiar o cancelar pedidos, recibos y certificados, facturas, pagos y comprobantes. Su portal sigue siendo el de sede, con un selector por el nombre de cada sede.</div>'+
+    '<div class="small" style="line-height:1.6">'+MK.ic('check',14)+' Sigue con <b>su mismo PIN</b>.<br>'+MK.ic('check',14)+' Al guardar le arma el aviso por WhatsApp.<br>'+MK.ic('check',14)+' Queda en el historial del portal.</div>'+
+    '<div class="pie2">'+(ya?'<button class="btn" id="ad53-quitar">Quitarle el rol</button>':'<button class="btn" onclick="MK.cerrarLado()">Cancelar</button>')+'<button class="btn pri" id="ad53-ok">'+MK.ic('check',16)+(ya?'Guardar cambios':'Hacerla administradora')+'</button></div>');
+  document.getElementById('ad53-ok').onclick=function(){ var ids=Object.keys(SEL53).filter(function(k){ return SEL53[k]&&k!==a.clienteId; }); if(!ids.length){ MK.aviso('Marque al menos otra sede.'); return; } ad53Guardar(this,ids); };
+  var q=document.getElementById('ad53-quitar'); if(q) q.onclick=function(){ var b=this; MK.confirmar(a.nombre+' vuelve a ver solo '+x.s.nombre+'. Queda en el historial.',function(){ ad53Guardar(b,[]); },{ titulo:'¿Quitarle el rol?', boton:'Sí, quitarlo' }); };
+};
+window.SEL53_=function(id,v){ SEL53[id]=v; ad53Pintar(); };
+function ad53Guardar(b,ids){
+  var x=_ad53.x; MK.ocupado(b,true);
+  MK.api('api_ptlAdminSedes',PIN,x.a.accesoId,ids).then(function(r){
+    MK.ocupado(b,false); if(!r||!r.ok){ MK.aviso((r&&r.error)||'No se pudo'); return; }
+    ptlResultado({ texto:r.texto, wa:r.wa, vence:'' }, ids.length?'Listo: administra '+r.sedes.length+' sedes':'Listo: se le quitó el rol');
+    var s=document.querySelector('#mk-lado .sub'); if(s) s.textContent='Avísele por WhatsApp con este mensaje.';
+    ptlCargar();
+  },function(){ MK.ocupado(b,false); MK.aviso('Sin conexión'); });
+}
+})();
+</script>
 </body>
 </html>
