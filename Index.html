@@ -22600,6 +22600,7 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   D.plin = plin;
   function lsGet(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
   function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function tst(m){ try{ toast(m); }catch(e){} }
   function llamarDespacho(){ try{ if(window.EcovsaApp && typeof EcovsaApp.llamarDespacho === "function"){ EcovsaApp.llamarDespacho(); return true; } }catch(e){} return false; }
 
   /* ── velocidad: la APK la entrega en ecoPos (m/s); sin ella, la del navegador ── */
@@ -22764,11 +22765,11 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     pintaMsgs(); pintaPie();
   }
   D.enviarTxt = function(){ var t = $("dsp-txt"); if(!t || t.disabled) return; var v = t.value.trim(); if(!v) return; t.value = ""; C.borr = ""; D.poner(v, false); };
-  D.llamar = function(){ if(!llamarDespacho()) toast("Llame al Despacho desde la tecla de la barra"); };
+  D.llamar = function(){ if(!llamarDespacho()) tst("Llame al Despacho desde la tecla de la barra"); };
   D.dictar = function(){
     if(C.grab) return;
     try{ if(window.EcovsaApp && typeof EcovsaApp.dictar === "function"){ C.grab = true; pintaChat(); EcovsaApp.dictar(); setTimeout(function(){ if(C.grab){ C.grab = false; pintaChat(); } }, 20000); return; } }catch(e){}
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR){ toast("Este equipo no puede dictar"); return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR){ tst("Este equipo no puede dictar"); return; }
     try{ var rec = new SR(); rec.lang = "es-PA"; rec.interimResults = false; C.grab = true; pintaChat();
       rec.onresult = function(e){ var t = e.results && e.results[0] && e.results[0][0] && e.results[0][0].transcript; if(t) window.ecoDictado(t); };
       rec.onend = rec.onerror = function(){ C.grab = false; pintaChat(); }; rec.start(); }catch(e){ C.grab = false; pintaChat(); }
@@ -22866,24 +22867,24 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   S.responde = function(txt){
     var p = S.partes(BQ.sel); if(!p || p.fecha !== hoyISO()) return;
     llamar("api_dspResponder", PIN, p.conductor, txt).then(function(r){
-      if(!r || !r.ok){ toast((r && r.error) || "No se pudo enviar"); return; }
+      if(!r || !r.ok){ tst((r && r.error) || "No se pudo enviar"); return; }
       S.borr = ""; var t = $("dsp-s-txt"); if(t) t.value = "";
       if(S.hilo && r.msg) S.hilo.mensajes.push(r.msg);
-      toast("Enviado a la tablet"); S.pinta(); S.poll(true); S.cargaHilo(p);
-    }, function(){ toast("Sin señal: intente de nuevo"); });
+      tst("Enviado a la tablet"); S.pinta(); S.poll(true); S.cargaHilo(p);
+    }, function(){ tst("Sin señal: intente de nuevo"); });
   };
   S.tomar = function(){
     var p = S.partes(BQ.sel); if(!p) return;
-    llamar("api_dspTomar", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Lo atiende usted"); if(S.hilo) S.hilo.atiende = quienSoy(); S.poll(true); S.cargaHilo(p); S.pinta(); }, function(){ toast("Sin señal: intente de nuevo"); });
+    llamar("api_dspTomar", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ tst((r && r.error) || "No se pudo"); return; } tst("Lo atiende usted"); if(S.hilo) S.hilo.atiende = quienSoy(); S.poll(true); S.cargaHilo(p); S.pinta(); }, function(){ tst("Sin señal: intente de nuevo"); });
   };
   S.atendido = function(){
     var p = S.partes(BQ.sel); if(!p) return;
-    llamar("api_dspAtendido", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Marcado como atendido"); S.poll(true); S.cargaHilo(p); }, function(){ toast("Sin señal: intente de nuevo"); });
+    llamar("api_dspAtendido", PIN, p.conductor, p.fecha).then(function(r){ if(!r || !r.ok){ tst((r && r.error) || "No se pudo"); return; } tst("Marcado como atendido"); S.poll(true); S.cargaHilo(p); }, function(){ tst("Sin señal: intente de nuevo"); });
   };
   S.llamar = function(){
     var p = S.partes(BQ.sel), res = p ? S.resumen(p) : null, tel = String((res && res.telefono) || (S.hilo && S.hilo.telefono) || "").replace(/[^\d+]/g, "");
     if(tel){ location.href = "tel:" + tel; return; }
-    toast("Falta el teléfono del conductor en su ficha de usuario");
+    tst("Falta el teléfono del conductor en su ficha de usuario");
   };
   /* consulta con la Bandeja abierta: cada 20 s */
   function bandejaAbierta(){ return typeof INI_TAB !== "undefined" && INI_TAB === "solicitudes" && !document.hidden; }
@@ -23008,13 +23009,13 @@ body.t47-noche .dsp-bn{color:#e8eefb}
 
   /* ═════════════ LA ENTRADA: la tecla «Despacho» ═════════════ */
   D.ir = function(){
-    if(!PIN){ if(!llamarDespacho()) toast("Entre con su PIN"); return; }
+    if(!PIN){ if(!llamarDespacho()) tst("Entre con su PIN"); return; }
     if(esSup()){
       try{ if(window.C38 && C38.cerrarMenu) C38.cerrarMenu(); }catch(e){}
       try{ BQ.f = "cond"; var X = S.items(); BQ.sel = X.length ? X[0].k : ""; }catch(e){}
       mostrarTab("solicitudes"); if(!S.t) S.poll(); return;
     }
-    if(C.sin){ if(!llamarDespacho()) toast("El chat todavía no está disponible"); return; }
+    if(C.sin){ if(!llamarDespacho()) tst("El chat todavía no está disponible"); return; }
     D.abrir();
     /* si el servidor todavía no trae el chat, se cierra y se llama como siempre */
     var antes = C.verif;
