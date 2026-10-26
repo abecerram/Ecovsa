@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_/,vigia:false};</script>
+<script src="puente.js"></script>
+<script src="cargador.js" data-solo></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0f2a57">
+<title>Ubicar la sucursal · ECOVSA</title>
+<link rel="icon" href="logo-ecovsa.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* ═══ api 3.51 · La página del local: solo marca el punto de su sucursal ═══
+   La abre la recepcionista desde el enlace que le mandaron por WhatsApp. No ve precios ni
+   datos de la empresa; el enlace sirve una sola vez y vence en 7 días. Mismo estilo que el formulario. */
+:root{--navy:#0f2a57;--navy2:#14306b;--ink:#0f2140;--txt:#3d4a60;--muted:#667489;--line:#e1e6ee;--line2:#eef1f5;--bg:#f4f6f9;--campo:#d3dcea;--sel:#f5f8fd;
+  --ok:#2f9e44;--ok-bg:#eaf6e4;--bad:#d64045;--bad-bg:#fdecea;--warn-bg:#fff4d6;--warn:#8a6100}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;min-height:100vh;min-height:100dvh}
+button{font-family:inherit;color:inherit}
+a{color:var(--navy2)}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+:focus-visible{outline:3px solid #9db4d8;outline-offset:2px}
+.top{background:var(--navy);color:#fff}
+.top .in{max-width:620px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:12px}
+.lg{width:44px;height:44px;border-radius:11px;background:#fff url(logo-ecovsa.png) center/34px no-repeat;flex:none}
+.top span{font-size:12px;color:#b8c7e0}
+.top .wmk{display:block;width:96px;height:auto;margin:1px 0 4px}
+.bc{max-width:620px;margin:0 auto;padding:22px 18px 30px}
+.bc h1{font-size:24px;line-height:1.22;font-weight:700;margin:2px 0 6px;outline:none}
+.ex{color:var(--muted);font-size:15px;margin-bottom:16px}
+.ex b{color:var(--ink)}
+.btn{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;background:var(--navy2);color:#fff;font:700 16.5px Archivo,sans-serif;padding:15px;cursor:pointer;min-height:52px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec{background:#fff;color:var(--navy2);border:1.5px solid #c9d5e8}
+.lnk{display:block;width:100%;text-align:center;background:none;border:0;color:var(--navy2);font:700 14.5px Archivo,sans-serif;padding:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.ubic{display:flex;gap:12px;align-items:center;border:1.5px solid var(--navy2);background:var(--sel);border-radius:14px;padding:16px;width:100%;cursor:pointer;text-align:left;font:inherit;color:var(--navy2);margin:6px 0}
+.ubic b{display:block;font-size:16px;color:var(--ink)}.ubic small{display:block;color:var(--muted);font-size:13px;font-weight:500}
+.ubic .ic{width:42px;height:42px;border-radius:12px;background:var(--navy2);color:#fff;display:grid;place-items:center;flex:none}
+.ubic:disabled{opacity:.7;cursor:progress}
+.notita{font-size:13.5px;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;display:flex;gap:9px;align-items:flex-start}
+.notita svg.i{width:17px;height:17px;color:var(--navy2);margin-top:1px}
+.notita.mal{background:var(--bad-bg);border-color:#f3c3c5;color:#8f2a2e}.notita.mal svg.i{color:var(--bad)}
+.dir{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:14px;color:var(--txt);margin-bottom:14px}
+.dir small{display:block;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:2px}
+.fi{width:100%;border:1.5px solid var(--campo);border-radius:11px;padding:12px 13px;font:500 16px Archivo,sans-serif;color:var(--ink);background:#fff;min-height:50px;-webkit-appearance:none;appearance:none}
+.bus{display:flex;gap:8px;margin-top:6px}.bus .fi{flex:1}
+.bus .b2{flex:none;border:0;border-radius:11px;background:var(--navy2);color:#fff;font:700 14.5px Archivo,sans-serif;padding:0 16px;min-height:50px;cursor:pointer}.bus .b2:disabled{opacity:.55}
+.res{border:1px solid var(--line);border-radius:12px;background:#fff;margin:8px 0;overflow:hidden}
+.res button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:#fff;padding:11px 13px;font:600 14.5px Archivo,sans-serif;color:var(--ink);cursor:pointer}
+.res button:last-child{border-bottom:0}.res small{display:block;color:var(--muted);font-size:12.5px;font-weight:500}
+.map{position:relative;height:320px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#eef1ec;margin:12px 0 6px;z-index:0}
+.fh{font-size:13px;color:var(--muted);margin-bottom:14px}
+.pin51{width:38px;height:38px}.pin51 svg{width:38px;height:38px;fill:#d64045;stroke:#fff;stroke-width:1.5;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.fin{text-align:center;padding-top:16px}
+.okc{width:66px;height:66px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:6px auto 14px}
+.okc svg.i{width:34px;height:34px;stroke-width:2.6}.okc.am{background:var(--warn-bg);color:var(--warn)}
+.fin p{color:var(--txt);font-size:15px;margin-top:6px}
+.carga{display:flex;flex-direction:column;align-items:center;gap:12px;padding:60px 0;color:var(--muted);font-weight:600;font-size:14px}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--navy2);animation:g .9s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+.pie{text-align:center;font-size:12px;color:var(--muted);line-height:1.6;margin-top:22px}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><span class="lg" role="img" aria-label="ECOVSA"></span><div><img class="wmk" src="ecovsa-letras.png" alt="ECOVSA"><span>Recolección y tratamiento de desechos hospitalarios</span></div></div></header>
+<main class="bc" id="app"><div class="carga" role="status"><div class="spin" aria-hidden="true"></div>Cargando…</div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+var TOK = '', U = null, C = null, MAPA = null, RES = [];
+var IC = {
+  gps: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>', alerta: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>', candado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+};
+function ic(n){ return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || '') + '</svg>'; }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function $(id){ return document.getElementById(id); }
+function nota(t, mal){ return '<div class="notita' + (mal ? ' mal' : '') + '">' + ic(mal ? 'alerta' : 'info') + '<span>' + t + '</span></div>'; }
+function pie(){ return '<div class="pie">ECOVSA · Tel. <a href="tel:+5073102268">310-2268</a></div>'; }
+var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fecha(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? Number(m[3]) + ' de ' + MESES[Number(m[2]) - 1] : ''; }
+function pintar(h){ if (MAPA) { try { MAPA.remove(); } catch (e) {} MAPA = null; } $('app').innerHTML = h; var t = document.querySelector('#app h1'); if (t) t.focus({ preventScroll: true }); window.scrollTo(0, 0); }
+function fin(titulo, texto, am){ pintar('<div class="fin"><div class="okc' + (am ? ' am' : '') + '">' + ic(am ? 'alerta' : 'check') + '</div><h1 tabindex="-1">' + titulo + '</h1><p>' + texto + '</p></div>' + pie()); }
+
+function arrancar(){
+  var q = new URLSearchParams(location.search); TOK = (q.get('u') || '').trim();
+  if (!TOK) return fin('Enlace incompleto', 'A este enlace le falta una parte. Pídale uno nuevo a quien se lo envió.', true);
+  google.script.run.withSuccessHandler(function (r) {
+    if (!r || !r.ok) {
+      if (r && r.usado) return fin('Ya quedó guardado', 'El punto de ' + esc(r.sucursal || 'esta sucursal') + ' ya se marcó con este enlace. Gracias.');
+      return fin('No se puede abrir', esc((r && r.error) || 'Intente más tarde.'), true);
+    }
+    U = r; inicio();
+  }).withFailureHandler(function () { fin('Sin conexión', 'No pudimos abrir el enlace. Revise la señal e intente de nuevo.', true); }).api_ubicarAbrir(TOK);
+}
+function inicio(){
+  C = null; RES = [];
+  pintar('<h1 tabindex="-1">Ubicar la sucursal ' + esc(U.sucursal) + '</h1>' +
+    '<p class="ex"><b>' + esc(U.empresa) + '</b> le pidió marcar dónde recogemos los desechos de este local. Toma 10 segundos.</p>' +
+    (U.direccion ? '<div class="dir"><small>Dirección que nos dieron</small>' + esc(U.direccion) + '</div>' : '') +
+    '<button class="ubic" id="aqui" onclick="aqui()"><span class="ic">' + ic('gps') + '</span><span><b>Estoy aquí: usar mi ubicación</b><small>Párese cerca de la entrada donde se entregan los desechos</small></span></button>' +
+    '<div id="msg"></div>' +
+    (U.buscar ? '<button class="lnk" onclick="buscarVista()">No estoy en el local: buscarlo en el mapa</button>' : '') +
+    nota('Solo se guarda el punto. No se le pide ningún otro dato.') + '<div class="notita">' + ic('reloj') + '<span>Este enlace sirve una sola vez y vence el ' + esc(fecha(U.vence)) + '.</span></div>' + pie());
+}
+function aqui(){
+  var b = $('aqui');
+  if (!navigator.geolocation) { $('msg').innerHTML = nota('Este teléfono no deja compartir la ubicación desde aquí.' + (U.buscar ? ' Búsquelo en el mapa.' : ''), true); return; }
+  b.disabled = true; b.querySelector('b').textContent = 'Buscando su ubicación…';
+  navigator.geolocation.getCurrentPosition(function (p) {
+    C = { lat: Math.round(p.coords.latitude * 1e6) / 1e6, lng: Math.round(p.coords.longitude * 1e6) / 1e6, precision: Math.round(p.coords.accuracy || 0) || '', metodo: 'aqui' };
+    vistaMapa();
+  }, function (e) {
+    b.disabled = false; b.querySelector('b').textContent = 'Estoy aquí: usar mi ubicación';
+    $('msg').innerHTML = nota(e && e.code === 1 ? 'No nos dio permiso para ver la ubicación. Toque el candado de la barra de direcciones y permita la ubicación, o búsquelo en el mapa.'
+      : 'No pudimos encontrar la ubicación. Intente otra vez cerca de una ventana.', true);
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+}
+function buscarVista(){
+  pintar('<h1 tabindex="-1">Buscar el local</h1><p class="ex">Escriba el nombre del local, de la plaza o del edificio.</p>' +
+    '<div class="bus"><input class="fi" id="q" value="' + esc(U.direccion || '') + '" enterkeyhint="search" autocomplete="off" aria-label="Buscar el lugar"><button class="b2" id="bq" onclick="buscar()">Buscar</button></div><div id="res"></div>' +
+    '<button class="lnk" onclick="inicio()">Volver</button>' + pie());
+  $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
+}
+function buscar(){
+  var q = $('q').value.trim(), b = $('bq');
+  if (q.length < 3) { $('res').innerHTML = nota('Escriba al menos 3 letras.', true); return; }
+  b.disabled = true; b.textContent = 'Buscando…';
+  google.script.run.withSuccessHandler(function (r) {
+    b.disabled = false; b.textContent = 'Buscar';
+    if (!r || !r.ok) return $('res').innerHTML = nota(esc((r && r.error) || 'No se pudo buscar.'), true);
+    if (!r.conectado || r.topeLleno) return $('res').innerHTML = nota('La búsqueda no está disponible ahora. Cuando esté en el local, use «Estoy aquí».', true);
+    RES = r.lugares || [];
+    $('res').innerHTML = RES.length ? '<div class="res">' + RES.map(function (x, n) { return '<button onclick="elegir(' + n + ')">' + esc(x.nombre) + '<small>' + esc(x.direccion) + '</small></button>'; }).join('') + '</div>'
+      : nota('No encontramos ese lugar. Pruebe con el nombre de la plaza o del edificio.', true);
+  }).withFailureHandler(function () { b.disabled = false; b.textContent = 'Buscar'; $('res').innerHTML = nota('Sin conexión. Intente de nuevo.', true); }).api_ubicarBuscar(TOK, q);
+}
+function elegir(n){ var x = RES[n]; C = { lat: Number(x.lat), lng: Number(x.lng), precision: '', metodo: 'buscar' }; vistaMapa(); }
+function vistaMapa(){
+  pintar('<h1 tabindex="-1">¿Es aquí?</h1><p class="ex">Si el punto no cae justo en la entrada de ' + esc(U.sucursal) + ', arrástrelo o toque el mapa donde va.</p>' +
+    (C.precision ? nota('Precisión de unos ' + C.precision + ' m.') : '') +
+    '<div class="map" id="m"></div><p class="fh">Use los botones + y − para acercar.</p>' +
+    '<button class="btn" id="ok" onclick="guardar()">Guardar este punto</button><button class="lnk" onclick="inicio()">Volver</button><div id="msg"></div>' + pie());
+  if (!window.L) { $('m').innerHTML = '<p style="padding:20px;color:#667489">No se pudo cargar el mapa; el punto igual se guarda.</p>'; return; }
+  var m = L.map('m', { scrollWheelZoom: false }).setView([C.lat, C.lng], 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+  var icono = L.divIcon({ className: 'pin51', html: '<svg viewBox="0 0 24 24"><path d="M12 22s7-6.5 7-11.5a7 7 0 1 0-14 0C5 15.5 12 22 12 22Z"/><circle cx="12" cy="10.5" r="2.6" fill="#fff"/></svg>', iconSize: [38, 38], iconAnchor: [19, 37] });
+  var mk = L.marker([C.lat, C.lng], { draggable: true, icon: icono, autoPan: true }).addTo(m);
+  var mover = function (ll) { C.lat = Math.round(ll.lat * 1e6) / 1e6; C.lng = Math.round(ll.lng * 1e6) / 1e6; };
+  mk.on('dragend', function () { mover(mk.getLatLng()); });
+  m.on('click', function (e) { mk.setLatLng(e.latlng); mover(e.latlng); });
+  if (C.precision && C.precision < 400) L.circle([C.lat, C.lng], { radius: C.precision, color: '#1f56b3', weight: 1, fillOpacity: .08 }).addTo(m);
+  MAPA = m; setTimeout(function () { m.invalidateSize(); }, 80);
+}
+function guardar(){
+  var b = $('ok'); b.disabled = true; b.textContent = 'Guardando…';
+  google.script.run.withSuccessHandler(function (r) {
+    if (r && r.ok) return fin('¡Listo, gracias!', 'El punto de ' + esc(r.sucursal || U.sucursal) + ' quedó guardado. El conductor de ECOVSA llegará directo a la entrada.');
+    b.disabled = false; b.textContent = 'Guardar este punto';
+    if (r && r.usado) return fin('Ya quedó guardado', 'El punto de esta sucursal ya se había marcado. Gracias.');
+    $('msg').innerHTML = nota(esc((r && r.error) || 'No se pudo guardar. Intente de nuevo.'), true);
+  }).withFailureHandler(function () { b.disabled = false; b.textContent = 'Guardar este punto'; $('msg').innerHTML = nota('Sin conexión. Revise la señal e intente de nuevo.', true); })
+    .api_ubicarGuardar(TOK, { lat: C.lat, lng: C.lng, precision: C.precision, metodo: C.metodo });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
+</script>
+</body>
+</html>
