@@ -23070,12 +23070,152 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   setInterval(function(){ if(C.abierto){ var m = D.enMovimiento(); if(m !== C.movPrev){ C.movPrev = m; var pie = $("dsp-pie"); if(pie) pie.removeAttribute("data-k"); if(m){ var t = $("dsp-txt"); if(t) t.blur(); } pintaChat(); } } }, 1500);
 })();
 </script>
+<style id="css-tf7">
+/* Calculadora de pesos del conductor (fase 1): se abre al tocar el campo de kilos de «Lo que se retira» */
+#kp-vel{position:fixed;inset:0;z-index:6500;background:rgba(8,20,45,.55);display:none;align-items:flex-end;justify-content:center;font-family:'Archivo',system-ui,sans-serif}
+#kp-vel.ver{display:flex}
+#kp-vel .kp-h{width:100%;max-width:1000px;max-height:96%;background:#f3f5f8;color:#0f2140;border-radius:18px 18px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 34px rgba(0,0,0,.35)}
+#kp-vel .kp-c{background:#0f2a57;color:#fff;display:flex;align-items:center;gap:12px;padding:12px 18px}
+#kp-vel .kp-c i{width:16px;height:16px;border-radius:50%;flex:none}
+#kp-vel .kp-c b{display:block;font-size:19px;font-weight:800;line-height:1.15}
+#kp-vel .kp-c span{font-size:13px;opacity:.85}
+#kp-vel .kp-cu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px;padding:14px 18px;overflow:auto;min-height:0}
+#kp-vel .kp-ci{background:#fff;border:1px solid #e1e6ee;border-radius:14px;padding:12px;display:flex;flex-direction:column;min-height:0}
+#kp-vel .kp-ci h5{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#667489;font-weight:800}
+#kp-vel .kp-li{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:90px;max-height:230px}
+#kp-vel .kp-vac{color:#667489;font-size:14px;padding:18px 8px;text-align:center}
+#kp-vel .kp-fb{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #e1e6ee;border-radius:10px;font-size:17px;font-weight:700;cursor:pointer;background:#fff;color:#0f2140;width:100%;font-family:inherit;text-align:left}
+#kp-vel .kp-fb i{font-style:normal;width:28px;height:28px;border-radius:50%;background:#e8effb;color:#3b6fd4;display:grid;place-items:center;font-size:13px;font-weight:800;flex:none}
+#kp-vel .kp-fb span{flex:1}#kp-vel .kp-fb em{font-style:normal;color:#667489;font-size:12px;font-weight:600}
+#kp-vel .kp-su{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #e1e6ee;margin-top:8px;padding-top:8px}
+#kp-vel .kp-su small{display:block;font-size:11px;color:#667489;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+#kp-vel .kp-su b{font-size:30px;font-weight:900;color:#14306b;line-height:1}
+#kp-vel .kp-te{display:flex;flex-direction:column;gap:7px}
+#kp-vel .kp-pa{background:#fff;border:2px solid #14306b;border-radius:12px;text-align:right;font-size:34px;font-weight:900;padding:2px 14px;min-height:52px;display:flex;align-items:center;justify-content:flex-end;color:#0f2140}
+#kp-vel .kp-pa small{font-size:15px;color:#667489;margin-left:8px}
+#kp-vel .kp-pd{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+#kp-vel .kp-pd button{border:1px solid #e1e6ee;background:#fff;color:#14306b;border-radius:12px;font-size:26px;font-weight:800;min-height:52px;font-family:inherit;cursor:pointer}
+#kp-vel .kp-pd button:active{background:#e8effb}
+#kp-vel .kp-mas{border:0;background:#2f9e44;color:#fff;border-radius:12px;font-size:22px;font-weight:900;min-height:56px;font-family:inherit;cursor:pointer}
+#kp-vel .kp-av{background:#fff4d6;color:#7a5600;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700}
+#kp-vel .kp-in{background:#e8effb;color:#14306b;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;margin-bottom:8px}
+#kp-vel .kp-pi{background:#fff;border-top:1px solid #e1e6ee;padding:10px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#kp-vel .kp-pi .sp{flex:1}
+#kp-vel .kp-bn{border:1px solid #e1e6ee;background:#fff;color:#14306b;border-radius:10px;padding:11px 16px;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
+#kp-vel .kp-bp{border:0;background:#14306b;color:#fff;border-radius:10px;padding:12px 24px;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer}
+#kp-vel .kp-bp[disabled]{opacity:.45}
+@media (max-width:700px){#kp-vel .kp-cu{grid-template-columns:1fr}#kp-vel .kp-li{max-height:190px;min-height:112px}#kp-vel .kp-h{max-height:100%;border-radius:0}}
+/* noche: la tablet de noche no debe encandilar */
+#kp-vel.kp-noche .kp-h{background:#0f1a30;color:#e8eefb}
+#kp-vel.kp-noche .kp-ci,#kp-vel.kp-noche .kp-pa,#kp-vel.kp-noche .kp-pi,#kp-vel.kp-noche .kp-fb{background:#14233f;border-color:#26406e;color:#e8eefb}
+#kp-vel.kp-noche .kp-pd button,#kp-vel.kp-noche .kp-bn{background:#14233f;border-color:#26406e;color:#9db8f0}
+#kp-vel.kp-noche .kp-su b{color:#9db8f0}
+#kp-vel.kp-noche .kp-bp{background:#3b6fd4}
+#kp-vel.kp-noche .kp-in{background:#1b2f57;color:#9db8f0}
+#kp-vel.kp-noche .kp-av{background:#3a2f10;color:#f3d98a}
+#kp-vel.kp-noche .kp-fb i{background:#1b2f57;color:#9db8f0}
+</style>
+<script id="js-tf7">
+/* Calculadora de pesos del conductor (fase 1, 26 oct): al tocar el campo de kilos de «Lo que se retira» se abre una calculadora con la lista de bolsas.
+   Cada «+ Bolsa» agrega una pesada; el total y el número de bolsas se llenan solos en el recibo. No toca el servidor: lo que se envía sigue siendo
+   kilos y bolsas por tipo (las pesadas quedan en la parada de la tablet, en el campo pes_bio / pes_pun / pes_ana, para la fase 2). */
+(function(){
+  var K = { t: "", i: -1, pes: [], txt: "", aviso: "", conf: false, info: "" };
+  var LIBRE = false;
+  function num_(x){ var n = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(n) ? n : 0; }
+  function f_(x){ return String(Math.round(x * 100) / 100); }
+  function suma_(){ return K.pes.reduce(function(a, b){ return a + b; }, 0); }
+  function D_(){ return (typeof DESECHOS_ !== "undefined" && DESECHOS_[K.t]) || null; }
+  function unidad_(){ var D = D_(); return D && /^recipiente/i.test(D.sub) ? "recipiente" : "bolsa"; }
+  function cap_(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function esc_(s){ return String(s).replace(/[&<>"]/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function vib_(){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){} }
 
-
-
-
-
-
+  function cuerpo_(){
+    var u = unidad_(), Uc = cap_(u), L = K.pes, tot = suma_();
+    var lista = L.length ? L.map(function(v, i){
+      return '<button class="kp-fb" data-i="' + i + '"><i>' + (i + 1) + '</i><span>' + Uc + ' ' + (i + 1) + '</span><b>' + f_(v) + ' kg</b><em>tocar para borrar</em></button>';
+    }).join("") : '<div class="kp-vac">Aún no hay pesadas. Escriba el peso de la primera ' + u + ' y toque «+ ' + Uc + '».</div>';
+    var teclas = ["7", "8", "9", "4", "5", "6", "1", "2", "3", ".", "0", "&#9003;"].map(function(k){ return '<button data-k="' + (k === "&#9003;" ? "bs" : k) + '">' + k + '</button>'; }).join("");
+    return '<div class="kp-cu"><div class="kp-ci"><h5>Pesadas · quedan anotadas en la parada</h5>' + (K.info ? '<div class="kp-in">' + esc_(K.info) + '</div>' : '') +
+      '<div class="kp-li">' + lista + '</div><div class="kp-su"><div><small>Total</small><b>' + f_(tot) + ' kg</b></div><div style="text-align:right"><small>' + cap_(u) + 's</small><b>' + L.length + '</b></div></div></div>' +
+      '<div class="kp-te">' + (K.aviso ? '<div class="kp-av">' + esc_(K.aviso) + '</div>' : '') +
+      '<div class="kp-pa">' + (K.txt || "0") + '<small>kg</small></div><div class="kp-pd">' + teclas + '</div>' +
+      '<button class="kp-mas" id="kp-mas">+ ' + Uc + '</button></div></div>';
+  }
+  function pinta_(){
+    var D = D_(), v = document.getElementById("kp-vel"); if(!D || !v) return;
+    v.className = "ver" + (document.body.classList.contains("t47-noche") ? " kp-noche" : "");
+    v.innerHTML = '<div class="kp-h"><div class="kp-c"><i style="background:' + D.color + '"></i><div><b>' + esc_(D.nom) + '</b><span>Calculadora de pesos</span></div></div>' + cuerpo_() +
+      '<div class="kp-pi"><button class="kp-bn" id="kp-und">Deshacer última</button><button class="kp-bn" id="kp-lib">Escribir el total directo</button><span class="sp"></span>' +
+      '<button class="kp-bn" id="kp-can">Cancelar</button><button class="kp-bp" id="kp-lis">Listo · usar ' + f_(suma_()) + ' kg</button></div></div>';
+    [].forEach.call(v.querySelectorAll(".kp-pd button"), function(b){ b.onclick = function(){ tecla_(b.getAttribute("data-k")); }; });
+    [].forEach.call(v.querySelectorAll(".kp-fb"), function(b){ b.onclick = function(){ K.pes.splice(+b.getAttribute("data-i"), 1); K.aviso = ""; K.conf = false; pinta_(); }; });
+    v.querySelector("#kp-mas").onclick = agrega_;
+    v.querySelector("#kp-und").onclick = function(){ K.pes.pop(); K.aviso = ""; K.conf = false; pinta_(); };
+    v.querySelector("#kp-can").onclick = cierra_;
+    v.querySelector("#kp-lib").onclick = libre_;
+    v.querySelector("#kp-lis").onclick = listo_;
+    v.onclick = function(e){ if(e.target === v) cierra_(); };
+  }
+  function tecla_(k){
+    vib_();
+    if(k === "bs") K.txt = K.txt.slice(0, -1);
+    else if(k === "."){ if(K.txt.indexOf(".") < 0) K.txt = (K.txt || "0") + "."; }
+    else if(K.txt.replace(".", "").length < 5) K.txt += k;
+    K.aviso = ""; K.conf = false; pinta_();
+  }
+  function agrega_(){
+    var v = num_(K.txt); vib_();
+    if(!(v > 0)){ K.aviso = "Escriba primero el peso."; pinta_(); return; }
+    /* un peso fuera de lo normal se confirma: evita el error de la coma (23 en vez de 2.3) */
+    if((v > 25 || v < 0.1) && !K.conf){ K.aviso = "Una " + unidad_() + " de " + f_(v) + " kg se ve rara. ¿Seguro? Toque «+ " + cap_(unidad_()) + "» otra vez para confirmar, o corrija el número."; K.conf = true; pinta_(); return; }
+    K.pes.push(Math.round(v * 100) / 100); K.txt = ""; K.aviso = ""; K.conf = false; K.info = ""; pinta_();
+  }
+  function cierra_(){ var v = document.getElementById("kp-vel"); if(v){ v.className = ""; v.innerHTML = ""; } K.t = ""; K.i = -1; }
+  function libre_(){
+    var D = D_(), i = K.i; cierra_();
+    LIBRE = true; var e = document.getElementById(D.id + i); if(e){ e.focus(); try{ e.select(); }catch(x){} }
+    setTimeout(function(){ LIBRE = false; }, 15000);
+  }
+  function listo_(){
+    var D = D_(), i = K.i, p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!D || !p) return cierra_();
+    if(K.txt && num_(K.txt) > 0){ K.aviso = "Tiene escrito " + K.txt + " kg sin agregar. Toque «+ " + cap_(unidad_()) + "» o bórrelo antes de terminar."; pinta_(); return; }
+    if(!K.pes.length){ cierra_(); return; }
+    var t = suma_(), n = K.pes.length;
+    setCampo(i, D.kg, f_(t)); setCampo(i, D.cant, String(n)); setCampo(i, "pes_" + K.t, K.pes.slice());
+    var e = document.getElementById(D.id + i); if(e) e.value = f_(t);
+    var c = document.getElementById("cnt-" + i + "-" + D.cant); if(c) c.textContent = n;
+    try{ totalParada_(i); }catch(x){}
+    cierra_();
+  }
+  function abre_(t, i){
+    var D = DESECHOS_ && DESECHOS_[t], p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!D || !p) return;
+    K.t = t; K.i = i; K.txt = ""; K.aviso = ""; K.conf = false; K.info = "";
+    var prev = p["pes_" + t], kg = num_(p[D.kg]);
+    if(Array.isArray(prev) && prev.length && Math.abs(prev.reduce(function(a, b){ return a + num_(b); }, 0) - kg) < 0.011) K.pes = prev.map(num_);
+    else { K.pes = []; if(kg > 0) K.info = "Ya hay " + f_(kg) + " kg anotados a mano. Si agrega pesadas aquí, las reemplazan."; }
+    pinta_();
+  }
+  function crea_(){
+    if(document.getElementById("kp-vel")) return;
+    var v = document.createElement("div"); v.id = "kp-vel"; document.body.appendChild(v);
+  }
+  function quien_(e){
+    var el = e.target && e.target.closest ? e.target.closest(".pc-kg") : null; if(!el) return null;
+    var inp = el.querySelector("input"); var m = inp && /^inp-(bio|pun|ana)-(\d+)$/.exec(inp.id); return m ? { t: m[1], i: +m[2] } : null;
+  }
+  function instala_(){
+    crea_();
+    /* antes de que salga el teclado: se detiene el toque y se abre la calculadora */
+    document.addEventListener("pointerdown", function(e){ if(LIBRE) return; var q = quien_(e); if(q){ e.preventDefault(); e.stopPropagation(); abre_(q.t, q.i); } }, true);
+    document.addEventListener("focusin", function(e){ if(LIBRE) return; var q = quien_(e); if(q){ try{ e.target.blur(); }catch(x){} abre_(q.t, q.i); } }, true);
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape" && K.t) cierra_(); });
+  }
+  window.ecoCalcPesos = { abrir: abre_ };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", instala_); else instala_();
+})();
+</script>
 <style id="estilo-347">
 /* api 3.47 · el mapa de Google */
 .leaflet-right .g47-logo{margin:0 6px 4px 0!important}.g47-logo{margin:0 0 6px 8px!important;line-height:0;pointer-events:none}.g47-logo img{height:17px;width:auto;display:block}
