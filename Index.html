@@ -23121,6 +23121,7 @@ body.t47-noche .dsp-bn{color:#e8eefb}
    kilos y bolsas por tipo (las pesadas quedan en la parada de la tablet, en el campo pes_bio / pes_pun / pes_ana, para la fase 2). */
 (function(){
   var K = { t: "", i: -1, pes: [], txt: "", aviso: "", conf: false, info: "" };
+  var G = {};   /* ganchos para la fase 2 (voz): alAbrir, alPintar, alCerrar, alListo */
   var LIBRE = false;
   function num_(x){ var n = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(n) ? n : 0; }
   function f_(x){ return String(Math.round(x * 100) / 100); }
@@ -23155,8 +23156,9 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     v.querySelector("#kp-und").onclick = function(){ K.pes.pop(); K.aviso = ""; K.conf = false; pinta_(); };
     v.querySelector("#kp-can").onclick = cierra_;
     v.querySelector("#kp-lib").onclick = libre_;
-    v.querySelector("#kp-lis").onclick = listo_;
+    v.querySelector("#kp-lis").onclick = function(){ listo_(false); };
     v.onclick = function(e){ if(e.target === v) cierra_(); };
+    try{ if(G.alPintar) G.alPintar(v); }catch(x){}
   }
   function tecla_(k){
     vib_();
@@ -23172,22 +23174,24 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     if((v > 25 || v < 0.1) && !K.conf){ K.aviso = "Una " + unidad_() + " de " + f_(v) + " kg se ve rara. ¿Seguro? Toque «+ " + cap_(unidad_()) + "» otra vez para confirmar, o corrija el número."; K.conf = true; pinta_(); return; }
     K.pes.push(Math.round(v * 100) / 100); K.txt = ""; K.aviso = ""; K.conf = false; K.info = ""; pinta_();
   }
-  function cierra_(){ var v = document.getElementById("kp-vel"); if(v){ v.className = ""; v.innerHTML = ""; } K.t = ""; K.i = -1; }
+  function cierra_(){ var v = document.getElementById("kp-vel"); if(v){ v.className = ""; v.innerHTML = ""; } K.t = ""; K.i = -1; try{ if(G.alCerrar) G.alCerrar(); }catch(x){} }
   function libre_(){
     var D = D_(), i = K.i; cierra_();
     LIBRE = true; var e = document.getElementById(D.id + i); if(e){ e.focus(); try{ e.select(); }catch(x){} }
     setTimeout(function(){ LIBRE = false; }, 15000);
   }
-  function listo_(){
-    var D = D_(), i = K.i, p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!D || !p) return cierra_();
-    if(K.txt && num_(K.txt) > 0){ K.aviso = "Tiene escrito " + K.txt + " kg sin agregar. Toque «+ " + cap_(unidad_()) + "» o bórrelo antes de terminar."; pinta_(); return; }
-    if(!K.pes.length){ cierra_(); return; }
-    var t = suma_(), n = K.pes.length;
+  function listo_(sinTxt){
+    var D = D_(), i = K.i, p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!D || !p){ cierra_(); return { ok: false }; }
+    if(!sinTxt && K.txt && num_(K.txt) > 0){ K.aviso = "Tiene escrito " + K.txt + " kg sin agregar. Toque «+ " + cap_(unidad_()) + "» o bórrelo antes de terminar."; pinta_(); return { ok: false, pendiente: true }; }
+    if(!K.pes.length){ cierra_(); return { ok: false, vacio: true }; }
+    var t = suma_(), n = K.pes.length, tipo = K.t;
     setCampo(i, D.kg, f_(t)); setCampo(i, D.cant, String(n)); setCampo(i, "pes_" + K.t, K.pes.slice());
     var e = document.getElementById(D.id + i); if(e) e.value = f_(t);
     var c = document.getElementById("cnt-" + i + "-" + D.cant); if(c) c.textContent = n;
     try{ totalParada_(i); }catch(x){}
     cierra_();
+    try{ if(G.alListo) G.alListo(tipo, i, n, Math.round(t * 100) / 100); }catch(x){}
+    return { ok: true, t: tipo, i: i, n: n, total: Math.round(t * 100) / 100 };
   }
   function abre_(t, i){
     var D = DESECHOS_ && DESECHOS_[t], p = RUTA && RUTA.paradas && RUTA.paradas[i]; if(!D || !p) return;
@@ -23196,6 +23200,7 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     if(Array.isArray(prev) && prev.length && Math.abs(prev.reduce(function(a, b){ return a + num_(b); }, 0) - kg) < 0.011) K.pes = prev.map(num_);
     else { K.pes = []; if(kg > 0) K.info = "Ya hay " + f_(kg) + " kg anotados a mano. Si agrega pesadas aquí, las reemplazan."; }
     pinta_();
+    try{ if(G.alAbrir) G.alAbrir(t, i); }catch(x){}
   }
   function crea_(){
     if(document.getElementById("kp-vel")) return;
@@ -23212,16 +23217,21 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     document.addEventListener("focusin", function(e){ if(LIBRE) return; var q = quien_(e); if(q){ try{ e.target.blur(); }catch(x){} abre_(q.t, q.i); } }, true);
     document.addEventListener("keydown", function(e){ if(e.key === "Escape" && K.t) cierra_(); });
   }
-  window.ecoCalcPesos = { abrir: abre_ };
+  /* API para la voz (fase 2) */
+  function agregar_(v, forzar){
+    if(!K.t) return { ok: false };
+    v = Math.round(num_(v) * 100) / 100;
+    if(!(v > 0)) return { ok: false };
+    if((v > 25 || v < 0.1) && !forzar) return { ok: false, rara: true, valor: v };
+    K.pes.push(v); K.txt = ""; K.aviso = ""; K.conf = false; K.info = ""; pinta_();
+    return { ok: true, valor: v, n: K.pes.length, total: Math.round(suma_() * 100) / 100 };
+  }
+  function deshacer_(){ if(!K.pes.length) return false; K.pes.pop(); K.aviso = ""; K.conf = false; pinta_(); return true; }
+  function estado_(){ var D = D_(); return { abierto: !!K.t, t: K.t, i: K.i, n: K.pes.length, total: Math.round(suma_() * 100) / 100, unidad: D ? unidad_() : "", nom: D ? D.nom : "", pes: K.pes.slice() }; }
+  window.ecoCalcPesos = { abrir: abre_, agregar: agregar_, deshacer: deshacer_, estado: estado_, listo: function(){ return listo_(true); }, cierra: cierra_, ganchos: G };
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", instala_); else instala_();
 })();
 </script>
-
-
-
-
-
-
 <style id="estilo-347">
 /* api 3.47 · el mapa de Google */
 .leaflet-right .g47-logo{margin:0 6px 4px 0!important}.g47-logo{margin:0 0 6px 8px!important;line-height:0;pointer-events:none}.g47-logo img{height:17px;width:auto;display:block}
