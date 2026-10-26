@@ -23814,7 +23814,7 @@ function s49Hermanas_(s){
 }
 sqTarjetaNuevo_ = (function(o){ return function(s){
   var h = o.apply(this, arguments), x = '';
-  if(s.latSede && s.lngSede && !s.plusCode) h = h.replace('<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>', '<b style="color:var(--verde-bandera)">Punto marcado por Mercadeo: revíselo en el mapa</b>');
+  if(s.latSede && s.lngSede && !s.plusCode) h = h.replace('<b style="color:var(--rojo)">Sin ubicación — hay que ubicarlo</b>', '<b style="color:var(--verde-bandera)">' + String(s.puntoTxt || 'Punto marcado por Mercadeo').replace(/[<>&]/g, '') + ': revíselo en el mapa</b>');
   if(s.sucursal || (s.contratado && s.contratado.length)){
     x += '<div class="s49-alta">' + (s.sucursal ? '<div class="s49-suc">Sucursal <b>' + esc(s.sucursal) + '</b>' + (s.razonSocial ? ' · ' + esc(s.razonSocial) : '') + (s.ruc ? ' · RUC ' + esc(s.ruc) + (s.dv ? ' DV ' + esc(s.dv) : '') : '') + '</div>' : '') +
       '<div class="s49-chs">' + (s.contratado || []).map(function(t){ return s49Ch_(t, /Fumig/.test(t) ? "v" : ""); }).join("") +
@@ -23873,7 +23873,7 @@ bq38Items_ = (function(o){ return function(){
     L = L.filter(function(x){
       if(String(x.k).indexOf("cli:") !== 0) return true;
       var s = S.cli.filter(function(c){ return c.solicitudId === x.k.slice(4); })[0];
-      if(s && s.latSede && !s.plusCode) x.s = String(x.s).replace(/^Sin ubicación/, 'Punto marcado por Mercadeo');
+      if(s && s.latSede && !s.plusCode) x.s = String(x.s).replace(/^Sin ubicación/, String(s.puntoTxt || 'Punto marcado por Mercadeo').replace(/[<>&]/g, ''));
       if(!s || !s.grupoAlta || porG[s.grupoAlta].length < 2) return true;
       if(vistos[s.grupoAlta]) return false; vistos[s.grupoAlta] = 1;
       var G = porG[s.grupoAlta];
@@ -24021,6 +24021,60 @@ reponerParada_ = function(p, i, c){
       '<div style="flex:1"><b>' + esc(r.nombre) + '</b><small>' + esc(txt) + '</small></div><span class="pc-rep-q">' + r.cantidad + '</span></div>';
   }).join('') + '<div class="pc-rep-n">Lo marcado sale en el recibo y se descuenta del inventario.</div></div>';
 };
+</script>
+<script id="js-352">
+/* ═══════════════════════════════════════════════════════════════════
+   api 3.52 · LA BANDEJA VE LO QUE EL CLIENTE CAMBIA DESDE SU PORTAL
+   (Maqueta_solicitudes_por_tema, aprobada por Álvaro el 26 oct)
+   · «Canceló su pedido»: aviso con «Entendido». Si estaba en una ruta en borrador, ya se quitó solo
+     (solo la parada del pedido, nunca su visita de rutina). Planificar ya no la ofrece.
+   · «Lo cambió el cliente»: el pedido muestra su fecha de antes.
+   · «Pide cambiar su visita confirmada» / «Pide cancelar su visita confirmada»: lo confirmado sigue en pie
+     hasta que Logística lo reagende (Días que le sirven / Planificar) o lo quite de la ruta.
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+if(typeof bq38Items_ !== "function" || typeof bn48Det_ !== "function") return;
+bq38Items_ = (function(o){ return function(){
+  var L = o.apply(this, arguments);
+  L.forEach(function(x){
+    var p = x.ptl; if(!p) return;
+    if(p.canceladoCliente){ var c = p.canceladoCliente;
+      x.car = "vis"; x.sub = "prog"; x.esp = false; x.pz = 0; x.c = "c38-g"; x.b = "Entendido";
+      x.t = "Canceló su pedido · " + p.cliente;
+      x.s = (p.fechaPref ? "era para el " + nombreDia_(p.fechaPref) : "sin fecha") + (c.motivo ? " · «" + c.motivo + "»" : "") + (c.quitadaDe ? " · se quitó solo de la ruta del " + nombreDia_(c.quitadaDe) : ""); return; }
+    if(p.cambioDe){ x.car = "vis"; x.sub = "prog";
+      x.t = (p.quitar ? "Pide cancelar su visita confirmada · " : "Pide cambiar su visita confirmada · ") + p.cliente;
+      x.s = (p.cambioAntes ? "confirmada el " + nombreDia_(p.cambioAntes) : "") + (p.quitar ? "" : " → pide el " + (p.fechaPref ? nombreDia_(p.fechaPref) : "otro día")) + " · " + p.cambioDe; return; }
+    if(p.cambiadoCliente && !p.programada) x.s = (x.s ? x.s + " · " : "") + (p.cambiadoCliente.unido ? "el cliente lo unió a otro pedido" : "el cliente lo cambió") + (p.cambiadoCliente.antes ? " (antes " + nombreDia_(p.cambiadoCliente.antes) + ")" : "");
+  });
+  return L;
+}; })(bq38Items_);
+bn48Det_ = (function(o){ return function(){
+  var k = String(BQ.sel || ""), p = k.indexOf("ptl:") === 0 ? bn48Ptl_(k.slice(4)) : null;
+  if(p && p.canceladoCliente){ var c = p.canceladoCliente;
+    return '<div class="dh"><i class="bic big c38-g">' + sv38_("persona") + '</i><div><div class="bo">Desde el portal · ' + esc(c.en || "") + ' · ' + esc(p.folio) + '</div><h2>Canceló su pedido · ' + esc(p.cliente) + '</h2></div></div>' +
+      '<div class="dg"><div><small>Qué era</small><b>' + esc(p.tipoSol || "Visita") + '</b><span>' + esc(p.item || "") + '</span></div><div><small>Para el</small><b>' + (p.fechaPref ? esc(nombreDia_(p.fechaPref)) : "Sin fecha") + '</b></div></div>' +
+      (c.motivo ? '<div class="rel">«' + esc(c.motivo) + '»</div>' : '') +
+      '<div class="bn-nota ' + (c.quitadaDe ? 'v' : 'az') + '">' + sv38_(c.quitadaDe ? "check" : "ruta") + '<span>' + (c.quitadaDe ? 'Estaba en la ruta en borrador del ' + esc(nombreDia_(c.quitadaDe)) + ': ya se quitó sola (solo la parada del pedido; su visita de rutina sigue).' : 'No estaba en ninguna ruta. No hay nada que quitar.') + ' Planificar ya no la ofrece. Queda en su historial; no se borra.</span></div>' +
+      '<div class="bb"><button class="p" onclick="bn51Visto_(\'' + esc(p.pendienteId) + '\')">' + sv38_("check") + ' Entendido</button></div>';
+  }
+  var h = o.apply(this, arguments);
+  if(p && p.cambioDe){
+    var n = '<div class="bn-nota a">' + sv38_("reloj") + '<span>' + (p.quitar ? 'Ya no necesita su visita confirmada del ' + esc(nombreDia_(p.cambioAntes)) + ' (' + esc(p.cambioDe) + '). Quítela de esa ruta en Planificar y respóndale.'
+      : 'Tenía su visita confirmada el ' + esc(nombreDia_(p.cambioAntes)) + ' (' + esc(p.cambioDe) + ') y pide pasarla al ' + (p.fechaPref ? esc(nombreDia_(p.fechaPref)) : 'otro día') + '. Al ponerla en un día nuevo, se quita sola del día de antes y el cliente ve la nueva fecha.') + ' Mientras tanto, lo confirmado sigue en pie.</span></div>' +
+      (p.quitar && p.cambioAntes ? '<div class="bb" style="margin-bottom:10px"><button onclick="bn48Planificar_(\'' + esc(p.cambioAntes) + '\')">' + sv38_("ruta") + ' Abrir ese día en Planificar</button></div>' : '');
+    var i = h.indexOf('<div class="dg">'); h = i >= 0 ? h.slice(0, i) + n + h.slice(i) : n + h;
+  } else if(p && p.cambiadoCliente && p.cambiadoCliente.antes){
+    var m = '<div class="bn-nota az">' + sv38_("persona") + '<span>El cliente lo ' + (p.cambiadoCliente.unido ? 'unió con otro pedido' : 'cambió desde su portal') + ': antes pedía el ' + esc(nombreDia_(p.cambiadoCliente.antes)) + '. Si estaba en una ruta en borrador, se quitó sola.</span></div>';
+    var j = h.indexOf('<div class="dg">'); h = j >= 0 ? h.slice(0, j) + m + h.slice(j) : m + h;
+  }
+  return h;
+}; })(bn48Det_);
+window.bn51Visto_ = function(pid){
+  google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Listo"); BQ.sel = ""; cargarSolicitudes(true); })
+    .withFailureHandler(function(){ toast("Sin señal"); }).api_ptlAvisoVisto(PIN, pid);
+};
+})();
 </script>
 </body>
 

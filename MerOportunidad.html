@@ -953,7 +953,7 @@
       campo('canal envio', 'Enviar facturas por', { ops: [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']] }) + '</div>' +
       '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS (el 3.5 % del subtotal) y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado. Los <b>exentos</b> no pagan ITBMS: su factura sale sin ITBMS.</span></div>';
     return '<div class="b2"><div class="stack">' + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
-      (window.SUC49 ? SUC49.card() : '') + serviciosCard() +
+      (window.SUC49 ? SUC49.card() : '') + (window.SUC51 ? SUC51.card() : '') + serviciosCard() +
       card('Notas de la propuesta', '<div id="notas-box"></div>') + card('Para facturación', fact) + '</div>' +
       '<div class="stack">' + propuestaCard() + card('Inspección técnica', inspeccionHtml()) + '</div></div>';
   }
@@ -2328,7 +2328,8 @@ var SUC49 = (function () {
         '<div><label class="lb">PUNTO EN EL MAPA (OPCIONAL)</label>' + inp(i, 'coords', 'lat, lng (de Google Maps)') + '</div>' +
         '<div><label class="lb">CONTACTO EN EL LUGAR</label>' + inp(i, 'contacto', 'Si es otro') + '</div>' +
         '<div><label class="lb">TELÉFONO</label>' + inp(i, 'telefono', '') + '</div>' +
-        '<div><label class="lb">COSTO POR VISITA (B/.)</label>' + inp(i, 'costo', 'El de la propuesta', 'number') + '</div></div>' +
+        '<div><label class="lb">COSTO POR VISITA (B/.)</label>' + inp(i, 'costo', 'El de la propuesta', 'number') + '</div>' +
+        '<div><label class="lb">KG INCLUIDOS POR VISITA</label>' + inp(i, 'kgPlan', 'Los de la propuesta', 'number') + '</div></div>' +
         '<div class="lb" style="margin-top:10px">QUÉ SE CONTRATA AQUÍ</div><div class="s49-srv">' + SRV.map(function (r) {
           return '<label><input type="checkbox"' + (s.servicios[r[0]] ? ' checked' : '') + ' onchange="SUC49.srv(' + i + ',\'' + r[0] + '\',this.checked)"> ' + r[1] + '</label>' +
             (r[0] === 'fumigacion' && s.servicios.fumigacion ? '<select class="sel" style="max-width:160px" onchange="SUC49.srv(' + i + ',\'fumFrec\',this.value)">' + Object.keys(FUM).map(function (k) { return '<option value="' + k + '"' + ((s.servicios.fumFrec || 'mes') === k ? ' selected' : '') + '>' + FUM[k] + '</option>'; }).join('') + '</select>' : '');
@@ -2359,6 +2360,62 @@ var SUC49 = (function () {
     insQuitar: function (i, n) { ED[i].insumos.splice(n, 1); pintarEd(); },
     mas: function () { ED.push(nueva()); pintarEd(); },
     quitar: function (i) { ED.splice(i, 1); pintarEd(); } };
+})();
+</script>
+<script id="js-351">
+/* ═══ api 3.51 · Lo que mandó el cliente: el punto de cada sucursal, de dónde salió, los avisos y el enlace del local ═══ */
+var SUC51 = (function () {
+  var E = MK.esc, IC = MK.ic;
+  var PIDE = { recoleccion: 'recolección', fumigacion: 'fumigación', envases: 'bolsas y envases' };
+  function S() { return (window.MO49 && MO49.D() && MO49.D().sucursales) || null; }
+  function lista() { var su = S(); if (!su) return []; return (su.gran || su.unica ? su.delFormulario : su.lista) || []; }
+  function card() {
+    var su = S(); if (!su) return '';
+    var L = lista(), loc = su.local || {}, A = su.avisos || [];
+    var del = L.some(function (s) { return s.fuente === 'cliente' || loc[s.id]; });
+    if (!del && !A.length) return su.lugaresMercadeo > 1 && !L.length ? MO49.card('Ubicación de las sucursales', '<p class="small muted">En la captura se anotó que son ' + su.lugaresMercadeo + ' lugares. El formulario del cliente le pedirá los datos y el punto de cada uno.</p>') : '';
+    var h = A.map(function (a) { return '<div class="pista" style="margin-bottom:6px">' + IC('alerta', 14) + '<span>' + E(a.txt) + '</span></div>'; }).join('');
+    h += '<table class="vt s49t"><tr><th>Sucursal</th><th>Punto en el mapa</th><th>Lo que pidió</th><th></th></tr>' + L.map(function (s, i) {
+      var l = loc[s.id], pt = s.lat && s.lng;
+      var punto = pt ? '<span class="tag t-ok">' + E((su.puntoTxt || {})[s.puntoPor] || 'Con punto') + '</span>' + (s.precision ? '<small class="muted" style="display:block">precisión de unos ' + E(s.precision) + ' m</small>' : '') +
+          (s.distDir > 1 ? '<small style="display:block;color:#8a5a00">a ' + E(s.distDir) + ' km de la dirección escrita</small>' : '') +
+          '<a class="small" href="https://www.google.com/maps?q=' + s.lat + ',' + s.lng + '" target="_blank" rel="noopener">Ver en el mapa</a>'
+        : l && l.estado === 'enviado' ? '<span class="tag t-warn">El local lo va a marcar</span><small class="muted" style="display:block">enlace enviado · vence ' + E(MK.cuando ? MK.cuando(l.vence) : l.vence) + '</small>'
+        : '<span class="tag t-bad">Sin punto</span>' + (l && l.estado === 'vencido' ? '<small class="muted" style="display:block">el enlace del local venció</small>' : '');
+      if (pt && l && l.estado === 'marcado' && s.puntoPor === 'local') punto += '<small class="muted" style="display:block">lo marcó el local ' + E(String(l.marcadoEn || '').slice(0, 10)) + '</small>';
+      var pide = s.pide ? Object.keys(PIDE).filter(function (k) { return s.pide[k]; }).map(function (k) { return PIDE[k]; }).join(', ') : '';
+      return '<tr><td><b>' + E(s.nombre || (L.length === 1 ? 'Única' : 'Sucursal ' + (i + 1))) + '</b><small class="muted" style="display:block">' + E(s.direccion || '') + '</small>' +
+        (s.kg ? '<small class="muted" style="display:block">' + E(s.kg) + ' ' + E(String(s.kgBase || 'kg').toLowerCase() === 'bolsas rojas por semana' ? 'bolsas por semana' : 'kg ' + String(s.kgBase || '').toLowerCase()) + '</small>' : '') + '</td>' +
+        '<td>' + punto + '</td><td class="small">' + E(pide || '—') + '</td>' +
+        '<td>' + (MO49.ro() ? '' : '<button class="btn sm gh" data-s51="local" data-id="' + E(s.id) + '" title="Mandarle al local un enlace para marcar el punto">' + IC('whatsapp', 13) + ' Enlace al local</button>') + '</td></tr>';
+    }).join('') + '</table>';
+    var lm = su.lugaresMercadeo, lc = su.lugares;
+    h += '<p class="small muted" style="margin-top:8px">' + (su.formulario === 'RECIBIDO' ? 'El cliente envió su formulario' : 'El cliente está llenando su formulario') + (lc ? ' · dijo ' + (lc === 1 ? 'un solo lugar' : lc + ' lugares') : '') + (lm ? ' · en la captura: ' + (lm === 1 ? 'un solo lugar' : lm + ' lugares') : '') +
+      '. ' + (su.gran ? 'En la cuenta con sedes, cada sucursal entra como sede.' : su.unica ? '' : 'Póngale el precio a cada sucursal en «Sucursales».') + '</p>';
+    return MO49.card('Ubicación de las sucursales', h);
+  }
+  function enlace(id) {
+    var s = lista().filter(function (x) { return x.id === id; })[0] || {};
+    MK.hoja('<h2>Enlace al local · ' + E(s.nombre || 'Sucursal') + '</h2><p class="small muted">Le llega a la persona del local un enlace que solo sirve para marcar el punto de esta sucursal, una vez. No ve precios ni datos de la empresa. Vence en 7 días.</p>' +
+      '<label class="lb" for="s51-tel">WHATSAPP DE ESA PERSONA</label><input class="in" id="s51-tel" inputmode="tel" placeholder="6000-0000" value="' + E(s.telefono || '') + '">' +
+      '<div id="s51-msg" class="small" style="margin-top:8px"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><button class="btn pri" id="s51-ok">Crear el enlace</button></div>');
+    document.getElementById('s51-ok').onclick = function () {
+      var b = this, m = document.getElementById('s51-msg');
+      MK.ocupado(b, true);
+      MK.llamar('api_merEnlaceLocal', MK.pin, MO49.COD, id, document.getElementById('s51-tel').value).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { m.style.color = 'var(--bad)'; m.textContent = (r && r.error) || 'No se pudo crear.'; return; }
+        m.style.color = ''; m.innerHTML = '<div class="pista">' + IC('check', 14) + '<span>' + E(r.texto) + '</span></div>' +
+          '<div class="row w" style="gap:8px;margin-top:8px"><a class="btn pri" href="' + E(r.wa) + '" target="_blank" rel="noopener">Abrir WhatsApp</a><button class="btn" id="s51-cp">Copiar el mensaje</button></div>';
+        document.getElementById('s51-cp').onclick = function () { try { navigator.clipboard.writeText(r.texto); MK.aviso('Mensaje copiado'); } catch (e) { /* sin portapapeles */ } };
+        b.style.display = 'none';
+        MK.llamar('api_crmOportunidad', MK.pin, MO49.COD).then(function (o) { if (o && o.sucursales) { MO49.D().sucursales = o.sucursales; MO49.pintar(); } }, function () {});
+      }, function () { MK.ocupado(b, false); });
+    };
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-s51]'); if (b) enlace(b.getAttribute('data-id')); });
+  return { card: card };
 })();
 </script>
 </body>

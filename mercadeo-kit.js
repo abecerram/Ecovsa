@@ -419,6 +419,9 @@
       '<div><label class="lb" for="cp-car">CARGO</label><input class="in" id="cp-car" placeholder="Administradora"></div>' +
       '<div><label class="lb" for="cp-cel">CELULAR</label><input class="in" id="cp-cel" inputmode="tel" placeholder="6612-3344"></div></div>' +
       '<label class="lb" for="cp-cor">CORREO <span class="muted">(opcional)</span></label><input class="in" id="cp-cor" inputmode="email">' +
+      /* api 3.51: un solo lugar o varios, y cuántos; si el cliente responde distinto en su formulario, le llega el aviso a Mercadeo */
+      '<label class="lb">¿PARA CUÁNTOS LUGARES? <span class="muted">(si lo sabe)</span></label><div class="row w" style="gap:8px;align-items:center">' + chips('lugares', [['1', 'Un solo lugar'], ['V', 'Varios']], '') +
+      '<input class="in" id="cp-lug" type="number" min="2" max="60" placeholder="¿Cuántos?" style="width:110px;display:none" aria-label="Cuántos lugares"></div>' +
       '<label class="lb">¿DE DÓNDE VIENE?</label>' + chips('fuente', (aj.fuentes || []), pre.fuente || '') +
       '<label class="chk" style="margin-top:12px"><input type="checkbox" id="cp-ya"> El cliente ya aceptó: entra en «Contrato en proceso»</label>' +
       '<label class="lb">PRIMER PASO</label>' + chips('paso', TIPOS_PASO, 'llamada') +
@@ -427,6 +430,7 @@
       '<div id="cp-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="cp-ok">Guardar</button></div>');
     activarChips(h);
+    (function () { var g = h.querySelector('[data-chips="lugares"]'), n = document.getElementById('cp-lug'); if (g) g._cambio = function (v) { n.style.display = v === 'V' ? '' : 'none'; if (v === 'V' && !n.value) n.value = 2; }; })();
     var emp = document.getElementById('cp-emp'), dup = document.getElementById('cp-dup'), tD = null, forzar = false;
     emp.oninput = function () {
       forzar = false; clearTimeout(tD); var q = emp.value.trim(); if (q.length < 3) { dup.innerHTML = ''; return; }
@@ -447,6 +451,7 @@
         notas: document.getElementById('cp-not').value.trim(), yaAcepto: document.getElementById('cp-ya').checked ? 'SI' : '',
         primerPaso: { tipo: valorChips(h, 'paso'), fecha: document.getElementById('cp-fec').value, hora: document.getElementById('cp-hor').value },
         forzar: forzar };
+      var lg = valorChips(h, 'lugares'); if (lg === '1') d.lugares = 1; else if (lg === 'V') d.lugares = Math.max(2, Math.min(60, Number(document.getElementById('cp-lug').value) || 2));
       if (!d.empresa) { msg.textContent = 'Escribe el nombre de la empresa.'; emp.focus(); return; }
       MK.ocupado(b, true);
       MK.api('api_crmCaptura', MK.pin, d).then(function (r) {
