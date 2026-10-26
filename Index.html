@@ -22534,6 +22534,7 @@ body.t47-noche .dsp-bn{color:#e8eefb}
 .dsp-acc{display:flex;gap:7px;flex-wrap:wrap}
 .dsp-hbtn{border:1px solid var(--dl,#e1e6ee);background:#fff;color:#14306b;border-radius:99px;padding:5px 13px;font-weight:700;font-size:13px;font-family:inherit;display:inline-flex;gap:6px;align-items:center}
 .dsp-hbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:760px){.bn-fil .dsp-hbtn{order:-1}}
 /* ── historial ── */
 .dsp-hist{position:fixed;inset:0;z-index:9100;background:var(--df);display:none;flex-direction:column}
 .dsp-hist.ver{display:flex}
@@ -22605,13 +22606,6 @@ body.t47-noche .dsp-bn{color:#e8eefb}
 
   /* ── velocidad: la APK la entrega en ecoPos (m/s); sin ella, la del navegador ── */
   D.vel = 0; D.velT = 0;
-  if(typeof window.ecoPos === "function"){
-    var oPos = window.ecoPos;
-    window.ecoPos = function(j){
-      try{ var f = typeof j === "string" ? JSON.parse(j) : j; if(f && f.vel != null && isFinite(Number(f.vel))){ D.vel = Number(f.vel) * 3.6; D.velT = Date.now(); } }catch(e){}
-      return oPos.apply(this, arguments);
-    };
-  }
   D.enMovimiento = function(){
     var now = Date.now(), kmh = 0;
     if(now - D.velT < 10000) kmh = D.vel;
@@ -22807,7 +22801,8 @@ body.t47-noche .dsp-bn{color:#e8eefb}
       var k = clave(h), sel = typeof BQ !== "undefined" && BQ.sel === k;
       if(!(num(h.sinResponder) > 0) && !sel) return;
       var u = h.ultimo || {}, urg = num(h.sinResponder) > 0 && /ayuda|falla|accidente|choque|emergencia|lesi/i.test(String(u.texto || ""));
-      L.push({ k: k, cat: "cond", ic: "dspchat", c: "c38-t", f: h.fecha, h: u.hora || "", d: typeof bq38Dias_ === "function" ? bq38Dias_(h.fecha) : 0, g: urg ? "urg" : (h.fecha === hoy ? "hoy" : "esp"),
+      L.push({ k: k, cat: "cond", car: "con", sub: "msg", esp: true, pz: 0, hr: typeof bn48Horas_ === "function" ? bn48Horas_(h.fecha, u.hora) : 0,
+        ic: "dspchat", c: "c38-t", f: h.fecha, h: u.hora || "", d: typeof bq38Dias_ === "function" ? bq38Dias_(h.fecha) : 0, g: urg ? "urg" : (h.fecha === hoy ? "hoy" : "esp"),
         o: "Conductor · " + (h.fecha === hoy ? "hoy" : bq38Hace_(h.fecha)) + (u.hora && h.fecha === hoy ? " " + u.hora : ""),
         t: "Mensaje del conductor · " + nom1(h.conductor), s: (num(h.sinResponder) > 1 ? h.sinResponder + " sin responder · " : "") + (u.de === "d" ? "Usted: " : "") + String(u.texto || ""),
         b: num(h.sinResponder) > 0 ? "Responder" : "Ver" });
@@ -22892,8 +22887,8 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     if(S.vuelo || !esSup()) return;
     S.vuelo = true; S.ult = Date.now();
     llamar("api_dspBandeja", PIN, "").then(function(r){
-      S.vuelo = false; if(!r || !r.ok) return;
-      var antes = S.sinRespPrev, sr = (r.hilos || []).reduce(function(a, h){ return a + num(h.sinResponder); }, 0);
+      S.vuelo = false; if(!r || !r.ok){ if(sinFuncion(r)){ S.sin = true; if(H.abierto) H.pinta(); } return; }
+      S.sin = false; var antes = S.sinRespPrev, sr = (r.hilos || []).reduce(function(a, h){ return a + num(h.sinResponder); }, 0);
       var cambio = !S.hilos || JSON.stringify(S.hilos) !== JSON.stringify(r.hilos || []);
       S.hilos = r.hilos || []; S.dias = r.dias || []; S.fecha = r.fecha || ""; S.t = Date.now(); S.sinRespPrev = sr;
       if(antes >= 0 && sr > antes) plin();
@@ -22904,40 +22899,8 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     }, function(){ S.vuelo = false; });
   };
 
-  /* ── se engancha a la Bandeja que ya existe ── */
-  if(typeof bq38Items_ === "function"){
-    var oItems = bq38Items_;
-    bq38Items_ = function(){
-      var L = oItems.apply(this, arguments);
-      try{ if(esSup()){ var X = S.items(); if(X.length){ X.forEach(function(x){ L.push(x); }); var G = { urg: 0, hoy: 1, esp: 2 }; L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); }); } } }catch(e){ console.error(e); }
-      return L;
-    };
-  }
-  if(typeof bq38Det_ === "function"){
-    var oDet = bq38Det_;
-    bq38Det_ = function(){ try{ if(typeof BQ !== "undefined" && String(BQ.sel || "").indexOf("dsp:") === 0) return S.html(); }catch(e){ console.error(e); } return oDet.apply(this, arguments); };
-  }
-  if(typeof bq38Despues_ === "function"){
-    var oDesp = bq38Despues_;
-    bq38Despues_ = function(){ var r = oDesp.apply(this, arguments); try{ if(String(BQ.sel || "").indexOf("dsp:") === 0) S.abre(BQ.sel); }catch(e){ console.error(e); } return r; };
-  }
-  if(typeof renderSolicitudes === "function"){
-    var oRend = renderSolicitudes;
-    renderSolicitudes = function(){
-      var r = oRend.apply(this, arguments);
-      try{
-        if(esSup()){
-          var bf = document.querySelector("#bq38 .bf");
-          if(bf && !bf.querySelector(".dsp-hbtn")) bf.insertAdjacentHTML("beforeend", '<button class="dsp-hbtn" onclick="DSP.hist.abrir()">' + IC.chat + 'Mensajes · historial</button>');
-          if(!S.t && !S.vuelo) S.poll();
-        }
-      }catch(e){ console.error(e); }
-      return r;
-    };
-  }
-
   /* ── el historial por día ── */
-  var H = D.hist = { abierto: false, paso: "dias", fecha: "", conductor: "", cache: {}, hilo: null, q: "", cargando: false };
+  var H = D.hist = { abierto: false, paso: "dias", fecha: "", conductor: "", cache: {}, m: {}, hilo: null, q: "", cargando: false };
   function armaHist(){
     var r = $("dsp-hist"); if(r) return r;
     r = document.createElement("div"); r.id = "dsp-hist"; r.className = "dsp-hist"; r.setAttribute("data-paso", "dias");
@@ -22970,23 +22933,34 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   };
   H.volver = function(){ var r = $("dsp-hist"); H.paso = H.paso === "hilo" ? "hilos" : "dias"; if(r) r.setAttribute("data-paso", H.paso); };
   H.buscar = function(v){
-    H.q = String(v || "").trim().toLowerCase(); H.pinta();
+    H.q = String(v || "").trim().toLowerCase();
+    if(H.q.length >= 2 && H.paso === "hilo"){ H.paso = "hilos"; var rr = $("dsp-hist"); if(rr) rr.setAttribute("data-paso", "hilos"); }
+    H.pinta();
     if(H.q.length < 2) return;
     var faltan = (S.dias || []).filter(function(d){ return num(d.n) > 0 && !H.cache[d.fecha]; }).slice(0, 30), i = 0;
-    function sig(){ if(!H.abierto || i >= faltan.length || H.q.length < 2) return; var f = faltan[i++].fecha; llamar("api_dspBandeja", PIN, f).then(function(x){ if(x && x.ok) H.cache[f] = x.hilos || []; H.pinta(); sig(); }, sig); }
-    sig(); sig();
+    function sig(){ if(!H.abierto || i >= faltan.length || H.q.length < 2){ if(i >= faltan.length) H.profundo(); return; } var f = faltan[i++].fecha; llamar("api_dspBandeja", PIN, f).then(function(x){ if(x && x.ok) H.cache[f] = x.hilos || []; H.pinta(); sig(); }, sig); }
+    sig();
+  };
+  /* para buscar por cliente o por una palabra de la conversación se leen los hilos de días anteriores (los de hoy no: leerlos los marca como vistos) */
+  H.profundo = function(){
+    var hoy = hoyISO(), L = [];
+    Object.keys(H.cache).forEach(function(f){ if(f !== hoy) (H.cache[f] || []).forEach(function(h){ if(!H.m[f + "|" + h.conductor]) L.push(h); }); });
+    L = L.slice(0, 60); var i = 0;
+    function sig(){ if(!H.abierto || H.q.length < 2 || i >= L.length) return; var h = L[i++];
+      llamar("api_dspHilo", PIN, h.conductor, h.fecha).then(function(x){ if(x && x.ok) H.m[h.fecha + "|" + h.conductor] = x.mensajes || []; H.pinta(); sig(); }, sig); }
+    sig();
   };
   function resHilo(h){ var u = h.ultimo || {}; return String(u.texto || ""); }
   H.pinta = function(){
     var c1 = $("dsp-h-c1"), c2 = $("dsp-h-c2"), c3 = $("dsp-h-c3"); if(!c1) return;
     var dias = S.dias || [];
     c1.innerHTML = '<h5>Últimos 30 días</h5>' + (dias.length ? dias.map(function(d){
-      return '<button class="it' + (H.fecha === d.fecha ? " sel" : "") + '" onclick="DSP.hist.dia(\'' + d.fecha + '\')"><div class="tx"><b>' + (d.fecha === hoyISO() ? "Hoy" : esc(nombreDia_(d.fecha))) + '</b><span>' + num(d.n) + (num(d.n) === 1 ? " mensaje" : " mensajes") + '</span></div>' + (num(d.sinResponder) ? '<em class="u">' + d.sinResponder + '</em>' : '') + '</button>'; }).join("") : '<div class="vacio">' + (S.t ? "Todavía no hay mensajes." : "Consultando…") + '</div>');
+      return '<button class="it' + (H.fecha === d.fecha ? " sel" : "") + '" onclick="DSP.hist.dia(\'' + d.fecha + '\')"><div class="tx"><b>' + (d.fecha === hoyISO() ? "Hoy" : esc(nombreDia_(d.fecha))) + '</b><span>' + num(d.n) + (num(d.n) === 1 ? " mensaje" : " mensajes") + '</span></div>' + (num(d.sinResponder) ? '<em class="u">' + d.sinResponder + '</em>' : '') + '</button>'; }).join("") : '<div class="vacio">' + (S.sin ? "El historial todavía no está disponible." : S.t ? "Todavía no hay mensajes." : "Consultando…") + '</div>');
     var l2 = '<button class="volver" onclick="DSP.hist.volver()">← Volver</button>';
     if(H.q.length >= 2){
       var res = [];
       Object.keys(H.cache).sort().reverse().forEach(function(f){ (H.cache[f] || []).forEach(function(h){
-        var blob = (h.conductor + " " + resHilo(h) + " " + (Array.isArray(h.paradas) ? h.paradas.join(" ") : String(h.paradas || ""))).toLowerCase();
+        var all = H.m[h.fecha + "|" + h.conductor] || [], blob = (h.conductor + " " + resHilo(h) + " " + (Array.isArray(h.paradas) ? h.paradas.join(" ") : String(h.paradas || "")) + " " + all.map(function(m){ return m.texto + " " + (m.parada || ""); }).join(" ")).toLowerCase();
         if(blob.indexOf(H.q) >= 0) res.push(h); }); });
       l2 += '<h5>Resultados · ' + res.length + '</h5>' + (res.length ? res.map(function(h){ return itHilo(h, true); }).join("") : '<div class="vacio">Nada con «' + esc(H.q) + '» en los días ya consultados.</div>');
     } else if(H.fecha){
@@ -23012,8 +22986,12 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     if(!PIN){ if(!llamarDespacho()) tst("Entre con su PIN"); return; }
     if(esSup()){
       try{ if(window.C38 && C38.cerrarMenu) C38.cerrarMenu(); }catch(e){}
-      try{ BQ.f = "cond"; var X = S.items(); BQ.sel = X.length ? X[0].k : ""; }catch(e){}
-      mostrarTab("solicitudes"); if(!S.t) S.poll(); return;
+      try{
+        var X = S.items(), k0 = X.length ? X[0].k : "";
+        if(typeof BN48 !== "undefined"){ BN48.car = "con"; BN48.sub = ""; BN48.det = !!k0; }
+        if(typeof bq38Ir_ === "function") bq38Ir_(k0, "cond"); else { BQ.f = "cond"; BQ.sel = k0; mostrarTab("solicitudes"); }
+      }catch(e){ mostrarTab("solicitudes"); }
+      if(!S.t) S.poll(); return;
     }
     if(C.sin){ if(!llamarDespacho()) tst("El chat todavía no está disponible"); return; }
     D.abrir();
@@ -23021,6 +22999,49 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     var antes = C.verif;
     setTimeout(function(){ if(C.sin && C.abierto && !antes){ D.cerrar(); llamarDespacho(); } }, 2500);
   };
+  /* ── se engancha a lo que ya existe: al final de la carga de la página, para quedar por encima de los bloques que vienen después (la Bandeja nueva 3.48 está más abajo) ── */
+  D.instala = function(){
+    if(D._inst) return; D._inst = true;
+    if(typeof window.ecoPos === "function"){
+      var oPos = window.ecoPos;
+      window.ecoPos = function(j){
+        try{ var f = typeof j === "string" ? JSON.parse(j) : j; if(f && f.vel != null && isFinite(Number(f.vel))){ D.vel = Number(f.vel) * 3.6; D.velT = Date.now(); } }catch(e){}
+        return oPos.apply(this, arguments);
+      };
+    }
+    /* la Bandeja nueva tiene subgrupos por grupo: «Conductores y flota» suma «Mensajes» */
+    try{ if(typeof BN48_CAR !== "undefined"){ BN48_CAR.forEach(function(c){ if(c[0] === "con" && !c[3].some(function(x){ return x[0] === "msg"; })) c[3].push(["msg", "Mensajes"]); }); } }catch(e){}
+  if(typeof bq38Items_ === "function"){
+    var oItems = bq38Items_;
+    bq38Items_ = function(){
+      var L = oItems.apply(this, arguments);
+      try{ if(esSup()){ var X = S.items(); if(X.length){ X.forEach(function(x){ L.push(x); }); var G = { urg: 0, hoy: 1, esp: 2 }; L.sort(function(a, b){ return G[a.g] - G[b.g] || (a.g === "hoy" ? String(b.f + b.h).localeCompare(String(a.f + a.h)) : (b.d || 0) - (a.d || 0)); }); } } }catch(e){ console.error(e); }
+      return L;
+    };
+  }
+  if(typeof bq38Det_ === "function"){
+    var oDet = bq38Det_;
+    bq38Det_ = function(){ try{ if(typeof BQ !== "undefined" && String(BQ.sel || "").indexOf("dsp:") === 0) return S.html(); }catch(e){ console.error(e); } return oDet.apply(this, arguments); };
+  }
+  if(typeof bq38Despues_ === "function"){
+    var oDesp = bq38Despues_;
+    bq38Despues_ = function(){ var r = oDesp.apply(this, arguments); try{ if(String(BQ.sel || "").indexOf("dsp:") === 0) S.abre(BQ.sel); }catch(e){ console.error(e); } return r; };
+  }
+  if(typeof renderSolicitudes === "function"){
+    var oRend = renderSolicitudes;
+    renderSolicitudes = function(){
+      var r = oRend.apply(this, arguments);
+      try{
+        if(esSup()){
+          var bf = document.querySelector("#bq38 .bn-fil") || document.querySelector("#bq38 .bf");
+          if(bf && !bf.querySelector(".dsp-hbtn")) bf.insertAdjacentHTML("beforeend", '<button class="dsp-hbtn" onclick="DSP.hist.abrir()">' + IC.chat + 'Mensajes · historial</button>');
+          if(!S.t && !S.vuelo) S.poll();
+        }
+      }catch(e){ console.error(e); }
+      return r;
+    };
+  }
+
   var oIr = window.ecoIr;
   window.ecoIr = function(ir){
     if(String(ir || "") === "despacho"){ try{ D.ir(); }catch(e){ console.error(e); llamarDespacho(); } return; }
@@ -23028,6 +23049,8 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   };
   window.ecoDespacho = function(){ try{ D.ir(); }catch(e){ console.error(e); llamarDespacho(); } };
 
+  };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", D.instala); else D.instala();
   /* ── el reloj: respuestas del Despacho (conductor) y mensajes nuevos (supervisor) ── */
   leerCola();
   setInterval(function(){
