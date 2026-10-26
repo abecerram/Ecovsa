@@ -22732,12 +22732,12 @@ body.t47-noche .dsp-bn{color:#e8eefb}
     C.msgs.forEach(function(m){
       var cx = String(m.parada || ""); if(cx && cx !== ult){ h += '<div class="dsp-ctx">Parada · ' + esc(cx) + '</div>'; ult = cx; }
       if(m.de === "c"){
-        var le = m.atendidoPor ? "Leído por " + esc(nom1(m.atendidoPor)) : "Enviado";
+        var le = m.leido ? "Leído" + (m.atendidoPor ? " por " + esc(nom1(m.atendidoPor)) : "") : "Enviado";
         h += '<div class="dsp-b yo">' + esc(m.texto) + '<small>' + esc(hora12(m.hora)) + ' · ' + le + '</small></div>';
       } else h += '<div class="dsp-b ellos"><span class="q">Despacho' + (m.autor ? ' · ' + esc(nom1(m.autor)) : '') + '</span>' + esc(m.texto) + '<small>' + esc(hora12(m.hora)) + '</small></div>';
     });
     C.cola.forEach(function(m){ var cx = String((m.ctx && m.ctx.parada) || ""); if(cx && cx !== ult){ h += '<div class="dsp-ctx">Parada · ' + esc(cx) + '</div>'; ult = cx; } h += bubbleMio(m); });
-    var k = ms.getAttribute("data-k") || "", nk = C.msgs.map(function(x){ return x.id + (x.atendidoPor || ""); }).join(",") + "|" + C.cola.map(function(x){ return x.tmp + x.estado; }).join(",");
+    var k = ms.getAttribute("data-k") || "", nk = C.msgs.map(function(x){ return x.id + (x.atendidoPor || "") + (x.leido ? "L" : ""); }).join(",") + "|" + C.cola.map(function(x){ return x.tmp + x.estado; }).join(",");
     if(k === nk) return; ms.setAttribute("data-k", nk); ms.innerHTML = h;
     if(cerca || k === "") ms.scrollTop = ms.scrollHeight;
   }
@@ -22793,9 +22793,12 @@ body.t47-noche .dsp-bn{color:#e8eefb}
   /* ═════════════ EL SUPERVISOR · LA BANDEJA ═════════════ */
   var S = D.s = { hilos: null, dias: [], fecha: "", t: 0, vuelo: false, ult: 0, hilo: null, borr: "", sinRespPrev: -1, mantener: "" };
   function clave(h){ return "dsp:" + h.conductor + "|" + h.fecha; }
+  function dBQ(){ return (typeof BQ !== "undefined" && BQ && BQ.inc && BQ.inc.despacho) || null; }
+  /* los de hoy (la consulta propia, si ya llegó; si no, lo que trajo la Bandeja) y los pendientes de días anteriores (solo vienen en la Bandeja) */
   function hilosHoy(){
-    if(S.hilos) return S.hilos;
-    var d = typeof BQ !== "undefined" && BQ && BQ.inc && BQ.inc.despacho; return (d && Array.isArray(d.hilos)) ? d.hilos : [];
+    var d = dBQ(), hoy = S.hilos || (d && Array.isArray(d.hilos) ? d.hilos : []), pen = d && Array.isArray(d.pendientes) ? d.pendientes : [], ya = {};
+    hoy.forEach(function(h){ ya[clave(h)] = 1; });
+    return hoy.concat(pen.filter(function(h){ return !ya[clave(h)]; }));
   }
   S.items = function(){
     var L = [], hoy = hoyISO();
@@ -22803,8 +22806,8 @@ body.t47-noche .dsp-bn{color:#e8eefb}
       var k = clave(h), sel = typeof BQ !== "undefined" && BQ.sel === k;
       if(!(num(h.sinResponder) > 0) && !sel) return;
       var u = h.ultimo || {}, urg = num(h.sinResponder) > 0 && /ayuda|falla|accidente|choque|emergencia|lesi/i.test(String(u.texto || ""));
-      L.push({ k: k, cat: "cond", ic: "dspchat", c: "c38-t", f: h.fecha, h: u.hora || "", d: 0, g: urg ? "urg" : "hoy",
-        o: "Conductor · " + (h.fecha === hoy ? "hoy" : h.fecha) + (u.hora ? " " + u.hora : ""),
+      L.push({ k: k, cat: "cond", ic: "dspchat", c: "c38-t", f: h.fecha, h: u.hora || "", d: typeof bq38Dias_ === "function" ? bq38Dias_(h.fecha) : 0, g: urg ? "urg" : (h.fecha === hoy ? "hoy" : "esp"),
+        o: "Conductor · " + (h.fecha === hoy ? "hoy" : bq38Hace_(h.fecha)) + (u.hora && h.fecha === hoy ? " " + u.hora : ""),
         t: "Mensaje del conductor · " + nom1(h.conductor), s: (num(h.sinResponder) > 1 ? h.sinResponder + " sin responder · " : "") + (u.de === "d" ? "Usted: " : "") + String(u.texto || ""),
         b: num(h.sinResponder) > 0 ? "Responder" : "Ver" });
     });
@@ -22827,9 +22830,9 @@ body.t47-noche .dsp-bn{color:#e8eefb}
       '<div class="dsp-hilo" id="dsp-s-hilo">' + (ms.length ? ms.map(burb2).join("") : '<div class="vacio" style="text-align:center;color:#8a96a8;padding:14px">' + (hy ? "Sin mensajes." : "Cargando el hilo…") + '</div>') + '</div>';
     if(hoy){
       h += '<div class="dsp-rr">' + RESPUESTAS.map(function(r, i){ return '<button onclick="DSP.s.rr(' + i + ')">' + esc(r) + '</button>'; }).join("") + '</div>' +
-        '<div class="dsp-rb"><input id="dsp-s-txt" maxlength="500" placeholder="Respuesta para el conductor…" value="' + esc(S.borr) + '" oninput="DSP.s.borr=this.value" onkeydown="if(event.key===\'Enter\'){DSP.s.enviar()}"><button class="dsp-bp" onclick="DSP.s.enviar()">Enviar a la tablet</button></div>' +
-        '<div class="dsp-acc">' + (atiende ? '' : '<button class="dsp-bn" onclick="DSP.s.tomar()">Tomar este mensaje</button>') + '<button class="dsp-bn" onclick="DSP.s.llamar()">Llamar al conductor</button>' + (sin > 0 ? '<button class="dsp-bn" onclick="DSP.s.atendido()">Ya lo atendí</button>' : '') + '</div>';
-    } else h += '<div class="resp">Es un día anterior: solo se puede leer. Para escribirle, use el hilo de hoy.</div>';
+        '<div class="dsp-rb"><input id="dsp-s-txt" maxlength="500" placeholder="Respuesta para el conductor…" value="' + esc(S.borr) + '" oninput="DSP.s.borr=this.value" onkeydown="if(event.key===\'Enter\'){DSP.s.enviar()}"><button class="dsp-bp" onclick="DSP.s.enviar()">Enviar a la tablet</button></div>';
+    } else h += '<div class="resp">Es de un día anterior: aquí no se le escribe (la respuesta sale en el hilo de hoy). Puede marcarlo como atendido.</div>';
+    h += '<div class="dsp-acc">' + (atiende ? '' : '<button class="dsp-bn" onclick="DSP.s.tomar()">Tomar este mensaje</button>') + '<button class="dsp-bn" onclick="DSP.s.llamar()">Llamar al conductor</button>' + (sin > 0 ? '<button class="dsp-bn" onclick="DSP.s.atendido()">Ya lo atendí</button>' : '') + '</div>';
     return h + '</div>';
   };
   S.abre = function(k){
