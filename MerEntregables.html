@@ -21,6 +21,13 @@
 .prev-h .t{font-size:11.5px;font-weight:700;letter-spacing:.8px;color:var(--muted)}
 .emit{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:0 10px}
 .emit label.lb{margin-top:0}
+/* api 3.57 · elegir cliente y volver a generar */
+.cli-sel{display:flex;gap:6px}.cli-sel .in{flex:1;min-width:0}.cli-sel .btn{flex:none}
+.el-l{max-height:min(60vh,520px);overflow:auto;margin-top:10px;border:1px solid var(--line);border-radius:12px}
+.el-g{padding:8px 12px 4px;font-size:11px;letter-spacing:.6px;font-weight:700;color:var(--muted);background:#f6f8fb;border-top:1px solid var(--line)}.el-g:first-child{border-top:0}
+.el-i{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--line2,#eef1f5);background:#fff;padding:9px 12px;font:inherit;cursor:pointer;color:var(--ink)}.el-i:hover{background:#f5f8fd}
+.el-i b{flex:1;min-width:0;font-weight:600}.el-i small{color:var(--muted)}
+tr.reemp td{opacity:.6}
 .pres{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .nota{background:var(--hover);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#4d5b70;line-height:1.5}
 .nota.warn{background:var(--warn-bg);border-color:var(--amber-line);color:#6b4a00}
@@ -542,12 +549,12 @@ var QR = (function(){
       /* certificados */
       '<div class="pane" id="p-cert"><div class="a-grid"><div>' +
         '<div class="card"><h3>Emitir un certificado</h3>' +
-          '<div class="emit"><div><label class="lb" for="c-cli">CLIENTE (NOMBRE O RUC)</label><input class="in" id="c-cli" list="dl-cli" placeholder="Escribe o elige un cliente…" autocomplete="off"><datalist id="dl-cli"></datalist></div>' +
+          '<div class="emit"><div><label class="lb" for="c-cli">CLIENTE (NOMBRE O RUC)</label><div class="cli-sel"><input class="in" id="c-cli" list="dl-cli" placeholder="Escribe o elige un cliente…" autocomplete="off"><button type="button" class="btn" id="c-elegir">' + MK.ic('lista', 15) + 'Elegir</button></div><datalist id="dl-cli"></datalist></div>' +
           '<div><label class="lb" for="c-des">DESDE</label><input class="in" type="date" id="c-des"></div><div><label class="lb" for="c-has">HASTA</label><input class="in" type="date" id="c-has"></div></div>' +
           '<div class="pres" id="c-pres"></div><div id="c-msg" style="margin-top:12px"></div>' +
           '<div class="row w" style="margin-top:12px"><button class="btn pri" id="c-emit" disabled>Emitir certificado</button><span class="small muted" style="flex:1;min-width:200px">Recibe un folio correlativo y queda registrado. Se entrega al percibir el pago: si el cliente tiene saldo, el sistema lo detiene.</span></div>' +
         '</div>' +
-        '<div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div class="card-h"><h3>Certificados emitidos</h3><div class="sp"></div><label class="srch-in" style="width:240px">' + MK.ic('buscar', 15) + '<input id="c-q" placeholder="Buscar folio o cliente" autocomplete="off"></label></div><div id="c-lista" style="overflow-x:auto"></div></div>' +
+        '<div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div class="card-h"><h3>Certificados emitidos</h3><div class="sp"></div><label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer"><input type="checkbox" id="c-verr"> Ver reemplazados</label><label class="srch-in" style="width:240px">' + MK.ic('buscar', 15) + '<input id="c-q" placeholder="Buscar folio o cliente" autocomplete="off"></label></div><div id="c-lista" style="overflow-x:auto"></div></div>' +
       '</div><div class="a-prev"><div class="prev-h"><span class="t">VISTA PREVIA</span><span class="sp"></span><span id="c-pacc"></span></div><div id="c-prev"></div></div></div></div>' +
       /* distintivos */
       '<div class="pane" id="p-dist"><div class="a-grid"><div>' +
@@ -587,6 +594,8 @@ var QR = (function(){
     var t = null; var prog = function () { clearTimeout(t); t = setTimeout(previa, 450); };
     $('c-cli').oninput = prog; $('c-cli').onchange = previa; $('c-des').onchange = previa; $('c-has').onchange = previa;
     $('c-emit').onclick = function () { emitir(false); };
+    $('c-elegir').onclick = elegirCliente;   // api 3.57
+    $('c-verr').onchange = pintarCerts;
     var pc = MK.param('cli'); if (pc) $('c-cli').value = pc;
     marcarAtajo();
   }
@@ -612,7 +621,7 @@ var QR = (function(){
       if (n !== nPrev) return;
       if (!r || !r.ok) { PREV = null; msg('bad', esc((r && r.error) || 'No se pudo calcular el certificado.')); $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Sin vista previa.') + '</div>'; return; }
       PREV = { cliente: cli, desde: d, hasta: h, r: r };
-      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return clave(x.cliente) === clave(r.ficha56 || r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
+      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return !x.reemplazadoPor && clave(x.cliente) === clave(r.ficha56 || r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
       var partes = [];
       if (!av.alDia) partes.push(['bad', '<b>No se puede emitir todavía.</b> ' + esc(r.empresa.nombre) + ' tiene un saldo pendiente de <b>' + MK.dinero(av.saldo) + '</b> en ' + av.facturasAbiertas + ' factura' + (av.facturasAbiertas === 1 ? '' : 's') + '. El certificado se entrega al percibir el pago: cuando el pago esté registrado en Cobros, vuelve a intentarlo.' +
         (puedeForzar() ? '<br>Como ' + esc(MK.usuario.rol) + ' puedes emitirlo de todos modos; queda registrado como <b>forzado</b>.' : '<br><b>Solo gerencia o administración puede emitirlo de todos modos.</b>')]);
@@ -683,6 +692,79 @@ var QR = (function(){
     if (f) MK.confirmar('El cliente tiene un saldo de ' + MK.dinero(av.saldo) + '. El certificado queda registrado como forzado, con tu nombre.', hacer, { titulo: '¿Emitir con saldo pendiente?', boton: 'Emitir de todos modos', peligro: true });
     else hacer();
   }
+  /* ═══ api 3.57 · los repetidos (mismo RUC o cliente y mismo periodo) y «Volver a generar» con la regla de hoy ═══ */
+  function claveCert(x) { return (x.ruc && !x.sede ? 'R:' + String(x.ruc).replace(/\W/g, '') : 'C:' + clave(x.cliente)) + '|' + x.desde + '|' + x.hasta; }   // por sede: se compara con la misma sede
+  function repetidos() {
+    var g = {}, out = {};
+    (CERTS || []).filter(function (x) { return !x.reemplazadoPor; }).forEach(function (x) { (g[claveCert(x)] = g[claveCert(x)] || []).push(x.folio); });
+    Object.keys(g).forEach(function (k) { if (g[k].length > 1) g[k].forEach(function (f) { out[f] = g[k]; }); });
+    return out;
+  }
+  function regenerar(folio) {
+    var x = (CERTS || []).filter(function (c) { return c.folio === folio; })[0]; if (!x) return;
+    var grupo = (CERTS || []).filter(function (c) { return !c.reemplazadoPor && claveCert(c) === claveCert(x); }).map(function (c) { return c.folio; });
+    if (grupo.indexOf(folio) < 0) grupo.unshift(folio);
+    MK.cargando('c-prev', 'Calculando con la regla de cobro de hoy…');
+    MK.api('api_datosCertificado', MK.pin, x.cliente, x.desde, x.hasta).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo calcular.'); $('c-prev').innerHTML = ''; return; }
+      $('c-prev').innerHTML = certHTML(r, { borrador: true });
+      var dest = [{ cli: x.cliente, sede: r.empresa.sede || r.empresa.nombre }].concat(r.modo === 'sede' ? (r.otrasSedes || []).map(function (s) { return { cli: s.nombre, sede: s.sede }; }) : []);
+      var tx = 'Se vuelve a generar el certificado de ' + (r.empresa.nombre || x.cliente) + ', del ' + larga(x.desde) + ' al ' + larga(x.hasta) + ', con la regla de cobro de hoy' + (r.regla ? ' (' + r.regla.texto + ')' : ' (sin regla: todas las sedes juntas, como siempre)') + '.\n\n' +
+        (dest.length > 1 ? 'Sale uno por sede: ' + dest.map(function (d) { return d.sede; }).join(', ') + '.\n\n' : '') +
+        (grupo.length > 1 ? 'Estos ' + grupo.length + ' certificados' : 'El certificado ' + grupo[0]) + ' quedan como «Reemplazado por» el nuevo: ' + grupo.join(', ') + '. No se borran: dejan de salir en la lista, en la ficha y en el portal.';
+      MK.confirmar(tx, function () { hacerRegen(x, grupo, dest, false); }, { titulo: '¿Volver a generar?', boton: 'Volver a generar' });
+    }, function () { MK.aviso('Sin conexión con el servidor.'); });
+  }
+  function hacerRegen(x, grupo, dest, forzar) {
+    var lote = 'RG-' + Date.now().toString(36), hechos = [], malas = [], saldo = null, paso = Promise.resolve();
+    dest.forEach(function (d) {
+      paso = paso.then(function () {
+        return MK.api('api_emitirCertificado', MK.pin, d.cli, x.desde, x.hasta, forzar, { folios: grupo, lote: lote }).then(function (r) {
+          if (r && r.ok) hechos.push(r.folio);
+          else if (r && r.sinPazYSalvo) saldo = r;
+          else if (!(r && /No hay recolecciones/.test(r.error || ''))) malas.push(d.sede + ': ' + ((r && r.error) || 'no se pudo'));
+        }, function () { malas.push(d.sede + ': sin conexión'); });
+      });
+    });
+    paso.then(function () {
+      if (saldo && !hechos.length) {
+        if (saldo.puedeForzar) MK.confirmar(saldo.error + ' Como ' + MK.usuario.rol + ' puede generarlo de todos modos; queda como forzado.', function () { hacerRegen(x, grupo, dest, true); }, { titulo: 'Tiene saldo pendiente', boton: 'Generar de todos modos', peligro: true });
+        else msg('bad', '<b>No se generó.</b> ' + esc(saldo.error) + '<br>Solo gerencia o administración puede generarlo con saldo.');
+        return;
+      }
+      if (hechos.length) { MK.aviso('Listo: ' + hechos.join(', ')); msg('ok', 'Generado' + (hechos.length > 1 ? 's' : '') + ' <b>' + hechos.map(esc).join(', ') + '</b> con la regla de hoy. ' + esc(grupo.join(', ')) + ' quedó como reemplazado.' + (malas.length ? '<br>' + esc(malas.join(' · ')) : '')); }
+      else msg('bad', esc(malas.join(' · ') || 'No se generó ninguno.'));
+      cargarCerts().then(function () { if (hechos[0]) ver(hechos[0], true); });
+    });
+  }
+  /* ═══ api 3.57 · elegir el cliente de una lista: por empresa, con sus sedes y cómo sale su certificado ═══ */
+  function elegirCliente() {
+    var REG = { indep: 'por sede', docsede: 'por sede', admin: 'agrupado', corp: 'corporativo', medida: 'a la medida', una: 'una sede' };
+    var lista = (CLIS || []).filter(function (c) { return c.nombre && ['baja', 'cierre', 'retiro'].indexOf(String(c.situacion || '').toLowerCase()) < 0; });
+    var d = $('c-des').value, h = $('c-has').value;
+    var ya = {}; (CERTS || []).forEach(function (x) { if (!x.reemplazadoPor && x.desde === d && x.hasta === h) ya[clave(x.cliente)] = x.folio; });
+    var pinta = function (q) {
+      q = String(q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      var g = {};
+      lista.forEach(function (c) {
+        var txt = (c.nombre + ' ' + (c.cuenta || '') + ' ' + (c.razon || '') + ' ' + (c.ruc || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (q && q.split(/\s+/).some(function (w) { return txt.indexOf(w) < 0; })) return;
+        var k = c.cuenta || c.nombre; (g[k] = g[k] || []).push(c);
+      });
+      var ks = Object.keys(g).sort(function (a, b) { return a.localeCompare(b); });
+      return ks.length ? ks.map(function (k) {
+        var L = g[k].sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+        return (L.length > 1 ? '<div class="el-g">' + esc(k) + (L[0].reglaTipo ? ' · certificado ' + esc(REG[L[0].reglaTipo] || '') : ' · sin regla de cobro') + '</div>' : '') +
+          L.map(function (c) { return '<button type="button" class="el-i" data-n="' + esc(c.nombre) + '"><b>' + esc(c.nombre) + '</b>' + (ya[clave(c.nombre)] ? '<span class="tag t-warn">ya tiene ' + esc(ya[clave(c.nombre)]) + '</span>' : '') + (L.length === 1 ? '<small>' + esc(c.reglaTipo ? REG[c.reglaTipo] || '' : 'sin regla') + '</small>' : '') + '</button>'; }).join('');
+      }).join('') : '<div style="padding:14px">' + MK.vacio('Nada con «' + esc(q) + '».') + '</div>';
+    };
+    var hj = MK.hoja('<h2>Elegir cliente</h2><p class="muted small" style="margin-top:4px">Por empresa, con sus sedes. «Ya tiene» avisa si ya hay un certificado para el periodo elegido.</p>' +
+      '<label class="srch-in" style="margin-top:10px;width:100%">' + MK.ic('buscar', 15) + '<input id="el-q" placeholder="Buscar por nombre, empresa o RUC" autocomplete="off" autofocus></label>' +
+      '<div class="el-l" id="el-l">' + pinta('') + '</div><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>');
+    var enl = function () { [].forEach.call(hj.querySelectorAll('[data-n]'), function (b) { b.onclick = function () { $('c-cli').value = b.getAttribute('data-n'); MK.cerrarHoja(); previa(); }; }); };
+    enl();
+    $('el-q').oninput = function () { $('el-l').innerHTML = pinta(this.value); enl(); };
+  }
   function urlCert(folio) { return 'CertificadoVista.html?p=vercert&folio=' + encodeURIComponent(folio); }
   function cargarCerts() {
     return MK.api('api_certificadosEmitidos', MK.pin, 500).then(function (r) {
@@ -693,18 +775,21 @@ var QR = (function(){
   function pintarCerts() {
     if (!CERTS) return;
     var q = ($('c-q').value || '').trim().toLowerCase();
-    var l = CERTS.filter(function (x) { return !q || (x.folio + ' ' + x.cliente).toLowerCase().indexOf(q) >= 0; });
+    var verR = $('c-verr') && $('c-verr').checked, rep = repetidos();
+    var l = CERTS.filter(function (x) { return (verR || !x.reemplazadoPor) && (!q || (x.folio + ' ' + x.cliente).toLowerCase().indexOf(q) >= 0); });
     $('c-lista').innerHTML = !CERTS.length ? MK.vacio('Todavía no se ha emitido ningún certificado.') :
       '<table class="tb certs"><thead><tr><th>Folio</th><th>Cliente y período</th><th class="r ockg">Kg</th><th class="oc">Emitido por</th><th></th></tr></thead><tbody>' +
       (l.length ? l.map(function (x) {
-        return '<tr class="clic' + (VERF === x.folio ? ' sel' : '') + '" data-f="' + esc(x.folio) + '"><td><b class="mono" style="font-weight:600">' + esc(x.folio) + '</b><small>' + esc(MK.fechaCorta(x.fecha)) + '</small>' + (x.forzado ? '<span class="tag forz" style="margin-top:3px">forzado</span>' : '') + '</td>' +
+        return '<tr class="clic' + (VERF === x.folio ? ' sel' : '') + (x.reemplazadoPor ? ' reemp' : '') + '" data-f="' + esc(x.folio) + '"><td><b class="mono" style="font-weight:600">' + esc(x.folio) + '</b><small>' + esc(MK.fechaCorta(x.fecha)) + '</small>' + (x.forzado ? '<span class="tag forz" style="margin-top:3px">forzado</span>' : '') +
+          (x.reemplazadoPor ? '<span class="tag t-gris" style="margin-top:3px">reemplazado por ' + esc(x.reemplazadoPor) + '</span>' : rep[x.folio] ? '<span class="tag t-warn" style="margin-top:3px">repetido</span>' : '') + '</td>' +
           '<td>' + esc(x.cliente) + '<small>' + esc(periodo(x.desde, x.hasta)) + ' · ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '<span class="mobkg"> · ' + n2(x.totalKg) + ' kg</span></small></td><td class="r mono ockg">' + n2(x.totalKg) + '</td>' +
-          '<td class="oc small">' + esc(x.emitidoPor) + '</td><td class="r" style="white-space:nowrap"><a class="btn sm gh" href="' + urlCert(x.folio) + '" target="_blank" rel="noopener" title="Abrir para imprimir">' + MK.ic('imprimir', 14) + '</a><button class="btn sm" data-env="' + esc(x.folio) + '" title="Reenviar al cliente">' + MK.ic('correo', 14) + '<span class="txr"> Reenviar</span></button></td></tr>';
+          '<td class="oc small">' + esc(x.emitidoPor) + '</td><td class="r" style="white-space:nowrap">' + (x.reemplazadoPor ? '' : '<button class="btn sm gh" data-regen="' + esc(x.folio) + '" title="Volver a generar con la regla de cobro de hoy">' + MK.ic('renovar', 14) + '<span class="txr"> Volver a generar</span></button>') + '<a class="btn sm gh" href="' + urlCert(x.folio) + '" target="_blank" rel="noopener" title="Abrir para imprimir">' + MK.ic('imprimir', 14) + '</a><button class="btn sm" data-env="' + esc(x.folio) + '" title="Reenviar al cliente">' + MK.ic('correo', 14) + '<span class="txr"> Reenviar</span></button></td></tr>';
       }).join('') : '<tr><td colspan="5">' + MK.vacio('Nada con «' + q + '».') + '</td></tr>') + '</tbody></table>';
     [].forEach.call($('c-lista').querySelectorAll('tr[data-f]'), function (tr) {
       tr.onclick = function (e) { if (e.target.closest('a,button')) return; ver(tr.getAttribute('data-f')); };
     });
     [].forEach.call($('c-lista').querySelectorAll('[data-env]'), function (b) { b.onclick = function () { reenviar(b.getAttribute('data-env')); }; });
+    [].forEach.call($('c-lista').querySelectorAll('[data-regen]'), function (b) { b.onclick = function () { regenerar(b.getAttribute('data-regen')); }; });   // api 3.57
   }
   function ver(folio, sinScroll) {
     VERF = folio; pintarCerts();
