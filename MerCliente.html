@@ -115,6 +115,7 @@
 .fg h4{font-size:12px;letter-spacing:.8px;color:#5b6a80;text-transform:uppercase;margin-bottom:2px}
 .rej{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
 .fuera{font-weight:600;color:#8a5a00;letter-spacing:0}
+.fij{background:#f3f5f8;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.fij small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 .pista{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px;background:#fafbfd;border-radius:9px;padding:8px 10px}
 @media(max-width:1180px){.facts{grid-template-columns:repeat(3,minmax(0,1fr))}.facts>div:nth-child(3){border-right:0}.facts>div{border-bottom:1px solid var(--line2)}}
 @media(max-width:900px){
@@ -134,7 +135,8 @@
 .hj-top{display:flex;gap:18px;align-items:flex-start;margin-top:12px}
 .hj-foto{width:190px;flex:none}
 .hj-foto .ph{width:190px;height:124px;border-radius:12px;border:1px solid var(--line);background:#eef2f7;display:grid;place-items:center;color:var(--muted2);overflow:hidden;padding:0;cursor:default}
-.hj-foto button.ph{cursor:zoom-in}
+.hj-foto button.ph{cursor:zoom-in;position:relative}
+.g-tag{position:absolute;left:6px;bottom:6px;font-size:11px;background:#fff;border:1px solid #dadce0;border-radius:6px;padding:1px 6px;color:#3c4043}
 .hj-foto .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .hj-foto small{display:block;font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.35}
 .hj-tit{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -171,7 +173,7 @@
 @media(max-width:900px){#hj-bar{left:0}.hj-bar-in{padding:8px 12px}.hj-bar-s,.hj-cel-no{display:none!important}.hj-cel-si{display:inline}}
 @media(max-width:600px){.hj-top{flex-direction:column;gap:12px}.hj-foto{width:100%;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}.hj-foto .ph{width:120px;height:80px}.hj-foto small{flex:1;min-width:140px;margin-top:0}.hj-foto .btn{flex-basis:100%}.hj-tit .hname{font-size:22px}.hj-bar-in>b{max-width:110px}.hj-f b{font-size:16px}}
 /* gerencia solo consulta: el CRM (actividades, tareas, contactos, documentos) no lo modifica */
-body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver [data-nt],body.solo-ver [data-ra],body.solo-ver [data-gc],body.solo-ver [data-rt],body.solo-ver [data-nc],body.solo-ver [data-ec],body.solo-ver [data-bc],body.solo-ver [data-sd],body.solo-ver [data-tk],body.solo-ver #q-nom,body.solo-ver [data-nom],body.solo-ver [data-pfoto],body.solo-ver [data-bar="act"]{display:none!important}
+body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver [data-nt],body.solo-ver [data-ra],body.solo-ver [data-gc],body.solo-ver [data-rt],body.solo-ver [data-nc],body.solo-ver [data-ec],body.solo-ver [data-bc],body.solo-ver [data-sd],body.solo-ver [data-tk],body.solo-ver #q-nom,body.solo-ver [data-nom],body.solo-ver [data-edemp],body.solo-ver [data-bar="act"]{display:none!important}
 </style>
 </head>
 <body class="mk">
@@ -215,7 +217,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   MK.iniciar('cliente', function (base) {
     ROL = (base.usuario && base.usuario.rol) || '';
     if (ROL === 'gerente') document.body.classList.add('solo-ver');
-    var h = (location.hash || '').replace('#', ''); if (h === 'empresa') VISTA = 'empresa'; else if (TABS.indexOf(h) >= 0 && h !== 'resumen') IR = h;   // enlaces viejos con #pestaña bajan a su sección
+    var h = (location.hash || '').replace('#', ''); if (h === 'empresa') VISTA = 'empresa'; else if ((TABS.indexOf(h) >= 0 && h !== 'resumen') || /^s-[a-z]+$/.test(h)) IR = h;   // enlaces viejos con #pestaña bajan a su sección
     if (!ID) { document.getElementById('main').innerHTML = '<div class="aviso rj">Falta el cliente en el enlace. <a href="MerClientes.html">Ir a Clientes</a></div>'; return; }
     cargar();
     window.addEventListener('mk:cambio', function () { cargar(true); });
@@ -245,7 +247,13 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   /* ═══ api 3.54 · la hoja de la sede (Maqueta_clientes_mercadeo v2, opción A «una hoja con índice») ═══
      La sede se llama por su nombre (lo que va después del guion en la ficha). Arriba: la empresa en una línea,
      la foto de la entrada (la misma de Logística), «Cambiar nombre» y el selector «Toda la empresa · sedes». */
-  function corto(n) { n = String(n || '').trim(); var i = n.lastIndexOf(' - '); return i > 0 && n.slice(i + 3).trim() ? n.slice(i + 3).trim() : n; }
+  function sinT(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function corto(n, cta) {
+    n = String(n || '').trim(); cta = String(cta === undefined ? ((R && R.cliente && R.cliente.cuenta) || '') : cta).trim();
+    var i = n.lastIndexOf(' - '); if (i > 0 && n.slice(i + 3).trim()) return n.slice(i + 3).trim();
+    if (cta && sinT(n).indexOf(sinT(cta)) === 0) { var r = n.slice(cta.length).replace(/^[\s\-–·]+/, '').trim(); if (r) return r; }   /* api 3.55: ficha sin guion */
+    return n;
+  }
   function prefijo(n) { n = String(n || '').trim(); var i = n.lastIndexOf(' - '); return i > 0 ? n.slice(0, i).trim() : ''; }
   /* sus sedes (esta y las de su cuenta), en orden de alta; vacío si es una sola */
   function sedes() { var c = R.cliente; return c.cuenta && (R.sucursales || []).length ? [c].concat(R.sucursales).slice().sort(function (a, b) { return Number(a.id) - Number(b.id); }) : []; }
@@ -458,6 +466,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     on('[data-ix]', function (el) { irA(el.getAttribute('data-ix')); });
     on('[data-lado]', function (el) { ({ rec: ladoRec, cob: ladoCobros, act: ladoActividad, his: ladoHistorial })[el.getAttribute('data-lado')](); });
     on('[data-nom]', cambiarNombre);
+    on('[data-edemp]', editarEmpresa);   // api 3.55
   }
 
 
@@ -585,55 +594,90 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   }
   function histItem(x) { return '<div class="it"><span class="f">' + E(MK.fechaCorta(String(x.fecha || '').slice(0, 10))) + '</span><div><b>' + E(titulo(x.campo)) + ':</b> <del>' + E(x.campo === 'nombre' ? x.antes : valHist(x.campo, x.antes)) + '</del> → <ins>' + E(x.campo === 'nombre' ? x.despues : valHist(x.campo, x.despues)) + '</ins><div class="muted small">' + E(x.usuario) + '</div></div></div>'; }
 
-  /* ── la foto de la entrada (la que toma el conductor para Logística) ── */
+  /* ── la foto de la entrada: la misma que ve Logística (la del conductor o, si no hay, la de Google).
+     api 3.55: pedirla al conductor es solo de Logística ── */
   function foto() {
     var id = R.cliente.id;
     MK.api('api_fotoLocalVer', MK.pin, id).then(function (r) {
       var el = document.getElementById('hj-foto'); if (!el || !r || !r.ok || R.cliente.id !== id) return;
-      FOTO = r;
-      var puede = puedeEditar();
-      if (r.url) {
-        el.innerHTML = '<button type="button" class="ph" data-verfoto title="Ver grande"><img alt="La entrada de ' + E(corto(R.cliente.nombre)) + '" src="' + E(r.url) + '"></button><small>La entrada' + (r.por ? ' · la tomó ' + E(r.por) : '') + (r.en ? ' el ' + E(MK.fechaCorta(r.en)) : '') + '</small>' +
-          (r.pedida ? '<small>Se pidió otra para la próxima visita.</small>' : puede ? '<small><a href="#" data-pfoto="1">Pedir una nueva en la próxima visita</a></small>' : '');
+      var g = !r.url && r.google && r.google.url ? r.google : null, url = r.url || (g ? g.url : '');
+      FOTO = { url: url };
+      var autor = g && (g.autor || [])[0] && g.autor[0].nombre ? g.autor[0].nombre : '';
+      if (url) {
+        el.innerHTML = '<button type="button" class="ph" data-verfoto title="Ver grande"><img alt="La entrada de ' + E(corto(R.cliente.nombre)) + '" src="' + E(url) + '">' + (g ? '<span class="g-tag">Foto de Google</span>' : '') + '</button>' +
+          '<small>' + (g ? 'De Google' + (autor ? ' · ' + E(autor) : '') + '. Es la misma de la ficha de Logística.' : 'La entrada' + (r.por ? ' · la tomó ' + E(r.por) : '') + (r.en ? ' el ' + E(MK.fechaCorta(r.en)) : '')) + '</small>';
       } else {
-        el.innerHTML = '<div class="ph">' + IC('edificio', 28) + '</div><small>' + (r.pedida ? 'Sin foto todavía. Se la pidió al conductor para la próxima visita.' + (puede ? ' <a href="#" data-pfoto="0">No pedirla</a>' : '') : 'Sin foto de la entrada.') + '</small>' +
-          (!r.pedida && puede ? '<button class="btn sm" data-pfoto="1" style="margin-top:6px">' + IC('camion', 14) + 'Pedir foto en la próxima visita</button>' : '');
+        el.innerHTML = '<div class="ph">' + IC('edificio', 28) + '</div><small>' + (r.pedida ? 'Sin foto todavía: Logística ya se la pidió al conductor.' : 'Sin foto de la entrada. La pide Logística.') + '</small>';
       }
-      var v = el.querySelector('[data-verfoto]'); if (v) v.onclick = function () { MK.hoja('<h2>La entrada · ' + E(corto(R.cliente.nombre)) + '</h2><img alt="" src="' + E(r.url) + '" style="width:100%;border-radius:12px;margin-top:10px"><div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true }); };
-      [].forEach.call(el.querySelectorAll('[data-pfoto]'), function (b) {
-        b.onclick = function (e) {
-          e.preventDefault(); var si = b.getAttribute('data-pfoto') === '1'; MK.ocupado(b, true);
-          MK.llamar('api_pedirFotoLocal', MK.pin, id, !si).then(function () { MK.aviso(si ? 'Listo: el conductor la toma en la próxima visita' : 'Ya no se pide la foto'); foto(); }, function () { MK.ocupado(b, false); });
-        };
-      });
-      var bf = document.getElementById('hj-bar-f'); if (bf && r.url) bf.innerHTML = '<img alt="" src="' + E(r.url) + '">';
+      var v = el.querySelector('[data-verfoto]'); if (v) v.onclick = function () { MK.hoja('<h2>La entrada · ' + E(corto(R.cliente.nombre)) + '</h2><img alt="" src="' + E(url) + '" style="width:100%;border-radius:12px;margin-top:10px">' + (g ? '<p class="small muted">Foto de Google' + (autor ? ' · ' + E(autor) : '') + '</p>' : '') + '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button></div>', { ancha: true }); };
+      var bf = document.getElementById('hj-bar-f'); if (bf && url) bf.innerHTML = '<img alt="" src="' + E(url) + '">';
     }, function () { var el = document.getElementById('hj-foto'); if (el) el.querySelector('small').textContent = 'No se pudo traer la foto.'; });
   }
 
-  /* ── cambiar el nombre de la sede: «EMPRESA - Sede». El servidor guarda el anterior como nombre de recibo ── */
+  /* ── cambiar el nombre de la sede: «EMPRESA - Sede». El servidor guarda el anterior como nombre de recibo.
+     api 3.55: si la sede es de una empresa, la empresa queda fija (se cambia en «Toda la empresa › Editar la empresa»)
+     y su nombre se guarda aparte antes de renombrar, para que renombrar la sede nunca cambie la empresa. ── */
   function cambiarNombre() {
-    var c = R.cliente, pre = prefijo(c.nombre), nom = corto(c.nombre);
+    var c = R.cliente, S = sedes(), fija = !!(c.cuenta && S.length), pre = fija ? c.cuenta : prefijo(c.nombre), nom = corto(c.nombre);
     MK.hoja('<h2>Cambiar el nombre de la sede</h2><p class="muted small" style="margin-top:4px">Ahora: <b>' + E(c.nombre) + '</b></p>' +
-      '<label class="lb" for="cn-e">EMPRESA <span class="muted">(va antes del guion)</span></label><input class="in" id="cn-e" value="' + E(pre) + '" placeholder="' + E(c.cuenta || 'Nombre de la empresa') + '">' +
+      (fija ? '<label class="lb">EMPRESA</label><div class="fij"><b>' + E(pre) + '</b><small>Se cambia en «Toda la empresa › Editar la empresa».</small></div>'
+        : '<label class="lb" for="cn-e">EMPRESA <span class="muted">(va antes del guion)</span></label><input class="in" id="cn-e" value="' + E(pre) + '" placeholder="' + E(c.cuenta || 'Nombre de la empresa') + '">') +
       '<label class="lb" for="cn-s">NOMBRE DE LA SEDE</label><input class="in" id="cn-s" autofocus value="' + E(nom) + '" placeholder="San Francisco">' +
-      '<div class="pista">Así queda en la ficha: <b id="cn-pv"></b><br>El portal, Logística y los recibos nuevos usan el nombre nuevo. El anterior queda guardado como nombre de recibo: sus recibos viejos siguen siendo de esta sede. El cambio queda en el historial de la ficha.</div>' +
+      '<div class="pista">Así queda en la ficha: <b id="cn-pv"></b><br>El portal, Logística y los recibos nuevos usan el nombre nuevo. El anterior queda guardado como nombre de recibo: sus recibos viejos siguen siendo de esta sede.' + (fija ? ' La empresa no cambia.' : '') + ' El cambio queda en el historial de la ficha.</div>' +
       '<div id="cn-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="cn-ok">Guardar el nombre</button></div>');
     var e = document.getElementById('cn-e'), s = document.getElementById('cn-s'), pv = document.getElementById('cn-pv');
-    var nuevo = function () { var a = e.value.replace(/\s+/g, ' ').trim(), b = s.value.replace(/\s+/g, ' ').trim(); return a && b ? a + ' - ' + b : (a || b); };
+    var nuevo = function () { var a = (fija ? pre : e.value).replace(/\s+/g, ' ').trim(), b = s.value.replace(/\s+/g, ' ').trim(); return a && b ? a + ' - ' + b : (a || b); };
     var ver = function () { pv.textContent = nuevo() || '—'; };
-    e.oninput = ver; s.oninput = ver; ver();
+    if (e) e.oninput = ver; s.oninput = ver; ver();
     document.getElementById('cn-ok').onclick = function () {
       var b = this, msg = document.getElementById('cn-msg'), n = nuevo();
-      if (!s.value.trim()) { msg.textContent = 'Escribe el nombre de la sede.'; s.focus(); return; }
+      if (!s.value.trim()) { msg.textContent = 'Escriba el nombre de la sede.'; s.focus(); return; }
       if (n === c.nombre) { msg.textContent = 'Es el mismo nombre.'; return; }
       MK.ocupado(b, true);
-      MK.api('api_crmGuardarFichaCliente', MK.pin, c.id, { nombre: n }).then(function (r) {
+      var guardar = function () {
+        return MK.api('api_crmGuardarFichaCliente', MK.pin, c.id, { nombre: n }).then(function (r) {
+          MK.ocupado(b, false);
+          if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+          MK.cerrarHoja(); MK.aviso('Nombre cambiado. El anterior queda como nombre de recibo.');
+          MK.cambio({ tipo: 'ficha', id: c.id });
+        });
+      };
+      /* primero se deja guardado el nombre de la empresa en todas sus sedes (si salía del nombre de una ficha, deja de depender de ella) */
+      var paso = fija ? MK.api('api_crmGuardarCuenta', MK.pin, S.map(function (x) { return x.id; }), c.cuenta).then(function (r) { if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo guardar la empresa.'); }) : Promise.resolve();
+      paso.then(guardar).catch(function (er) { MK.ocupado(b, false); msg.textContent = 'No se guardó: ' + er.message; });
+    };
+  }
+
+  /* ── «Editar la empresa»: lo que es de la empresa, en todas sus sedes a la vez. El nombre de cada sede no cambia ── */
+  function editarEmpresa() {
+    var c = R.cliente, d = R.datos, S = sedes();
+    var opc = function (l, v) { v = String(v || '').trim().toUpperCase(); var h = '<option value=""></option>' + (v && l.indexOf(v) < 0 ? '<option selected>' + E(v) + '</option>' : ''); return h + l.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + E(o) + '</option>'; }).join(''); };
+    MK.hoja('<h2>Editar la empresa</h2><p class="small muted">Se guarda en sus ' + S.length + ' sedes: ' + E(S.map(function (x) { return corto(x.nombre); }).join(', ')) + '. El nombre de cada sede no cambia. Queda en el historial de cada ficha.</p>' +
+      '<label class="lb" for="ee-n">NOMBRE COMERCIAL</label><input class="in" id="ee-n" value="' + E(c.cuenta || '') + '">' +
+      '<label class="lb" for="ee-r">RAZÓN SOCIAL <span class="muted">(la del aviso de operaciones)</span></label><input class="in" id="ee-r" value="' + E(d['razon social'] || '') + '">' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="ee-ruc">RUC</label><input class="in" id="ee-ruc" value="' + E(d.ruc || '') + '"></div><div><label class="lb" for="ee-dv">DV</label><input class="in" id="ee-dv" value="' + E(d.dv == null ? '' : d.dv) + '"></div></div>' +
+      '<div class="grid g2" style="gap:10px"><div><label class="lb" for="ee-f">FACTURACIÓN</label><select class="sel" id="ee-f">' + opc(['POR PUNTO', 'AGRUPADA'], d.facturacion) + '</select></div>' +
+      '<div><label class="lb" for="ee-i">¿RETIENE ITBMS?</label><select class="sel" id="ee-i">' + opc(['NO', 'SI', 'EXENTO'], d['retiene itbms']) + '</select></div></div>' +
+      '<p class="pista">El contacto y el correo de cada sede se cambian en «Editar ficha» de esa sede.</p>' +
+      '<div id="ee-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ee-ok">Guardar en las ' + S.length + ' sedes</button></div>');
+    document.getElementById('ee-ok').onclick = function () {
+      var b = this, msg = document.getElementById('ee-msg'), v = function (id) { return document.getElementById(id).value.replace(/\s+/g, ' ').trim(); };
+      var nom = v('ee-n'), cam = {}, antes = { 'razon social': d['razon social'], ruc: d.ruc, dv: d.dv, facturacion: d.facturacion, 'retiene itbms': d['retiene itbms'] };
+      [['razon social', 'ee-r'], ['ruc', 'ee-ruc'], ['dv', 'ee-dv'], ['facturacion', 'ee-f'], ['retiene itbms', 'ee-i']].forEach(function (x) { var a = String(antes[x[0]] == null ? '' : antes[x[0]]).trim(); if (v(x[1]) !== a) cam[x[0]] = v(x[1]); });
+      var cambiaNom = nom && nom.toUpperCase() !== String(c.cuenta || '').toUpperCase();
+      if (nom.length < 2) { msg.textContent = 'Escriba el nombre comercial de la empresa.'; return; }
+      if (!cambiaNom && !Object.keys(cam).length) { msg.textContent = 'No hay nada que cambiar.'; return; }
+      MK.ocupado(b, true, 'Guardando…');
+      var ids = S.map(function (x) { return x.id; }), paso = Promise.resolve(), malas = [];
+      if (cambiaNom) paso = MK.api('api_crmGuardarCuenta', MK.pin, ids, nom).then(function (r) { if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo guardar el nombre.'); });
+      if (Object.keys(cam).length) ids.forEach(function (id) { paso = paso.then(function () { return MK.api('api_crmGuardarFichaCliente', MK.pin, id, cam).then(function (r) { if (!r || !r.ok) malas.push(id); }); }); });
+      paso.then(function () {
         MK.ocupado(b, false);
-        if (!r || !r.ok) { msg.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
-        MK.cerrarHoja(); MK.aviso('Nombre cambiado. El anterior queda como nombre de recibo.');
-        MK.cambio({ tipo: 'ficha', id: c.id });
-      }, function (er) { MK.ocupado(b, false); msg.textContent = 'Sin conexión: no se guardó. ' + er.message; });
+        if (malas.length) { msg.textContent = 'No se guardó en ' + malas.length + ' sede(s). Intente de nuevo.'; return; }
+        MK.cerrarHoja(); MK.aviso('Empresa guardada en sus ' + ids.length + ' sedes'); MK.cambio({ tipo: 'ficha', id: c.id });
+      }, function (er) { MK.ocupado(b, false); msg.textContent = 'No se guardó: ' + er.message; });
     };
   }
 
@@ -658,7 +702,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       var n = (x.situacion === 'cierre' || x.situacion === 'retiro') ? ['De baja', 'gris'] : (NIV[(x.salud || {}).nivel] || NIV.sano);
       return '<tr data-sede="' + E(x.id) + '" style="cursor:pointer"><td><b>' + E(corto(x.nombre)) + '</b><small>' + E(titulo(x.region) || x.nombre) + '</small></td><td id="emp-lc-' + E(x.id) + '"><span class="small muted">…</span></td><td>' + E(titulo(x.frecuencia) || '—') + '</td><td class="r num">' + kgN(x.kgMes) + '</td><td>' + E(fc(x.proximaVisita)) + '</td><td class="r num">' + (x.saldo ? D(x.saldo) : '—') + '</td><td><span class="tag t-' + n[1] + '">' + n[0] + '</span></td></tr>';
     }).join('');
-    return '<div class="a-head hj-h">' + lineaEmpresa(false) + '<div class="hname" style="margin-top:8px">' + E(nomEmpresa()) + '</div>' +
+    return '<div class="a-head hj-h">' + lineaEmpresa(false) + '<div class="hj-tit" style="margin-top:8px"><div class="hname">' + E(nomEmpresa()) + '</div>' + (puedeEditar() ? '<button class="btn sm pri" data-edemp>' + IC('lapiz', 14) + 'Editar la empresa</button>' : '') + '</div>' +
       '<div class="row w" style="margin-top:8px;gap:6px">' + (d['inicio recoleccion'] ? '<span class="tag t-info">Cliente desde ' + E(MK.mesNombre(String(d['inicio recoleccion']).slice(0, 7))) + '</span>' : '') + '<span class="tag t-ok">' + act + ' de ' + S.length + ' sedes activas</span>' + tagTarde() + '</div>' +
       '<div class="hj-ver">' + selector(false) + '</div></div>' +
       '<div class="hj-f"><div><span>SEDES</span><b class="num">' + S.length + '</b><small>' + (act === S.length ? 'todas activas' : (S.length - act) + ' fuera de servicio') + '</small></div>' +
@@ -669,7 +713,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
         '<div class="tbw"><table class="tb suc"><thead><tr><th>SEDE</th><th>LO CONTRATADO</th><th>FRECUENCIA</th><th class="r">KG/MES</th><th>PRÓXIMA</th><th class="r">SALDO</th><th>SALUD</th></tr></thead><tbody>' + filas +
         '<tr><td><b>Total</b></td><td></td><td></td><td class="r num"><b>' + kgN(suma('kgMes')) + '</b></td><td></td><td class="r num"><b>' + D(suma('saldo')) + '</b></td><td></td></tr></tbody></table></div>' +
         '<p class="small muted" style="margin-top:8px">Toque una sede para abrir su hoja.</p>') + '</div>' +
-      '<div class="a-g" style="margin-top:14px"><div class="col">' + card('La empresa', 'edificio', '<div class="kv"><span>Razón social</span><b>' + E(c.razon || '—') + '</b><span>RUC / DV</span><b class="num">' + E((c.ruc || '—') + dvTx()) + '</b>' +
+      '<div class="a-g" style="margin-top:14px"><div class="col">' + card('La empresa' + (puedeEditar() ? '<span class="sp"></span><button class="btn sm" data-edemp>' + IC('lapiz', 14) + 'Editar</button>' : ''), 'edificio', '<div class="kv"><span>Nombre comercial</span><b>' + E(nomEmpresa()) + '</b><span>Razón social</span><b>' + E(c.razon || '—') + '</b><span>RUC / DV</span><b class="num">' + E((c.ruc || '—') + dvTx()) + '</b>' +
         '<span>Facturación</span><b>' + E(titulo(d.facturacion) || '—') + '</b><span>Plan</span><b>' + (planCompartido() ? 'Compartido: ' + N(c.planKg) + ' kg · ' + D(c.planCosto) : 'Cada sede con su plan') + '</b>' +
         '<span>Contacto principal</span><b>' + E(kp ? [kp.nombre, kp.cargo, kp.celular || kp.telefono].filter(Boolean).join(' · ') : [c.contacto, c.telefono].filter(Boolean).join(' · ') || '—') + '</b></div>') + '</div>' +
       '<div class="col"><div hidden>' + (window.MC49 ? MC49.card(c, corto(c.nombre)) : '') + '</div>' + card('Accesos al portal', 'persona', '<p class="small muted">Quién entra al portal por cada sede, y si alguien administra varias, se ve y se da en Configuración › Portal de clientes.</p>') + '</div></div>';
