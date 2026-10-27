@@ -23739,7 +23739,7 @@ function numeroHablado(v){
       try{
         var d = document.getElementById("mt38"); if(!d || d.querySelector(".mt9-g")) return r;
         var rev = ""; try{ if(tiene_("ultimaRevision")) rev = String(app().ultimaRevision() || ""); }catch(e){}
-        var act = tiene_("buscarActualizacion"), bt = tiene_("abrirBluetooth");
+        var act = tiene_("buscarActualizacion"), bt = tiene_("abrirBluetooth"); var wf = tiene_("abrirWifi");
         var ap = tiene_("abrirTienda"), sm = tiene_("abrirMensajes"), nuevas = 0; try{ if(tiene_("appsNuevas")) nuevas = Number(app().appsNuevas()) || 0; }catch(e){}
         var g = document.createElement("div"); g.className = "mt38-g mt9-g";
         g.innerHTML = '<b>ECOVSA ' + esc_(verApp_() || "?") + '</b>' +
@@ -23747,14 +23747,16 @@ function numeroHablado(v){
           '<button class="c38-btn" style="width:100%;margin-top:8px"' + (act ? '' : ' disabled') + ' data-mt9="act">Buscar actualizaciones</button>' +
           '<button class="c38-btn" style="width:100%;margin-top:8px"' + (ap ? '' : ' disabled') + ' data-mt9="ap">Aplicaciones' + (nuevas > 0 ? ' · ' + nuevas + (nuevas === 1 ? ' con versión nueva' : ' con versión nueva') : '') + '</button>' +
           '<button class="c38-btn" style="width:100%;margin-top:8px"' + (sm ? '' : ' disabled') + ' data-mt9="sm">Mensajes de texto</button>' +
+          '<button class="c38-btn" style="width:100%;margin-top:8px"' + (wf ? '' : ' disabled') + ' data-mt9="wf">Conectar a Wi-Fi</button>' +
           '<button class="c38-btn" style="width:100%;margin-top:8px"' + (bt ? '' : ' disabled') + ' data-mt9="bt">Conectar audífono Bluetooth</button>' +
-          '<p class="mt38-n">' + (bt ? 'Aplicaciones: lo que la oficina te deja instalar. Mensajes de texto: los códigos que llegan a esta tablet. Bluetooth: elige tu audífono y, al conectarse, ECOVSA vuelve sola.' : 'Buscar actualizaciones y Bluetooth llegan con la próxima versión de la app.') + '</p>';
+          '<p class="mt38-n">' + (bt ? 'Aplicaciones: lo que la oficina te deja instalar. Mensajes de texto: los códigos que llegan a esta tablet. Wi-Fi y Bluetooth: eliges la red o el audífono y, al conectarse, ECOVSA vuelve sola.' : 'Buscar actualizaciones y Bluetooth llegan con la próxima versión de la app.') + '</p>';
         d.querySelectorAll(".mt38-n").forEach(function(n){ if(/Mientras navegas con la ruta activa no se apaga\./.test(n.textContent)) n.innerHTML = n.innerHTML.replace("Mientras navegas con la ruta activa no se apaga.", "No se apaga mientras dictas, navegas o tienes la jornada abierta."); });
         var p = d.querySelector(".av38-p");
         if(p) p.after(g); else d.firstElementChild.appendChild(g);
         g.querySelector('[data-mt9="act"]').addEventListener("click", function(){ try{ d.remove(); app().buscarActualizacion(); }catch(e){} });
         g.querySelector('[data-mt9="ap"]').addEventListener("click", function(){ try{ d.remove(); app().abrirTienda(); }catch(e){} });
         g.querySelector('[data-mt9="sm"]').addEventListener("click", function(){ try{ d.remove(); app().abrirMensajes(); }catch(e){} });
+        g.querySelector('[data-mt9="wf"]').addEventListener("click", function(){ try{ d.remove(); app().abrirWifi(); }catch(e){} });
         g.querySelector('[data-mt9="bt"]').addEventListener("click", function(){ try{ d.remove(); app().abrirBluetooth(); }catch(e){} });
       }catch(e){ console.error(e); }
       return r;
