@@ -214,7 +214,46 @@ function pieEmpresa(){
          " · Tel. "+e.telefono+" · "+e.correo;
 }
 
+/* api 3.56 · certificado agrupado: las visitas y los kilos de cada sede */
+function detalleSedes(D){
+  if(!D || !D.length) return "";
+  var t={v:0,b:0,a:0,p:0,k:0}; D.forEach(function(x){ t.v+=x.visitas||0; t.b+=x.kgBio||0; t.a+=x.kgAnatomo||0; t.p+=x.kgPunzo||0; t.k+=x.kg||0; });
+  var anat=t.a>0.004;
+  return "<div style='margin:4px 0 12px'><div style='font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--azul-osc);margin-bottom:4px'>Detalle por sede</div>"+
+    "<table class='tabla-datos'><thead><tr><th>Sede</th><th class='n'>Visitas</th><th class='n'>Bioinfecciosos (kg)</th>"+(anat?"<th class='n'>Anatomopatológicos (kg)</th>":"")+"<th class='n'>Punzocortantes (kg)</th><th class='n'>Total (kg)</th></tr></thead><tbody>"+
+    D.map(function(x){ return "<tr><td>"+esc(x.sede)+"</td><td class='n'>"+(x.visitas||0)+"</td><td class='n'>"+n2(x.kgBio)+"</td>"+(anat?"<td class='n'>"+n2(x.kgAnatomo)+"</td>":"")+"<td class='n'>"+n2(x.kgPunzo)+"</td><td class='n'>"+n2(x.kg)+"</td></tr>"; }).join("")+
+    "<tr class='tot'><td>TOTAL</td><td class='n'>"+t.v+"</td><td class='n'>"+n2(t.b)+"</td>"+(anat?"<td class='n'>"+n2(t.a)+"</td>":"")+"<td class='n'>"+n2(t.p)+"</td><td class='n'>"+n2(t.k)+"</td></tr></tbody></table></div>";
+}
+
+/* api 3.56 · corporativo: el informe de una clínica en su portal. NO es un certificado */
+function pintarInforme(r){
+  var ce=r.empresa||{}, per=r.periodo||{}, tot=r.totales||{};
+  $("ti-folio").textContent = r.folio;
+  var b=document.querySelector(".barra .ti"); if(b) b.firstChild.textContent="Informe de la clínica · no es certificado ";
+  $("hoja").innerHTML =
+    "<div class='franja-seguridad-sup'></div><div class='franja-seguridad-lat'></div><div class='marca-agua'></div>"+
+    "<div class='contenido-carta'>"+
+      "<div class='encabezado-central'><img src='"+LOGO+"' alt='ECOVSA'><div class='info-legal-linea'><b>"+esc(emp().razonSocial)+"</b> &nbsp;&bull;&nbsp; <b>RUC</b> "+esc(emp().ruc)+" DV "+esc(emp().dv)+"</div></div>"+
+      "<div class='titulo-cert'>Informe de servicios de la clínica</div>"+
+      "<div style='text-align:center;margin:-4px 0 14px'><span style='display:inline-block;border:1.5px solid #9A6E00;color:#9A6E00;border-radius:6px;padding:3px 12px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase'>Informe · no es certificado</span></div>"+
+      "<div class='parrafo-texto'>Resumen de las recolecciones de esta clínica en el periodo. Es para su control interno. "+
+        "El certificado de prestación de servicios, tratamiento y disposición final es uno solo y se emite a la corporación.</div>"+
+      "<div class='flex-cuerpo'><div class='bloque-datos'>"+
+        "<b>CLIENTE:</b> "+esc(ce.razonSocial)+"<br>"+(ce.nombre && ce.nombre!==ce.razonSocial ? "<b>NOMBRE COMERCIAL:</b> "+esc(ce.nombre)+"<br>" : "")+
+        (ce.sede ? "<b>SEDE:</b> "+esc(ce.sede)+"<br>" : "")+"<b>UBICACIÓN:</b> "+esc(ce.direccion||"No especificada")+"<br>"+
+        "<b>PERIODO:</b> del "+esc(larga(per.desde))+" al "+esc(larga(per.hasta))+"<br><b>VISITAS:</b> "+esc(tot.visitas)+"</div>"+
+      "<div class='tabla-contenedor'><table class='tabla-datos'><thead><tr><th>Corriente</th><th class='n'>Neto (kg)</th></tr></thead><tbody>"+
+        "<tr><td>Desechos bioinfecciosos</td><td class='n'>"+n2(tot.kgBio)+"</td></tr><tr><td>Desechos anatomopatológicos</td><td class='n'>"+n2(tot.kgAnatomo)+"</td></tr>"+
+        "<tr><td>Desechos punzocortantes</td><td class='n'>"+n2(tot.kgPunzo)+"</td></tr><tr class='tot'><td>TOTAL</td><td class='n'>"+n2(tot.totalKg)+" kg</td></tr></tbody></table></div></div>"+
+      ((r.recibos||[]).length ? "<div style='font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--azul-osc);margin:8px 0 4px'>Recibos del periodo</div><table class='tabla-datos'><thead><tr><th>Fecha</th><th>Recibo</th><th class='n'>Kg</th></tr></thead><tbody>"+
+        r.recibos.map(function(x){ return "<tr><td>"+esc(larga(x.fecha))+"</td><td>"+esc(x.recibo)+"</td><td class='n'>"+n2(x.kg)+"</td></tr>"; }).join("")+"</tbody></table>" : "")+
+      "<div class='folio-seguridad'><div style='text-align:left'><b>"+esc(r.folio)+"</b></div><div style='text-align:center'><b>Generado:</b> "+esc(larga(r.fechaEmision))+"</div><div style='text-align:right'>Informe, no es certificado</div></div>"+
+    "</div>";
+  document.title = "Informe "+(ce.sede||ce.nombre||"")+" · "+String(r.folio||"").replace("Informe ","");
+}
+
 function pintar(r){
+  if(r && r.informe) return pintarInforme(r);   // api 3.56
   var emp = Object.assign(function(){ return DATOS_EMP || EMP_RESP; }, r.empresa || {});
   var per = r.periodo || {};
   var tot = r.totales || {};
@@ -259,6 +298,7 @@ function pintar(r){
         "<div class='bloque-datos'>"+
           "<b>CLIENTE:</b> "+esc(emp.razonSocial)+"<br>"+
           (emp.nombre && emp.nombre!==emp.razonSocial ? "<b>NOMBRE COMERCIAL:</b> "+esc(emp.nombre)+"<br>" : "")+
+          (emp.sede ? "<b>SEDE:</b> "+esc(emp.sede)+"<br>" : "")+   /* api 3.56 */
           "<b>RUC:</b> "+esc(emp.rucCompleto)+"<br>"+
           "<b>UBICACIÓN:</b> "+esc(emp.direccion || "No especificada")+"<br>"+
           (puntos.length ? "<b>PUNTOS ATENDIDOS:</b> "+esc(emp.puntos.join(", "))+"<br>" : "")+
@@ -281,11 +321,12 @@ function pintar(r){
         "</div>"+
       "</div>"+
 
+      detalleSedes(r.detalle)+
       "<div class='parrafo-texto'>"+
         "Este documento se expide conforme al Decreto Ejecutivo 111 de 1999 y la Resolución 1010 de 2022, "+
         "en el marco de la "+esc(emp().resolucion)+". "+
         (actas.length ? "Las recolecciones certificadas constan en las actas de entrega a planta <b>"+esc(actas.join(", "))+"</b>. " : "")+
-        "El tratamiento se realizó por esterilización en autoclave a 137 °C, con verificación mediante indicador biológico, "+
+        "El tratamiento se realizó por esterilización en autoclave, con verificación mediante indicador biológico, "+
         "y el material resultante fue dispuesto en el Relleno Sanitario El Diamante, La Chorrera."+
       "</div>"+
 

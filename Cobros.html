@@ -1398,8 +1398,9 @@ function vParaFacturar() {
   if (!r.ok) return h + '<div class="aviso rj">' + MK.esc(r.error || 'No se pudo') + '</div>';
   var t = r.totales;
   h += MK.kpis([{ e: 'Titulares', v: t.titulares, s: t.visitas + ' visitas · ' + MK.num(t.kg) + ' kg' }, { e: 'A facturar', v: D(t.total), s: 'plan ' + D(t.plan) + ' + excedente ' + D(t.exceso) + ' + ITBMS' }, { e: 'Se cobra', v: D(t.aCobrar), s: t.retenedores ? t.retenedores + ' retienen ' + D(t.retiene) : 'sin retenciones' }, { e: 'Incompletos', v: t.incompletos, s: t.incompletos ? 'sin ficha o sin tarifa' : 'todo con tarifa', c: t.incompletos ? 'warn' : '' }]);
+  if (t.sinRegla) h += '<div class="nota am" style="margin:0 0 12px"><b>' + t.sinRegla + (t.sinRegla === 1 ? ' línea no tiene' : ' líneas no tienen') + ' regla de cobro.</b> Se calculan como siempre, con lo que dice su ficha. La regla la pone Mercadeo en la hoja del cliente («Cobro y certificados»); si algo no cuadra, pídale el cambio.</div>';   // api 3.56
   h += MK.tabla(['Titular', 'Puntos', 'Visitas', '>Kg', 'Cobro', '>Subtotal', '>ITBMS', '>Total', 'Aviso'], r.lineas.map(function (l) {
-    return ['<b>' + MK.esc(l.titular) + '</b>' + (l.ruc ? '<small>RUC ' + MK.esc(l.ruc) + '</small>' : ''), l.puntos.length, l.visitas, MK.num(l.kg, 1), MK.esc(l.detalleCobro), D(l.subtotal), D(l.itbms), D(l.total), l.aviso ? '<span class="chipx warn">' + MK.esc(l.aviso) + '</span>' : ''];
+    return ['<b>' + MK.esc(l.titular) + '</b>' + (l.ruc ? '<small>RUC ' + MK.esc(l.ruc) + '</small>' : '') + reglaPF(l), l.puntos.length, l.visitas, MK.num(l.kg, 1), MK.esc(l.detalleCobro), D(l.subtotal), D(l.itbms), D(l.total), l.aviso ? '<span class="chipx warn">' + MK.esc(l.aviso) + '</span>' : ''];
   }), { pie: ['<b>Total</b>', '', t.visitas, MK.num(t.kg, 1), '', D(t.subtotal), D(t.itbms), D(t.total), ''] });
   return h + solidosPF();
 }
@@ -1421,6 +1422,12 @@ function solidosPF() {
         D(f.subtotal), D(f.itbms) + (f.retencion ? '<small>retiene ' + D(f.retencion) + '</small>' : ''), D(f.total), '<a class="btn sm" href="' + MK.esc(raiz + f.enlaceReporte) + '" target="_blank" rel="noopener">Ver</a>'];
     }), { pie: ['<b>Total sólidos</b>', '', tot.v, MK.num(tot.kg, 0), '', D(tot.s), D(tot.i), D(tot.t), ''] });
 }
+/* api 3.56 · la regla de cobro de la empresa (la pone Mercadeo en «Cobro y certificados»; Cobros la ve) */
+function reglaPF(l) {
+  if (l.sinRegla) return '<br><span class="chipx warn" title="Mercadeo la pone en la hoja del cliente, «Cobro y certificados»">Sin regla de cobro</span>';
+  var g = l.regla; if (!g) return '';
+  return '<small>' + MK.esc(g.texto) + (g.correo ? ' · se manda a ' + MK.esc(g.correo) : '') + (g.pago ? ' · ' + MK.esc(g.pago) + (g.dias ? ' ' + g.dias + ' días' : '') : '') + '</small>';
+}
 function mesPF(m) { PF_MES = m; MK.repintar(); }
 /* El reporte «Para facturar» en una hoja para imprimir o guardar en PDF (mismos datos que la descarga) */
 function imprimirPF() {
@@ -1431,7 +1438,8 @@ function imprimirPF() {
   var mes = MK.mesNombre(PF.mes).replace(/^./, function (x) { return x.toUpperCase(); });
   var filas = r.lineas.map(function (l, i) {
     return '<tr><td class="n">' + (i + 1) + '</td><td><b>' + es(l.titular) + '</b>' + (l.razon && l.razon !== l.titular ? '<br><small>' + es(l.razon) + '</small>' : '') +
-      (l.ruc ? '<br><small>RUC ' + es(l.ruc) + (l.dv ? ' DV ' + es(l.dv) : '') + '</small>' : '<br><small class="falta">sin RUC</small>') + '</td>' +
+      (l.ruc ? '<br><small>RUC ' + es(l.ruc) + (l.dv ? ' DV ' + es(l.dv) : '') + '</small>' : '<br><small class="falta">sin RUC</small>') +
+      (l.regla ? '<br><small>' + es(l.regla.texto) + (l.regla.correo ? ' · ' + es(l.regla.correo) : '') + '</small>' : l.sinRegla ? '<br><span class="av">sin regla de cobro</span>' : '') + '</td>' +   // api 3.56
       '<td><small>' + es(l.puntos.map(function (p) { return p.nombre; }).join(' · ')) + '</small></td>' +
       '<td class="n">' + l.visitas + '</td><td class="n">' + MK.num(l.kg, 1) + '</td><td><small>' + es(l.detalleCobro) + '</small></td>' +
       '<td class="n">' + d(l.subtotal) + '</td><td class="n">' + d(l.itbms) + '</td><td class="n"><b>' + d(l.total) + '</b></td>' +

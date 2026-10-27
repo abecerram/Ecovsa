@@ -174,6 +174,26 @@
 @media(max-width:600px){.hj-top{flex-direction:column;gap:12px}.hj-foto{width:100%;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}.hj-foto .ph{width:120px;height:80px}.hj-foto small{flex:1;min-width:140px;margin-top:0}.hj-foto .btn{flex-basis:100%}.hj-tit .hname{font-size:22px}.hj-bar-in>b{max-width:110px}.hj-f b{font-size:16px}}
 /* gerencia solo consulta: el CRM (actividades, tareas, contactos, documentos) no lo modifica */
 body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver [data-nt],body.solo-ver [data-ra],body.solo-ver [data-gc],body.solo-ver [data-rt],body.solo-ver [data-nc],body.solo-ver [data-ec],body.solo-ver [data-bc],body.solo-ver [data-sd],body.solo-ver [data-tk],body.solo-ver #q-nom,body.solo-ver [data-nom],body.solo-ver [data-edemp],body.solo-ver [data-bar="act"]{display:none!important}
+
+/* api 3.56 · Cobro y certificados */
+.cc .cc-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cc .cc-3.cc-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cc-b{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;min-width:0}
+.cc-b>span{display:block;font-size:11px;letter-spacing:.7px;font-weight:700;color:var(--muted2,#7a8699);margin-bottom:6px}
+.cc-b>b{display:block;font-size:15px;color:var(--navy2);margin-bottom:4px}
+.cc-b ul{margin:6px 0 0;padding:0;list-style:none;font-size:13px;display:grid;gap:4px}
+.cc-b li{display:flex;gap:8px;justify-content:space-between}.cc-b li em{font-style:normal;color:var(--muted)}.cc-b li span{text-align:right}
+.cc-tipo{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.cc-tipo .tt{font-size:16px;font-weight:700;color:var(--ink)}
+.cc-lado{width:min(560px,100vw)}
+.cc-paso{font-size:11px;letter-spacing:.7px;font-weight:700;color:var(--muted2,#7a8699);margin:18px 0 8px;display:block}
+.cc-de{font-weight:500;letter-spacing:0;color:var(--muted);margin-left:4px}
+.cc-doc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;font-size:13.5px}
+.cc-doc small{display:block;color:var(--muted);font-size:12px}
+.cc-tipos{grid-template-columns:1fr 1fr}.cc-tipos button.on{border-color:var(--navy);background:#f5f8fd}
+.cc-sed{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}.cc-sed>b{display:block;margin-bottom:6px}
+.cc-ej{margin-top:8px;padding:7px 10px;border-radius:9px;background:var(--info-bg,#eef4fd);color:#1d3f86}
+@media (max-width:900px){.cc .cc-3,.cc .cc-3.cc-2{grid-template-columns:1fr}.cc-tipos{grid-template-columns:1fr}.cc-doc{grid-template-columns:1fr}}
+.solo-ver [data-cobro]{display:none}
 </style>
 </head>
 <body class="mk">
@@ -217,7 +237,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   MK.iniciar('cliente', function (base) {
     ROL = (base.usuario && base.usuario.rol) || '';
     if (ROL === 'gerente') document.body.classList.add('solo-ver');
-    var h = (location.hash || '').replace('#', ''); if (h === 'empresa') VISTA = 'empresa'; else if ((TABS.indexOf(h) >= 0 && h !== 'resumen') || /^s-[a-z]+$/.test(h)) IR = h;   // enlaces viejos con #pestaña bajan a su sección
+    var h = (location.hash || '').replace('#', ''); if (h === 'empresa') VISTA = 'empresa'; else if (h === 'cobro') { VISTA = 'empresa'; IR = 'cc'; } /* api 3.56 */ else if ((TABS.indexOf(h) >= 0 && h !== 'resumen') || /^s-[a-z]+$/.test(h)) IR = h;   // enlaces viejos con #pestaña bajan a su sección
     if (!ID) { document.getElementById('main').innerHTML = '<div class="aviso rj">Falta el cliente en el enlace. <a href="MerClientes.html">Ir a Clientes</a></div>'; return; }
     cargar();
     window.addEventListener('mk:cambio', function () { cargar(true); });
@@ -405,7 +425,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   }
   function pintarPanel() { pintar(); }
   function irA(t, ya) {
-    if (VISTA !== 'sede') { VISTA = 'sede'; IR = t; pintar(); return; }
+    if (VISTA !== 'sede' && t !== 'cc') { VISTA = 'sede'; IR = t; pintar(); return; }
     var e = document.getElementById(DE_TAB[t] || t); if (!e) return;
     window.scrollTo({ top: e.getBoundingClientRect().top + window.scrollY - ARRIBA, behavior: ya ? 'auto' : 'smooth' });
   }
@@ -467,6 +487,8 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     on('[data-lado]', function (el) { ({ rec: ladoRec, cob: ladoCobros, act: ladoActividad, his: ladoHistorial })[el.getAttribute('data-lado')](); });
     on('[data-nom]', cambiarNombre);
     on('[data-edemp]', editarEmpresa);   // api 3.55
+    on('[data-cobro]', editarCobro);   // api 3.56
+    on('[data-empcobro]', function () { verEmpresa(true); setTimeout(function () { irA('cc'); }, 60); });
   }
 
 
@@ -547,7 +569,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       (F.length ? tablaFact(F.slice(0, 3)) : MK.vacio('Sin facturas registradas.')) +
       (F.length > 3 || P.length ? '<div class="hj-mas"><button class="btn sm" data-lado="cob">Ver todas las facturas y pagos' + IC('flecha', 14) + '</button>' + (F.length > 3 ? '<span class="small muted">Aquí, las 3 últimas</span>' : '') + '</div>' : '') +
       '<div class="row w" style="margin-top:12px;gap:8px"><span class="small muted" style="flex:1;min-width:200px">Solo lectura: los cobros los lleva el módulo de Cobros. Si hablas con el cliente sobre un pago, déjalo anotado.</span><button class="btn sm" data-gc>' + IC('telefono', 14) + 'Registrar gestión de cobro</button></div>';
-    return sec('s-cuenta', tira + pContrato() + '<div style="margin-top:14px">' + card('Cobros de esta sede', 'moneda', cob) + '</div>');
+    return sec('s-cuenta', '<div style="margin-bottom:14px">' + pCobro(false) + '</div>' + tira + pContrato() + '<div style="margin-top:14px">' + card('Cobros de esta sede', 'moneda', cob) + '</div>');
   }
   function sContactos() {
     var C = R.contactos || [], n = R.tareas.filter(function (t) { return t.estado === 'pendiente'; }).length, nl = (R.linea || []).length;
@@ -692,6 +714,174 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     if (av) [].forEach.call(av.querySelectorAll('[data-ir]'), function (b) { b.onclick = function () { irA(b.getAttribute('data-ir')); }; });
   });
 
+
+  /* ═══ api 3.56 · «Cobro y certificados»: la regla de la empresa (factura y documentos) y las reglas de cobro de cada sede ═══
+     Las reglas de cobro (plan, por kilo, servicio; ITBMS, retención, forma de pago) son de todos los clientes.
+     La facturación y los documentos solo se eligen con varias sedes; con una sede son automáticos.
+     El certificado de disposición final y Cobros leen esta misma regla. */
+  var CC_TIPOS = {
+    indep: ['Sedes independientes', 'Facturación por sede y documentos por sede. Mismo RUC, sin administrador.', { fact: 'sede', paga: 'sede', rec: 'sede', cert: 'sede', dist: 'sede' }],
+    docsede: ['Facturación agrupada, documentos por sede', 'Paga la empresa en una sola factura; cada sede recibe sus recibos, su certificado y su distintivo (por ejemplo, dos administraciones).', { fact: 'una', paga: 'empresa', rec: 'sede', cert: 'sede', dist: 'sede' }],
+    admin: ['Con administrador', 'Un administrador lleva las sedes. Él elige si quiere la facturación agrupada o por sede; el certificado es agrupado, con el detalle de cada sede.', { fact: 'una', paga: 'admin', rec: 'emp', cert: 'emp', dist: 'sede' }],
+    corp: ['Corporativo', 'Un certificado legal de la corporación. Cada clínica ve en su portal su informe, que no es certificado.', { fact: 'una', paga: 'empresa', rec: 'emp', cert: 'corp', dist: 'emp' }]
+  };
+  var CC_DOC = { sede: 'Por sede', emp: 'Agrupado', corp: 'Corporativo' }, CC_PAGA = { empresa: 'La empresa', admin: 'El administrador', sede: 'Cada sede' };
+  var CC_MOD = [['plan', 'Plan', 'tarifa fija con kilos incluidos; lo que pase se cobra por kilo'], ['peso', 'Por kilo', 'se cobra cada kilo recolectado'], ['servicio', 'Servicio', 'una sola visita, sin contrato']];
+  var CC_PAGOS = ['Transferencia', 'Cheque', 'ACH', 'Contado', 'Tarjeta'];
+  function ccSedes() { return ((R.cobro56 || {}).sedes || []); }
+  function ccMulti() { return ccSedes().length > 1; }
+  function ccRegla() { var S = ccSedes(), r = null; S.forEach(function (s) { if (!r && s.regla && s.regla.conf) r = s.regla; }); return r; }
+  function ccTipoDe(r) { for (var k in CC_TIPOS) { var t = CC_TIPOS[k][2], ok = true; for (var x in t) if (t[x] !== r[x]) ok = false; if (ok) return k; } return 'medida'; }
+  function ccTipoTx(r) { return r.tipo === 'una' ? 'Una sede' : (CC_TIPOS[r.tipo] || ['A la medida'])[0]; }
+  function ccNum(v) { var n = Number(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && String(v).trim() !== '' ? n : null; }
+  function ccModTx(m) { return ({ plan: 'Plan mensual', peso: 'Por kilo recolectado', servicio: 'Servicio de recolección' })[m] || 'Plan mensual'; }
+  function ccItbms(s) { return /^EXENTO/.test(s.retiene) ? 'Exento' : '7 %' + (/^(S|1|X|V)/.test(s.retiene) ? ' · retiene el 50 %' : ''); }
+  function ccCobroLi(s) {
+    var m = s.modalidad || 'plan', L = [];
+    if (m === 'peso') L.push(['Precio por kilo', ccNum(s.kgAdic) !== null ? D(s.kgAdic) : '—'], ['Visita adicional', ccNum(s.visAdic) !== null ? D(s.visAdic) : '—']);
+    else if (m === 'servicio') L.push(['Precio del servicio', ccNum(s.planCosto) !== null ? D(s.planCosto) : '—']);
+    else L.push(['Plan', ccNum(s.planCosto) !== null ? D(s.planCosto) : '—'], ['Kilos incluidos', ccNum(s.planKg) !== null ? N(s.planKg) + ' kg' : '—'], ['Kilo adicional', ccNum(s.kgAdic) !== null ? D(s.kgAdic) : '—'], ['Visita adicional', ccNum(s.visAdic) !== null ? D(s.visAdic) : '—']);
+    L.push(['ITBMS', ccItbms(s)]);
+    return L;
+  }
+  function ccCobroTx(s) { var m = s.modalidad || 'plan'; return m === 'plan' ? (ccNum(s.planCosto) !== null ? D(s.planCosto) : 'Plan') + (ccNum(s.planKg) !== null ? ' · ' + N(s.planKg) + ' kg' : '') : m === 'peso' ? 'Por kilo' + (ccNum(s.kgAdic) !== null ? ' · ' + D(s.kgAdic) : '') : 'Servicio' + (ccNum(s.planCosto) !== null ? ' · ' + D(s.planCosto) : ''); }
+  function ccBloque(t, b, L, pie) { return '<div class="cc-b"><span>' + t + '</span><b>' + b + '</b><ul>' + L.map(function (x) { return '<li><em>' + x[0] + '</em><span>' + x[1] + '</span></li>'; }).join('') + '</ul>' + (pie || '') + '</div>'; }
+  function ccDesdeTx(r) { var K = R.cobro56 || {}; return r && r.desde && r.desde > String(K.hoy || MK.hoy).slice(0, 7) ? '<span class="tag t-warn">El cambio vale desde ' + E(MK.mesNombre(r.desde)) + '</span>' : ''; }
+
+  function pCobro(emp) {
+    var K = R.cobro56; if (!K) return '';
+    var S = ccSedes(), multi = ccMulti(), r = ccRegla(), ed = puedeEditar();
+    var yo = S.filter(function (s) { return s.id === String(R.cliente.id); })[0] || S[0];
+    if (!yo) return '';
+    var head = function (bt) { return '<div class="card cc" id="cc"><h3>' + IC('moneda', 16) + 'Cobro y certificados<span class="sp"></span>' + (ed && bt ? '<button class="btn sm pri" data-cobro>' + bt + '</button>' : '') + '</h3>'; };
+    /* una sede: la factura y los documentos son automáticos; solo se confirman las reglas de cobro */
+    if (!multi) {
+      var ok1 = yo.regla && yo.regla.conf;
+      return head(ok1 ? 'Editar las reglas de cobro' : 'Confirmar las reglas de cobro') +
+        '<div class="cc-tipo"><span class="tt">Una sede</span><span class="tag t-ok">Factura y documentos automáticos</span>' + (ok1 ? '<span class="tag t-ok">Reglas de cobro confirmadas</span>' : '<span class="tag t-warn">Reglas de cobro sin confirmar</span>') + '</div>' +
+        '<div class="cc-3 cc-2">' + ccBloque('LA FACTURACIÓN Y LOS DOCUMENTOS', 'Automático · una sede', [['Facturación', 'una factura a ' + E(R.cliente.razon || nomEmpresa())], ['Recibos', 'Por sede'], ['Certificado', 'Formato actual'], ['Distintivo', 'Por sede']], '<p class="small muted" style="margin:8px 0 0">No hay nada que elegir aquí. Si se le agrega una segunda sede, aparecen las reglas para varias sedes.</p>') +
+        ccBloque('REGLAS DE COBRO', ccModTx(yo.modalidad), ccCobroLi(yo).concat(ok1 && yo.regla.pago ? [['Pago', E(yo.regla.pago) + (yo.regla.dias ? ' · ' + yo.regla.dias + ' días' : '')]] : [])) + '</div>' +
+        (ok1 ? '<p class="small muted" style="margin-top:8px">Confirmadas por ' + E(yo.regla.por || '—') + ' · ' + E(MK.fechaCorta(String(yo.regla.conf).slice(0, 10))) + '.</p>' : '<p class="small muted" style="margin-top:8px">Vienen de la ficha y de su propuesta. Revíselas y confírmelas: Cobros las usa para facturar.</p>') + '</div>';
+    }
+    /* varias sedes, vista de una sede: lo corto y el enlace a la empresa */
+    if (!emp) {
+      return head('') + '<div class="cc-tipo"><span class="tt">' + (r ? E(ccTipoTx(r)) : 'La empresa no tiene regla de cobro') + '</span>' + (r ? '<span class="tag t-ok">Regla de la empresa</span>' : '<span class="tag t-warn">Sin regla</span>') + ccDesdeTx(r) + '</div>' +
+        '<div class="kv"><span>Facturación</span><b>' + (r ? (r.fact === 'una' ? 'Agrupada' : 'Por sede') : '—') + '</b><span>Certificado</span><b>' + (r ? CC_DOC[r.cert] : '—') + '</b><span>Cobro de esta sede</span><b>' + E(ccCobroTx(yo)) + '</b><span>ITBMS</span><b>' + E(ccItbms(yo)) + '</b></div>' +
+        '<div class="row w" style="margin-top:10px"><a href="#" class="btn sm" data-empcobro>' + IC('edificio', 14) + 'Ver en «Toda la empresa»</a></div></div>';
+    }
+    /* varias sedes, «Toda la empresa» */
+    if (!r) return head('Ver la propuesta del sistema') + '<div class="aviso am"><b>Esta empresa todavía no tiene regla de cobro.</b> Hasta que la tenga, el certificado sale como hoy (todas las sedes juntas) y Cobros la ve en ámbar. El sistema ya tiene una propuesta con lo que dicen sus fichas.</div></div>';
+    var falta = S.filter(function (s) { return !(s.regla && s.regla.conf); });
+    var mods = {}; S.forEach(function (s) { mods[s.modalidad || 'plan'] = 1; });
+    var cobroB = Object.keys(mods).length === 1 ? ccModTx(S[0].modalidad || 'plan') : 'Según la sede';
+    return head('Editar la regla') +
+      '<div class="cc-tipo"><span class="tt">' + E(ccTipoTx(r)) + '</span><span class="tag t-ok">Regla puesta</span>' + ccDesdeTx(r) + '</div>' +
+      (falta.length ? '<div class="aviso am" style="margin-bottom:12px">' + E(falta.map(function (s) { return s.sede; }).join(', ')) + (falta.length === 1 ? ' todavía no tiene' : ' todavía no tienen') + ' la regla. «Editar la regla» la pone.</div>' : '') +
+      '<div class="cc-3">' +
+      ccBloque('LA FACTURACIÓN', r.fact === 'una' ? 'Agrupada' : 'Por sede', [['A nombre de', E(R.cliente.razon || nomEmpresa())], ['RUC', E((R.cliente.ruc || '—') + dvTx())], ['Paga', CC_PAGA[r.paga] || '—'], ['Se manda a', r.fact === 'una' ? E(r.correo || 'el correo de la ficha') : 'el correo de cada sede']]) +
+      ccBloque('LOS DOCUMENTOS', r.rec === r.cert && r.cert === r.dist ? 'Todos ' + CC_DOC[r.cert].toLowerCase() : 'Mixto', [['Recibos', CC_DOC[r.rec]], ['Certificado de disposición final', CC_DOC[r.cert] + (r.cert === 'emp' ? ', con detalle por sede' : '')]].concat(r.cert === 'corp' ? [['Informe de cada clínica', 'en su portal']] : [], [['Distintivo', CC_DOC[r.dist]]])) +
+      ccBloque('REGLAS DE COBRO', cobroB, [['ITBMS', ccItbms(S[0])], ['Pago', E(r.pago || '—') + (r.dias ? ' · ' + r.dias + ' días' : '')]]) + '</div>' +
+      '<div class="tbw" style="margin-top:12px"><table class="tb"><thead><tr><th>SEDE</th><th>COBRO</th><th>FACTURA</th><th>RECIBOS Y CERTIFICADO</th><th>CORREO DE LA SEDE</th></tr></thead><tbody>' +
+      S.map(function (s) {
+        return '<tr><td><b>' + E(s.sede) + '</b></td><td>' + E(ccCobroTx(s)) + '</td><td>' + (r.fact === 'una' ? '<span class="tag t-gris">Agrupada</span>' : '<span class="tag t-info">Por sede</span>') + '</td><td>' + (r.cert === 'sede' ? '<span class="tag t-info">Por sede</span>' : '<span class="tag t-gris">' + CC_DOC[r.cert] + '</span>') + '</td><td class="small">' + E(s.correo || '—') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="small muted" style="margin-top:8px">Puesta por ' + E(r.por || '—') + ' · ' + E(MK.fechaCorta(String(r.conf).slice(0, 10))) + '. El certificado de disposición final y Cobros leen esta regla.</p></div>';
+  }
+
+  /* ── el editor, al lado ── */
+  var CT = null;
+  function editarCobro() {
+    var S = ccSedes(), multi = ccMulti(), r = ccRegla(), yo = S.filter(function (s) { return s.id === String(R.cliente.id); })[0] || S[0];
+    if (!yo) return;
+    var base = r || (yo.regla && yo.regla.conf ? yo.regla : null);
+    if (!base) {   // la propuesta del sistema: con lo que dicen las fichas
+      var agr = S.every(function (s) { return s.facturacion === 'AGRUPADA'; });
+      base = Object.assign({ tipo: multi ? (agr ? 'admin' : 'indep') : 'una', correo: (S[0] || {}).correo || '', pago: 'Transferencia', dias: 30 }, multi ? CC_TIPOS[agr ? 'admin' : 'indep'][2] : {});
+    }
+    var exento = /^EXENTO/.test(yo.retiene), ret = /^(S|1|X|V)/.test(yo.retiene);
+    CT = { nueva: !r && !(yo.regla && yo.regla.conf), multi: multi, r: { tipo: base.tipo, fact: base.fact || 'sede', paga: base.paga || 'empresa', rec: base.rec || 'sede', cert: base.cert || 'sede', dist: base.dist || 'sede', correo: base.correo || '', pago: base.pago || 'Transferencia', dias: base.dias === undefined ? 30 : base.dias },
+      itbms: exento ? 'exento' : 'cobra', ret: ret ? 'SI' : 'NO', sedes: (multi ? S : [yo]).map(function (s) { return { id: s.id, sede: s.sede, modalidad: s.modalidad || 'plan', planCosto: s.planCosto, planKg: s.planKg, kgAdic: s.kgAdic, visAdic: s.visAdic }; }) };
+    pintarCobroEd();
+  }
+  function ccSeg(k, ops, val) { return '<div class="seg" data-k="' + k + '">' + ops.map(function (o) { return '<button type="button" data-o="' + o[0] + '"' + (val === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div>'; }
+  function ccLeerCampos(l) {
+    [].forEach.call(l.querySelectorAll('[data-cs]'), function (i) { var s = CT.sedes[+i.getAttribute('data-cs')]; if (s) s[i.getAttribute('data-f')] = i.value; });
+    var g = function (id) { var e = l.querySelector('#' + id); return e ? e.value : ''; };
+    if (l.querySelector('#cc-correo')) CT.r.correo = g('cc-correo');
+    if (l.querySelector('#cc-pago')) CT.r.pago = g('cc-pago');
+    if (l.querySelector('#cc-dias')) CT.r.dias = g('cc-dias');
+    if (l.querySelector('#cc-itbms')) CT.itbms = g('cc-itbms');
+    if (l.querySelector('#cc-ret')) CT.ret = g('cc-ret');
+  }
+  function ccEjemplo(s) {
+    var m = s.modalidad, p = ccNum(s.planCosto), k = ccNum(s.planKg), a = ccNum(s.kgAdic);
+    if (m === 'peso') return a !== null ? 'si se recogen 50 kg: 50 × ' + D(a) + ' = ' + D(50 * a) : 'falta el precio por kilo';
+    if (m === 'servicio') return p !== null ? D(p) + ' por la visita' : 'falta el precio del servicio';
+    if (p === null) return 'falta el costo del plan';
+    return D(p) + ' al mes' + (k !== null ? ' con ' + N(k) + ' kg incluidos' : '') + (a !== null && k !== null ? '; si recoge ' + N(k + 10) + ' kg: ' + D(p) + ' + 10 kg × ' + D(a) + ' = ' + D(p + 10 * a) : '');
+  }
+  function pintarCobroEd() {
+    var r = CT.r, multi = CT.multi, dOps = [['sede', 'Por sede'], ['emp', 'Agrupado']], tipo = ccTipoDe(r), K = R.cobro56 || {};
+    var docs = !multi ? '' : '<span class="cc-paso">1 · ¿CÓMO ES ESTA EMPRESA?</span><div class="mk-tipos cc-tipos">' +
+      Object.keys(CC_TIPOS).map(function (k) { return '<button type="button" data-tipo="' + k + '"' + (tipo === k ? ' class="on"' : '') + '><b>' + CC_TIPOS[k][0] + '</b><small>' + CC_TIPOS[k][1] + '</small></button>'; }).join('') + '</div>' +
+      '<p class="small muted" style="margin-top:6px">Elegir uno llena los pasos 2 y 3. Si la empresa es distinta, se ajusta abajo y queda «A la medida».</p>' +
+      '<span class="cc-paso">2 · LA FACTURACIÓN</span><div class="cc-doc"><div>Facturación<small>agrupada: una factura para todas las sedes</small></div>' + ccSeg('fact', [['una', 'Agrupada'], ['sede', 'Por sede']], r.fact) +
+      '<div>Quién paga</div>' + ccSeg('paga', [['empresa', 'La empresa'], ['admin', 'Administrador'], ['sede', 'Cada sede']], r.paga) + '</div>' +
+      '<div class="grid g2" style="gap:10px;margin-top:10px"><div><label class="lb">A NOMBRE DE (RAZÓN SOCIAL)</label><input class="in" value="' + E(R.cliente.razon || nomEmpresa()) + '" disabled></div>' +
+      '<div><label class="lb" for="cc-correo">' + (r.fact === 'una' ? 'CORREO DE FACTURAS Y DOCUMENTOS' : 'CORREO DE LA EMPRESA') + '</label><input class="in" id="cc-correo" type="email" value="' + E(r.correo) + '" placeholder="el de la ficha"></div></div>' +
+      '<p class="small muted" style="margin-top:6px">La razón social y el RUC se cambian en «Editar la empresa».</p>' +
+      '<span class="cc-paso">3 · LOS DOCUMENTOS · ¿A QUIÉN LE LLEGAN?</span><div class="cc-doc">' +
+      '<div>Recibos de cada visita<small>firmados por la sede en cada recolección</small></div>' + ccSeg('rec', dOps, r.rec) +
+      '<div>Certificado de disposición final<small>' + (r.cert === 'emp' ? 'uno de la empresa, con el detalle de cada sede' : r.cert === 'corp' ? 'uno legal de la corporación; cada clínica ve su informe en el portal' : 'uno por sede, con sus visitas y sus kilos') + '</small></div>' + ccSeg('cert', [['sede', 'Por sede'], ['emp', 'Agrupado'], ['corp', 'Corporativo']], r.cert) +
+      '<div>Distintivo<small>el que se pega en la entrada</small></div>' + ccSeg('dist', dOps, r.dist) + '</div>';
+    var sedesH = CT.sedes.map(function (s, i) {
+      var m = s.modalidad, inp = function (f, lab, paso) { return '<div><label class="lb">' + lab + '</label><input class="in" type="number" min="0" step="' + (paso || '0.01') + '" data-cs="' + i + '" data-f="' + f + '" value="' + E(s[f] == null ? '' : s[f]) + '"></div>'; };
+      var campos = m === 'peso' ? inp('kgAdic', 'PRECIO POR KILO (B/.)') + inp('visAdic', 'VISITA ADICIONAL (B/.)')
+        : m === 'servicio' ? inp('planCosto', 'PRECIO DEL SERVICIO (B/.)')
+        : inp('planCosto', 'PLAN AL MES (B/.)') + inp('planKg', 'KILOS INCLUIDOS', '1') + inp('kgAdic', 'KILO ADICIONAL (B/.)') + inp('visAdic', 'VISITA ADICIONAL (B/.)');
+      return '<div class="cc-sed">' + (multi ? '<b>' + E(s.sede) + '</b>' : '') +
+        '<div class="cc-doc"><div>¿Cómo se cobra?<small>' + CC_MOD.filter(function (x) { return x[0] === m; })[0][2] + '</small></div><div class="seg" data-mod="' + i + '">' + CC_MOD.map(function (x) { return '<button type="button" data-o="' + x[0] + '"' + (m === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="grid g2" style="gap:10px;margin-top:8px">' + campos + '</div><div class="small cc-ej"><b>Así se calcula:</b> ' + E(ccEjemplo(s)) + '.</div></div>';
+    }).join('');
+    var cobro = '<span class="cc-paso">' + (multi ? '4 · ' : '') + 'REGLAS DE COBRO <span class="cc-de">vienen de la ficha y de su propuesta · aplican a todos los clientes</span></span>' + sedesH +
+      '<div class="grid g2" style="gap:10px;margin-top:10px">' +
+      '<div><label class="lb" for="cc-itbms">ITBMS</label><select class="in" id="cc-itbms"><option value="cobra"' + (CT.itbms === 'cobra' ? ' selected' : '') + '>Cobra 7 %</option><option value="exento"' + (CT.itbms === 'exento' ? ' selected' : '') + '>Exento</option></select></div>' +
+      '<div><label class="lb" for="cc-ret">RETENCIÓN DE ITBMS</label><select class="in" id="cc-ret"' + (CT.itbms === 'exento' ? ' disabled' : '') + '><option value="SI"' + (CT.ret === 'SI' ? ' selected' : '') + '>Retiene el 50 %</option><option value="NO"' + (CT.ret !== 'SI' ? ' selected' : '') + '>No retiene</option></select></div>' +
+      '<div><label class="lb" for="cc-pago">FORMA DE PAGO</label><select class="in" id="cc-pago">' + CC_PAGOS.map(function (p) { return '<option' + (r.pago === p ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></div>' +
+      '<div><label class="lb" for="cc-dias">DÍAS DE CRÉDITO</label><input class="in" id="cc-dias" type="number" min="0" max="120" step="1" value="' + E(r.dias) + '"></div></div>';
+    var l = MK.lado('<h2>' + (multi ? 'Cobro y certificados · ' + E(nomEmpresa()) : 'Reglas de cobro · ' + E(corto(R.cliente.nombre))) + '</h2>' +
+      '<p class="sub">' + (!multi ? 'Cliente de una sede: la factura y los documentos son de esa sede. Aquí se revisa y se confirma cómo se cobra.' : CT.nueva ? '<b>Propuesta del sistema</b> con lo que dicen sus fichas. Revise y confirme.' : 'Si cambia la facturación o los documentos, el cambio vale desde ' + E(MK.mesNombre(K.mesSig || '')) + ': lo ya facturado y los certificados emitidos no se tocan.') + '</p>' +
+      docs + cobro + '<div id="cc-msg" class="small" style="margin-top:10px;color:var(--bad)"></div>' +
+      '<div class="pie" style="margin-top:14px"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="cc-guardar">' + (CT.nueva ? 'Confirmar la regla' : 'Guardar cambios') + '</button></div>');
+    l.classList.add('cc-lado');
+    var re = function () { ccLeerCampos(l); var y = l.scrollTop; pintarCobroEd(); document.getElementById('mk-lado').scrollTop = y; };
+    [].forEach.call(l.querySelectorAll('[data-tipo]'), function (b) { b.onclick = function () { ccLeerCampos(l); Object.assign(CT.r, CC_TIPOS[b.getAttribute('data-tipo')][2]); re(); }; });
+    [].forEach.call(l.querySelectorAll('.seg[data-k] button'), function (b) { b.onclick = function () { ccLeerCampos(l); CT.r[b.parentNode.getAttribute('data-k')] = b.getAttribute('data-o'); re(); }; });
+    [].forEach.call(l.querySelectorAll('.seg[data-mod] button'), function (b) { b.onclick = function () { ccLeerCampos(l); CT.sedes[+b.parentNode.getAttribute('data-mod')].modalidad = b.getAttribute('data-o'); re(); }; });
+    [].forEach.call(l.querySelectorAll('[data-cs]'), function (i) { i.oninput = function () { ccLeerCampos(l); var s = CT.sedes[+i.getAttribute('data-cs')], ej = i.closest('.cc-sed').querySelector('.cc-ej'); if (ej) ej.innerHTML = '<b>Así se calcula:</b> ' + E(ccEjemplo(s)) + '.'; }; });
+    var it = l.querySelector('#cc-itbms'); it.onchange = function () { l.querySelector('#cc-ret').disabled = it.value === 'exento'; };
+    document.getElementById('cc-guardar').onclick = function () { ccLeerCampos(l); guardarCobro(this); };
+  }
+  function guardarCobro(b) {
+    var msg = document.getElementById('cc-msg'), r = CT.r;
+    var faltan = CT.sedes.filter(function (s) { return s.modalidad === 'peso' ? ccNum(s.kgAdic) === null : ccNum(s.planCosto) === null; });
+    if (faltan.length) { msg.textContent = 'Falta el precio' + (CT.multi ? ' en ' + faltan.map(function (s) { return s.sede; }).join(', ') : '') + '.'; return; }
+    if (r.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.correo)) { msg.textContent = 'El correo no se ve bien.'; return; }
+    var regla = CT.multi ? Object.assign({}, r, { tipo: ccTipoDe(r) }) : { tipo: 'una', pago: r.pago, dias: r.dias, correo: '' };
+    var ret = CT.itbms === 'exento' ? 'EXENTO' : CT.ret, malas = [], paso = Promise.resolve();
+    MK.ocupado(b, true, 'Guardando…');
+    CT.sedes.forEach(function (s) {
+      var d = { 'regla cobro': regla, modalidad: s.modalidad, 'retiene itbms': ret };
+      [['planCosto', 'plan costo'], ['planKg', 'plan kg'], ['kgAdic', 'tarifa kg adic'], ['visAdic', 'tarifa visita adic']].forEach(function (k) { if (ccNum(s[k[0]]) !== null) d[k[1]] = ccNum(s[k[0]]); });
+      paso = paso.then(function () { return MK.api('api_crmGuardarFichaCliente', MK.pin, s.id, d).then(function (x) { if (!x || !x.ok) malas.push(s.sede + ': ' + ((x && x.error) || 'no se guardó')); }, function () { malas.push(s.sede + ': sin conexión'); }); });
+    });
+    paso.then(function () {
+      MK.ocupado(b, false);
+      if (malas.length) { msg.textContent = malas.join(' · '); return; }
+      MK.cerrarLado(); MK.aviso(CT.multi ? 'Regla guardada · el certificado y Cobros ya la usan' : 'Reglas de cobro confirmadas'); cargar(true);
+    });
+  }
+
   /* ── «Toda la empresa»: sus sedes, sus cifras y la empresa. Sin fotos ── */
   function pEmpresa() {
     var c = R.cliente, d = R.datos, S = sedes(), suma = function (k) { return S.reduce(function (a, x) { return a + (Number(x[k]) || 0); }, 0); };
@@ -709,12 +899,13 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       '<div><span>KILOS AL MES</span><b class="num">' + kgN(suma('kgMes')) + ' kg</b><small>entre todas' + (planCompartido() ? ' · plan de ' + N(c.planKg) + ' kg' : '') + '</small></div>' +
       '<div><span>SALDO DE LA EMPRESA</span><b class="num">' + D(suma('saldo')) + '</b><small>' + (venc > 0 ? '<b style="display:inline;font-size:12px;color:var(--bad)">' + D(venc) + ' vencido</b>' : 'nada vencido') + '</small></div>' +
       '<div id="emp-pc"><span>POR CONFIRMAR</span><b>…</b><small>sedes con «Lo contratado» sin confirmar</small></div></div>' +
+      '<div style="margin-top:14px">' + pCobro(true) + '</div>' +   // api 3.56
       '<div style="margin-top:14px">' + card('Sus sedes<span class="sp"></span><button class="btn sm" data-mc49="sucursal" id="emp-suc" hidden>' + IC('mas', 14) + 'Agregar sede</button>', 'edificio',
         '<div class="tbw"><table class="tb suc"><thead><tr><th>SEDE</th><th>LO CONTRATADO</th><th>FRECUENCIA</th><th class="r">KG/MES</th><th>PRÓXIMA</th><th class="r">SALDO</th><th>SALUD</th></tr></thead><tbody>' + filas +
         '<tr><td><b>Total</b></td><td></td><td></td><td class="r num"><b>' + kgN(suma('kgMes')) + '</b></td><td></td><td class="r num"><b>' + D(suma('saldo')) + '</b></td><td></td></tr></tbody></table></div>' +
         '<p class="small muted" style="margin-top:8px">Toque una sede para abrir su hoja.</p>') + '</div>' +
       '<div class="a-g" style="margin-top:14px"><div class="col">' + card('La empresa' + (puedeEditar() ? '<span class="sp"></span><button class="btn sm" data-edemp>' + IC('lapiz', 14) + 'Editar</button>' : ''), 'edificio', '<div class="kv"><span>Nombre comercial</span><b>' + E(nomEmpresa()) + '</b><span>Razón social</span><b>' + E(c.razon || '—') + '</b><span>RUC / DV</span><b class="num">' + E((c.ruc || '—') + dvTx()) + '</b>' +
-        '<span>Facturación</span><b>' + E(titulo(d.facturacion) || '—') + '</b><span>Plan</span><b>' + (planCompartido() ? 'Compartido: ' + N(c.planKg) + ' kg · ' + D(c.planCosto) : 'Cada sede con su plan') + '</b>' +
+        '<span>Facturación</span><b>' + (ccRegla() ? (ccRegla().fact === 'una' ? 'Agrupada' : 'Por sede') + ' <span class="small muted">· ver «Cobro y certificados»</span>' : E(titulo(d.facturacion) || '—')) + '</b><span>Plan</span><b>' + (planCompartido() ? 'Compartido: ' + N(c.planKg) + ' kg · ' + D(c.planCosto) : 'Cada sede con su plan') + '</b>' +
         '<span>Contacto principal</span><b>' + E(kp ? [kp.nombre, kp.cargo, kp.celular || kp.telefono].filter(Boolean).join(' · ') : [c.contacto, c.telefono].filter(Boolean).join(' · ') || '—') + '</b></div>') + '</div>' +
       '<div class="col"><div hidden>' + (window.MC49 ? MC49.card(c, corto(c.nombre)) : '') + '</div>' + card('Accesos al portal', 'persona', '<p class="small muted">Quién entra al portal por cada sede, y si alguien administra varias, se ve y se da en Configuración › Portal de clientes.</p>') + '</div></div>';
   }

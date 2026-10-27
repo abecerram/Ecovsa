@@ -612,17 +612,22 @@ var QR = (function(){
       if (n !== nPrev) return;
       if (!r || !r.ok) { PREV = null; msg('bad', esc((r && r.error) || 'No se pudo calcular el certificado.')); $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Sin vista previa.') + '</div>'; return; }
       PREV = { cliente: cli, desde: d, hasta: h, r: r };
-      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return clave(x.cliente) === clave(r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
+      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return clave(x.cliente) === clave(r.ficha56 || r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
       var partes = [];
       if (!av.alDia) partes.push(['bad', '<b>No se puede emitir todavía.</b> ' + esc(r.empresa.nombre) + ' tiene un saldo pendiente de <b>' + MK.dinero(av.saldo) + '</b> en ' + av.facturasAbiertas + ' factura' + (av.facturasAbiertas === 1 ? '' : 's') + '. El certificado se entrega al percibir el pago: cuando el pago esté registrado en Cobros, vuelve a intentarlo.' +
         (puedeForzar() ? '<br>Como ' + esc(MK.usuario.rol) + ' puedes emitirlo de todos modos; queda registrado como <b>forzado</b>.' : '<br><b>Solo gerencia o administración puede emitirlo de todos modos.</b>')]);
       else partes.push(['ok', esc(r.empresa.nombre) + ' está al día. ' + r.totales.visitas + ' visita' + (r.totales.visitas === 1 ? '' : 's') + ' y ' + n2(r.totales.totalKg) + ' kg en el período.']);
-      var cc = cliDe(r.empresa.nombre);
+      var cc = cliDe(r.ficha56 || r.empresa.nombre);
       if (av.alDia && cc && Number(cc.saldo) > 0.009) partes.push(['warn', 'Ojo: en Cobros ' + esc(cc.nombre) + ' aparece con un saldo de <b>' + MK.dinero(cc.saldo) + '</b>' + (Number(cc.vencido) > 0.009 ? ' (' + MK.dinero(cc.vencido) + ' vencido)' : '') + '. Confírmalo antes de entregar el certificado.']);
       if (ya) partes.push(['warn', 'Ya existe <b>' + esc(ya.folio) + '</b> para este cliente y este período. <a href="#" id="c-ya">Verlo</a> o reenviarlo en vez de emitir otro.']);
+      /* api 3.56 · cómo sale según la regla de cobro de la empresa */
+      if (r.regla) partes.push(['info', '<b>Regla de la empresa:</b> ' + esc(r.regla.texto) + '.' + (r.modo === 'sede' && (r.otrasSedes || []).length ? ' Este certificado es solo de <b>' + esc(r.empresa.sede) + '</b>. Las otras sedes llevan el suyo: ' + r.otrasSedes.map(function (s) { return '<a href="#" data-otra="' + esc(s.nombre) + '">' + esc(s.sede) + '</a>'; }).join(', ') + '.' : r.modo === 'emp' ? ' Un certificado de la empresa con el detalle de cada sede.' : r.modo === 'corp' ? ' Un certificado legal de la corporación; cada clínica ve su informe en el portal.' : '')]);
+      else partes.push(['info', 'Esta empresa todavía no tiene regla de cobro: el certificado sale como siempre. La regla se pone en la hoja del cliente, «Cobro y certificados».']);
       if (av.sinActa) partes.push(['warn', av.sinActa + ' recolección' + (av.sinActa === 1 ? '' : 'es') + ' del período no tiene' + (av.sinActa === 1 ? '' : 'n') + ' acta de entrega a planta asociada.']);
       $('c-msg').innerHTML = partes.map(function (p) { return '<div class="nota ' + p[0] + '" style="margin-bottom:8px">' + p[1] + '</div>'; }).join('');
       var y = $('c-ya'); if (y) y.onclick = function (e) { e.preventDefault(); ver(ya.folio); };
+      /* api 3.56 · un toque pasa a la otra sede (mousedown sin quitarle el foco al cliente, para que no se repinte antes del toque) */
+      [].forEach.call($('c-msg').querySelectorAll('[data-otra]'), function (a) { a.onmousedown = function (e) { e.preventDefault(); }; a.onclick = function (e) { e.preventDefault(); $('c-cli').value = a.getAttribute('data-otra'); previa(); }; });
       if (!av.alDia) botonEmitir(puedeForzar() ? 'Emitir de todos modos (queda como forzado)' : 'Emitir certificado', puedeForzar());
       else botonEmitir('Emitir certificado', true);
       $('c-pacc').innerHTML = '<span class="tag t-gris">borrador</span>';
@@ -637,7 +642,7 @@ var QR = (function(){
       '<div class="ch"><img src="logo-ecovsa.png" alt=""><div><b>ECOTERMO DE PANAMA S.A.</b><small>ECOVSA · Recolección, transporte, tratamiento y disposición final de desechos peligrosos</small></div>' +
       '<div class="fol">Folio<br><b>' + esc(r.folio || 'CERT-····') + '</b><br>' + esc(larga(r.fechaEmision || hoy())) + '</div></div>' +
       '<h2>Certificado de prestación de servicios, tratamiento y disposición final</h2><div class="sub">Del ' + esc(larga(p.desde)) + ' al ' + esc(larga(p.hasta)) + '</div>' +
-      '<div class="blq"><b>CLIENTE:</b> ' + esc(e.razonSocial || e.nombre) + '<br>' + (e.nombre && e.nombre !== e.razonSocial ? '<b>NOMBRE COMERCIAL:</b> ' + esc(e.nombre) + '<br>' : '') +
+      '<div class="blq"><b>CLIENTE:</b> ' + esc(e.razonSocial || e.nombre) + '<br>' + (e.nombre && e.nombre !== e.razonSocial ? '<b>NOMBRE COMERCIAL:</b> ' + esc(e.nombre) + '<br>' : '') + (e.sede ? '<b>SEDE:</b> ' + esc(e.sede) + '<br>' : '') +
       '<b>RUC:</b> ' + esc(e.rucCompleto || e.ruc || 'SIN RUC') + '<br><b>UBICACIÓN:</b> ' + esc(e.direccion || 'No especificada') + '<br>' +
       (puntos.length ? '<b>PUNTOS ATENDIDOS:</b> ' + esc(e.puntos.join(', ')) + '<br>' : '') + '<b>VISITAS REALIZADAS:</b> ' + esc(t.visitas) + '</div>' +
       '<table><tr><th>CORRIENTE</th><th class="r">NETO (KG)</th><th class="r">BULTOS</th></tr>' +
@@ -645,6 +650,8 @@ var QR = (function(){
       '<tr><td>Anatomopatológicos</td><td class="r num">' + n2(t.kgAnatomo) + '</td><td class="r num">' + nb(t.bultosAnatomo) + '</td></tr>' +
       '<tr><td>Punzocortantes</td><td class="r num">' + n2(t.kgPunzo) + '</td><td class="r num">' + nb(t.bultosPunzo) + '</td></tr>' +
       '<tr class="tt"><td>Total tratado</td><td class="r num">' + n2(t.totalKg) + ' kg</td><td class="r num">' + nb(t.totalBultos) + '</td></tr></table>' +
+      ((r.detalle || []).length ? '<p class="small" style="margin:10px 0 4px"><b>Detalle por sede</b></p><table><tr><th>SEDE</th><th class="r">VISITAS</th><th class="r">BIOINF. (KG)</th><th class="r">PUNZOC. (KG)</th><th class="r">TOTAL (KG)</th></tr>' +
+        r.detalle.map(function (x) { return '<tr><td>' + esc(x.sede) + '</td><td class="r num">' + x.visitas + '</td><td class="r num">' + n2(x.kgBio) + '</td><td class="r num">' + n2(x.kgPunzo) + '</td><td class="r num">' + n2(x.kg) + '</td></tr>'; }).join('') + '</table>' : '') +   // api 3.56
       (actas.length ? '<p class="small">Actas de entrega a planta: <b>' + esc(actas.join(', ')) + '</b>.</p>' : '') +
       (r.forzado ? '<div class="forz">Emitido con saldo pendiente' + (r.avisos && r.avisos.saldo ? ' de ' + MK.dinero(r.avisos.saldo) : '') + ' · autorizado por gerencia o administración</div>' : '') +
       (o.borrador && r.avisos && !r.avisos.alDia ? '<div class="forz">Saldo pendiente: ' + MK.dinero(r.avisos.saldo) + '</div>' : '') +
@@ -715,7 +722,8 @@ var QR = (function(){
     var x = (CERTS || []).filter(function (c) { return c.folio === folio; })[0]; if (!x) return;
     var c = cliDe(x.cliente) || {};
     var texto = MK.rellenar('{saludo} {contacto}:\n\nLe compartimos el certificado ' + x.folio + ' del tratamiento y disposición final de los desechos de {empresa}, del ' + larga(x.desde) + ' al ' + larga(x.hasta) + ' (' + n2(x.totalKg) + ' kg en ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '). Se lo adjuntamos en PDF.\n\n{firma}', { contacto: c.contacto || '', empresa: x.cliente });
-    MK.mensaje({ canal: c.correo ? 'correo' : 'whatsapp', telefono: telDe(c), correo: c.correo || '', ref: c.id || '', refTipo: 'cli', cuenta: x.cliente, contacto: c.contacto || '', momento: 'Certificado', texto: texto, vars: { empresa: x.cliente, contacto: c.contacto || '' } });
+    var cor = x.correoDocs || c.correo || '';   // api 3.56: documentos agrupados van al correo de la empresa
+    MK.mensaje({ canal: cor ? 'correo' : 'whatsapp', telefono: telDe(c), correo: cor, ref: c.id || '', refTipo: 'cli', cuenta: x.cliente, contacto: c.contacto || '', momento: 'Certificado', texto: texto, vars: { empresa: x.cliente, contacto: c.contacto || '' } });
   }
 
   /* ═════════════ DISTINTIVOS ═════════════ */

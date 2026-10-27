@@ -390,6 +390,8 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
       d: 'Cada fila dice por qué. Ábrala para actuar.' },
     conf: { t: '«Lo contratado» sin confirmar', cl: 'az', f: function (c) { return grupoSit(c) === 'activo' && c.revisado === false; },
       d: 'Mientras no se confirme, el portal toma la sede solo con recolección de peligrosos: cualquier otro servicio le sale al cliente como «¿Desea contratarlo?».' },
+    cobro: { t: 'Sin reglas de cobro confirmadas', cl: 'az', f: function (c) { return grupoSit(c) === 'activo' && c.cobroOk === false; },   // api 3.56
+      d: 'El certificado de disposición final y Cobros usan estas reglas. «Revisar» abre «Cobro y certificados» con la propuesta del sistema: se revisa y se confirma.' },
     fich: { t: 'Fichas por completar', cl: 'az', f: function (c) { return esActivo(c) && faltanDe(c).length; },
       d: 'Cada fila dice qué falta; «Completar» pide solo eso. Un dato se llena una vez y lo ven Logística, Cobros y Mercadeo.' }
   };
@@ -649,6 +651,7 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
     else if (a === 'msj') mensajeRenovacion(c);
     else if (a === 'gc') MK.actividad({ tipo: 'llamada', ref: c.id, refTipo: 'cli', cuenta: c.nombre, contacto: c.contacto, texto: 'Gestión de cobro: ' });
     else if (a === 'conf') location.href = 'MerCliente.html?id=' + encodeURIComponent(c.id) + '#s-contratado';
+    else if (a === 'cobro') location.href = 'MerCliente.html?id=' + encodeURIComponent(c.id) + '#cobro';   // api 3.56
     else if (a === 'comp') completarFicha(c);
   }
   function abrirUnico() {
@@ -678,6 +681,7 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
     if (F.hoy === 'ren') tr = '<div class="tr"><div class="small"><b>' + (c.diasVence < 0 ? 'Venció hace ' + (-c.diasVence) + ' días' : 'Vence en ' + c.diasVence + ' días') + '</b> · real ' + kgN(c.kgMes) + ' de ' + N(c.planKg) + ' kg → ' + E(sugerencia(c)) + '</div>' + (g2 ? '<div class="ac"><button type="button" class="btn sm" data-a="tarea">' + IC('tarea', 14) + 'Tarea</button><button type="button" class="btn sm" data-a="msj">' + IC('correo', 14) + 'Mensaje</button></div>' : '') + '</div>';
     if (F.hoy === 'venc' && g2) tr = '<div class="tr"><div class="ac"><button type="button" class="btn sm" data-a="gc">' + IC('telefono', 14) + 'Registrar gestión</button></div></div>';
     if (F.hoy === 'conf' && g2) tr = '<div class="tr"><div class="ac"><button type="button" class="btn sm pri" data-a="conf">' + IC('check', 14) + 'Confirmar lo contratado</button></div></div>';
+    if (F.hoy === 'cobro' && g2) tr = '<div class="tr"><div class="ac"><button type="button" class="btn sm pri" data-a="cobro">' + IC('moneda', 14) + 'Revisar</button></div></div>';   // api 3.56
     if (F.hoy === 'fich') tr = '<div class="tr"><div class="small"><b>Falta:</b> ' + E(faltanDe(c).join(', ')) + '</div>' + (g2 ? '<div class="ac"><button type="button" class="btn sm pri" data-a="comp">' + IC('lapiz', 14) + 'Completar</button></div>' : '') + '</div>';
     return '<div class="c-r' + (sub ? ' sd' : '') + (sel ? ' sel' : '') + (hit ? ' hl' : '') + (gs === 'baja' ? ' baja' : '') + '" data-id="' + E(c.id) + '"><span class="c1">' +
       (SELEC ? '<input type="checkbox"' + (sel ? ' checked' : '') + ' aria-label="Elegir ' + E(c.nombre) + '">' : '') + '</span>' +
