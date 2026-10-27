@@ -23715,6 +23715,50 @@ function numeroHablado(v){
   window.ecoPesosVoz = { parseVoz: parseVoz, numeroHablado: numeroHablado, estado: function(){ return { on: V.on, fase: V.fase, estado: V.estado }; }, _adjunta: adjunta_ };
 })();
 </script>
+<script id="js-tf9">
+/* «Mi tablet» del conductor (menú del nombre): versión de la app, buscar actualizaciones y conectar un audífono Bluetooth. Se suma a la hoja que ya existe. */
+(function(){
+  if(window.__miTablet9) return; window.__miTablet9 = 1;
+  function app(){ return window.EcovsaApp || null; }
+  function tiene_(f){ var a = app(); return !!(a && typeof a[f] === "function"); }
+  function esc_(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function verApp_(){
+    try{ var v = app().version(); if(v) return String(v); }catch(e){}
+    var m = /EcovsaApp\/([\d.]+)/.exec(navigator.userAgent || ""); return m ? m[1] : "";
+  }
+  if(!document.getElementById("css-tf9")){
+    var st = document.createElement("style"); st.id = "css-tf9";
+    st.textContent = "#mt38 .hj{max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain}";   /* la hoja ya no cabía entera: ahora se desliza */
+    document.head.appendChild(st);
+  }
+  function instala_(){
+    if(!window.APP38 || typeof APP38.hojaTablet !== "function") return false;
+    var o = APP38.hojaTablet;
+    APP38.hojaTablet = function(){
+      var r = o.apply(this, arguments);
+      try{
+        var d = document.getElementById("mt38"); if(!d || d.querySelector(".mt9-g")) return r;
+        var rev = ""; try{ if(tiene_("ultimaRevision")) rev = String(app().ultimaRevision() || ""); }catch(e){}
+        var act = tiene_("buscarActualizacion"), bt = tiene_("abrirBluetooth");
+        var g = document.createElement("div"); g.className = "mt38-g mt9-g";
+        g.innerHTML = '<b>ECOVSA ' + esc_(verApp_() || "?") + '</b>' +
+          '<p class="mt38-n" style="margin-top:2px">' + (rev ? 'Última revisión de actualizaciones: ' + esc_(rev) + '.' : 'Esta es la versión de la app instalada en esta tablet.') + '</p>' +
+          '<button class="c38-btn" style="width:100%;margin-top:8px"' + (act ? '' : ' disabled') + ' data-mt9="act">Buscar actualizaciones</button>' +
+          '<button class="c38-btn" style="width:100%;margin-top:8px"' + (bt ? '' : ' disabled') + ' data-mt9="bt">Conectar audífono Bluetooth</button>' +
+          '<p class="mt38-n">' + (bt ? 'Abre Bluetooth: elige tu audífono y, al conectarse, ECOVSA vuelve sola.' : 'Buscar actualizaciones y Bluetooth llegan con la próxima versión de la app.') + '</p>';
+        d.querySelectorAll(".mt38-n").forEach(function(n){ if(/Mientras navegas con la ruta activa no se apaga\./.test(n.textContent)) n.innerHTML = n.innerHTML.replace("Mientras navegas con la ruta activa no se apaga.", "No se apaga mientras dictas, navegas o tienes la jornada abierta."); });
+        var p = d.querySelector(".av38-p");
+        if(p) p.after(g); else d.firstElementChild.appendChild(g);
+        g.querySelector('[data-mt9="act"]').addEventListener("click", function(){ try{ d.remove(); app().buscarActualizacion(); }catch(e){} });
+        g.querySelector('[data-mt9="bt"]').addEventListener("click", function(){ try{ d.remove(); app().abrirBluetooth(); }catch(e){} });
+      }catch(e){ console.error(e); }
+      return r;
+    };
+    return true;
+  }
+  if(!instala_()){ var n = 0, t = setInterval(function(){ if(instala_() || ++n > 20) clearInterval(t); }, 500); }
+})();
+</script>
 <style id="estilo-347">
 /* api 3.47 · el mapa de Google */
 .leaflet-right .g47-logo{margin:0 6px 4px 0!important}.g47-logo{margin:0 0 6px 8px!important;line-height:0;pointer-events:none}.g47-logo img{height:17px;width:auto;display:block}
