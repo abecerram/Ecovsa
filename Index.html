@@ -23477,9 +23477,23 @@ function numeroHablado(v){
   function despierta_(si){
     try{
       if(si){ if(window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(true); clearTimeout(AW.t); AW.t = setTimeout(function(){ despierta_(false); }, 15 * 60 * 1000); }
-      else { clearTimeout(AW.t); var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav && window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(false); }
+      else { clearTimeout(AW.t); var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav && !jornadaViva_() && window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(false); }
     }catch(e){}
   }
+
+  /* la pantalla NO se apaga en toda la jornada abierta del día (el camión va con la tablet cargando); al cerrar la jornada, o al cambiar de día, se suelta */
+  function jornadaViva_(){
+    try{ return !!(window.JORNADA && !JORNADA.cerrada && JORNADA.fecha === hoyISO()); }catch(e){ return false; }
+  }
+  var JV8 = { viva: false };
+  setInterval(function(){
+    try{
+      if(!window.EcovsaApp || typeof EcovsaApp.pantalla !== "function") return;
+      var viva = jornadaViva_();
+      if(viva && document.visibilityState === "visible"){ EcovsaApp.pantalla(true); JV8.viva = true; }
+      else if(!viva && JV8.viva){ JV8.viva = false; var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav) EcovsaApp.pantalla(false); }
+    }catch(e){}
+  }, 20000);
 
   /* ── voz ── */
   function repinta_(){ var s = API() && API().estado(); if(s && s.abierto){ var v = document.getElementById("kp-vel"); if(v) pintaVoz_(v); } }
