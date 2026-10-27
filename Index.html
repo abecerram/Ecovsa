@@ -23285,7 +23285,7 @@ function parseVoz(texto, alt){
     seiscientos: 600, seiscientas: 600, setecientos: 700, setecientas: 700, ochocientos: 800, ochocientas: 800, novecientos: 900, novecientas: 900 };
   var CORTE = { mas: 1, siguiente: 1, otra: 1, luego: 1, despues: 1, proxima: 1, proximo: 1, nueva: 1, nuevo: 1 };
   var CMD_TOTAL = { total: 1, listo: 1, lista: 1, termine: 1, termino: 1, terminado: 1, terminamos: 1, fin: 1, cierra: 1, cerrar: 1, finalizar: 1, finalizo: 1 };
-  var CMD_BORRA = { borra: 1, borrar: 1, borralo: 1, borrala: 1, cancela: 1, cancelar: 1, elimina: 1, eliminar: 1, quita: 1, quitar: 1, quitalo: 1 };
+  var CMD_BORRA = { borra: 1, borrar: 1, borralo: 1, borrala: 1, borre: 1, cancela: 1, cancelar: 1, elimina: 1, eliminar: 1, quita: 1, quitar: 1, quitalo: 1, deshacer: 1, deshaz: 1, deshazlo: 1, anula: 1, anular: 1, corrige: 1, corregir: 1, retrocede: 1 };
   var CMD_NO = { no: 1, nada: 1, incorrecto: 1, error: 1, mal: 1, negativo: 1, nope: 1, ninguno: 1, ninguna: 1, ningun: 1 };
   var CMD_SI = { si: 1, correcto: 1, dale: 1, afirmativo: 1, exacto: 1, claro: 1, ok: 1, okay: 1, aja: 1, vale: 1, adelante: 1, confirmo: 1, confirmado: 1, cierto: 1 };
   var T_PUN = { punzocortante: 1, punzocortantes: 1, cortopunzante: 1, cortopunzantes: 1, punzo: 1 };
@@ -23472,6 +23472,15 @@ function numeroHablado(v){
   /* «una bolsa», «un recipiente», «dos bolsas» */
   function cuenta_(n, t){ return n === 1 ? (uni_(t, false) === "bolsa" ? "una bolsa" : "un recipiente") : numeroHablado(n) + " " + uni_(t, true); }
 
+  /* la pantalla NO se apaga ni se bloquea mientras la calculadora está abierta (hay manos ocupadas y la voz no toca la tablet); se suelta sola a los 15 min sin actividad o al cerrar */
+  var AW = { t: 0 };
+  function despierta_(si){
+    try{
+      if(si){ if(window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(true); clearTimeout(AW.t); AW.t = setTimeout(function(){ despierta_(false); }, 15 * 60 * 1000); }
+      else { clearTimeout(AW.t); var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav && window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(false); }
+    }catch(e){}
+  }
+
   /* ── voz ── */
   function repinta_(){ var s = API() && API().estado(); if(s && s.abierto){ var v = document.getElementById("kp-vel"); if(v) pintaVoz_(v); } }
   function dice_(texto, escuchar){
@@ -23614,9 +23623,11 @@ function numeroHablado(v){
       if(V.fallos >= 3){ V.fase = "pausa"; V.estado = "pausa"; repinta_(); return; }
       escucha_(); return;
     }
-    V.fallos = 0; V.texto = String(o.texto || "");
+    V.fallos = 0; V.texto = String(o.texto || ""); despierta_(true);
     var r = parseVoz(o.texto, o.alt);
-    if(r.tipo === "nada"){ repinta_(); escucha_(); return; }
+    /* se oyó algo pero no se entendió: se dice, para que no parezca que la tablet no hace caso (máx. 2 veces seguidas, por el ruido) */
+    if(r.tipo === "nada"){ repinta_(); var oido = V.texto.replace(/\[?unk\]?/g, "").trim(); if(oido && V.fase === "pesos" && (V.noEntendi = (V.noEntendi || 0) + 1) <= 2){ dice_("No entendí. Repita.", true); return; } escucha_(); return; }
+    V.noEntendi = 0;
     repinta_();
     procesa_(r);
   };
@@ -23637,7 +23648,7 @@ function numeroHablado(v){
     var estTxt = V.estado === "escuchando" ? "Escuchando" : V.estado === "hablando" ? "Hablando" : V.fase === "pausa" ? "En pausa: no se oyó nada" : "Voz lista";
     var p = document.createElement("div"); p.className = "vz-p";
     p.innerHTML = '<div class="vz-e ' + (V.fase === "pausa" ? "pausa" : V.estado) + '">' + estTxt + '</div><div class="vz-t">' + (V.texto ? "«" + esc_(V.texto) + "»" : "&nbsp;") + '</div>' +
-      '<div class="vz-d">Diga el peso; «total» cierra; «no» o «borra» quita el último.</div>' +
+      '<div class="vz-d">Diga el peso; «total» cierra; «borra» o «deshacer» quita el último.</div>' +
       ((V.fase === "pausa" || V.fase === "quieto") ? '<button type="button" class="vz-mic">Tocar para hablar</button>' : "");
     te.insertBefore(p, te.firstChild);
     var m = p.querySelector(".vz-mic"); if(m) m.onclick = function(){ V.fallos = 0; if(V.fase === "quieto" || V.fase === "pausa"){ if(V.fase === "pausa" && API().estado().abierto){ V.fase = "pesos"; escucha_(); } else inicia_(); } };
@@ -23652,9 +23663,9 @@ function numeroHablado(v){
   function engancha_(){
     var A = API(); if(!A || !A.ganchos) return false;
     V.on = pref_() && ok_().ok;
-    A.ganchos.alPintar = function(v){ try{ pintaVoz_(v); }catch(e){} };
+    A.ganchos.alPintar = function(v){ try{ pintaVoz_(v); }catch(e){} despierta_(true); };
     A.ganchos.alAbrir = function(){ if(V.interno) return; V.on = pref_() && ok_().ok; if(V.on && puente_()){ inicia_(); } };
-    A.ganchos.alCerrar = function(){ if(V.cerrando) return; if(V.fase !== "quieto" && V.fase !== "resumen"){ detener_(); } };
+    A.ganchos.alCerrar = function(){ if(V.cerrando) return; despierta_(false); if(V.fase !== "quieto" && V.fase !== "resumen"){ detener_(); } };
     A.ganchos.alListo = function(t, i, n, total){ /* el botón «Listo» a mano termina la voz: sin charla */ };
     return true;
   }
