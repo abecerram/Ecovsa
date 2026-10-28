@@ -608,6 +608,14 @@
         'Desde ' + umbralGran() + ' kg al mes, sumando todas sus sedes, se marca como gran generador al elegir el plan. Se sigue trabajando en esta ficha, con sus tarifas y servicios.</p></div>' +
         '<button class="btn" data-tab="propuesta">' + IC('moneda', 15) + ' Ver el plan</button></div>' + h;
     }
+    /* api 3.65: una licitación se sigue en su pestaña (etapa y cronograma); la ficha lo dice arriba */
+    if (OP.licitacion) {
+      var lc = OP.licitacion, hoyL = MK.hoy || MK.hoyLocal(), cerr = ['No adjudicada', 'Desierta', 'No participamos'].indexOf(lc.etapa) >= 0, px = cerr ? null : (lc.cronograma || []).filter(function (a) { return a.fecha >= hoyL; }).sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; })[0];
+      h = '<div class="ban info">' + IC('sello', 18) + '<div class="bx"><b>Licitación · acto ' + E(lc.acto || '') + ' · ' + E(lc.etapa || '') + '</b><p>' + (lc.objeto ? E(lc.objeto) + '. ' : '') +
+        (px ? 'Próxima fecha: ' + E(px.act) + ', ' + E(MK.fechaLarga(px.fecha)) + '. ' : '') + (lc.motivo ? 'Motivo: ' + E(lc.motivo) + '. ' : '') +
+        'La etapa y el cronograma se llevan en la pestaña Licitaciones; no cuenta en el Embudo.</p></div>' +
+        '<a class="btn" href="MerOportunidades.html?vista=licitaciones">' + IC('calendario', 15) + ' Ver en Licitaciones</a></div>' + h;
+    }
     $('bans').innerHTML = h;
   }
 

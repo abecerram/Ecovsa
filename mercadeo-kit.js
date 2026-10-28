@@ -355,27 +355,37 @@
   /* api 3.62 · Nueva oportunidad (maqueta Oportunidades, aprobada el 28 oct): servicio recurrente o servicio especial.
      Mercadeo registra la empresa y al solicitante; el resto lo completa el cliente en su formulario, que se envía por
      WhatsApp o correo, o Mercadeo lo completa en el momento (el mismo formulario) si ya tiene los datos.
-     La licitación llega con su propia pestaña (parte 4). La cuenta con sedes se sigue armando desde la ficha. */
+     La licitación llega con su propia pestaña (parte 4). La cuenta con sedes se sigue armando desde la ficha.
+     api 3.65 · Licitaciones 4a: tercer tipo «Licitación». Pide lo del acto (entidad, n.º, qué se licita, modalidad, entrega,
+     precio de referencia, enlace); no lleva solicitante ni formulario. Queda en la pestaña Licitaciones, fuera del Embudo. */
   MK.captura = function (pre) {
     pre = pre || {};
     var aj = (MK.base && MK.base.ajustes) || {}, esc = MK.esc, URL0 = '';
     MK.api('api_urlApp').then(function (u) { if (typeof u === 'string') URL0 = u; }, function () {});
-    var TIPOS = [['rec', 'Servicio recurrente', 'Con contrato, una sede o varias.'], ['unica', 'Servicio especial', 'Una sola vez: limpieza, cierre, fármacos vencidos.']];
+    var TIPOS = [['rec', 'Servicio recurrente', 'Con contrato, una sede o varias.'], ['unica', 'Servicio especial', 'Una sola vez: limpieza, cierre, fármacos vencidos.'], ['lic', 'Licitación', 'Un acto público de PanamaCompra.']];
+    var MODAL = ['Licitación pública', 'Licitación por mejor valor', 'Contratación menor', 'Procedimiento excepcional', 'Convenio marco'];
     var ENVIO = [['whatsapp', MK.ic('whatsapp', 14) + ' Por WhatsApp', 'El cliente lo llena desde su celular.'], ['correo', MK.ic('correo', 14) + ' Por correo', 'Llega al correo del solicitante.'],
       ['ahora', MK.ic('lapiz', 14) + ' Completar ahora', 'Ya tengo los datos: abro el mismo formulario.'], ['despues', MK.ic('reloj', 14) + ' Más tarde', 'Se envía desde la ficha.']];
-    var S = { tipo: pre.tipoServicio === 'VISITA UNICA' ? 'unica' : 'rec', envio: 'whatsapp', cli: pre.clienteId ? { id: pre.clienteId, nombre: pre.empresa || '' } : null, forzar: false, editado: false };
+    var S = { tipo: pre.licitacion ? 'lic' : pre.tipoServicio === 'VISITA UNICA' ? 'unica' : 'rec', envio: 'whatsapp', cli: pre.clienteId ? { id: pre.clienteId, nombre: pre.empresa || '' } : null, forzar: false, editado: false };
     var waNum = function (v) { var n = String(v || '').replace(/[^0-9]/g, ''); return /^6\d{7}$/.test(n) ? '507' + n : /^5076\d{7}$/.test(n) ? n : ''; };
-    var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small">Registre la empresa y al solicitante. El resto de la información la completa el cliente en su formulario, o usted si ya la tiene.</p>' +
+    var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small" id="nv-sub">Registre la empresa y al solicitante. El resto de la información la completa el cliente en su formulario, o usted si ya la tiene.</p>' +
       '<label class="lb" id="nv-l-tipo">TIPO DE OPORTUNIDAD</label><div class="nv-tipo" data-g="tipo" role="group" aria-labelledby="nv-l-tipo">' + TIPOS.map(function (t) { return '<button type="button" data-v="' + t[0] + '" aria-pressed="' + (t[0] === S.tipo) + '" class="' + (t[0] === S.tipo ? 'on' : '') + '"><b>' + t[1] + '</b><small>' + t[2] + '</small></button>'; }).join('') + '</div>' +
-      '<div class="nv-sec"><h3>Empresa</h3><label class="lb" for="nv-emp">NOMBRE DE LA EMPRESA</label><input class="in" id="nv-emp" autofocus value="' + esc(pre.empresa || '') + '" placeholder="Nombre comercial">' +
+      '<div class="nv-sec"><h3 id="nv-h-emp">Empresa</h3><label class="lb" for="nv-emp" id="nv-l-emp">NOMBRE DE LA EMPRESA</label><input class="in" id="nv-emp" autofocus value="' + esc(pre.empresa || '') + '" placeholder="Nombre comercial">' +
         '<div id="nv-dup" class="small" style="margin-top:6px"></div>' +
-        '<label class="lb">ORIGEN</label>' + chips('fuente', (aj.fuentes || []), pre.fuente || '') + '</div>' +
-      '<div class="nv-sec"><h3>Solicitante</h3>' +
+        '<div id="nv-ori"><label class="lb">ORIGEN</label>' + chips('fuente', (aj.fuentes || []), pre.fuente || '') + '</div></div>' +
+      '<div class="nv-sec" id="nv-lic" hidden><h3>El acto público</h3><div class="grid g2" style="gap:10px"><div><label class="lb" for="nv-acto">N.º DE ACTO PÚBLICO <span style="color:var(--bad)">*</span></label><input class="in" id="nv-acto" placeholder="2026-0-00-0-00-LP-000000"></div>' +
+          '<div><label class="lb" for="nv-mod">MODALIDAD</label><select class="in" id="nv-mod">' + MODAL.map(function (x) { return '<option>' + x + '</option>'; }).join('') + '</select></div></div>' +
+        '<label class="lb" for="nv-obj">QUÉ SE LICITA</label><input class="in" id="nv-obj" placeholder="Ej. Recolección y tratamiento de desechos hospitalarios en 3 instalaciones">' +
+        '<div class="grid g3" style="gap:10px"><div><label class="lb" for="nv-flic">ENTREGA DE PROPUESTAS</label><input class="in" type="date" id="nv-flic"></div>' +
+          '<div><label class="lb" for="nv-plic">PRECIO DE REFERENCIA</label><input class="in" id="nv-plic" inputmode="decimal" placeholder="B/."></div>' +
+          '<div><label class="lb" for="nv-enl">ENLACE EN PANAMACOMPRA</label><input class="in" id="nv-enl" inputmode="url" placeholder="https://www.panamacompra.gob.pa/…"></div></div>' +
+        '<p class="small muted" style="margin:8px 0 0">El resto del cronograma (consultas, apertura…) se anota en la pestaña Licitaciones; cada fecha deja su aviso en la Agenda.</p></div>' +
+      '<div class="nv-sec" id="nv-sol"><h3>Solicitante</h3>' +
         '<div class="grid g2" style="gap:10px"><div><label class="lb" for="nv-con">NOMBRE Y APELLIDO <span style="color:var(--bad)">*</span></label><input class="in" id="nv-con" placeholder="Persona que solicita la propuesta"></div>' +
           '<div><label class="lb" for="nv-car">CARGO</label><input class="in" id="nv-car" placeholder="Administración, dirección médica, compras…"></div></div>' +
         '<div class="grid g2" style="gap:10px"><div><label class="lb" for="nv-cel">CELULAR (WHATSAPP)</label><input class="in" id="nv-cel" inputmode="tel" placeholder="6612-3344"></div>' +
           '<div><label class="lb" for="nv-cor">CORREO ELECTRÓNICO</label><input class="in" id="nv-cor" type="email" inputmode="email" placeholder="nombre@empresa.com"></div></div></div>' +
-      '<div class="nv-sec"><h3 class="nv-h">Formulario del cliente <button type="button" class="nv-ay" id="nv-ay" aria-expanded="false" aria-controls="nv-ayuda" title="¿Qué pide el formulario?">?</button></h3>' +
+      '<div class="nv-sec" id="nv-frm"><h3 class="nv-h">Formulario del cliente <button type="button" class="nv-ay" id="nv-ay" aria-expanded="false" aria-controls="nv-ayuda" title="¿Qué pide el formulario?">?</button></h3>' +
         '<div class="nv-cli" id="nv-ayuda" hidden>' + MK.ic('documento', 16) + '<div><b>El cliente completa en su formulario:</b><ul><li>tipo de establecimiento, desechos que genera, cantidad estimada y frecuencia;</li><li>número de sedes y ubicación de cada una;</li><li>razón social, RUC, DV y representante legal.</li></ul>Con «Completar ahora» se abre ese mismo formulario para llenarlo usted; queda registrado que lo completó Mercadeo. Los datos de la factura se le piden al cliente cuando acepta la propuesta.</div></div>' +
         '<div class="nv-op" data-g="envio" role="group" aria-label="Formulario del cliente">' + ENVIO.map(function (o) { return '<button type="button" data-v="' + o[0] + '" aria-pressed="' + (o[0] === S.envio) + '"><b>' + o[1] + '</b><small>' + o[2] + '</small></button>'; }).join('') + '</div>' +
         '<div id="nv-env"><label class="lb" for="nv-msj">MENSAJE</label><textarea class="in nv-msg" id="nv-msj" rows="4"></textarea></div></div>' +
@@ -391,10 +401,15 @@
     };
     var marcar = function (g, v) { [].forEach.call(h.querySelectorAll('[data-g="' + g + '"] button'), function (x) { var on = x.getAttribute('data-v') === v; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
     var refrescar = function () {
+      var lic = S.tipo === 'lic';
+      $('nv-lic').hidden = !lic; $('nv-sol').hidden = lic; $('nv-frm').hidden = lic; $('nv-ori').hidden = lic; dup.hidden = lic;
+      $('nv-sub').textContent = lic ? 'Guarde el acto público tal como sale en PanamaCompra. La etapa y el cronograma se llevan en la pestaña Licitaciones.' : 'Registre la empresa y al solicitante. El resto de la información la completa el cliente en su formulario, o usted si ya la tiene.';
+      $('nv-h-emp').textContent = lic ? 'Entidad' : 'Empresa'; $('nv-l-emp').textContent = lic ? 'ENTIDAD QUE LICITA' : 'NOMBRE DE LA EMPRESA';
+      emp.placeholder = lic ? 'Ministerio, hospital, caja de seguro…' : 'Nombre comercial';
       if (!S.editado) msj.value = texto(leer());
       $('nv-env').hidden = S.envio !== 'whatsapp' && S.envio !== 'correo';
       marcar('tipo', S.tipo); marcar('envio', S.envio);
-      $('nv-ok').innerHTML = { whatsapp: MK.ic('whatsapp', 15) + ' Guardar y enviar por WhatsApp', correo: MK.ic('correo', 15) + ' Guardar y enviar por correo', ahora: MK.ic('lapiz', 15) + ' Guardar y abrir el formulario', despues: 'Guardar' }[S.envio];
+      $('nv-ok').innerHTML = lic ? 'Guardar la licitación' : { whatsapp: MK.ic('whatsapp', 15) + ' Guardar y enviar por WhatsApp', correo: MK.ic('correo', 15) + ' Guardar y enviar por correo', ahora: MK.ic('lapiz', 15) + ' Guardar y abrir el formulario', despues: 'Guardar' }[S.envio];
     };
     h.addEventListener('click', function (e) { var b = e.target.closest('[data-g] button'); if (b) { S[b.parentNode.getAttribute('data-g')] = b.getAttribute('data-v'); refrescar(); } });
     $('nv-ay').onclick = function () { var a = $('nv-ayuda'); a.hidden = !a.hidden; this.setAttribute('aria-expanded', String(!a.hidden)); };
@@ -417,6 +432,7 @@
     if (pre.empresa) pintarDup();
     $('nv-ok').onclick = function () {
       var x = leer(), b = this, m = $('nv-m');
+      if (S.tipo === 'lic') return guardarLic(x, b, m);
       if (!x.empresa) { m.textContent = 'Indique el nombre de la empresa.'; emp.focus(); return; }
       if (!x.contacto) { m.textContent = 'Indique el nombre del solicitante: la propuesta y el formulario van a su nombre.'; $('nv-con').focus(); return; }
       if (x.celular && !waNum(x.celular)) { m.textContent = 'El celular debe tener 8 dígitos y empezar en 6.'; $('nv-cel').focus(); return; }
@@ -449,6 +465,26 @@
         MK.hoja('<h2>Oportunidad registrada</h2><p class="muted" style="margin-top:6px">' + esc(aviso) + '.</p>' +
           '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir aquí</button><button class="btn" onclick="MK.cerrarHoja();MK.captura()">Otra oportunidad</button><button class="btn pri" onclick="MK.irOportunidad(\'' + esc(cod) + '\')">Abrir la ficha</button></div>');
       }, function (e) { MK.ocupado(b, false); if (abre) abre.close(); m.textContent = e.message; });
+    };
+    /* la licitación: lo del acto; el servidor deja la entrega en el cronograma con su aviso en la Agenda */
+    var guardarLic = function (x, b, m) {
+      if (!x.empresa) { m.textContent = 'Indique la entidad que licita.'; emp.focus(); return; }
+      var acto = $('nv-acto').value.trim(), enl = $('nv-enl').value.trim();
+      if (!acto) { m.textContent = 'Indique el número del acto público.'; $('nv-acto').focus(); return; }
+      if (enl && !/^https:\/\//i.test(enl)) { m.textContent = 'El enlace debe empezar con https://'; $('nv-enl').focus(); return; }
+      m.textContent = '';
+      var d = { empresa: x.empresa, fuente: 'Licitación', licitacion: { acto: acto, entidad: x.empresa, objeto: $('nv-obj').value.trim(), modalidad: $('nv-mod').value, entrega: $('nv-flic').value, referencia: $('nv-plic').value.trim(), enlace: enl },
+        primerPaso: { tipo: 'tarea', titulo: 'Estudiar el pliego del acto ' + acto, fecha: MK.masDias(MK.hoy || MK.hoyLocal(), 1), hora: '' } };
+      MK.ocupado(b, true, 'Guardando…');
+      MK.api('api_crmCaptura', MK.pin, d).then(function (r) {
+        MK.ocupado(b, false);
+        if (!r || !r.ok) { m.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        MK.cerrarHoja(); MK.cambio({ tipo: 'captura', codigo: r.codigoPropuesta });
+        try { window.dispatchEvent(new CustomEvent('mk:ir-licitaciones')); } catch (e) {}
+        var enOp = /MerOportunidades\.html/.test(location.pathname);
+        MK.hoja('<h2>Licitación guardada</h2><p class="muted" style="margin-top:6px">Acto ' + esc(acto) + ' de ' + esc(x.empresa) + '. Quedó en «Encontrada», en la pestaña Licitaciones' + (d.licitacion.entrega ? ', con el aviso de la entrega en su Agenda' : '') + '.</p>' +
+          '<div class="pie"><button class="btn" onclick="MK.cerrarHoja();MK.captura({licitacion:true})">Otra licitación</button>' + (enOp ? '<button class="btn pri" onclick="MK.cerrarHoja()">Listo</button>' : '<a class="btn pri" href="MerOportunidades.html?vista=licitaciones">Ver las licitaciones</a>') + '</div>');
+      }, function (e) { MK.ocupado(b, false); m.textContent = e.message; });
     };
   };
   /* Cuenta con sedes: empresa (o un cliente que ya existe) y a la cuenta paso a paso */

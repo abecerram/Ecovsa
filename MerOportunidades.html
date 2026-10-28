@@ -11,6 +11,184 @@
 <script src="puente.js"></script>
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
+<script id="js-lic65">
+/* ── Oportunidades › pestaña «Licitaciones» (3.65 · parte 4a: seguimiento) ──
+   Misma forma que el Embudo (tres tarjetas de cifras, buscador, barra de herramientas, lista o por etapa), pero con el
+   camino de una licitación: encontrada → en estudio → preparando el expediente → presentada → resultado.
+   Cada acto tiene su etapa (las cerradas piden motivo) y su cronograma; el servidor deja cada aviso en la Agenda y lo
+   mueve si la fecha cambia. El expediente y los documentos de la empresa llegan en la parte 4b. */
+var LIC59 = (function () {
+  var E = MK.esc, IC = MK.ic, CEL = window.matchMedia('(max-width:760px)');
+  var ETAPAS = ['Encontrada', 'En estudio', 'Preparando expediente', 'Presentada', 'Adjudicada', 'No adjudicada', 'Desierta', 'No participamos'];
+  var ABIERTAS = ETAPAS.slice(0, 4);
+  var COLOR = { 'Encontrada': '#cdd8ea', 'En estudio': '#8eaad7', 'Preparando expediente': '#4d79bb', 'Presentada': '#1d4689', 'Adjudicada': '#2e9e5b', 'No adjudicada': '#d98b8b', 'Desierta': '#b9c2cf', 'No participamos': '#b9c2cf' };
+  var ACTS = ['Reunión previa y homologación', 'Último día de consultas', 'Entrega de propuestas', 'Apertura de propuestas', 'Informe de la comisión', 'Adjudicación', 'Entrega de la fianza de cumplimiento', 'Firma del contrato'];
+  var AVISO = [['', 'Sin aviso'], ['1', '1 día antes'], ['3', '3 días antes'], ['7', '1 semana antes']];
+  var MOTIVOS = { 'No participamos': ['No cumplimos un requisito', 'Precio de referencia muy bajo', 'Lugares fuera de nuestras rutas', 'No da el tiempo', 'Otro'], 'No adjudicada': ['Otro proponente con mejor precio', 'Descalificada por documentos', 'Puntaje técnico', 'Otro'], 'Desierta': ['La entidad la declaró desierta', 'Otro'] };
+  var MODOS = [['lista', 'Lista'], ['etapa', 'Por etapa']];
+  var F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, sincr: false }, MODO = 'etapa', GRP = {}, OPS = [], CONT = null;
+
+  function l(o) { return o.licitacion || {}; }
+  function lista() { return OPS.filter(function (o) { return o.licitacion; }); }
+  function dias(f) { if (!f) return null; return Math.round((new Date(f + 'T12:00:00') - new Date((MK.hoy || MK.hoyLocal()) + 'T12:00:00')) / 864e5); }
+  function proxima(o) { return (l(o).cronograma || []).filter(function (a) { return a.fecha && dias(a.fecha) >= 0; }).sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; })[0] || null; }
+  function entrega(o) { var c = (l(o).cronograma || []).filter(function (a) { return a.act === 'Entrega de propuestas' && a.fecha; })[0]; return c ? c.fecha : l(o).entrega || ''; }
+  function cuando(f) { var d = dias(f); return d === 0 ? 'hoy' : d === 1 ? 'mañana' : d < 0 ? 'hace ' + (-d) + ' días' : 'en ' + d + ' días'; }
+  function nombreAsesor(n) { return String(n || '').trim(); }
+  function porCod(c) { return OPS.filter(function (o) { return o.codigoPropuesta === c; })[0]; }
+  function urgente(o) { var p = proxima(o); return !!p && dias(p.fecha) <= 3; }
+  /* se manda la licitación con los cambios; solo si el servidor la guarda se queda (si no, la pantalla vuelve a como estaba) */
+  function guardar(o, msg, cambios) {
+    var pedida = Object.assign({}, o.licitacion, cambios || {});
+    return MK.api('api_crmGuardarOportunidad', MK.pin, o.codigoPropuesta, { licitacion: pedida }).then(function (r) {
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); if (CONT && !CONT.hidden) pintar(CONT); return false; }
+      if (r.licitacion) o.licitacion = r.licitacion;
+      if (typeof msg === 'function') msg = msg(r);
+      if (CONT && !CONT.hidden) pintar(CONT);
+      if (msg) MK.aviso(msg); MK.cambio({ tipo: 'licitacion', codigo: o.codigoPropuesta }); return true;
+    }, function (e) { MK.aviso(e.message || 'Sin conexión'); if (CONT && !CONT.hidden) pintar(CONT); return false; });
+  }
+
+  function coincide(o) {
+    var x = l(o), q = F.q.toLowerCase();
+    if (!F.cerradas && !F.etapa && ABIERTAS.indexOf(x.etapa) < 0) return false;
+    if (F.etapa && x.etapa !== F.etapa) return false;
+    if (F.asesor && nombreAsesor(o.asesor) !== F.asesor) return false;
+    if (F.modalidad && x.modalidad !== F.modalidad) return false;
+    if (F.urg && !urgente(o)) return false;
+    if (F.sincr && (x.cronograma || []).length) return false;
+    if (q && [x.entidad, x.acto, x.objeto, o.empresa].join(' ').toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  }
+  function activos() { return !!(F.q || F.etapa || F.asesor || F.modalidad || F.cerradas || F.urg || F.sincr); }
+
+  /* ── la pestaña ── */
+  function pintar(cont, ops) {
+    CONT = cont; OPS = ops || OPS;
+    var L = lista(), ab = L.filter(function (o) { return ABIERTAS.indexOf(l(o).etapa) >= 0; }), vis = L.filter(coincide);
+    vis.sort(function (a, b) { var pa = proxima(a), pb = proxima(b); return (pa ? pa.fecha : '9999') < (pb ? pb.fecha : '9999') ? -1 : 1; });
+    if (MODO === 'etapa') vis.sort(function (a, b) { return ETAPAS.indexOf(l(a).etapa) - ETAPAS.indexOf(l(b).etapa); });
+    var foco = document.activeElement && document.activeElement.id === 'lic-q';
+    cont.innerHTML = cifras(L, ab) + barra(L, vis) + '<div id="lic-t">' + (vis.length ? (CEL.matches ? tarjetas(vis) : tabla(vis)) : '<div class="card">' + MK.vacio(L.length ? 'Ninguna licitación coincide con los filtros.' : 'Todavía no hay licitaciones guardadas. Cuando encuentre una en PanamaCompra, guárdela con «Nueva oportunidad».') + '</div>') + '</div>';
+    if (foco) { var i = document.getElementById('lic-q'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }
+  function cifras(L, ab) {
+    var cnt = ETAPAS.slice(0, 5).map(function (e) { return { e: e, n: L.filter(function (o) { return l(o).etapa === e; }).length }; });
+    var seg = cnt.filter(function (c) { return c.n && ABIERTAS.indexOf(c.e) >= 0; }).map(function (c) { return '<button type="button" class="sg' + (F.etapa === c.e ? ' on' : '') + '" data-li-et="' + E(c.e) + '" style="flex:' + c.n + ';background:' + COLOR[c.e] + '" title="' + E(c.e) + ': ' + c.n + '"></button>'; }).join('');
+    var ley = cnt.map(function (c) { return '<button type="button" class="ly' + (F.etapa === c.e ? ' on' : '') + (c.n ? '' : ' cero') + '" data-li-et="' + E(c.e) + '"><i style="background:' + COLOR[c.e] + '"></i><span>' + E(c.e) + '</span><b class="num">' + c.n + '</b></button>'; }).join('');
+    var ref = function (lst) { return lst.reduce(function (s, o) { return s + (Number(l(o).referencia) || 0); }, 0); };
+    var meses = {}; ab.forEach(function (o) { var m = (entrega(o) || 'sin fecha').slice(0, 7); meses[m] = (meses[m] || 0) + (Number(l(o).referencia) || 0); });
+    var ms = Object.keys(meses).sort(), mx = ms.reduce(function (s, k) { return Math.max(s, meses[k]); }, 0);
+    var barras = ms.map(function (m) { return '<div class="mb"><b class="num">' + MK.dinero(meses[m]).replace('B/. ', '').replace(/\.00$/, '') + '</b><i><s style="height:' + (mx ? Math.max(6, meses[m] / mx * 100) : 0) + '%"></s></i><small>' + E(m === 'sin fecha' ? 'Sin fecha' : MK.mesNombre(m).replace(/ \d{4}$/, '')) + '</small></div>'; }).join('');
+    var gan = L.filter(function (o) { return l(o).etapa === 'Adjudicada'; }).length, res = L.filter(function (o) { return ['Adjudicada', 'No adjudicada', 'Desierta'].indexOf(l(o).etapa) >= 0; }).length;
+    var nU = ab.filter(urgente).length, nS = ab.filter(function (o) { return !(l(o).cronograma || []).length; }).length;
+    var fila = function (k, n, t, sub, cls) { return '<button type="button" class="at ' + (n ? cls : 'cero') + (F[k] ? ' on' : '') + '" data-li-f="' + k + '"><b class="num">' + n + '</b><span><em>' + t + '</em><small>' + sub + '</small></span>' + (n ? IC('flecha', 14) : IC('check', 14)) + '</button>'; };
+    return '<div class="lic-cif"><div class="tot-g">' +
+      '<section class="k k-emb"><div class="k-h">' + IC('sello', 16) + '<span>Las licitaciones</span><span class="sp"></span><b class="num k-n">' + ab.length + '</b><small>abiertas</small></div><div class="sgs">' + (seg || '<i class="sg-v"></i>') + '</div><div class="lys">' + ley + '</div></section>' +
+      '<section class="k k-pro"><div class="k-h">' + IC('moneda', 16) + '<span>Monto en juego</span></div><div class="k-cif"><b class="num">' + MK.dinero(ref(ab)) + '</b><small>en referencia · ganadas <b>' + gan + '</b>' + (res ? ' de ' + res : '') + '</small></div><div class="mbs">' + (barras || '<p class="mb-v">Sin fechas de entrega.</p>') + '</div><div class="k-pie">Por mes de entrega de propuestas</div></section>' +
+      '<section class="k k-at' + (nU ? ' hay' : '') + '"><div class="k-h">' + IC('alerta', 16) + '<span>Pide atención</span></div>' +
+        fila('urg', nU, 'con fecha en 3 días o menos', 'consultas, entrega, apertura…', 'am') + fila('sincr', nS, 'sin cronograma', 'anote las fechas del pliego', 'gr') + '</section></div></div>';
+  }
+  function sel(k, ops, ph) { return '<select class="sel' + (F[k] ? ' on' : '') + '" data-li-sel="' + k + '" aria-label="' + ph + '"><option value="">' + ph + '</option>' + ops.map(function (o) { return '<option' + (F[k] === o ? ' selected' : '') + '>' + E(o) + '</option>'; }).join('') + '</select>'; }
+  function barra(L, vis) {
+    var ases = [], mods = [];
+    L.forEach(function (o) { var a = nombreAsesor(o.asesor), m = l(o).modalidad; if (a && ases.indexOf(a) < 0) ases.push(a); if (m && mods.indexOf(m) < 0) mods.push(m); });
+    var refV = vis.reduce(function (s, o) { return s + (Number(l(o).referencia) || 0); }, 0);
+    return '<div class="fb' + (activos() ? ' act' : '') + '"><div class="fb-q">' + IC('buscar', 19) + '<input id="lic-q" value="' + E(F.q) + '" placeholder="Buscar por entidad, n.º de acto o lo que se licita" aria-label="Buscar licitaciones">' +
+        '<div class="lh-t"><b>' + vis.length + ' licitaci' + (vis.length === 1 ? 'ón' : 'ones') + '</b><span>· ' + MK.dinero(refV) + ' en referencia</span></div>' +
+        '<button type="button" class="fb-x" data-li="limpiar">Limpiar</button></div>' +
+      '<div class="hbar" role="toolbar"><div class="tb-g"><span class="tb-l">' + IC('filtro', 13) + ' Filtrar</span>' + sel('etapa', ETAPAS, 'Etapa') + sel('asesor', ases, 'Asesor') + sel('modalidad', mods, 'Modalidad') +
+        '<label class="chk"><input type="checkbox" id="lic-c"' + (F.cerradas ? ' checked' : '') + '> Ver cerradas</label></div><i class="tb-s"></i>' +
+        '<div class="tb-g"><span class="tb-l">Ver</span><div class="modo">' + MODOS.map(function (m) { return '<button type="button" data-li-modo="' + m[0] + '" class="' + (MODO === m[0] ? 'on' : '') + '">' + m[1] + '</button>'; }).join('') + '</div></div></div></div>';
+  }
+  function etapaSel(o) { var x = l(o); return '<span class="etp"><span class="dot" style="background:' + COLOR[x.etapa] + '"></span><select class="sel" data-li-etapa="' + E(o.codigoPropuesta) + '" aria-label="Etapa">' + ETAPAS.map(function (e) { return '<option' + (e === x.etapa ? ' selected' : '') + '>' + E(e) + '</option>'; }).join('') + '</select></span>'; }
+  function fechaHTML(o) { var p = proxima(o), d = p ? dias(p.fecha) : null; return '<button class="fecha-c' + (p ? '' : ' vac') + (d != null && d <= 3 ? ' venc' : '') + '" data-li="crono" data-c="' + E(o.codigoPropuesta) + '" title="Ver y cambiar el cronograma">' + IC('calendario', 13) + (p ? '<span><b>' + E(cuando(p.fecha)) + '</b> · ' + E(p.act) + '</span>' : 'Anotar fechas') + '</button>'; }
+  function expHTML(o) { var f = entrega(o), d = f ? dias(f) : null; return f ? '<span class="lic-ent' + (d != null && d >= 0 && d <= 3 ? ' venc' : '') + '"><b>' + E(MK.fechaCorta ? MK.fechaCorta(f) : f) + '</b><small>' + E(cuando(f)) + '</small></span>' : '<span class="muted">—</span>'; }
+  function grupo(e, vis, cols) {
+    var de = vis.filter(function (o) { return l(o).etapa === e; }), r = de.reduce(function (s, o) { return s + (Number(l(o).referencia) || 0); }, 0);
+    return '<tr class="grp"><td colspan="' + cols + '"><button type="button" class="grp-b" data-li-grp="' + E(e) + '"><span class="car">' + (GRP[e] ? '▸' : '▾') + '</span><span class="dot" style="background:' + COLOR[e] + '"></span><b>' + E(e) + '</b><span class="grp-n">' + de.length + '</span><span class="sp"></span>' + (r ? '<span class="grp-v num">' + MK.dinero(r) + '</span>' : '') + '</button></td></tr>';
+  }
+  function tabla(vis) {
+    var h = '<div class="tbw c-tw"><table class="tb c-t lic-tb"><colgroup><col style="width:32%"><col style="width:190px"><col style="width:120px"><col><col style="width:170px"><col style="width:60px"></colgroup><thead><tr><th>Licitación</th><th>Etapa</th><th class="r">Referencia</th><th>Próxima fecha</th><th>Entrega</th><th class="c">Asesor</th></tr></thead><tbody>';
+    h += vis.map(function (o, i) {
+      var x = l(o), g = MODO === 'etapa' && (!i || l(vis[i - 1]).etapa !== x.etapa) ? grupo(x.etapa, vis, 6) : '';
+      if (MODO === 'etapa' && GRP[x.etapa]) return g;
+      var n = nombreAsesor(o.asesor);
+      return g + '<tr class="' + (ABIERTAS.indexOf(x.etapa) < 0 ? 'cerr' : '') + '"><td><a class="c-emp" href="MerOportunidad.html?id=' + encodeURIComponent(o.codigoPropuesta) + '">' + E(x.entidad || o.empresa) + '</a>' +
+        '<span class="sub">' + E(x.acto || '') + (x.modalidad ? ' · ' + E(x.modalidad) : '') + (x.enlace ? ' · <a href="' + E(x.enlace) + '" target="_blank" rel="noopener">PanamaCompra</a>' : '') + '</span>' + (x.objeto ? '<span class="sub lic-ob">' + E(x.objeto) + '</span>' : '') + (x.motivo ? '<span class="sub" style="color:var(--bad)">' + E(x.motivo) + '</span>' : '') + '</td>' +
+        '<td>' + etapaSel(o) + '</td><td class="r"><b class="num">' + (x.referencia ? MK.dinero(Number(x.referencia)) : '—') + '</b></td><td>' + fechaHTML(o) + '</td><td>' + expHTML(o) + '</td>' +
+        '<td class="c">' + (n ? '<span class="av sm" style="margin:auto" title="' + E(n) + '">' + E(MK.ini(n)) + '</span>' : '—') + '</td></tr>';
+    }).join('');
+    var tr = vis.filter(function (o) { return ABIERTAS.indexOf(l(o).etapa) >= 0; }).reduce(function (s, o) { return s + (Number(l(o).referencia) || 0); }, 0);
+    return h + '</tbody><tfoot><tr><td>' + vis.length + ' licitaci' + (vis.length === 1 ? 'ón' : 'ones') + '</td><td></td><td class="r"><span class="num">' + MK.dinero(tr) + '</span><span class="sub" style="font-weight:500">abiertas</span></td><td></td><td></td><td></td></tr></tfoot></table></div>';
+  }
+  function tarjetas(vis) {
+    return '<div class="oc-l">' + vis.map(function (o, i) {
+      var x = l(o), g = MODO === 'etapa' && (!i || l(vis[i - 1]).etapa !== x.etapa) ? '<div class="grp-m">' + grupo(x.etapa, vis, 1).replace(/^<tr class="grp"><td colspan="1">|<\/td><\/tr>$/g, '') + '</div>' : '';
+      if (MODO === 'etapa' && GRP[x.etapa]) return g;
+      return g + '<div class="oc"><div class="oc-h"><div class="tx"><a class="c-emp" href="MerOportunidad.html?id=' + encodeURIComponent(o.codigoPropuesta) + '">' + E(x.entidad || o.empresa) + '</a><span class="sub">' + E(x.acto || '') + '</span></div></div>' +
+        (x.objeto ? '<p class="small" style="margin:6px 0">' + E(x.objeto) + '</p>' : '') + '<div class="oc-e">' + etapaSel(o) + '</div><div class="oc-t">' + fechaHTML(o) + '</div><div class="oc-f">' + expHTML(o) + '<span class="num">' + (x.referencia ? MK.dinero(Number(x.referencia)) : '') + '</span></div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ── cronograma del acto: cada fecha puede crear su aviso en la Agenda ── */
+  function cronograma(cod) {
+    var o = porCod(cod), x = l(o), c = x.cronograma || [];
+    var fila = function (act, i) { var a = c.filter(function (z) { return z.act === act; })[0] || {}; return '<tr><td><b>' + E(act) + '</b></td><td><input class="in" type="date" data-cr="fecha" data-i="' + i + '" value="' + E(a.fecha || '') + '"></td>' +
+      '<td><input class="in" type="time" data-cr="hora" data-i="' + i + '" value="' + E(a.hora || '') + '"></td><td><select class="sel" data-cr="aviso" data-i="' + i + '">' + AVISO.map(function (v) { return '<option value="' + v[0] + '"' + (String(a.aviso == null ? '3' : a.aviso) === v[0] ? ' selected' : '') + '>' + v[1] + '</option>'; }).join('') + '</select></td></tr>'; };
+    var h = MK.hoja('<h2>Cronograma del acto</h2><p class="small muted">' + E(x.entidad || o.empresa) + ' · ' + E(x.acto || '') + '. Las fechas salen del pliego; si una adenda las mueve, se corrigen aquí. Cada fecha con aviso queda como tarea en la Agenda.</p>' +
+      '<div style="overflow-x:auto"><table class="lc-t lic-cr"><thead><tr><th>Actividad</th><th>Fecha</th><th>Hora</th><th>Aviso en la Agenda</th></tr></thead><tbody>' + ACTS.map(fila).join('') + '</tbody></table></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="cr-ok">Guardar y avisar en la Agenda</button></div>', { ancha: true });
+    h.querySelector('#cr-ok').onclick = function () {
+      var b = this, nuevo = ACTS.map(function (act, i) { var g = function (k) { return h.querySelector('[data-cr="' + k + '"][data-i="' + i + '"]').value; }; return { act: act, fecha: g('fecha'), hora: g('hora'), aviso: g('aviso') }; }).filter(function (a) { return a.fecha; });
+      /* los avisos los deja el servidor en la Agenda (y los mueve si la fecha cambia) */
+      MK.ocupado(b, true, 'Guardando…');
+      guardar(o, function (r) { var n = r.avisos || 0; return 'Cronograma guardado · ' + n + ' aviso' + (n === 1 ? '' : 's') + ' en la Agenda'; }, { cronograma: nuevo, entrega: '' }).then(function (ok) { MK.ocupado(b, false); if (ok) MK.cerrarHoja(); });
+    };
+  }
+
+  /* ── cambiar de etapa; las cerradas piden el motivo ── */
+  function etapa(cod, e, sel) {
+    var o = porCod(cod), x = l(o), antes = x.etapa;
+    if (!MOTIVOS[e]) { guardar(o, (x.entidad || o.empresa) + ' → ' + e, { etapa: e }); return; }
+    var h = MK.hoja('<h2>' + E(e) + '</h2><p class="small muted">' + E(x.entidad || o.empresa) + ' · ' + E(x.acto || '') + '. El motivo queda para aprender de cada acto.</p>' +
+      '<label class="lb">MOTIVO</label>' + MK.chips('mot', MOTIVOS[e].map(function (m) { return [m, m]; }), '') + '<label class="lb">DETALLE <span class="muted">(opcional)</span></label><input class="in" id="mt-d">' +
+      '<div class="req" id="mt-r">Elija el motivo.</div><div class="pie"><button class="btn" id="mt-no">Cancelar</button><button class="btn pri" id="mt-ok">Guardar</button></div>');
+    MK.activarChips(h);
+    h.querySelector('#mt-no').onclick = function () { MK.cerrarHoja(); if (sel) sel.value = antes; };
+    h.querySelector('#mt-ok').onclick = function () {
+      var m = MK.valorChips(h, 'mot'); if (!m) { h.querySelector('#mt-r').classList.add('si'); return; }
+      var dt = h.querySelector('#mt-d').value.trim(); MK.cerrarHoja(); guardar(o, (x.entidad || o.empresa) + ' → ' + e, { etapa: e, motivo: m + (dt ? ': ' + dt : '') });
+    };
+  }
+
+  /* ── eventos (una sola vez) ── */
+  document.addEventListener('click', function (e) {
+    if (!CONT || !CONT.contains(e.target)) return;
+    var b;
+    if ((b = e.target.closest('[data-li-et]'))) { var v = b.getAttribute('data-li-et'); F.etapa = F.etapa === v ? '' : v; if (ABIERTAS.indexOf(v) < 0 && F.etapa) F.cerradas = true; return pintar(CONT); }
+    if ((b = e.target.closest('[data-li-f]'))) { var k = b.getAttribute('data-li-f'); F[k] = !F[k]; return pintar(CONT); }
+    if ((b = e.target.closest('[data-li-modo]'))) { MODO = b.getAttribute('data-li-modo'); return pintar(CONT); }
+    if ((b = e.target.closest('[data-li-grp]'))) { var g = b.getAttribute('data-li-grp'); GRP[g] = !GRP[g]; return pintar(CONT); }
+    if (!(b = e.target.closest('[data-li]'))) return;
+    var a = b.getAttribute('data-li'), c = b.getAttribute('data-c');
+    if (a === 'crono') cronograma(c);
+    else if (a === 'limpiar') { F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, sincr: false }; pintar(CONT); }
+  });
+  document.addEventListener('change', function (e) {
+    if (!CONT || !CONT.contains(e.target)) return;
+    var t = e.target, k;
+    if (t.id === 'lic-c') { F.cerradas = t.checked; return pintar(CONT); }
+    if ((k = t.getAttribute('data-li-sel'))) { F[k] = t.value; return pintar(CONT); }
+    var c = t.getAttribute('data-li-etapa'); if (c) etapa(c, t.value, t);
+  });
+  var tq = null;
+  document.addEventListener('input', function (e) { if (e.target.id !== 'lic-q') return; F.q = e.target.value; clearTimeout(tq); tq = setTimeout(function () { pintar(CONT); }, 150); });
+  if (CEL.addEventListener) CEL.addEventListener('change', function () { if (CONT && !CONT.hidden) pintar(CONT); });
+  return { pintar: pintar, contar: function (ops) { return (ops || OPS).filter(function (o) { return o.licitacion && ABIERTAS.indexOf(o.licitacion.etapa) >= 0; }).length; } };
+})();
+
+</script>
 <style>
 /* ── Oportunidades · opción C: tabla densa con pronóstico ── */
 .tabs{margin-bottom:14px}
@@ -465,6 +643,7 @@ body.op-tablero .ord-m{display:none}
   .tbl-c{flex-basis:86vw;max-height:none}
 }
 </style>
+<style id="estilo-lic65">.lic-ent{display:flex;flex-direction:column;line-height:1.25}.lic-ent b{font-size:13px}.lic-ent small{font-size:11.5px;color:var(--muted)}.lic-ent.venc b{color:var(--bad)}</style>
 </head>
 <body class="mk">
 <script src="cargador.js" data-modulo="Mercadeo"></script>
@@ -516,7 +695,7 @@ body.op-tablero .ord-m{display:none}
   function tipoTxt(o) { return o.visitaUnica ? 'Visita única' : 'Recurrente'; }
   function reglaBoton() { return ''; }   // la regla de cobro en la oportunidad llega con la parte 2
   function porOp(cod) { return OPS.filter(function (o) { return o.codigoPropuesta === cod; })[0]; }
-  function enCurso(o) { return (o.abierta && o.estado !== 'Stand-by') || o.estado === 'Firmado'; }
+  function enCurso(o) { return !o.licitacion && ((o.abierta && o.estado !== 'Stand-by') || o.estado === 'Firmado'); }
   function tareaVencida(o) { var t = o.proximaTarea; return !!(o.abierta && t && t.fecha && t.fecha < MK.hoy); }
   function atrasada(o) { return o.abierta && o.estado !== 'Stand-by' && (o.excedido || tareaVencida(o)); }
   function mesDe(o) { return o.cierreEsperado ? o.cierreEsperado.slice(0, 7) : 'sin fecha'; }
@@ -542,6 +721,7 @@ body.op-tablero .ord-m{display:none}
 
   /* ── filtros ── */
   function coincide(o) {
+    if (o.licitacion) return false;   // las licitaciones viven en su pestaña
     if (F.etapa && o.estado !== F.etapa) return false;
     if (F.asesor && clave(o.asesor) !== F.asesor) return false;
     if (F.fuente && (F.fuente === '—' ? o.fuente : o.fuente !== F.fuente)) return false;
@@ -625,8 +805,9 @@ body.op-tablero .ord-m{display:none}
         '<div class="ord-m"><span>Ordenar por</span><select class="sel" id="ord-m">' + COLS.slice(1).map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('') + '</select>' +
         '<button class="btn sm" id="ord-d" aria-label="Cambiar sentido"></button></div>' +
         '<div id="tabla"></div></div>' +
-      '<div id="v-completar" hidden></div>';
-    $('bt-nueva').onclick = function () { MK.captura(); };
+      '<div id="v-completar" hidden></div><div id="v-lic" hidden></div>';
+    window.addEventListener('mk:ir-licitaciones', function () { VISTA = 'licitaciones'; SEL = {}; setTimeout(pintar, 400); });
+    $('bt-nueva').onclick = function () { MK.captura(VISTA === 'licitaciones' ? { licitacion: true } : undefined); };
     $('bt-csv').onclick = exportar;
     var cm = $('colmenu'), bc = $('bt-cols');
     bc.onclick = function (e) { e.stopPropagation(); cm.hidden = !cm.hidden; bc.setAttribute('aria-expanded', String(!cm.hidden)); };
@@ -685,10 +866,13 @@ body.op-tablero .ord-m{display:none}
     sincronizarFiltros();
     var nComp = OPS.filter(function (o) { return o.porCompletar; }).length;
     $('tabs').innerHTML = '<button class="' + (VISTA === 'embudo' ? 'on' : '') + '" data-vista-b="embudo">Embudo <span class="n">' + OPS.filter(enCurso).length + '</span></button>' +
-      '<button class="' + (VISTA === 'completar' ? 'on' : '') + '" data-vista-b="completar">Completar después <span class="n">' + nComp + '</span></button>';
+      '<button class="' + (VISTA === 'completar' ? 'on' : '') + '" data-vista-b="completar">Completar después <span class="n">' + nComp + '</span></button>' +
+      '<button class="' + (VISTA === 'licitaciones' ? 'on' : '') + '" data-vista-b="licitaciones">Licitaciones <span class="n">' + LIC59.contar(OPS) + '</span></button>';
     $('colw').hidden = VISTA !== 'embudo' || MODO === 'tablero'; $('modo').hidden = VISTA !== 'embudo';
     document.body.classList.toggle('op-tablero', VISTA === 'embudo' && MODO === 'tablero');
-    $('v-embudo').hidden = VISTA !== 'embudo'; $('v-tabla').hidden = VISTA !== 'embudo'; $('v-completar').hidden = VISTA !== 'completar';
+    $('v-embudo').hidden = VISTA !== 'embudo'; $('v-tabla').hidden = VISTA !== 'embudo'; $('v-completar').hidden = VISTA !== 'completar'; $('v-lic').hidden = VISTA !== 'licitaciones';
+    document.body.classList.toggle('lic-on', VISTA === 'licitaciones');
+    if (VISTA === 'licitaciones') { LIC59.pintar($('v-lic'), OPS); return; }
     if (VISTA === 'completar') { var nc = OPS.filter(function (o) { return o.porCompletar && coincide(o); }).length; $('lh-t').innerHTML = '<b>' + nc + ' por completar</b><span>· capturas rápidas a las que les faltan datos</span>'; $('fb-n').textContent = ''; pintarCompletar(); return; }
     pintarPronostico();
     pintarTabla();
@@ -1287,6 +1471,7 @@ body.op-tablero .ord-m{display:none}
     var p = MK.param('etapa'); if (p) F.etapa = p;
     var a = MK.param('asesor'); if (a) F.asesor = clave(a);
     if (MK.param('vista') === 'completar') VISTA = 'completar';
+    if (MK.param('vista') === 'licitaciones') VISTA = 'licitaciones';
     if (MK.param('filtro') === 'estancadas') F.lim = true;
     if (p && ['Pasado a cartera', 'Rechazado', 'Stand-by'].indexOf(p) >= 0) F.cerradas = true;
     MK.cargando('main', 'Cargando oportunidades…');
