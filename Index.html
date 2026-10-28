@@ -25464,6 +25464,13 @@ window.bn51Visto_ = function(pid){
 .hv-g .cr-card{overflow:hidden}
 @media(max-width:1000px){.hv-g{grid-template-columns:minmax(0,1fr)}.hv-k4{grid-template-columns:repeat(2,minmax(0,1fr))}.hv-rv{grid-template-columns:minmax(0,1fr);gap:14px}.hv-cab .k{grid-template-columns:repeat(3,auto)}.hv-cab h2{font-size:22px}.hv-dl{grid-template-columns:120px 1fr}.hv-ev{grid-template-columns:64px 24px 1fr}.hv-ev>div:last-child{grid-column:2/-1;text-align:left!important}}
 </style>
+<style id="estilo-361">
+/* api 3.61 · cargador del plan PL-LOG-02 */
+.pln-v{border:1px solid var(--ini-linea);border-radius:12px;padding:10px 12px;margin:8px 0}
+.pln-t{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-top:1px solid #f1f4f8;margin-top:5px}.pln-t span:first-child{color:var(--ini-navy);font-weight:800}
+.pln-t span.a{color:#8a6300;font-weight:800;text-align:right}.pln-t span.v{color:var(--ini-verde);font-weight:800;text-align:right}
+.pln-o{font-size:11.5px;color:var(--ini-gris);font-weight:600;margin-top:6px;line-height:1.4}
+</style>
 <script id="js-359">
 /* ═════════════════════════════════════════════════════════════════
    api 3.59 · INSPECCIÓN MENSUAL DEL VEHÍCULO (F-LOG-08)
@@ -25766,7 +25773,7 @@ flPintar_ = function(){
   if(FL_TAB === "cam"){
     var g = document.querySelector("#fl-cuerpo .fl-grid"), q = g || document.querySelector("#fl-cuerpo .fl-cams");
     if(g){ g.style.gridTemplateColumns = "1fr"; var f = $("fl-ficha"); if(f) f.style.display = "none"; }
-    if(q){ var h = document.createElement("div"); h.className = "c2-ob b"; h.innerHTML = "<b>Hoja de vida de cada camión</b>Toca un camión para abrir su hoja: datos, documentos, plan y servicios, fallas, revisiones, combustible y su línea de vida."; q.parentNode.insertBefore(h, q); }
+    if(q){ var h = document.createElement("div"); h.className = "c2-ob b"; h.innerHTML = "<b>Hoja de vida de cada camión</b>Toca un camión para abrir su hoja: datos, documentos, plan y servicios, fallas, revisiones, combustible y su línea de vida.<div class=\"c2-act\" style=\"margin-top:8px\"><button class=\"c2-btn a\" onclick=\"plnAbrir_(null)\">Cargar plan de mantenimiento PL-LOG-02 (cada 7,500 km)</button></div>"; q.parentNode.insertBefore(h, q); }
   }
 };
 flIrDocs_ = function(p){ HV.ir = "s-doc"; oDocs.apply(this, arguments); };
@@ -25856,7 +25863,7 @@ function hvPla_(c, F, A){
       return '<div class="fl-dt" style="display:block"><div style="display:flex;justify-content:space-between"><b>' + esc(t.tarea) + ' <small style="color:var(--ini-gris);font-weight:600">· ' + (t.cadaKm ? "cada " + nIni_(t.cadaKm) + " km" : (t.cadaDias ? "cada " + t.cadaDias + " días" : "")) + '</small></b><span class="' + cl + '">' + (t.faltanKm !== null ? (t.faltanKm < 0 ? "pasado " + nIni_(-t.faltanKm) + " km" : "faltan " + nIni_(t.faltanKm) + " km") : (t.faltanDias !== null ? (t.faltanDias < 0 ? "vencido hace " + (-t.faltanDias) + " días" : "faltan " + t.faltanDias + " días") : "sin datos")) + '</span></div>' +
         '<div class="pl-bar ' + (cl === "r" ? "r" : (cl === "a" ? "am" : "")) + '" style="margin-top:6px"><i style="width:' + pct + '%"></i></div></div>'; }).join("") : '<div class="c2-ob b"><b>El plan no tiene tareas de mantenimiento todavía</b>Se ajusta en «Editar plan».</div>');
   return '<div class="cr-card" id="s-pla"><h3>Plan y servicios <button class="cr-ed" onclick="flServicio_()">Registrar servicio</button></h3>' + plan +
-    '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="flEditarPlan_(\'' + esc(HV.placa) + '\')">Editar plan</button><button class="c2-btn" onclick="rqNueva_({tipo:\'Servicio o reparación\',paraTipo:\'camion\',para:\'' + esc(HV.placa) + '\'})">Pedir por requisición</button></div>' +
+    '<div class="c2-act"><button class="c2-btn v" onclick="flServicio_()">Registrar servicio</button><button class="c2-btn" onclick="flEditarPlan_(\'' + esc(HV.placa) + '\')">Editar plan</button><button class="c2-btn" onclick="plnAbrir_([\'' + esc(HV.placa) + '\'])">Cargar plan PL-LOG-02</button><button class="c2-btn" onclick="rqNueva_({tipo:\'Servicio o reparación\',paraTipo:\'camion\',para:\'' + esc(HV.placa) + '\'})">Pedir por requisición</button></div>' +
     '<div class="c2-lab" style="margin-top:14px">Historial de servicios</div>' + flHtmlServicios_(HV.placa) + '</div>';
 }
 function hvFal_(F){
@@ -25978,7 +25985,7 @@ flDatos_ = function(placa, nuevo){
     '<div class="rq-f2"><div><label class="c2-f">Fecha de compra</label><input type="date" class="c2-in" id="fd-cf" value="' + esc(A.compraFecha || "") + '"></div><div><label class="c2-f">Valor de compra B/.</label><input type="number" class="c2-in" id="fd-cv" value="' + esc(A.compraValor || "") + '"></div></div>' +
     (nuevo ? '' : '<label class="c2-f">Estado</label><div class="rq-seg" id="fd-es"><button class="' + (A.estado === "Baja" ? "" : "on") + '" onclick="rqSeg_(this)">Activo</button><button class="' + (A.estado === "Baja" ? "on" : "") + '" onclick="rqSeg_(this)">Baja</button></div>') +
     '<label class="c2-f">Notas</label><input class="c2-in" id="fd-no" value="' + esc(A.notas || "") + '">' +
-    (nuevo ? '<label class="pl-rec" style="cursor:pointer;margin-top:10px"><input type="checkbox" class="c2-ck" id="fd-pb" checked><div class="nm"><b>Crear su plan con la base de ECOVSA</b><span>aceite, filtros, llantas, frenos, seguro, revisado y permiso · se ajusta después</span></div></label>' : '') +
+    (nuevo ? '<label class="pl-rec" style="cursor:pointer;margin-top:10px"><input type="checkbox" class="c2-ck" id="fd-pb" checked><div class="nm"><b>Crear su plan con la base de ECOVSA</b><span>PL-LOG-02 (aceite y filtros, frenos, alineación y llantas cada 7,500 km), seguro, revisado y permiso · se ajusta después</span></div></label>' : '') +
     '<button class="ini-ok" id="fd-ok" style="margin-top:12px" onclick="flGuardarDatos_(' + (nuevo ? 'true' : 'false') + ')">' + (nuevo ? 'Agregar el camión' : 'Guardar') + '</button>');
 };
 flGuardarDatos_ = function(nuevo){
@@ -25997,6 +26004,96 @@ flGuardarDatos_ = function(nuevo){
 window.HV_ = HV;
 window.hvCerrar_ = hvCerrar_; window.hvVecino_ = hvVecino_; window.hvIr_ = hvIr_; window.hvRepintar_ = hvRepintar_; window.hvFoto_ = hvFoto_; window.hvAnterior_ = hvAnterior_; window.hvQuitarAnt_ = hvQuitarAnt_; window.hvQuitarYa_ = hvQuitarYa_;
 window.hvInsp_ = hvInsp_; window.hvImprimir_ = hvImprimir_; window.hvWord_ = hvWord_;
+})();
+</script>
+<script id="js-361">
+/* ═════════════════════════════════════════════════════════════════
+   api 3.61 · PLAN DE MANTENIMIENTO PL-LOG-02 (Programa de mantenimiento e inspecciones, v1 / MAY-26)
+   Preventivo de los vehículos cada 7,500 km: aceite y filtros, frenos (limpieza y revisión), alineación y medición del dibujo de las llantas.
+   · Camiones nuevos y camiones sin plan: «Usar el plan de base de ECOVSA» ya trae estas tres tareas (servidor 3.61).
+   · Camiones que ya tienen plan: «Cargar plan PL-LOG-02» (en la hoja de vida o para toda la flota) muestra qué se agrega, qué se ajusta a 7,500 km
+     y qué ya está, y conserva el último servicio y las fechas de cada tarea. Lo que no es de este programa no se toca.
+   ═════════════════════════════════════════════════════════════════ */
+(function(){
+if(typeof abrirHojaIni_ !== "function" || typeof flCargar_ !== "function") return;
+var PLN = { l: [], v: [] };
+var PLN_DEF = [
+  { tarea: "Aceite y filtros", re: /aceite/i, notas: "" },
+  { tarea: "Frenos: limpieza y revisión", re: /freno/i, notas: "" },
+  { tarea: "Alineación y medición del dibujo de las llantas", re: /alineaci|medici[oó]n/i, notas: "Rotar o cambiar según el técnico; al cambiar, balanceo y alineación." }
+];
+var PLN_KM = 7500;
+function plnEsDoc_(t){ return !Number(t.cadaKm) && /seguro|p[oó]liza|revisado|permiso|registro|licencia|documento|placa|inspecci[oó]n vehicular/i.test(String(t.tarea || "")); }
+function plnPropuesta_(a){
+  var tareas = (a.tareas || []).filter(function(t){ return !plnEsDoc_(t) && !t.noAplica; });
+  return PLN_DEF.map(function(d){
+    var t = tareas.filter(function(x){ return d.re.test(x.tarea) && Number(x.cadaKm) > 0 && Number(x.cadaKm) <= 12000; })[0];
+    if(!t) return { d: d, accion: "agregar" };
+    return Number(t.cadaKm) === PLN_KM ? { d: d, accion: "igual", t: t } : { d: d, accion: "ajustar", t: t };
+  });
+}
+function plnUltimo_(a){
+  var s = (a.servicios || []).filter(function(x){ return /preventivo/i.test(x.tipo || "") && Number(x.km) > 0; })[0];
+  return s ? { km: Number(s.km), fecha: s.fecha } : null;
+}
+function plnAbrir_(placas){
+  abrirHojaIni_('<div class="ini-pt">Plan de mantenimiento PL-LOG-02</div><div class="ini-ps">Consultando los planes de los camiones…</div>');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ cerrarHojaIni_(); toast((r && r.error) || "No se pudo consultar"); return; }
+    PLN.v = (r.activos || []).filter(function(a){ return a.clase === "vehiculo" && String(a.estado || "Activo") !== "Baja" && (!placas || placas.indexOf(a.placa || a.nombre) >= 0); }).map(function(a){
+      var u = plnUltimo_(a); return { a: a, placa: a.placa || a.nombre, prop: plnPropuesta_(a), ultimo: u, sel: true };
+    });
+    plnPintar_();
+  }).withFailureHandler(function(){ cerrarHojaIni_(); toast("Sin señal"); }).api_activos(PIN);
+}
+function plnPintar_(){
+  var hay = 0, h = '<div class="ini-pt">Plan de mantenimiento PL-LOG-02</div><div class="ini-ps">Programa de mantenimiento e inspecciones: preventivo cada 7,500 km (aceite y filtros, frenos, alineación y medición de las llantas). Lo que ya tienes se conserva: el último servicio y las fechas de cada tarea.</div>';
+  PLN.v.forEach(function(x, i){
+    var cambios = x.prop.filter(function(p){ return p.accion !== "igual"; }).length, otras = (x.a.tareas || []).filter(function(t){ return !plnEsDoc_(t) && !t.noAplica && !x.prop.some(function(p){ return p.t && p.t.planId === t.planId; }); });
+    if(cambios) hay++;
+    h += '<div class="pln-v"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" class="c2-ck" ' + (x.sel && cambios ? "checked" : "") + (cambios ? "" : " disabled") + ' onchange="PLN_.v[' + i + '].sel=this.checked;plnBoton_()"><b>' + esc(x.placa) + '</b><span style="color:var(--ini-gris);font-weight:600">' + esc(x.a.marca || "") + '</span></label>' +
+      x.prop.map(function(p){
+        var t = p.accion === "agregar" ? '<span class="a">se agrega · cada 7,500 km</span>' : (p.accion === "ajustar" ? '<span class="a">pasa de cada ' + nIni_(p.t.cadaKm) + ' a cada 7,500 km</span>' : '<span class="v">ya está cada 7,500 km</span>');
+        return '<div class="pln-t"><span>' + esc(p.accion === "agregar" ? p.d.tarea : p.t.tarea) + '</span>' + t + '</div>';
+      }).join("") +
+      (otras.length ? '<div class="pln-o">Se conservan sin cambios: ' + otras.map(function(t){ return esc(t.tarea); }).join(", ") + '.</div>' : '') +
+      (x.prop.some(function(p){ return p.accion === "agregar"; }) ? '<label class="c2-f" style="margin-top:8px">Km del último preventivo' + (x.ultimo ? ' <small style="font-weight:600;color:var(--ini-gris)">(tomado de su último servicio preventivo)</small>' : '') + '</label><input type="number" class="c2-in" id="pln-km-' + i + '" value="' + (x.ultimo ? x.ultimo.km : "") + '" placeholder="Opcional">' +
+        '<div class="pln-o">Con este km el sistema empieza a contar. Si lo dejas vacío, las tareas nuevas quedan «sin datos» hasta que registres un servicio.</div>' : '') + '</div>';
+  });
+  if(!PLN.v.length) h += '<div class="c2-vacio">No encontré camiones.</div>';
+  h += '<div id="pln-msg" style="color:var(--ini-rojo);font-size:12px;font-weight:700;margin-top:6px"></div><button class="ini-ok" id="pln-ok" onclick="plnCargar_()"' + (hay ? "" : " disabled") + '>' + (hay ? "Cargar el plan" : "Nada que cargar: todo está al día con el plan") + '</button><button class="ini-ok sec" style="margin-top:8px" onclick="cerrarHojaIni_()">Cancelar</button>';
+  abrirHojaIni_(h);
+  plnBoton_();
+}
+function plnBoton_(){
+  var b = $("pln-ok"); if(!b) return;
+  var n = PLN.v.filter(function(x){ return x.sel && x.prop.some(function(p){ return p.accion !== "igual"; }); }).length;
+  b.disabled = !n; if(n) b.textContent = n === 1 ? "Cargar el plan en 1 camión" : "Cargar el plan en " + n + " camiones";
+}
+function plnCargar_(){
+  var cola = []; PLN.v.forEach(function(x, i){ if(x.sel && x.prop.some(function(p){ return p.accion !== "igual"; })) cola.push(i); });
+  if(!cola.length) return;
+  var b = $("pln-ok"); b.disabled = true; b.textContent = "Cargando…"; var res = [], k = 0;
+  (function sig(){
+    if(k >= cola.length){ plnListo_(res); return; }
+    var i = cola[k++], x = PLN.v[i], km = Number(($("pln-km-" + i) || {}).value) || "", fecha = km && x.ultimo && Number(x.ultimo.km) === km ? x.ultimo.fecha : "";
+    var tareas = x.prop.filter(function(p){ return p.accion !== "igual"; }).map(function(p){
+      if(p.accion === "agregar") return { planId: "", tarea: p.d.tarea, cadaKm: PLN_KM, ultimoKm: km, ultimaFecha: fecha, notas: p.d.notas };
+      var t = p.t; return { planId: t.planId, tarea: t.tarea, cadaKm: PLN_KM, cadaDias: t.cadaDias || "", ultimoKm: t.ultimoKm || "", ultimaFecha: t.ultimaFecha || "", vence: t.venceCalculado ? "" : (t.vence || ""), numero: t.numero || "", notas: t.notas || "" };
+    });
+    google.script.run.withSuccessHandler(function(r){ res.push({ placa: x.placa, ok: !!(r && r.ok), n: r && r.guardadas, error: r && r.error }); sig(); })
+      .withFailureHandler(function(){ res.push({ placa: x.placa, ok: false, error: "Sin señal" }); sig(); }).api_guardarPlanFlota(PIN, x.placa, tareas);
+  })();
+}
+function plnListo_(res){
+  var bien = res.filter(function(r){ return r.ok; }).length;
+  abrirHojaIni_('<div class="ini-pt">' + (bien === res.length ? "Plan cargado ✓" : "Plan cargado con avisos") + '</div><div class="ini-ps">PL-LOG-02 · preventivo cada 7,500 km</div>' +
+    res.map(function(r){ return '<div class="fl-dt"><b>' + esc(r.placa) + '</b><span class="' + (r.ok ? "v" : "r") + '">' + (r.ok ? r.n + (r.n === 1 ? " tarea guardada" : " tareas guardadas") : esc(r.error || "no se pudo")) + '</span></div>'; }).join("") +
+    '<button class="ini-ok" style="margin-top:12px" onclick="cerrarHojaIni_()">Listo</button>');
+  if(typeof MT !== "undefined") MT = null; if(typeof FL_DOCS !== "undefined") FL_DOCS = null;
+  flCargar_();
+}
+window.PLN_ = PLN; window.plnAbrir_ = plnAbrir_; window.plnCargar_ = plnCargar_; window.plnBoton_ = plnBoton_;
 })();
 </script>
 </body>
