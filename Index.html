@@ -6601,11 +6601,12 @@ function flPintar_(){
   var M = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   var bl = FL.camiones.filter(function(c){ return c.estado === "bloqueado"; }).length;
   $("fl-sub").textContent = FL.camiones.length + " camiones · " + (bl ? bl + " no puede salir · " : "") + FL.fallas.length + (FL.fallas.length === 1 ? " falla abierta · " : " fallas abiertas · ") + M[Number(FL.hoy.slice(5, 7)) - 1];
-  var h = '<div class="cr-tabs">' + [["cam","Camiones"],["fal","Fallas · " + FL.fallas.length],["com","Combustible"],["doc","Documentos"],["lis","Lista de revisión"]].map(function(t){ return '<button class="' + (FL_TAB === t[0] ? "on" : "") + '" onclick="FL_TAB=\'' + t[0] + '\';flPintar_()">' + t[1] + '</button>'; }).join("") + '</div>';
+  var h = '<div class="cr-tabs">' + [["cam","Camiones"],["fal","Fallas · " + FL.fallas.length],["com","Combustible"],["doc","Documentos"],["inm","Inspección mensual"],["lis","Lista de revisión"]].map(function(t){ return '<button class="' + (FL_TAB === t[0] ? "on" : "") + '" onclick="FL_TAB=\'' + t[0] + '\';flPintar_()">' + t[1] + '</button>'; }).join("") + '</div>';
   if(FL_TAB === "cam") h += esEscritorio_() ? '<div class="fl-grid"><div>' + flCamiones_() + '</div><div id="fl-ficha">' + flHtmlFicha_() + '</div></div>' : flCamiones_();
   else if(FL_TAB === "fal") h += flFallas_(true);
   else if(FL_TAB === "com") h += flCombustible_();
   else if(FL_TAB === "doc") h += flDocsTabla_();
+  else if(FL_TAB === "inm") h += inmCuerpo_();
   else h += flLista_();
   $("fl-cuerpo").innerHTML = h;
 }
@@ -6956,7 +6957,7 @@ function flLista_(){
       return '<div class="fl-li' + (p.activo ? '' : ' off') + '"><div class="mv"><button onclick="flMoverP_(' + i + ',-1)">▲</button><button onclick="flMoverP_(' + i + ',1)">▼</button></div>' +
         '<input value="' + esc(p.punto) + '" oninput="FL_LIS[' + i + '].punto=this.value" placeholder="Qué se revisa">' +
         '<input class="gp" value="' + esc(p.grupo) + '" oninput="FL_LIS[' + i + '].grupo=this.value" placeholder="Grupo">' +
-        '<select onchange="FL_LIS[' + i + '].momento=this.value">' + [["diario","Diario"],["semanal","Semanal"],["cierre","Cierre"]].map(function(m){ return '<option value="' + m[0] + '"' + (p.momento === m[0] ? " selected" : "") + '>' + m[1] + '</option>'; }).join("") + '</select>' +
+        '<select onchange="FL_LIS[' + i + '].momento=this.value">' + [["diario","Diario"],["semanal","Semanal"],["cierre","Cierre"],["mensual","Fin de mes"]].map(function(m){ return '<option value="' + m[0] + '"' + (p.momento === m[0] ? " selected" : "") + '>' + m[1] + '</option>'; }).join("") + '</select>' +
         '<label style="text-align:center"><input type="checkbox" class="c2-ck" ' + (p.critico ? "checked" : "") + ' onchange="FL_LIS[' + i + '].critico=this.checked"></label>' +
         '<label class="ac" style="text-align:center"><input type="checkbox" class="c2-ck" ' + (p.activo ? "checked" : "") + ' onchange="FL_LIS[' + i + '].activo=this.checked;flPintar_()"></label>' +
         '<button class="cr-ed" title="' + (p.activo ? "Desactivar" : "Activar") + '" onclick="FL_LIS[' + i + '].activo=!FL_LIS[' + i + '].activo;flPintar_()">' + (p.activo ? "⏸" : "▶") + '</button></div>';
@@ -25381,6 +25382,301 @@ window.bn51Visto_ = function(pid){
   google.script.run.withSuccessHandler(function(r){ if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; } toast("Listo"); BQ.sel = ""; cargarSolicitudes(true); })
     .withFailureHandler(function(){ toast("Sin señal"); }).api_ptlAvisoVisto(PIN, pid);
 };
+})();
+</script>
+<script src="camion-dibujo.js"></script>
+<style id="estilo-359">
+/* api 3.59 · inspección mensual del vehículo (F-LOG-08): lista por mes, revisión y firma */
+.im-ch{display:inline-block;font-size:10.5px;font-weight:900;border-radius:99px;padding:2px 9px;white-space:nowrap}.im-ch.v{background:var(--ini-verde-l);color:var(--ini-verde)}.im-ch.a{background:var(--ini-ambar-l);color:#8a6300}.im-ch.r{background:var(--ini-rojo-l);color:var(--ini-rojo)}.im-ch.g{background:#eef2f7;color:var(--ini-gris)}.im-ch.b{background:#e8f0fa;color:#1b4a86}
+.im-k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.im-k div{background:#fff;border:1px solid var(--ini-linea);border-radius:12px;padding:11px 14px}.im-k b{display:block;font-size:22px;font-weight:800;color:var(--ini-tinta)}.im-k span{font-size:12px;color:var(--ini-gris)}
+.im-meses{display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap}.im-meses button{border:1px solid var(--ini-linea);background:#fff;border-radius:99px;padding:6px 13px;font:800 12.5px Archivo,sans-serif;color:var(--ini-gris);cursor:pointer}.im-meses button.on{background:var(--ini-azul);color:#fff;border-color:var(--ini-azul)}
+.im-fila{display:grid;grid-template-columns:120px minmax(0,1.2fr) minmax(0,1fr) 150px 220px 150px;gap:12px;align-items:center;padding:12px 4px;border-top:1px solid #f1f4f8;font-size:12.5px}.im-fila.h{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ini-gris);font-weight:900;border-top:0;padding-bottom:6px}
+.im-fila b{color:var(--ini-navy);font-weight:900}.im-fila small{display:block;color:var(--ini-gris);font-weight:600;font-size:11.5px}.im-fila .ac{text-align:right}
+.im-gr{font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--ini-gris);padding:12px 4px 2px;border-top:1px solid #f1f4f8}
+.f8-g{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}.f8-side{position:sticky;top:0;display:grid;gap:12px}
+.f8-h{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px}.f8-h div{font-size:12.5px}.f8-h label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ini-gris);font-weight:900;margin-bottom:2px}.f8-h b{color:var(--ini-navy);font-weight:800}.f8-h em{white-space:nowrap;font-style:normal;font-size:9.5px;font-weight:800;color:#2f9e44;background:#eaf6e4;border-radius:99px;padding:1px 6px;margin-left:5px}
+.f8-h input{width:100%;border:1.5px solid var(--ini-linea);border-radius:9px;padding:6px 9px;font:800 12.5px Archivo,sans-serif;color:var(--ini-navy)}
+.f8-gr{font-size:11px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--ini-azul);padding:12px 0 4px;border-bottom:1px solid var(--ini-linea);display:flex;gap:8px;align-items:center}
+.f8-p{display:grid;grid-template-columns:minmax(0,1fr) 120px 150px minmax(0,1.2fr);gap:10px;align-items:center;padding:6px 0;border-top:1px solid #f1f4f8;font-size:12.5px}.f8-p:first-of-type{border-top:0}.f8-p .n{font-weight:800;color:var(--ini-navy)}
+.f8-sg{display:inline-flex;border:1px solid var(--ini-linea);border-radius:9px;overflow:hidden}.f8-sg button{border:0;border-right:1px solid var(--ini-linea);background:#fff;padding:5px 9px;font:800 11.5px Archivo,sans-serif;color:var(--ini-gris);cursor:pointer}.f8-sg button:last-child{border-right:0}
+.f8-sg button.b.on{background:#eaf6e4;color:#2f6b0a}.f8-sg button.m.on{background:#fdecea;color:#b3261e}.f8-sg button.n.on{background:#eef2f7;color:#44516a}
+.f8-ob{font-size:11.5px;color:var(--ini-gris);font-weight:600;line-height:1.4}.f8-ob.al{color:#8a6300;font-weight:700}.f8-ob.ma{color:#b3261e;font-weight:700}
+.f8-or{white-space:nowrap;display:inline-block;font-size:9.5px;font-weight:900;border-radius:99px;padding:1px 7px;letter-spacing:.3px}.f8-or.d{background:#e8f0fa;color:#1b4a86}.f8-or.s{background:#e3f4f1;color:#0b6b5c}.f8-or.nu{background:#fff3c4;color:#7a5b00;border:1px solid #f0d77a}.f8-or.co{background:#eef2f7;color:#44516a}
+.f8-res{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}.f8-res div{background:var(--ini-fondo);border-radius:10px;padding:8px 4px}.f8-res b{display:block;font-size:20px;font-weight:900}.f8-res span{font-size:10.5px;color:var(--ini-gris);font-weight:800}
+.f8-fa{padding:8px 0;border-top:1px solid #f1f4f8;font-size:12px}.f8-fa:first-of-type{border-top:0}.f8-fa b{display:block;color:var(--ini-navy);font-weight:900}.f8-fa span{color:var(--ini-gris);font-weight:600}
+.f8-dib .zn{cursor:pointer}.f8-dib .zn:hover *{stroke:#e5484d}
+.f8-p .n small.rf{display:block;font-weight:600;font-size:10.5px;color:var(--ini-gris);margin-top:1px}
+
+.im-top{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.f8-p.pend{background:#fff8e6;border-radius:8px;box-shadow:inset 3px 0 0 #f0b429;padding-left:8px}
+.f8-ob input{width:100%;border:1.5px solid var(--ini-linea);border-radius:9px;padding:6px 9px;font:600 12px Archivo,sans-serif;color:var(--ini-navy);background:#fff}
+.f8-ob.ma input{border-color:#f0b7b0;color:#b3261e}
+.f8-sg button:disabled{cursor:default}
+.f8-or.d,.f8-or.s,.f8-or.nu{display:inline-block}
+.f8-dib.fijo .zn{cursor:default}.f8-dib.fijo .zn:hover *{stroke:inherit}
+.zn.mk *{fill:url(#hach)!important;stroke:#e5484d!important;stroke-width:2}
+.obs-g{border:1px solid var(--ini-linea);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.5;min-height:40px}
+@media(max-width:1100px){.f8-g{grid-template-columns:1fr}.f8-side{position:static}}
+@media(max-width:760px){
+  .im-k{grid-template-columns:repeat(2,1fr)}
+  .im-fila{grid-template-columns:1fr 1fr;gap:6px 10px}.im-fila.h{display:none}.im-fila .ac{text-align:left;grid-column:1/-1}
+  .f8-h,.f8-h[style]{grid-template-columns:1fr!important}
+  .f8-p{grid-template-columns:1fr;gap:6px}
+}
+</style>
+<script id="js-359">
+/* ═════════════════════════════════════════════════════════════════
+   api 3.59 · INSPECCIÓN MENSUAL DEL VEHÍCULO (F-LOG-08)
+   (Maqueta_hoja_vida_vehiculos, decisiones de Álvaro del 28 oct)
+   · Conductor: desde el día 25 la primera salida del camión pide además los 10 puntos de fin de mes
+     (los que la revisión diaria no cubre). Una sola vez al mes por camión: la hace quien lo use.
+   · Logística › Flota › «Inspección mensual»: por mes, cada camión se GENERA con lo que el conductor marcó
+     en sus revisiones; se ajusta, se firma e imprime (una carta, igual que el Word) con su
+     «Hoja para el mecánico» (lo que no se resolvió en el mes + lo vencido del plan).
+   ═════════════════════════════════════════════════════════════════ */
+(function(){
+if(typeof flPintar_ !== "function" || typeof puntosSalida_ !== "function" || typeof pintarAntesDeSalir_ !== "function") return;
+
+/* ── el conductor: paso de fin de mes dentro de su revisión de salida ── */
+puntosSalida_ = (function(o){ return function(){
+  var L = o.apply(this, arguments);
+  if(FLOTA && FLOTA.mensualToca) L = L.concat((FLOTA.lista || []).filter(function(p){ return p.momento === "mensual"; }));
+  return L;
+}; })(puntosSalida_);
+
+pintarAntesDeSalir_ = (function(o){ return function(){
+  o.apply(this, arguments);
+  if(!(FLOTA && FLOTA.mensualToca)) return;
+  var caja = $("caja-jornada"); if(!caja) return;
+  var av = caja.querySelector(".jv-aviso.az");
+  var nota = document.createElement("div"); nota.className = "jv-aviso am";
+  nota.innerHTML = '<b>Revisión de fin de mes.</b> Además de la revisión de hoy, marca estos 10 puntos del camión (pedales, luces internas, herramientas, rines, tapizado…). Se hace una sola vez al mes por camión.';
+  if(av && av.parentNode) av.parentNode.insertBefore(nota, av.nextSibling); else caja.insertBefore(nota, caja.firstChild);
+  caja.querySelectorAll(".jv-tit").forEach(function(t){
+    for(var i = 0; i < t.childNodes.length; i++){
+      var n = t.childNodes[i];
+      if(n.nodeType === 3 && n.nodeValue.indexOf("Revisión diaria") >= 0){ n.nodeValue = n.nodeValue.replace(/\s*$/, "") + " + fin de mes"; break; }
+    }
+  });
+  /* usar la revisión que ya se hizo hoy no trae los puntos de fin de mes */
+  caja.querySelectorAll('a[onclick*="usarRevisionHoy_"]').forEach(function(a){ a.remove(); });
+}; })(pintarAntesDeSalir_);
+
+/* ── Logística › Flota › Inspección mensual ── */
+var INM = { mes: "", lista: null, vuelo: false, sel: "", ins: null, edit: { puntos: {} }, err: "" };
+var INM_MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function inmMes_(m){ m = String(m || ""); var n = Number(m.slice(5, 7)); return n ? INM_MESES[n - 1].charAt(0).toUpperCase() + INM_MESES[n - 1].slice(1) + " " + m.slice(0, 4) : m; }
+function inmAnt_(m){ var y = Number(m.slice(0, 4)), n = Number(m.slice(5, 7)) - 1; if(!n){ n = 12; y--; } return y + "-" + ("0" + n).slice(-2); }
+function inmFch_(iso){ iso = String(iso || ""); return /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : ""; }
+function inmDM_(iso){ iso = String(iso || ""); return iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) : ""; }
+function inmNum_(n){ return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function inmLlamar_(accion, d, luego){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); if(luego) luego(null, r); return; }
+    luego(r);
+  }).withFailureHandler(function(){ toast("Sin señal"); if(luego) luego(null, null); }).api_inspeccionMensual(PIN, accion, d || {});
+}
+function inmRepintar_(){
+  var m = document.querySelector("main"), y = m ? m.scrollTop : 0, w = window.pageYOffset;
+  flPintar_();
+  if(m) m.scrollTop = y; window.scrollTo(0, w);
+}
+function inmCargar_(mes){
+  if(INM.vuelo) return; INM.vuelo = true; INM.err = "";
+  inmLlamar_("lista", { mes: mes || INM.mes || "" }, function(r){
+    INM.vuelo = false;
+    if(!r){ INM.err = "No se pudo consultar la inspección mensual."; }
+    else { INM.lista = r; INM.mes = r.mes; }
+    if(FL_TAB === "inm") flPintar_();
+  });
+}
+function inmElegirMes_(m){ INM.mes = m; INM.lista = null; INM.sel = ""; INM.ins = null; flPintar_(); }
+function inmCuerpo_(){
+  if(INM.sel) return INM.ins ? inmRevision_() : '<div class="pl-vacio">Abriendo la inspección…</div>';
+  if(INM.err) return '<div class="pl-vacio">' + esc(INM.err) + '<br><button class="pl-btn" style="margin-top:10px" onclick="INM.err=\'\';flPintar_()">Reintentar</button></div>';
+  if(!INM.lista){ inmCargar_(); return '<div class="pl-vacio">Consultando la inspección mensual…</div>'; }
+  var L = INM.lista, T = L.totales, ant = inmAnt_(L.mes);
+  var h = '<div class="im-meses">' + L.meses.map(function(m, i){ return '<button class="' + (m === L.mes ? "on" : "") + '" onclick="inmElegirMes_(\'' + m + '\')">' + inmMes_(m) + (i === 0 ? " · en curso" : "") + '</button>'; }).join("") + '</div>';
+  h += '<div class="im-k"><div><b>' + T.vehiculos + '</b><span>vehículos del mes</span></div><div><b>' + T.firmadas + '</b><span>firmadas</span></div><div><b>' + T.generadas + '</b><span>por revisar y firmar</span></div><div><b>' + (T.sinGenerar + T.sinSalidas) + '</b><span>por generar' + (T.sinSalidas ? " · " + T.sinSalidas + " sin salidas" : "") + '</span></div></div>';
+  h += '<div class="c2-ob b"><b>La inspección F-LOG-08 se arma sola</b>Sale de las revisiones que el conductor hizo en el mes (F-LOG-04). Los 10 puntos que la revisión diaria no cubre los marca el conductor una vez al mes, desde el día ' + L.desdeDia + '. Al generarla puedes ajustar cualquier punto antes de firmar.' + (L.mesEnCurso ? ' Este mes sigue en curso: si la generas ahora, vuelve a armarla cuando llegue el cierre.' : '') + '</div>';
+  h += '<div class="cr-card" style="padding:8px 16px 12px"><div class="im-fila h"><span>Placa</span><span>Vehículo</span><span>Revisiones del mes</span><span>Fallas</span><span>Estado</span><span></span></div>';
+  h += L.vehiculos.map(function(v){
+    var chip, btn = "";
+    if(v.estado === "firmada"){
+      chip = ["v", "Firmada" + (v.firmadaEn ? " · " + inmDM_(v.firmadaEn) : "")];
+      btn = '<button class="pl-btn" onclick="inmAbrir_(\'' + esc(v.placa) + '\')">Ver</button> <button class="pl-btn" onclick="inmImprimir_(\'' + esc(v.placa) + '\',\'ins\')">Imprimir</button>';
+    } else if(v.estado === "generada"){
+      chip = ["a", "Generada · falta firmar"];
+      btn = '<button class="pl-btn a" onclick="inmAbrir_(\'' + esc(v.placa) + '\')">Revisar y firmar</button>';
+    } else if(v.sinSalidas){
+      chip = ["g", "Sin salidas este mes"];
+      btn = '<button class="pl-btn" onclick="inmGenerar_(\'' + esc(v.placa) + '\')">' + (v.puedeCopiar ? "Usar la de " + inmMes_(ant).split(" ")[0].toLowerCase() : "Generar a mano") + '</button>';
+    } else {
+      chip = ["v", "Lista para generar"];
+      btn = '<button class="pl-btn a" onclick="inmGenerar_(\'' + esc(v.placa) + '\')">Generar</button>';
+    }
+    var rev = v.sinSalidas ? "Sin revisiones" : v.revisiones + (v.revisiones === 1 ? " revisión" : " revisiones") + " en " + v.conRevision + (v.conRevision === 1 ? " día" : " días");
+    var sub = v.sinSalidas ? "" : '<small>' + v.salidas + (v.salidas === 1 ? " salida" : " salidas") + " · fin de mes " + (v.mensuales ? "hecho" : "por hacer") + '</small>';
+    return '<div class="im-fila"><b>' + esc(v.placa) + '</b><span>' + esc(v.marca || "Camión") + '<small>' + (v.conductor ? esc(v.conductor) : "sin conductor en el mes") + '</small></span><span>' + rev + sub + '</span><span>' + (v.fallasMes || 0) + '</span><span><span class="im-ch ' + chip[0] + '">' + chip[1] + '</span></span><span class="ac">' + btn + '</span></div>';
+  }).join("");
+  return h + '</div>';
+}
+function inmGenerar_(placa, regenerar){
+  toast("Armando la inspección…");
+  inmLlamar_("generar", { placa: placa, mes: INM.mes, regenerar: !!regenerar }, function(r){
+    if(!r) return;
+    INM.sel = placa; INM.ins = r.inspeccion; INM.edit = { puntos: {} }; INM.lista = null;
+    toast("Inspección armada ✓ · revísala y firma"); flPintar_();
+  });
+}
+function inmAbrir_(placa){
+  INM.sel = placa; INM.ins = null; INM.edit = { puntos: {} }; flPintar_();
+  inmLlamar_("ver", { placa: placa, mes: INM.mes }, function(r){
+    if(!r){ INM.sel = ""; flPintar_(); return; }
+    INM.ins = r.inspeccion; flPintar_();
+  });
+}
+function inmVolver_(){ INM.sel = ""; INM.ins = null; INM.edit = { puntos: {} }; INM.lista = null; flPintar_(); }
+function inmImprimir_(placa, h){
+  var url = "InspeccionMensualVista.html?placa=" + encodeURIComponent(placa) + "&mes=" + encodeURIComponent(INM.mes) + "&h=" + (h === "mec" ? "mec" : "ins");
+  var tit = h === "mec" ? "Hoja para el mecánico" : "Inspección mensual F-LOG-08";
+  if(window.VR && VR.abrir) VR.abrir(url, tit, placa + " · " + inmMes_(INM.mes)); else window.open(url, "_blank");
+}
+
+/* la revisión de un camión */
+function inmEf_(p){ var e = INM.edit.puntos[p.n]; return { estado: e && e.estado ? e.estado : p.estado, obs: e && e.obs !== undefined ? e.obs : p.obs }; }
+function inmZonas_(){ return INM.edit.zonas || INM.ins.datos.zonas || []; }
+function inmValor_(k){ return INM.edit[k] !== undefined ? INM.edit[k] : INM.ins.datos[k]; }
+function inmSucio_(){ var e = INM.edit; return !!(e.km !== undefined || e.fecha !== undefined || e.observaciones !== undefined || e.zonas || Object.keys(e.puntos).length); }
+function inmOrigen_(p){
+  var L = (FL && FL.lista) || [], nombres = [], mo = "";
+  (p.fuentes || []).forEach(function(id){ var x = L.filter(function(q){ return q.puntoId === id; })[0]; if(x){ if(nombres.indexOf(x.punto) < 0) nombres.push(x.punto); if(!mo) mo = x.momento; } else if(!mo) mo = id.charAt(0) === "m" ? "mensual" : (id.charAt(0) === "s" ? "semanal" : "diario"); });
+  var t = mo === "mensual" ? ["nu", "Fin de mes"] : (mo === "semanal" ? ["s", "Semanal"] : ["d", "Diaria"]);
+  return { chip: '<span class="f8-or ' + t[0] + '">' + t[1] + '</span>', nombres: nombres, mo: mo };
+}
+function inmPunto_(p, firmada){
+  var e = inmEf_(p), o = inmOrigen_(p), s = e.estado;
+  var ref = o.nombres.length && (o.nombres.length > 1 || o.nombres[0] !== p.texto) ? '<small class="rf">de la revisión: ' + esc(o.nombres.join(" · ")) + (p.compartido ? " (cubre varios puntos)" : "") + '</small>' : (p.compartido ? '<small class="rf">cubre varios puntos de la revisión</small>' : "");
+  var ph = s === "p" ? (o.mo === "mensual" ? "Por marcar: el conductor aún no hizo la revisión de fin de mes" : "Por marcar: sin dato en las revisiones del mes") : "Observación";
+  var btn = function(v, t, c){ return '<button class="' + c + (s === v ? " on" : "") + '"' + (firmada ? " disabled" : "") + ' onclick="inmEstado_(' + p.n + ',\'' + v + '\')">' + t + '</button>'; };
+  return '<div class="f8-p' + (s === "p" ? " pend" : "") + '"><div class="n">' + p.n + '. ' + esc(p.texto) + (p.critico ? ' ★' : '') + ref + '</div><div>' + o.chip + '</div>' +
+    '<div class="f8-sg">' + btn("b", "Bien", "b") + btn("m", "Mal", "m") + btn("x", "N/A", "n") + '</div>' +
+    '<div class="f8-ob ' + (s === "m" ? "ma" : (e.obs ? "al" : "")) + '">' + (firmada ? esc(e.obs || "") : '<input value="' + esc(e.obs || "") + '" placeholder="' + esc(ph) + '" oninput="inmObs_(' + p.n + ',this.value)">') + '</div></div>';
+}
+function inmRevision_(){
+  var I = INM.ins, d = I.datos, firmada = I.estado === "firmada", puntos = d.puntos;
+  var cuenta = { b: 0, m: 0, x: 0, p: 0 }; puntos.forEach(function(p){ cuenta[inmEf_(p).estado]++; });
+  var gr = [], filas = "";
+  puntos.forEach(function(p){
+    if(gr.indexOf(p.grupo) < 0){ gr.push(p.grupo); filas += '<div class="f8-gr">' + esc(p.grupo) + '</div>'; }
+    filas += inmPunto_(p, firmada);
+  });
+  var M = I.mecanico || { pendientes: [], planVencido: [], resueltas: [] };
+  var campo = function(et, v){ return '<div><label>' + et + '</label><b>' + (v ? esc(v) : "—") + '</b><em>del sistema</em></div>'; };
+  var pre = d.ultimoPreventivo ? inmFch_(d.ultimoPreventivo.fecha) + (d.ultimoPreventivo.taller ? " · " + d.ultimoPreventivo.taller : "") : "";
+  var ace = d.ultimoAceite ? [d.ultimoAceite.fecha ? inmFch_(d.ultimoAceite.fecha) : "", d.ultimoAceite.km ? inmNum_(d.ultimoAceite.km) + " km" : ""].filter(Boolean).join(" · ") : "";
+  var hd = '<div class="f8-h" style="grid-template-columns:repeat(2,1fr)">' + campo("Mes inspeccionado", inmMes_(I.mes)) + campo("Placa", I.placa) +
+    '<div><label>Fecha de inspección</label>' + (firmada ? '<b>' + inmFch_(inmValor_("fecha")) + '</b>' : '<input type="date" value="' + esc(inmValor_("fecha") || "") + '" oninput="inmCampo_(\'fecha\',this.value)">') + '</div>' +
+    campo("Modelo", [d.modelo, d.anio].filter(Boolean).join(" ")) + campo("Conductor", d.conductor) + campo("Tipo de vehículo", d.tipo) + campo("Vence la póliza", inmFch_(d.polizaVence)) +
+    '<div><label>Kilometraje actual</label>' + (firmada ? '<b>' + inmNum_(inmValor_("km")) + ' km</b>' : '<input inputmode="numeric" value="' + esc(inmValor_("km") || "") + '" oninput="inmCampo_(\'km\',this.value.replace(/[^0-9]/g,\'\'))">') + '</div>' +
+    campo("Último mantenimiento preventivo (fecha y taller)", pre) + campo("Último cambio de aceite (fecha y km)", ace) + '</div>';
+  var zonas = inmZonas_();
+  var dib = '<div class="cr-card f8-dib' + (firmada ? " fijo" : "") + '"><h3>Dibujo del vehículo <small style="text-transform:none;letter-spacing:0;font-weight:700">' + (firmada ? "" : "· toca una parte para marcarla o quitarla") + '</small></h3>' +
+    '<div style="max-width:620px;margin:0 auto">' + CAMION.costados(zonas) + '</div><div style="max-width:620px;margin:6px auto 0">' + CAMION.resto(zonas) + '</div>' +
+    '<div class="c2-ob a" style="margin:8px 0 0"><b>Zonas marcadas</b>' + esc(CAMION.nombres(zonas)) + '</div></div>';
+  var r = d.resumen || {};
+  var arma = d.copiaDe ? 'Sin salidas en el mes: se repite la inspección de ' + inmMes_(d.copiaDe).toLowerCase() + ' (mismos estados y kilometraje). Ajusta lo que haya cambiado.'
+    : 'Armada con ' + (r.revisiones || 0) + (r.revisiones === 1 ? " revisión" : " revisiones") + ' del conductor en ' + (r.conRevision || 0) + (r.conRevision === 1 ? " día" : " días") + ' de ' + inmMes_(I.mes).toLowerCase() + (r.mensuales ? ', con la de fin de mes' : ', sin la de fin de mes') + '.';
+  var side = '<div class="f8-side"><div class="cr-card"><h3>Resumen</h3><div class="f8-res"><div><b style="color:#2f6b0a">' + cuenta.b + '</b><span>Bien</span></div><div><b style="color:#b3261e">' + cuenta.m + '</b><span>Mal</span></div><div><b style="color:#44516a">' + (cuenta.x + cuenta.p) + '</b><span>' + (cuenta.p ? "N/A o por marcar" : "N/A") + '</span></div></div>' +
+      (cuenta.p ? '<div class="c2-ob a" style="margin:12px 0 0"><b>Faltan ' + cuenta.p + (cuenta.p === 1 ? " punto por marcar" : " puntos por marcar") + '</b>Marca Bien, Mal o N/A en los resaltados para poder firmar.</div>' : '') +
+      '<div class="c2-ob b" style="margin:12px 0 0"><b>De dónde sale</b>' + esc(arma) + '</div></div>' +
+    '<div class="cr-card"><h3>Hoja para el mecánico</h3><div class="f8-fa"><b>' + M.pendientes.length + (M.pendientes.length === 1 ? " pendiente del mes" : " pendientes del mes") + '</b><span>' + (M.pendientes.length ? esc(M.pendientes.slice(0, 3).map(function(p){ return p.punto; }).join(", ")) + (M.pendientes.length > 3 ? "…" : "") : "Nada quedó sin resolver") + '</span></div>' +
+      '<div class="f8-fa"><b>' + M.planVencido.length + (M.planVencido.length === 1 ? " servicio vencido del plan" : " servicios vencidos del plan") + '</b><span>' + (M.planVencido.length ? esc(M.planVencido.map(function(t){ return t.tarea; }).join(", ")) : "El plan está al día") + '</span></div>' +
+      '<div class="c2-act"><button class="c2-btn" onclick="inmImprimir_(\'' + esc(I.placa) + '\',\'mec\')">Ver la hoja para el mecánico</button></div></div>' +
+    '<div class="cr-card"><h3>Firmas</h3><div class="fl-dt"><b>Conductor del mes</b><span>' + esc(d.conductor || "—") + '</span></div><div class="fl-dt"><b>Coordinador</b><span>' + (firmada ? esc(I.firmadaPor) + " · " + inmFch_(I.firmadaEn) : "sin firmar") + '</span></div>' +
+      '<div class="c2-act">' + (firmada ? '<button class="c2-btn" onclick="inmReabrir_()">Reabrir</button>' : '<button class="c2-btn" onclick="inmRegenerar_()">Volver a armar</button><button class="c2-btn' + (inmSucio_() ? " a" : "") + '" onclick="inmGuardar_()">Guardar ajustes</button><button class="c2-btn v" onclick="inmFirmar_()">Firmar</button>') +
+      '<button class="c2-btn a" onclick="inmImprimir_(\'' + esc(I.placa) + '\',\'ins\')">Imprimir F-LOG-08</button></div></div></div>';
+  var estado = firmada ? ["v", "Firmada por " + I.firmadaPor + " el " + inmFch_(I.firmadaEn)] : ["a", "Generada el " + inmFch_(I.generadaEn) + " · falta firmar"];
+  return '<div class="im-top"><button class="pl-btn" onclick="inmVolver_()">‹ Flota · Inspección mensual</button><span style="flex:1"></span><span class="im-ch ' + estado[0] + '">' + esc(estado[1]) + '</span></div>' +
+    '<div class="f8-g"><div><div class="cr-card"><h3>Inspección mensual del vehículo · ' + esc(inmMes_(I.mes).toLowerCase()) + '</h3>' + hd + '</div>' + dib +
+    '<div class="cr-card"><h3>Puntos de la inspección <small style="text-transform:none;letter-spacing:0;font-weight:700">· la etiqueta dice de qué revisión sale cada respuesta</small></h3>' + filas +
+    '<div class="c2-lab" style="margin-top:12px">Observaciones generales</div>' + (firmada ? '<div class="obs-g">' + (esc(inmValor_("observaciones") || "").replace(/\n/g, "<br>") || "—") + '</div>' : '<textarea class="ini-nota" style="width:100%" placeholder="Fallas encontradas, qué se hizo y si el vehículo puede salir" oninput="inmCampo_(\'observaciones\',this.value)">' + esc(inmValor_("observaciones") || "") + '</textarea>') + '</div></div>' + side + '</div>';
+}
+
+/* ajustes del coordinador (se guardan con «Guardar ajustes» o al firmar) */
+function inmEstado_(n, v){
+  var p = INM.ins.datos.puntos.filter(function(x){ return x.n === n; })[0]; if(!p) return;
+  var e = INM.edit.puntos[n] || (INM.edit.puntos[n] = {}); e.estado = v;
+  inmRepintar_();
+}
+function inmObs_(n, v){ var e = INM.edit.puntos[n] || (INM.edit.puntos[n] = {}); e.obs = v; if(!e.estado) e.estado = inmEf_(INM.ins.datos.puntos.filter(function(x){ return x.n === n; })[0]).estado; }
+function inmCampo_(k, v){ INM.edit[k] = v; }
+function inmZona_(z){
+  var l = inmZonas_().slice(), i = l.indexOf(z); if(i >= 0) l.splice(i, 1); else l.push(z);
+  INM.edit.zonas = l; inmRepintar_();
+}
+function inmCambios_(){
+  var e = INM.edit, c = {};
+  if(e.km !== undefined) c.km = Number(e.km) || 0;
+  if(e.fecha !== undefined && e.fecha) c.fecha = e.fecha;
+  if(e.observaciones !== undefined) c.observaciones = e.observaciones;
+  if(e.zonas) c.zonas = e.zonas;
+  var ps = Object.keys(e.puntos).map(function(n){ return { n: Number(n), estado: e.puntos[n].estado, obs: e.puntos[n].obs }; });
+  if(ps.length) c.puntos = ps;
+  return c;
+}
+function inmGuardar_(luego){
+  if(!inmSucio_()){ if(typeof luego === "function") luego(); else toast("No hay ajustes por guardar"); return; }
+  inmLlamar_("guardar", { placa: INM.sel, mes: INM.mes, cambios: inmCambios_() }, function(r){
+    if(!r) return;
+    INM.ins = r.inspeccion; INM.edit = { puntos: {} };
+    if(typeof luego === "function") luego(); else { toast("Ajustes guardados ✓"); flPintar_(); }
+  });
+}
+function inmFirmar_(){
+  var I = INM.ins, pend = I.datos.puntos.filter(function(p){ return inmEf_(p).estado === "p"; }).length;
+  if(pend){ toast("Faltan " + pend + (pend === 1 ? " punto por marcar" : " puntos por marcar")); var f = document.querySelector(".f8-p.pend"); if(f && f.scrollIntoView) f.scrollIntoView({ block: "center" }); return; }
+  abrirHojaIni_('<div class="ini-pt">Firmar la inspección</div><div class="ini-ps">' + esc(I.placa) + ' · ' + esc(inmMes_(I.mes)) + '</div>' +
+    '<div class="ini-dato"><b>Qué pasa</b><span>Queda firmada por ti y ya no se puede cambiar sin reabrirla. La hoja para el mecánico se arma con lo que quedó en Mal y lo vencido del plan.</span></div>' +
+    '<button class="ini-ok" id="im-fir" onclick="inmFirmarYa_()">Firmar</button><button class="ini-ok sec" style="margin-top:8px" onclick="cerrarHojaIni_()">Cancelar</button>');
+}
+function inmFirmarYa_(){
+  var b = $("im-fir"); if(b){ b.disabled = true; b.textContent = "Firmando…"; }
+  inmGuardar_(function(){
+    inmLlamar_("firmar", { placa: INM.sel, mes: INM.mes }, function(r){
+      cerrarHojaIni_();
+      if(!r){ flPintar_(); return; }
+      INM.ins = r.inspeccion; INM.edit = { puntos: {} }; INM.lista = null; toast("Inspección firmada ✓"); flPintar_();
+    });
+  });
+}
+function inmReabrir_(){
+  abrirHojaIni_('<div class="ini-pt">Reabrir la inspección</div><div class="ini-ps">' + esc(INM.ins.placa) + ' · ' + esc(inmMes_(INM.ins.mes)) + '</div>' +
+    '<div class="ini-dato"><b>Qué pasa</b><span>Se borra la firma y se puede volver a ajustar. Hay que firmarla de nuevo.</span></div>' +
+    '<button class="ini-ok" onclick="inmReabrirYa_()">Reabrir</button><button class="ini-ok sec" style="margin-top:8px" onclick="cerrarHojaIni_()">Cancelar</button>');
+}
+function inmReabrirYa_(){
+  inmLlamar_("reabrir", { placa: INM.sel, mes: INM.mes }, function(r){
+    cerrarHojaIni_(); if(!r) return;
+    INM.ins = r.inspeccion; INM.edit = { puntos: {} }; INM.lista = null; toast("Inspección reabierta"); flPintar_();
+  });
+}
+function inmRegenerar_(){
+  abrirHojaIni_('<div class="ini-pt">Volver a armar la inspección</div><div class="ini-ps">' + esc(INM.ins.placa) + ' · ' + esc(inmMes_(INM.ins.mes)) + '</div>' +
+    '<div class="ini-dato"><b>Qué pasa</b><span>Se arma de nuevo con las revisiones de hoy. Los ajustes que hiciste a los puntos se pierden; las observaciones generales y las zonas marcadas se conservan.</span></div>' +
+    '<button class="ini-ok" onclick="cerrarHojaIni_();inmGenerar_(INM.sel,true)">Volver a armar</button><button class="ini-ok sec" style="margin-top:8px" onclick="cerrarHojaIni_()">Cancelar</button>');
+}
+
+/* las zonas del dibujo se marcan tocándolas */
+document.addEventListener("click", function(e){
+  var g = e.target && e.target.closest ? e.target.closest(".f8-dib:not(.fijo) .zn") : null;
+  if(g && INM.sel && INM.ins && INM.ins.estado !== "firmada") inmZona_(g.getAttribute("data-z"));
+});
+
+window.INM = INM; window.inmEf_ = inmEf_;
+window.inmCuerpo_ = inmCuerpo_; window.inmElegirMes_ = inmElegirMes_; window.inmGenerar_ = inmGenerar_; window.inmAbrir_ = inmAbrir_; window.inmVolver_ = inmVolver_;
+window.inmImprimir_ = inmImprimir_; window.inmEstado_ = inmEstado_; window.inmObs_ = inmObs_; window.inmCampo_ = inmCampo_; window.inmGuardar_ = inmGuardar_;
+window.inmFirmar_ = inmFirmar_; window.inmFirmarYa_ = inmFirmarYa_; window.inmReabrir_ = inmReabrir_; window.inmReabrirYa_ = inmReabrirYa_; window.inmRegenerar_ = inmRegenerar_;
 })();
 </script>
 </body>
