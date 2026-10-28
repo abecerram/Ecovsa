@@ -12,30 +12,42 @@
 <link rel="stylesheet" href="mercadeo-kit.css">
 <script src="mercadeo-kit.js"></script>
 <script id="js-lic65">
-/* ── Oportunidades › pestaña «Licitaciones» (3.65 · parte 4a: seguimiento) ──
+/* ── Oportunidades › pestaña «Licitaciones» (3.65 parte 4a: seguimiento · 3.66 parte 4b: documentos y expediente) ──
    Misma forma que el Embudo (tres tarjetas de cifras, buscador, barra de herramientas, lista o por etapa), pero con el
    camino de una licitación: encontrada → en estudio → preparando el expediente → presentada → resultado.
-   Cada acto tiene su etapa (las cerradas piden motivo) y su cronograma; el servidor deja cada aviso en la Agenda y lo
-   mueve si la fecha cambia. El expediente y los documentos de la empresa llegan en la parte 4b. */
+   Cada acto tiene su cronograma (avisos en la Agenda) y su expediente, que toma los documentos de la empresa
+   (se cargan una vez, con su vencimiento; avisan en la Agenda antes de vencer) o carga uno nuevo. Los avisos del cronograma y de los
+   vencimientos los deja el servidor. La oferta (4c) y la licitación ganada (4d) llegan después. */
 var LIC59 = (function () {
   var E = MK.esc, IC = MK.ic, CEL = window.matchMedia('(max-width:760px)');
   var ETAPAS = ['Encontrada', 'En estudio', 'Preparando expediente', 'Presentada', 'Adjudicada', 'No adjudicada', 'Desierta', 'No participamos'];
   var ABIERTAS = ETAPAS.slice(0, 4);
   var COLOR = { 'Encontrada': '#cdd8ea', 'En estudio': '#8eaad7', 'Preparando expediente': '#4d79bb', 'Presentada': '#1d4689', 'Adjudicada': '#2e9e5b', 'No adjudicada': '#d98b8b', 'Desierta': '#b9c2cf', 'No participamos': '#b9c2cf' };
   var ACTS = ['Reunión previa y homologación', 'Último día de consultas', 'Entrega de propuestas', 'Apertura de propuestas', 'Informe de la comisión', 'Adjudicación', 'Entrega de la fianza de cumplimiento', 'Firma del contrato'];
+  var DOCS = ['Formulario de propuesta (el del pliego)', 'Propuesta económica por renglones', 'Fianza de propuesta (si la pide el pliego)', 'Certificado del Registro Público', 'Paz y salvo de la CSS', 'Paz y salvo de la DGI',
+    'Aviso de operación', 'Permiso sanitario para el manejo de desechos', 'Declaración jurada (según el pliego)', 'Experiencia: cartas o contratos anteriores', 'Cédula del representante legal'];
   var AVISO = [['', 'Sin aviso'], ['1', '1 día antes'], ['3', '3 días antes'], ['7', '1 semana antes']];
   var MOTIVOS = { 'No participamos': ['No cumplimos un requisito', 'Precio de referencia muy bajo', 'Lugares fuera de nuestras rutas', 'No da el tiempo', 'Otro'], 'No adjudicada': ['Otro proponente con mejor precio', 'Descalificada por documentos', 'Puntaje técnico', 'Otro'], 'Desierta': ['La entidad la declaró desierta', 'Otro'] };
   var MODOS = [['lista', 'Lista'], ['etapa', 'Por etapa']];
-  var F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, sincr: false }, MODO = 'etapa', GRP = {}, OPS = [], CONT = null;
+  var F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, venc: false, sincr: false }, MODO = 'etapa', GRP = {}, OPS = [], CONT = null, BIB = null, BORR = {};
 
   function l(o) { return o.licitacion || {}; }
   function lista() { return OPS.filter(function (o) { return o.licitacion; }); }
+  function exp(o) { var x = l(o); return x.expediente || DOCS.map(function (d) { return { doc: d, estado: 'Pendiente', bib: '', archivoId: '', archivo: '' }; }); }
   function dias(f) { if (!f) return null; return Math.round((new Date(f + 'T12:00:00') - new Date((MK.hoy || MK.hoyLocal()) + 'T12:00:00')) / 864e5); }
   function proxima(o) { return (l(o).cronograma || []).filter(function (a) { return a.fecha && dias(a.fecha) >= 0; }).sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; })[0] || null; }
   function entrega(o) { var c = (l(o).cronograma || []).filter(function (a) { return a.act === 'Entrega de propuestas' && a.fecha; })[0]; return c ? c.fecha : l(o).entrega || ''; }
   function cuando(f) { var d = dias(f); return d === 0 ? 'hoy' : d === 1 ? 'mañana' : d < 0 ? 'hace ' + (-d) + ' días' : 'en ' + d + ' días'; }
   function nombreAsesor(n) { return String(n || '').trim(); }
   function porCod(c) { return OPS.filter(function (o) { return o.codigoPropuesta === c; })[0]; }
+  function bibDe(id) { return (BIB || []).filter(function (b) { return b.id === id; })[0]; }
+  function estadoDoc(d, o) {   // listo, vencido, pendiente o no aplica; un documento de la empresa vence según su fecha y la entrega del acto
+    if (d.estado === 'No aplica') return 'No aplica';
+    var b = d.bib ? bibDe(d.bib) : null, ent = entrega(o);
+    if (d.bib) return !b || !b.archivoId ? 'Pendiente' : b.vence && (b.vence < (ent || MK.hoy)) ? 'Vencido' : 'Listo';   // quitado de la lista o sin archivo: pendiente
+    return d.archivoId ? 'Listo' : d.estado === 'Listo' ? 'Listo' : 'Pendiente';
+  }
+  function cuentaExp(o) { var ex = exp(o), ok = 0, ven = 0, n = 0; ex.forEach(function (d) { var e = estadoDoc(d, o); if (e === 'No aplica') return; n++; if (e === 'Listo') ok++; if (e === 'Vencido') ven++; }); return { ok: ok, n: n, ven: ven }; }
   function urgente(o) { var p = proxima(o); return !!p && dias(p.fecha) <= 3; }
   /* se manda la licitación con los cambios; solo si el servidor la guarda se queda (si no, la pantalla vuelve a como estaba) */
   function guardar(o, msg, cambios) {
@@ -48,6 +60,37 @@ var LIC59 = (function () {
       if (msg) MK.aviso(msg); MK.cambio({ tipo: 'licitacion', codigo: o.codigoPropuesta }); return true;
     }, function (e) { MK.aviso(e.message || 'Sin conexión'); if (CONT && !CONT.hidden) pintar(CONT); return false; });
   }
+  /* los documentos de la empresa vienen con la lista de oportunidades; si no, se piden a los ajustes de Mercadeo */
+  function cargarBib() {
+    if (BIB) return Promise.resolve(BIB);
+    return MK.api('api_crmAjustes', MK.pin).then(function (r) { BIB = ((r && r.ajustes && r.ajustes.docsEmpresa) || []).filter(function (d) { return d && !d.archivado; }); return BIB; }, function () { BIB = BIB || []; return BIB; });
+  }
+  function guardarBib(lista) {
+    return MK.api('api_crmGuardarAjuste', MK.pin, 'docsEmpresa', lista.map(function (x) { return { id: x.id, nombre: x.nombre, archivoId: x.archivoId || '', vence: x.vence || '' }; })).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudieron guardar los documentos de la empresa.');
+      BIB = r.documentos || []; return r;
+    });
+  }
+  /* un archivo se sube al espacio de archivos de siempre (hasta 3 MB) */
+  function subir(f) {
+    return new Promise(function (ok, mal) {
+      if (f.size > 3 * 1024 * 1024) { mal(new Error('El archivo pesa más de 3 MB. Redúzcalo y vuelva a subirlo.')); return; }
+      var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { mal(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(f);
+    }).then(function (datos) { return MK.api('api_crmSubirArchivo', MK.pin, { nombre: f.name, tipo: f.type || '', datos: datos }); }).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo subir el archivo.');
+      return r.archivo;
+    });
+  }
+  function ver(id) {
+    var w = window.open('', '_blank');
+    MK.api('api_crmArchivo', MK.pin, id).then(function (r) {
+      if (!r || !r.ok || !(r.url || r.datos)) { if (w) w.close(); MK.aviso((r && (r.error || r.almacenError)) || 'No se pudo abrir el archivo.'); return; }
+      var u = r.url;
+      if (!u) { var s = String(r.datos), k = s.indexOf(','), bin = atob(s.slice(k + 1)), a = new Uint8Array(bin.length); for (var j = 0; j < bin.length; j++) a[j] = bin.charCodeAt(j); u = URL.createObjectURL(new Blob([a], { type: r.tipo || s.slice(5, s.indexOf(';')) })); setTimeout(function () { URL.revokeObjectURL(u); }, 120000); }
+      if (w) w.location.href = u; else location.href = u;
+    }, function (e) { if (w) w.close(); MK.aviso(e.message || 'Sin conexión'); });
+  }
+  function enlaceArc(id, nombre) { return id ? '<a href="#" data-lic-ver="' + E(id) + '">' + IC('clip', 12) + ' ' + E(nombre || 'archivo') + '</a>' : ''; }
 
   function coincide(o) {
     var x = l(o), q = F.q.toLowerCase();
@@ -56,15 +99,17 @@ var LIC59 = (function () {
     if (F.asesor && nombreAsesor(o.asesor) !== F.asesor) return false;
     if (F.modalidad && x.modalidad !== F.modalidad) return false;
     if (F.urg && !urgente(o)) return false;
+    if (F.venc && !cuentaExp(o).ven) return false;
     if (F.sincr && (x.cronograma || []).length) return false;
     if (q && [x.entidad, x.acto, x.objeto, o.empresa].join(' ').toLowerCase().indexOf(q) < 0) return false;
     return true;
   }
-  function activos() { return !!(F.q || F.etapa || F.asesor || F.modalidad || F.cerradas || F.urg || F.sincr); }
+  function activos() { return !!(F.q || F.etapa || F.asesor || F.modalidad || F.cerradas || F.urg || F.venc || F.sincr); }
 
   /* ── la pestaña ── */
-  function pintar(cont, ops) {
-    CONT = cont; OPS = ops || OPS;
+  function pintar(cont, ops, docs) {
+    CONT = cont; OPS = ops || OPS; if (docs) BIB = docs.slice();
+    if (!BIB) { cargarBib().then(function () { pintar(CONT); }); }
     var L = lista(), ab = L.filter(function (o) { return ABIERTAS.indexOf(l(o).etapa) >= 0; }), vis = L.filter(coincide);
     vis.sort(function (a, b) { var pa = proxima(a), pb = proxima(b); return (pa ? pa.fecha : '9999') < (pb ? pb.fecha : '9999') ? -1 : 1; });
     if (MODO === 'etapa') vis.sort(function (a, b) { return ETAPAS.indexOf(l(a).etapa) - ETAPAS.indexOf(l(b).etapa); });
@@ -81,13 +126,13 @@ var LIC59 = (function () {
     var ms = Object.keys(meses).sort(), mx = ms.reduce(function (s, k) { return Math.max(s, meses[k]); }, 0);
     var barras = ms.map(function (m) { return '<div class="mb"><b class="num">' + MK.dinero(meses[m]).replace('B/. ', '').replace(/\.00$/, '') + '</b><i><s style="height:' + (mx ? Math.max(6, meses[m] / mx * 100) : 0) + '%"></s></i><small>' + E(m === 'sin fecha' ? 'Sin fecha' : MK.mesNombre(m).replace(/ \d{4}$/, '')) + '</small></div>'; }).join('');
     var gan = L.filter(function (o) { return l(o).etapa === 'Adjudicada'; }).length, res = L.filter(function (o) { return ['Adjudicada', 'No adjudicada', 'Desierta'].indexOf(l(o).etapa) >= 0; }).length;
-    var nU = ab.filter(urgente).length, nS = ab.filter(function (o) { return !(l(o).cronograma || []).length; }).length;
+    var nU = ab.filter(urgente).length, nV = ab.filter(function (o) { return cuentaExp(o).ven; }).length, nS = ab.filter(function (o) { return !(l(o).cronograma || []).length; }).length;
     var fila = function (k, n, t, sub, cls) { return '<button type="button" class="at ' + (n ? cls : 'cero') + (F[k] ? ' on' : '') + '" data-li-f="' + k + '"><b class="num">' + n + '</b><span><em>' + t + '</em><small>' + sub + '</small></span>' + (n ? IC('flecha', 14) : IC('check', 14)) + '</button>'; };
     return '<div class="lic-cif"><div class="tot-g">' +
       '<section class="k k-emb"><div class="k-h">' + IC('sello', 16) + '<span>Las licitaciones</span><span class="sp"></span><b class="num k-n">' + ab.length + '</b><small>abiertas</small></div><div class="sgs">' + (seg || '<i class="sg-v"></i>') + '</div><div class="lys">' + ley + '</div></section>' +
       '<section class="k k-pro"><div class="k-h">' + IC('moneda', 16) + '<span>Monto en juego</span></div><div class="k-cif"><b class="num">' + MK.dinero(ref(ab)) + '</b><small>en referencia · ganadas <b>' + gan + '</b>' + (res ? ' de ' + res : '') + '</small></div><div class="mbs">' + (barras || '<p class="mb-v">Sin fechas de entrega.</p>') + '</div><div class="k-pie">Por mes de entrega de propuestas</div></section>' +
-      '<section class="k k-at' + (nU ? ' hay' : '') + '"><div class="k-h">' + IC('alerta', 16) + '<span>Pide atención</span></div>' +
-        fila('urg', nU, 'con fecha en 3 días o menos', 'consultas, entrega, apertura…', 'am') + fila('sincr', nS, 'sin cronograma', 'anote las fechas del pliego', 'gr') + '</section></div></div>';
+      '<section class="k k-at' + (nU || nV ? ' hay' : '') + '"><div class="k-h">' + IC('alerta', 16) + '<span>Pide atención</span></div>' +
+        fila('urg', nU, 'con fecha en 3 días o menos', 'consultas, entrega, apertura…', 'am') + fila('venc', nV, 'con documentos vencidos', 'para la fecha de entrega', 'am') + fila('sincr', nS, 'sin cronograma', 'anote las fechas del pliego', 'gr') + '</section></div></div>';
   }
   function sel(k, ops, ph) { return '<select class="sel' + (F[k] ? ' on' : '') + '" data-li-sel="' + k + '" aria-label="' + ph + '"><option value="">' + ph + '</option>' + ops.map(function (o) { return '<option' + (F[k] === o ? ' selected' : '') + '>' + E(o) + '</option>'; }).join('') + '</select>'; }
   function barra(L, vis) {
@@ -99,17 +144,18 @@ var LIC59 = (function () {
         '<button type="button" class="fb-x" data-li="limpiar">Limpiar</button></div>' +
       '<div class="hbar" role="toolbar"><div class="tb-g"><span class="tb-l">' + IC('filtro', 13) + ' Filtrar</span>' + sel('etapa', ETAPAS, 'Etapa') + sel('asesor', ases, 'Asesor') + sel('modalidad', mods, 'Modalidad') +
         '<label class="chk"><input type="checkbox" id="lic-c"' + (F.cerradas ? ' checked' : '') + '> Ver cerradas</label></div><i class="tb-s"></i>' +
-        '<div class="tb-g"><span class="tb-l">Ver</span><div class="modo">' + MODOS.map(function (m) { return '<button type="button" data-li-modo="' + m[0] + '" class="' + (MODO === m[0] ? 'on' : '') + '">' + m[1] + '</button>'; }).join('') + '</div></div></div></div>';
+        '<div class="tb-g"><span class="tb-l">Ver</span><div class="modo">' + MODOS.map(function (m) { return '<button type="button" data-li-modo="' + m[0] + '" class="' + (MODO === m[0] ? 'on' : '') + '">' + m[1] + '</button>'; }).join('') + '</div></div><i class="tb-s"></i>' +
+        '<div class="tb-g"><button type="button" class="btn sm gh" data-li="bib">' + IC('clip', 14) + ' Documentos de la empresa</button></div></div></div>';
   }
   function etapaSel(o) { var x = l(o); return '<span class="etp"><span class="dot" style="background:' + COLOR[x.etapa] + '"></span><select class="sel" data-li-etapa="' + E(o.codigoPropuesta) + '" aria-label="Etapa">' + ETAPAS.map(function (e) { return '<option' + (e === x.etapa ? ' selected' : '') + '>' + E(e) + '</option>'; }).join('') + '</select></span>'; }
   function fechaHTML(o) { var p = proxima(o), d = p ? dias(p.fecha) : null; return '<button class="fecha-c' + (p ? '' : ' vac') + (d != null && d <= 3 ? ' venc' : '') + '" data-li="crono" data-c="' + E(o.codigoPropuesta) + '" title="Ver y cambiar el cronograma">' + IC('calendario', 13) + (p ? '<span><b>' + E(cuando(p.fecha)) + '</b> · ' + E(p.act) + '</span>' : 'Anotar fechas') + '</button>'; }
-  function expHTML(o) { var f = entrega(o), d = f ? dias(f) : null; return f ? '<span class="lic-ent' + (d != null && d >= 0 && d <= 3 ? ' venc' : '') + '"><b>' + E(MK.fechaCorta ? MK.fechaCorta(f) : f) + '</b><small>' + E(cuando(f)) + '</small></span>' : '<span class="muted">—</span>'; }
+  function expHTML(o) { var c = cuentaExp(o); return '<button class="lic-ex' + (c.ven ? ' ven' : c.n && c.ok >= c.n ? ' ok' : '') + '" data-li="exp" data-c="' + E(o.codigoPropuesta) + '" title="Ver el expediente"><i><s style="width:' + (c.n ? c.ok / c.n * 100 : 0) + '%"></s></i>' + c.ok + '/' + c.n + (c.ven ? ' · ' + c.ven + ' vencido' + (c.ven === 1 ? '' : 's') : '') + '</button>'; }
   function grupo(e, vis, cols) {
     var de = vis.filter(function (o) { return l(o).etapa === e; }), r = de.reduce(function (s, o) { return s + (Number(l(o).referencia) || 0); }, 0);
     return '<tr class="grp"><td colspan="' + cols + '"><button type="button" class="grp-b" data-li-grp="' + E(e) + '"><span class="car">' + (GRP[e] ? '▸' : '▾') + '</span><span class="dot" style="background:' + COLOR[e] + '"></span><b>' + E(e) + '</b><span class="grp-n">' + de.length + '</span><span class="sp"></span>' + (r ? '<span class="grp-v num">' + MK.dinero(r) + '</span>' : '') + '</button></td></tr>';
   }
   function tabla(vis) {
-    var h = '<div class="tbw c-tw"><table class="tb c-t lic-tb"><colgroup><col style="width:32%"><col style="width:190px"><col style="width:120px"><col><col style="width:170px"><col style="width:60px"></colgroup><thead><tr><th>Licitación</th><th>Etapa</th><th class="r">Referencia</th><th>Próxima fecha</th><th>Entrega</th><th class="c">Asesor</th></tr></thead><tbody>';
+    var h = '<div class="tbw c-tw"><table class="tb c-t lic-tb"><colgroup><col style="width:32%"><col style="width:190px"><col style="width:120px"><col><col style="width:170px"><col style="width:60px"></colgroup><thead><tr><th>Licitación</th><th>Etapa</th><th class="r">Referencia</th><th>Próxima fecha</th><th>Expediente</th><th class="c">Asesor</th></tr></thead><tbody>';
     h += vis.map(function (o, i) {
       var x = l(o), g = MODO === 'etapa' && (!i || l(vis[i - 1]).etapa !== x.etapa) ? grupo(x.etapa, vis, 6) : '';
       if (MODO === 'etapa' && GRP[x.etapa]) return g;
@@ -147,6 +193,112 @@ var LIC59 = (function () {
     };
   }
 
+  /* ── documentos de la empresa: se cargan una vez, con su vencimiento; los expedientes los toman de aquí ── */
+  function estadoBib(b) { var d = b.vence ? dias(b.vence) : null; return !b.archivoId ? ['Sin archivo', 't-gris'] : d == null ? ['Vigente', 't-ok'] : d < 0 ? ['Vencido', 't-bad'] : d <= 30 ? ['Vence ' + cuando(b.vence), 't-warn'] : ['Vigente', 't-ok']; }
+  function biblioteca(alVolver) {
+    cargarBib().then(function (lst) {
+      var ED = JSON.parse(JSON.stringify(lst));
+      var h = MK.hoja('<h2>Documentos de la empresa</h2><p class="small muted">Los que se repiten en cada licitación: se cargan una vez, con su vencimiento, y cada expediente los toma de aquí. Al vencer, se actualiza aquí y queda al día en todos. 30 días antes de vencer, cada uno deja un aviso en la Agenda.</p>' +
+        '<div style="overflow-x:auto"><table class="lc-t lic-bib"><thead><tr><th>Documento</th><th>Archivo</th><th>Vence</th><th>Estado</th><th></th></tr></thead><tbody id="bb-l"></tbody></table></div>' +
+        '<div class="lc-acc"><button class="btn sm" id="bb-mas">' + IC('mas', 13) + ' Agregar documento</button></div>' +
+        '<div class="pie"><button class="btn" id="bb-no">' + (alVolver ? 'Volver al expediente' : 'Cerrar') + '</button><button class="btn pri" id="bb-ok">Guardar</button></div>', { ancha: true });
+      var pin = function () {
+        h.querySelector('#bb-l').innerHTML = ED.map(function (b, i) { var e = estadoBib(b);
+          return '<tr><td><input class="in" data-bb="nombre" data-i="' + i + '" value="' + E(b.nombre) + '"></td><td><span class="lic-arch">' + (b.archivoId ? enlaceArc(b.archivoId, b.archivo) : b.subiendo ? '<span class="muted">Subiendo…</span>' : '<span class="muted">—</span>') + '</span>' +
+            '<label class="btn sm gh">' + IC('subir', 13) + (b.archivoId ? ' Actualizar' : ' Cargar') + '<input type="file" hidden data-bb-file="' + i + '"></label></td>' +
+            '<td><input class="in" type="date" data-bb="vence" data-i="' + i + '" value="' + E(b.vence || '') + '"></td><td><span class="tag ' + e[1] + '">' + E(e[0]) + '</span></td>' +
+            '<td class="c"><button class="btn sm gh" data-bb-del="' + i + '" aria-label="Quitar">' + IC('basura', 13) + '</button></td></tr>'; }).join('');
+      };
+      pin();
+      h.addEventListener('change', function (e) {
+        var t = e.target, k = t.getAttribute('data-bb'), f = t.getAttribute('data-bb-file');
+        if (k) { ED[Number(t.getAttribute('data-i'))][k] = t.value; if (k === 'vence') pin(); }
+        if (f != null && t.files && t.files[0]) {
+          var it = ED[Number(f)]; it.subiendo = true; pin();
+          subir(t.files[0]).then(function (a) { it.subiendo = false; it.archivoId = a.id; it.archivo = a.nombre; it.cargado = MK.hoy; pin(); }, function (er) { it.subiendo = false; pin(); MK.aviso(er.message); });
+        }
+      });
+      h.addEventListener('click', function (e) {
+        var d = e.target.closest('[data-bb-del]'); if (d) { ED.splice(Number(d.getAttribute('data-bb-del')), 1); pin(); }
+        if (e.target.closest('#bb-mas')) { ED.push({ id: 'DE-' + Date.now(), nombre: '', archivoId: '', archivo: '', vence: '' }); pin(); }
+      });
+      h.querySelector('#bb-no').onclick = function () { MK.cerrarHoja(); if (alVolver) alVolver(); };
+      h.querySelector('#bb-ok').onclick = function () {
+        var b = this;
+        if (ED.some(function (x) { return x.subiendo; })) { MK.aviso('Espere a que termine de subir el archivo.'); return; }
+        MK.ocupado(b, true, 'Guardando…');
+        guardarBib(ED.filter(function (x) { return String(x.nombre || '').trim(); })).then(function (r) {
+          MK.ocupado(b, false); MK.cerrarHoja(); MK.aviso('Documentos de la empresa guardados' + (r.avisos ? ' · ' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + ' de vencimiento en la Agenda' : '')); if (alVolver) alVolver(); else pintar(CONT);
+        }, function (e) { MK.ocupado(b, false); MK.aviso(e.message || 'Sin conexión'); });
+      };
+    });
+  }
+
+  /* ── expediente: lo que pide el pliego, en el orden en que se entrega; cada documento se toma de los de la empresa o se carga ── */
+  function sugerido(d) { var n = d.doc.toLowerCase(); return (BIB || []).filter(function (b) { var k = b.nombre.toLowerCase(); return k && (n.indexOf(k) >= 0 || k.indexOf(n) >= 0 || n.split(' (')[0] === k); })[0]; }
+  function expediente(cod) {
+    var o = porCod(cod), x = l(o);
+    cargarBib().then(function () {
+      var ex = JSON.parse(JSON.stringify(BORR[cod] || exp(o))), ent = entrega(o); delete BORR[cod];
+      ex.forEach(function (d) { if (!d.bib && !d.archivoId && d.estado !== 'No aplica') { var s = sugerido(d); if (s && s.archivoId) { d.bib = s.id; d.sug = true; } } });
+      var h = MK.hoja('<h2>Expediente de la propuesta</h2><p class="small muted">' + E(x.entidad || o.empresa) + ' · ' + E(x.acto || '') + (ent ? ' · entrega ' + E(MK.fechaLarga(ent)) : '') + '. La lista es la que pide el pliego, en el orden en que se entrega. Cada documento se toma de los de la empresa o se carga aquí.</p>' +
+        '<div class="row" style="margin:8px 0;gap:8px;flex-wrap:wrap"><b id="ex-n"></b><span class="sp"></span><button class="btn sm gh" id="ex-bib">' + IC('clip', 13) + ' Documentos de la empresa</button><button class="btn sm" id="ex-mas">' + IC('mas', 13) + ' Documento del pliego</button></div>' +
+        '<div style="overflow-x:auto"><table class="lc-t lic-exp"><thead><tr><th>#</th><th>Documento</th><th>Archivo</th><th>Estado</th><th></th></tr></thead><tbody id="ex-l"></tbody></table></div>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ex-ok">Guardar el expediente</button></div>', { ancha: true });
+      var pin = function () {
+        var ok = 0, n = 0;
+        h.querySelector('#ex-l').innerHTML = ex.map(function (d, i) {
+          var e = estadoDoc(d, o), b = d.bib ? bibDe(d.bib) : null; if (e !== 'No aplica') { n++; if (e === 'Listo') ok++; }
+          var arch = d.estado === 'No aplica' ? '<span class="muted">No aplica a este acto</span>' :
+            '<select class="sel" data-ex-bib="' + i + '"><option value="">' + (d.archivoId ? 'Cargado aquí' : 'Tomar de documentos de la empresa…') + '</option>' + (BIB || []).filter(function (z) { return z.archivoId; }).map(function (z) { return '<option value="' + E(z.id) + '"' + (d.bib === z.id ? ' selected' : '') + '>' + E(z.nombre) + (z.vence ? ' · vence ' + E(MK.fechaCorta(z.vence)) : '') + '</option>'; }).join('') + '</select>' +
+            '<div class="lic-arch">' + (b ? enlaceArc(b.archivoId, b.archivo) + (d.sug ? ' <span class="tag t-info">sugerido</span>' : '') : d.bib ? '<span class="muted">ya no está en los documentos de la empresa</span>' : d.archivoId ? enlaceArc(d.archivoId, d.archivo) : d.subiendo ? '<span class="muted">Subiendo…</span>' : '') + '<label class="btn sm gh">' + IC('subir', 12) + ' Cargar<input type="file" hidden data-ex-file="' + i + '"></label></div>';
+          if (d.pend) arch = '<div class="lic-pend">' + IC('clip', 12) + ' <b>' + E(d.pend) + '</b><span>¿Guardarlo también en los documentos de la empresa, para otras licitaciones?</span><button class="btn sm pri" data-ex-pend="si" data-i="' + i + '">Sí, guardarlo</button><button class="btn sm" data-ex-pend="no" data-i="' + i + '">Solo para este acto</button></div>';
+          var cls = { 'Listo': 't-ok', 'Vencido': 't-bad', 'Pendiente': 't-warn', 'No aplica': 't-gris' }[e];
+          return '<tr class="' + (e === 'No aplica' ? 'off' : '') + '"><td class="c"><b>' + (i + 1) + '</b></td><td style="min-width:220px"><input class="in" data-ex="doc" data-i="' + i + '" value="' + E(d.doc) + '"></td><td style="min-width:260px">' + arch + '</td>' +
+            '<td><span class="tag ' + cls + '">' + e + '</span>' + (e === 'Vencido' ? '<div class="small" style="color:var(--bad)">vence antes de la entrega</div>' : '') + '<label class="chk small" style="margin-top:4px"><input type="checkbox" data-ex-na="' + i + '"' + (d.estado === 'No aplica' ? ' checked' : '') + '> No aplica</label></td>' +
+            '<td class="c" style="white-space:nowrap"><button class="btn sm gh" data-ex-mov="-1" data-i="' + i + '" aria-label="Subir"' + (i ? '' : ' disabled') + '>▲</button><button class="btn sm gh" data-ex-mov="1" data-i="' + i + '" aria-label="Bajar"' + (i < ex.length - 1 ? '' : ' disabled') + '>▼</button><button class="btn sm gh" data-ex-del="' + i + '" aria-label="Quitar">' + IC('basura', 13) + '</button></td></tr>';
+        }).join('');
+        h.querySelector('#ex-n').textContent = ok + ' de ' + n + ' listos';
+      };
+      pin();
+      h.addEventListener('change', function (e) {
+        var t = e.target, i;
+        if (t.hasAttribute('data-ex')) { ex[Number(t.getAttribute('data-i'))].doc = t.value; return; }
+        if ((i = t.getAttribute('data-ex-bib')) != null) { ex[Number(i)].bib = t.value; ex[Number(i)].sug = false; if (t.value) { ex[Number(i)].archivoId = ''; ex[Number(i)].archivo = ''; } pin(); }
+        if ((i = t.getAttribute('data-ex-na')) != null) { ex[Number(i)].estado = t.checked ? 'No aplica' : 'Pendiente'; pin(); }
+        if ((i = t.getAttribute('data-ex-file')) != null && t.files && t.files[0]) {
+          var dd = ex[Number(i)]; dd.subiendo = true; pin();
+          subir(t.files[0]).then(function (a) { dd.subiendo = false; dd.pend = a.nombre; dd.pendId = a.id; pin(); }, function (er) { dd.subiendo = false; pin(); MK.aviso(er.message); });
+        }
+      });
+      h.addEventListener('click', function (e) {
+        var p = e.target.closest('[data-ex-pend]');
+        if (p) {   // un archivo cargado aquí: ¿también a los documentos de la empresa?
+          var d = ex[Number(p.getAttribute('data-i'))], nom = d.pend, aid = d.pendId; delete d.pend; delete d.pendId;
+          if (p.getAttribute('data-ex-pend') === 'si') {
+            var nuevo = { id: 'DE-' + Date.now(), nombre: d.doc.split(' (')[0] || nom, archivoId: aid, archivo: nom, vence: '' };
+            d.bib = nuevo.id; d.archivoId = ''; d.archivo = '';
+            guardarBib((BIB || []).concat([nuevo])).then(function () { MK.aviso('Guardado también en los documentos de la empresa. Anote su vencimiento allí.'); pin(); }, function (er) { d.bib = ''; d.archivoId = aid; d.archivo = nom; pin(); MK.aviso(er.message); });
+          }
+          else { d.archivoId = aid; d.archivo = nom; d.bib = ''; }
+          d.sug = false; pin(); return;
+        }
+        var b = e.target.closest('[data-ex-mov],[data-ex-del],#ex-mas,#ex-bib'); if (!b) return;
+        if (b.id === 'ex-bib') { BORR[cod] = ex; biblioteca(function () { expediente(cod); }); return; }
+        if (b.id === 'ex-mas') ex.push({ doc: '', estado: 'Pendiente', bib: '', archivoId: '', archivo: '' });
+        else if (b.hasAttribute('data-ex-del')) ex.splice(Number(b.getAttribute('data-ex-del')), 1);
+        else { var i = Number(b.getAttribute('data-i')), j = i + Number(b.getAttribute('data-ex-mov')), t = ex[i]; ex[i] = ex[j]; ex[j] = t; }
+        pin();
+      });
+      h.querySelector('#ex-ok').onclick = function () {
+        if (ex.some(function (d) { return d.subiendo || d.pend; })) { MK.aviso('Primero termine con el archivo que está cargando.'); return; }
+        var b = this, lista = ex.filter(function (d) { return String(d.doc || '').trim(); }).map(function (d) { var e = estadoDoc(d, o); return { doc: d.doc, bib: d.bib || '', archivoId: d.bib ? '' : d.archivoId || '', estado: e === 'No aplica' ? 'No aplica' : e === 'Listo' ? 'Listo' : 'Pendiente' }; });
+        MK.ocupado(b, true, 'Guardando…');
+        guardar(o, 'Expediente guardado', { expediente: lista }).then(function (ok) { MK.ocupado(b, false); if (ok) MK.cerrarHoja(); });
+      };
+    });
+  }
+
   /* ── cambiar de etapa; las cerradas piden el motivo ── */
   function etapa(cod, e, sel) {
     var o = porCod(cod), x = l(o), antes = x.etapa;
@@ -164,6 +316,7 @@ var LIC59 = (function () {
 
   /* ── eventos (una sola vez) ── */
   document.addEventListener('click', function (e) {
+    var v = e.target.closest('[data-lic-ver]'); if (v) { e.preventDefault(); ver(v.getAttribute('data-lic-ver')); return; }
     if (!CONT || !CONT.contains(e.target)) return;
     var b;
     if ((b = e.target.closest('[data-li-et]'))) { var v = b.getAttribute('data-li-et'); F.etapa = F.etapa === v ? '' : v; if (ABIERTAS.indexOf(v) < 0 && F.etapa) F.cerradas = true; return pintar(CONT); }
@@ -173,7 +326,9 @@ var LIC59 = (function () {
     if (!(b = e.target.closest('[data-li]'))) return;
     var a = b.getAttribute('data-li'), c = b.getAttribute('data-c');
     if (a === 'crono') cronograma(c);
-    else if (a === 'limpiar') { F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, sincr: false }; pintar(CONT); }
+    else if (a === 'exp') expediente(c);
+    else if (a === 'bib') biblioteca();
+    else if (a === 'limpiar') { F = { q: '', etapa: '', asesor: '', modalidad: '', cerradas: false, urg: false, venc: false, sincr: false }; pintar(CONT); }
   });
   document.addEventListener('change', function (e) {
     if (!CONT || !CONT.contains(e.target)) return;
@@ -644,6 +799,7 @@ body.op-tablero .ord-m{display:none}
 }
 </style>
 <style id="estilo-lic65">.lic-ent{display:flex;flex-direction:column;line-height:1.25}.lic-ent b{font-size:13px}.lic-ent small{font-size:11.5px;color:var(--muted)}.lic-ent.venc b{color:var(--bad)}</style>
+<style id="estilo-lic66">@media (max-width:760px){.lic-exp thead,.lic-exp+thead{display:none}.lic-exp,.lic-exp tbody{display:block;width:100%}.lic-exp tr{display:grid;grid-template-columns:26px minmax(0,1fr);gap:6px 8px;padding:10px 0;border-bottom:1px solid var(--line2)}.lic-exp td{display:block;border:0;padding:0;min-width:0!important;white-space:normal!important}.lic-exp td:nth-child(n+3){grid-column:2}.lic-exp td:last-child{display:flex;gap:4px;justify-content:flex-end}.lic-exp .in,.lic-exp .sel{width:100%}.lic-bib thead{display:none}.lic-bib,.lic-bib tbody{display:block;width:100%}.lic-bib tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;padding:10px 0;border-bottom:1px solid var(--line2)}.lic-bib td{display:block;border:0;padding:0}.lic-bib td:first-child{grid-column:1/-1}.lic-bib .in{width:100%}}</style>
 </head>
 <body class="mk">
 <script src="cargador.js" data-modulo="Mercadeo"></script>
@@ -872,7 +1028,7 @@ body.op-tablero .ord-m{display:none}
     document.body.classList.toggle('op-tablero', VISTA === 'embudo' && MODO === 'tablero');
     $('v-embudo').hidden = VISTA !== 'embudo'; $('v-tabla').hidden = VISTA !== 'embudo'; $('v-completar').hidden = VISTA !== 'completar'; $('v-lic').hidden = VISTA !== 'licitaciones';
     document.body.classList.toggle('lic-on', VISTA === 'licitaciones');
-    if (VISTA === 'licitaciones') { LIC59.pintar($('v-lic'), OPS); return; }
+    if (VISTA === 'licitaciones') { LIC59.pintar($('v-lic'), OPS, D && D.docsEmpresa); return; }
     if (VISTA === 'completar') { var nc = OPS.filter(function (o) { return o.porCompletar && coincide(o); }).length; $('lh-t').innerHTML = '<b>' + nc + ' por completar</b><span>· capturas rápidas a las que les faltan datos</span>'; $('fb-n').textContent = ''; pintarCompletar(); return; }
     pintarPronostico();
     pintarTabla();
