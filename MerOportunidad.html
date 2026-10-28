@@ -303,6 +303,34 @@
 .promo-ok .pi{color:var(--muted);font-size:12px}
 .hint2 .tag{font-size:11px;white-space:normal}
 </style>
+<style id="estilo-367">
+.lc-ren td:nth-child(2){min-width:240px}
+.lc-fz{border:1px solid var(--line2);border-radius:10px;padding:10px 12px}.lc-fz small{display:block;color:var(--muted);font-size:12px}
+.lc-rg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.lc-rg .sel{font-size:12px;padding:5px 6px}
+@media(max-width:760px){.lc-rg{grid-template-columns:1fr}}
+.lc-ren td:nth-child(2){min-width:360px}
+.lc-ren td:nth-child(3) .sel{min-width:100px}
+.pe-or{display:grid;gap:6px}.pe-or>div{display:grid;grid-template-columns:150px 1fr;gap:2px 10px;border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font-size:13px}
+.pe-or small{color:var(--muted);font-size:11.5px}.pe-or b{font-size:13px}.pe-or span{grid-column:2;font-size:11.5px;color:#1d6b3a}
+.pe-doc{border:1px solid var(--line);border-radius:6px;background:#fff;padding:18px 20px;font:13px/1.5 Georgia,'Times New Roman',serif;color:#111;box-shadow:0 2px 8px rgba(15,33,64,.08)}
+.pe-h{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px;text-align:center}.pe-h b{font-size:15px;letter-spacing:1px}
+.pe-doc p{margin:6px 0}
+.pe-t{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}.pe-t th,.pe-t td{border:1px solid #bbb;padding:4px 6px;text-align:left}.pe-t th{background:#f2f2f2}
+.pe-t .r{text-align:right}.pe-t tfoot td{font-weight:600}.pe-t tr.tot td{font-weight:800}
+.pe-f{display:flex;justify-content:space-between;align-items:flex-end;margin-top:26px}.pe-fi{text-align:center;border-top:1px solid #333;padding-top:4px;min-width:200px}
+.pe-src{font-size:12px;color:#3a4a63}
+.pe-peso{margin:0 0 0 18px;padding:0;font-size:13px}.pe-peso li{margin:6px 0}
+.l7-bar{display:none;align-items:center;gap:8px;position:sticky;top:64px;z-index:5;background:#fff7e0;border:1px solid #f0d48a;border-radius:12px;padding:8px 12px;margin-bottom:12px;font-size:13px;font-weight:600;color:#7a4f00}
+.l7-bar.si{display:flex}.l7-bar .sp{flex:1}
+.l7-tw{overflow-x:auto}
+.lc-ren .lc-pr{width:110px}
+@media(max-width:760px){.l7-bar{top:56px;flex-wrap:wrap}.lc-ren td:nth-child(2){min-width:260px}.pe-doc{padding:12px;font-size:12px}.pe-t{font-size:11px}.pe-or>div{grid-template-columns:1fr}.pe-or span{grid-column:1}}
+.lc-ren tfoot .sel{width:auto;display:inline-block;margin-left:6px}
+.lc-ren td:nth-child(2){min-width:300px}.lc-ren td:nth-child(3) .sel{width:110px;min-width:0}.lc-ren .lc-n{width:80px}.lc-ren .lc-pr{width:96px}.lc-ren .lc-rg .sel{min-width:0}
+@media(max-width:760px){.pe-doc{overflow-x:auto}.pe-t{min-width:520px}}
+
+</style>
 </head>
 <body class="mk">
 <script src="cargador.js" data-modulo="Mercadeo"></script>
@@ -487,6 +515,7 @@
   function sigue() {
     var e = OP.estado, u = unica();
     var docsC = 5 - docsContratoFaltan().length, datosC = REQ.length - reqFaltan().length;
+    if (OP.licitacion) return { t: 'Ver en Licitaciones', ic: 'calendario', fn: function () { location.href = 'MerOportunidades.html?vista=licitaciones'; }, d: 'La etapa, el cronograma y el expediente se llevan en Oportunidades › Licitaciones; aquí se arma la oferta.' };   // api 3.67
     if (GER) return { t: 'Ver propuesta', ic: 'ojo', fn: verPropuesta, d: 'Estás en modo consulta. La edición corresponde a mercadeo.' };
     if (OP.gran && ['Registrado', 'Formulario enviado', 'Formulario recibido'].indexOf(e) >= 0)
       return { t: 'Armar la cuenta', ic: 'edificio', fn: function () { location.href = 'MerCuenta.html?id=' + encodeURIComponent(COD); }, d: 'Sedes, precio, servicios y facturación, paso a paso. Al enviarla desde allí pasa sola a «Propuesta enviada».' };
@@ -531,6 +560,13 @@
       '<div><small>Probabilidad</small><b>' + MK.num(o.probabilidad) + ' %</b></div>' +
       '<div><small>Valor ponderado</small><b>' + MK.dinero(o.ponderado) + '</b></div>' +
       '<div><small>En esta etapa</small><b class="' + (o.excedido && o.abierta ? 'down' : '') + '">' + o.diasEtapa + ' día' + (o.diasEtapa === 1 ? '' : 's') + '</b></div></div>';
+    if (o.licitacion) {   // api 3.67: las cifras de una licitación
+      var lv = (o.licitacion.prop && o.licitacion.prop.versiones || []).filter(function (x) { return x.estado === 'vigente'; })[0];
+      mets = '<div class="mets"><div><small>Oferta vigente</small><b>' + (lv ? MK.dinero(lv.tot.tot) : '—') + '</b></div>' +
+        '<div><small>Precio de referencia</small><b>' + (o.licitacion.referencia ? MK.dinero(Number(o.licitacion.referencia)) : '—') + '</b></div>' +
+        '<div><small>Entrega</small><b>' + (o.licitacion.entrega ? MK.fechaCorta(o.licitacion.entrega) : '—') + '</b></div>' +
+        '<div><small>Etapa</small><b>' + E(o.licitacion.etapa || '') + '</b></div></div>';
+    }
     var sub = [E(COD)];
     if (o['razon social']) sub.push(E(o['razon social']));
     if (o.zona) sub.push(E(o.zona));
@@ -551,17 +587,17 @@
       var st = !fuera && i < idx ? 'hecho' : i === idx ? 'actual' : '';
       return '<button class="st ' + st + '" data-etapa="' + E(e) + '"' + (bloqEtapa ? ' disabled' : '') + ' title="' + (i === idx ? 'Etapa actual' : 'Mover a «' + E(e) + '»') + '"><span class="n">' + (st === 'hecho' ? IC('check', 12) : i + 1) + '</span><span>' + E(e) + '</span></button>';
     }).join('') + '</div>';
-    var acc = GER ? '<button class="btn sm" data-a="contrato">' + IC('contrato', 14) + ' Revisar contrato</button>'
+    var acc = o.licitacion ? (GER ? '' : '<button class="btn sm" data-a="actividad">' + IC('nota', 14) + ' Registrar actividad</button>') : GER ? '<button class="btn sm" data-a="contrato">' + IC('contrato', 14) + ' Revisar contrato</button>'
       : '<button class="btn sm" data-a="actividad">' + IC('nota', 14) + ' Registrar actividad</button>' +
         (o.abierta && !bloqEtapa ? '<button class="btn sm" data-a="ganada">' + IC('estrella', 14) + ' Ganada</button><button class="btn sm" data-a="perdida">' + IC('x', 14) + ' Perdida</button>' +
           (o.estado !== 'Stand-by' ? '<button class="btn sm" data-a="standby">' + IC('reloj', 14) + ' Stand-by</button>' : '') : '') +
         /* api 3.13: una sede es cliente normal; con otra sede pasa a «cuenta con 2 sedes» */
         (!o.gran && !u && o.abierta && !bloqEtapa && !enContrato() ? '<button class="btn sm" data-a="pasar-gran">' + IC('edificio', 14) + ' Agregar otra sede</button>' : '');
     $('tarj').innerHTML = '<div class="hd"><div class="logo">' + E(MK.ini(o.empresa)) + '</div><div class="tt"><h1>' + E(o.empresa || '(sin nombre)') + '</h1><div class="sub">' + sub.join(' · ') + '</div>' +
-      '<div class="tags"><span class="tag t-info">' + (u ? 'VISITA ÚNICA' : 'RECURRENTE') + '</span>' + (o.sector ? '<span class="tag t-gris">' + E(o.sector) + '</span>' : '') +
-      (o.fuente ? '<span class="tag t-gris">' + IC('personas', 12) + ' ' + E(o.fuente) + '</span>' : '') + MK.ETAPA_TAG(o.estado) + tagsEstado() + '</div></div>' + mets + '</div>' +
+      '<div class="tags"><span class="tag t-info">' + (o.licitacion ? 'LICITACIÓN' : u ? 'VISITA ÚNICA' : 'RECURRENTE') + '</span>' + (o.sector ? '<span class="tag t-gris">' + E(o.sector) + '</span>' : '') +
+      (o.fuente ? '<span class="tag t-gris">' + IC('personas', 12) + ' ' + E(o.fuente) + '</span>' : '') + (o.licitacion ? '' : MK.ETAPA_TAG(o.estado) + tagsEstado()) + '</div></div>' + mets + '</div>' +
       '<div class="info">' + cont + tar + '</div>' +
-      '<div class="stgw">' + stg + '</div>' +
+      (o.licitacion ? '' : '<div class="stgw">' + stg + '</div>') +
       '<div class="b-bar"><div class="auto">' + IC('renovar', 14) + '<span>' + s.d + '</span></div><div class="acc">' + acc + '</div>' +
       '<button class="btn pri sigue" data-a="sigue">' + IC(s.ic, 16) + ' ' + E(s.t) + '</button></div>';
     var act = $('stg') && $('stg').querySelector('.actual'); if (act && act.scrollIntoView && window.innerWidth < 900) { var st = $('stg'); st.scrollLeft = Math.max(0, act.offsetLeft - 40); }
@@ -570,7 +606,8 @@
 
   function pintarFija() {
     var s = sigue();
-    $('fija').innerHTML = '<div class="nm"><b>' + E(OP.empresa || COD) + '</b>' + MK.ETAPA_TAG(OP.estado) + '<small>' + MK.dinero(OP.ponderado) + ' ponderado</small></div>' +
+    var lv7 = OP.licitacion && ((OP.licitacion.prop && OP.licitacion.prop.versiones) || []).filter(function (x) { return x.estado === 'vigente'; })[0];   // api 3.67
+    $('fija').innerHTML = '<div class="nm"><b>' + E(OP.empresa || COD) + '</b>' + (OP.licitacion ? '<span class="tag t-info">' + E(OP.licitacion.etapa || '') + '</span><small>' + (lv7 ? 'Oferta ' + MK.dinero(lv7.tot.tot) : 'Oferta sin generar') + '</small>' : MK.ETAPA_TAG(OP.estado) + '<small>' + MK.dinero(OP.ponderado) + ' ponderado</small>') + '</div>' +
       '<button class="btn pri sm sigue" data-a="sigue">' + IC(s.ic, 15) + '<span class="tx2"> ' + E(s.t) + '</span></button>';
   }
   function verFija() {
@@ -627,6 +664,10 @@
       ['documentos', 'Documentos', docsSi() + '/' + listaDocs().length],
       ['contrato', 'Contrato', u ? 'no aplica' : (REQ.length - reqFaltan().length) + '/' + REQ.length],
       ['actividad', 'Actividad', String((D.linea || []).filter(function (a) { return /^\d{4}-\d{2}-\d{2}/.test(a.fecha || ''); }).length)]];
+    if (OP.licitacion && window.LIC67) {   // api 3.67: una licitación no lleva enlace del cliente, formulario ni contrato de cliente privado
+      tabs = [['contratado', 'Lo contratado', LIC67.contador()], ['propuesta', 'Propuesta económica', LIC67.contadorProp()], ['expediente', 'Expediente final', LIC67.contadorExp()], tabs[tabs.length - 1]];
+      if (['contratado', 'propuesta', 'expediente', 'actividad'].indexOf(TAB) < 0) TAB = 'contratado';
+    }
     /* Si ya están pintadas, solo se actualizan en su sitio: rehacerlas al salir de un campo
        (evento change) borraba el botón que se estaba tocando y el clic en la pestaña se perdía. */
     var bs = $('tabs').querySelectorAll('button[data-tab]');
@@ -669,6 +710,8 @@
   window.MO49 = { D: function () { return D; }, COD: COD, ro: function () { return ro(); }, card: function (a, b, c) { return card(a, b, c); }, pintar: function () { pintarPanel(); }, tabs: function () { pintarTabs(); }, tab: function () { return TAB; }, srv: function () { return serviciosCard(); } };
   function pintarPanel() {
     var p = $('panel');
+    if (OP.licitacion && window.LIC67 && ['contratado', 'propuesta', 'expediente', 'actividad'].indexOf(TAB) < 0) TAB = 'contratado';
+    if (OP.licitacion && window.LIC67 && TAB !== 'actividad') { p.innerHTML = TAB === 'propuesta' ? LIC67.propuesta() : TAB === 'expediente' ? LIC67.expediente() : LIC67.contratado(); LIC67.enganchar(p); MK.activarChips(p); return; }   // api 3.67
     if (TAB === 'resumen') p.innerHTML = tabResumen();
     else if (TAB === 'propuesta') p.innerHTML = tabPropuesta();
     else if (TAB === 'contratado') { p.innerHTML = LC62.tab(); LC62.enganchar(p); }
@@ -2872,6 +2915,383 @@ var LC62 = (function () {
   }
   function sinRegla() { return !C62().regla; }
   return { tab: tab, enganchar: enganchar, contador: contador, cadena: cadena, datos: datos, sinRegla: sinRegla };
+})();
+
+</script>
+<script id="js-367">
+/* ═══ api 3.67 · Licitaciones parte 4c: la oferta, en la ficha de la licitación (maqueta Oportunidades › ficha) ═══
+   Una licitación tiene sus propias pestañas: «Lo contratado» (el acto y sus adendas al pliego, los lugares que fija el pliego, los
+   renglones con su precio e ITBMS, y las fianzas), «Propuesta económica» (se llena sola con los datos de la empresa y los renglones; se
+   genera por versiones en el servidor; cada versión se ve, se descarga en PDF o se borra con su motivo) y «Expediente final» (un solo
+   PDF en el orden del pliego: documentos de la empresa, lo cargado para el acto y la propuesta vigente). La etapa y el cronograma
+   siguen en Oportunidades › Licitaciones. El contrato y el cobro a la entidad llegan en la parte 4d. */
+var LIC67 = (function () {
+  var E = MK.esc, IC = MK.ic;
+  var MODAL = ['Licitación pública', 'Licitación por mejor valor', 'Contratación menor', 'Procedimiento excepcional', 'Convenio marco'];
+  var TIPO_R = [['peligrosos', 'Desechos peligrosos'], ['solidos', 'Desechos sólidos'], ['fumigacion', 'Fumigación'], ['insumo', 'Insumo'], ['otro', 'Otro']];
+  var FREC_L = ['Diaria', 'Semanal', '2 veces por semana', 'Quincenal', 'Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Una vez', 'A solicitud'];
+  var UNID = [['servicio', 'Servicio'], ['mes', 'Mes'], ['kg', 'kg'], ['unidad', 'Unidad'], ['visita', 'Visita']];
+  var FZ_EST = ['Por tramitar', 'Tramitada', 'Entregada', 'Devuelta'];
+  var S = null, BASE = '', SUCIO = false;
+
+  function D() { return MO49.D(); }
+  function OP() { return D().oportunidad || {}; }
+  function es() { return !!OP().licitacion; }
+  function ro() { return MO49.ro() || !!(MK.usuario && MK.usuario.rol === 'gerente'); }
+  function EMP() { return D().empresaLic || {}; }
+  function dinero(v) { var n = Number(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) || !String(v).trim() ? '' : MK.dinero(n); }
+  function sel(attr, ops, val) {
+    return '<select class="sel" ' + attr + '>' + ops.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + E(v) + '"' + (String(val) === String(v) ? ' selected' : '') + '>' + E(t) + '</option>'; }).join('') + '</select>';
+  }
+
+  /* ── la copia de trabajo: lo guardado, con lo que falta puesto por defecto ── */
+  function lic() {
+    var l0 = OP().licitacion || {}, k = JSON.stringify(l0);
+    if (!S || (k !== BASE && !SUCIO)) {
+      BASE = k; SUCIO = false;
+      var l = JSON.parse(k);
+      l.adendasPliego = l.adendasPliego || [];
+      l.lugares = l.lugares && l.lugares.length ? l.lugares : [{ nombre: '', direccion: '' }];
+      l.renglones = l.renglones && l.renglones.length ? l.renglones : [{ desc: 'Recolección, transporte y tratamiento de desechos hospitalarios peligrosos', tipo: 'peligrosos', lugar: 'todos', frec: 'Semanal', unidad: 'kg', cantidad: '', precio: '' }];
+      l.itbms = l.itbms || '7';
+      var fz0 = { pide: 'no', monto: '', vigencia: '', estado: 'Por tramitar' };
+      l.fz = l.fz || {}; l.fz.prop = Object.assign({}, fz0, l.fz.prop); l.fz.cump = Object.assign({}, fz0, l.fz.cump);
+      l.prop = Object.assign({ validez: '90', plazo: '12 meses', lugar: 'Panamá', obs: '', versiones: [] }, l.prop || {});
+      S = l;
+    }
+    return S;
+  }
+  function lp(path, v) {   // leer o poner un dato por su ruta: «fz.prop.pide», «renglones.2.precio»
+    var k = path.split('.'), x = lic();
+    for (var i = 0; i < k.length - 1; i++) x = x[k[i]];
+    if (arguments.length > 1) x[k[k.length - 1]] = v;
+    return x[k[k.length - 1]];
+  }
+  function li(path, lb, o) {
+    o = o || {}; var dis = ro() ? ' disabled' : '';
+    var inp = o.ops ? sel('data-l="' + path + '"' + dis, o.ops, lp(path)) : '<input class="in' + (o.cls ? ' ' + o.cls : '') + '" data-l="' + path + '" value="' + E(lp(path) == null ? '' : lp(path)) + '"' + (o.t ? ' type="' + o.t + '"' : '') + ' placeholder="' + E(o.ph || '') + '"' + (o.dec ? ' inputmode="decimal"' : '') + dis + '>';
+    return lb ? '<div><label class="lb">' + lb + '</label>' + inp + '</div>' : inp;
+  }
+  function chipL(path, ops) { var v = lp(path), dis = ro() ? ' disabled' : ''; return '<div class="lc-ch">' + ops.map(function (o) { return '<button type="button" data-l7="chip" data-k="' + path + '" data-v="' + o[0] + '" class="' + (String(v) === o[0] ? 'on' : '') + '"' + dis + '>' + o[1] + '</button>'; }).join('') + '</div>'; }
+  function quitar(k, i) { return ro() ? '' : '<button class="btn sm gh" data-l7="del" data-k="' + k + '" data-i="' + i + '" aria-label="Quitar">' + IC('basura', 13) + '</button>'; }
+  function agregar(k, t) { return ro() ? '' : '<div class="lc-acc"><button class="btn sm" data-l7="add" data-k="' + k + '">' + IC('mas', 13) + ' ' + t + '</button></div>'; }
+  function nomLugar(v) { var l = lic(); return v === 'todos' ? 'Todos los lugares' : (l.lugares[Number(v)] || {}).nombre || 'Lugar ' + (Number(v) + 1); }
+  function totales() { var l = lic(), sub = l.renglones.reduce(function (s, r) { return s + (Number(r.cantidad) || 0) * (Number(r.precio) || 0); }, 0), itb = l.itbms === '7' ? sub * 0.07 : 0; return { sub: sub, itb: itb, tot: sub + itb }; }
+  function firmaRen() { var l = lic(); return JSON.stringify([l.renglones.map(function (r) { return [r.desc, r.unidad, Number(r.cantidad) || '', Number(r.precio) || '', r.lugar]; }), l.itbms]); }
+  function firmaV(v) { try { var f = JSON.parse(v.firma); return JSON.stringify([f[0].map(function (r) { return [r[0], r[1], Number(r[2]) || '', Number(r[3]) || '', r[4]]; }), f[1]]); } catch (e) { return ''; } }
+  function vigente() { return lic().prop.versiones.filter(function (v) { return v.estado === 'vigente'; })[0]; }
+  function barraGuardar() {
+    return ro() ? '' : '<div class="l7-bar' + (SUCIO ? ' si' : '') + '" id="l7-bar"><span>' + IC('alerta', 15) + ' Cambios de la oferta sin guardar</span><span class="sp"></span><button class="btn sm" data-l7="descartar">Descartar</button><button class="btn sm pri" data-l7="guardar">' + IC('check', 14) + ' Guardar la oferta</button></div>';
+  }
+
+  /* ═════ «Lo contratado» de una licitación ═════ */
+  function acto() {
+    var l = lic();
+    return MO49.card('Acto público y pliego', '<div class="grid g3" style="gap:10px">' + li('acto', 'N.º DE ACTO', { ph: '2026-0-00-0-00-LP-000000' }) + li('entidad', 'ENTIDAD') + li('modalidad', 'MODALIDAD', { ops: MODAL }) +
+        li('objeto', 'QUÉ SE LICITA') + li('referencia', 'PRECIO DE REFERENCIA (B/.)', { dec: true }) + li('enlace', 'ENLACE EN PANAMACOMPRA', { ph: 'https://www.panamacompra.gob.pa/…' }) + '</div>' +
+      '<p class="small muted" style="margin:8px 0 0">La entrega y las demás fechas del acto se cambian en el cronograma (Oportunidades › Licitaciones).' + (l.entrega ? ' Entrega: <b>' + E(MK.fechaLarga(l.entrega)) + '</b>.' : '') + '</p>' +
+      '<h4 class="lc-h4">Adendas al pliego</h4>' + (l.adendasPliego.length ? '<table class="lc-t"><thead><tr><th>N.º</th><th>Fecha</th><th>Qué cambia</th><th></th></tr></thead><tbody>' + l.adendasPliego.map(function (a, i) {
+        return '<tr><td style="width:90px">' + li('adendasPliego.' + i + '.num', '', { cls: 'lc-n' }) + '</td><td style="width:160px">' + li('adendasPliego.' + i + '.fecha', '', { t: 'date' }) + '</td><td>' + li('adendasPliego.' + i + '.que', '', { ph: 'Cambio de fecha, de cantidades, de lugares…' }) + '</td><td class="c">' + quitar('adendasPliego', i) + '</td></tr>';
+      }).join('') + '</tbody></table>' : '<p class="small muted">Ninguna. Si la entidad publica una adenda, se anota aquí y se ajustan los lugares y renglones.</p>') + agregar('adendasPliego', 'Adenda al pliego'));
+  }
+  function lugares() {
+    var l = lic();
+    return MO49.card('Lugares según el pliego', '<p class="small muted" style="margin:-4px 0 8px">No son sedes de un cliente privado: son los lugares que fija el pliego. Cambian solo con una adenda.</p>' +
+      '<table class="lc-t"><thead><tr><th>#</th><th>Lugar</th><th>Dirección</th><th></th></tr></thead><tbody>' + l.lugares.map(function (z, i) {
+        return '<tr><td class="c" style="width:30px"><b>' + (i + 1) + '</b></td><td>' + li('lugares.' + i + '.nombre', '', { ph: 'Como lo nombra el pliego' }) + '</td><td>' + li('lugares.' + i + '.direccion', '', { ph: 'Dirección del pliego' }) + '</td><td class="c">' + (l.lugares.length > 1 ? quitar('lugares', i) : '') + '</td></tr>';
+      }).join('') + '</tbody></table>' + agregar('lugares', 'Lugar del pliego'), '<span class="muted small">' + l.lugares.length + (l.lugares.length === 1 ? ' lugar' : ' lugares') + '</span>');
+  }
+  function renglones() {
+    var l = lic(), t = totales(), lug = [['todos', 'Todos los lugares']].concat(l.lugares.map(function (z, i) { return [String(i), z.nombre || 'Lugar ' + (i + 1)]; }));
+    var filas = l.renglones.map(function (r, i) {
+      var tt = (Number(r.cantidad) || 0) * (Number(r.precio) || 0), p = 'renglones.' + i + '.';
+      return '<tr><td class="c"><b>' + (i + 1) + '</b></td><td>' + li(p + 'desc') + '<div class="lc-rg">' + li(p + 'tipo', '', { ops: TIPO_R }) + li(p + 'lugar', '', { ops: lug }) + li(p + 'frec', '', { ops: FREC_L }) + '</div></td>' +
+        '<td>' + li(p + 'unidad', '', { ops: UNID }) + '</td><td>' + li(p + 'cantidad', '', { cls: 'lc-n', dec: true }) + '</td><td>' + li(p + 'precio', '', { cls: 'lc-pr', ph: 'B/.', dec: true }) + '</td>' +
+        '<td class="r num" data-rt="' + i + '"><b>' + (tt ? MK.dinero(tt) : '—') + '</b></td><td class="c">' + (l.renglones.length > 1 ? quitar('renglones', i) : '') + '</td></tr>';
+    }).join('');
+    return MO49.card('Renglones del pliego', '<p class="small muted" style="margin:-4px 0 8px">Cada renglón dice qué se da, en qué lugar y cada cuánto, como lo pide el pliego. De aquí sale la propuesta económica (y, al ganarla, lo que se programa).</p>' +
+      '<div class="l7-tw"><table class="lc-t lc-ren"><thead><tr><th class="c">N.º</th><th>Descripción · tipo · lugar · frecuencia</th><th>Unidad</th><th>Cantidad</th><th>Precio unitario</th><th class="r">Total</th><th></th></tr></thead><tbody>' + filas + '</tbody>' +
+      '<tfoot><tr><td colspan="5" class="r">Subtotal</td><td class="r num" id="l7-sub">' + MK.dinero(t.sub) + '</td><td></td></tr><tr><td colspan="5" class="r">ITBMS ' + li('itbms', '', { ops: [['7', '7 %'], ['exento', 'Exento']] }) + '</td><td class="r num" id="l7-itb">' + MK.dinero(t.itb) + '</td><td></td></tr>' +
+      '<tr class="tot"><td colspan="5" class="r">Total de la propuesta</td><td class="r num" id="l7-tot">' + MK.dinero(t.tot) + '</td><td></td></tr></tfoot></table></div>' + agregar('renglones', 'Agregar renglón'),
+      l.referencia ? '<span class="muted small" id="l7-ref">Referencia: ' + E(dinero(l.referencia)) + refDif(t.tot) + '</span>' : '');
+  }
+  function refDif(tot) { var r = Number(lic().referencia) || 0; if (!r || !tot) return ''; var d = (tot - r) / r * 100; return ' · la oferta va ' + (d > 0 ? '<b style="color:var(--bad)">' + d.toFixed(1) + ' % por encima</b>' : Math.abs(d).toFixed(1) + ' % por debajo'); }
+  function fianzas() {
+    var f = function (k, t, h) {
+      var z = lic().fz[k];
+      return '<div class="lc-fz"><b>' + t + '</b><small>' + h + '</small><label class="lb">¿LA PIDE EL PLIEGO?</label>' + chipL('fz.' + k + '.pide', [['no', 'No la pide'], ['si', 'Sí la pide']]) +
+        (z.pide === 'si' ? '<div class="grid g3" style="gap:8px;margin-top:6px">' + li('fz.' + k + '.monto', 'MONTO O %', { ph: 'B/. o %' }) + li('fz.' + k + '.vigencia', 'VIGENTE HASTA', { t: 'date' }) + li('fz.' + k + '.estado', 'ESTADO', { ops: FZ_EST }) + '</div>' : '') + '</div>';
+    };
+    return MO49.card('Fianzas', '<p class="small muted" style="margin:-4px 0 8px">Dependen de cada pliego: puede que no las pida. En contratación menor y en procedimientos excepcionales no se pide la de propuesta.</p><div class="grid g2" style="gap:12px">' +
+      f('prop', 'De propuesta', 'Se entrega con la propuesta') + f('cump', 'De cumplimiento', 'Al adjudicarse, antes de firmar') + '</div>');
+  }
+  function contratado() { return barraGuardar() + '<div class="stack">' + acto() + lugares() + renglones() + fianzas() + '</div>'; }
+
+  /* ═════ Propuesta económica ═════ */
+  function letras(n) {   // total en letras (balboas)
+    var U = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiún', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+    var D = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'], C = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+    var cien = function (x) { if (x === 100) return 'cien'; var c = Math.floor(x / 100), r = x % 100, s = C[c]; if (r) s += (s ? ' ' : '') + (r < 30 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? ' y ' + U[r % 10] : '')); return s; };
+    var e = Math.floor(n), cts = Math.round((n - e) * 100), m = Math.floor(e / 1e6), k = Math.floor(e % 1e6 / 1000), r = e % 1000, s = '';
+    if (m) s += (m === 1 ? 'un millón' : cien(m) + ' millones') + ' ';
+    if (k) s += (k === 1 ? 'mil' : cien(k) + ' mil') + ' ';
+    if (r) s += cien(r);
+    s = (s.trim() || 'cero') + ' balboas con ' + (cts < 10 ? '0' : '') + cts + '/100';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function documento(v) {   // la propuesta como se entrega (vista previa o una versión)
+    var l = lic(), o = OP(), X = EMP(), R = X.representante || {}, t = v ? v.tot : totales(), ren = v ? v.renglones : l.renglones, P = v || l.prop;
+    return '<div class="pe-doc"><div class="pe-h"><b>PROPUESTA ECONÓMICA</b><span>Acto público n.º ' + E(l.acto || '—') + '</span><span>' + E(l.entidad || o.empresa) + '</span></div>' +
+      '<p><b>Proponente:</b> ' + E(X.razonSocial || '') + ' · RUC ' + E(X.ruc || '') + ' DV ' + E(X.dv || '') + ' · ' + E(X.direccion || '') + ' · ' + E(X.telefono || '') + ' · ' + E(X.correo || '') + '</p>' +
+      '<p><b>Objeto:</b> ' + E(l.objeto || '—') + '</p>' +
+      '<table class="pe-t"><thead><tr><th>N.º</th><th>Descripción</th><th>Lugar</th><th>Unidad</th><th>Cantidad</th><th>Precio unitario</th><th>Total</th></tr></thead><tbody>' +
+      ren.map(function (r, i) { var tt = (Number(r.cantidad) || 0) * (Number(r.precio) || 0); return '<tr><td>' + (i + 1) + '</td><td>' + E(r.desc) + '</td><td>' + E(r.lugarN || nomLugar(r.lugar)) + '</td><td>' + E(r.unidad) + '</td><td class="r">' + E(r.cantidad || '') + '</td><td class="r">' + (dinero(r.precio) || '') + '</td><td class="r">' + (tt ? MK.dinero(tt) : '') + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr><td colspan="6" class="r">Subtotal</td><td class="r">' + MK.dinero(t.sub) + '</td></tr><tr><td colspan="6" class="r">ITBMS</td><td class="r">' + MK.dinero(t.itb) + '</td></tr><tr class="tot"><td colspan="6" class="r">Total</td><td class="r">' + MK.dinero(t.tot) + '</td></tr></tfoot></table>' +
+      '<p><b>Total en letras:</b> ' + E(letras(t.tot)) + '</p><p><b>Validez de la oferta:</b> ' + E(P.validez) + ' días · <b>Plazo:</b> ' + E(P.plazo) + ' · <b>Pago:</b> según el pliego, por gestión de cobro.</p>' +
+      (P.obs ? '<p><b>Observaciones:</b> ' + E(P.obs) + '</p>' : '') +
+      '<div class="pe-f"><span>' + E(P.lugar || 'Panamá') + ', ' + E(MK.fechaLarga(v ? v.fecha : MK.hoy)) + '</span><span class="pe-fi">' + E(R.nombre || '') + '<br><small>Representante legal · cédula ' + E(R.documento || '') + '</small></span></div></div>';
+  }
+  function propuesta() {
+    var l = lic(), p = l.prop, t = totales(), vig = vigente(), X = EMP(), dis = ro() ? ' disabled' : '';
+    var cambio = vig && firmaV(vig) !== firmaRen();
+    var origen = [['Proponente', (X.razonSocial || '—') + ' · RUC ' + (X.ruc || '—') + ' DV ' + (X.dv || '—'), 'Datos de la empresa'], ['Representante legal', (X.representante || {}).nombre || 'Falta en Configuración › Empresa', 'Configuración › Empresa'],
+      ['Acto', (l.acto || '—') + ' · ' + (l.entidad || ''), 'La licitación'], ['Renglones', l.renglones.length + ' renglones · ' + MK.dinero(t.tot), '«Lo contratado» › Renglones'], ['Lugares', l.lugares.length + (l.lugares.length === 1 ? ' lugar' : ' lugares'), '«Lo contratado» › Lugares']];
+    return barraGuardar() + '<div class="b2"><div class="stack">' +
+      MO49.card('Se llena sola', '<p class="small muted" style="margin:-4px 0 8px">No se vuelve a escribir: viene de lo que ya está en el sistema.</p><div class="pe-or">' + origen.map(function (x) { return '<div><small>' + x[0] + '</small><b>' + E(x[1]) + '</b><span>' + IC('enlace', 11) + ' ' + x[2] + '</span></div>'; }).join('') + '</div>' +
+        '<p class="small" style="margin-top:8px">¿Cambia un precio o una cantidad? Se corrige en <a href="#" data-tab="contratado">Lo contratado › Renglones</a> y se vuelve a generar.</p>') +
+      MO49.card('Lo propio de esta oferta', '<div class="grid g3" style="gap:10px">' + li('prop.validez', 'VALIDEZ DE LA OFERTA (DÍAS)', { cls: 'lc-n' }) + li('prop.plazo', 'PLAZO DE EJECUCIÓN') + li('prop.lugar', 'LUGAR DE FIRMA') + '</div>' +
+        '<label class="lb">OBSERVACIONES <span class="muted">(opcional)</span></label><input class="in" data-l="prop.obs" value="' + E(p.obs || '') + '" placeholder="Lo que pida el pliego, por ejemplo condiciones de entrega"' + dis + '>') +
+      MO49.card('Versiones', (cambio ? '<div class="aviso am" style="margin-bottom:10px">Los renglones cambiaron desde la versión ' + vig.v + ': vuelva a generarla para que el expediente lleve la correcta.</div>' : '') +
+        (p.versiones.length ? '<div class="l7-tw"><table class="lc-t"><thead><tr><th>Versión</th><th>Fecha</th><th class="r">Total</th><th>Estado</th><th></th></tr></thead><tbody>' + p.versiones.slice().reverse().map(function (v) {
+          var est = v.estado === 'vigente' ? '<span class="tag t-ok">Vigente</span>' : v.estado === 'borrada' ? '<span class="tag t-bad">Borrada</span>' : '<span class="tag t-gris">Reemplazada</span>';
+          return '<tr class="' + (v.estado === 'borrada' ? 'off' : '') + '"><td><b>v' + v.v + '</b></td><td>' + E(MK.fechaCorta(v.fecha)) + ' · ' + E(v.por || '') + '</td><td class="r num">' + MK.dinero(v.tot.tot) + '</td><td>' + est + (v.motivo ? '<div class="small muted">' + E(v.motivo) + '</div>' : '') + '</td>' +
+            '<td class="c" style="white-space:nowrap"><button class="btn sm gh" data-l7="ver" data-i="' + v.v + '">' + IC('ojo', 13) + ' Ver</button>' + (v.estado !== 'borrada' && !ro() ? '<button class="btn sm gh" data-l7="borrar" data-i="' + v.v + '" aria-label="Borrar la versión ' + v.v + '">' + IC('basura', 13) + '</button>' : '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<p class="small muted">Todavía no se ha generado. Revise la vista previa y genérela: queda como versión 1.</p>') +
+        (ro() ? '' : '<div class="lc-acc"><button class="btn pri" data-l7="generar">' + IC('documento', 14) + ' ' + (vig ? 'Volver a generar (v' + (p.versiones.reduce(function (m, v) { return Math.max(m, v.v); }, 0) + 1) + ')' : 'Generar la propuesta') + '</button></div>')) +
+      '</div><div class="stack">' + MO49.card('Vista previa', documento(null), '<span class="muted small">así se entrega</span>') + '</div></div>';
+  }
+
+  /* ═════ guardar (con «generar» o «borrarVersion» el servidor arma o marca la versión) ═════ */
+  function pedida(extra) {
+    var l = lic(), x = {};
+    ['acto', 'entidad', 'modalidad', 'objeto', 'referencia', 'enlace', 'adendasPliego', 'lugares', 'renglones', 'itbms', 'fz'].forEach(function (k) { x[k] = l[k]; });
+    x.prop = { validez: l.prop.validez, plazo: l.prop.plazo, lugar: l.prop.lugar, obs: l.prop.obs };
+    return Object.assign(x, extra || {});
+  }
+  function guardar(extra, msg, b) {
+    if (b) MK.ocupado(b, true, 'Guardando…');
+    return MK.api('api_crmGuardarOportunidad', MK.pin, MO49.COD, { licitacion: pedida(extra) }).then(function (r) {
+      if (b) MK.ocupado(b, false);
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return false; }
+      OP().licitacion = r.licitacion; SUCIO = false; S = null; lic();
+      MK.aviso(typeof msg === 'function' ? msg(r) : msg || 'Oferta guardada'); MK.cambio({ tipo: 'licitacion', codigo: MO49.COD });
+      MO49.pintar(); MO49.tabs(); return true;
+    }, function (e) { if (b) MK.ocupado(b, false); MK.aviso(e.message || 'Sin conexión'); return false; });
+  }
+  function verVersion(n) {
+    var v = lic().prop.versiones.filter(function (x) { return x.v === n; })[0]; if (!v) return;
+    var h = MK.hoja('<h2>Propuesta económica · v' + n + (v.estado === 'borrada' ? ' (borrada)' : '') + '</h2>' + documento(v) +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cerrar</button><button class="btn pri" id="l7-pdf">' + IC('bajar', 14) + ' Descargar en PDF</button></div>', { ancha: true });
+    h.querySelector('#l7-pdf').onclick = function () {
+      var b = this; MK.ocupado(b, true, 'Armando el PDF…');
+      libPdf().then(function () { return PDFLib.PDFDocument.create(); }).then(function (pdf) { return paginasPropuesta(pdf, v).then(function () { return pdf.save(); }); }).then(function (bytes) {
+        MK.ocupado(b, false); bajar(new Blob([bytes], { type: 'application/pdf' }), 'Propuesta_' + archivoNombre(lic().acto) + '_v' + n + '.pdf');
+      }, function (e) { MK.ocupado(b, false); MK.aviso((e && e.message) || 'No se pudo armar el PDF.'); });
+    };
+  }
+  function borrarVersion(n) {
+    var v = lic().prop.versiones.filter(function (x) { return x.v === n; })[0]; if (!v) return;
+    var h = MK.hoja('<h2>Borrar la versión ' + n + '</h2><p class="small muted">Queda en el historial marcada «Borrada», con su motivo. ' + (v.estado === 'vigente' ? 'Al borrar la vigente, el expediente queda sin propuesta hasta generar otra.' : '') + '</p>' +
+      '<label class="lb">MOTIVO</label><input class="in" id="pb-m" placeholder="Ej. la entidad publicó una adenda con nuevas cantidades"><div class="req" id="pb-r">Escriba el motivo.</div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="pb-ok">Borrar la versión</button></div>');
+    h.querySelector('#pb-ok').onclick = function () {
+      var m = h.querySelector('#pb-m').value.trim(); if (m.length < 5) { h.querySelector('#pb-r').classList.add('si'); return; }
+      var b = this; guardar({ borrarVersion: { v: n, motivo: m } }, 'Versión ' + n + ' borrada', b).then(function (ok) { if (ok) MK.cerrarHoja(); });
+    };
+  }
+
+  /* ═════ PDF (pdf-lib, la misma librería del expediente del cliente) ═════ */
+  function libPdf() {
+    if (window.PDFLib) return Promise.resolve();
+    return new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'; s.onload = ok; s.onerror = function () { mal(new Error('No se pudo cargar la herramienta de PDF. Revise la conexión.')); }; document.head.appendChild(s); });
+  }
+  function limpio(t) { return String(t == null ? '' : t).replace(/\s*[\r\n]+\s*/g, ', ').replace(/[^\x20-\x7E -ÿ–—‘’“”•…·]/g, ''); }
+  function archivoNombre(s) { return String(s || 'licitacion').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, ''); }
+  function bajar(blob, nombre) { var u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 60000); }
+  function partir(txt, f, tam, ancho) {   // corta el texto en líneas que caben
+    var pal = limpio(txt).split(' '), L = [], cur = '';
+    pal.forEach(function (w) { var p = cur ? cur + ' ' + w : w; if (f.widthOfTextAtSize(p, tam) > ancho && cur) { L.push(cur); cur = w; } else cur = p; });
+    if (cur) L.push(cur); return L.length ? L : [''];
+  }
+  function paginasPropuesta(pdf, v) {
+    var Lb = PDFLib, l = lic(), X = EMP(), R = X.representante || {}, f, fb;
+    var TINTA = Lb.rgb(0.07, 0.07, 0.07), GRIS = Lb.rgb(0.4, 0.4, 0.4), LIN = Lb.rgb(0.73, 0.73, 0.73);
+    return Promise.all([pdf.embedFont(Lb.StandardFonts.Helvetica), pdf.embedFont(Lb.StandardFonts.HelveticaBold)]).then(function (F) {
+      f = F[0]; fb = F[1];
+      var pg = pdf.addPage([612, 792]), y = 742, M = 50, W = 512;
+      var nueva = function () { pg = pdf.addPage([612, 792]); y = 742; };
+      var tx = function (s, x, o) { o = o || {}; pg.drawText(limpio(s), { x: x, y: y, size: o.size || 9.5, font: o.b ? fb : f, color: o.color || TINTA }); };
+      var centro = function (s, o) { o = o || {}; var w = (o.b ? fb : f).widthOfTextAtSize(limpio(s), o.size || 10); tx(s, (612 - w) / 2, o); y -= (o.size || 10) + 5; };
+      var parrafo = function (et, s) { var L = partir(et + ' ' + s, f, 9.5, W); L.forEach(function (ln, i) { if (y < 70) nueva(); if (i === 0) { tx(et, M, { b: true }); tx(ln.slice(et.length), M + fb.widthOfTextAtSize(et, 9.5), {}); } else tx(ln, M); y -= 13; }); y -= 3; };
+      centro('PROPUESTA ECONÓMICA', { b: true, size: 14 }); centro('Acto público n.º ' + (l.acto || '-'), { size: 10 }); centro(l.entidad || OP().empresa || '', { size: 10 }); y -= 8;
+      parrafo('Proponente:', [X.razonSocial, 'RUC ' + (X.ruc || '') + ' DV ' + (X.dv || ''), X.direccion, X.telefono, X.correo].filter(Boolean).join(' · '));
+      parrafo('Objeto:', l.objeto || '-');
+      var C = [M, M + 22, M + 192, M + 290, M + 336, M + 384, M + 446, M + W];   // columnas: n.º, descripción, lugar, unidad, cantidad, precio, total
+      var cab = ['N.º', 'Descripción', 'Lugar', 'Unidad', 'Cantidad', 'Precio unit.', 'Total'];
+      var hl = function (yy) { pg.drawLine({ start: { x: M, y: yy }, end: { x: M + W, y: yy }, thickness: 0.5, color: LIN }); };
+      var cabeza = function () { hl(y + 12); cab.forEach(function (c, i) { var w = fb.widthOfTextAtSize(c, 8); tx(c, i >= 4 ? C[i + 1] - w - 3 : C[i] + 2, { b: true, size: 8 }); }); hl(y - 5); y -= 17; };
+      cabeza();
+      v.renglones.forEach(function (r, i) {
+        var tt = (Number(r.cantidad) || 0) * (Number(r.precio) || 0), dL = partir(r.desc, f, 8.5, C[2] - C[1] - 6), lL = partir(r.lugarN || '', f, 8.5, C[3] - C[2] - 6), n = Math.max(dL.length, lL.length);
+        if (y - n * 11 < 90) { nueva(); cabeza(); }
+        var y0 = y;
+        tx(String(i + 1), C[0] + 2, { size: 8.5 });
+        dL.forEach(function (s, k) { y = y0 - k * 11; tx(s, C[1] + 2, { size: 8.5 }); });
+        lL.forEach(function (s, k) { y = y0 - k * 11; tx(s, C[2] + 2, { size: 8.5 }); });
+        y = y0;
+        var der = function (s, c) { var w = f.widthOfTextAtSize(limpio(s), 8.5); tx(s, C[c + 1] - w - 3, { size: 8.5 }); };
+        tx(String(r.unidad || ''), C[3] + 2, { size: 8.5 }); der(String(r.cantidad || ''), 4); der(r.precio ? MK.dinero(Number(r.precio)) : '', 5); der(tt ? MK.dinero(tt) : '', 6);
+        y = y0 - (n - 1) * 11; hl(y - 5); y -= 17;
+      });
+      if (y < 160) nueva();
+      [['Subtotal', v.tot.sub], ['ITBMS', v.tot.itb], ['Total', v.tot.tot]].forEach(function (z, i) { var s = MK.dinero(z[1]), w = (i === 2 ? fb : f).widthOfTextAtSize(s, 9.5); tx(z[0], C[5] + 2, { b: i === 2 }); tx(s, M + W - w - 3, { b: i === 2 }); y -= 14; });
+      y -= 6;
+      parrafo('Total en letras:', letras(v.tot.tot));
+      parrafo('Validez de la oferta:', v.validez + ' días · Plazo: ' + (v.plazo || '') + ' · Pago: según el pliego, por gestión de cobro.');
+      if (v.obs) parrafo('Observaciones:', v.obs);
+      if (y < 130) nueva();
+      y -= 40; tx((v.lugar || 'Panamá') + ', ' + MK.fechaLarga(v.fecha), M);
+      pg.drawLine({ start: { x: 352, y: y + 12 }, end: { x: 562, y: y + 12 }, thickness: 0.6, color: TINTA });
+      tx(R.nombre || '', 352); y -= 12; tx('Representante legal · cédula ' + (R.documento || ''), 352, { size: 8, color: GRIS });
+    });
+  }
+
+  /* ═════ Expediente final: un solo PDF en el orden del pliego ═════ */
+  function bibDe(id) { return (D().docsEmpresa || []).filter(function (b) { return b.id === id; })[0]; }
+  function filasExp() {
+    var l = lic(), ex = l.expediente || [], vig = vigente(), ent = l.entrega || MK.hoy, hayGen = ex.some(function (d) { return /^propuesta econ[oó]mica/i.test(d.doc); });
+    var filas = ex.map(function (d) {
+      var gen = /^propuesta econ[oó]mica/i.test(d.doc), na = d.estado === 'No aplica', b = d.bib ? bibDe(d.bib) : null;
+      var origen = gen ? 'Se genera aquí' : d.bib ? 'Documento de la empresa' : d.archivoId ? 'Cargado para este acto' : '—';
+      var est = na ? ['No aplica', 't-gris'] : gen ? (vig ? ['v' + vig.v + ' vigente', 't-ok'] : ['Falta generarla', 't-warn']) : b && b.archivoId ? (b.vence && b.vence < ent ? ['Vencido', 't-bad'] : ['Listo', 't-ok']) : d.bib ? ['Pendiente', 't-warn'] : d.archivoId ? ['Listo', 't-ok'] : ['Pendiente', 't-warn'];
+      return { doc: d.doc, origen: origen, est: est, na: na, gen: gen, archivoId: gen ? '' : b ? b.archivoId : d.archivoId || '' };
+    });
+    if (!hayGen) filas.unshift({ doc: 'Propuesta económica', origen: 'Se genera aquí', est: vig ? ['v' + vig.v + ' vigente', 't-ok'] : ['Falta generarla', 't-warn'], gen: true });
+    return filas;
+  }
+  function expediente() {
+    var filas = filasExp(), n = filas.filter(function (f) { return !f.na; }).length, listos = filas.filter(function (f) { return !f.na && f.est[1] === 't-ok'; }).length;
+    var rep = filas.filter(function (f) { return f.origen === 'Documento de la empresa' && !f.na; }).length;
+    var lista = (lic().expediente || []).length;
+    return '<div class="b2"><div class="stack">' + MO49.card('Expediente final', '<p class="small muted" style="margin:-4px 0 8px">En el orden del pliego. La lista y los archivos se trabajan en Oportunidades › Licitaciones › Expediente; aquí se arma lo que se entrega.</p>' +
+      (lista ? '' : '<div class="aviso am" style="margin-bottom:10px">Todavía no se ha armado la lista del pliego. Ábrala en <a href="MerOportunidades.html?vista=licitaciones">Licitaciones › Expediente</a>.</div>') +
+      '<div class="l7-tw"><table class="lc-t"><thead><tr><th>#</th><th>Documento</th><th>De dónde sale</th><th>Estado</th></tr></thead><tbody>' + filas.map(function (f, i) {
+        return '<tr class="' + (f.na ? 'off' : '') + '"><td class="c"><b>' + (i + 1) + '</b></td><td>' + E(f.doc) + '</td><td><span class="pe-src">' + E(f.origen) + '</span></td><td><span class="tag ' + f.est[1] + '">' + E(f.est[0]) + '</span></td></tr>';
+      }).join('') + '</tbody><tfoot><tr><td colspan="4"><b>' + listos + ' de ' + n + ' listos</b></td></tr></tfoot></table></div>' +
+      '<div class="lc-acc"><button class="btn pri" data-l7="armar">' + IC('documento', 14) + ' Armar el expediente (PDF en el orden del pliego)</button></div><div id="l7-est" class="small" style="margin-top:8px"></div>') +
+      '</div><div class="stack">' + MO49.card('Cuánto pesa', '<ul class="pe-peso"><li><b>' + rep + ' documento' + (rep === 1 ? '' : 's') + ' de la empresa</b> se guardan una sola vez y sirven para todas las licitaciones: no se repiten por acto.</li>' +
+        '<li><b>La propuesta económica</b> se genera de los datos: cada versión es un PDF pequeño.</li><li><b>Lo cargado para este acto</b> (formularios del pliego, cartas) es lo único que se guarda aparte.</li>' +
+        '<li>El expediente armado no se guarda: se arma de nuevo cada vez que se descarga, con lo vigente.</li></ul><p class="small muted">Antes de subirlo a PanamaCompra, confirme el tamaño máximo que permite el acto.</p>') + '</div></div>';
+  }
+  function traer(id) {   // un archivo del espacio de archivos de siempre, como bytes y su tipo
+    return MK.api('api_crmArchivo', MK.pin, id).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.error) || 'no se encontró');
+      if (!r.url && r.almacenError) throw new Error(r.almacenError);
+      if (r.url) return fetch(r.url).then(function (x) { if (!x.ok) throw new Error('no bajó'); return x.arrayBuffer(); }).then(function (b) { return { buf: b, tipo: r.tipo || '', nombre: r.nombre }; });
+      var s = String(r.datos || ''), k = s.indexOf(','), bin = atob(s.slice(k + 1)), u = new Uint8Array(bin.length);
+      for (var j = 0; j < bin.length; j++) u[j] = bin.charCodeAt(j);
+      return { buf: u.buffer, tipo: r.tipo || s.slice(5, s.indexOf(';')), nombre: r.nombre };
+    });
+  }
+  function aJpg(buf, mime) {
+    return new Promise(function (ok, mal) {
+      var u = URL.createObjectURL(new Blob([buf], { type: mime })), im = new Image();
+      im.onload = function () { var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0); URL.revokeObjectURL(u); c.toBlob(function (b) { b.arrayBuffer().then(ok, mal); }, 'image/jpeg', 0.85); };
+      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error('imagen')); }; im.src = u;
+    });
+  }
+  function armar(b) {
+    var est = function (t) { var e = document.getElementById('l7-est'); if (e) e.innerHTML = t; };
+    var filas = filasExp().filter(function (f) { return !f.na; }), vig = vigente(), faltan = [], fallaron = [], pdf, f;
+    MK.ocupado(b, true, 'Armando…');
+    libPdf().then(function () { return PDFLib.PDFDocument.create(); }).then(function (d) {
+      pdf = d; pdf.setTitle('Expediente ' + (lic().acto || '')); pdf.setAuthor('ECOVSA');
+      return pdf.embedFont(PDFLib.StandardFonts.Helvetica);
+    }).then(function (fuente) {
+      f = fuente;
+      var falta = function (t) { var pg = pdf.addPage([612, 792]); pg.drawText(limpio('Falta: ' + t), { x: 60, y: 700, size: 16, font: f, color: PDFLib.rgb(0.6, 0.3, 0) }); pg.drawText(limpio('Este documento no estaba listo al armar el expediente.'), { x: 60, y: 676, size: 10, font: f }); };
+      var cad = Promise.resolve();
+      filas.forEach(function (x, i) {
+        cad = cad.then(function () {
+          est('Agregando ' + E(x.doc) + ' (' + (i + 1) + ' de ' + filas.length + ')…');
+          if (x.gen) { if (!vig) { faltan.push(x.doc); falta(x.doc); return; } return paginasPropuesta(pdf, vig); }
+          if (!x.archivoId) { faltan.push(x.doc); falta(x.doc); return; }
+          return traer(x.archivoId).then(function (a) {
+            if (/pdf/i.test(a.tipo) || /\.pdf$/i.test(a.nombre || '')) return PDFLib.PDFDocument.load(a.buf, { ignoreEncryption: true }).then(function (src) { return pdf.copyPages(src, src.getPageIndices()); }).then(function (pp) { pp.forEach(function (p) { pdf.addPage(p); }); });
+            var emb = /png/i.test(a.tipo) ? pdf.embedPng(a.buf) : /jpe?g/i.test(a.tipo) ? pdf.embedJpg(a.buf) : aJpg(a.buf, a.tipo).then(function (j) { return pdf.embedJpg(j); });
+            return emb.then(function (im) { var p = pdf.addPage([612, 792]), k = Math.min(576 / im.width, 756 / im.height); p.drawImage(im, { x: (612 - im.width * k) / 2, y: (792 - im.height * k) / 2, width: im.width * k, height: im.height * k }); });
+          }).catch(function () { fallaron.push(x.doc); falta(x.doc + ' (no se pudo leer el archivo)'); });
+        });
+      });
+      return cad;
+    }).then(function () { return pdf.save(); }).then(function (bytes) {
+      MK.ocupado(b, false);
+      var blob = new Blob([bytes], { type: 'application/pdf' }), kb = blob.size / 1024;
+      est(IC('check', 14) + ' Listo: ' + pdf.getPageCount() + ' páginas · ' + (kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.round(kb) + ' KB') +
+        (faltan.length ? '<br><span style="color:#8a6300">Faltan: ' + E(faltan.join(', ')) + '</span>' : '') + (fallaron.length ? '<br><span style="color:var(--bad)">No se pudieron leer: ' + E(fallaron.join(', ')) + '</span>' : ''));
+      bajar(blob, 'Expediente_' + archivoNombre(lic().acto) + '.pdf');
+    }).catch(function (e) { MK.ocupado(b, false); est('<span style="color:var(--bad)">' + E((e && e.message) || 'No se pudo armar el expediente.') + '</span>'); });
+  }
+
+  /* ═════ eventos ═════ */
+  function marcar() { SUCIO = true; var b = document.getElementById('l7-bar'); if (b) b.classList.add('si'); }
+  function recalcular() {
+    var l = lic(), t = totales();
+    l.renglones.forEach(function (r, i) { var c = document.querySelector('[data-rt="' + i + '"]'); if (c) { var tt = (Number(r.cantidad) || 0) * (Number(r.precio) || 0); c.innerHTML = '<b>' + (tt ? MK.dinero(tt) : '—') + '</b>'; } });
+    var s = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = MK.dinero(v); };
+    s('l7-sub', t.sub); s('l7-itb', t.itb); s('l7-tot', t.tot);
+    var rf = document.getElementById('l7-ref'); if (rf && l.referencia) rf.innerHTML = 'Referencia: ' + E(dinero(l.referencia)) + refDif(t.tot);
+  }
+  function enganchar(p) {
+    if (p._l7) return; p._l7 = true;
+    p.addEventListener('input', function (e) { var k = e.target.getAttribute('data-l'); if (!k || !es()) return; var v = e.target.value; if (/\.(cantidad|precio)$|^referencia$/.test(k)) v = v.replace(/[^0-9.,]/g, '').replace(/,/g, ''); lp(k, v); marcar(); recalcular(); });
+    p.addEventListener('change', function (e) {
+      var k = e.target.getAttribute('data-l'); if (!k || !es()) return;
+      lp(k, e.target.value); marcar();
+      if (e.target.tagName === 'SELECT') MO49.pintar();
+    });
+    p.addEventListener('click', function (e) {
+      if (!es()) return;
+      var b = e.target.closest('[data-l7]'); if (!b) return;
+      var a = b.getAttribute('data-l7'), k = b.getAttribute('data-k'), i = Number(b.getAttribute('data-i'));
+      if (a === 'chip') { lp(k, b.getAttribute('data-v')); marcar(); MO49.pintar(); return; }
+      if (a === 'add') {
+        var l = lic();
+        if (k === 'adendasPliego') l.adendasPliego.push({ num: String(l.adendasPliego.length + 1), fecha: MK.hoy, que: '' });
+        else if (k === 'lugares') l.lugares.push({ nombre: '', direccion: '' });
+        else l.renglones.push({ desc: '', tipo: 'peligrosos', lugar: 'todos', frec: 'Semanal', unidad: 'servicio', cantidad: '', precio: '' });
+        marcar(); MO49.pintar(); return;
+      }
+      if (a === 'del') {
+        var L = lic()[k]; L.splice(i, 1);
+        if (k === 'lugares') lic().renglones.forEach(function (r) { if (r.lugar !== 'todos') { var n = Number(r.lugar); if (n === i) r.lugar = 'todos'; else if (n > i) r.lugar = String(n - 1); } });
+        marcar(); MO49.pintar(); return;
+      }
+      if (a === 'guardar') { guardar(null, 'Oferta guardada', b); return; }
+      if (a === 'descartar') { SUCIO = false; S = null; MO49.pintar(); return; }
+      if (a === 'generar') { guardar({ generar: true }, function (r) { var V = r.licitacion.prop.versiones, v = V[V.length - 1]; return 'Propuesta económica v' + v.v + ' generada · ' + MK.dinero(v.tot.tot); }, b); return; }
+      if (a === 'ver') { verVersion(i); return; }
+      if (a === 'borrar') { borrarVersion(i); return; }
+      if (a === 'armar') { if (SUCIO) { MK.aviso('Primero guarde los cambios de la oferta.'); return; } armar(b); return; }
+    });
+  }
+  window.addEventListener('beforeunload', function (e) { if (SUCIO && es()) { e.preventDefault(); e.returnValue = ''; } });
+
+  function contador() { var l = lic(), n = l.renglones.filter(function (r) { return r.desc && r.cantidad && r.precio; }).length; return n === 1 ? '1 renglón' : n + ' renglones'; }
+  function contadorProp() { var v = vigente(); return v ? 'v' + v.v : 'sin generar'; }
+  function contadorExp() { var F = filasExp(), n = F.filter(function (f) { return !f.na; }).length, ok = F.filter(function (f) { return !f.na && f.est[1] === 't-ok'; }).length; return ok + '/' + n; }
+  return { es: es, contratado: contratado, propuesta: propuesta, expediente: expediente, enganchar: enganchar, contador: contador, contadorProp: contadorProp, contadorExp: contadorExp, sucio: function () { return SUCIO; } };
 })();
 
 </script>
