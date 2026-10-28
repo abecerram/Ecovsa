@@ -400,7 +400,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   }
 
   /* ── pintar: una hoja con índice; el encabezado se queda arriba (barra compacta) al bajar ── */
-  var SECC = [['s-sede', 'La sede', 'ruta'], ['s-contratado', 'Lo contratado', 'caja'], ['s-rec', 'Recolecciones', 'camion'], ['s-cuenta', 'Cuenta y contrato', 'billete'], ['s-contactos', 'Contactos y actividad', 'persona'], ['s-docs', 'Propuestas y documentos', 'documento']];
+  var SECC = [['s-sede', 'La sede', 'ruta'], ['s-cobro', 'Cobro y certificados', 'moneda'], ['s-contratado', 'Lo contratado', 'caja'], ['s-rec', 'Recolecciones', 'camion'], ['s-cuenta', 'Cuenta y contrato', 'billete'], ['s-contactos', 'Contactos y actividad', 'persona'], ['s-docs', 'Propuestas y documentos', 'documento']];
   var DE_TAB = { resumen: 's-sede', servicio: 's-rec', propuestas: 's-docs', cobros: 's-cuenta', contrato: 's-cuenta', contactos: 's-contactos', actividad: 's-contactos', documentos: 's-docs' };
   var ARRIBA = 124;   /* barra del sistema (58) + barra compacta + aire */
   function pintar() {
@@ -412,7 +412,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       m.innerHTML = MK.ruta([{ t: 'Clientes', href: 'MerClientes.html' }].concat(c.cuenta ? [sedes().length ? { t: c.cuenta, attr: 'data-emp' } : { t: c.cuenta }] : [], [{ t: corto(c.nombre) }])) +
         cabecera() + bannerSusp() + '<div id="hj-avc"></div>' + alerta() + cifras() +
         '<div class="hj"><nav class="hj-ix" id="hj-ix" aria-label="Índice de la hoja">' + SECC.map(function (s) { return '<a href="#' + s[0] + '" data-ix="' + s[0] + '">' + IC(s[2], 15) + s[1] + '</a>'; }).join('') + '</nav>' +
-        '<div class="hj-c">' + sSede() + sContratado() + sRecolecciones() + sCuenta() + sContactos() + sDocs() + '</div></div>';
+        '<div class="hj-c">' + sSede() + sec('s-cobro', pCobro(false)) + sContratado() + sRecolecciones() + sCuenta() + sContactos() + sDocs() + '</div></div>';
     }
     enlazarCabecera(); enlazarPanel(m); enlazarHoja(m);
     if (VISTA === 'empresa') cargarEmpresa();
@@ -569,7 +569,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       (F.length ? tablaFact(F.slice(0, 3)) : MK.vacio('Sin facturas registradas.')) +
       (F.length > 3 || P.length ? '<div class="hj-mas"><button class="btn sm" data-lado="cob">Ver todas las facturas y pagos' + IC('flecha', 14) + '</button>' + (F.length > 3 ? '<span class="small muted">Aquí, las 3 últimas</span>' : '') + '</div>' : '') +
       '<div class="row w" style="margin-top:12px;gap:8px"><span class="small muted" style="flex:1;min-width:200px">Solo lectura: los cobros los lleva el módulo de Cobros. Si hablas con el cliente sobre un pago, déjalo anotado.</span><button class="btn sm" data-gc>' + IC('telefono', 14) + 'Registrar gestión de cobro</button></div>';
-    return sec('s-cuenta', '<div style="margin-bottom:14px">' + pCobro(false) + '</div>' + tira + pContrato() + '<div style="margin-top:14px">' + card('Cobros de esta sede', 'moneda', cob) + '</div>');
+    return sec('s-cuenta', tira + pContrato() + '<div style="margin-top:14px">' + card('Cobros de esta sede', 'moneda', cob) + '</div>');
   }
   function sContactos() {
     var C = R.contactos || [], n = R.tareas.filter(function (t) { return t.estado === 'pendiente'; }).length, nl = (R.linea || []).length;
@@ -765,7 +765,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     }
     /* varias sedes, vista de una sede: lo corto y el enlace a la empresa */
     if (!emp) {
-      return head('') + '<div class="cc-tipo"><span class="tt">' + (r ? E(ccTipoTx(r)) : 'La empresa no tiene regla de cobro') + '</span>' + (r ? '<span class="tag t-ok">Regla de la empresa</span>' : '<span class="tag t-warn">Sin regla</span>') + ccDesdeTx(r) + '</div>' +
+      return head(r ? 'Editar la regla' : 'Poner la regla') + '<div class="cc-tipo"><span class="tt">' + (r ? E(ccTipoTx(r)) : 'La empresa no tiene regla de cobro') + '</span>' + (r ? '<span class="tag t-ok">Regla de la empresa</span>' : '<span class="tag t-warn">Sin regla</span>') + ccDesdeTx(r) + '</div>' +
         '<div class="kv"><span>Facturación</span><b>' + (r ? (r.fact === 'una' ? 'Agrupada' : 'Por sede') : '—') + '</b><span>Certificado</span><b>' + (r ? CC_DOC[r.cert] : '—') + '</b><span>Cobro de esta sede</span><b>' + E(ccCobroTx(yo)) + '</b><span>ITBMS</span><b>' + E(ccItbms(yo)) + '</b></div>' +
         '<div class="row w" style="margin-top:10px"><a href="#" class="btn sm" data-empcobro>' + IC('edificio', 14) + 'Ver en «Toda la empresa»</a></div></div>';
     }

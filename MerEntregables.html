@@ -28,6 +28,8 @@
 .el-i{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--line2,#eef1f5);background:#fff;padding:9px 12px;font:inherit;cursor:pointer;color:var(--ink)}.el-i:hover{background:#f5f8fd}
 .el-i b{flex:1;min-width:0;font-weight:600}.el-i small{color:var(--muted)}
 tr.reemp td{opacity:.6}
+.certs td.chk,.certs th.chk{width:30px;padding-right:0}.certs td.chk input{width:17px;height:17px;accent-color:#14306b}
+.c-marc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 16px 10px;padding:8px 12px;border-radius:10px;background:var(--bad-bg,#fdecec)}.c-marc .sp{flex:1}
 .pres{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .nota{background:var(--hover);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#4d5b70;line-height:1.5}
 .nota.warn{background:var(--warn-bg);border-color:var(--amber-line);color:#6b4a00}
@@ -554,7 +556,7 @@ var QR = (function(){
           '<div class="pres" id="c-pres"></div><div id="c-msg" style="margin-top:12px"></div>' +
           '<div class="row w" style="margin-top:12px"><button class="btn pri" id="c-emit" disabled>Emitir certificado</button><span class="small muted" style="flex:1;min-width:200px">Recibe un folio correlativo y queda registrado. Se entrega al percibir el pago: si el cliente tiene saldo, el sistema lo detiene.</span></div>' +
         '</div>' +
-        '<div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div class="card-h"><h3>Certificados emitidos</h3><div class="sp"></div><label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer"><input type="checkbox" id="c-verr"> Ver reemplazados</label><label class="srch-in" style="width:240px">' + MK.ic('buscar', 15) + '<input id="c-q" placeholder="Buscar folio o cliente" autocomplete="off"></label></div><div id="c-lista" style="overflow-x:auto"></div></div>' +
+        '<div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div class="card-h"><h3>Certificados emitidos</h3><div class="sp"></div><label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer"><input type="checkbox" id="c-verr"> Ver reemplazados</label><label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer"><input type="checkbox" id="c-verb"> Ver borrados</label><label class="srch-in" style="width:240px">' + MK.ic('buscar', 15) + '<input id="c-q" placeholder="Buscar folio o cliente" autocomplete="off"></label></div><div id="c-lista" style="overflow-x:auto"></div></div>' +
       '</div><div class="a-prev"><div class="prev-h"><span class="t">VISTA PREVIA</span><span class="sp"></span><span id="c-pacc"></span></div><div id="c-prev"></div></div></div></div>' +
       /* distintivos */
       '<div class="pane" id="p-dist"><div class="a-grid"><div>' +
@@ -595,7 +597,7 @@ var QR = (function(){
     $('c-cli').oninput = prog; $('c-cli').onchange = previa; $('c-des').onchange = previa; $('c-has').onchange = previa;
     $('c-emit').onclick = function () { emitir(false); };
     $('c-elegir').onclick = elegirCliente;   // api 3.57
-    $('c-verr').onchange = pintarCerts;
+    $('c-verr').onchange = pintarCerts; $('c-verb').onchange = pintarCerts;
     var pc = MK.param('cli'); if (pc) $('c-cli').value = pc;
     marcarAtajo();
   }
@@ -621,7 +623,7 @@ var QR = (function(){
       if (n !== nPrev) return;
       if (!r || !r.ok) { PREV = null; msg('bad', esc((r && r.error) || 'No se pudo calcular el certificado.')); $('c-prev').innerHTML = '<div class="card">' + MK.vacio('Sin vista previa.') + '</div>'; return; }
       PREV = { cliente: cli, desde: d, hasta: h, r: r };
-      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return !x.reemplazadoPor && clave(x.cliente) === clave(r.ficha56 || r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
+      var av = r.avisos || {}, ya = (CERTS || []).filter(function (x) { return !x.reemplazadoPor && !x.borrado && clave(x.cliente) === clave(r.ficha56 || r.empresa.nombre) && x.desde === d && x.hasta === h; })[0];
       var partes = [];
       if (!av.alDia) partes.push(['bad', '<b>No se puede emitir todavía.</b> ' + esc(r.empresa.nombre) + ' tiene un saldo pendiente de <b>' + MK.dinero(av.saldo) + '</b> en ' + av.facturasAbiertas + ' factura' + (av.facturasAbiertas === 1 ? '' : 's') + '. El certificado se entrega al percibir el pago: cuando el pago esté registrado en Cobros, vuelve a intentarlo.' +
         (puedeForzar() ? '<br>Como ' + esc(MK.usuario.rol) + ' puedes emitirlo de todos modos; queda registrado como <b>forzado</b>.' : '<br><b>Solo gerencia o administración puede emitirlo de todos modos.</b>')]);
@@ -696,13 +698,13 @@ var QR = (function(){
   function claveCert(x) { return (x.ruc && !x.sede ? 'R:' + String(x.ruc).replace(/\W/g, '') : 'C:' + clave(x.cliente)) + '|' + x.desde + '|' + x.hasta; }   // por sede: se compara con la misma sede
   function repetidos() {
     var g = {}, out = {};
-    (CERTS || []).filter(function (x) { return !x.reemplazadoPor; }).forEach(function (x) { (g[claveCert(x)] = g[claveCert(x)] || []).push(x.folio); });
+    (CERTS || []).filter(function (x) { return !x.reemplazadoPor && !x.borrado; }).forEach(function (x) { (g[claveCert(x)] = g[claveCert(x)] || []).push(x.folio); });
     Object.keys(g).forEach(function (k) { if (g[k].length > 1) g[k].forEach(function (f) { out[f] = g[k]; }); });
     return out;
   }
   function regenerar(folio) {
     var x = (CERTS || []).filter(function (c) { return c.folio === folio; })[0]; if (!x) return;
-    var grupo = (CERTS || []).filter(function (c) { return !c.reemplazadoPor && claveCert(c) === claveCert(x); }).map(function (c) { return c.folio; });
+    var grupo = (CERTS || []).filter(function (c) { return !c.reemplazadoPor && !c.borrado && claveCert(c) === claveCert(x); }).map(function (c) { return c.folio; });
     if (grupo.indexOf(folio) < 0) grupo.unshift(folio);
     MK.cargando('c-prev', 'Calculando con la regla de cobro de hoy…');
     MK.api('api_datosCertificado', MK.pin, x.cliente, x.desde, x.hasta).then(function (r) {
@@ -742,7 +744,7 @@ var QR = (function(){
     var REG = { indep: 'por sede', docsede: 'por sede', admin: 'agrupado', corp: 'corporativo', medida: 'a la medida', una: 'una sede' };
     var lista = (CLIS || []).filter(function (c) { return c.nombre && ['baja', 'cierre', 'retiro'].indexOf(String(c.situacion || '').toLowerCase()) < 0; });
     var d = $('c-des').value, h = $('c-has').value;
-    var ya = {}; (CERTS || []).forEach(function (x) { if (!x.reemplazadoPor && x.desde === d && x.hasta === h) ya[clave(x.cliente)] = x.folio; });
+    var ya = {}; (CERTS || []).forEach(function (x) { if (!x.reemplazadoPor && !x.borrado && x.desde === d && x.hasta === h) ya[clave(x.cliente)] = x.folio; });
     var pinta = function (q) {
       q = String(q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       var g = {};
@@ -775,21 +777,70 @@ var QR = (function(){
   function pintarCerts() {
     if (!CERTS) return;
     var q = ($('c-q').value || '').trim().toLowerCase();
-    var verR = $('c-verr') && $('c-verr').checked, rep = repetidos();
-    var l = CERTS.filter(function (x) { return (verR || !x.reemplazadoPor) && (!q || (x.folio + ' ' + x.cliente).toLowerCase().indexOf(q) >= 0); });
+    var verR = $('c-verr') && $('c-verr').checked, verB = $('c-verb') && $('c-verb').checked, rep = repetidos(), pb = puedeBorrar();
+    var l = CERTS.filter(function (x) { return (verR || !x.reemplazadoPor) && (verB || !x.borrado) && (!q || (x.folio + ' ' + x.cliente).toLowerCase().indexOf(q) >= 0); });
+    Object.keys(MARC).forEach(function (f) { if (!l.some(function (x) { return x.folio === f && !x.borrado; })) delete MARC[f]; });
+    var nm = Object.keys(MARC).length;
     $('c-lista').innerHTML = !CERTS.length ? MK.vacio('Todavía no se ha emitido ningún certificado.') :
-      '<table class="tb certs"><thead><tr><th>Folio</th><th>Cliente y período</th><th class="r ockg">Kg</th><th class="oc">Emitido por</th><th></th></tr></thead><tbody>' +
+      (pb && nm ? '<div class="c-marc"><b>' + nm + ' marcado' + (nm === 1 ? '' : 's') + '</b><span class="sp"></span><button class="btn sm" id="c-desm">Desmarcar</button><button class="btn sm bad" id="c-borm">' + MK.ic('basura', 14) + 'Borrar los marcados</button></div>' : '') +
+      '<table class="tb certs"><thead><tr>' + (pb ? '<th class="chk"></th>' : '') + '<th>Folio</th><th>Cliente y período</th><th class="r ockg">Kg</th><th class="oc">Emitido por</th><th></th></tr></thead><tbody>' +
       (l.length ? l.map(function (x) {
-        return '<tr class="clic' + (VERF === x.folio ? ' sel' : '') + (x.reemplazadoPor ? ' reemp' : '') + '" data-f="' + esc(x.folio) + '"><td><b class="mono" style="font-weight:600">' + esc(x.folio) + '</b><small>' + esc(MK.fechaCorta(x.fecha)) + '</small>' + (x.forzado ? '<span class="tag forz" style="margin-top:3px">forzado</span>' : '') +
-          (x.reemplazadoPor ? '<span class="tag t-gris" style="margin-top:3px">reemplazado por ' + esc(x.reemplazadoPor) + '</span>' : rep[x.folio] ? '<span class="tag t-warn" style="margin-top:3px">repetido</span>' : '') + '</td>' +
-          '<td>' + esc(x.cliente) + '<small>' + esc(periodo(x.desde, x.hasta)) + ' · ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '<span class="mobkg"> · ' + n2(x.totalKg) + ' kg</span></small></td><td class="r mono ockg">' + n2(x.totalKg) + '</td>' +
-          '<td class="oc small">' + esc(x.emitidoPor) + '</td><td class="r" style="white-space:nowrap">' + (x.reemplazadoPor ? '' : '<button class="btn sm gh" data-regen="' + esc(x.folio) + '" title="Volver a generar con la regla de cobro de hoy">' + MK.ic('renovar', 14) + '<span class="txr"> Volver a generar</span></button>') + '<a class="btn sm gh" href="' + urlCert(x.folio) + '" target="_blank" rel="noopener" title="Abrir para imprimir">' + MK.ic('imprimir', 14) + '</a><button class="btn sm" data-env="' + esc(x.folio) + '" title="Reenviar al cliente">' + MK.ic('correo', 14) + '<span class="txr"> Reenviar</span></button></td></tr>';
-      }).join('') : '<tr><td colspan="5">' + MK.vacio('Nada con «' + q + '».') + '</td></tr>') + '</tbody></table>';
+        var fuera = x.reemplazadoPor || x.borrado;
+        return '<tr class="clic' + (VERF === x.folio ? ' sel' : '') + (fuera ? ' reemp' : '') + '" data-f="' + esc(x.folio) + '">' + (pb ? '<td class="chk">' + (x.borrado ? '' : '<input type="checkbox" data-marca="' + esc(x.folio) + '"' + (MARC[x.folio] ? ' checked' : '') + ' aria-label="Marcar ' + esc(x.folio) + '">') + '</td>' : '') +
+          '<td><b class="mono" style="font-weight:600">' + esc(x.folio) + '</b><small>' + esc(MK.fechaCorta(x.fecha)) + '</small>' + (x.forzado ? '<span class="tag forz" style="margin-top:3px">forzado</span>' : '') +
+          (x.borrado ? '<span class="tag t-bad" style="margin-top:3px" title="' + esc(x.borradoMotivo) + '">borrado · ' + esc(x.borradoPor) + '</span>' : x.reemplazadoPor ? '<span class="tag t-gris" style="margin-top:3px">reemplazado por ' + esc(x.reemplazadoPor) + '</span>' : rep[x.folio] ? '<span class="tag t-warn" style="margin-top:3px">repetido</span>' : '') + '</td>' +
+          '<td>' + esc(x.cliente) + '<small>' + esc(periodo(x.desde, x.hasta)) + ' · ' + x.visitas + ' visita' + (x.visitas === 1 ? '' : 's') + '<span class="mobkg"> · ' + n2(x.totalKg) + ' kg</span></small>' + (x.borrado && x.borradoMotivo ? '<small>Motivo: ' + esc(x.borradoMotivo) + '</small>' : '') + '</td><td class="r mono ockg">' + n2(x.totalKg) + '</td>' +
+          '<td class="oc small">' + esc(x.emitidoPor) + '</td><td class="r" style="white-space:nowrap">' +
+          (x.borrado ? (pb ? '<button class="btn sm" data-recup="' + esc(x.folio) + '">' + MK.ic('renovar', 14) + '<span class="txr"> Recuperar</span></button>' : '')
+            : (x.reemplazadoPor ? '' : '<button class="btn sm gh" data-regen="' + esc(x.folio) + '" title="Volver a generar con la regla de cobro de hoy" aria-label="Volver a generar">' + MK.ic('renovar', 14) + '</button>') +
+              '<a class="btn sm gh" href="' + urlCert(x.folio) + '" target="_blank" rel="noopener" title="Abrir para imprimir">' + MK.ic('imprimir', 14) + '</a>' +
+              (x.reemplazadoPor ? '' : '<button class="btn sm" data-env="' + esc(x.folio) + '" title="Reenviar al cliente">' + MK.ic('correo', 14) + '<span class="txr"> Reenviar</span></button>') +
+              (pb ? '<button class="btn sm gh" data-borrar="' + esc(x.folio) + '" title="Borrar este certificado">' + MK.ic('basura', 14) + '</button>' : '')) + '</td></tr>';
+      }).join('') : '<tr><td colspan="' + (pb ? 6 : 5) + '">' + MK.vacio('Nada con «' + q + '».') + '</td></tr>') + '</tbody></table>';
     [].forEach.call($('c-lista').querySelectorAll('tr[data-f]'), function (tr) {
-      tr.onclick = function (e) { if (e.target.closest('a,button')) return; ver(tr.getAttribute('data-f')); };
+      tr.onclick = function (e) { if (e.target.closest('a,button,input')) return; ver(tr.getAttribute('data-f')); };
     });
     [].forEach.call($('c-lista').querySelectorAll('[data-env]'), function (b) { b.onclick = function () { reenviar(b.getAttribute('data-env')); }; });
     [].forEach.call($('c-lista').querySelectorAll('[data-regen]'), function (b) { b.onclick = function () { regenerar(b.getAttribute('data-regen')); }; });   // api 3.57
+    /* api 3.58 · borrar (uno o los marcados) y recuperar */
+    [].forEach.call($('c-lista').querySelectorAll('[data-borrar]'), function (b) { b.onclick = function () { borrarCerts([b.getAttribute('data-borrar')]); }; });
+    [].forEach.call($('c-lista').querySelectorAll('[data-recup]'), function (b) { b.onclick = function () { recuperarCert(b.getAttribute('data-recup')); }; });
+    [].forEach.call($('c-lista').querySelectorAll('[data-marca]'), function (c) { c.onchange = function () { if (c.checked) MARC[c.getAttribute('data-marca')] = 1; else delete MARC[c.getAttribute('data-marca')]; pintarCerts(); }; });
+    if ($('c-desm')) $('c-desm').onclick = function () { MARC = {}; pintarCerts(); };
+    if ($('c-borm')) $('c-borm').onclick = function () { borrarCerts(Object.keys(MARC)); };
+  }
+  /* ═══ api 3.58 · borrar certificados (Mercadeo, supervisión, administración). Se quitan de todos lados; queda copia en el Registro de borrados ═══ */
+  var MARC = {};
+  function puedeBorrar() { return ['mercadeo', 'supervisor', 'admin'].indexOf((MK.usuario || {}).rol) >= 0; }
+  function borrarCerts(fos) {
+    fos = (fos || []).filter(Boolean); if (!fos.length) return;
+    var L = (CERTS || []).filter(function (x) { return fos.indexOf(x.folio) >= 0; });
+    var h = MK.hoja('<h2>' + (fos.length === 1 ? 'Borrar ' + esc(fos[0]) : 'Borrar ' + fos.length + ' certificados') + '</h2>' +
+      '<div class="small" style="margin:8px 0;line-height:1.6">' + L.map(function (x) { return '<b>' + esc(x.folio) + '</b> · ' + esc(x.cliente) + ' · ' + esc(periodo(x.desde, x.hasta)) + ' · ' + n2(x.totalKg) + ' kg'; }).join('<br>') + '</div>' +
+      '<p class="muted small">Deja de salir en la lista, en la hoja del cliente, en el portal y en el QR. Si alguien abre su enlace, dice que fue borrado. Su folio no se vuelve a usar. Queda una copia en Configuración › Registro de borrados y se puede recuperar.</p>' +
+      '<label class="lb" for="b-mot">MOTIVO *</label><textarea class="in" id="b-mot" rows="3" placeholder="Por qué se borra (se llenó mal, salió repetido…)" autofocus></textarea>' +
+      '<div id="b-msg" class="small" style="margin-top:6px;color:var(--bad)"></div>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="b-si">Borrar</button></div>');
+    $('b-si').onclick = function () {
+      var m = $('b-mot').value.trim(), btn = this;
+      if (m.length < 10) { $('b-msg').textContent = 'Escriba el motivo (al menos 10 letras).'; return; }
+      MK.ocupado(btn, true, 'Borrando…');
+      MK.api('api_emitirCertificado', MK.pin, null, null, null, null, { accion: 'borrar', folios: fos, motivo: m }).then(function (r) {
+        MK.ocupado(btn, false);
+        if (!r || !r.ok) { $('b-msg').textContent = (r && r.error) || 'No se pudo borrar.'; return; }
+        MK.cerrarHoja(); MARC = {}; MK.aviso((r.folios.length === 1 ? 'Borrado ' : 'Borrados ') + r.folios.join(', '));
+        if (VERF && r.folios.indexOf(VERF) >= 0) { VERF = null; $('c-prev').innerHTML = ''; }
+        cargarCerts();
+      }, function () { MK.ocupado(btn, false); $('b-msg').textContent = 'Sin conexión con el servidor.'; });
+    };
+  }
+  function recuperarCert(folio) {
+    MK.confirmar('Vuelve a salir en la lista, en la hoja del cliente y en el portal.', function () {
+      MK.api('api_emitirCertificado', MK.pin, null, null, null, null, { accion: 'recuperar', folios: [folio] }).then(function (r) {
+        if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo recuperar.'); return; }
+        MK.aviso('Recuperado ' + folio); cargarCerts();
+      }, function () { MK.aviso('Sin conexión con el servidor.'); });
+    }, { titulo: '¿Recuperar ' + folio + '?', boton: 'Recuperar' });
   }
   function ver(folio, sinScroll) {
     VERF = folio; pintarCerts();
@@ -1040,7 +1091,7 @@ var QR = (function(){
   /* ═════════════ SUGERIDOS ═════════════ */
   function sugeridos() {
     var s = semestre(), con = {};
-    (CERTS || []).forEach(function (x) { if (x.hasta >= s.d && x.desde <= s.h) con[clave(x.cliente)] = x; });
+    (CERTS || []).forEach(function (x) { if (!x.borrado && !x.reemplazadoPor && x.hasta >= s.d && x.desde <= s.h) con[clave(x.cliente)] = x; });   // api 3.58
     var act = CLIS.filter(activo), l = [], saldo = [], sinRec = 0;
     act.forEach(function (c) {
       if (con[clave(c.nombre)]) return;
@@ -1072,7 +1123,7 @@ var QR = (function(){
     contadores();
   }
   function contadores() {
-    if ($('n1')) $('n1').textContent = CERTS ? CERTS.length : '';
+    if ($('n1')) $('n1').textContent = CERTS ? CERTS.filter(function (x) { return !x.borrado && !x.reemplazadoPor; }).length : '';   // api 3.58
     if ($('n2')) $('n2').innerHTML = DIST ? DIST.clientes.filter(function (c) { return c.activo && !c.entregado; }).length + '<span class="txr"> por entregar</span>' : '';
     if ($('n3')) $('n3').textContent = CERTS ? sugeridos().al.length : '';
   }
