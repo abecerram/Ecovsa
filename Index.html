@@ -26096,6 +26096,79 @@ function plnListo_(res){
 window.PLN_ = PLN; window.plnAbrir_ = plnAbrir_; window.plnCargar_ = plnCargar_; window.plnBoton_ = plnBoton_;
 })();
 </script>
+<style id="estilo-362">
+.cc62-f{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 4px;font-size:13px;font-weight:700;color:#334155}
+.cc62-f input{border:1.5px solid #cfd8e3;border-radius:10px;padding:8px 10px;font:600 14px inherit;color:#0f2140}
+.s49-ch.r{background:#fdeaea;color:#a12d2d}
+</style>
+<script id="js-362">
+/* ═══ api 3.62 · CAMBIO DE LO CONTRATADO POR REVISAR (duda 2 · B, Álvaro 28 oct) ═══
+   Cuando un cliente que ya existe firma una propuesta nueva, lo que cambia (servicios o insumos) llega aquí.
+   No cuenta para programar hasta que Logística lo confirma con la fecha desde la que empieza.
+   «Ajustar antes» abre el mismo editor de lo contratado de la ficha, con lo que firmó. */
+bq38Items_ = (function(o){ return function(){
+  var L = o.apply(this, arguments);
+  ((BQ.inc && BQ.inc.cambiosContratado) || []).forEach(function(x){
+    L.push({ k: "cc62:" + x.pendienteId, car: "men", sub: "mer", cat: "mer", ic: "doc", c: "c38-v", f: x.fecha, d: 0, g: "esp", hr: 0,
+      o: "Mercadeo · " + (x.ref ? "propuesta " + x.ref : "alta") + " · " + bq38Hace_(x.fecha),
+      t: "Cambio de lo contratado · " + x.cliente, s: (x.cambios || []).map(function(c){ return c.signo + " " + c.texto; }).join(" · ") + " · por revisar", b: "Revisar" });
+  });
+  return L;
+}; })(bq38Items_);
+function cc62De_(id){ return ((BQ.inc && BQ.inc.cambiosContratado) || []).filter(function(x){ return x.pendienteId === id; })[0]; }
+bq38Det_ = (function(o){ return function(){
+  var k = String(BQ.sel || "");
+  if(k.indexOf("cc62:") !== 0) return o.apply(this, arguments);
+  var x = cc62De_(k.slice(5)); if(!x) return '<div class="vacio">Ya se revisó.</div>';
+  var hoy = hoyISO(), ini = x.inicio && x.inicio >= hoy ? x.inicio : hoy;
+  return '<div class="dh"><i class="bic big c38-v">' + sv38_("doc") + '</i><div><div class="bo">Mercadeo · ' + (x.ref ? 'propuesta ' + esc(x.ref) : 'alta') + (x.por ? ' · aprobó el alta ' + esc(x.por) : '') + '</div>' +
+      '<h2>Cambio de lo contratado · ' + esc(x.cliente) + '</h2></div></div>' +
+    '<div class="rel" style="font-style:normal;font-size:12.5px">Ya es cliente y firmó un cambio de lo que tiene contratado. Todavía no cuenta para programar: confírmelo con la fecha desde la que empieza. Si algo no cuadra, ajústelo antes.</div>' +
+    '<div class="s49-chs" style="margin-top:10px">' + (x.cambios || []).map(function(c){ return s49Ch_(c.signo + " " + c.texto, c.signo === "+" ? "v" : c.signo === "−" ? "r" : "am"); }).join("") + '</div>' +
+    '<label class="cc62-f" for="cc62-d">Empieza el <input type="date" id="cc62-d" min="' + hoy + '" value="' + esc(ini) + '"></label>' +
+    '<div class="bb"><button class="p" id="cc62-ok" onclick="cc62Confirmar_(\'' + esc(x.pendienteId) + '\')">' + sv38_("check") + ' Confirmar desde esa fecha</button>' +
+      '<button onclick="cc62Ajustar_(\'' + esc(x.pendienteId) + '\')">Ajustar antes</button></div>';
+}; })(bq38Det_);
+function cc62Hecho_(id, r){
+  if(BQ.inc && BQ.inc.cambiosContratado) BQ.inc.cambiosContratado = BQ.inc.cambiosContratado.filter(function(x){ return x.pendienteId !== id; });
+  toast("Confirmado ✓ cuenta desde el " + cc62Fecha_(r.desde)); BQ.sel = "";
+  if(typeof S49 !== "undefined") S49.sse = {};
+  bq38Contar_(); if(INI_TAB === "solicitudes") renderSolicitudes();
+}
+function cc62Fecha_(f){ var p = String(f || "").split("-"); return p.length === 3 ? Number(p[2]) + "/" + Number(p[1]) : f; }
+function cc62Confirmar_(id){
+  var x = cc62De_(id); if(!x) return;
+  var d = ($("cc62-d") || {}).value || "", b = $("cc62-ok");
+  if(!d){ toast("Elija la fecha de inicio"); return; }
+  if(b){ b.disabled = true; b.textContent = "Confirmando…"; }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); if(b){ b.disabled = false; b.textContent = "Confirmar desde esa fecha"; } return; }
+    cc62Hecho_(id, r);
+  }).withFailureHandler(function(){ toast("Sin señal"); if(b){ b.disabled = false; b.textContent = "Confirmar desde esa fecha"; } })
+    .api_guardarServiciosSede(PIN, x.clienteId, { pendienteId: id, desde: d });
+}
+function cc62Ajustar_(id){
+  var x = cc62De_(id); if(!x) return;
+  var d = ($("cc62-d") || {}).value || hoyISO();
+  toast("Abriendo…");
+  google.script.run.withSuccessHandler(function(R){
+    if(!R || !R.ok){ toast((R && R.error) || "No se pudo abrir"); return; }
+    S49.ed = { id: x.clienteId, nombre: x.cliente, desdeRev: false, cat: R.insumos || [], sv: JSON.parse(JSON.stringify(x.servicios || {})),
+      ins: (x.insumos || []).map(function(i){ return { catId: i.catId, cantidad: i.cantidad, cada: i.cada }; }), cc62: { id: id, desde: d } };
+    s49PintarEd_();
+  }).withFailureHandler(function(){ toast("Sin señal"); }).api_serviciosSede(PIN, x.clienteId);
+}
+s49GuardarEd_ = (function(o){ return function(){
+  var e = S49.ed; if(!e || !e.cc62) return o.apply(this, arguments);
+  var b = $("s49-ok"); if(b){ b.disabled = true; b.textContent = "Guardando…"; }
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); if(b){ b.disabled = false; b.textContent = "Guardar"; } return; }
+    var id = e.cc62.id; s49Cerrar_(); cc62Hecho_(id, r);
+  }).withFailureHandler(function(){ toast("Sin señal"); if(b){ b.disabled = false; b.textContent = "Guardar"; } })
+    .api_guardarServiciosSede(PIN, e.id, { pendienteId: e.cc62.id, desde: e.cc62.desde, servicios: e.sv, insumos: e.ins });
+}; })(s49GuardarEd_);
+</script>
+
 </body>
 
 </html>

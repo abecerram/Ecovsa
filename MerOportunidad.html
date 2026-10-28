@@ -322,7 +322,7 @@
   var D = null, OP = null;            // respuesta del servidor y la oportunidad
   var CAMBIOS = {};                   // columna → valor sin guardar
   var NOTAS = [], NOTAS_EDIT = false, NOTAS_CAMBIO = false, NOTAS_AVISO = '';
-  var TAB = /^#(documentos|contrato|propuesta|actividad)$/.test(location.hash || '') ? location.hash.slice(1) : 'resumen', TL_FILTRO = 'todo', REABIERTA = false, URL_APP = '', PLANTILLAS = null;
+  var TAB = /^#(documentos|contrato|propuesta|actividad|contratado)$/.test(location.hash || '') ? location.hash.slice(1) : 'resumen', TL_FILTRO = 'todo', REABIERTA = false, URL_APP = '', PLANTILLAS = null;
   var GLOW = [], ENVIANDO = {};
   var PL = null, PLAN_MENU = false, PROMO_MENU = false;      /* api 3.13: planes y promociones que aplican (api_planesParaOportunidad) */
   var AGREGAR = MK.param('agregar');                          /* api 3.13: de vuelta del catálogo con el artículo nuevo */
@@ -615,6 +615,7 @@
     var u = unica(), tabs = [
       ['resumen', 'Resumen', basicosN() + '/' + (BASICOS.length + 1)],
       ['propuesta', 'Propuesta', contadorTarifas()],
+      ['contratado', 'Lo contratado', window.LC62 ? LC62.contador() : ''],
       ['documentos', 'Documentos', docsSi() + '/' + listaDocs().length],
       ['contrato', 'Contrato', u ? 'no aplica' : (REQ.length - reqFaltan().length) + '/' + REQ.length],
       ['actividad', 'Actividad', String((D.linea || []).filter(function (a) { return /^\d{4}-\d{2}-\d{2}/.test(a.fecha || ''); }).length)]];
@@ -657,11 +658,12 @@
   }
 
   /* ═════════ pestañas ═════════ */
-  window.MO49 = { D: function () { return D; }, COD: COD, ro: function () { return ro(); }, card: function (a, b, c) { return card(a, b, c); }, pintar: function () { pintarPanel(); } };
+  window.MO49 = { D: function () { return D; }, COD: COD, ro: function () { return ro(); }, card: function (a, b, c) { return card(a, b, c); }, pintar: function () { pintarPanel(); }, tabs: function () { pintarTabs(); }, tab: function () { return TAB; }, srv: function () { return serviciosCard(); } };
   function pintarPanel() {
     var p = $('panel');
     if (TAB === 'resumen') p.innerHTML = tabResumen();
     else if (TAB === 'propuesta') p.innerHTML = tabPropuesta();
+    else if (TAB === 'contratado') { p.innerHTML = LC62.tab(); LC62.enganchar(p); }
     else if (TAB === 'documentos') p.innerHTML = tabDocumentos();
     else if (TAB === 'contrato') p.innerHTML = tabContrato();
     else p.innerHTML = tabActividad();
@@ -674,20 +676,22 @@
   }
 
   /* RESUMEN */
-  function tabResumen() {
+  function identHtml() {
     var u = unica(), aj = D.ajustes || {};
     var ases = (D.asesores || []).map(function (a) { return String(a.nombre).trim(); });
-    var ident = '<div class="tipo-sv"><div class="seg" data-tipo>' +
+    return '<div class="tipo-sv"><div class="seg" data-tipo>' +
         '<button type="button" class="' + (u ? '' : 'on') + '" data-sv="RECURRENTE"' + (ro() ? ' disabled' : '') + '>Recurrente</button>' +
         '<button type="button" class="' + (u ? 'on' : '') + '" data-sv="VISITA UNICA"' + (ro() ? ' disabled' : '') + '>Visita única</button></div>' +
         '<span class="small muted">' + (u ? 'Un trabajo puntual. No lleva contrato, ni plazo, ni frecuencia.' : 'Servicio continuo bajo contrato, con su frecuencia y su plazo.') + '</span></div>' +
       '<div class="fg">' + campo('empresa', 'Empresa / nombre comercial') + campo('razon social', 'Razón social') + campo('ruc', 'RUC') + campo('dv', 'DV') +
       campo('sector', 'Sector', { ops: D.sectores || [] }) + campo('asesor', 'Asesor', { ops: ases }) +
       campo('fuente', '¿De dónde vino?', { ops: aj.fuentes || [] }) + campo('cierre esperado', 'Cierre esperado', { t: 'date' }) + '</div>';
+  }
+  function tabResumen() {
     var borrar = GER ? '' : '<button class="borrar" data-a="borrar">' + IC('basura', 13) + ' Borrar esta oportunidad</button>';
     var pend = (D.tareas || []).filter(function (t) { return t.estado === 'pendiente'; });
     var falt = listaDocs().filter(function (d) { return v(d[0]).toUpperCase() !== 'SI'; });
-    return tarjetaEnlace() + '<div class="b2"><div class="stack">' + card('Identificación', ident) + formularioCard() + borrar + '</div>' +
+    return tarjetaEnlace() + '<div class="b2"><div class="stack">' + LC62.cadena() + LC62.datos() + formularioCard() + borrar + '</div>' +
       '<div class="stack">' + card('Contactos', contactosHtml(), '<span class="l muted">' + (D.contactos || []).length + '</span>') +
       card('Tareas pendientes', tareasHtml(pend, true), GER || !OP.abierta ? '' : '<button class="btn sm gh" data-a="tarea-nueva">' + IC('mas', 13) + ' Nueva</button>') +
       card('Documentos', dprog() + '<div class="small muted">' + (falt.length ? 'Faltan: ' + falt.map(function (d) { return d[1]; }).join(', ') + '.' : 'Documentación completa.') + '</div>',
@@ -952,9 +956,9 @@
     var fact = '<div class="fg">' + campo('retiene itbms', '¿Retiene ITBMS?', { ops: ['NO', 'SI', 'EXENTO'] }) + campo('facturacion', 'Facturación', { ops: [['POR PUNTO', 'Por punto'], ['AGRUPADA', 'Agrupada']] }) +
       campo('canal envio', 'Enviar facturas por', { ops: [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']] }) + '</div>' +
       '<div class="pista">' + IC('alerta', 14) + '<span>Los <b>agentes retenedores</b> retienen el 50 % del ITBMS (el 3.5 % del subtotal) y lo enteran al fisco: la factura sale por el total pero al banco entra menos. Marcarlo aquí evita perseguir un saldo que ya está cancelado. Los <b>exentos</b> no pagan ITBMS: su factura sale sin ITBMS.</span></div>';
-    return '<div class="b2"><div class="stack">' + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
-      (window.SUC49 ? SUC49.card() : '') + (window.SUC51 ? SUC51.card() : '') + serviciosCard() +
-      card('Notas de la propuesta', '<div id="notas-box"></div>') + card('Para facturación', fact) + '</div>' +
+    return '<div class="b2"><div class="stack">' + card('Datos del cliente', identHtml()) + card(u ? 'El trabajo y su precio' : 'Tarifas', t, '<button class="btn sm" data-a="ver-propuesta">' + IC('ojo', 14) + ' Ver propuesta</button>') +
+      '<div class="lc-mov">' + IC('caja', 18) + '<div><b>Sedes, servicios e insumos ahora están en «Lo contratado»</b><br><span class="muted">Un solo lugar para lo que el cliente contrata, con su regla de cobro: de ahí salen el contrato, el alta, Logística y el portal.</span></div><span class="sp"></span><button class="btn" data-tab="contratado">Ir a Lo contratado</button></div>' +
+      card('Notas de la propuesta', '<div id="notas-box"></div>') + '</div>' +
       '<div class="stack">' + propuestaCard() + card('Inspección técnica', inspeccionHtml()) + '</div></div>';
   }
 
@@ -2200,6 +2204,7 @@
       (u31 ? (v('fechaTentativa') ? '<div class="aviso az" style="margin-top:10px">Visita única pedida para el <b>' + E(MK.fechaLarga ? MK.fechaLarga(v('fechaTentativa')) : v('fechaTentativa')) + '</b>: Logística la pone en la ruta de ese día.</div>' : '<div class="aviso am" style="margin-top:10px">El cliente todavía no da la fecha: al aprobarla queda <b>Por iniciar</b> y sale en tu seguimiento de Altas enviadas.</div>') : '') +
       (falt.length ? '<div class="aviso am" style="margin-top:10px">Faltan documentos: <b>' + E(falt.map(function (d) { return d[1]; }).join(', ')) + '</b>. Se puede enviar igual: la solicitud lo dice.</div>' : '<div class="aviso vd" style="margin-top:10px">Documentación completa.</div>') +
       (hayCambios() ? '<div class="aviso am" style="margin-top:10px">Primero se guardan tus cambios de la ficha.</div>' : '') +
+      (window.LC62 && LC62.sinRegla() ? '<div class="aviso am" style="margin-top:10px">Sin regla de cobro confirmada. Se puede enviar igual: la ficha quedará en «Sin reglas de cobro confirmadas» hasta que se confirme. <a href="#" data-tab="contratado" onclick="MK.cerrarHoja()">Definirla ahora</a></div>' : '') +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn pri" id="ca-ok">' + IC('flecha', 15) + ' Sí, enviar</button></div>');
     $('ca-ok').onclick = function () {
       if (ENVIANDO.cartera) { MK.aviso('Ya se está enviando…'); return; }
@@ -2211,6 +2216,7 @@
           soltar();
           if (!r || !r.ok) { MK.cerrarHoja(); MK.aviso((r && r.error) || 'No se pudo enviar.'); if (r && r.yaEnviada) MK.cambio({ tipo: 'cartera' }); return; }
           MK.cerrarHoja();
+          if (r.avisoCobro) setTimeout(function () { MK.aviso(r.avisoCobro); }, 3600);
           MK.aviso(r.aviso ? r.aviso : r.existente ? 'Enviada a Logística como alta ✓ La ficha cambia cuando la aprueben.' : r.faltan && r.faltan.length ? 'Enviado, pero faltan documentos: ' + r.faltan.join(', ') : 'Enviado a Logística ✓');
           MK.cambio({ tipo: 'cartera' });
           setTimeout(correoCartera, 500);
@@ -2417,6 +2423,449 @@ var SUC51 = (function () {
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-s51]'); if (b) enlace(b.getAttribute('data-id')); });
   return { card: card };
 })();
+</script>
+<style id="estilo-362">
+/* ── Lo contratado (fase 2) ── */
+.lc-top{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+.lc-top .sp{flex:1}
+.lc-ay{width:26px;height:26px;border-radius:50%;border:1.5px solid #9db4d8;background:#fff;color:var(--navy2);font:800 13px Archivo,sans-serif;cursor:pointer;padding:0}
+.lc-ay:hover,.lc-ay[aria-expanded=true]{background:var(--navy2);border-color:var(--navy2);color:#fff}
+.lc-ayuda{display:flex;gap:10px;background:#f4f7fc;border:1px solid #d5e0f1;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#3a4a63;margin-bottom:12px}
+.lc-ayuda svg{flex:none;color:var(--navy2);margin-top:1px}
+.lc-plan{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.lc-plan>div{border:1px solid var(--line2);border-radius:10px;padding:8px 10px;min-width:0}
+.lc-plan small{display:block;font-size:11px;color:var(--muted)}.lc-plan b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-sedes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.lc-sedes button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font:700 13px Archivo,sans-serif;color:var(--ink);cursor:pointer}
+.lc-sedes button .n{font-size:11px;font-weight:600;color:var(--muted)}
+.lc-sedes button.on{border-color:var(--navy2);background:#f6f9fd;box-shadow:inset 0 0 0 1px var(--navy2)}
+.lc-sedes .lc-mas{flex-direction:row;align-items:center;border-style:dashed;color:var(--navy2)}
+.lc-sn{max-width:360px}
+.lc-h4{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:#7a879b;margin:14px 0 6px;font-weight:800}
+.lc-t{width:100%;border-collapse:collapse;font-size:13px}
+.lc-t th{text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#7a879b;padding:6px 8px;border-bottom:1px solid var(--line)}
+.lc-t td{padding:8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.lc-t .c{text-align:center}.lc-t .r{text-align:right}
+.lc-t tr.off td{color:var(--muted)}.lc-t tr.off b{color:#6b778a;font-weight:600}
+.lc-t .sub{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.lc-t .sel,.lc-t .in{padding:6px 8px;font-size:13px}
+.lc-t .lc-pr{width:100px;text-align:right}.lc-t .lc-n{width:76px}
+.sw{position:relative;display:inline-block;width:38px;height:22px;cursor:pointer}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:#cfd7e4;border-radius:999px;transition:background .15s}
+.sw i:after{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw input:checked+i{background:var(--ok)}.sw input:checked+i:after{transform:translateX(16px)}
+.sw input:focus-visible+i{outline:2px solid var(--navy2);outline-offset:2px}
+.lc-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lc-dv{display:inline-flex;border:1px solid var(--line);border-radius:10px;padding:2px;background:#f4f6fa;gap:2px;margin-bottom:10px}
+.lc-dv button{border:0;background:none;border-radius:8px;padding:6px 12px;font:600 12.5px Archivo,sans-serif;color:#51607a;cursor:pointer}
+.lc-dv button.on{background:#fff;color:var(--navy2);box-shadow:0 1px 3px rgba(15,33,64,.14)}
+.lc-prev{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.lc-pv{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:#fbfcfe;font-size:13px}
+.lc-pv ul{list-style:none;margin:6px 0 8px;padding:0}.lc-pv li{padding:3px 0 3px 20px;position:relative;line-height:1.45}
+.lc-pv li svg{color:var(--navy2);position:absolute;left:0;top:5px}
+.lc-ex .lc-cb{display:inline-block;border-radius:6px;padding:1px 7px;margin:2px 2px 0 0;font-weight:700;font-size:12px}
+.lc-cb.mas{background:#e3f4ea;color:#1d6b3a}.lc-cb.menos{background:#fdeaea;color:#a12d2d}
+.lc-pie{display:flex;align-items:center;gap:10px;margin-top:6px;padding:10px 0}.lc-pie .sp{flex:1}
+@media(max-width:760px){.lc-plan{grid-template-columns:1fr 1fr}.lc-t{display:block;overflow-x:auto}.lc-sn{max-width:none}}
+
+.lc-mov{display:flex;gap:10px;align-items:center;background:#f4f7fc;border:1px solid #d5e0f1;border-radius:12px;padding:12px 14px;font-size:13px;margin:14px 0}
+.lc-mov svg{color:var(--navy2);flex:none}.lc-mov .sp{flex:1}
+
+.lc-cob{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 16px}
+.lc-ch{display:inline-flex;flex-wrap:wrap;gap:4px}
+.lc-ch button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:600 12.5px Archivo,sans-serif;color:#3d4a5e;cursor:pointer}
+.lc-ch button.on{background:var(--navy2);border-color:var(--navy2);color:#fff}
+.lc-q{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#e3eaf5;color:var(--navy2);font-size:10.5px;font-weight:800;cursor:help;margin-left:4px}
+
+.lc-badge{display:inline-flex;align-items:center;gap:6px;background:#eaf0fa;color:var(--navy2);border-radius:999px;padding:6px 12px;font:700 13px Archivo,sans-serif}
+.lc-badge.lic{background:#fff4d6;color:#7a4f00}.lc-badge.sm{padding:3px 10px;font-size:11.5px}
+.lc-or{color:#1d6b3a!important;font-weight:600!important}
+.lc-cad{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.lc-cad li{display:flex;gap:12px;align-items:flex-start;padding:9px 6px;border-bottom:1px solid var(--line2);position:relative}
+.lc-cad li:last-child{border-bottom:0}
+.lc-cad li>i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;background:#f0f3f8;color:#7a879b;border:1.5px solid #d5dde9}
+.lc-cad li.ok>i{background:var(--ok);border-color:var(--ok);color:#fff}
+.lc-cad li.curso>i{background:#fff;border-color:var(--navy2);color:var(--navy2)}
+.lc-cad li>div{flex:1;min-width:0}.lc-cad b{font-size:13.5px}
+.lc-cad small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.lc-est{font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 7px;margin-left:4px;background:#f0f3f8;color:#51607a}
+.lc-cad li.ok .lc-est{background:#e3f4ea;color:#1d6b3a}.lc-cad li.curso .lc-est{background:#eaf0fa;color:var(--navy2)}.lc-cad li.falta .lc-est{background:#fff4d6;color:#7a4f00}
+.lc-cad a{font-weight:700;font-size:12.5px;align-self:center}
+.lc-dat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px}
+.lc-dat small{display:block;font-size:11px;color:var(--muted)}.lc-dat b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){.lc-dat{grid-template-columns:1fr 1fr}}
+
+.lc-dsed{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:#51607a;margin:0 0 4px}.lc-dsed b{color:var(--ink);font-weight:600}
+.lc-sug{display:flex;gap:10px;background:#fff8e6;border:1px solid #f0d9a0;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#5c4400;margin-bottom:10px}
+.lc-sug svg{flex:none;color:#a06d00;margin-top:1px}
+.lc-otros{margin-top:10px;font-size:12.5px;color:#51607a}.lc-otros li{margin:2px 0}
+
+</style>
+<script id="js-362">
+/* ═══ api 3.62 · Ficha de la oportunidad › «Lo contratado» (maqueta Lo contratado, aprobada el 28 oct) ═══
+   Un solo lugar para lo que el cliente contrata, sede por sede: servicios con su frecuencia, insumos con su cantidad,
+   incluido o cobrado aparte, y la regla de cobro. Lo guardado son las sucursales de la propuesta (3.49): de aquí salen
+   el contrato, el alta (también de un cliente que ya existe), lo que Logística programa y lo que el cliente ve en su portal.
+   Los servicios y productos con precio de la propuesta se arman solos con lo de las sedes; el plan y sus tarifas siguen en Propuesta. */
+var LC62 = (function () {
+  var E = MK.esc, IC = MK.ic;
+  var SRV = [['peligrosos', 'Recolección de desechos peligrosos'], ['solidos', 'Recolección de desechos sólidos'], ['fumigacion', 'Fumigación']];
+  var FUMF = [['mes', 'Cada mes'], ['bimestre', 'Cada 2 meses'], ['trimestre', 'Cada 3 meses'], ['semestre', 'Cada 6 meses']];
+  var CADA = [['visita', 'En cada visita'], ['mes', 'Al mes'], ['bimestre', 'Cada 2 meses'], ['trimestre', 'Cada 3 meses'], ['semestre', 'Cada 6 meses']];
+  var MODO = [['incluido', 'Incluido'], ['cobrado', 'Se cobra aparte']];
+  var S = null, SEDE = 0, VISTA = 'logistica';
+
+  function D() { return MO49.D(); }
+  function OP() { return D().oportunidad || {}; }
+  function SU() { return D().sucursales || {}; }
+  function C62() { return D().cobro62 || {}; }
+  function ro() { return MO49.ro(); }
+  function ger() { return MK.usuario && MK.usuario.rol === 'gerente'; }
+  function reglaRo() { return ger() || OP().estado === 'Pasado a cartera'; }
+  function sedesRo() { var su = SU(); return ro() || su.gran || su.unica; }
+  function catIns() { return (SU().insumos || []).filter(function (c) { return c.activo !== false; }); }
+  function nom(l, v) { var x = l.filter(function (o) { return o[0] === v; })[0]; return x ? x[1] : v; }
+  function dinero(v) { var n = Number(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) || !String(v).trim() ? '' : MK.dinero(n); }
+  function sel(attr, ops, val, ph) {
+    return '<select class="sel" ' + attr + '>' + (ph ? '<option value="">' + E(ph) + '</option>' : '') + ops.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + E(v) + '"' + (String(v) === String(val) ? ' selected' : '') + '>' + E(t) + '</option>'; }).join('') + '</select>';
+  }
+  function frecProp() { return String(OP().frecuencia || '').toUpperCase(); }
+
+  /* ── el estado de la pestaña: las sedes guardadas o, si no hay, la sugerida con lo que dice la propuesta ── */
+  function nuevaSede(n) { return { id: 'N' + Date.now().toString(36) + n, nombre: 'Sede ' + n, direccion: '', horario: '', frecuencia: '', servicios: { peligrosos: true, solidos: false, fumigacion: false, fumFrec: 'mes' }, insumos: [] }; }
+  function normal(z) {
+    z = JSON.parse(JSON.stringify(z || {}));
+    var s = z.servicios || {};
+    z.servicios = { peligrosos: s.peligrosos !== false, solidos: !!s.solidos, fumigacion: !!s.fumigacion, fumFrec: s.fumFrec || 'mes',
+      solModo: s.solModo || 'cobrado', solPrecio: s.solPrecio || '', solFrec: s.solFrec || '', fumModo: s.fumModo || 'cobrado', fumPrecio: s.fumPrecio || '' };
+    z.insumos = (z.insumos || []).map(function (i) { return { catId: i.catId, nombre: i.nombre || '', cantidad: i.cantidad || 1, cada: i.cada || 'mes', modo: i.modo || 'incluido', precio: i.precio || '' }; });
+    return z;
+  }
+  function delaPropuesta(z) {   // lo que la propuesta de antes ya tenía con precio
+    var L = (D().servicios || {}).lista || [];
+    z.insumos.forEach(function (i) { var x = L.filter(function (y) { return (y.itemId || y.catId) === i.catId; })[0]; if (x) { i.modo = x.modo || 'incluido'; i.precio = x.modo === 'cobrado' ? x.precio : ''; } });
+    var f = L.filter(function (y) { return /fumig/i.test(y.nombre || ''); })[0];
+    if (f && z.servicios.fumigacion) { z.servicios.fumModo = f.modo || 'cobrado'; z.servicios.fumPrecio = f.modo === 'cobrado' ? f.precio : ''; }
+    return z;
+  }
+  function estado() {
+    var su = SU();
+    if (S && S.cod === MO49.COD && (S.src === su || S.cambiado)) return S;
+    var g = C62();
+    var base = (su.lista && su.lista.length) ? su.lista.map(normal) : (su.sugerida || []).map(normal).map(delaPropuesta);
+    if (!base.length) base = [nuevaSede(1)];
+    if (base.length === 1 && !base[0].nombre) base[0].nombre = '';
+    S = { cod: MO49.COD, src: su, sedes: base, guardadas: !!(su.lista && su.lista.length), regla: JSON.parse(JSON.stringify(g.regla || g.sugerida || {})), reglaOk: !!g.regla, cambiado: false };
+    if (SEDE >= S.sedes.length) SEDE = 0;
+    return S;
+  }
+
+  /* ── contador para la pestaña ── */
+  function contador() {
+    if (!D() || !D().sucursales) return '';
+    var su = SU(), s = estado();
+    if (su.gran) return 'en la cuenta';
+    if (su.unica) return C62().regla ? 'listo' : 'revisar';
+    return s.sedes.length > 1 ? s.sedes.length + ' sedes' : (s.guardadas && C62().regla ? 'listo' : 'revisar');
+  }
+
+  /* ── pintar ── */
+  function tab() {
+    var su = SU(), s = estado(), h = '';
+    h += '<div class="lc-top"><span class="lc-badge">' + IC('edificio', 14) + ' Cliente privado · ' + (su.unica ? 'servicio especial' : 'servicio recurrente') + '</span><span class="muted small">Definido en la captura de la oportunidad</span>' +
+      '<span class="sp"></span><button type="button" class="lc-ay" data-lc="ayuda" aria-expanded="false" aria-controls="lc-ayuda" title="¿Para qué sirve esta pestaña?">?</button></div>' +
+      '<div class="lc-ayuda" id="lc-ayuda" hidden>' + IC('documento', 16) + '<div><b>Lo contratado es la única fuente de lo que el cliente recibe.</b> De aquí salen la propuesta y el contrato; al dar el alta pasa a la ficha del cliente, Logística programa cada visita con lo que hay que recoger y reponer, y el cliente lo ve en su portal. El plan y sus tarifas se eligen en la pestaña Propuesta.</div></div>';
+    if (D().contratadoActual) h += existente();
+    if (su.gran) h += (window.SUC49 ? SUC49.card() : '') + (window.SUC51 ? SUC51.card() : '');
+    else if (su.unica) h += planResumen() + (MO49.srv ? MO49.srv() : '');
+    else h += planResumen() + sedes() + (window.SUC51 ? SUC51.card() : '');
+    h += cobro();
+    if (!su.gran) h += destino();
+    var puedeS = !sedesRo(), puedeR = !reglaRo();
+    if (puedeS || puedeR) h += '<div class="lc-pie"><span class="muted small">' + (C62().regla ? IC('check', 14) + ' Regla de cobro confirmada por ' + E(C62().regla.por || 'Mercadeo') : 'Revise y confirme antes de enviar la propuesta.') +
+      (ro() && puedeR ? ' La propuesta está firmada: solo se cambia la regla de cobro.' : '') + '</span><span class="sp"></span>' +
+      '<button class="btn pri" data-lc="guardar">' + (s.cambiado ? 'Guardar cambios' : 'Confirmar lo contratado') + '</button></div>';
+    return h;
+  }
+  function planResumen() {
+    var o = OP(), snap = {}; try { snap = JSON.parse(o.planSnap || '{}'); } catch (e) { snap = {}; }
+    var u = SU().unica;
+    var fil = [['Plan', snap.nombre || (u ? 'Servicio especial' : 'Sin plan elegido')], ['Frecuencia', u ? 'Una sola vez' : (o.frecuencia || '—')], ['Kilos incluidos', o['kg plan'] ? o['kg plan'] + ' kg por visita' : (u && o.cantidadEstimada ? o.cantidadEstimada + ' kg' : '—')],
+      ['Precio', o['costo visita'] ? MK.dinero(Number(o['costo visita'])) + (u ? ' el servicio' : ' por visita') : '—'], ['Kilo adicional', o['tarifa kg adic'] ? MK.dinero(Number(o['tarifa kg adic'])) : '—']];
+    return MO49.card('Plan y tarifas', '<div class="lc-plan">' + fil.map(function (f) { return '<div><small>' + f[0] + '</small><b>' + E(String(f[1])) + '</b></div>'; }).join('') + '</div>',
+      '<a href="#" data-tab="propuesta">' + IC('lapiz', 13) + ' Cambiar en Propuesta</a>');
+  }
+  function sedes() {
+    var s = estado(), n = s.sedes.length, x = s.sedes[SEDE], dis = sedesRo() ? ' disabled' : '', FR = SU().frecuencias || [];
+    var pest = '<div class="lc-sedes" role="tablist" aria-label="Sedes">' + s.sedes.map(function (z, i) {
+      return '<button type="button" role="tab" aria-selected="' + (i === SEDE) + '" data-lc="sede" data-i="' + i + '" class="' + (i === SEDE ? 'on' : '') + '">' + E(z.nombre || (n === 1 ? 'Sede única' : 'Sede ' + (i + 1))) + '<span class="n">' + resumenSede(z) + (z.fuente === 'cliente' ? ' · del enlace' : '') + '</span></button>';
+    }).join('') + (sedesRo() ? '' : '<button type="button" class="lc-mas" data-lc="masSede">' + IC('mas', 13) + ' Sede</button>') + '</div>';
+    var pide = x.pide || {};
+    var srv = '<table class="lc-t"><thead><tr><th>Servicio</th><th class="c">Contratado</th><th>Frecuencia</th><th>Cobro</th><th class="r">Precio</th></tr></thead><tbody>' + SRV.map(function (r) {
+      var k = r[0], v = x.servicios, on = !!v[k], c = k === 'solidos' ? 'sol' : 'fum';
+      var sub = (k === 'fumigacion' && pide.fumigacion) || (k === 'peligrosos' && pide.recoleccion && x.fuente === 'cliente') ? '<span class="sub lc-or">Lo pidió el cliente en su enlace</span>'
+        : k === 'peligrosos' ? '<span class="sub">Lo que cubre el plan (Propuesta)</span>' : k === 'solidos' ? '<span class="sub">Se programa aparte de peligrosos</span>' : '<span class="sub">La programa el equipo de fumigación</span>';
+      var frec = !on ? '<span class="muted">—</span>' : k === 'peligrosos' ? sel('data-lc="frec"' + dis, FR, x.frecuencia, 'La de la propuesta' + (frecProp() ? ' (' + frecProp().toLowerCase() + ')' : ''))
+        : k === 'solidos' ? sel('data-lc="solFrec"' + dis, FR, v.solFrec, 'La misma de peligrosos') : sel('data-lc="fumFrec"' + dis, FUMF, v.fumFrec);
+      var modo = !on ? '<span class="muted">—</span>' : k === 'peligrosos' ? '<span class="tag t-info">Incluido en el plan</span>' : sel('data-lc="srvModo" data-k="' + c + '"' + dis, MODO, v[c + 'Modo']);
+      var pr = on && k !== 'peligrosos' && v[c + 'Modo'] === 'cobrado' ? '<input class="in lc-pr" data-lc="srvPrecio" data-k="' + c + '" value="' + E(v[c + 'Precio'] || '') + '" placeholder="B/." inputmode="decimal" aria-label="Precio de ' + E(r[1].toLowerCase()) + '"' + dis + '>' : '<span class="muted">—</span>';
+      return '<tr class="' + (on ? '' : 'off') + '"><td><b>' + r[1] + '</b>' + sub + '</td><td class="c"><label class="sw"><input type="checkbox" data-lc="srv" data-k="' + k + '"' + (on ? ' checked' : '') + dis + ' aria-label="' + E(r[1]) + '"><i></i></label></td><td>' + frec + '</td><td>' + modo + '</td><td class="r">' + pr + '</td></tr>';
+    }).join('') + '</tbody></table>';
+    var cat = catIns();
+    var ins = '<table class="lc-t"><thead><tr><th>Insumo</th><th>Cantidad</th><th>Cada cuánto</th><th>Cobro</th><th class="r">Precio</th><th></th></tr></thead><tbody>' +
+      (x.insumos.length ? x.insumos.map(function (it, i) {
+        return '<tr><td>' + sel('data-lc="insCat" data-i="' + i + '" aria-label="Insumo"' + dis, cat.map(function (c) { return [c.id, c.nombre]; }), it.catId, 'Elegir del catálogo…') + '</td>' +
+          '<td><input class="in lc-n" type="number" min="1" max="999" data-lc="insCant" data-i="' + i + '" value="' + E(it.cantidad) + '" aria-label="Cantidad"' + dis + '></td>' +
+          '<td>' + sel('data-lc="insCada" data-i="' + i + '" aria-label="Cada cuánto"' + dis, CADA, it.cada) + '</td>' +
+          '<td>' + sel('data-lc="insModo" data-i="' + i + '" aria-label="Cobro"' + dis, [['incluido', 'Incluido'], ['cobrado', 'Se cobra']], it.modo) + '</td>' +
+          '<td class="r">' + (it.modo === 'cobrado' ? '<input class="in lc-pr" data-lc="insPrecio" data-i="' + i + '" value="' + E(it.precio || '') + '" placeholder="B/." inputmode="decimal" aria-label="Precio"' + dis + '>' : '<span class="muted">—</span>') + '</td>' +
+          '<td class="c">' + (sedesRo() ? '' : '<button class="btn sm gh" data-lc="insQuitar" data-i="' + i + '" aria-label="Quitar insumo">' + IC('basura', 13) + '</button>') + '</td></tr>';
+      }).join('') : '<tr><td colspan="6" class="muted small" style="padding:12px">Sin insumos. Envases, bolsas o recipientes que se le dejan al cliente con su contrato.</td></tr>') + '</tbody></table>' +
+      (sedesRo() ? '' : '<div class="lc-acc"><button class="btn sm" data-lc="insMas"' + (cat.length ? '' : ' disabled title="No hay insumos en el catálogo"') + '>' + IC('mas', 13) + ' Agregar insumo</button>' +
+        (n > 1 ? '<button class="btn sm gh" data-lc="copiar">' + IC('renovar', 13) + ' Copiar esta sede a las demás</button><button class="btn sm gh" data-lc="quitarSede">' + IC('basura', 13) + ' Quitar esta sede</button>' : '') + '</div>');
+    var dat = [x.direccion, x.horario ? 'horario ' + x.horario : '', x.contacto ? 'contacto ' + x.contacto : '', x.costo ? MK.dinero(Number(x.costo)) + ' por visita' : '', x.lat ? 'con punto en el mapa' : ''].filter(Boolean);
+    var sug = !s.guardadas && !sedesRo() ? '<div class="lc-sug">' + IC('alerta', 16) + '<span>Todavía no está confirmado: viene armado con lo que dice la propuesta' + (SU().formulario === 'RECIBIDO' ? ' y el formulario del cliente' : '') + '. Revíselo y confírmelo abajo.</span></div>' : '';
+    return MO49.card(n > 1 ? 'Sedes y servicios' : 'Servicios e insumos', sug + pest +
+      '<div class="lc-sn"><label class="lb" for="lc-nom">NOMBRE DE LA SEDE' + (n === 1 ? ' <span class="muted">(opcional si es una sola)</span>' : '') + '</label><input class="in" id="lc-nom" data-lc="sedeNom" value="' + E(x.nombre || '') + '" placeholder="' + (n > 1 ? 'Obarrio' : 'Sede única') + '"' + dis + '></div>' +
+      '<div class="lc-dsed">' + (dat.length ? dat.map(function (t) { return '<span>' + E(t) + '</span>'; }).join('') : '<span class="muted">Sin dirección todavía</span>') +
+        (sedesRo() ? '' : '<a href="#" data-lc="datosSede">' + IC('lapiz', 12) + ' Dirección, horario y punto</a>') + '</div>' +
+      '<h4 class="lc-h4">Servicios</h4>' + srv + '<h4 class="lc-h4">Insumos que se entregan</h4>' + ins + otros(), n > 1 ? '<span class="muted small">' + n + ' sedes</span>' : '');
+  }
+  function resumenSede(z) { var a = SRV.filter(function (r) { return z.servicios[r[0]]; }).length; return a + (a === 1 ? ' servicio' : ' servicios') + (z.insumos.length ? ' · ' + z.insumos.length + ' ins.' : ''); }
+  /* lo de la propuesta que no sale de las sedes: lo del plan, la promoción y otros servicios del catálogo */
+  function otros() {
+    var L = ((D().servicios || {}).lista || []).filter(function (x) { return x.delPlan || x.dePromo || !esDeSedes(x); });
+    return L.length ? '<div class="lc-otros"><b>También en la propuesta:</b><ul>' + L.map(function (x) { return '<li>' + E(x.nombre) + (x.dePromo ? ' · de la promoción' : x.delPlan ? ' · del plan' : '') + (x.modo === 'cobrado' && x.total ? ' · ' + MK.dinero(x.total) : ' · incluido') + '</li>'; }).join('') + '</ul></div>' : '';
+  }
+  function esDeSedes(x) { var id = x.itemId || x.catId; return catIns().some(function (c) { return c.id === id; }) || /fumig/i.test(x.nombre || ''); }
+
+  /* ── regla de cobro ── */
+  function cobro() {
+    var s = estado(), c = s.regla, g = C62(), n = SU().gran ? Math.max(2, g.sedes || 2) : s.sedes.length, dis = reglaRo() ? ' disabled' : '';
+    var ch = function (k, ops, lb) { return '<div class="lc-ch" role="group" aria-label="' + E(lb) + '">' + ops.map(function (o) { return '<button type="button" data-lc="cobro" data-k="' + k + '" data-v="' + o[0] + '" aria-pressed="' + (String(c[k]) === o[0]) + '" class="' + (String(c[k]) === o[0] ? 'on' : '') + '"' + dis + '>' + o[1] + '</button>'; }).join('') + '</div>'; };
+    var cli = c.cliente;
+    var dijo = cli ? '<div class="lc-sug">' + IC('check', 16) + '<span><b>Lo que contestó el cliente al aceptar:</b> ' + E([cli.fact ? (cli.fact === 'una' ? 'una factura para todas las sedes' : 'una factura por sede') : '',
+      'recibir la factura por ' + String((g.envios || {})[cli.recibe] || cli.recibe || '').toLowerCase(), (g.fiscal || {})[cli.fiscal] ? String(g.fiscal[cli.fiscal]).toLowerCase() : ''].filter(Boolean).join(' · ')) + '. Ya está puesto abajo: revíselo y confírmelo.</span></div>' : '';
+    var est = g.regla ? '<span class="tag t-ok">Confirmada</span>' : '<span class="tag t-warn">Sin confirmar</span>';
+    var envio = c.envio || 'correo';
+    return MO49.card('Regla de cobro', '<p class="small muted" style="margin:-4px 0 6px">Para la ficha del cliente y para nuestro equipo de cobros. No sale en la propuesta.</p>' + dijo +
+      '<div class="lc-cob"><div><label class="lb">CÓMO SE COBRA</label>' + ch('modalidad', [['plan', 'Plan'], ['peso', 'Por kilo'], ['servicio', 'Servicio']], 'Cómo se cobra') + '</div>' +
+      (n > 1 ? '<div><label class="lb">FACTURACIÓN · ' + n + ' SEDES</label>' + ch('fact', [['una', 'Agrupada'], ['sede', 'Por sede']], 'Facturación') + '</div><div><label class="lb">RECIBOS, CERTIFICADO Y DISTINTIVO</label>' + ch('cert', [['sede', 'Por sede'], ['emp', 'Agrupado'], ['corp', 'Corporativo']], 'Documentos') + '</div>'
+        : '<div><label class="lb">FACTURACIÓN</label><span class="tag t-gris">Una sede: una factura a su nombre</span></div>') +
+      '<div><label class="lb">ITBMS</label>' + ch('itbms', [['7', '7 %'], ['exento', 'Exento']], 'ITBMS') + '</div>' +
+      (c.itbms === 'exento' ? '' : '<div><label class="lb">RETENCIÓN DEL ITBMS <span class="lc-q" title="Los agentes de retención retienen el 50 % del ITBMS y lo pagan al fisco: la factura sale por el total, pero al banco entra menos.">?</span></label>' + ch('rec', [['no', 'No retiene'], ['si', 'Retiene 50 %']], 'Retención') + '</div>') +
+      '<div><label class="lb" for="lc-pago">FORMA DE PAGO</label>' + sel('id="lc-pago" data-lc="cobroSel" data-k="pago"' + dis, g.pagos || ['Transferencia', 'Cheque', 'Contado', 'ACH', 'Tarjeta'], c.pago || 'Transferencia') + '</div>' +
+      '<div><label class="lb">DÍAS DE CRÉDITO</label>' + ch('dias', [['0', 'Contado'], ['15', '15'], ['30', '30'], ['45', '45'], ['60', '60']], 'Días de crédito') + '</div>' +
+      '<div><label class="lb">ENVIAR FACTURAS POR</label>' + ch('envio', [['correo', 'Correo'], ['whatsapp', 'WhatsApp'], ['ambos', 'Ambos'], ['impresa', 'Impresa']], 'Envío de facturas') + '</div>' +
+      (envio === 'correo' || envio === 'ambos' ? '<div><label class="lb" for="lc-cor">CORREO PARA FACTURAS</label><input class="in" id="lc-cor" type="email" data-lc="cobroTxt" data-k="correo" value="' + E(c.correo || '') + '" placeholder="' + E(OP().correo || 'facturas@empresa.com') + '"' + dis + '></div>' : '') +
+      (envio === 'whatsapp' || envio === 'ambos' ? '<div><label class="lb" for="lc-wa">WHATSAPP PARA FACTURAS</label><input class="in" id="lc-wa" inputmode="tel" data-lc="cobroTxt" data-k="whatsapp" value="' + E(c.whatsapp || '') + '" placeholder="' + E(OP().celular || '6000-0000') + '"' + dis + '></div>' : '') +
+      '</div>' + (g.regla ? '<p class="small muted" style="margin-top:8px">' + IC('check', 13) + ' Confirmada por ' + E(g.regla.por || '') + ' el ' + E(String(g.regla.conf || '').slice(0, 10)) + '. Al dar el alta pasa a la ficha del cliente.</p>'
+        : '<p class="small muted" style="margin-top:8px">Si pasa a cartera sin confirmarla, la ficha queda en «Sin reglas de cobro confirmadas».</p>'), est);
+  }
+
+  /* ── un cliente que ya existe: qué cambia ── */
+  function existente() {
+    var act = D().contratadoActual, s = estado(), x = s.sedes[0], cambios = [];
+    if (!act || !x) return '';
+    var A = act.servicios || {};
+    SRV.forEach(function (r) { var a = !!A[r[0]], b = !!x.servicios[r[0]]; if (!a && b) cambios.push(['+', r[1] + (r[0] === 'fumigacion' ? ' · ' + nom(FUMF, x.servicios.fumFrec).toLowerCase() : '')]); if (a && !b) cambios.push(['−', r[1]]); });
+    x.insumos.forEach(function (it) { var y = (act.insumos || []).filter(function (z) { return z.catId === it.catId; })[0]; if (it.catId && !y) cambios.push(['+', (it.cantidad || 1) + ' × ' + (nomIns(it.catId) || 'insumo') + ' · ' + nom(CADA, it.cada).toLowerCase()]); });
+    return '<div class="ban info lc-ex">' + IC('edificio', 18) + '<div class="bx"><b>Ya es cliente: al aprobarse el alta, el cambio le llega a Logística para revisarlo</b><p>' +
+      (cambios.length ? 'Cambia: ' + cambios.map(function (c) { return '<span class="lc-cb ' + (c[0] === '+' ? 'mas' : 'menos') + '">' + c[0] + ' ' + E(c[1]) + '</span>'; }).join(' ') : 'Por ahora no cambia nada de lo que ya tiene contratado.') +
+      ' Cuenta para programar desde la fecha de inicio que confirme Logística.</p></div></div>';
+  }
+  function nomIns(id) { var c = catIns().filter(function (z) { return z.id === id; })[0]; return c ? c.nombre : ''; }
+
+  /* ── así llega a cada área ── */
+  function destino() {
+    var V = [['logistica', 'Logística'], ['portal', 'Portal del cliente'], ['contrato', 'Propuesta y contrato']];
+    return MO49.card('Así llega a cada área', '<div class="lc-dv" role="tablist">' + V.map(function (v) { return '<button type="button" role="tab" aria-selected="' + (VISTA === v[0]) + '" data-lc="vista" data-v="' + v[0] + '" class="' + (VISTA === v[0] ? 'on' : '') + '">' + v[1] + '</button>'; }).join('') + '</div><div class="lc-prev">' + previa() + '</div>');
+  }
+  function frecTx(z) { return String(z.frecuencia || frecProp() || '').toLowerCase(); }
+  function previa() {
+    var s = estado(), o = OP(), su = SU();
+    if (su.unica) return '<div class="lc-pv"><b>Servicio especial</b><ul><li>' + IC('camion', 13) + ' Una sola visita' + (o.fechaTentativa ? ' · ' + E(MK.fechaLarga ? MK.fechaLarga(o.fechaTentativa) : o.fechaTentativa) : '') + '</li></ul></div>';
+    if (VISTA === 'logistica') return s.sedes.map(function (z, i) {
+      var v = z.servicios;
+      return '<div class="lc-pv"><b>' + E(z.nombre || (s.sedes.length === 1 ? 'Sede única' : 'Sede ' + (i + 1))) + '</b><ul>' +
+        (v.peligrosos ? '<li>' + IC('camion', 13) + ' Recoger peligrosos · ' + E(frecTx(z)) + '</li>' : '') +
+        (v.solidos ? '<li>' + IC('camion', 13) + ' Recoger sólidos · ' + E(String(v.solFrec || frecTx(z)).toLowerCase()) + ' <span class="muted">· en Sólidos</span></li>' : '') +
+        (v.fumigacion ? '<li>' + IC('calendario', 13) + ' Fumigación ' + nom(FUMF, v.fumFrec).toLowerCase() + ' <span class="muted">· la programa Fumigación</span></li>' : '') +
+        z.insumos.filter(function (i) { return i.catId; }).map(function (i) { return '<li>' + IC('caja', 13) + ' Entregar ' + (i.cantidad || 1) + ' × ' + E(nomIns(i.catId) || i.nombre) + ' · ' + nom(CADA, i.cada).toLowerCase() + '</li>'; }).join('') +
+        (v.peligrosos || v.solidos || v.fumigacion || z.insumos.length ? '' : '<li class="muted">Nada que programar.</li>') + '</ul></div>';
+    }).join('');
+    if (VISTA === 'portal') {
+      var z = s.sedes[SEDE] || s.sedes[0];
+      return '<div class="lc-pv"><b>Sus servicios' + (s.sedes.length > 1 ? ' · ' + E(z.nombre) : '') + '</b><ul>' + SRV.map(function (r) {
+        var on = z.servicios[r[0]];
+        return '<li>' + (on ? '<span class="tag t-ok">Contratado</span> ' + r[1] : '<span class="tag t-gris">Disponible</span> ' + r[1] + ' · puede pedirlo') + '</li>';
+      }).join('') + '</ul>' + (z.insumos.length ? '<b>Insumos</b><ul>' + z.insumos.filter(function (i) { return i.catId; }).map(function (i) { return '<li>' + (i.cantidad || 1) + ' × ' + E(nomIns(i.catId) || i.nombre) + ' · ' + nom(CADA, i.cada).toLowerCase() + '</li>'; }).join('') + '</ul>' : '') +
+        '<p class="small muted">El portal le muestra lo contratado de cada sede; lo que no tiene lo puede pedir y le llega a Mercadeo.</p></div>';
+    }
+    return '<div class="lc-pv"><b>Lo que dirán la propuesta y el contrato</b><ul>' +
+      '<li>Plan: ' + E(o.frecuencia || '—') + (o['kg plan'] ? ', ' + E(o['kg plan']) + ' kg incluidos' : '') + (o['costo visita'] ? ', ' + MK.dinero(Number(o['costo visita'])) + ' por visita' : '') + '</li>' +
+      s.sedes.map(function (z, i) {
+        var v = z.servicios, ap = function (m, p) { return m === 'cobrado' && p ? ' (' + dinero(p) + ' aparte)' : m === 'incluido' ? ' (incluido)' : ''; };
+        var t = [];
+        if (v.solidos) t.push('sólidos ' + String(v.solFrec || frecTx(z)).toLowerCase() + ap(v.solModo, v.solPrecio));
+        if (v.fumigacion) t.push('fumigación ' + nom(FUMF, v.fumFrec).toLowerCase() + ap(v.fumModo, v.fumPrecio));
+        z.insumos.filter(function (i) { return i.catId; }).forEach(function (i) { t.push((i.cantidad || 1) + ' ' + (nomIns(i.catId) || i.nombre) + ' ' + nom(CADA, i.cada).toLowerCase() + ap(i.modo, i.precio)); });
+        return '<li>' + E(z.nombre || (s.sedes.length === 1 ? 'Sede única' : 'Sede ' + (i + 1))) + ': recolección de peligrosos' + (t.length ? ', ' + E(t.join(', ')) : '') + '</li>';
+      }).join('') + '</ul></div>';
+  }
+
+  /* ── eventos ── */
+  function enganchar(p) {
+    if (p._lc62) return; p._lc62 = true;
+    p.addEventListener('click', function (e) {
+      if (MO49.tab() !== 'contratado') return;
+      var b = e.target.closest('[data-lc]'); if (!b) return;
+      var a = b.getAttribute('data-lc'), s = estado(), x = s.sedes[SEDE], i = Number(b.getAttribute('data-i'));
+      if (a === 'ayuda') { var h = document.getElementById('lc-ayuda'); h.hidden = !h.hidden; b.setAttribute('aria-expanded', String(!h.hidden)); return; }
+      if (a === 'sede') SEDE = i;
+      else if (a === 'masSede') { s.sedes.push(nuevaSede(s.sedes.length + 1)); SEDE = s.sedes.length - 1; s.cambiado = true; }
+      else if (a === 'quitarSede') { if (s.sedes.length < 2) return; s.sedes.splice(SEDE, 1); SEDE = 0; s.cambiado = true; }
+      else if (a === 'insMas') { x.insumos.push({ catId: '', nombre: '', cantidad: 1, cada: 'mes', modo: 'incluido', precio: '' }); s.cambiado = true; }
+      else if (a === 'insQuitar') { x.insumos.splice(i, 1); s.cambiado = true; }
+      else if (a === 'copiar') { s.sedes.forEach(function (z, k) { if (k !== SEDE) { z.servicios = JSON.parse(JSON.stringify(x.servicios)); z.insumos = JSON.parse(JSON.stringify(x.insumos)); } }); s.cambiado = true; MK.aviso('Copiado a las ' + (s.sedes.length - 1) + ' sedes restantes'); }
+      else if (a === 'vista') VISTA = b.getAttribute('data-v');
+      else if (a === 'cobro') { if (reglaRo()) return; s.regla[b.getAttribute('data-k')] = b.getAttribute('data-v'); s.cambiado = true; }
+      else if (a === 'datosSede') { e.preventDefault(); if (s.cambiado) { MK.aviso('Primero confirme lo contratado; luego edite la dirección, el horario y el punto.'); return; } var t = document.createElement('button'); t.setAttribute('data-s49', 'editar'); t.hidden = true; document.body.appendChild(t); t.click(); t.remove(); return; }
+      else if (a === 'guardar') return guardar(b);
+      else return;
+      e.preventDefault(); repintar();
+    });
+    var cambio = function (e) {
+      if (MO49.tab() !== 'contratado') return;
+      var t = e.target, a = t.getAttribute && t.getAttribute('data-lc'); if (!a) return;
+      var s = estado(), x = s.sedes[SEDE], k = t.getAttribute('data-k'), i = Number(t.getAttribute('data-i')), re = false;
+      if (a === 'srv') { x.servicios[k] = t.checked; re = true; }
+      else if (a === 'frec') { x.frecuencia = t.value; re = true; }
+      else if (a === 'solFrec') { x.servicios.solFrec = t.value; re = true; }
+      else if (a === 'fumFrec') { x.servicios.fumFrec = t.value; re = true; }
+      else if (a === 'srvModo') { x.servicios[k + 'Modo'] = t.value; re = true; }
+      else if (a === 'srvPrecio') x.servicios[k + 'Precio'] = t.value;
+      else if (a === 'insCat') { x.insumos[i].catId = t.value; x.insumos[i].nombre = nomIns(t.value); re = true; }
+      else if (a === 'insCant') x.insumos[i].cantidad = t.value;
+      else if (a === 'insCada') { x.insumos[i].cada = t.value; re = true; }
+      else if (a === 'insModo') { x.insumos[i].modo = t.value; re = true; }
+      else if (a === 'insPrecio') x.insumos[i].precio = t.value;
+      else if (a === 'sedeNom') x.nombre = t.value;
+      else if (a === 'cobroSel' || a === 'cobroTxt') s.regla[k] = t.value;
+      else return;
+      s.cambiado = true;
+      if (re && e.type === 'change') repintar(); else ligero();
+    };
+    p.addEventListener('change', cambio);
+    p.addEventListener('input', function (e) { if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') cambio(e); });
+  }
+  function repintar() { var y = window.scrollY, f = document.activeElement && document.activeElement.id; MO49.pintar(); MO49.tabs(); window.scrollTo(0, y); if (f && document.getElementById(f)) document.getElementById(f).focus({ preventScroll: true }); }
+  function ligero() {   // sin repintar: no quita el foco del campo
+    var pv = document.querySelector('.lc-prev'); if (pv) pv.innerHTML = previa();
+    var bt = document.querySelector('[data-lc="guardar"]'); if (bt) bt.textContent = 'Guardar cambios';
+  }
+
+  /* ── guardar: las sedes, los servicios con precio de la propuesta y la regla de cobro ── */
+  function srvDeSedes(sedesL) {
+    var base = ((D().servicios || {}).lista || []), cat = ((D().servicios || {}).catalogo || []), porCat = {};
+    cat.forEach(function (c) { porCat[c.id] = c; });
+    var fumCat = cat.filter(function (c) { return c.tipo === 'servicio' && c.activo !== false && /fumig/i.test(c.nombre || ''); })[0];
+    var der = {}, orden = [];
+    sedesL.forEach(function (z) {
+      z.insumos.forEach(function (i) {
+        if (!i.catId) return;
+        var d = der[i.catId];
+        if (!d) { var c = porCat[i.catId] || {}; d = der[i.catId] = { itemId: i.catId, catId: i.catId, nombre: c.nombre || i.nombre, tipo: c.tipo || 'producto', cantidad: 0, cada: i.cada, modo: 'incluido', precio: 0, insumoId: c.insumoId || '', quien: c.quien || '' }; orden.push(i.catId); }
+        d.cantidad += Number(i.cantidad) || 0;
+        if (i.modo === 'cobrado') { d.modo = 'cobrado'; if (!d.precio) d.precio = Number(i.precio) || 0; }
+      });
+    });
+    if (fumCat) {
+      var fz = sedesL.filter(function (z) { return z.servicios.fumigacion; });
+      if (fz.length) {
+        var cob = fz.filter(function (z) { return z.servicios.fumModo === 'cobrado'; })[0];
+        der[fumCat.id] = { itemId: fumCat.id, catId: fumCat.id, nombre: fumCat.nombre, tipo: 'servicio', cantidad: fz.length, cada: fz[0].servicios.fumFrec || 'mes', modo: cob ? 'cobrado' : 'incluido', precio: cob ? Number(cob.servicios.fumPrecio) || 0 : 0, quien: fumCat.quien || '' };
+        orden.push(fumCat.id);
+      }
+    }
+    var quedan = base.filter(function (x) { return x.delPlan || x.dePromo || !esDeSedes(x); }), ya = {};
+    quedan.forEach(function (x) { ya[x.itemId || x.catId] = 1; });
+    return quedan.map(function (x) { return { itemId: x.itemId || x.catId, nombre: x.nombre, tipo: x.tipo, cantidad: x.cantidad, cada: x.cada, modo: x.modo, precio: x.precio, insumoId: x.insumoId, quien: x.quien, delPlan: x.delPlan, dePromo: x.dePromo, promoId: x.promoId }; })
+      .concat(orden.filter(function (id) { return !ya[id]; }).map(function (id) { return der[id]; }));
+  }
+  function guardar(b) {
+    var s = estado(), falta = '';
+    if (!sedesRo()) {
+      s.sedes.forEach(function (z, k) {
+        if (falta) return;
+        if (s.sedes.length > 1 && !String(z.nombre || '').trim()) falta = 'el nombre de la sede ' + (k + 1);
+        else if (z.insumos.some(function (i) { return !i.catId; })) falta = 'elegir un insumo en ' + (z.nombre || 'la sede');
+        else if (!z.servicios.peligrosos && !z.servicios.solidos && !z.servicios.fumigacion && !z.insumos.length) falta = 'al menos un servicio o un insumo en ' + (z.nombre || 'la sede');
+      });
+    }
+    var rg = s.regla;
+    if (!falta && !reglaRo() && (rg.envio === 'correo' || rg.envio === 'ambos') && rg.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rg.correo)) falta = 'un correo válido para las facturas';
+    if (falta) { MK.aviso('Falta ' + falta + '.'); return; }
+    MK.ocupado(b, true, 'Guardando…');
+    var paso = Promise.resolve(), cod = MO49.COD;
+    if (!sedesRo()) {
+      var L = s.sedes.map(function (z) {
+        var y = JSON.parse(JSON.stringify(z));
+        y.servicios.solPrecio = y.servicios.solModo === 'cobrado' ? y.servicios.solPrecio : '';
+        y.servicios.fumPrecio = y.servicios.fumModo === 'cobrado' ? y.servicios.fumPrecio : '';
+        if (String(y.id || '').charAt(0) === 'N') y.id = '';
+        return y;
+      });
+      paso = paso.then(function () { return MK.api('api_sucGuardarOp', MK.pin, cod, L); }).then(function (r) {
+        if (!r || !r.ok) throw new Error((r && r.error) || 'No se guardaron las sedes.');
+        D().sucursales = r.sucursales;
+        return MK.api('api_guardarServiciosOp', MK.pin, cod, srvDeSedes(s.sedes));
+      }).then(function (r) {
+        if (!r || !r.ok) throw new Error((r && r.error) || 'Las sedes quedaron; los precios de la propuesta no.');
+        D().servicios = r.servicios;
+      });
+    }
+    if (!reglaRo()) paso = paso.then(function () { return MK.api('api_crmGuardarOportunidad', MK.pin, cod, { 'regla cobro': rg }); }).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.error) || 'No se guardó la regla de cobro.');
+      var g = D().cobro62 = D().cobro62 || {}; g.regla = r.regla; g.sugerida = null;
+      var o = OP(); o['retiene itbms'] = r.regla.itbms === 'exento' ? 'EXENTO' : (r.regla.rec === 'si' ? 'SI' : 'NO'); o['canal envio'] = r.regla.envio;
+    });
+    paso.then(function () {
+      MK.ocupado(b, false); S = null;
+      MK.aviso(sedesRo() ? 'Regla de cobro confirmada' : 'Lo contratado quedó confirmado: llega al contrato, el alta, Logística y el portal');
+      MK.cambio({ tipo: 'contratado', codigo: cod }); repintar();
+    }, function (e) { MK.ocupado(b, false); MK.aviso(e.message || 'Sin conexión'); S = null; repintar(); });
+  }
+
+  /* ═════ Resumen: la cadena de la oportunidad y los datos del cliente (se editan en Propuesta) ═════ */
+  function cadena() {
+    var o = OP(), su = SU(), g = C62(), est = String(o['formulario estado'] || '').toUpperCase(), snap = {};
+    try { snap = JSON.parse(o.planSnap || '{}'); } catch (e) { snap = {}; }
+    var L = su.lista || [], nsrv = 0, nins = 0;
+    L.forEach(function (z) { SRV.forEach(function (r) { if ((z.servicios || {})[r[0]]) nsrv++; }); nins += (z.insumos || []).length; });
+    var porMer = /Mercadeo/.test(String(o['formulario enviado'] || ''));
+    var dijo = [o.actividad, o.lugares > 1 ? o.lugares + ' sedes' : o.lugares == 1 ? 'una sede' : '', o['kg estimado'] ? o['kg estimado'] + ' kg ' + String(o['base del kg'] || '').toLowerCase() : '', String(o['frecuencia estimada'] || '').toLowerCase()].filter(Boolean);
+    var docs = (D().documentosLista || []).length, cli = (g.sugerida || {}).cliente;
+    var P = [
+      ['1', 'Lo que llenó el cliente', est === 'RECIBIDO' ? 'ok' : est ? 'curso' : 'falta', est === 'RECIBIDO' ? (porMer ? 'Lo completó Mercadeo' : 'Recibido') : est ? 'Enviado, esperando' : 'Sin enviar', dijo.join(' · ') || 'Establecimiento, sedes y su ubicación', ''],
+      ['2', 'Propuesta', o['costo visita'] ? 'ok' : 'falta', o['costo visita'] ? 'Con tarifas' : 'Faltan tarifas', [snap.nombre || '', String(o.frecuencia || '').toLowerCase(), o['costo visita'] ? MK.dinero(Number(o['costo visita'])) + (su.unica ? '' : ' por visita') : ''].filter(Boolean).join(' · '), 'propuesta'],
+      ['3', 'Lo contratado', su.gran ? 'curso' : L.length || su.unica ? 'ok' : 'curso', su.gran ? 'En la cuenta' : L.length || su.unica ? 'Definido' : 'Por confirmar', su.gran ? 'Las sedes se arman en la cuenta' : su.unica ? 'Una sola visita' : !L.length ? 'Viene armado con la propuesta: falta revisarlo y confirmarlo' : L.length + (L.length === 1 ? ' sede' : ' sedes') + ' · ' + nsrv + (nsrv === 1 ? ' servicio' : ' servicios') + ' · ' + nins + (nins === 1 ? ' insumo' : ' insumos'), 'contratado'],
+      ['4', 'Regla de cobro', g.regla ? 'ok' : 'curso', g.regla ? 'Confirmada' : cli ? 'El cliente contestó: falta confirmar' : 'Por definir', g.regla ? (g.texto || '') : 'Se pone en Lo contratado', 'contratado'],
+      ['5', 'Documentos y contrato', o.estado === 'Firmado' || o.estado === 'Pasado a cartera' ? 'ok' : 'curso', o.estado === 'Firmado' || o.estado === 'Pasado a cartera' ? o.estado : 'En curso', docs ? docs + ' documentos que pide el contrato' : 'Según el tipo de servicio', 'documentos']];
+    return MO49.card('La oportunidad, paso a paso', '<p class="small muted" style="margin:-4px 0 10px">Cada paso usa lo del anterior: lo que llena el cliente arma la propuesta, y la propuesta arma lo contratado.</p><ol class="lc-cad">' + P.map(function (p) {
+      return '<li class="' + p[2] + '"><i aria-hidden="true">' + (p[2] === 'ok' ? IC('check', 13) : p[0]) + '</i><div><b>' + p[1] + '</b> <span class="lc-est">' + E(p[3]) + '</span><small>' + E(p[4]) + '</small></div>' + (p[5] ? '<a href="#" data-tab="' + p[5] + '">Ver</a>' : '') + '</li>';
+    }).join('') + '</ol>', '<span class="lc-badge sm">Cliente privado</span>');
+  }
+  function datos() {
+    var o = OP();
+    var f = [['Razón social', o['razon social']], ['RUC', o.ruc ? o.ruc + (o.dv ? ' DV ' + o.dv : '') : ''], ['Sector', o.sector], ['Origen', o.fuente], ['Asesor', o.asesor], ['Cierre esperado', o['cierre esperado'] ? MK.fechaCorta(o['cierre esperado']) : '']];
+    return MO49.card('Datos del cliente', '<div class="lc-dat">' + f.map(function (x) { return '<div><small>' + x[0] + '</small><b>' + (x[1] ? E(String(x[1])) : '<span class="muted">—</span>') + '</b></div>'; }).join('') + '</div>', '<a href="#" data-tab="propuesta">' + IC('lapiz', 13) + ' Editar en Propuesta</a>');
+  }
+  function sinRegla() { return !C62().regla; }
+  return { tab: tab, enganchar: enganchar, contador: contador, cadena: cadena, datos: datos, sinRegla: sinRegla };
+})();
+
 </script>
 </body>
 </html>

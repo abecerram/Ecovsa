@@ -352,23 +352,104 @@
   /* ── captura rápida (Nueva oportunidad · opción C) ── */
   /* api 3.11: lo primero es el tipo — micro (captura rápida), cuenta con sedes o visita única.
      api 3.13: «gran generador» ya no es un tipo: es una etiqueta interna por volumen (100 kg al mes o más, sumando sedes). */
+  /* api 3.62 · Nueva oportunidad (maqueta Oportunidades, aprobada el 28 oct): servicio recurrente o servicio especial.
+     Mercadeo registra la empresa y al solicitante; el resto lo completa el cliente en su formulario, que se envía por
+     WhatsApp o correo, o Mercadeo lo completa en el momento (el mismo formulario) si ya tiene los datos.
+     La licitación llega con su propia pestaña (parte 4). La cuenta con sedes se sigue armando desde la ficha. */
   MK.captura = function (pre) {
     pre = pre || {};
-    if (pre.tipoServicio || pre.directo) return capturaRapida(pre);
-    var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small">Lo primero es el tipo: cambia lo que se pide y cómo se arma el precio.</p>' +
-      '<div class="mk-tipos">' +
-      '<button type="button" data-t="micro"><span class="tag t-gris">MICROGENERADOR</span><b>Captura rápida</b><small>Un solo punto: clínicas, consultorios, veterinarias. Precio por visita.</small></button>' +
-      '<button type="button" data-t="gran"><span class="tag t-info">VARIAS SEDES</span><b>Cuenta con sedes</b><small>Un cliente con 2 sedes o más: cadenas, laboratorios, policlínicas. Paso a paso, con el total mensual.</small></button>' +
-      '<button type="button" data-t="unica"><span class="tag t-warn">VISITA ÚNICA</span><b>Trabajo puntual</b><small>Una sola recolección (limpieza, cierre, fármacos vencidos). Sin contrato.</small></button></div>' +
-      '<p class="small muted" style="margin-top:12px">Si la captura rápida suma otra sede, en la ficha está «Agregar otra sede», sin perder nada. «Gran generador» va por volumen: desde 100 kg al mes, sumando todas sus sedes.</p>' +
-      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button></div>');
-    [].forEach.call(h.querySelectorAll('[data-t]'), function (b) {
-      b.onclick = function () {
-        var t = b.getAttribute('data-t');
-        if (t === 'gran') return capturaGran(pre);
-        capturaRapida(Object.assign({}, pre, { tipoServicio: t === 'unica' ? 'VISITA UNICA' : 'RECURRENTE' }));
-      };
-    });
+    var aj = (MK.base && MK.base.ajustes) || {}, esc = MK.esc, URL0 = '';
+    MK.api('api_urlApp').then(function (u) { if (typeof u === 'string') URL0 = u; }, function () {});
+    var TIPOS = [['rec', 'Servicio recurrente', 'Con contrato, una sede o varias.'], ['unica', 'Servicio especial', 'Una sola vez: limpieza, cierre, fármacos vencidos.']];
+    var ENVIO = [['whatsapp', MK.ic('whatsapp', 14) + ' Por WhatsApp', 'El cliente lo llena desde su celular.'], ['correo', MK.ic('correo', 14) + ' Por correo', 'Llega al correo del solicitante.'],
+      ['ahora', MK.ic('lapiz', 14) + ' Completar ahora', 'Ya tengo los datos: abro el mismo formulario.'], ['despues', MK.ic('reloj', 14) + ' Más tarde', 'Se envía desde la ficha.']];
+    var S = { tipo: pre.tipoServicio === 'VISITA UNICA' ? 'unica' : 'rec', envio: 'whatsapp', cli: pre.clienteId ? { id: pre.clienteId, nombre: pre.empresa || '' } : null, forzar: false, editado: false };
+    var waNum = function (v) { var n = String(v || '').replace(/[^0-9]/g, ''); return /^6\d{7}$/.test(n) ? '507' + n : /^5076\d{7}$/.test(n) ? n : ''; };
+    var h = MK.hoja('<h2>Nueva oportunidad</h2><p class="muted small">Registre la empresa y al solicitante. El resto de la información la completa el cliente en su formulario, o usted si ya la tiene.</p>' +
+      '<label class="lb" id="nv-l-tipo">TIPO DE OPORTUNIDAD</label><div class="nv-tipo" data-g="tipo" role="group" aria-labelledby="nv-l-tipo">' + TIPOS.map(function (t) { return '<button type="button" data-v="' + t[0] + '" aria-pressed="' + (t[0] === S.tipo) + '" class="' + (t[0] === S.tipo ? 'on' : '') + '"><b>' + t[1] + '</b><small>' + t[2] + '</small></button>'; }).join('') + '</div>' +
+      '<div class="nv-sec"><h3>Empresa</h3><label class="lb" for="nv-emp">NOMBRE DE LA EMPRESA</label><input class="in" id="nv-emp" autofocus value="' + esc(pre.empresa || '') + '" placeholder="Nombre comercial">' +
+        '<div id="nv-dup" class="small" style="margin-top:6px"></div>' +
+        '<label class="lb">ORIGEN</label>' + chips('fuente', (aj.fuentes || []), pre.fuente || '') + '</div>' +
+      '<div class="nv-sec"><h3>Solicitante</h3>' +
+        '<div class="grid g2" style="gap:10px"><div><label class="lb" for="nv-con">NOMBRE Y APELLIDO <span style="color:var(--bad)">*</span></label><input class="in" id="nv-con" placeholder="Persona que solicita la propuesta"></div>' +
+          '<div><label class="lb" for="nv-car">CARGO</label><input class="in" id="nv-car" placeholder="Administración, dirección médica, compras…"></div></div>' +
+        '<div class="grid g2" style="gap:10px"><div><label class="lb" for="nv-cel">CELULAR (WHATSAPP)</label><input class="in" id="nv-cel" inputmode="tel" placeholder="6612-3344"></div>' +
+          '<div><label class="lb" for="nv-cor">CORREO ELECTRÓNICO</label><input class="in" id="nv-cor" type="email" inputmode="email" placeholder="nombre@empresa.com"></div></div></div>' +
+      '<div class="nv-sec"><h3 class="nv-h">Formulario del cliente <button type="button" class="nv-ay" id="nv-ay" aria-expanded="false" aria-controls="nv-ayuda" title="¿Qué pide el formulario?">?</button></h3>' +
+        '<div class="nv-cli" id="nv-ayuda" hidden>' + MK.ic('documento', 16) + '<div><b>El cliente completa en su formulario:</b><ul><li>tipo de establecimiento, desechos que genera, cantidad estimada y frecuencia;</li><li>número de sedes y ubicación de cada una;</li><li>razón social, RUC, DV y representante legal.</li></ul>Con «Completar ahora» se abre ese mismo formulario para llenarlo usted; queda registrado que lo completó Mercadeo. Los datos de la factura se le piden al cliente cuando acepta la propuesta.</div></div>' +
+        '<div class="nv-op" data-g="envio" role="group" aria-label="Formulario del cliente">' + ENVIO.map(function (o) { return '<button type="button" data-v="' + o[0] + '" aria-pressed="' + (o[0] === S.envio) + '"><b>' + o[1] + '</b><small>' + o[2] + '</small></button>'; }).join('') + '</div>' +
+        '<div id="nv-env"><label class="lb" for="nv-msj">MENSAJE</label><textarea class="in nv-msg" id="nv-msj" rows="4"></textarea></div></div>' +
+      '<div id="nv-m" class="small" role="alert" style="margin-top:10px;color:var(--bad)"></div>' +
+      '<div class="nv-pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><span class="sp"></span><button class="btn pri" id="nv-ok"></button></div>', { ancha: true });
+    activarChips(h);
+    var $ = function (i) { return document.getElementById(i); }, emp = $('nv-emp'), dup = $('nv-dup'), msj = $('nv-msj'), tD = null;
+    var leer = function () { return { empresa: emp.value.trim(), contacto: $('nv-con').value.trim(), cargo: $('nv-car').value.trim(), celular: $('nv-cel').value.trim(), correo: $('nv-cor').value.trim() }; };
+    var texto = function (x) {
+      var yo = (MK.usuario && MK.usuario.nombre) || 'Mercadeo';
+      return 'Buenos días' + (x.contacto ? ', ' + x.contacto.split(' ')[0] : '') + '. Le saluda ' + yo + ', de ECOVSA. Para preparar la propuesta' + (x.empresa ? ' de ' + x.empresa : '') +
+        ', le agradeceré completar el siguiente formulario (toma unos 4 minutos y se guarda automáticamente): {enlace}\nQuedo atento a cualquier consulta.';
+    };
+    var marcar = function (g, v) { [].forEach.call(h.querySelectorAll('[data-g="' + g + '"] button'), function (x) { var on = x.getAttribute('data-v') === v; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
+    var refrescar = function () {
+      if (!S.editado) msj.value = texto(leer());
+      $('nv-env').hidden = S.envio !== 'whatsapp' && S.envio !== 'correo';
+      marcar('tipo', S.tipo); marcar('envio', S.envio);
+      $('nv-ok').innerHTML = { whatsapp: MK.ic('whatsapp', 15) + ' Guardar y enviar por WhatsApp', correo: MK.ic('correo', 15) + ' Guardar y enviar por correo', ahora: MK.ic('lapiz', 15) + ' Guardar y abrir el formulario', despues: 'Guardar' }[S.envio];
+    };
+    h.addEventListener('click', function (e) { var b = e.target.closest('[data-g] button'); if (b) { S[b.parentNode.getAttribute('data-g')] = b.getAttribute('data-v'); refrescar(); } });
+    $('nv-ay').onclick = function () { var a = $('nv-ayuda'); a.hidden = !a.hidden; this.setAttribute('aria-expanded', String(!a.hidden)); };
+    h.addEventListener('input', function (e) { if (e.target === msj) { S.editado = true; return; } refrescar(); });
+    refrescar();
+    var pintarDup = function () {
+      if (S.cli) { dup.innerHTML = '<div class="aviso az">' + MK.ic('edificio', 15) + ' <b>' + esc(S.cli.nombre) + '</b> ya es cliente: la oportunidad queda vinculada a su ficha. <a href="#" id="nv-suelta">No es este cliente</a></div>'; $('nv-suelta').onclick = function () { S.cli = null; pintarDup(); return false; }; return; }
+      clearTimeout(tD); var q = emp.value.trim(); if (q.length < 3) { dup.innerHTML = ''; return; }
+      tD = setTimeout(function () {
+        MK.api('api_crmBuscar', MK.pin, q).then(function (x) {
+          var l = ((x && x.resultados) || []).filter(function (z) { return z.tipo !== 'contacto'; }).slice(0, 4);
+          dup.innerHTML = l.map(function (z) {
+            return z.tipo === 'cliente' ? '¿Es cliente? <a href="#" data-cli="' + esc(z.id) + '">' + esc(z.nombre) + '</a>' : 'Ya registrada: <a href="#" onclick="MK.irOportunidad(\'' + esc(z.id) + '\');return false">' + esc(z.nombre) + '</a> <span class="muted">(' + esc(z.detalle || '') + ')</span>';
+          }).join(' · ');
+          [].forEach.call(dup.querySelectorAll('[data-cli]'), function (a) { a.onclick = function () { S.cli = { id: a.getAttribute('data-cli'), nombre: a.textContent }; emp.value = a.textContent; refrescar(); pintarDup(); return false; }; });
+        }, function () {});
+      }, 300);
+    };
+    emp.addEventListener('input', function () { S.forzar = false; if (S.cli && emp.value !== S.cli.nombre) S.cli = null; pintarDup(); });
+    if (pre.empresa) pintarDup();
+    $('nv-ok').onclick = function () {
+      var x = leer(), b = this, m = $('nv-m');
+      if (!x.empresa) { m.textContent = 'Indique el nombre de la empresa.'; emp.focus(); return; }
+      if (!x.contacto) { m.textContent = 'Indique el nombre del solicitante: la propuesta y el formulario van a su nombre.'; $('nv-con').focus(); return; }
+      if (x.celular && !waNum(x.celular)) { m.textContent = 'El celular debe tener 8 dígitos y empezar en 6.'; $('nv-cel').focus(); return; }
+      if (x.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.correo)) { m.textContent = 'Revise el correo.'; $('nv-cor').focus(); return; }
+      if (S.envio === 'whatsapp' && !x.celular) { m.textContent = 'Para enviar por WhatsApp, indique el celular del solicitante.'; $('nv-cel').focus(); return; }
+      if (S.envio === 'correo' && !x.correo) { m.textContent = 'Para enviar por correo, indique el correo del solicitante.'; $('nv-cor').focus(); return; }
+      m.textContent = '';
+      var d = Object.assign({ v62: true, clienteId: S.cli ? S.cli.id : '', fuente: valorChips(h, 'fuente'), tipoServicio: S.tipo === 'unica' ? 'VISITA UNICA' : 'RECURRENTE', forzar: S.forzar }, x);
+      if (S.envio === 'whatsapp' || S.envio === 'correo') d.primerPaso = { tipo: 'llamada', titulo: 'Confirmar que ' + (x.contacto.split(' ')[0] || 'el cliente') + ' completó el formulario', fecha: MK.masDias(MK.hoy || MK.hoyLocal(), 2), hora: '' };
+      /* la ventana se abre con el clic (si se abre después de guardar, el navegador la bloquea) */
+      var abre = S.envio !== 'despues' ? (window.__ABRIR__ ? null : window.open('', '_blank')) : null;
+      MK.ocupado(b, true, 'Guardando…');
+      MK.api('api_crmCaptura', MK.pin, d).then(function (r) {
+        MK.ocupado(b, false);
+        if (r && r.duplicado) { if (abre) abre.close(); S.forzar = true; m.innerHTML = esc(r.error) + ' Si es otra empresa, vuelva a guardar.'; return; }
+        if (!r || !r.ok) { if (abre) abre.close(); m.textContent = (r && r.error) || 'No se pudo guardar.'; return; }
+        var cod = r.codigoPropuesta, aviso = x.empresa + ' quedó registrada';
+        var enlace = (URL0 || new URL('index.html', location.href).href.replace(/index\.html$/, '')) + '?p=formulario&token=' + encodeURIComponent(cod) + (r.formClave ? '&k=' + r.formClave : '');
+        var ir = function (u) { if (window.__ABRIR__) window.__ABRIR__(u, S.envio); else if (abre) abre.location.href = u; else window.open(u, '_blank'); };
+        if (S.envio === 'whatsapp' || S.envio === 'correo') {
+          var t = msj.value.replace('{enlace}', enlace); if (t.indexOf(enlace) < 0) t += '\n' + enlace;
+          ir(S.envio === 'whatsapp' ? 'https://wa.me/' + waNum(x.celular) + '?text=' + encodeURIComponent(t)
+            : 'https://outlook.live.com/mail/0/deeplink/compose?to=' + encodeURIComponent(x.correo) + '&subject=' + encodeURIComponent('Formulario para su propuesta · ECOVSA') + '&body=' + encodeURIComponent(t));
+          MK.api('api_marcarFormularioEnviado', MK.pin, cod, S.envio).then(function () {
+            return MK.api('api_crmGuardarActividad', MK.pin, { tipo: S.envio, ref: cod, refTipo: 'op', cuenta: x.empresa, contacto: x.contacto, texto: 'Formulario enviado a ' + x.contacto, resultado: 'Enviado' });
+          }).then(function () { MK.cambio({ tipo: 'formulario', codigo: cod }); }, function () {});
+          aviso += ' · formulario enviado';
+        } else if (S.envio === 'ahora') { ir(enlace + '&m=1'); aviso += ' · complete el formulario en la pestaña que se abrió'; }
+        MK.cerrarHoja(); MK.cambio({ tipo: 'captura', codigo: cod });
+        MK.hoja('<h2>Oportunidad registrada</h2><p class="muted" style="margin-top:6px">' + esc(aviso) + '.</p>' +
+          '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Seguir aquí</button><button class="btn" onclick="MK.cerrarHoja();MK.captura()">Otra oportunidad</button><button class="btn pri" onclick="MK.irOportunidad(\'' + esc(cod) + '\')">Abrir la ficha</button></div>');
+      }, function (e) { MK.ocupado(b, false); if (abre) abre.close(); m.textContent = e.message; });
+    };
   };
   /* Cuenta con sedes: empresa (o un cliente que ya existe) y a la cuenta paso a paso */
   function capturaGran(pre) {

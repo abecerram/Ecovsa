@@ -226,7 +226,10 @@ details.info .x b{color:var(--ink)}
 .okb{display:flex;gap:12px;align-items:center;background:var(--ok-bg);border:1.5px solid #b9dda7;border-radius:14px;padding:13px 14px;margin-top:4px;text-align:left}
 .okb b{display:block;color:#1f5a06}.okb small{color:#3f6b2a;font-size:13px}
 .okb .i2{width:40px;height:40px;border-radius:50%;background:#1f7a3a;color:#fff;display:grid;place-items:center;flex:none}
-.ckl{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-top:14px;cursor:pointer}.ckl input{width:22px;height:22px;margin-top:1px;flex:none}
+.ckl{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-top:14px;cursor:pointer}
+.c62{border-top:1px solid #e3e9f0;margin-top:16px;padding-top:4px}.c62t{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#5b6a80;font-weight:800;margin:10px 0 2px}
+.f62{margin-top:14px;font-size:12.5px;color:var(--muted)}.f62 summary{cursor:pointer;font-weight:600;color:#5b6a80;list-style-position:inside}.f62 summary span{font-weight:500}.f62 .ckl{font-size:13px;margin-top:8px}.f62 .ckl input{width:18px;height:18px}
+.m62{display:flex;gap:8px;align-items:center;justify-content:center;background:#fff8e6;color:#5c4400;font-size:13px;font-weight:600;padding:8px 14px;border-bottom:1px solid #f0d9a0}.m62 svg{flex:none}.ckl input{width:22px;height:22px;margin-top:1px;flex:none}
 .aviso2{display:flex;gap:9px;align-items:flex-start;background:#fff8e6;border:1px solid #f1d48a;border-radius:12px;padding:10px 12px;font-size:13.5px;color:#6b4d00;margin-top:12px}.aviso2 svg.i{width:18px;height:18px;flex:none}
 .bien{background:linear-gradient(135deg,#14306b,#1f56b3);color:#fff;border-radius:18px;padding:22px 20px;text-align:center;margin-top:4px}
 .fin .bien h2{color:#fff;font-size:24px}.bien p{color:#dbe6f8;margin-top:6px;font-size:15px}.bien p b{color:#fff}.bien .okc{background:#fff;color:#1f7a3a;margin-top:0}
@@ -322,6 +325,7 @@ details.info .x b{color:var(--ink)}
    en un iframe y su location no trae los parámetros: se piden al
    contenedor con google.script.url.getLocation (puente.js lo imita).
    ════════════════════════════════════════════════════════════════════ */
+var POR_MER62 = false;
 var TOKEN = '', K = '', DOCS = null, R = null, D = null, PASOS = [], i = 0, desdeResumen = false;
 var TEL = '310-2268', TEL_LINK = 'tel:+5073102268', WA = '6264-1647', WA_LINK = 'https://wa.me/50762641647', CORREO = 'info@ecovsa.com';
 
@@ -391,6 +395,7 @@ function arrancar(){
   } else {
     var q = new URLSearchParams(location.search);
     K = q.get('k') || '';
+    POR_MER62 = q.get('m') === '1';   /* api 3.62 */
     seguir(q.get('token') || '');
   }
 }
@@ -468,7 +473,7 @@ function datosEnvio(){
   return { empresa:h.empresa, razonSocial:h['razon social'], ruc:h.ruc, dv:h.dv, representanteLegal:h['representante legal'],
     direccion:h.direccion, provincia:h.provincia, zona:h.zona, contacto:h.contacto, cargo:h.cargo, telefono:h.telefono,
     celular:h.celular, correo:h.correo, actividad:h.actividad, residuo:h['tipo residuo'], kg:h['kg estimado'],
-    frecuenciaKg:h['base del kg'], frecuencia:h['frecuencia estimada'], notas:h['notas cliente'] };
+    frecuenciaKg:h['base del kg'], frecuencia:h['frecuencia estimada'], notas:h['notas cliente'], porMercadeo62: POR_MER62 || undefined };
 }
 
 /* ═══ borrador: se guarda solo al avanzar, uno a la vez ═══ */
@@ -551,7 +556,8 @@ function pintarHola(){
 }
 function marca(){
   return '<header class="top"><div class="in"><span class="lg" role="img" aria-label="ECOVSA"></span><div><img class="wmk" src="ecovsa-letras.png" alt="ECOVSA"><span>Recolección y tratamiento de desechos hospitalarios</span></div></div></header>' +
-    '<div class="trust"><div class="in"><span>' + ic('sello') + 'Autorizados por el MINSA · Resolución Sanitaria N.° 1519</span><span>' + ic('candado') + esc(FR_ACTUAL || 'Sus datos se usan solo para su propuesta') + '</span></div></div>';
+    '<div class="trust"><div class="in"><span>' + ic('sello') + 'Autorizados por el MINSA · Resolución Sanitaria N.° 1519</span><span>' + ic('candado') + esc(FR_ACTUAL || 'Sus datos se usan solo para su propuesta') + '</span></div></div>' +
+    (POR_MER62 ? '<div class="m62">' + ic('info') + '<span>Lo está completando Mercadeo con los datos del cliente. Queda registrado así en la oportunidad.</span></div>' : '');
 }
 function pie(){ return '<div class="pie">ECOVSA · Tel. <a href="' + TEL_LINK + '">' + TEL + '</a> · <a href="mailto:' + CORREO + '">' + CORREO + '</a></div>'; }
 
@@ -1031,10 +1037,36 @@ function hojaAcepto(){
   hojaE('<h3 tabindex="-1">Aceptar la propuesta</h3><p>Queda registrado quién la acepta y cuándo. ' + (p.unica ? 'Después coordinamos la fecha de la visita.' : 'El contrato se firma después.') + '</p>' +
     '<div class="fg"><label class="fl" for="a-nom">Su nombre</label><input class="fi" id="a-nom" autocomplete="name" value="' + esc(nomBonito(E.contacto)) + '"></div>' +
     '<div class="fg"><label class="fl" for="a-car">Cargo</label><input class="fi" id="a-car" autocomplete="organization-title" placeholder="Ej.: Administradora"></div>' +
-    (p.gran && E.cuenta ? granAcepto() : '') +
+    (p.gran && E.cuenta ? granAcepto() : '') + cobro62() +
     '<label class="ckl"><input type="checkbox" id="a-ok"><span>Acepto la propuesta <b>' + esc(p.cod || TOKEN) + '</b> para ' + esc(empresa()) + ' y sus condiciones.</span></label>' +
     '<div id="a-err"></div><button class="bok" style="margin-top:14px" data-e="confirmo">Confirmo que acepto</button><button class="bno" style="border:0" data-e="cerrar">Volver</button>');
 }
+/* api 3.62: los datos para la factura. Nunca la forma de pago. Con una sola sede no se pregunta cómo facturar. */
+function cobro62(){
+  var c = E.cobro62; if (!c) return '';
+  var R = c.recibe || {}, F = c.fiscal || {};
+  var rd = function (nm, k, t, on) { return '<label class="ckl" style="margin-top:8px"><input type="radio" name="' + nm + '" value="' + esc(k) + '"' + (on ? ' checked' : '') + '><span>' + esc(t) + '</span></label>'; };
+  return '<div class="c62"><div class="c62t">Para su factura</div>' +
+    (c.varias ? '<div class="fg"><span class="fl" id="a-fac62-l">¿Cómo prefiere que se le facture?</span><div role="radiogroup" aria-labelledby="a-fac62-l">' +
+      rd('a-fac62', 'una', 'Una factura para todas las sedes', false) + rd('a-fac62', 'sede', 'Una factura por cada sede', false) + '</div></div>' : '') +
+    '<div class="fg"><span class="fl" id="a-rec-l">¿Cómo prefiere recibir la factura?</span><div role="radiogroup" aria-labelledby="a-rec-l">' +
+      ['correo', 'whatsapp', 'ambos', 'impresa'].map(function (k) { return rd('a-rec', k, R[k] || k, false); }).join('') + '</div></div>' +
+    '<div class="fg" id="a-cor-g" hidden><label class="fl" for="a-cor">Correo para la factura</label><input class="fi" id="a-cor" type="email" inputmode="email" autocomplete="email" value="' + esc(c.correo || '') + '"></div>' +
+    '<div class="fg" id="a-wa-g" hidden><label class="fl" for="a-wa">WhatsApp para la factura</label><input class="fi" id="a-wa" inputmode="tel" autocomplete="tel" value="' + esc(c.whatsapp || '') + '"></div>' +
+    '<details class="f62"><summary>Situación fiscal <span>(opcional)</span></summary><div role="radiogroup" aria-label="Situación fiscal">' +
+      ['normal', 'retiene', 'exento'].map(function (k) { return rd('a-fis', k, F[k] || k, k === 'normal'); }).join('') + '</div></details></div>';
+}
+function cobro62Datos(){
+  if (!E.cobro62) return null;
+  var v = function (n) { var x = document.querySelector('[name="' + n + '"]:checked'); return x ? x.value : ''; };
+  return { fact: v('a-fac62'), recibe: v('a-rec'), correo: txt(($('a-cor') || {}).value), whatsapp: txt(($('a-wa') || {}).value), fiscal: v('a-fis') || 'normal' };
+}
+document.addEventListener('change', function (ev) {
+  if (!ev.target || ev.target.name !== 'a-rec') return;
+  var k = ev.target.value;
+  $('a-cor-g').hidden = !(k === 'correo' || k === 'ambos');
+  $('a-wa-g').hidden = !(k === 'whatsapp' || k === 'ambos');
+});
 /* api 3.11: acepta por sedes y elige cómo se le factura */
 function granAcepto(){
   var c = E.cuenta, F = E.facturas || {};
@@ -1256,6 +1288,14 @@ document.addEventListener('click', function (ev) {
     }
     var er = function (t) { $('a-err').innerHTML = '<div class="notita mal">' + ic('alerta') + '<span>' + esc(t) + '</span></div>'; };
     if (!d.nombre || !d.cargo) return er('Escriba su nombre y su cargo.');
+    var c62 = cobro62Datos();
+    if (c62) {
+      if (E.cobro62.varias && !c62.fact) return er('Elija cómo prefiere que se le facture.');
+      if (!c62.recibe) return er('Elija cómo prefiere recibir la factura.');
+      if ((c62.recibe === 'correo' || c62.recibe === 'ambos') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c62.correo)) return er('Escriba el correo donde quiere recibir la factura.');
+      if ((c62.recibe === 'whatsapp' || c62.recibe === 'ambos') && c62.whatsapp.replace(/\D/g, '').length < 7) return er('Escriba el número de WhatsApp donde quiere recibir la factura.');
+      d.cobro = c62;
+    }
     if (!d.acepta) return er('Marque la casilla para confirmar que acepta.');
     return responder('acepto', d, b, 'a-err');
   }
