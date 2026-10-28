@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Hoja de vida del vehículo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_top">
+<script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
+<script src="puente.js"></script>
+<script src="docx-mini.js"></script>
+<script src="docx-hv.js"></script>
+<style>
+/* api 3.60 · Hoja de vida del vehículo (carta, igual que la maqueta aprobada). Se arma sola con lo que el sistema sabe del camión. */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;background:#cfd6e1;color:#16233b;padding-bottom:40px}
+.barra{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:10px 20px;background:#0f2a57;box-shadow:0 2px 12px rgba(15,42,87,.30)}
+.barra .ti{color:#fff;font-size:13.5px;font-weight:800;letter-spacing:.3px;margin-right:auto}
+.barra button{border:none;font-family:inherit;font-size:13px;font-weight:800;padding:9px 16px;border-radius:10px;cursor:pointer;background:#fff;color:#0f2a57}
+.barra button.sec{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.barra button:disabled{opacity:.6;cursor:wait}
+.aviso{max-width:760px;margin:30px auto;background:#fff;border-radius:12px;padding:30px;text-align:center;font-size:14px;color:#44516a;line-height:1.6}
+#hojas{padding:18px 0 0;overflow-x:auto}
+.carta{width:816px;height:1056px;background:#fff;margin:0 auto 18px;padding:40px 46px;box-shadow:0 6px 24px rgba(15,33,64,.22);position:relative;overflow:hidden;font-size:11px;color:#16233b;box-sizing:border-box}
+.carta .mb{display:flex;gap:14px;align-items:center;border-bottom:3px solid #0f2a57;padding-bottom:10px}.carta .mb img{height:46px}.carta .mb .em{font-weight:900;font-size:19px;color:#0f2a57;letter-spacing:.4px}.carta .mb .em small{display:block;font-size:9.5px;font-weight:600;color:#5e6b7e;letter-spacing:0}
+.carta .mb .tt{margin-left:auto;text-align:right;border:1.5px solid #0f2a57;border-radius:6px;padding:6px 10px;min-width:280px}.carta .mb .tt b{display:block;font-size:13px;color:#14306b;letter-spacing:.4px}.carta .mb .tt span{font-size:10px;color:#5e6b7e;font-weight:700}
+.carta .fr{gap:14px;margin-top:6px;font-size:9.5px;color:#44516a;font-weight:700;display:flex;justify-content:space-between}.carta .fr span:last-child{white-space:nowrap}
+.carta .fja{height:5px;display:flex;margin:6px 0 10px}.carta .fja i{display:block;height:100%}
+.carta table{width:100%;border-collapse:collapse}.carta td,.carta th{border:1px solid #9fb0c8;padding:3px 6px;font-size:10.5px;vertical-align:top}.carta th{background:#e8effb;color:#0f2a57;text-align:left;font-size:10px;letter-spacing:.3px}.carta td.c{text-align:center;width:36px;font-weight:900}
+.carta .gt{background:#0f2a57;color:#fff;font-weight:900;letter-spacing:.6px;font-size:10px;text-transform:uppercase}
+.carta .dat td{width:25%}.carta .dat td.l{background:#f1f5fb;font-weight:800;color:#0f2a57;width:19%}
+.carta .nu td:first-child{background:#fffbe6}
+.carta .pie{position:absolute;left:46px;right:46px;bottom:26px;font-size:9px;color:#5e6b7e;display:flex;justify-content:space-between;border-top:1px solid #cfd8e6;padding-top:6px;font-weight:700}
+.carta .firm{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:34px}.carta .firm div{border-top:1px solid #16233b;padding-top:5px;font-size:10px;font-weight:800;text-align:center}.carta .firm small{display:block;font-weight:600;color:#5e6b7e}
+.carta .x{font-weight:900}.carta .sec{font-weight:900;color:#0f2a57;letter-spacing:.5px;font-size:10.5px;text-transform:uppercase;margin:12px 0 4px}
+.carta .obs{border:1px solid #9fb0c8;min-height:54px;padding:6px;font-size:10.5px;line-height:1.45}
+.carta .cro{border:1px solid #9fb0c8;display:flex;align-items:center;gap:12px;padding:6px 10px}
+.carta .dos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;align-items:start}
+.carta .pt2 td,.carta .pt2 th{padding:1px 5px;font-size:9px;line-height:1.25}.carta .pt2 td.c,.carta .pt2 th.c{width:30px}
+.carta .cro{display:block;padding:4px 10px}
+.carta td.c{text-align:center}
+.carta .cro svg{width:auto;max-width:100%;height:78px;display:block;margin:0 auto}
+.carta .dat td{padding:2px 6px}
+.carta .cro svg{height:78px}
+.carta .cro2{padding:4px 10px 6px}.carta .cro2 svg{width:auto;max-width:100%;height:124px;display:block;margin:0 auto}.carta .zl{font-size:10px;font-weight:800;color:#44516a;margin-top:2px;text-align:center}
+.carta .mb{border-bottom:3px solid #0f2a57;padding-bottom:8px;align-items:center}
+.carta .mb .em{font-size:20px}.carta .mb .em small{margin-top:1px}
+.carta .mb .tt{border:0;padding:0;min-width:0;border-radius:0;margin-left:auto;text-align:right}.carta .mb .tt b{font-size:12.5px;display:block}.carta .mb .tt span{display:block;font-size:9.5px;color:#5e6b7e;font-weight:600}
+.carta .pie{display:block;text-align:center;border-top:0;padding-top:0;left:46px;right:46px;bottom:22px}.carta .pie .pf{background:#f1f4f8;padding:4px;font-size:9px;color:#44516a;font-weight:700}.carta .pie .px{text-align:left;font-size:9px;color:#5e6b7e;font-weight:600;margin-bottom:4px}
+.carta .sec em,.carta .lc th em{font-weight:600;font-style:italic;text-transform:none;letter-spacing:0;color:#5e6b7e;font-size:9px;margin-left:6px}.carta .lc th em{color:#c9d6ee}
+.carta .topf{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin-top:8px;align-items:stretch}.carta .topf .dat td{font-size:9px;padding:2px 5px}
+.carta .dibq{border:1px solid #9fb0c8;padding:3px 6px}.carta .dibq em{display:block;font-size:8.5px;color:#5e6b7e;text-align:center;font-style:italic}.carta .dibq svg{width:100%;height:auto;display:block}
+.carta .lc{width:100%;border-collapse:collapse;margin-top:6px}.carta .lc th{background:#0f2a57;color:#fff;font-size:9px;padding:3px 5px;text-align:center}
+.carta .lc td{border:1px solid #9fb0c8;padding:2px 5px;font-size:9.5px;line-height:1.25}.carta .lc td.nn{width:20px;color:#7a8799;text-align:right;padding-right:3px}.carta .lc td.c{width:44px}.carta .lc td.ob{font-size:8.5px;color:#33415a}
+.carta .lc .gt{background:#e8effb;color:#0f2a57;font-size:9.5px;font-weight:900;letter-spacing:.4px}.carta .lc .gt em{color:#5e6b7e}
+.carta .lc.ap td{padding:.5px 4px;font-size:8.5px;line-height:1.2}.carta .lc.ap td.ob{font-size:8px}.carta .lc.ap th{padding:2px 4px;font-size:8.5px}.carta .lc.ap .gt{font-size:8.5px;padding:1px 4px}
+.carta .firt{width:100%;border-collapse:collapse}.carta .firt th{background:#0f2a57;color:#fff;font-size:9px;text-align:left;padding:3px 6px}.carta .firt td{border:1px solid #9fb0c8;padding:6px;font-size:9.5px;line-height:2}
+.carta.apr{padding:26px 40px}.carta.apr .mb img{height:38px}.carta.apr .pie{bottom:14px}.carta.apr .sec{margin:7px 0 3px}.carta.apr .obs{min-height:34px;padding:4px 6px;font-size:9.5px;line-height:1.35}
+.carta .lc .gl{width:92px;text-align:center;vertical-align:middle;background:#f1f5fb;color:#0f2a57;font-size:8.5px;line-height:1.25}.carta .lc .gl em{display:block;font-size:7.5px;color:#5e6b7e;font-style:normal;font-weight:600}
+.carta.apr .firt td{padding:3px 6px;line-height:1.7}.carta.apr .dibq svg{max-height:92px}
+.carta.apr .dibq svg{max-height:74px}.carta.apr .topf .dat td{padding:1px 5px}.carta.apr .lc.ap td{padding:0 4px;line-height:1.15}
+.carta .topf{grid-template-columns:1.05fr 1fr}
+.carta.apr .dibq{display:flex;flex-direction:column;justify-content:space-evenly;padding:3px 8px}
+.carta.apr .dibq svg{width:100%;max-height:none;height:auto}
+.carta.hvv{height:auto;min-height:1056px;overflow:visible;display:flex;flex-direction:column}
+.carta.hvv .pie{position:static;margin-top:auto;padding-top:16px}
+.carta.hvv .mb{margin-bottom:8px}
+.carta .top2{display:grid;grid-template-columns:1fr 200px;gap:10px;align-items:stretch}.carta .top2 .foto{border:1px solid #9fb0c8;display:grid;place-items:center;overflow:hidden}.carta .top2 .foto img{width:100%;height:100%;object-fit:cover;display:block}
+.carta .r{text-align:right}
+.carta .vacio{font-size:10px;color:#5e6b7e;padding:4px 0}
+@media print{
+  @page{size:letter;margin:0}
+  body{background:#fff;padding:0}
+  .barra,.aviso{display:none!important}
+  #hojas{padding:0;overflow:visible}
+  .carta{margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  .carta:last-child{page-break-after:auto;break-after:auto}
+  .carta,.carta th,.carta .l,.carta .pf{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div id="aviso" class="aviso">Cargando la hoja de vida…</div>
+<div class="barra" id="barra" style="display:none">
+  <div class="ti" id="ti">Hoja de vida del vehículo</div>
+  <button id="b-word" onclick="bajarWord()">Descargar en Word</button>
+  <button onclick="window.print()">Imprimir o guardar en PDF</button>
+  <button class="sec" onclick="window.close()">Cerrar</button>
+</div>
+<div id="hojas"></div>
+<script>
+var $=function(id){return document.getElementById(id);};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function aviso(h){ $("aviso").innerHTML=h; $("aviso").style.display="block"; $("barra").style.display="none"; $("hojas").innerHTML=""; }
+function param(k){ var m=(location.search||"").match(new RegExp("[?&]"+k+"=([^&]*)")); return m?decodeURIComponent(m[1]):""; }
+var FICHA=null, FOTO="";
+function membrete(titulo, per, pag){
+  return '<div class="mb"><img src="logo-ecovsa.png" alt=""><div class="em">ECOVSA<small>ECOTERMO DE PANAMA S.A. · RUC 1074020-1-552789 DV 50</small><small>Proceso: plan de mantenimiento de vehículos · ISO 9001 e ISO 45001</small></div>'+
+    '<div class="tt"><b>'+titulo+'</b><span>'+esc(DOCXHV.COD)+'</span><span>'+(per?esc(per)+' · ':'')+'Página '+pag+'</span></div></div>';
+}
+function pie(){ return '<div class="pie"><div class="pf">Empresa registrada ante el Ministerio de Salud · Resolución Sanitaria N.° 1519 del 10 de diciembre de 2025 · F-LOG-09</div></div>'; }
+function tabla(cab, filas, vacio, der){
+  if(!filas.length) return '<div class="vacio">'+esc(vacio)+'</div>';
+  return '<table><tr>'+cab.map(function(h,i){ return '<th'+(der===i?' style="text-align:right"':'')+'>'+esc(h)+'</th>'; }).join('')+'</tr>'+filas.map(function(f){ return '<tr>'+f.map(function(v,i){ return '<td'+(der===i?' class="r"':'')+'>'+esc(v)+'</td>'; }).join('')+'</tr>'; }).join('')+'</table>';
+}
+function pintar(){
+  var V=DOCXHV.datos(FICHA, {});
+  var datos='<table class="dat">'+V.pares.map(function(p){ return '<tr><td class="l">'+esc(p[0])+'</td><td>'+esc(p[1])+'</td><td class="l">'+esc(p[2])+'</td><td>'+esc(p[3])+'</td></tr>'; }).join('')+'</table>';
+  var arriba=FOTO?'<div class="top2"><div>'+datos+'</div><div class="foto"><img src="'+esc(FOTO)+'" alt="Foto del vehículo"></div></div>':datos;
+  var p1='<div class="carta hvv">'+membrete('HOJA DE VIDA DEL VEHÍCULO','Emitida el '+DOCXHV.fchLarga(V.emitida),'1 de 2')+arriba+
+    '<div class="sec">Documentos del vehículo</div>'+tabla(['Documento','Número','Vence'],V.docs,'Todavía no hay documentos cargados.')+
+    '<div class="sec">Plan de mantenimiento</div>'+tabla(['Tarea','Frecuencia','Estado'],V.plan,'El camión no tiene plan de mantenimiento.')+pie()+'</div>';
+  var p2='<div class="carta hvv">'+membrete('HOJA DE VIDA DEL VEHÍCULO',V.titulo,'2 de 2')+
+    '<div class="sec">Historial de servicios</div>'+tabla(['Fecha','Tipo','Taller','Odómetro','Trabajo','Costo'],V.servicios,'Sin servicios anotados.',5)+(V.servicios.length?'<div class="r" style="font-weight:900;font-size:10.5px;margin-top:3px">Total '+V.anio+': '+esc(DOCXHV.bs(V.totalAnio))+'</div>':'')+
+    '<div class="sec">Fallas del último año</div>'+tabla(['Fecha','Falla','Cierre'],V.fallas,'Sin fallas en el último año.')+
+    '<div class="sec">Inspecciones mensuales (F-LOG-08)</div>'+tabla(['Mes','Resultado','Firmó'],V.insp.map(function(i){ return i.slice(0,3); }),'Todavía no hay inspecciones.')+
+    '<div class="sec">Observaciones</div><div class="obs"></div><div class="firm"><div>Responsable del vehículo<small>'+esc(V.responsable)+'</small></div><div>Coordinador o supervisor de logística<small>&nbsp;</small></div></div>'+pie()+'</div>';
+  $("hojas").innerHTML=p1+p2;
+  $("ti").textContent="Hoja de vida · "+FICHA.placa; document.title="Hoja de vida · "+FICHA.placa;
+}
+function bajarWord(){
+  if(!FICHA) return; var b=$("b-word"), t=b.textContent; b.disabled=true; b.textContent="Armando el Word…";
+  DOCXHV.bajar(FICHA, {}).then(function(){ b.disabled=false; b.textContent=t; }, function(e){ b.disabled=false; b.textContent=t; alert("No se pudo armar el Word: "+((e&&e.message)||e)); });
+}
+function seguir(){
+  var placa=param("placa");
+  if(!placa){ aviso("Falta el camión en el enlace."); return; }
+  var pin=""; try{ pin=JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){ pin=""; }
+  if(!pin){ aviso("Entra primero en la aplicación con tu PIN y vuelve a abrir la hoja de vida."); return; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r||!r.ok){ aviso(esc((r&&r.error)||"No se pudo abrir la hoja de vida.")); return; }
+      FICHA=r; $("aviso").style.display="none"; $("barra").style.display="flex"; pintar();
+      var f=r.hv&&r.hv.foto; if(f&&f.hayArchivo){ google.script.run.withSuccessHandler(function(x){ if(x&&x.ok&&x.url){ FOTO=x.url; pintar(); } }).api_arcVer(pin,f.archivoId); }
+    })
+    .withFailureHandler(function(){ aviso("Sin conexión con el servidor."); })
+    .api_fichaCamion(pin,placa);
+}
+seguir();
+</script>
+</body>
+</html>

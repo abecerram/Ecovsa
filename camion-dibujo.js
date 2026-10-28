@@ -1,61 +1,77 @@
-/* Dibujo del camión de caja (costados, frente, atrás y arriba) para marcar dónde tiene algún defecto.
-   api 3.59 · lo usan Logística › Flota › Inspección mensual (marcar zonas) y la hoja impresa F-LOG-08.
-   Cada pieza es una zona con nombre (data-z); las zonas marcadas se pintan con rayas rojas (.zn.mk). */
+/* Dibujo del camión de caja en línea negra (costados, frente, atrás y arriba) para marcar dónde tiene algún defecto.
+   Sin colores: contorno negro, relleno blanco; la zona marcada se rellena con rayas negras (.zn.mk).
+   api 3.59/3.60 · lo usan Flota › Inspección mensual (marcar zonas), la hoja impresa F-LOG-08 y la descarga en Word.
+   Cada pieza es una zona con nombre (data-z). */
 (function () {
-var ZN = { 'caja': 'Caja de carga', 'cabina': 'Cabina', 'llanta-tras-der': 'Llanta trasera derecha', 'llanta-tras-izq': 'Llanta trasera izquierda', 'llanta-del-der': 'Llanta delantera derecha', 'llanta-del-izq': 'Llanta delantera izquierda',
-  'parachoques-del': 'Parachoques delantero', 'parachoques-tras': 'Parachoques trasero', 'luces-tras': 'Luces traseras', 'faros': 'Faros delanteros', 'espejo-der': 'Espejo derecho', 'espejo-izq': 'Espejo izquierdo' };
-function nombresZ(m){ return m.length ? m.map(function(z){ return ZN[z] || z; }).join(', ') : 'ninguna'; }
-var INK = '#16233b', TRZ = 'fill="#fff" stroke="' + INK + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"';
+var ZN = { 'caja': 'Caja de carga', 'cabina': 'Cabina', 'llanta-tras-der': 'Llanta trasera derecha', 'llanta-tras-izq': 'Llanta trasera izquierda',
+  'llanta-del-der': 'Llanta delantera derecha', 'llanta-del-izq': 'Llanta delantera izquierda', 'parachoques-del': 'Parachoques delantero',
+  'parachoques-tras': 'Parachoques trasero', 'luces-tras': 'Luces traseras', 'faros': 'Faros delanteros', 'espejo-der': 'Espejo derecho', 'espejo-izq': 'Espejo izquierdo' };
+function nombresZ(m){ return m && m.length ? m.map(function(z){ return ZN[z] || z; }).join(', ') : 'ninguna'; }
+var K = '#111', S = 'stroke="' + K + '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"', W = 'fill="#fff" ' + S, N = 'fill="none" ' + S, F = 'stroke="' + K + '" stroke-width="1" stroke-linecap="round" fill="none"';
 function Z(id, inner, marks){ return '<g class="zn' + (marks.indexOf(id) >= 0 ? ' mk' : '') + '" data-z="' + id + '"><title>' + (ZN[id] || id) + '</title>' + inner + '</g>'; }
-function rueda(cx, cy, r){ return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.56) + '" fill="#cfd6e2" stroke="' + INK + '" stroke-width="1"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.2) + '" fill="' + INK + '"/>'; }
+function ln(x1, y1, x2, y2, st){ return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" ' + (st || F) + '/>'; }
+function rect(x, y, w, h, r, st){ return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (r || 0) + '" ' + (st || W) + '/>'; }
+function rueda(cx, cy, r){ return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fff" stroke="' + K + '" stroke-width="3"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.58) + '" ' + N + '/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.2) + '" ' + N + '/>' +
+  [0, 72, 144, 216, 288].map(function(a){ var t = a * Math.PI / 180; return ln((cx + Math.cos(t) * r * 0.27).toFixed(1), (cy + Math.sin(t) * r * 0.27).toFixed(1), (cx + Math.cos(t) * r * 0.58).toFixed(1), (cy + Math.sin(t) * r * 0.58).toFixed(1)); }).join(''); }
+
+/* costado: el frente mira a la derecha (derecho) o a la izquierda (izquierdo) */
 function costado(der, m){
-  var x = (der ? 'llanta-tras-der' : 'llanta-tras-izq'), y = (der ? 'llanta-del-der' : 'llanta-del-izq'), e = der ? 'espejo-der' : 'espejo-izq';
-  var cost = '<line x1="0" y1="119" x2="280" y2="119" stroke="#cbd3df" stroke-width="1.2"/><rect x="10" y="100" width="250" height="8" rx="2" fill="#d9e0ea" stroke="' + INK + '" stroke-width="1.2"/>' +
-    Z('caja', '<rect x="8" y="10" width="176" height="90" rx="5" ' + TRZ + '/>' + [40, 72, 104, 136, 168].map(function(v){ return '<line x1="' + v + '" y1="16" x2="' + v + '" y2="84" stroke="#c4ccd9" stroke-width="1.2"/>'; }).join('') + '<rect x="8" y="84" width="176" height="16" fill="#eef2f7" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z('cabina', '<path d="M188 32 H228 Q241 32 247 47 L259 78 V100 H188 Z" ' + TRZ + '/><path d="M197 39 H225 Q232 39 236 49 L243 69 H197 Z" fill="#dbe8fa" stroke="' + INK + '" stroke-width="1.2"/><path d="M197 73 V98" stroke="' + INK + '" stroke-width="1.2"/><rect x="203" y="82" width="11" height="3.5" rx="1.7" fill="' + INK + '"/>', m) +
-    Z(e, '<rect x="253" y="52" width="7" height="15" rx="2.5" ' + TRZ + '/>', m) +
-    Z('faros', '<rect x="254" y="80" width="7" height="10" rx="2.5" fill="#f6dd8a" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z('parachoques-del', '<rect x="253" y="93" width="16" height="9" rx="2.5" ' + TRZ + '/>', m) + Z('parachoques-tras', '<rect x="0" y="93" width="14" height="9" rx="2.5" ' + TRZ + '/>', m) +
-    Z('luces-tras', '<rect x="5" y="60" width="6" height="20" rx="2.5" fill="#f3b3ae" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z(x, rueda(52, 106, 17), m) + Z(y, rueda(224, 106, 17), m);
-  return der ? cost : '<g transform="translate(280,0) scale(-1,1)">' + cost + '</g>';
+  var x = der ? 'llanta-tras-der' : 'llanta-tras-izq', y = der ? 'llanta-del-der' : 'llanta-del-izq', e = der ? 'espejo-der' : 'espejo-izq';
+  var g = ln(0, 119, 280, 119, 'stroke="#111" stroke-width="1" stroke-dasharray="1 4" stroke-linecap="round"') +
+    Z('caja', rect(8, 8, 178, 90, 3) + [38, 68, 98, 128, 158].map(function(v){ return ln(v, 14, v, 92); }).join('') + ln(8, 90, 186, 90) + ln(8, 20, 186, 20), m) +
+    rect(8, 98, 252, 7, 1.5) +
+    Z('cabina', '<path d="M190 105 V26 Q190 22 195 22 H232 Q238 22 241 27 L258 62 Q260 66 260 71 V105 Z" ' + W + '/>' +
+      '<path d="M198 30 H230 L246 60 H198 Z" ' + N + '/>' + rect(198, 66, 44, 34, 2, N) + ln(204, 76, 214, 76, 'stroke="#111" stroke-width="2.4" stroke-linecap="round"') + ln(222, 30, 222, 60), m) +
+    Z(e, rect(251, 40, 9, 17, 2.5) + ln(245, 48, 251, 48), m) +
+    Z('faros', rect(255, 76, 6, 12, 2.5), m) +
+    Z('parachoques-del', rect(256, 92, 14, 11, 2.5), m) + Z('parachoques-tras', rect(0, 92, 12, 11, 2.5), m) +
+    Z('luces-tras', rect(4, 66, 5, 20, 2), m) +
+    Z(x, rueda(52, 106, 19), m) + Z(y, rueda(222, 106, 19), m);
+  return der ? g : '<g transform="translate(280,0) scale(-1,1)">' + g + '</g>';
 }
 function frente(m){
-  return Z('caja', '<rect x="6" y="4" width="88" height="34" rx="4" ' + TRZ + '/>', m) +
-    Z('cabina', '<path d="M16 24 H84 Q92 24 92 34 V96 H8 V34 Q8 24 16 24 Z" ' + TRZ + '/><rect x="16" y="31" width="68" height="32" rx="5" fill="#dbe8fa" stroke="' + INK + '" stroke-width="1.2"/><line x1="50" y1="31" x2="50" y2="63" stroke="' + INK + '" stroke-width="1"/><rect x="30" y="72" width="40" height="14" rx="3" fill="#eef2f7" stroke="' + INK + '" stroke-width="1.2"/><path d="M36 75 V83 M43 75 V83 M50 75 V83 M57 75 V83 M64 75 V83" stroke="' + INK + '" stroke-width="1"/>', m) +
-    Z('faros', '<rect x="11" y="72" width="14" height="10" rx="3" fill="#f6dd8a" stroke="' + INK + '" stroke-width="1.2"/><rect x="75" y="72" width="14" height="10" rx="3" fill="#f6dd8a" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z('espejo-der', '<rect x="0" y="42" width="7" height="16" rx="3" ' + TRZ + '/>', m) + Z('espejo-izq', '<rect x="93" y="42" width="7" height="16" rx="3" ' + TRZ + '/>', m) +
-    Z('parachoques-del', '<rect x="8" y="96" width="84" height="10" rx="3" ' + TRZ + '/>', m) +
-    Z('llanta-del-der', '<rect x="10" y="102" width="17" height="30" rx="5" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/>', m) + Z('llanta-del-izq', '<rect x="73" y="102" width="17" height="30" rx="5" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/>', m);
+  return Z('caja', rect(10, 4, 80, 36, 3), m) +
+    Z('cabina', '<path d="M16 28 H84 Q92 28 92 38 V100 H8 V38 Q8 28 16 28 Z" ' + W + '/>' + rect(16, 34, 68, 30, 4, N) + ln(50, 34, 50, 64) + rect(30, 72, 40, 14, 3, N) + [37, 43, 50, 57, 63].map(function(v){ return ln(v, 75, v, 83); }).join(''), m) +
+    Z('faros', rect(12, 72, 14, 12, 4) + rect(74, 72, 14, 12, 4), m) +
+    Z('espejo-der', rect(0, 44, 7, 16, 3), m) + Z('espejo-izq', rect(93, 44, 7, 16, 3), m) +
+    Z('parachoques-del', rect(8, 96, 84, 11, 3), m) +
+    Z('llanta-del-der', rect(10, 104, 17, 30, 5) + ln(12, 112, 25, 112) + ln(12, 120, 25, 120) + ln(12, 128, 25, 128), m) +
+    Z('llanta-del-izq', rect(73, 104, 17, 30, 5) + ln(75, 112, 88, 112) + ln(75, 120, 88, 120) + ln(75, 128, 88, 128), m);
 }
 function atras(m){
-  return Z('caja', '<rect x="8" y="6" width="84" height="94" rx="4" ' + TRZ + '/><line x1="50" y1="6" x2="50" y2="100" stroke="' + INK + '" stroke-width="1.5"/><rect x="42" y="48" width="5" height="12" rx="2" fill="' + INK + '"/><rect x="53" y="48" width="5" height="12" rx="2" fill="' + INK + '"/><rect x="8" y="18" width="5" height="9" fill="#d9e0ea" stroke="' + INK + '"/><rect x="87" y="18" width="5" height="9" fill="#d9e0ea" stroke="' + INK + '"/><rect x="8" y="76" width="5" height="9" fill="#d9e0ea" stroke="' + INK + '"/><rect x="87" y="76" width="5" height="9" fill="#d9e0ea" stroke="' + INK + '"/>', m) +
-    Z('luces-tras', '<rect x="14" y="84" width="14" height="10" rx="3" fill="#f3b3ae" stroke="' + INK + '" stroke-width="1.2"/><rect x="72" y="84" width="14" height="10" rx="3" fill="#f3b3ae" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z('parachoques-tras', '<rect x="10" y="100" width="80" height="9" rx="3" ' + TRZ + '/>', m) +
-    Z('llanta-tras-izq', '<rect x="6" y="102" width="17" height="30" rx="5" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/>', m) + Z('llanta-tras-der', '<rect x="77" y="102" width="17" height="30" rx="5" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/>', m);
+  return Z('caja', rect(10, 6, 80, 92, 3) + ln(50, 6, 50, 98) + rect(42, 46, 5, 14, 2, N) + rect(53, 46, 5, 14, 2, N) +
+      [18, 76].map(function(v){ return rect(10, v, 5, 8, 1, N) + rect(85, v, 5, 8, 1, N); }).join(''), m) +
+    Z('luces-tras', rect(15, 80, 14, 10, 3) + rect(71, 80, 14, 10, 3), m) +
+    Z('parachoques-tras', rect(10, 98, 80, 10, 3), m) +
+    Z('llanta-tras-izq', rect(4, 104, 22, 30, 5) + ln(8, 112, 22, 112) + ln(8, 120, 22, 120) + ln(8, 128, 22, 128), m) +
+    Z('llanta-tras-der', rect(74, 104, 22, 30, 5) + ln(78, 112, 92, 112) + ln(78, 120, 92, 120) + ln(78, 128, 92, 128), m);
 }
 function arriba(m){
-  var wr = function(id, cx, y){ return Z(id, '<rect x="' + (cx - 16) + '" y="' + y + '" width="32" height="11" rx="4" fill="#3a4558" stroke="' + INK + '" stroke-width="1.5"/>', m); };
-  return Z('caja', '<rect x="8" y="26" width="176" height="62" rx="5" ' + TRZ + '/>' + [32, 56, 80, 104, 128, 152].map(function(v){ return '<line x1="' + v + '" y1="30" x2="' + v + '" y2="84" stroke="#c4ccd9" stroke-width="1.2"/>'; }).join(''), m) +
-    Z('cabina', '<path d="M188 32 H238 Q254 32 258 44 V70 Q254 82 238 82 H188 Z" ' + TRZ + '/><path d="M238 36 Q250 36 253 46 V68 Q250 78 238 78 Z" fill="#dbe8fa" stroke="' + INK + '" stroke-width="1.2"/>', m) +
-    Z('espejo-izq', '<rect x="232" y="22" width="11" height="7" rx="2.5" ' + TRZ + '/>', m) + Z('espejo-der', '<rect x="232" y="85" width="11" height="7" rx="2.5" ' + TRZ + '/>', m) +
-    wr('llanta-tras-izq', 52, 16) + wr('llanta-tras-der', 52, 88) + wr('llanta-del-izq', 224, 16) + wr('llanta-del-der', 224, 88);
+  var wr = function(id, cx, y){ return Z(id, rect(cx - 17, y, 34, 12, 4) + ln(cx - 8, y + 2, cx - 8, y + 10) + ln(cx, y + 2, cx, y + 10) + ln(cx + 8, y + 2, cx + 8, y + 10), m); };
+  return Z('caja', rect(8, 24, 178, 66, 3) + [38, 68, 98, 128, 158].map(function(v){ return ln(v, 28, v, 86); }).join('') + ln(8, 57, 186, 57), m) +
+    Z('cabina', '<path d="M190 30 H236 Q256 30 260 44 V70 Q256 84 236 84 H190 Z" ' + W + '/><path d="M238 36 Q252 38 255 47 V67 Q252 76 238 78 Z" ' + N + '/>' + ln(190, 57, 238, 57), m) +
+    Z('espejo-izq', rect(230, 20, 12, 8, 2.5), m) + Z('espejo-der', rect(230, 86, 12, 8, 2.5), m) +
+    wr('llanta-tras-izq', 52, 12) + wr('llanta-tras-der', 52, 90) + wr('llanta-del-izq', 222, 12) + wr('llanta-del-der', 222, 90);
 }
 var VW = { izq: 280, der: 280, fre: 100, atr: 100, arr: 280 }, VL = { izq: 'Costado izquierdo', der: 'Costado derecho', fre: 'Frente', atr: 'Atrás', arr: 'Arriba' };
+var DEFS = '<defs><pattern id="hach" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#fff"/><line x1="0" y1="0" x2="0" y2="5" stroke="#111" stroke-width="2.4"/></pattern>' +
+  '<style>.zn.mk *{fill:url(#hach)!important;stroke:#111!important;stroke-width:2.2!important}</style></defs>';
 function truck(vs, marks){
   var m = marks || [], x = 0, g = '';
   vs.forEach(function(v){
     var d = v === 'izq' ? costado(false, m) : v === 'der' ? costado(true, m) : v === 'fre' ? frente(m) : v === 'atr' ? atras(m) : arriba(m);
-    g += '<g transform="translate(' + x + ',0)">' + d + '<text x="' + (VW[v] / 2) + '" y="146" font-size="10" text-anchor="middle" fill="#44516a" font-weight="800" font-family="Archivo,Arial,sans-serif">' + VL[v] + '</text></g>'; x += VW[v] + 18; });
-  return '<svg viewBox="0 0 ' + (x - 18) + ' 152" width="100%"><defs><pattern id="hach" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#fde1df"/><line x1="0" y1="0" x2="0" y2="5" stroke="#e5484d" stroke-width="2.2"/></pattern></defs>' + g + '</svg>';
+    g += '<g transform="translate(' + x + ',0)">' + d + '<text x="' + (VW[v] / 2) + '" y="148" font-size="10" text-anchor="middle" fill="' + K + '" font-weight="700" font-family="Arial,Helvetica,sans-serif">' + VL[v] + '</text></g>'; x += VW[v] + 18; });
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (x - 18) + ' 152" width="100%">' + DEFS + g + '</svg>';
 }
 function dibujo2(m){ return truck(['izq', 'der'], m) + truck(['fre', 'atr', 'arr'], m); }
-
-window.CAMION = {
-  costados: function (marcas) { return truck(['izq', 'der'], marcas); },
-  resto: function (marcas) { return truck(['fre', 'atr', 'arr'], marcas); },
-  dibujo: dibujo2,
-  nombres: nombresZ,
-  zonas: ZN
-};
+/* un solo SVG con los 5 dibujos (para convertirlo en imagen, p. ej. en el Word) */
+function todo(m){
+  var a = truck(['izq', 'der'], m), b = truck(['fre', 'atr', 'arr'], m);
+  var vb = function(s){ return s.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/); }, A = vb(a), B = vb(b), w = Math.max(+A[1], +B[1]), h = +A[2] + +B[2] + 6;
+  var inner = function(s){ return s.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '').replace(DEFS, ''); };
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" width="' + w * 3 + '" height="' + h * 3 + '">' + DEFS + '<rect width="100%" height="100%" fill="#fff"/>' +
+    '<g transform="translate(' + ((w - A[1]) / 2) + ',0)">' + inner(a) + '</g><g transform="translate(' + ((w - B[1]) / 2) + ',' + (+A[2] + 6) + ')">' + inner(b) + '</g></svg>';
+}
+window.CAMION = { costados: function (m) { return truck(['izq', 'der'], m); }, resto: function (m) { return truck(['fre', 'atr', 'arr'], m); },
+  dibujo: dibujo2, todo: todo, nombres: nombresZ, zonas: ZN };
 })();

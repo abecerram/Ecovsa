@@ -8,6 +8,8 @@
 <script>window.PUENTE_CONFIG={indicador:'oculto',sinCopia:/./};</script>
 <script src="puente.js"></script>
 <script src="camion-dibujo.js"></script>
+<script src="docx-mini.js"></script>
+<script src="docx-f08.js"></script>
 <style>
 /* api 3.59 · F-LOG-08 «Inspección mensual del vehículo» (una carta, igual que el Word versión 1 / MAY-26)
    y su anexo «Hoja para el mecánico». Se arma sola con las revisiones del conductor (F-LOG-04). */
@@ -18,6 +20,7 @@ body{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;b
 .barra button{border:none;font-family:inherit;font-size:13px;font-weight:800;padding:9px 16px;border-radius:10px;cursor:pointer;background:#fff;color:#0f2a57}
 .barra button.sec{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
 .barra button.on{background:#f5b301;color:#2a1e00}
+.barra button:disabled{opacity:.6;cursor:wait}
 .aviso{max-width:760px;margin:30px auto;background:#fff;border-radius:12px;padding:30px;text-align:center;font-size:14px;color:#44516a;line-height:1.6}
 #hojas{padding:18px 0 0;overflow-x:auto}
 .carta{width:816px;height:1056px;background:#fff;margin:0 auto 18px;padding:40px 46px;box-shadow:0 6px 24px rgba(15,33,64,.22);position:relative;overflow:hidden;font-size:11px;color:#16233b;box-sizing:border-box}
@@ -40,7 +43,6 @@ body{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;b
 .carta td.c{text-align:center}
 .carta .cro svg{width:auto;max-width:100%;height:78px;display:block;margin:0 auto}
 .carta .dat td{padding:2px 6px}
-.zn.mk *{fill:url(#hach)!important;stroke:#e5484d!important;stroke-width:2}
 .carta .cro svg{height:78px}
 .carta .cro2{padding:4px 10px 6px}.carta .cro2 svg{width:auto;max-width:100%;height:124px;display:block;margin:0 auto}.carta .zl{font-size:10px;font-weight:800;color:#44516a;margin-top:2px;text-align:center}
 .carta .mb{border-bottom:3px solid #0f2a57;padding-bottom:8px;align-items:center}
@@ -84,6 +86,7 @@ body{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;b
   <button id="b-ins" onclick="ver('ins')">Inspección F-LOG-08</button>
   <button id="b-mec" onclick="ver('mec')">Hoja para el mecánico</button>
   <button onclick="window.print()">Imprimir o guardar en PDF</button>
+  <button id="b-word" onclick="bajarWord()">Descargar en Word</button>
   <button class="sec" onclick="window.close()">Cerrar</button>
 </div>
 <div id="hojas"></div>
@@ -176,6 +179,10 @@ function hojaMec(I){
     '<div class="sec">Del taller</div><table class="dat"><tr><td class="l">Taller o mecánico</td><td></td><td class="l">Fecha de entrega</td><td></td></tr><tr><td class="l">Repuestos</td><td></td><td class="l">Costo total B/.</td><td></td></tr></table>'+
     '<div class="firm"><div>Entregó · coordinador de logística<small>'+esc(I.firmadaPor||'')+'</small></div><div>Recibió · mecánico<small>Nombre, firma y fecha</small></div></div>'+
     pie('Sale sola al generar la inspección mensual','F-LOG-08')+'</div>';
+}
+function bajarWord(){
+  if(!INS) return; var b=$("b-word"), t=b.textContent; b.disabled=true; b.textContent="Armando el Word…";
+  DOCXF08.bajar(INS, VISTA).then(function(){ b.disabled=false; b.textContent=t; }, function(e){ b.disabled=false; b.textContent=t; alert("No se pudo armar el Word: "+((e&&e.message)||e)); });
 }
 function ver(v){
   VISTA=v; if(!INS) return;
