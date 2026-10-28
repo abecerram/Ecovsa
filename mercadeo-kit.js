@@ -51,7 +51,7 @@
     { id: 'oportunidades', n: 'Oportunidades', i: 'embudo', f: 'MerOportunidades.html', b: 'oportunidades', bg: true },
     { id: 'oportunidad', n: 'Ficha de oportunidad', i: 'documento', f: 'MerOportunidad.html', oculto: true },
     { id: 'cuenta', n: 'Cuenta con sedes', i: 'edificio', f: 'MerCuenta.html', oculto: true },
-    { id: 'nueva', n: 'Nueva oportunidad', i: 'mas', accion: 'captura' },
+    /* «Nueva oportunidad» salió del menú (Oportunidades, parte 1): se crea con «Captura», la tecla N, el buscador o el botón de Oportunidades */
     { id: 'agenda', n: 'Agenda y actividades', i: 'calendario', f: 'MerAgenda.html', b: 'agenda' },
     { g: 'CLIENTES' },
     { id: 'clientes', n: 'Clientes', i: 'edificio', f: 'MerClientes.html' },
