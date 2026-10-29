@@ -162,6 +162,43 @@
   MK.dias = function (a, b) { return Math.round((d12(b) - d12(a)) / 86400000); };
   MK.masDias = function (iso, n) { var d = d12(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
   MK.lunes = function (iso) { var d = d12(iso); var w = (d.getDay() + 6) % 7; return MK.masDias(iso, -w); };
+  /* api 3.74 · copias al instante (decisión del 28 oct, «como las cookies»): lo último que se vio de una lectura se guarda
+     en este navegador y la pantalla abre con eso mientras llega lo nuevo. Cada copia lleva la versión, el ingreso
+     (eco_login_t: cambia en cada PIN) y el día; si algo no coincide o tiene más de 12 h, se borra sola.
+     La clave nunca lleva el PIN. No guarda nada que escriba ni datos de pago. Sin service workers. */
+  var V_COPIA = '3.74';
+  function ingreso() { try { return localStorage.getItem('eco_login_t') || ''; } catch (e) { return ''; } }
+  MK.copia = {
+    clave: function (fn, args) { return 'mk_c:' + fn + ':' + JSON.stringify(args || []); },
+    leer: function (k) {
+      try {
+        var c = JSON.parse(localStorage.getItem(k) || 'null');
+        if (!c || c.v !== V_COPIA || c.i !== ingreso() || c.d !== MK.hoyLocal() || Date.now() - c.t > 12 * 3600e3) { if (c) localStorage.removeItem(k); return null; }
+        return c.x;
+      } catch (e) { return null; }
+    },
+    guardar: function (k, x) {
+      try { localStorage.setItem(k, JSON.stringify({ v: V_COPIA, i: ingreso(), d: MK.hoyLocal(), t: Date.now(), x: x })); }
+      catch (e) { MK.copia.limpiar(); }   // sin espacio: se borran todas las copias y se sigue sin copia
+    },
+    /* al pintar una copia se levanta la cortina de entrada del módulo (no espera al servidor) */
+    pintada: function () { try { if (window.ECOCARGA && ECOCARGA.listo) setTimeout(ECOCARGA.listo, 30); } catch (e) {} },
+    limpiar: function () { try { for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (k && k.indexOf('mk_c:') === 0) localStorage.removeItem(k); } } catch (e) {} }
+  };
+  /* Lectura con copia: alLlegar(r, deCopia) se llama primero con la copia (si hay) y luego con lo nuevo,
+     solo si cambió. Devuelve la promesa de lo nuevo (si falla y ya se ve la copia, avisa y no borra la pantalla). */
+  MK.leerConCopia = function (fn, args, alLlegar) {
+    var k = MK.copia.clave(fn, args.slice(1)), c = MK.copia.leer(k), j0 = c ? JSON.stringify(c) : null;
+    if (c) { try { alLlegar(c, true); MK.copia.pintada(); } catch (e) { console.error(e); } }
+    return MK.api.apply(null, [fn].concat(args)).then(function (r) {
+      if (r && r.ok) MK.copia.guardar(k, r);
+      if (!c || JSON.stringify(r) !== j0) alLlegar(r, false);
+      return r;
+    }, function (e) {
+      if (c) { MK.aviso('Sin conexión: se ve lo último que se leyó'); return c; }
+      throw e;
+    });
+  };
   MK.hoyLocal = function () { var d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
   MK.ahoraHM = function () { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
   MK.ini = function (n) { var p = String(n || '').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ ]/g, ' ').trim().split(/\s+/); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); };
@@ -273,6 +310,7 @@
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';
     }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>' + botonOcultar();
   }
+  /* api 3.74 · base sin esperar, copias al instante y Cascada (ver MK.copia y cascadaAlEntrar) */
   /* api 3.73 · «Ocultar el menú solo»: encendido, el menú queda como una franja de íconos y se abre al pasar el ratón.
      Es un gusto de cada persona: se guarda en este navegador (nada delicado). En el celular no aplica. */
   var K_OCULTAR = 'mk_menu_oculto';
@@ -772,6 +810,36 @@
   };
 
   /* ── arranque ── */
+  /* api 3.74 · Cascada al entrar a cualquier pantalla de Mercadeo (Mi día comercial trae la suya): cuando ya no queda
+     ningún «Cargando…» a la vista, lo que se ve aparece de arriba abajo, uno tras otro. Sin movimiento con «reducir movimiento». */
+  function cascadaAlEntrar(pagina) {
+    if (pagina === 'inicio' || cascadaAlEntrar._ya) return; cascadaAlEntrar._ya = true;
+    var m = document.getElementById('main'); if (!m || !window.MutationObserver) return;
+    try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+    m.classList.add('mk-espera');
+    var t0 = Date.now(), tt = null, hecho = false, ob = new MutationObserver(function () { clearTimeout(tt); tt = setTimeout(revisar, 60); });
+    function visible(e) { return e.offsetParent !== null && e.getBoundingClientRect().height > 0; }
+    function revisar() {
+      if (hecho) return;
+      var esperando = [].some.call(m.querySelectorAll('.cargando'), visible);
+      if (esperando && Date.now() - t0 < 6000) { tt = setTimeout(revisar, 120); return; }
+      hecho = true; ob.disconnect(); m.classList.remove('mk-espera');
+      if (esperando) return;
+      var alto = window.innerHeight, L = [];
+      (function abrir(lista, nivel) {
+        lista.forEach(function (e) {
+          if (!visible(e) || L.length >= 14) return;
+          var r = e.getBoundingClientRect(); if (r.top > alto) return;
+          var hijos = [].filter.call(e.children, visible);
+          if (nivel < 2 && r.height > alto * 0.55 && hijos.length > 1) abrir(hijos, nivel + 1); else L.push(e);
+        });
+      })([].slice.call(m.children), 0);
+      L.forEach(function (e, i) { e.style.setProperty('--ci', i); e.classList.add('mk-ci'); });
+      setTimeout(function () { L.forEach(function (e) { e.classList.remove('mk-ci'); e.style.removeProperty('--ci'); }); }, 900 + L.length * 60);
+    }
+    ob.observe(m, { childList: true, subtree: true });
+    tt = setTimeout(revisar, 60);
+  }
   MK.iniciar = function (pagina, alListo) {
     MK._pag = pagina;
     document.body.classList.add('mk');
@@ -779,12 +847,28 @@
     if (!MK.pin) { location.href = 'index.html'; return; }
     pintarBarra(pagina);
     var main = document.getElementById('main');
+    /* api 3.74 · la base (quién es, ajustes y números del menú) sale de la copia: la pantalla pide sus datos de una vez,
+       sin esperar esta vuelta. Si al llegar la base es de otra persona o de otro día, la pantalla se vuelve a abrir. */
+    var kB = MK.copia.clave('api_crmBase', []), cB = MK.copia.leer(kB);
+    if (cB && cB.ok && cB.usuario) {
+      MK.base = cB; MK.usuario = cB.usuario; MK.hoy = cB.hoy; pintarBarra(pagina); cascadaAlEntrar(pagina);
+      /* después de que termine de leerse el resto de la página (sus variables se definen más abajo) */
+      setTimeout(function () { try { alListo(cB); } catch (e) { console.error(e); if (main) main.innerHTML = '<div class="aviso rj">Error al pintar la pantalla: ' + MK.esc(e.message) + '</div>'; } }, 0);
+    }
     MK.api('api_crmBase', MK.pin).then(function (b) {
+      if (cB && b && b.ok) {
+        if (!b.usuario || b.usuario.nombre !== cB.usuario.nombre || b.usuario.rol !== cB.usuario.rol || b.hoy !== cB.hoy) { MK.copia.limpiar(); location.reload(); return; }
+        MK.base = b; MK.usuario = b.usuario; MK.copia.guardar(kB, b);
+        var nv0 = document.getElementById('mnav'); if (nv0) nv0.innerHTML = menuHtml(pagina);   // los números del menú, al día
+        return;
+      }
+      if (cB) return;   // ya se ve la pantalla con la copia; si la base no llegó, sus datos sí dicen si falta algo
+      if (b && b.ok) MK.copia.guardar(kB, b);
       if (!b || !b.ok) { if (main) main.innerHTML = '<div class="aviso rj">' + MK.esc((b && b.error) || 'No se pudo abrir mercadeo.') + ' <a href="index.html">Volver a los módulos</a></div>'; return; }
       MK.base = b; MK.usuario = b.usuario; MK.hoy = b.hoy;
-      pintarBarra(pagina);
+      pintarBarra(pagina); cascadaAlEntrar(pagina);
       try { alListo(b); } catch (e) { console.error(e); if (main) main.innerHTML = '<div class="aviso rj">Error al pintar la pantalla: ' + MK.esc(e.message) + '</div>'; }
-    }, function (e) { if (main) MK.error(main, 'Sin conexión: ' + e.message); });
+    }, function (e) { if (!cB && main) MK.error(main, 'Sin conexión: ' + e.message); });
     document.addEventListener('keydown', function (e) {
       var t = e.target, escribe = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
       if (e.key === 'Escape') { MK.cerrarHoja(); MK.cerrarLado(); var m = document.getElementById('mk-menu'); if (m) m.classList.remove('si'); }

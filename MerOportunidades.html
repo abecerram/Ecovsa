@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oportunidades · Mercadeo · ECOVSA</title>
+<!-- api 3.74 · abre con la copia al instante (Mercadeo más rápido, 29 oct) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
@@ -1606,15 +1607,16 @@ body.op-tablero .ord-m{display:none}
   function recargar() {
     if (CARGANDO) { recargar._otra = true; return; }
     CARGANDO = true;
-    MK.api('api_crmOportunidades', MK.pin).then(function (r) {
-      CARGANDO = false;
+    /* api 3.74 · abre con la copia al instante y se repinta solo si llegó algo distinto */
+    MK.leerConCopia('api_crmOportunidades', [MK.pin], function (r, deCopia) {
+      if (!deCopia) CARGANDO = false;
       if (!r || !r.ok) { if (!D) MK.error('main', (r && r.error) || 'No se pudieron cargar las oportunidades.'); else MK.aviso((r && r.error) || 'No se pudo actualizar la lista.'); return; }
       var primera = !D;
       D = r; OPS = r.oportunidades || []; ESTADOS = r.estados || MK.base.estados || [];
       if (primera) esqueleto();
       pintar();
-      if (recargar._otra) { recargar._otra = false; recargar(); }
-    }, function (e) {
+      if (!deCopia && recargar._otra) { recargar._otra = false; recargar(); }
+    }).then(function () { CARGANDO = false; }, function (e) {
       CARGANDO = false;
       if (!D) MK.error('main', 'Sin conexión: ' + e.message); else MK.aviso('Sin conexión: no se pudo actualizar la lista.');
     });

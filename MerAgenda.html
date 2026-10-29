@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agenda y actividades · Mercadeo · ECOVSA</title>
+<!-- api 3.74 · abre con la copia al instante (Mercadeo más rápido, 29 oct) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
@@ -217,7 +218,8 @@ body.solo-ver [data-drag]{cursor:pointer}
     if (CARGANDO) { OTRA = true; return; }
     CARGANDO = true;
     var d = semana(), todos = MK.usuario.rol === 'mercadeo' && A.quien !== 'mias';
-    MK.api('api_crmTareas', MK.pin, d[0], finSemana(), todos).then(function (r) {
+    /* api 3.74 · la semana abre con la copia al instante y se repinta solo si llegó algo distinto */
+    MK.leerConCopia('api_crmTareas', [MK.pin, d[0], finSemana(), todos], function (r) {
       if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo leer la agenda.');
       if (r.desde !== semana()[0]) return;   // cambió de semana mientras cargaba
       R = r; indexar(); pintarCal();

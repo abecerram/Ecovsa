@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clientes · Mercadeo · ECOVSA</title>
+<!-- api 3.74 · abre con la copia al instante (Mercadeo más rápido, 29 oct) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
 <script>window.PUENTE_CONFIG={sinCopia:/./,indicador:'oculto',enSupabase:/^api_(?!optimizarRuta$)/,
@@ -264,11 +265,20 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
     if (TAB === 'altas') pintarAltas();
   }
 
+  /* api 3.74 · la cartera abre con la copia al instante (las dos lecturas) y se repinta solo si llegó algo distinto */
   function cargar() {
+    var kA = MK.copia.clave('api_crmClientes', []), kB = MK.copia.clave('api_cartera', []), cA = MK.copia.leer(kA), cB = MK.copia.leer(kB), j0 = null;
+    if (cA && cA.ok) { j0 = JSON.stringify([cA, cB]); try { recibir([cA, cB]); MK.copia.pintada(); } catch (e) { console.error(e); } }
     Promise.all([
       MK.api('api_crmClientes', MK.pin),
       MK.api('api_cartera', MK.pin).catch(function () { return null; })
     ]).then(function (r) {
+      if (r[0] && r[0].ok) MK.copia.guardar(kA, r[0]); if (r[1] && r[1].ok) MK.copia.guardar(kB, r[1]);
+      if (j0 && JSON.stringify(r) === j0) return;
+      recibir(r);
+    }, function (e) { if (j0) MK.aviso('Sin conexión: se ve lo último que se leyó'); else MK.error('p-cartera', 'Sin conexión: ' + e.message); });
+  }
+  function recibir(r) {
       var a = r[0], b = r[1];
       if (!a || !a.ok) { MK.error('p-cartera', (a && a.error) || 'No se pudo cargar la cartera.'); return; }
       CRM = a; CAR = b && b.ok ? b : null;
@@ -277,7 +287,6 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
       POR_ID = {}; LISTA.forEach(function (c) { POR_ID[c.id] = c; });
       Object.keys(ELEGIDOS).forEach(function (k) { if (!POR_ID[k]) delete ELEGIDOS[k]; });
       pintarCartera(); pintarTabs();
-    }, function (e) { MK.error('p-cartera', 'Sin conexión: ' + e.message); });
   }
 
   /* ── faltantes de ficha: los de la cartera (Alta) y los del CRM, sin repetir ── */
