@@ -192,12 +192,30 @@
     if (c) { try { alLlegar(c, true); MK.copia.pintada(); } catch (e) { console.error(e); } }
     return MK.api.apply(null, [fn].concat(args)).then(function (r) {
       if (r && r.ok) MK.copia.guardar(k, r);
-      if (!c || JSON.stringify(r) !== j0) alLlegar(r, false);
+      if (!c) alLlegar(r, false);
+      else if (JSON.stringify(r) !== j0) MK.suave(function () { alLlegar(r, false); });   // api 3.75: lo que cambió se funde
       return r;
     }, function (e) {
       if (c) { MK.aviso('Sin conexión: se ve lo último que se leyó'); return c; }
       throw e;
     });
+  };
+  /* api 3.75 · los datos nuevos entran suave: se repinta y solo lo que cambió (una cifra, una fila) se funde en su lugar.
+     Se compara el texto de cada fila o tarjeta antes y después; lo que quedó igual no se toca. */
+  var SEL_SUAVE = '[data-id],[data-clave],[data-et],[data-cod],[data-ref],.it,.row2,.paso,.kpi,.kk,tr,.card>h3';
+  function llaveSuave(e, i) { return e.getAttribute('data-id') || e.getAttribute('data-clave') || e.getAttribute('data-et') || e.getAttribute('data-cod') || e.getAttribute('data-ref') || (e.tagName + ':' + (e.className || '') + ':' + i); }
+  MK.suave = function (pintar) {
+    var m = document.getElementById('main'), antes = {};
+    if (!m) { pintar(); return; }
+    [].forEach.call(m.querySelectorAll(SEL_SUAVE), function (e, i) { antes[llaveSuave(e, i)] = e.textContent; });
+    pintar();
+    var marcados = [];
+    [].forEach.call(m.querySelectorAll(SEL_SUAVE), function (e, i) {
+      if (antes[llaveSuave(e, i)] === e.textContent) return;
+      if (e.parentElement && e.parentElement.closest('.mk-nuevo')) return;   // ya se funde su fila
+      e.classList.add('mk-nuevo'); marcados.push(e);
+    });
+    setTimeout(function () { marcados.forEach(function (e) { e.classList.remove('mk-nuevo'); }); }, 450);
   };
   MK.hoyLocal = function () { var d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
   MK.ahoraHM = function () { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
@@ -310,6 +328,7 @@
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';
     }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>' + botonOcultar();
   }
+  /* api 3.75 · marco quieto, fundido corto y datos que entran suave (ver MK.suave y mercadeo-kit.css) */
   /* api 3.74 · base sin esperar, copias al instante y Cascada (ver MK.copia y cascadaAlEntrar) */
   /* api 3.73 · «Ocultar el menú solo»: encendido, el menú queda como una franja de íconos y se abre al pasar el ratón.
      Es un gusto de cada persona: se guarda en este navegador (nada delicado). En el celular no aplica. */

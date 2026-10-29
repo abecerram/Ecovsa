@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mi día comercial · Mercadeo · ECOVSA</title>
+<!-- api 3.75 · Mercadeo suave: fundido corto y datos que entran suave (29 oct) -->
 <!-- api 3.74 · abre con la copia al instante (Mercadeo más rápido, 29 oct) -->
 <!-- api 3.73 · Mi día comercial: opción B «La cadena» en la tarjeta «Mañana clara», transición Cascada y copia al instante (Álvaro, 29 oct) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -179,14 +180,9 @@ body.mk .main>.a-grid .card{border-color:#e6ebf2;border-radius:22px;box-shadow:0
 .nuevo373{animation:nuevo373 2.4s ease-out 1}@keyframes nuevo373{0%{background:#fff4c2}100%{background:transparent}}
 .num373{animation:num373 1.2s ease-out 1}@keyframes num373{0%{color:#0C5395;transform:scale(1.15)}100%{transform:scale(1)}}
 /* la entrada en Cascada: baja el encabezado, los pasos aparecen uno por uno, luego suben las tarjetas */
-.cas373 .dia373 .ph{animation:cCab373 .5s cubic-bezier(.2,.8,.2,1) both}
-.cas373 .dia373 .a-ql,.cas373 .dia373 .cad-t{animation:cFun373 .4s ease-out .15s both}
-.cas373 .cad373 .paso{animation:cPaso373 .5s cubic-bezier(.2,.9,.25,1.15) both;animation-delay:calc(180ms + var(--j,0) * 85ms)}
-.cas373 .a-col .card{animation:cTar373 .65s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(650ms + var(--i,0) * 130ms)}
-@keyframes cCab373{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+/* api 3.75 · en lugar de la Cascada, un fundido corto: todo a la vez, sin movimiento */
+.cas373 .dia373,.cas373 .a-col>.card,.cas373 .a-col>div>.card{animation:cFun373 .25s ease-out both}
 @keyframes cFun373{from{opacity:0}to{opacity:1}}
-@keyframes cPaso373{from{opacity:0;transform:translateY(22px) scale(.92)}to{opacity:1;transform:none}}
-@keyframes cTar373{from{opacity:0;transform:translateY(42px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.cas373 *,.cp373 i,.nuevo373,.num373{animation:none!important}.cad373 .paso{transition:none}}
 @media (max-width:900px){.a-grid>.a-col:last-child{order:-1}.dia373{padding:16px;border-radius:22px}.cad373{grid-template-columns:repeat(2,minmax(0,1fr))}.dia373 .ph .btn{flex:1 1 auto}}
 @media (max-width:560px){.a-grid .a-kpis{grid-template-columns:1fr 1fr}}
@@ -280,14 +276,14 @@ body.mk .main>.a-grid .card{border-color:#e6ebf2;border-radius:22px;box-shadow:0
     return Promise.all([MK.api('api_crmInicio', MK.pin), pT]).then(function (res) {
       var r = res[0];
       if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo leer el día.');
-      D = r;
+      var habia = !!D; D = r;
       HECHAS = res[1] ? (res[1].tareas || []).filter(function (t) { return t.estado === 'hecha' && t.fecha === MK.hoy; }) : [];
       TAR = {};
       [r.tareas.hoy, r.tareas.atrasadas, r.tareas.sinFecha, r.tareas.semana, HECHAS].forEach(function (l) { (l || []).forEach(function (t) { TAR[t.id] = t; }); });
       NOV = {}; (r.novedades || []).forEach(function (n) { n.cuando = iso(n.cuando); NOV[n.clave] = n; });
       (r.compras || []).forEach(function (c) { c.fecha = iso(c.fecha); });
       avisarNuevas();
-      pintar();
+      if (habia && MK.suave) MK.suave(pintar); else pintar();   // api 3.75: lo que cambió se funde en su lugar
       guardarCopia(); llegoLoNuevo();
     }).catch(function (e) {
       if (COPIA) { copiaSinConexion(); return; }
@@ -389,7 +385,7 @@ body.mk .main>.a-grid .card{border-color:#e6ebf2;border-radius:22px;box-shadow:0
     [].forEach.call(m.querySelectorAll('.cad373 .paso'), function (x, i) { x.style.setProperty('--j', i); });
     [].forEach.call(m.querySelectorAll('.a-col > .card, .a-col > div > .card'), function (x, i) { x.style.setProperty('--i', Math.min(i, 8)); });
     m.classList.add('cas373');
-    setTimeout(function () { m.classList.remove('cas373'); }, 2600);
+    setTimeout(function () { m.classList.remove('cas373'); }, 400);
   }
 
   /* ═══ api 3.73 · copia al instante (decisión del 28 oct) ═══
