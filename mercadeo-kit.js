@@ -65,7 +65,9 @@
     { id: 'reportes', n: 'Reportes', i: 'grafico', f: 'MerReportes.html' },
     { id: 'minsa', n: 'Informe al MINSA', i: 'documento', f: 'MerMinsa.html' },
     { id: 'tarifario', n: 'Planes y tarifas', i: 'moneda', f: 'MerTarifario.html' },
-    { id: 'ajustes', n: 'Plantillas y ajustes', i: 'ajustes', f: 'MerAjustes.html' }
+    { id: 'ajustes', n: 'Plantillas y ajustes', i: 'ajustes', f: 'MerAjustes.html' },
+    { g: 'AYUDA' },
+    { id: 'novedades', n: 'Novedades', i: 'estrella', accion: 'novedades' }   // api 3.78
   ];
   MK.PAGINAS = PAGINAS;
 
@@ -324,7 +326,7 @@
       if (p.oculto && p.id !== pag) return '';
       if (p.oculto) return '<a class="on" aria-current="page" style="cursor:default" title="Estás aquí">' + MK.ic(p.i, 17) + MK.esc(p.n) + '</a>';   // api 3.15: marcada y sin enlace (antes abría la pantalla sin decir cuál)
       if (p.accion === 'captura' && MK.usuario && MK.usuario.rol === 'gerente') return '';
-      var href = p.f ? ' href="' + p.f + '"' : ' onclick="MK.captura();return false"';
+      var href = p.f ? ' href="' + p.f + '"' : (p.accion === 'novedades' ? ' onclick="MK.novedades();return false"' : ' onclick="MK.captura();return false"');
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';
     }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>' + botonOcultar();
   }
@@ -859,6 +861,22 @@
     ob.observe(m, { childList: true, subtree: true });
     tt = setTimeout(revisar, 60);
   }
+  /* api 3.78 · Novedades: la presentación corta de lo nuevo (novedades.js + novedades/mercadeo.js, se cargan aparte y tarde,
+     para no frenar ninguna pantalla). Sale sola una vez por persona y por versión del contenido; queda en el menú. */
+  var NOV_V = '3.78';
+  function cargarJs(src) { return new Promise(function (ok, mal) { var s = document.createElement('script'); s.src = src + '?v=' + NOV_V; s.onload = ok; s.onerror = mal; document.head.appendChild(s); }); }
+  function novCargar() {
+    if (window.ECO_NOV && ECO_NOV._mer) return Promise.resolve();
+    return (window.ECO_NOV ? Promise.resolve() : cargarJs('novedades.js')).then(function () { return cargarJs('novedades/mercadeo.js'); }).then(function () { ECO_NOV._mer = 1; });
+  }
+  MK.novedades = function () {
+    var m = document.getElementById('mk-menu'); if (m) m.classList.remove('si');
+    novCargar().then(function () { ECO_NOV.abrir('mercadeo', MK.usuario && MK.usuario.nombre); }, function () { MK.aviso('No se pudieron abrir las novedades. Revisa la conexión.'); });
+  };
+  function novRevisar() {
+    if (novRevisar._ya) return; novRevisar._ya = 1;
+    setTimeout(function () { if (!MK.usuario) return; novCargar().then(function () { ECO_NOV.revisar('mercadeo', MK.usuario.nombre); }, function () {}); }, 4000);
+  }
   MK.iniciar = function (pagina, alListo) {
     MK._pag = pagina;
     document.body.classList.add('mk');
@@ -872,6 +890,7 @@
     if (cB && cB.ok && cB.usuario) {
       MK.base = cB; MK.usuario = cB.usuario; MK.hoy = cB.hoy; pintarBarra(pagina); cascadaAlEntrar(pagina);
       /* después de que termine de leerse el resto de la página (sus variables se definen más abajo) */
+      novRevisar();
       setTimeout(function () { try { alListo(cB); } catch (e) { console.error(e); if (main) main.innerHTML = '<div class="aviso rj">Error al pintar la pantalla: ' + MK.esc(e.message) + '</div>'; } }, 0);
     }
     MK.api('api_crmBase', MK.pin).then(function (b) {
@@ -886,6 +905,7 @@
       if (!b || !b.ok) { if (main) main.innerHTML = '<div class="aviso rj">' + MK.esc((b && b.error) || 'No se pudo abrir mercadeo.') + ' <a href="index.html">Volver a los módulos</a></div>'; return; }
       MK.base = b; MK.usuario = b.usuario; MK.hoy = b.hoy;
       pintarBarra(pagina); cascadaAlEntrar(pagina);
+      novRevisar();
       try { alListo(b); } catch (e) { console.error(e); if (main) main.innerHTML = '<div class="aviso rj">Error al pintar la pantalla: ' + MK.esc(e.message) + '</div>'; }
     }, function (e) { if (!cB && main) MK.error(main, 'Sin conexión: ' + e.message); });
     document.addEventListener('keydown', function (e) {
