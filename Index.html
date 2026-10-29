@@ -23767,6 +23767,82 @@ function numeroHablado(v){
   if(!instala_()){ var n = 0, t = setInterval(function(){ if(instala_() || ++n > 20) clearInterval(t); }, 500); }
 })();
 </script>
+<script id="js-tf10">
+/* GPS de la jornada y navegación solo con GPS (APK 1.6.21):
+   · mientras la jornada del día está abierta, la página le pide a la app que mantenga el GPS prendido; al cerrarla (o cambiar el día) se apaga;
+   · la navegación ignora la posición del navegador (que mezcla antena) y, si el GPS calla unos segundos, la flecha sigue sobre la ruta con la
+     velocidad que traía (hasta 30 s) y dice «Buscando señal GPS»; al volver el GPS se corrige sola. */
+(function(){
+  if(window.__gps10) return; window.__gps10 = 1;
+  function app(f){ return !!(window.EcovsaApp && typeof EcovsaApp[f] === "function"); }
+  function viva_(){ try{ return !!(window.JORNADA && !JORNADA.cerrada && JORNADA.fecha === hoyISO()); }catch(e){ return false; } }
+
+  /* ── 1 · el GPS de la jornada ── */
+  var J = { puesta: false };
+  function jornada_(){
+    try{
+      if(!app("jornada")) return;
+      if(viva_()){
+        EcovsaApp.jornada(true); J.puesta = true;
+        /* Huawei y otros cierran las apps para ahorrar batería: durante la jornada se pide quedar fuera (una vez por día) */
+        try{ if(app("bateriaLibre") && !EcovsaApp.bateriaLibre() && localStorage.getItem("eco_bat") !== hoyISO()){ localStorage.setItem("eco_bat", hoyISO()); EcovsaApp.pedirBateria(); } }catch(e){}
+      } else if(J.puesta || (window.PIN && Date.now() - J.t0 > 30000)){
+        EcovsaApp.jornada(false); J.puesta = false;
+      }
+    }catch(e){}
+  }
+  J.t0 = Date.now();
+  setInterval(jornada_, 20000);
+  setTimeout(jornada_, 4000);
+
+  /* ── 2 · la navegación ── */
+  var R = { real: 0, v: 0 };
+  function enApk_(){ return app("navegando"); }
+  function pinta_(){ try{ NV37.pintarGps(); }catch(e){} }
+  function engancha_(){
+    if(!window.NAVX || typeof NAVX.entrada !== "function" || typeof window.ecoPos !== "function") return false;
+    var oE = NAVX.entrada, oP = window.ecoPos;
+    NAVX.entrada = function(f){
+      /* con la app, la posición del navegador no sirve: puede venir de la antena */
+      if(f && f.prov === "web" && enApk_() && NV37.abierta()) return;
+      return oE.apply(this, arguments);
+    };
+    window.ecoPos = function(j){
+      R.real = Date.now(); R.v = 0;
+      if(NV37.buscandoGps){ NV37.buscandoGps = false; NV37.sinGps = false; setTimeout(pinta_, 0); }
+      return oP.apply(this, arguments);
+    };
+    var oG = NV37.pintarGps;
+    NV37.pintarGps = function(){
+      var r = oG.apply(this, arguments);
+      try{
+        var g = document.getElementById("nv-gps");
+        if(g && NV37.buscandoGps){ g.className = "nv-gps am"; g.innerHTML = '<i></i>' + (NV37.sinGps ? 'Sin señal GPS · la flecha se detuvo' : 'Buscando señal GPS…'); }
+      }catch(e){}
+      return r;
+    };
+    return true;
+  }
+  if(!engancha_()){ var n = 0, t = setInterval(function(){ if(engancha_() || ++n > 30) clearInterval(t); }, 1000); }
+
+  /* si el GPS calla más de 2,5 s la flecha sigue sobre la ruta con la velocidad que traía (la ruta la vuelve a pegar a la calle) */
+  setInterval(function(){
+    try{
+      if(!enApk_() || !window.NAVX || !NV37.abierta()){ if(NV37.buscandoGps){ NV37.buscandoGps = false; NV37.sinGps = false; } return; }
+      var y = NAVX.g; if(!y || !R.real) return;
+      var edad = Date.now() - R.real;
+      if(edad < 2500) return;
+      if(!NV37.buscandoGps){ NV37.buscandoGps = true; NV37.sinGps = false; pinta_(); try{ NV37.decir("Buscando señal GPS"); }catch(e){} }
+      if(edad > 30000){ if(!NV37.sinGps){ NV37.sinGps = true; pinta_(); } return; }
+      var v = R.v || NAVX.vel || y.vel || 0;
+      if(v < 1.5 || y.rumbo == null) return;
+      R.v = v * 0.97;
+      var br = y.rumbo * Math.PI / 180, lat = y.lat + R.v * Math.cos(br) / 110574, lng = y.lng + R.v * Math.sin(br) / (111320 * Math.cos(y.lat * Math.PI / 180));
+      NAVX.entrada({ lat: lat, lng: lng, prec: 12, vel: R.v, rumbo: y.rumbo, t: Date.now(), prov: "estim" });
+    }catch(e){}
+  }, 1000);
+})();
+</script>
 <style id="estilo-347">
 /* api 3.47 · el mapa de Google */
 .leaflet-right .g47-logo{margin:0 6px 4px 0!important}.g47-logo{margin:0 0 6px 8px!important;line-height:0;pointer-events:none}.g47-logo img{height:17px;width:auto;display:block}
