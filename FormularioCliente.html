@@ -1845,5 +1845,37 @@ function pop51(ev){
   return true;
 }
 </script>
+<script id="js-382">
+/* ═══ api 3.82 · el enlace de documentos vence (regla B, Álvaro 29 oct) ═══
+   Mientras está abierto, arriba de sus documentos el cliente ve hasta cuándo puede enviarlos.
+   Si venció, ve «Este enlace venció» (como la propuesta vencida), lo que ya envió queda guardado, y puede
+   «Pedir que me lo abran de nuevo» (le avisa a su asesora) o escribirle. Nombres propios: ve382. */
+var ve382PDocs = pDocs;
+pDocs = function () {
+  if (E && E.paso === 'documentos' && E.cerrado) return ve382Cerrado();
+  var h = ve382PDocs();
+  if (E && E.paso === 'documentos' && E.venceDocs) {
+    var d = Number(E.diasDocs), cuando = d === 0 ? 'hoy, ' + fLarga(E.venceDocs) : d === 1 ? 'mañana, ' + fLarga(E.venceDocs) : 'el ' + fLarga(E.venceDocs);
+    var n = '<div class="notita" id="ve382-fecha" style="margin:0 0 12px' + (d <= 3 ? ';background:#fff8e6;border-color:#f2d58a' : '') + '">' + ic('reloj') + '<span>Puede enviarlos <b>hasta ' + esc(cuando) + '</b>. ' +
+      'Después el enlace se cierra; si necesita más tiempo, escríbale a ' + esc(asePri()) + '.</span></div>';
+    h = h.replace('<div class="dprog">', n + '<div class="dprog">');
+  }
+  return h;
+};
+function ve382Cerrado() {
+  var pidio = !!E.pideReabrir;
+  return finHtml('reloj', 'am', 'Este enlace venció',
+    'Venció el ' + esc(fLarga(E.venceDocs)) + '. Lo que ya nos envió está guardado.',
+    (pidio ? '<div class="okb" style="margin-top:18px"><span class="i2">' + ic('check') + '</span><div><b>Ya le avisamos a ' + esc(asePri()) + '</b><small>Le abre el enlace de nuevo y le escribe.</small></div></div>'
+           : '<button class="bok" style="background:var(--navy2)" data-e="ve382-reabrir">' + ic('renovar') + ' Pedir que me lo abran de nuevo</button>') +
+    bloqueAse());
+}
+document.addEventListener('click', function (e) {
+  var b = e.target && e.target.closest && e.target.closest('[data-e="ve382-reabrir"]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  responder('reabrir', {}, b);
+}, true);
+</script>
 </body>
 </html>

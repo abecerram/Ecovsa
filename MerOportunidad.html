@@ -1240,7 +1240,7 @@
     var p = e.paso, u = e.unica, dc = e.docs, docs = (dc && dc.docs) || [];
     var nAc = docs.filter(function (x) { return x.estado === 'aceptado'; }).length, nRev = docs.filter(function (x) { return x.estado === 'por revisar'; }).length;
     var I = { datos: 1, espera: 2, propuesta: 2, vencida: 2, documentos: 3, revision: 3, contrato: 4, aceptada: 4, bienvenida: 6, noacepto: 2 }[p] || 1;
-    var cl = function (n) { return p === 'noacepto' && n === 2 ? 'no' : n < I ? 'ok' : n === I ? 'on' : ''; };
+    var cl = function (n) { if (n === 3 && e.cerrado) return 'no'; return p === 'noacepto' && n === 2 ? 'no' : n < I ? 'ok' : n === I ? 'on' : ''; };
     var fe = String(OP['formulario enviado'] || '');
     var s1 = e.datosRecibidos ? 'recibidos ' + fcor(e.datosRecibidos) : I > 1 ? 'no hizo falta' : fe ? 'esperando al cliente' : 'sin enviar';
     var s2 = p === 'noacepto' ? 'no la aceptó' + (e.respuestaEn ? ' · ' + fcor(e.respuestaEn) : '')
@@ -1250,6 +1250,7 @@
       : e.propuestaEnlace ? 'la verá aquí al anotar el envío' : 'por correo o WhatsApp';
     var s3 = u ? 'no aplica: visita única' : !e.docsEnlace ? 'apagado en Configuración' : p === 'documentos' || p === 'revision' ? nAc + ' de ' + docs.length + ' aceptados' + (nRev ? ' · ' + nRev + ' por revisar' : '')
       : I > 3 ? 'aceptados' : 'se piden al aceptar';
+    if (window.VE382M) s3 = VE382M.s3(e, s3);   // api 3.82: hasta cuándo está abierto
     var s4 = I > 4 ? 'firmado' : I === 4 ? (u ? 'coordinar la fecha' : 'en preparación') : u ? 'al aceptar' : 'al aceptar los documentos';
     var s5 = I > 5 ? 'el enlace se cerró' : 'con el contrato firmado';
     var paso = function (n, t, sub) { return '<div class="' + cl(n) + '"><b>' + n + ' · ' + t + '</b><small>' + E(sub) + '</small></div>'; };
@@ -1260,11 +1261,12 @@
       : p === 'noacepto' ? 'El cliente ve el mensaje de agradecimiento y puede pedir una nueva propuesta.'
       : p === 'bienvenida' ? 'El cliente ve la bienvenida' + (e.primeraRecoleccion ? ' con su primera recolección el ' + MK.fechaLarga(e.primeraRecoleccion) : ' (la primera recolección «la coordinamos con usted» hasta que esté en una ruta)') + '.'
       : puedePedir ? 'Si el cliente aceptó por otro medio, toca «Pedir documentos»: su enlace se abre para cargarlos y se abre WhatsApp con el mensaje listo.' : '';
+    if (window.VE382M) nota = VE382M.nota(e, nota);   // api 3.82
     return '<div class="card cli-link"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:240px"><b>' + IC('enlace', 15) + ' El enlace del cliente</b>' +
       '<div class="small muted" style="margin-top:3px">Es el mismo enlace de principio a fin: el cliente ve en él cada paso de su trámite.</div></div>' +
       (GER ? '' : '<div class="row" style="gap:6px;flex-wrap:wrap">' + (ab ? '<a class="btn sm gh" href="' + E(enlaceFormulario()) + '" target="_blank" rel="noopener">' + IC('ojo', 14) + ' Verlo como el cliente</a>' : '') +
-        '<button class="btn sm" data-a="copiar-enlace">' + IC('enlace', 14) + ' Copiar enlace</button>' +
-        (puedePedir ? '<button class="btn sm pri" data-a="pedir-docs">' + IC('subir', 14) + ' Pedir documentos</button>' : (p === 'documentos' && (waNumero(OP.celular) || waNumero(OP.telefono)) ? '<button class="btn sm wa" data-a="wa-docs">' + IC('whatsapp', 14) + ' Recordárselos</button>' : '')) + '</div>') + '</div>' +
+        '<button class="btn sm" data-a="copiar-enlace">' + IC('enlace', 14) + ' Copiar enlace</button>' + (window.VE382M ? VE382M.boton(e, GER) : '') +
+        (puedePedir ? '<button class="btn sm pri" data-a="pedir-docs">' + IC('subir', 14) + ' Pedir documentos</button>' : (p === 'documentos' && !e.cerrado && (waNumero(OP.celular) || waNumero(OP.telefono)) ? '<button class="btn sm wa" data-a="wa-docs">' + IC('whatsapp', 14) + ' Recordárselos</button>' : '')) + '</div>') + '</div>' +
       '<div class="enl-pasos">' + paso(1, 'Datos', s1) + paso(2, 'Propuesta', s2) + paso(3, 'Documentos', s3) + paso(4, u ? 'Visita' : 'Contrato', s4) + paso(5, 'Bienvenida', s5) + '</div>' +
       (nota ? '<div class="enl-nota">' + nota + '</div>' : '') + '</div>';
   }
@@ -1295,6 +1297,7 @@
       h += '<div class="ban am">' + IC('renovar', 18) + '<div class="bx"><b>El cliente pidió ' + (/^nueva/.test(pide) ? 'una nueva propuesta' : 'una propuesta actualizada') + ' desde su enlace</b><p>' + MK.fechaLarga(pide.slice(-10)) + '. ' +
         (/^nueva/.test(pide) ? 'Reábrela, ajusta la propuesta y anota el envío: el cliente la verá en su enlace.' : 'Ajusta la propuesta y anota el envío con la nueva vigencia: el cliente la verá en su enlace.') + '</p></div>' +
         (/^nueva/.test(pide) ? '<div class="acc"><button class="btn sm pri" data-a="reabrir-op">' + IC('renovar', 14) + ' Reabrir</button></div>' : '<div class="acc"><button class="btn sm pri" data-a="envio-propuesta">' + IC('documento', 14) + ' Anotar el envío</button></div>') + '</div>';
+    if (window.VE382M) h += VE382M.banner(e, GER);   // api 3.82: el cliente pidió que le abran el enlace
     return h;
   }
   function pedirDocs(b) {
@@ -3375,6 +3378,85 @@ var LIC67 = (function () {
   return { es: es, contratado: contratado, propuesta: propuesta, expediente: expediente, enganchar: enganchar, contador: contador, contadorProp: contadorProp, contadorExp: contadorExp, sucio: function () { return SUCIO; } };
 })();
 
+</script>
+<script id="js-382">
+/* ═══ api 3.82 · Ficha › «El enlace del cliente»: hasta cuándo está abierto y «Renovar enlace» ═══
+   El paso 3 dice «abierto hasta el …» o «venció el …»; la nota dice qué documentos faltan; si el cliente pidió desde su enlace
+   vencido que se lo abran, sale el aviso; «Renovar enlace» le da 7, 15 o 30 días más con una nota (queda en la Actividad).
+   La tarjeta llama a VE382M desde tarjetaEnlace y banRespuesta. Nombres propios: ve382 / VE382M. */
+var VE382M = (function () {
+  var E = MK.esc, IC = MK.ic, DIAS = [7, 15, 30], N = 7;
+  function D() { return (window.MO49 && MO49.D()) || {}; }
+  function OP() { return D().oportunidad || {}; }
+  function hoy() { return MK.hoy || new Date(Date.now() - 5 * 36e5).toISOString().slice(0, 10); }
+  function mas(iso, n) { var d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function faltan(e) { return ((e.docs && e.docs.docs) || []).filter(function (d) { return d.estado !== 'aceptado' && d.estado !== 'por revisar'; }); }
+  function aplica(e) { return !!(e && e.paso === 'documentos' && e.venceDocs); }
+  function wa(x) { var n = String(x || '').replace(/[^0-9]/g, ''); if (/^6\d{7}$/.test(n)) return '507' + n; if (/^5076\d{7}$/.test(n)) return n; return ''; }
+  function dias(e) { var d = Number(e.diasDocs); return d === 0 ? 'vence hoy' : d === 1 ? 'vence mañana' : 'faltan ' + d + ' días'; }
+  return {
+    s3: function (e, s) {
+      if (!aplica(e)) return s;
+      return e.cerrado ? 'venció el ' + MK.fechaCorta(e.venceDocs) + ' · faltan ' + faltan(e).length
+        : s + ' · abierto hasta el ' + MK.fechaCorta(e.venceDocs) + (Number(e.diasDocs) <= 3 ? ' · ' + dias(e) : '');
+    },
+    nota: function (e, nota) {
+      if (!aplica(e)) return nota;
+      var f = faltan(e).map(function (d) { return E(String(d.n || d.doc).toLowerCase()); });
+      var ren = e.renovado ? ' Renovado: ' + E(e.renovado) + '.' : '';
+      var t = e.cerrado
+        ? '<b>El enlace venció el ' + E(MK.fechaLarga(e.venceDocs)) + '</b>' + (f.length ? ' y faltan ' + f.length + ' documentos' : '') + '. El cliente ve «Este enlace venció», con un botón para pedir que se lo abran y otro para escribirte. Toca «Renovar enlace» para darle más días.'
+        : '<b>Enlace abierto hasta el ' + E(MK.fechaLarga(e.venceDocs)) + '</b> (' + dias(e) + ').' + (f.length ? ' Faltan: ' + f.join(', ') + '.' : '') + ' Tres días antes, si siguen faltando, te queda una tarea en la Agenda.';
+      return t + ren + (nota ? ' ' + nota : '');
+    },
+    boton: function (e, ger) {
+      if (ger || !aplica(e)) return '';
+      return '<button class="btn sm" data-a="ve382-renovar">' + IC('renovar', 14) + ' Renovar enlace</button>';
+    },
+    banner: function (e, ger) {
+      if (ger || !aplica(e) || !e.cerrado || !e.pideReabrir) return '';
+      return '<div class="ban am">' + IC('renovar', 18) + '<div class="bx"><b>El cliente pidió que le abran el enlace de nuevo</b><p>' + E(MK.fechaLarga(e.pideReabrir)) +
+        ' · le faltan ' + faltan(e).length + ' documentos. Renuévalo y avísale por WhatsApp.</p></div><div class="acc"><button class="btn sm pri" data-a="ve382-renovar">' + IC('renovar', 14) + ' Renovar enlace</button></div></div>';
+    },
+    hoja: function () {
+      var e = D().enlace || {}, op = OP(), n = N, tel = wa(op.celular) || wa(op.telefono);
+      if (!aplica(e)) return;
+      var base = [hoy(), e.venceDocs].sort().pop();
+      var pinta = function () {
+        document.querySelectorAll('[data-ve382-d]').forEach(function (b) { b.classList.toggle('pri', Number(b.getAttribute('data-ve382-d')) === n); });
+        var x = document.getElementById('ve382-nuevo'); if (x) x.innerHTML = 'Nuevo vencimiento: <b>' + E(MK.fechaLarga(mas(base, n))) + '</b>. El cliente vuelve a ver sus documentos en el mismo enlace.';
+      };
+      MK.hoja('<h2>Renovar el enlace</h2><p class="small muted">' + E(op.empresa || 'El cliente') + ' podrá volver a enviar sus documentos. Lo que ya envió se queda.</p>' +
+        '<label class="lb">¿CUÁNTOS DÍAS MÁS?</label><div class="row" style="gap:8px;margin-bottom:12px">' + DIAS.map(function (d) { return '<button type="button" class="btn sm" data-ve382-d="' + d + '">' + d + ' días</button>'; }).join('') + '</div>' +
+        '<label class="lb" for="ve382-nota">NOTA (QUEDA EN LA ACTIVIDAD)</label><input class="in" id="ve382-nota" placeholder="Ej.: la cédula la tiene la otra socia">' +
+        '<div class="small" id="ve382-nuevo" style="margin-top:10px"></div><div id="ve382-msg" class="small" style="margin-top:8px;color:var(--bad)"></div>' +
+        '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button>' + (tel ? '<button class="btn" id="ve382-ok">Renovar</button><button class="btn pri" id="ve382-wa">' + IC('whatsapp', 14) + ' Renovar y avisar por WhatsApp</button>' : '<button class="btn pri" id="ve382-ok">Renovar</button>') + '</div>');
+      document.querySelectorAll('[data-ve382-d]').forEach(function (b) { b.onclick = function () { n = Number(b.getAttribute('data-ve382-d')); pinta(); }; });
+      pinta();
+      var ir = function (bt, avisar) {
+        MK.ocupado(bt, true);
+        MK.api('api_enlacePedirDocs', MK.pin, MO49.COD, { renovar: n, nota: document.getElementById('ve382-nota').value.trim() }).then(function (r) {
+          MK.ocupado(bt, false);
+          if (!r || !r.ok) { document.getElementById('ve382-msg').textContent = (r && r.error) || 'No se pudo.'; return; }
+          MK.cerrarHoja(); MK.aviso('Listo: el enlace queda abierto hasta el ' + MK.fechaLarga(r.hasta) + '.');
+          if (avisar && tel) {
+            var url = new URL('index.html', location.href).href.replace(/index\.html$/, '') + '?p=formulario&token=' + encodeURIComponent(MO49.COD) + (r.clave ? '&k=' + r.clave : '');
+            var nom = op.contacto ? ' ' + String(op.contacto).split(' ')[0] : '';
+            window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent('Hola' + nom + ', le abrimos de nuevo su enlace para enviar los documentos, hasta el ' + MK.fechaLarga(r.hasta) + ': ' + url), '_blank', 'noopener');
+          }
+          MK.cambio({ tipo: 'documento' });
+        }, function (x) { MK.ocupado(bt, false); MK.aviso('Sin conexión: ' + x.message); });
+      };
+      var ok = document.getElementById('ve382-ok'); if (ok) ok.onclick = function () { ir(ok, false); };
+      var w = document.getElementById('ve382-wa'); if (w) w.onclick = function () { ir(w, true); };
+    }
+  };
+})();
+document.addEventListener('click', function (e) {
+  var b = e.target && e.target.closest && e.target.closest('[data-a="ve382-renovar"]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation(); VE382M.hoja();
+}, true);
 </script>
 </body>
 </html>
