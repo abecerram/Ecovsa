@@ -1471,6 +1471,7 @@ function um376Guardar() {
    Nombres propios: todo empieza con cc379 / CC379 (no choca con los bloques de Portal de clientes ni del monitor de usuarios).
 
    ▸ PARA AGREGAR UNA HERRAMIENTA NUEVA: súmale una línea a CC379_HERR (grupo, id, nombre, ícono, descripción y palabras para el buscador).
+     Si es una página aparte, en vez de una pantalla de aquí, ponle url; con activa: false no se ve en ningún lado hasta que se quite esa marca.
      Aparece sola en el menú, en la portada y en el buscador. El id debe existir también en MK.iniciar({ paginas }) y en el mapa de vistas (V) de pintar. */
 var CC379_GRUPOS = [
   { g: 'personas', n: 'Personas y accesos', i: 'personas' },
@@ -1495,14 +1496,19 @@ var CC379_HERR = [
   { g: 'ctl', id: 'ptluso', n: 'Uso del portal', i: 'ojo', d: 'Qué clientes entran a su portal, qué usan y ver su portal', p: 'portal clientes uso ingresos ver su portal activos enfriaron nunca entraron' },
   { g: 'ctl', id: 'his', n: 'Historial', i: 'historial', d: 'Todo lo que se cambia aquí, con quién y cuándo', p: 'cambios bitacora auditoria' },
   { g: 'ctl', id: 'rb', n: 'Registro de borrados', i: 'basura', d: 'Lo que se borró y quién lo borró', p: 'borrado eliminado' },
+  /* Página aparte (no es una sección de esta pantalla): url en vez de pantalla propia. Apagada con activa:false hasta que la página exista; para encenderla, quitar «activa: false». */
+  { g: 'emp', id: 'vistaprevia', url: 'AdmVistaPrevia.html', activa: false, n: 'Lo que reciben los clientes', i: 'ojo', d: 'Ver lo que recibe el cliente: recibos, certificados y correos', p: 'clientes reciben vista previa recibo certificado correo mensaje como lo ve el cliente' },
   { g: 'mant', id: 'prb', n: 'Datos de prueba', i: 'filtro', d: 'Marcar y limpiar datos de prueba', p: 'prueba demo' },
   { g: 'mant', id: 'esp', n: 'Espacio de archivos', i: 'subir', d: 'Cuánto espacio se usa y en qué', p: 'archivos espacio almacenamiento' }];
 var CC379_K = 'eco_cfg_menu379', CC379_ABIERTO = '', CC379_OBS = false, CC379 = { uso: null, portal: null, esp: null, t: 0 }, CC379_FIL = 'todos', CC379_RES = false;
+/* las herramientas encendidas (activa distinto de false) son las que se ven en el menú, la portada y el buscador */
+function cc379Vivas() { return CC379_HERR.filter(function (h) { return h.activa !== false; }); }
+function cc379Href(h, f) { return h.url ? ' href="' + MK.esc(h.url) + '"' : ' href="#' + h.id + '" onclick="' + f + '(\'' + h.id + '\');return false"'; }
 function cc379H(id) { for (var i = 0; i < CC379_HERR.length; i++) if (CC379_HERR[i].id === id) return CC379_HERR[i]; return null; }
 function cc379G(g) { for (var i = 0; i < CC379_GRUPOS.length; i++) if (CC379_GRUPOS[i].g === g) return CC379_GRUPOS[i]; return null; }
 function cc379Norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 function cc379Cont(id) { var c = (MK.contadores || {})[id]; return c && c.n ? c : null; }
-function cc379SumaG(g) { var s = 0, t = ''; CC379_HERR.forEach(function (h) { if (h.g !== g) return; var c = cc379Cont(h.id); if (c) { s += Number(c.n) || 0; if (c.t === 'r') t = 'r'; else if (!t) t = c.t; } }); return { n: s, t: t }; }
+function cc379SumaG(g) { var s = 0, t = ''; cc379Vivas().forEach(function (h) { if (h.g !== g) return; var c = cc379Cont(h.id); if (c) { s += Number(c.n) || 0; if (c.t === 'r') t = 'r'; else if (!t) t = c.t; } }); return { n: s, t: t }; }
 function cc379Guardar() { try { localStorage.setItem(CC379_K, CC379_ABIERTO); } catch (e) {} }
 function cc379Leer() { try { return localStorage.getItem(CC379_K) || ''; } catch (e) { return ''; } }
 
@@ -1514,8 +1520,8 @@ function cc379MenuHtml(cajon) {
     var on = CC379_ABIERTO === g.g, s = cc379SumaG(g.g);
     h += '<div class="cc379-g' + (on ? ' on' : '') + '"><button type="button" class="cc379-gh" onclick="cc379Tog(\'' + g.g + '\',' + (cajon ? 1 : 0) + ')" aria-expanded="' + (on ? 'true' : 'false') + '">' + MK.ic(g.i, 17) + '<span class="t">' + MK.esc(g.n) + '</span>' +
       (!on && s.n ? '<span class="n' + (s.t ? ' ' + s.t : '') + '">' + s.n + '</span>' : '') + MK.ic('flecha', 15) + '</button>';
-    if (on) h += '<div class="cc379-gi">' + CC379_HERR.filter(function (x) { return x.g === g.g; }).map(function (x) { var c = cc379Cont(x.id);
-      return '<a href="#' + x.id + '" class="' + (MK.seccion === x.id ? 'on' : '') + '" onclick="' + f + '(\'' + x.id + '\');return false">' + MK.esc(x.n) + (c ? '<span class="n' + (c.t ? ' ' + c.t : '') + '">' + c.n + '</span>' : '') + '</a>'; }).join('') + '</div>';
+    if (on) h += '<div class="cc379-gi">' + cc379Vivas().filter(function (x) { return x.g === g.g; }).map(function (x) { var c = cc379Cont(x.id);
+      return '<a' + cc379Href(x, f) + ' class="' + (MK.seccion === x.id ? 'on' : '') + '">' + MK.esc(x.n) + (c ? '<span class="n' + (c.t ? ' ' + c.t : '') + '">' + c.n + '</span>' : '') + '</a>'; }).join('') + '</div>';
     h += '</div>';
   });
   return h + '<div class="pie"><a href="index.html">← Volver a los módulos</a></div>';
@@ -1544,15 +1550,15 @@ function cc379Cajon() {
 function cc379CCierra() { var c = document.getElementById('cc379-cajon'), v = document.getElementById('cc379-velo'); if (c) c.classList.remove('si'); if (v) v.classList.remove('si'); }
 function cc379Bus2(q) {
   var r = document.getElementById('cc379-res2'), L = cc379Busca(q), cn = document.getElementById('cc379-cn'), hay = String(q).trim().length >= 2;
-  r.innerHTML = !hay ? '' : (L.length ? L.map(function (x) { return '<a href="#' + x.id + '" class="cc379-r" onclick="cc379CIr(\'' + x.id + '\');return false">' + MK.ic(x.i, 16) + '<span><b>' + MK.esc(x.t) + '</b><small>' + MK.esc(x.d) + '</small></span></a>'; }).join('') : '<div class="vac">Nada con «' + MK.esc(q) + '».</div>');
+  r.innerHTML = !hay ? '' : (L.length ? L.map(function (x) { return '<a class="cc379-r"' + (x.url ? ' href="' + MK.esc(x.url) + '"' : ' href="#' + x.id + '" onclick="cc379CIr(\'' + x.id + '\');return false"') + '>' + MK.ic(x.i, 16) + '<span><b>' + MK.esc(x.t) + '</b><small>' + MK.esc(x.d) + '</small></span></a>'; }).join('') : '<div class="vac">Nada con «' + MK.esc(q) + '».</div>');
   if (cn) cn.style.display = hay ? 'none' : '';
 }
 /* ── buscador (el de la barra de arriba, que ya trae el kit) ── */
 function cc379Busca(q) {
   var k = cc379Norm(q).trim(); if (k.length < 2) return [];
-  return CC379_HERR.filter(function (h) { return cc379Norm(h.n + ' ' + h.d + ' ' + h.p).indexOf(k) >= 0; }).map(function (h) { var g = cc379G(h.g); return { id: h.id, t: h.n, d: (g ? g.n + ' · ' : '') + h.d, i: h.i }; });
+  return cc379Vivas().filter(function (h) { return cc379Norm(h.n + ' ' + h.d + ' ' + h.p).indexOf(k) >= 0; }).map(function (h) { var g = cc379G(h.g); return { id: h.id, url: h.url || '', t: h.n, d: (g ? g.n + ' · ' : '') + h.d, i: h.i }; });
 }
-var CC379_BUSCAR = { ph: 'Buscar una configuración…', fn: function (q) { return cc379Busca(q).map(function (x) { return { t: x.t, d: x.d, i: x.i, ir: function () { cc379Ir(x.id); } }; }); } };
+var CC379_BUSCAR = { ph: 'Buscar una configuración…', fn: function (q) { return cc379Busca(q).map(function (x) { return { t: x.t, d: x.d, i: x.i, ir: function () { if (x.url) location.href = x.url; else cc379Ir(x.id); } }; }); } };
 function cc379Migas(id, main) {
   var x = cc379H(id); if (!x || !main) return; var g = cc379G(x.g);
   main.insertAdjacentHTML('afterbegin', '<div class="cc379-mig">' + MK.esc(g ? g.n : '') + ' › ' + MK.esc(x.n) + '</div>');
@@ -1597,8 +1603,8 @@ function cc379Inicio() {
   h += '<div class="kpis cc379-k" style="grid-template-columns:repeat(3,minmax(0,1fr))">' + T.map(function (k) { return '<div class="kpi' + (k.c ? ' k-' + k.c : '') + '" role="button" tabindex="0" onclick="' + k.ir + '" style="cursor:pointer"><span>' + MK.esc(k.e) + '</span><b class="num">' + k.v + '</b><small>' + MK.esc(k.s) + '</small></div>'; }).join('') + '</div>';
   h += '<div class="g21"><div class="cc379-grid">' + CC379_GRUPOS.map(function (g) { var s = cc379SumaG(g.g);
     return '<div class="card"><h3>' + MK.ic(g.i, 16) + MK.esc(g.n) + '<span class="sp"></span>' + (s.n ? '<span class="n' + (s.t ? ' ' + s.t : '') + '">' + s.n + '</span>' : '') + '</h3>' +
-      CC379_HERR.filter(function (x) { return x.g === g.g; }).map(function (x) { var c = cc379Cont(x.id);
-        return '<a class="cc379-l" href="#' + x.id + '" onclick="cc379Ir(\'' + x.id + '\');return false"><span class="ic">' + MK.ic(x.i, 17) + '</span><span class="tx"><b>' + MK.esc(x.n) + '</b><small>' + MK.esc(x.d) + '</small></span>' + (c ? '<span class="n' + (c.t ? ' ' + c.t : '') + '">' + c.n + '</span>' : '') + MK.ic('flecha', 14) + '</a>'; }).join('') + '</div>'; }).join('') + '</div>';
+      cc379Vivas().filter(function (x) { return x.g === g.g; }).map(function (x) { var c = cc379Cont(x.id);
+        return '<a class="cc379-l"' + cc379Href(x, 'cc379Ir') + '><span class="ic">' + MK.ic(x.i, 17) + '</span><span class="tx"><b>' + MK.esc(x.n) + '</b><small>' + MK.esc(x.d) + '</small></span>' + (c ? '<span class="n' + (c.t ? ' ' + c.t : '') + '">' + c.n + '</span>' : '') + MK.ic('flecha', 14) + '</a>'; }).join('') + '</div>'; }).join('') + '</div>';
   var H = (B().historial || []).slice(0, 5);
   h += '<div class="card"><h3>Últimos cambios<span class="sp"></span><a href="#his" class="l" onclick="cc379Ir(\'his\');return false">Ver todo el historial</a></h3>' + (H.length ? H.map(function (x) { return '<div class="cc379-h"><b>' + MK.esc(x.accion) + '</b><small>' + MK.esc(x.quien) + ' · ' + MK.esc(MK.dmy(String(x.fecha).slice(0, 10)) + ' ' + String(x.fecha).slice(11)) + '</small></div>'; }).join('') : MK.vacio('Todavía no hay cambios.')) + '</div></div>';
   return h;
