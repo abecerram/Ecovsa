@@ -5337,6 +5337,7 @@ function c2Refrescar_(){ if(INI_TAB === "cli2") cargarC2_(true); }
 function c2Cli_(id){ return C2 && C2.clientes.find(function(c){ return c.id === Number(id); }); }
 function c2Fecha_(iso){ return iso ? nombreDia_(iso) : "—"; }
 function c2Prox_(c){
+  if(c.programado && ["atrasado", "vencido", "semana"].indexOf(c.urg) >= 0) return [c.programado.txt, ''];   // 3.72
   if(c.urg === "fuera") return ['fuera de servicio', ''];
   if(!c.proxima) return ['sin fecha', 'am'];
   var d = c.diasA;
@@ -5907,7 +5908,7 @@ function plPintar_(){
 function plModo_(m){ PL_M = m; plPintar_(); }
 
 /* ── candidatos ── */
-var PL_GR = [["extra","Recolección extra · la pidió el cliente"], ["recurrentes","🔁 Recurrentes del "], ["arrastre","↪ No se atendieron · pasan a este día"], ["tocan","Les toca por frecuencia"], ["atrasados","Atrasados"], ["pendientes","Pendientes de días anteriores"], ["nuevos","Nuevos, sin visitas"]];
+var PL_GR = [["extra","Recolección extra · la pidió el cliente"], ["recurrentes","🔁 Recurrentes del "], ["arrastre","↪ No se atendieron · pasan a este día"], ["tocan","Les toca por frecuencia"], ["atrasados","Atrasados"], ["pendientes","Pendientes de días anteriores"], ["nuevos","Nuevos, sin visitas"], ["programados","Ya programados · están en una ruta de otro día"]];   // 3.72
 function plEnED_(id){ return !!ED && ED.paradas.some(function(p){ return String(p.clienteId) === String(id); }); }
 function plCandidatos_(){ var o = []; if(!PL) return o; PL_GR.forEach(function(g){ (PL.grupos[g[0]] || []).forEach(function(x){ o.push({ id: x.id, g: g[0], x: x }); }); }); return o; }
 function plPintarCands_(){
@@ -13346,7 +13347,7 @@ function plCamino_(){
   }).filter(function(x){ return x.g; });
   var F = { cerca: function(x){ return x.dv < 7; }, ida: function(x){ return x.lado === "ida" && x.dv < 12; }, vuelta: function(x){ return x.lado === "vuelta" && x.dv < 12; }, todos: function(){ return true; } };
   var L1 = L0.filter(F[PL_CAM_F] || F.cerca).sort(function(a, b){ return a.dv - b.dv; });
-  var por = { atrasados: "atrasado", arrastre: "no se atendió", tocan: "le toca", nuevos: "nuevo", recurrentes: "recurrente", extra: "recolección extra", pendientes: "pendiente", pronto: "le toca esta semana" };
+  var por = { atrasados: "atrasado", arrastre: "no se atendió", tocan: "le toca", nuevos: "nuevo", recurrentes: "recurrente", extra: "recolección extra", pendientes: "pendiente", pronto: "le toca esta semana", programados: "ya programado" };
   h += '<div class="mp-hint"><span>Base → <b>' + esc(d.nombre) + '</b> · recibe ' + esc(d.desde) + '–' + esc(d.hasta) + '. Los que le toca, ordenados por lo que desvían del trayecto (en línea recta, aproximado).</span></div>' +
     '<div class="pl-fil" style="padding:8px 14px">' + [["cerca", "Hasta 7 km de desvío"], ["ida", "A la ida"], ["vuelta", "A la vuelta"], ["todos", "Todos los que le toca"]].map(function(f){ return '<button class="' + (PL_CAM_F === f[0] ? "on" : "") + '" onclick="PL_CAM_F=\'' + f[0] + '\';plPintarCands_()">' + f[1] + '</button>'; }).join("") + '</div>';
   h += L1.length ? L1.slice(0, 40).map(function(x){
@@ -13357,7 +13358,7 @@ function plCamino_(){
 }
 
 /* ── el mapa de la ruta que se está armando ── */
-var PL_COL = { atrasados: "#d64545", arrastre: "#c2410c", tocan: "#e0a100", nuevos: "#7b4fd0", recurrentes: "#0e7490", extra: "#9d174d", pendientes: "#64748b" };
+var PL_COL = { atrasados: "#d64545", arrastre: "#c2410c", tocan: "#e0a100", nuevos: "#7b4fd0", recurrentes: "#0e7490", extra: "#9d174d", pendientes: "#64748b", programados: "#8a96a8" };
 function plMapa_(){
   var box = $("pl-toca"); if(!box || !PL || !ED) return;
   var B = plBase_(), g = PL.google || {}, C = plCalc_(), tz = plTrazoVigente_();
@@ -13444,7 +13445,7 @@ function plMoverPuesto_(id, d){
 function plPopCand_(x){
   var c = plC_(x.id), m = plDondeMenos_(x.id), n = ED.paradas.length, ids = ED.paradas.map(function(p){ return p.clienteId; });
   var alFinal = plKmOrden_(ids.concat([x.id])) - plKmOrden_(ids);
-  var por = { atrasados: "Atrasado", arrastre: "No se atendió", tocan: "Le toca por frecuencia", nuevos: "Nuevo, sin visitas", recurrentes: "Recurrente", extra: "Recolección extra", pendientes: "Pendiente" }[x.g] || "";
+  var por = { atrasados: "Atrasado", arrastre: "No se atendió", tocan: "Le toca por frecuencia", nuevos: "Nuevo, sin visitas", recurrentes: "Recurrente", extra: "Recolección extra", pendientes: "Pendiente", programados: "Ya programado en otra ruta" }[x.g] || "";
   L.popup({ offset: [0, -4] }).setLatLng([c.lat, c.lng]).setContent(
     '<div class="mp-pop"><b>' + esc(c.nombre) + '</b><span>' + esc(por) + ' · ' + esc(c.zona || "") + ' · ~' + Math.round(c.kg || 0) + ' kg · ' + (c.min || PL.config.minSitio) + ' min en el sitio' + (c.hTipo ? ' · 🕘 ' + esc(c.hDesde) + '–' + esc(c.hHasta) : '') + '</span>' +
     (m ? '<button class="ac p" onclick="plMeter_(' + x.id + ',' + m.i + ')">＋ Meterlo donde menos desvía<small>queda de ' + (m.i + 1) + '.ª parada · +' + Math.max(0.1, m.d).toFixed(1) + ' km</small></button>' : '') +
@@ -19718,6 +19719,9 @@ function p42Pintar_(){
         (t.g === "vence" && t.proxima ? ' · le toca el ' + esc(p42Dia_(t.proxima)) : '') + (t.porque ? ' · ' + esc(t.porque) : '') + (t.folio ? ' · ' + esc(t.folio) : '') + (cl.hTipo ? ' · ' + esc(cl.hDesde) + '–' + esc(cl.hHasta) : '') + (cl.lat ? '' : ' · <em class="ro">sin ubicación</em>');
       return '<div class="p42-tc" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + det + '</small></div>' +
         (t.sug ? '<button class="p42-sg" onclick="event.stopPropagation();p42Poner_(' + t.id + ',\'' + t.sug + '\',\'\')" title="Lo que sugiere el asistente">✦ ' + esc(p42Dia_(t.sug)) + '</button>' : '') + '</div>'; }).join("") + '</div>'; }).join("");
+  var PG = (S.programados || []).filter(function(t){ var cl = S.clientes[t.id]; return cl && (!q || cl.nombre.toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0); });
+  if(PG.length) grupos += '<div class="p42-tg"><h4 class="pg">Ya programados · ' + PG.length + '</h4>' + PG.map(function(t){ var cl = S.clientes[t.id];
+    return '<div class="p42-tc pg" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + esc(cl.zona || "—") + ' · <em class="pg">' + esc(t.progTxt || "Programado") + '</em>' + (t.dias ? ' · le tocaba hace ' + t.dias + (t.dias === 1 ? ' día' : ' días') : '') + '</small></div></div>'; }).join("") + '</div>';
   var toca = '<aside class="mt-card p42-toca"><div class="p42-tt"><b>Le toca</b><span>' + S.toca.length + '</span></div><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P42.bus) + '" oninput="P42.bus=this.value;clearTimeout(P42.bt);P42.bt=setTimeout(p42Pintar_,250)">' +
     (grupos || '<p class="p42-v">' + (q ? 'Nada con «' + esc(P42.bus) + '».' : 'Todo lo de la semana ya está en una ruta ✓') + '</p>') + '<p class="p42-ay">' + (cel ? 'Toque un cliente y elija el día.' : 'Arrastre un cliente a un día, o tóquelo y elija el día. ✦ es el día que sugiere el asistente.') + '</p></aside>';
   /* el tablero */
@@ -20291,10 +20295,10 @@ function p43Dia_(){
   p43Poner_($("p43-d-lista"), listaH, false);
   /* le toca este día */
   var cands = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }), q = (P43.dq || "").toLowerCase();
-  var G = { extra: "Pedidas por el cliente", recurrentes: "Recurrentes", arrastre: "Vienen de otro día", tocan: "Le toca este día", atrasados: "Atrasados", pendientes: "Quitados", nuevos: "Nuevos" };
+  var G = { extra: "Pedidas por el cliente", recurrentes: "Recurrentes", arrastre: "Vienen de otro día", tocan: "Le toca este día", atrasados: "Atrasados", pendientes: "Quitados", nuevos: "Nuevos", programados: "Ya programados" };
   var tocaH = '<h3>Le toca este día<span class="sp"></span><small>' + cands.length + '</small></h3><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P43.dq || "") + '" oninput="P43.dq=this.value;clearTimeout(P43.dqt);P43.dqt=setTimeout(p43Dia_,250)">' +
     (cands.filter(function(x){ var cl = plC_(x.id); return !q || String(cl.nombre).toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0; }).slice(0, 60).map(function(x){ var cl = plC_(x.id);
-      return '<div class="p43-tc" draggable="true" ondragstart="p43TomarCand_(event,' + x.id + ')"><div><b>' + esc(cl.nombre) + '</b><small><span class="pl-dot ' + x.g + '"></span>' + esc(G[x.g] || x.g) + ' · ' + esc(cl.zona || "—") + (x.x && x.x.motivo ? ' · ' + esc(x.x.motivo) : '') + '</small></div><button class="p43-add" title="Agregar a la ruta" onclick="p43Agregar_(' + x.id + ')">＋</button></div>'; }).join("") ||
+      return '<div class="p43-tc" draggable="true" ondragstart="p43TomarCand_(event,' + x.id + ')"><div><b>' + esc(cl.nombre) + '</b><small><span class="pl-dot ' + x.g + '"></span>' + esc(G[x.g] || x.g) + ' · ' + esc(cl.zona || "—") + (x.x && x.x.motivo ? ' · ' + esc(x.x.motivo) : '') + (x.g === "programados" && x.x && x.x.enRuta ? ' · ' + esc(nombreDia_(x.x.enRuta.fecha)) + (x.x.borrador ? ' (borrador)' : '') : '') + '</small></div><button class="p43-add" title="Agregar a la ruta" onclick="p43Agregar_(' + x.id + ')">＋</button></div>'; }).join("") ||
      '<div class="p42-v" style="padding:8px 2px">Nadie pendiente para este día.</div>');
   p43Poner_($("p43-d-toca"), tocaH, false);
   /* el pie: guardar y publicar */
@@ -20879,18 +20883,21 @@ var C44_SVC = { activo: ["Activo", "ve"], suspendido: ["Suspendido", "gr"], sinc
 var C44_FREC = { semanal: "cada semana", quincenal: "cada 15 días", mensual: "una vez al mes", bimestral: "cada 2 meses", trimestral: "cada 3 meses", semestral: "cada 6 meses", anual: "una vez al año" };
 function c44On_(){ return typeof esSupervisor === "function" && esSupervisor(); }
 function c44Svc_(c){ return (c && c.servicio && C44_SVC[c.servicio.k]) ? c.servicio.k : (c && c.activo === false ? "fuera" : "activo"); }
-function c44Vis_(c){ return C44_VIS[c.urg] || ["—", "gr"]; }
+/* 3.72 · ya agendado en una ruta (del servidor: c.programado): no se pinta de rojo */
+function c44Prog_(c){ return !!(c && c.programado && (c.urg === "atrasado" || c.urg === "vencido" || c.urg === "semana")); }
+function c44Vis_(c){ if(c44Prog_(c)) return ["Programado", "pg"]; return C44_VIS[c.urg] || ["—", "gr"]; }
 function c44F_(iso){ return iso ? nombreDia_(iso) : "—"; }
 function c44Corta_(iso){ if(!iso) return "—"; var M = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return Number(iso.slice(8, 10)) + " " + M[Number(iso.slice(5, 7)) - 1]; }
 function c44Nom_(c){ return c.sucursal || c.nombre; }
 
 /* ── los filtros de la lista ── */
-var C44_FIL = [["todos", "Todos"], ["activo", "Activos"], ["sincontacto", "Sin contacto"], ["suspendido", "Suspendidos"], ["inicio", "Por iniciar"], ["atrasado", "Atrasados"], ["semana", "Toca esta semana"], ["revisar", "Por revisar"], ["fuera", "De baja"]];
+var C44_FIL = [["todos", "Todos"], ["activo", "Activos"], ["sincontacto", "Sin contacto"], ["suspendido", "Suspendidos"], ["inicio", "Por iniciar"], ["atrasado", "Atrasados"], ["programado", "Programados"], ["semana", "Toca esta semana"], ["revisar", "Por revisar"], ["fuera", "De baja"]];
 function c44Pasa_(c, f){
   var k = c44Svc_(c);
   if(f === "todos") return k !== "fuera";
-  if(f === "atrasado") return k !== "fuera" && (c.urg === "atrasado" || c.urg === "vencido");
-  if(f === "semana") return k !== "fuera" && c.urg === "semana";
+  if(f === "atrasado") return k !== "fuera" && (c.urg === "atrasado" || c.urg === "vencido") && !c44Prog_(c);
+  if(f === "programado") return k !== "fuera" && c44Prog_(c);
+  if(f === "semana") return k !== "fuera" && c.urg === "semana" && !c44Prog_(c);
   if(f === "revisar") return c.problemas && c.problemas.length > 0;
   return k === f;
 }
@@ -20913,6 +20920,7 @@ function c44Fila_(c, hija){
   var multi = c44EmpTodas_(c.empKey).length > 1;
   var nom = hija ? c44Nom_(c) : (multi && C44.vista === "todas" ? c44Nom_(c) : c.nombre);
   var px = k === "suspendido" ? ["suspendido", "gr", "en pausa"] : k === "fuera" ? ["de baja", "gr", ""] : k === "inicio" && !c.proxima ? ["por iniciar", "am", "sin fecha de inicio"] :
+    c44Prog_(c) ? ["Programado · " + c44Corta_(c.programado.fecha), "pg", (c.proxima ? (c.proxima < C2.hoy ? "le tocaba el " : "le toca el ") + c44Corta_(c.proxima) : "") + (c.programado.borrador ? " · borrador" : "")] :
     [c.proxima ? c44Corta_(c.proxima) : "sin fecha", v[1] === "ve" ? "" : v[1], c.enRuta ? "en ruta" : (c.urg === "atrasado" || c.urg === "vencido") && c.diasA < 0 ? (-c.diasA) + (c.diasA === -1 ? " día tarde" : " días tarde") : (c.ultima ? "última " + c44Corta_(c.ultima) : "sin visitas")];
   return '<div class="c44-f' + (hija ? ' hija' : '') + (on ? ' on' : '') + '" onclick="c44Sede_(' + c.id + ')">' +
     '<input type="checkbox" class="c44-ck" ' + (C2_SEL[c.id] ? "checked" : "") + ' onclick="event.stopPropagation();C2_SEL[' + c.id + ']=this.checked;pintarC2_()" title="Marcar">' +
@@ -20944,7 +20952,7 @@ function c44HtmlLista_(){
   else c44Grupos_(l).forEach(function(g){
     var todas = c44EmpTodas_(g.clave);
     if(todas.length < 2){ g.sedes.forEach(function(c){ orden.push(c.id); cuerpo += c44Fila_(c, false); }); return; }
-    var ab = C44.abiertas[g.clave] || String(C2_Q || "").trim(), at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido")); }).length;
+    var ab = C44.abiertas[g.clave] || String(C2_Q || "").trim(), at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido") && !c44Prog_(c)); }).length;
     cuerpo += '<div class="c44-emp' + (C44.modo === "empresa" && C44.emp === g.clave ? ' on' : '') + '"><button class="fl" onclick="C44.abiertas[\'' + g.clave + '\']=!C44.abiertas[\'' + g.clave + '\'];pintarC2_()" title="' + (ab ? 'Cerrar' : 'Abrir') + '">' + c44Ic_(ab ? "abajo" : "sig", 13) + '</button>' +
       '<div class="tx" onclick="c44Empresa_(\'' + g.clave + '\')"><b>' + esc(g.nombre) + '</b><small>' + todas.length + ' sucursales' + (at ? ' · <em class="ro">' + at + ' por atender</em>' : ' · todas al día') + '</small></div><span class="c44-n">' + todas.length + '</span></div>';
     g.sedes.forEach(function(c){ orden.push(c.id); if(ab) cuerpo += c44Fila_(c, true); });
@@ -20965,7 +20973,7 @@ function c44HtmlSede_(){
   var c0 = c2Cli_(C2_ID) || {}, F = (C2_FI && C2_FI.cliente.id === C2_ID) ? C2_FI : null;
   var nav = c44Nav_();
   if(!F) return nav + '<div class="c44-cab"><div class="c44-tt"><h2>' + esc(c44Nom_(c0)) + '</h2></div></div><div class="c44-esq"><i></i><i></i><i></i></div><div class="c44-esq l"><i></i><i></i></div>';
-  var c = F.cliente, p = F.plan || {}, R = F.resumen || {}, E = F.empresa, sv = F.servicio || c0.servicio || { k: "activo", txt: "" }, S = C44_SVC[sv.k] || C44_SVC.activo, V = c44Vis_({ urg: p.urg || c0.urg });
+  var c = F.cliente, p = F.plan || {}, R = F.resumen || {}, E = F.empresa, sv = F.servicio || c0.servicio || { k: "activo", txt: "" }, S = C44_SVC[sv.k] || C44_SVC.activo, V = c44Vis_({ urg: p.urg || c0.urg, programado: c0.programado });
   var tel = c2Tel_(c), fr = String(c.frecuencia || "").toLowerCase();
   var nomSede = F.sucursal || c.nombre, k = E ? E.sedes.map(function(s){ return s.id; }).indexOf(c.id) : -1;
   var cab = nav + '<div class="c44-cab">' + (E ? '<button class="c44-mig" onclick="c44Empresa_(\'' + esc(E.clave) + '\')">' + esc(E.nombre) + ' ›</button>' : '') +
@@ -21070,7 +21078,7 @@ function c44HtmlEmpresa_(){
   if(!todas.length) return nav + '<div class="c44-vac">Esa empresa ya no tiene sedes.</div>';
   var E = C44.empF && C44.empF.empresa && C44.empF.empresa.clave === C44.emp ? C44.empF.empresa : null, por = {};
   if(E) E.sedes.forEach(function(s){ por[s.id] = s; });
-  var nom = todas[0].empresa, at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido")); });
+  var nom = todas[0].empresa, at = todas.filter(function(c){ var k = c44Svc_(c); return k === "sincontacto" || (k !== "fuera" && k !== "suspendido" && (c.urg === "atrasado" || c.urg === "vencido") && !c44Prog_(c)); });
   var cuenta = {}; todas.forEach(function(c){ var k = c44Svc_(c); cuenta[k] = (cuenta[k] || 0) + 1; });
   var kgMes = E ? E.sedes.reduce(function(a, s){ return a + (s.kgMes || 0); }, 0) : null, sob = E ? E.sedes.filter(function(s){ return s.planKg && s.kgMes > s.planKg; }) : [];
   var ruc = todas.map(function(c){ return c.ruc; }).filter(Boolean)[0] || "";
@@ -26567,6 +26575,28 @@ function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") retur
   }
 })();
 
+</script>
+
+<style id="estilo-372">
+/* Logística 3.72 · estatus del cliente: «Programado» no es rojo (azul de la marca, igual que los demás estados de información) */
+.pl-dot.programados{background:#fff;box-shadow:inset 0 0 0 2px #14306b}
+.c44-ch.pg{background:#e6edf9;color:#14306b}
+.c44-f .px b.pg{color:#14306b}
+.p42-tg h4.pg{color:#14306b}.p42-tc.pg{background:#f1f5fb}.p42-tc em.pg{color:#14306b;font-style:normal;font-weight:700}
+</style>
+<script id="js-372">
+/* ═══ Logística 3.72 · la lista de Clientes se actualiza sola ═══════════════════════════════
+   Al recoger o prestar el servicio, el servidor ya recalcula el estatus en el mismo guardado; la pantalla de
+   Logística, en cambio, solo lo veía al recargar. Ahora la lista se vuelve a pedir (sin parpadeo) al volver a la
+   pestaña del navegador y cada 90 s mientras está abierta la lista de Clientes. No toca nada de lo que se está editando. ═════ */
+(function(){
+  var ULT = 0;
+  function ver_(){ try{ return typeof c2Refrescar_ === "function" && typeof INI_TAB !== "undefined" && INI_TAB === "cli2" && !document.hidden; }catch(e){ return false; } }
+  function pedir_(){ if(!ver_() || Date.now() - ULT < 10000) return; ULT = Date.now(); try{ c2Refrescar_(); }catch(e){} }
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) pedir_(); });
+  window.addEventListener("focus", pedir_);
+  setInterval(function(){ if(Date.now() - ULT >= 90000) pedir_(); }, 15000);
+})();
 </script>
 </body>
 
