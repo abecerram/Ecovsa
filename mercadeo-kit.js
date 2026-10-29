@@ -271,8 +271,17 @@
       if (p.accion === 'captura' && MK.usuario && MK.usuario.rol === 'gerente') return '';
       var href = p.f ? ' href="' + p.f + '"' : ' onclick="MK.captura();return false"';
       return '<a' + href + ' class="' + (p.id === pag ? 'on' : '') + '">' + MK.ic(p.i, 17) + MK.esc(p.n) + contador(p) + '</a>';
-    }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>';
+    }).join('') + '<div class="pie">¿Buscas la pantalla anterior? <a href="Alta.html">Abrir Alta</a></div>' + botonOcultar();
   }
+  /* api 3.73 · «Ocultar el menú solo»: encendido, el menú queda como una franja de íconos y se abre al pasar el ratón.
+     Es un gusto de cada persona: se guarda en este navegador (nada delicado). En el celular no aplica. */
+  var K_OCULTAR = 'mk_menu_oculto';
+  function menuOculto() { try { return localStorage.getItem(K_OCULTAR) === '1'; } catch (e) { return false; } }
+  function botonOcultar() { var on = menuOculto(); return '<button type="button" class="oc373" aria-pressed="' + on + '" onclick="MK.ocultarMenu(this)" title="Encendido, el menú queda como íconos y se abre al pasar el ratón">' + MK.ic('menu', 17) + '<span>Ocultar el menú solo</span><span class="sw" aria-hidden="true"></span></button>'; }
+  MK.ocultarMenu = function (b) {
+    var on = !menuOculto(); try { localStorage.setItem(K_OCULTAR, on ? '1' : '0'); } catch (e) {}
+    document.body.classList.toggle('mk-oculto', on); if (b) { b.setAttribute('aria-pressed', String(on)); b.blur(); }
+  };
   function pintarBarra(pag) {
     var sb = document.getElementById('sysbar');
     if (sb) {
@@ -289,6 +298,7 @@
       document.addEventListener('click', function (e) { if (!e.target.closest || !e.target.closest('.srch')) { var r = document.getElementById('mk-res'); if (r) r.hidden = true; } });
     }
     var nv = document.getElementById('mnav'); if (nv) nv.innerHTML = menuHtml(pag);
+    document.body.classList.toggle('mk-oculto', menuOculto());
   }
   MK.menuCel = function () {
     var m = document.getElementById('mk-menu');
