@@ -26428,6 +26428,70 @@ function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") retur
 ["p42Pintar_", "p43Dia_", "plPintar_", "plPintarRuta_"].forEach(con_);
 })();
 </script>
+<script id="js-369">
+/* ═══ api 3.69 · Licitaciones 4d · el alta de una sede de licitación en Logística ═══
+   La tarjeta del alta dice que viene de una licitación, su contrato y lo que falta (refrendo u orden de proceder) y quién lo
+   confirmó en Mercadeo. Si falta algo, aprobarla pide confirmarlo con su nombre: la sede nace sin fecha de inicio y no se
+   puede poner en una ruta hasta que Mercadeo cargue la orden de proceder. */
+(function () {
+  var CONF68 = {};
+  /* la confirmación viaja con la aprobación de esa alta */
+  try {
+    var d0 = Object.getOwnPropertyDescriptor(google.script, 'run');
+    if (d0 && d0.get) {
+      var envolver = function (r) {
+        return new Proxy(r, { get: function (t, p) {
+          if (p === 'withSuccessHandler' || p === 'withFailureHandler' || p === 'withUserObject') return function (f) { return envolver(t[p](f)); };
+          if (p === 'api_aprobarSolicitud') return function (pin, id, aj) { var a = Object.assign({}, aj || {}); if (CONF68[id]) a.confirmoAdvertencia = true; return t[p](pin, id, a); };
+          return t[p];
+        } });
+      };
+      Object.defineProperty(google.script, 'run', { configurable: true, get: function () { return envolver(d0.get.call(google.script)); } });
+    }
+  } catch (e) {}
+  function falta(s) { return s && s.licitacion68 && (s.licitacion68.faltan || []).length ? s.licitacion68.faltan : null; }
+  function solicitud(id) { return (window.PR && PR.pendientes || []).filter(function (x) { return x.solicitudId === id; })[0]; }
+  function confirmar(titulo, L, alAceptar) {
+    var f = falta(L[0]) || [], yo = (window.USUARIO && USUARIO.nombre) || (window.U && U.nombre) || '';
+    preguntar({ titulo: titulo, icono: '!', peligro: true, boton: 'Confirmo y apruebo',
+      texto: '<div style="text-align:left">Esta alta viene de una <b>licitación</b> (' + esc(L[0].licitacion68.documento) + ') y le falta <b>' + esc(f.join(' y ')) + '</b>.' +
+        (L[0].licitacion68.confirmoMercadeo ? ' En Mercadeo lo confirmó ' + esc(L[0].licitacion68.confirmoMercadeo) + '.' : '') +
+        '<br><br>Si la aprueba, la sede nace <b>sin fecha de inicio</b> y <b>no se puede poner en una ruta</b> hasta que Mercadeo cargue la orden de proceder.' +
+        '<label class="pr-opc" style="margin-top:10px"><input type="checkbox" id="l8-idx-si"> <span>Confirmo con mi nombre' + (yo ? ' (' + esc(yo) + ')' : '') + ' que lo sé. Queda registrado.</span></label></div>',
+      alAceptar: function () { var c = document.getElementById('l8-idx-si'); if (!c || !c.checked) { toast('Marque la confirmación para aprobar'); return; } L.forEach(function (s) { CONF68[s.solicitudId] = true; }); alAceptar(); } });
+  }
+  if (typeof aprobarPR === 'function') {
+    var a0 = aprobarPR;
+    aprobarPR = function (id) {
+      var s = solicitud(id);
+      if (falta(s) && !CONF68[id]) { confirmar('Aprobar · ' + (s.clienteNombre || s.empresa), [s], function () { a0(id); }); return; }
+      return a0.apply(this, arguments);
+    };
+  }
+  if (typeof s49AprobarGrupo_ === 'function') {
+    var g0 = s49AprobarGrupo_;
+    s49AprobarGrupo_ = function (g) {
+      var L = typeof s49Hermanas_ === 'function' ? s49Hermanas_({ grupoAlta: g }) : [];
+      var F = L.filter(function (s) { return falta(s) && !CONF68[s.solicitudId]; });
+      if (F.length) { confirmar('Aprobar las ' + L.length + ' sedes', L.filter(falta), function () { g0(g); }); return; }
+      return g0.apply(this, arguments);
+    };
+  }
+  /* la tarjeta del alta lo dice antes de abrirla */
+  if (typeof sqTarjetaNuevo_ === 'function') {
+    var t0 = sqTarjetaNuevo_;
+    sqTarjetaNuevo_ = function (s) {
+      var h = t0.apply(this, arguments); if (!s || !s.licitacion68) return h;
+      var L = s.licitacion68, f = falta(s);
+      var x = '<div class="s49-aviso" style="' + (f ? 'background:#fdeaea;border-color:#f3c2c4;color:#8c1d22' : '') + '">' + sv38_(f ? 'alerta' : 'check') + '<span><b>Licitación</b> · ' + esc(L.entidad || '') + ' · ' + esc(L.documento) +
+        (L.proceder && !f ? ' · empieza el ' + esc(L.proceder) : '') + (f ? '<br>Falta ' + esc(f.join(' y ')) + (L.confirmoMercadeo ? ' (lo confirmó ' + esc(L.confirmoMercadeo) + ' en Mercadeo)' : '') + '. Al aprobarla, no se programa hasta la orden de proceder.' : '') + '</span></div>';
+      var k = h.indexOf('<div class="sq-acc">');
+      return k >= 0 ? h.slice(0, k) + x + h.slice(k) : h + x;
+    };
+  }
+})();
+
+</script>
 </body>
 
 </html>

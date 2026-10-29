@@ -329,6 +329,13 @@
 .lc-ren tfoot .sel{width:auto;display:inline-block;margin-left:6px}
 .lc-ren td:nth-child(2){min-width:300px}.lc-ren td:nth-child(3) .sel{width:110px;min-width:0}.lc-ren .lc-n{width:80px}.lc-ren .lc-pr{width:96px}.lc-ren .lc-rg .sel{min-width:0}
 @media(max-width:760px){.pe-doc{overflow-x:auto}.pe-t{min-width:520px}}
+.l8-pasos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:4px}
+.l8-p{border:1px solid var(--line2);border-radius:12px;padding:10px;display:grid;grid-template-columns:24px minmax(0,1fr);gap:2px 8px;align-items:center}
+.l8-p i{grid-row:span 2;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;background:#fdf3d6;border:1.5px dashed #e2a516;color:#8a6300}
+.l8-p.ok i{background:var(--ok,#2e9e5b);border:0;color:#fff}.l8-p b{font-size:13.5px}.l8-p small{font-size:12px;color:var(--muted)}
+.l8-arc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:38px}
+.l8-conf{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.4;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+@media(max-width:760px){.l8-pasos{grid-template-columns:minmax(0,1fr)}}
 
 </style>
 </head>
@@ -627,7 +634,7 @@
     var rE = (D.enlace && D.enlace.respuesta) || '';
     if (OP.estado === 'Rechazado' && rE !== 'rechazo') h += '<div class="ban bad">' + IC('alerta', 18) + '<div class="bx"><b>Oportunidad perdida</b><p>Motivo: ' + E(OP['motivo perdida'] || 'sin motivo') + (OP['fecha cierre'] ? ' · ' + MK.fechaCorta(OP['fecha cierre']) : '') + '</p></div></div>';
     if (OP.estado === 'Stand-by' && rE !== 'despues') h += '<div class="ban gris">' + IC('reloj', 18) + '<div class="bx"><b>En stand-by' + (OP.retomar ? ' hasta el ' + MK.fechaLarga(OP.retomar) : '') + '</b><p>No cuenta en el pronóstico. Se retoma con la tarea programada.</p></div></div>';
-    if (OP.estado === 'Pasado a cartera') h += '<div class="ban ok">' + IC('edificio', 18) + '<div class="bx"><b>Pasó a cartera</b><p>La solicitud de alta se armó con los datos de esta ficha. Operaciones la aprueba con su ubicación.' + (SUP || GER ? '' : ' La ficha ya no se modifica; si hay un error, pídele a supervisión que la reabra.') + '</p></div>' +
+    if (OP.estado === 'Pasado a cartera' && !OP.licitacion) h += '<div class="ban ok">' + IC('edificio', 18) + '<div class="bx"><b>Pasó a cartera</b><p>La solicitud de alta se armó con los datos de esta ficha. Operaciones la aprueba con su ubicación.' + (SUP || GER ? '' : ' La ficha ya no se modifica; si hay un error, pídele a supervisión que la reabra.') + '</p></div>' +
       (OP.clienteId ? '<button class="btn" onclick="MK.irCliente(\'' + E(OP.clienteId) + '\')">' + IC('edificio', 15) + ' Ver ficha del cliente</button>' : '') + '</div>';
     h = banRespuesta() + h;
     /* api 3.11: la cuenta con sus sedes se arma en su propia pantalla.
@@ -2924,7 +2931,10 @@ var LC62 = (function () {
    renglones con su precio e ITBMS, y las fianzas), «Propuesta económica» (se llena sola con los datos de la empresa y los renglones; se
    genera por versiones en el servidor; cada versión se ve, se descarga en PDF o se borra con su motivo) y «Expediente final» (un solo
    PDF en el orden del pliego: documentos de la empresa, lo cargado para el acto y la propuesta vigente). La etapa y el cronograma
-   siguen en Oportunidades › Licitaciones. El contrato y el cobro a la entidad llegan en la parte 4d. */
+   siguen en Oportunidades › Licitaciones.
+   api 3.69 · parte 4d: ya adjudicada, «Lo contratado» lleva lo que entrega la entidad en tres pasos (Adjudicada → Refrendada → Orden de
+   proceder) y «Pasar a cartera»: cada lugar es una sede para Logística; si falta el refrendo o la orden de proceder, se pasa igual con
+   advertencia y confirmación con el nombre. El cobro a la entidad (Cobros al Estado) es la parte 4e. */
 var LIC67 = (function () {
   var E = MK.esc, IC = MK.ic;
   var MODAL = ['Licitación pública', 'Licitación por mejor valor', 'Contratación menor', 'Procedimiento excepcional', 'Convenio marco'];
@@ -2957,6 +2967,7 @@ var LIC67 = (function () {
       var fz0 = { pide: 'no', monto: '', vigencia: '', estado: 'Por tramitar' };
       l.fz = l.fz || {}; l.fz.prop = Object.assign({}, fz0, l.fz.prop); l.fz.cump = Object.assign({}, fz0, l.fz.cump);
       l.prop = Object.assign({ validez: '90', plazo: '12 meses', lugar: 'Panamá', obs: '', versiones: [] }, l.prop || {});
+      if (l.etapa === 'Adjudicada' || l.ganada) l.ganada = Object.assign({ resolucion: '', resolucionFecha: '', tipoDoc: 'contrato', numero: '', fechaDoc: '', rucEntidad: '', dvEntidad: '', refrendo: '', procederArchivoId: '', procederArchivo: '', proceder: '', hasta: '', adendas: [], pasada: null, aprobadas: [], clientes: [] }, l.ganada || {});
       S = l;
     }
     return S;
@@ -2981,7 +2992,7 @@ var LIC67 = (function () {
   function firmaV(v) { try { var f = JSON.parse(v.firma); return JSON.stringify([f[0].map(function (r) { return [r[0], r[1], Number(r[2]) || '', Number(r[3]) || '', r[4]]; }), f[1]]); } catch (e) { return ''; } }
   function vigente() { return lic().prop.versiones.filter(function (v) { return v.estado === 'vigente'; })[0]; }
   function barraGuardar() {
-    return ro() ? '' : '<div class="l7-bar' + (SUCIO ? ' si' : '') + '" id="l7-bar"><span>' + IC('alerta', 15) + ' Cambios de la oferta sin guardar</span><span class="sp"></span><button class="btn sm" data-l7="descartar">Descartar</button><button class="btn sm pri" data-l7="guardar">' + IC('check', 14) + ' Guardar la oferta</button></div>';
+    return ro() && !(lic().ganada && !(MK.usuario && MK.usuario.rol === 'gerente')) ? '' : '<div class="l7-bar' + (SUCIO ? ' si' : '') + '" id="l7-bar"><span>' + IC('alerta', 15) + ' Cambios de la oferta sin guardar</span><span class="sp"></span><button class="btn sm" data-l7="descartar">Descartar</button><button class="btn sm pri" data-l7="guardar">' + IC('check', 14) + ' Guardar la oferta</button></div>';
   }
 
   /* ═════ «Lo contratado» de una licitación ═════ */
@@ -3025,7 +3036,68 @@ var LIC67 = (function () {
     return MO49.card('Fianzas', '<p class="small muted" style="margin:-4px 0 8px">Dependen de cada pliego: puede que no las pida. En contratación menor y en procedimientos excepcionales no se pide la de propuesta.</p><div class="grid g2" style="gap:12px">' +
       f('prop', 'De propuesta', 'Se entrega con la propuesta') + f('cump', 'De cumplimiento', 'Al adjudicarse, antes de firmar') + '</div>');
   }
-  function contratado() { return barraGuardar() + '<div class="stack">' + acto() + lugares() + renglones() + fianzas() + '</div>'; }
+  function contratado() { return barraGuardar() + '<div class="stack">' + (lic().ganada ? ganada() : '') + acto() + lugares() + renglones() + fianzas() + '</div>'; }
+
+  /* ═════ api 3.69 · ganada: lo que entrega la entidad y pasar a cartera ═════ */
+  function ro8() { return !!(MK.usuario && MK.usuario.rol === 'gerente'); }
+  function li8(path, lb, o) { o = o || {}; var v = lp(path), dis = ro8() ? ' disabled' : ''; var inp = '<input class="in' + (o.cls ? ' ' + o.cls : '') + '" data-l="' + path + '" value="' + E(v == null ? '' : v) + '"' + (o.t ? ' type="' + o.t + '"' : '') + ' placeholder="' + E(o.ph || '') + '"' + dis + '>'; return lb ? '<div><label class="lb">' + lb + '</label>' + inp + '</div>' : inp; }
+  function faltan68() { var g = lic().ganada || {}, f = []; if (!g.refrendo) f.push('el refrendo de la Contraloría'); if (!g.proceder || !g.procederArchivoId) f.push('la orden de proceder'); return f; }
+  function ganada() {
+    var l = lic(), g = l.ganada, ro0 = ro() || !!g.pasada, dis = ro0 ? ' disabled' : '';
+    var paso = function (t, hecho, sub) { return '<div class="l8-p' + (hecho ? ' ok' : '') + '"><i>' + (hecho ? '✓' : '') + '</i><b>' + t + '</b><small>' + sub + '</small></div>'; };
+    var pasos = '<div class="l8-pasos">' + paso('Adjudicada', !!g.numero, g.numero ? E((g.tipoDoc === 'orden' ? 'Orden de compra ' : 'Contrato ') + g.numero) : 'falta el número') +
+      paso('Refrendada', !!g.refrendo, g.refrendo ? 'refrendo del ' + E(MK.fechaCorta(g.refrendo)) : 'falta el refrendo de la Contraloría') +
+      paso('Orden de proceder', !!(g.proceder && g.procederArchivoId), g.proceder && g.procederArchivoId ? 'empieza el ' + E(MK.fechaCorta(g.proceder)) : 'falta el documento y su fecha de inicio') + '</div>';
+    var inp = function (path, lb, o) { o = o || {}; return li(path, lb, o).replace(/<(input|select)/, '<$1' + (ro0 && !ro() ? ' disabled' : '')); };
+    var arch = g.procederArchivoId ? '<span class="lic-arch">' + IC('clip', 12) + ' ' + E(g.procederArchivo || 'orden de proceder') + '</span>' : '<span class="muted small">sin documento</span>';
+    var pasada = g.pasada ? '<div class="aviso vd" style="margin-top:12px">' + IC('check', 15) + ' <b>Pasó a cartera</b> el ' + E(String(g.pasada.fecha).slice(0, 10)) + ' · ' + E(g.pasada.por) + '. ' +
+        (g.clientes.length ? g.clientes.length + (g.clientes.length === 1 ? ' sede aprobada' : ' sedes aprobadas') + ' por Logística.' : 'Logística revisa las altas.') +
+        (g.pasada.faltan && g.pasada.faltan.length ? '<br><small>Pasó sin ' + E(g.pasada.faltan.join(' ni ')) + ': lo confirmó ' + E(g.pasada.confirmo) + '.</small>' : '') + '</div>' : '';
+    var bloq = g.pasada && faltan68().indexOf('la orden de proceder') >= 0 ? '<div class="aviso rj" style="margin-top:10px">' + IC('candado', 15) + ' <b>Falta la orden de proceder.</b> Sus sedes no se programan ni se cobran hasta cargarla aquí con su fecha de inicio.</div>' : '';
+    var accion = g.pasada || ro() ? '' : '<div class="lc-acc"><button class="btn pri" data-l8="pasar">' + IC('flecha', 14) + ' Pasar a cartera</button><span class="small muted">Cada lugar del pliego llega a Logística como una sede, con lo que dicen sus renglones.</span></div>';
+    return MO49.card('Ganada: lo que entrega la entidad', pasos +
+      '<h4 class="lc-h4">Adjudicación</h4><div class="grid g3" style="gap:10px">' + inp('ganada.resolucion', 'N.º DE LA RESOLUCIÓN DE ADJUDICACIÓN') + inp('ganada.resolucionFecha', 'FECHA DE LA RESOLUCIÓN', { t: 'date' }) +
+        '<div><label class="lb">SE FIRMA CON</label>' + (ro0 ? '<b>' + (g.tipoDoc === 'orden' ? 'Orden de compra' : 'Contrato') + '</b>' : chipL('ganada.tipoDoc', [['contrato', 'Contrato'], ['orden', 'Orden de compra']])) + '</div>' +
+        inp('ganada.numero', g.tipoDoc === 'orden' ? 'N.º DE LA ORDEN DE COMPRA' : 'N.º DEL CONTRATO') + inp('ganada.fechaDoc', 'FECHA', { t: 'date' }) + inp('ganada.hasta', 'VIGENTE HASTA', { t: 'date' }) +
+        inp('ganada.rucEntidad', 'RUC DE LA ENTIDAD') + inp('ganada.dvEntidad', 'DV', { cls: 'lc-n' }) + '</div>' +
+      '<h4 class="lc-h4">Refrendo y orden de proceder</h4><div class="grid g3" style="gap:10px">' + li8('ganada.refrendo', 'REFRENDO DE LA CONTRALORÍA', { t: 'date' }) +
+        '<div><label class="lb">ORDEN DE PROCEDER (DOCUMENTO)</label><div class="l8-arc">' + arch + (ro8() ? '' : '<label class="btn sm gh">' + IC('subir', 12) + (g.procederArchivoId ? ' Cambiar' : ' Cargar') + '<input type="file" hidden data-l8-file="1"></label>') + '</div></div>' +
+        li8('ganada.proceder', 'FECHA DE INICIO (ORDEN DE PROCEDER)', { t: 'date' }) + '</div>' +
+      '<p class="small muted" style="margin:6px 0 0">La fecha de inicio de la orden de proceder es desde cuándo Logística programa cada lugar. El refrendo y la orden de proceder se pueden cargar después de pasar a cartera.</p>' +
+      '<h4 class="lc-h4">Adendas al contrato</h4>' + (g.adendas.length ? '<div class="l7-tw"><table class="lc-t"><thead><tr><th>N.º</th><th>Fecha</th><th>Motivo</th><th>Cambio en el monto</th><th>Refrendo</th><th></th></tr></thead><tbody>' + g.adendas.map(function (a, i) {
+        var p = 'ganada.adendas.' + i + '.';
+        return '<tr><td style="width:80px">' + li8(p + 'num', '', { cls: 'lc-n' }) + '</td><td style="width:150px">' + li8(p + 'fecha', '', { t: 'date' }) + '</td><td>' + li8(p + 'motivo', '', { ph: 'Prórroga, más lugares, más cantidad…' }) + '</td><td style="width:130px">' + li8(p + 'monto', '', { cls: 'lc-pr', ph: '+ / − B/.' }) + '</td><td style="width:150px">' + li8(p + 'refrendo', '', { t: 'date' }) + '</td><td class="c">' + (ro8() ? '' : '<button class="btn sm gh" data-l7="del" data-k="ganada.adendas" data-i="' + i + '" aria-label="Quitar">' + IC('basura', 13) + '</button>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : '<p class="small muted">Ninguna. Una adenda (prórroga, más lugares o cantidades) también pasa por refrendo; al refrendarse, se ajustan los lugares y renglones.</p>') + (ro8() ? '' : '<div class="lc-acc"><button class="btn sm" data-l7="add" data-k="ganada.adendas">' + IC('mas', 13) + ' Adenda al contrato</button></div>') +
+      pasada + bloq + accion, '<span class="tag ' + (faltan68().length ? 't-warn' : 't-ok') + '">' + (faltan68().length ? 'Falta ' + faltan68().length : 'Completa') + '</span>');
+  }
+  function subir68(f) {
+    return new Promise(function (ok, mal) {
+      if (f.size > 3 * 1024 * 1024) { mal(new Error('El archivo pesa más de 3 MB. Redúzcalo y vuelva a subirlo.')); return; }
+      var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { mal(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(f);
+    }).then(function (datos) { return MK.api('api_crmSubirArchivo', MK.pin, { nombre: f.name, tipo: f.type || '', datos: datos }); }).then(function (r) { if (!r || !r.ok) throw new Error((r && r.error) || 'No se pudo subir el archivo.'); return r.archivo; });
+  }
+  function pasar68(b, confirmo) {
+    if (SUCIO) { MK.aviso('Primero guarde los cambios de la oferta.'); return; }
+    MK.ocupado(b, true, 'Pasando a cartera…');
+    MK.api('api_pasarACartera', MK.pin, MO49.COD, confirmo ? { confirmo: true } : undefined).then(function (r) {
+      MK.ocupado(b, false);
+      if (r && r.advertencia) { advertencia68(r, b); return; }
+      if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo pasar a cartera.'); return; }
+      MK.cerrarHoja();
+      MK.aviso('Pasó a cartera: ' + (r.altas || []).length + ' alta' + ((r.altas || []).length === 1 ? '' : 's') + ' para Logística' + (r.faltan68 && r.faltan68.length ? ', con advertencia' : ''));
+      MK.cambio({ tipo: 'cartera', codigo: MO49.COD });
+      setTimeout(function () { location.reload(); }, 900);
+    }, function (e) { MK.ocupado(b, false); MK.aviso(e.message || 'Sin conexión'); });
+  }
+  function advertencia68(r, b0) {
+    var yo = (MK.usuario && MK.usuario.nombre) || '';
+    var h = MK.hoja('<h2>Falta ' + E(r.faltan.join(' y ')) + '</h2>' +
+      '<div class="aviso rj" style="margin:10px 0">' + IC('alerta', 15) + ' Se puede pasar a cartera igual, pero <b>no se programa ni se cobra hasta tener la orden de proceder</b>. Logística también tendrá que confirmarlo al aprobar cada sede.</div>' +
+      '<label class="chk l8-conf"><input type="checkbox" id="l8-si"> Yo, <b>' + E(yo) + '</b>, confirmo que sé que falta ' + E(r.faltan.join(' y ')) + ' y que queda registrado con mi nombre.</label>' +
+      '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn bad" id="l8-ok" disabled>Pasar a cartera con advertencia</button></div>');
+    h.querySelector('#l8-si').onchange = function () { h.querySelector('#l8-ok').disabled = !this.checked; };
+    h.querySelector('#l8-ok').onclick = function () { pasar68(this, true); };
+  }
 
   /* ═════ Propuesta económica ═════ */
   function letras(n) {   // total en letras (balboas)
@@ -3077,6 +3149,8 @@ var LIC67 = (function () {
     var l = lic(), x = {};
     ['acto', 'entidad', 'modalidad', 'objeto', 'referencia', 'enlace', 'adendasPliego', 'lugares', 'renglones', 'itbms', 'fz'].forEach(function (k) { x[k] = l[k]; });
     x.prop = { validez: l.prop.validez, plazo: l.prop.plazo, lugar: l.prop.lugar, obs: l.prop.obs };
+    if (l.ganada) x.ganada = { resolucion: l.ganada.resolucion, resolucionFecha: l.ganada.resolucionFecha, tipoDoc: l.ganada.tipoDoc, numero: l.ganada.numero, fechaDoc: l.ganada.fechaDoc,
+      rucEntidad: l.ganada.rucEntidad, dvEntidad: l.ganada.dvEntidad, refrendo: l.ganada.refrendo, procederArchivoId: l.ganada.procederArchivoId, proceder: l.ganada.proceder, hasta: l.ganada.hasta, adendas: l.ganada.adendas };
     return Object.assign(x, extra || {});
   }
   function guardar(extra, msg, b) {
@@ -3085,7 +3159,7 @@ var LIC67 = (function () {
       if (b) MK.ocupado(b, false);
       if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return false; }
       OP().licitacion = r.licitacion; SUCIO = false; S = null; lic();
-      MK.aviso(typeof msg === 'function' ? msg(r) : msg || 'Oferta guardada'); MK.cambio({ tipo: 'licitacion', codigo: MO49.COD });
+      MK.aviso((typeof msg === 'function' ? msg(r) : msg || 'Oferta guardada') + (r.desbloqueadas && r.desbloqueadas.length ? ' · ' + r.desbloqueadas.length + ' sede(s) ya se pueden programar desde el ' + MK.fechaCorta(r.licitacion.ganada.proceder) : '')); MK.cambio({ tipo: 'licitacion', codigo: MO49.COD });
       MO49.pintar(); MO49.tabs(); return true;
     }, function (e) { if (b) MK.ocupado(b, false); MK.aviso(e.message || 'Sin conexión'); return false; });
   }
@@ -3257,24 +3331,30 @@ var LIC67 = (function () {
     if (p._l7) return; p._l7 = true;
     p.addEventListener('input', function (e) { var k = e.target.getAttribute('data-l'); if (!k || !es()) return; var v = e.target.value; if (/\.(cantidad|precio)$|^referencia$/.test(k)) v = v.replace(/[^0-9.,]/g, '').replace(/,/g, ''); lp(k, v); marcar(); recalcular(); });
     p.addEventListener('change', function (e) {
+      if (e.target.hasAttribute('data-l8-file') && e.target.files && e.target.files[0] && es()) {
+        var g = lic().ganada; MK.aviso('Subiendo la orden de proceder…');
+        subir68(e.target.files[0]).then(function (a) { g.procederArchivoId = a.id; g.procederArchivo = a.nombre; marcar(); MO49.pintar(); MK.aviso('Documento listo · guarde la oferta para que quede'); }, function (er) { MK.aviso(er.message); });
+        return;
+      }
       var k = e.target.getAttribute('data-l'); if (!k || !es()) return;
       lp(k, e.target.value); marcar();
       if (e.target.tagName === 'SELECT') MO49.pintar();
     });
     p.addEventListener('click', function (e) {
       if (!es()) return;
-      var b = e.target.closest('[data-l7]'); if (!b) return;
+      var b = e.target.closest('[data-l7],[data-l8]'); if (!b) return;
       var a = b.getAttribute('data-l7'), k = b.getAttribute('data-k'), i = Number(b.getAttribute('data-i'));
       if (a === 'chip') { lp(k, b.getAttribute('data-v')); marcar(); MO49.pintar(); return; }
       if (a === 'add') {
         var l = lic();
         if (k === 'adendasPliego') l.adendasPliego.push({ num: String(l.adendasPliego.length + 1), fecha: MK.hoy, que: '' });
         else if (k === 'lugares') l.lugares.push({ nombre: '', direccion: '' });
+        else if (k === 'ganada.adendas') l.ganada.adendas.push({ num: String(l.ganada.adendas.length + 1), fecha: MK.hoy, motivo: '', monto: '', refrendo: '' });
         else l.renglones.push({ desc: '', tipo: 'peligrosos', lugar: 'todos', frec: 'Semanal', unidad: 'servicio', cantidad: '', precio: '' });
         marcar(); MO49.pintar(); return;
       }
       if (a === 'del') {
-        var L = lic()[k]; L.splice(i, 1);
+        var L = k === 'ganada.adendas' ? lic().ganada.adendas : lic()[k]; L.splice(i, 1);
         if (k === 'lugares') lic().renglones.forEach(function (r) { if (r.lugar !== 'todos') { var n = Number(r.lugar); if (n === i) r.lugar = 'todos'; else if (n > i) r.lugar = String(n - 1); } });
         marcar(); MO49.pintar(); return;
       }
@@ -3283,6 +3363,7 @@ var LIC67 = (function () {
       if (a === 'generar') { guardar({ generar: true }, function (r) { var V = r.licitacion.prop.versiones, v = V[V.length - 1]; return 'Propuesta económica v' + v.v + ' generada · ' + MK.dinero(v.tot.tot); }, b); return; }
       if (a === 'ver') { verVersion(i); return; }
       if (a === 'borrar') { borrarVersion(i); return; }
+      if (b.getAttribute('data-l8') === 'pasar') { pasar68(b); return; }
       if (a === 'armar') { if (SUCIO) { MK.aviso('Primero guarde los cambios de la oferta.'); return; } armar(b); return; }
     });
   }
