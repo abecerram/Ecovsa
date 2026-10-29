@@ -66,6 +66,7 @@
 @media (max-width:700px){.vp380-esc .vp380-pc{display:none}.vp380-esc.solo-pc .vp380-pc{display:block}.vp380-esc.solo-pc .vp380-cel{display:none}.vp380-seg [data-v="ambos"]{display:none}
   .vp380-log li{grid-template-columns:44px 70px minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.vp380-card{transition:none}}
+.vp384-mig{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.vp384-mig span{font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--muted2)}
 </style>
 </head>
 <body>
@@ -243,9 +244,12 @@ MK.iniciar({
     { id: 'reg', n: 'Lo que pasó aquí', i: 'historial' }
   ],
   pieMenu: '<a href="index.html">← Volver a los módulos</a>',
+  accion: { t: 'Volver a Configuración', i: 'atras', fn: function () { location.href = 'Configuracion.html#inicio'; } },   /* 3.84 */
   alCargar: vp380Puerta,
   pintar: function (id) {
     var main = document.getElementById('main');
+    var vm = document.querySelector('#sysbar .mod'); if (vm && !vm.querySelector('a')) vm.innerHTML = '<a href="Configuracion.html#inicio" title="Volver a Configuración" style="color:inherit;text-decoration:none">Administración</a>';
+    setTimeout(function () { if (main && !main.querySelector('.vp384-mig')) main.insertAdjacentHTML('afterbegin', '<div class="vp384-mig"><a class="btn sm" href="Configuracion.html#inicio">← Volver a Configuración</a><span>Configuración › Empresa y portal › Lo que reciben los clientes</span></div>'); }, 0);
     if (VP380.negado) { main.innerHTML = '<div class="aviso rj">Esta página es de administración. <a href="index.html">Volver a los módulos</a></div>'; return; }
     if (VP380.error) { main.innerHTML = '<div class="aviso rj">No se pudo cargar el cliente de ejemplo. Intente de nuevo.</div>'; return; }
     if (!VP380.cargado) { MK.cargando(main); return; }
