@@ -118,6 +118,16 @@ table.perm{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
 .tapa .ic2{width:56px;height:56px;border-radius:50%;background:#fff6dc;color:#8a6300;display:grid;place-items:center}.tapa b{font-size:15px}.tapa span{font-size:12.5px;color:var(--muted)}
 @media(max-width:900px){.mods .m{grid-template-columns:40px minmax(0,1fr)}.mods .quien,.mods .est2{grid-column:2}.prev3{grid-template-columns:minmax(0,1fr)}}
 </style>
+<style id="estilo-376">
+/* api 3.76 · Uso de usuarios (Configuración) */
+.ulist.uso .u{grid-template-columns:40px minmax(0,1.3fr) 96px 112px auto}
+.uso .spk{display:flex;gap:2px;align-items:flex-end;height:20px}.uso .spk i{width:6px;background:#c9d4e8;border-radius:2px}.uso .spk i.a{background:var(--navy2)}
+.usen{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line2);font-size:13px}.usen:first-of-type{border-top:0}.usen b{display:block}.usen span{color:var(--muted)}
+.upt{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px}
+.uln{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}.uln>div{position:relative;font-size:13px;margin:0 0 12px}.uln>div:before{content:"";position:absolute;left:-19px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--navy2)}.uln small{display:block;color:var(--muted);font-size:11.5px;font-weight:400}
+.uopc{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line2)}.uopc b{font-size:13.5px;display:block}.uopc span{font-size:12px;color:var(--muted)}
+@media(max-width:820px){.ulist.uso .u{grid-template-columns:40px minmax(0,1fr) auto}.ulist.uso .sk,.ulist.uso .ac{display:none}}
+</style>
 </head>
 <body>
 <script src="cargador.js" data-modulo="Configuración"></script>
@@ -886,7 +896,7 @@ function obraOn(id, btn) {
 function vHistorial() {
   var H = B().historial || [];
   var l = H.filter(function (h) { return FH === 'todo' || h.seccion === FH; });
-  var secs = ['Usuarios', 'Módulos', 'Encender y apagar', 'Reglas', 'Seguridad', 'Cobros', 'Funciones', 'Empresa'];
+  var secs = ['Usuarios', 'Uso de usuarios', 'Módulos', 'Encender y apagar', 'Reglas', 'Seguridad', 'Cobros', 'Funciones', 'Empresa'];
   return MK.cabeza('Historial', 'Todo lo que se hace en Configuración, con quién y cuándo. No se puede borrar.') +
     '<div class="card"><div style="margin-bottom:10px">' + MK.chips([['todo', 'Todo', H.length]].concat(secs.map(function (s) { return [s, s, H.filter(function (h) { return h.seccion === s; }).length]; })), FH, 'filtroH') + '</div>' +
     MK.tabla(['Fecha', 'Quién', 'Qué'], l.map(function (h) { return ['<span class="hisf">' + MK.esc(MK.dmy(h.fecha.slice(0, 10)) + ' ' + h.fecha.slice(11)) + '</span>', MK.esc(h.quien), '<b style="font-weight:600">' + MK.esc(h.accion) + '</b>' + (h.detalle ? '<small>' + MK.esc(h.detalle) + '</small>' : '')]; }), { vacio: 'Todavía no hay nada: el historial empezó con esta versión.' }) + '</div>';
@@ -1156,6 +1166,7 @@ MK.iniciar({
   paginas: [
     { g: 'CONFIGURACIÓN' },
     { id: 'usu', n: 'Usuarios', i: 'personas' },
+    { id: 'uso', n: 'Uso de usuarios', i: 'grafico' },   // api 3.76
     { id: 'perm', n: 'Módulos por rol', i: 'tabla' },
     { id: 'obra', n: 'Encender y apagar', i: 'pausa' },
     { id: 'reg', n: 'Reglas de solicitudes', i: 'reglas' },
@@ -1185,7 +1196,7 @@ MK.iniciar({
   pintar: function (id) {
     var main = document.getElementById('main');
     if (!PIN || !MK.base || !MK.base.usuarios) return;
-    var V = { usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, ptl: vPortal, ia: vIA, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
+    var V = { uso: vUso, usu: vUsuarios, perm: vModulos, reg: vReglas, cob: vCobros, inc: vIncidencias, seg: vSeguridad, fun: vFunciones, emp: vEmpresa, ptl: vPortal, ia: vIA, obra: vObra, his: vHistorial, ent: vEntrada, esp: vEspacio, rb: vRegistro, prb: vPrueba };
     main.innerHTML = (V[id] || vUsuarios)();
   }
 });
@@ -1328,6 +1339,95 @@ function ad53Guardar(b,ids){
   },function(){ MK.ocupado(b,false); MK.aviso('Sin conexión'); });
 }
 })();
+</script>
+<script id="js-376">
+/* ═══════════ api 3.76 · CONFIGURACIÓN › USO DE USUARIOS ═══════════
+   Solo el administrador. Quién entra, qué usa y dónde se atasca. Se anota el nombre de la pantalla o función,
+   nunca lo que la persona escribe. Los datos vienen de api_usoResumen / api_usoFicha / api_usoOpciones. */
+var USO = null, USO_PER = 14, USO_CARGA = false;
+var USO_COL = ['#14306b', '#2f6b0a', '#6c3a96', '#c0392b', '#0c5395', '#8a6300'];
+var USO_TONO = { ok: 'var(--ok)', am: 'var(--warn)', mal: 'var(--bad)', in: 'var(--info)' };
+var USO_EST = { a: ['Activo', 'ok'], p: ['Poco', 'warn'], s: ['Sin entrar', 'bad'], n: ['Recién empieza', 'gris'], x: ['Aviso pendiente', 'info'] };
+function usoCargar() {
+  if (USO_CARGA) return; USO_CARGA = true;
+  MK.api('api_usoResumen', PIN, USO_PER).then(function (r) { USO_CARGA = false; USO = r && r.ok ? r : { error: (r && r.error) || 'No se pudo consultar.' }; if (MK.seccion === 'uso') MK.repintar(); },
+    function () { USO_CARGA = false; USO = { error: 'Sin conexión' }; if (MK.seccion === 'uso') MK.repintar(); });
+}
+function usoPer(p) { USO_PER = Number(p); USO = null; MK.repintar(); }
+function usoQuien(u) {
+  var f = u.ultimo && u.ultimo.fecha; if (!f) return 'sin ingresos registrados';
+  var h = u.ultimo.hora ? ' ' + u.ultimo.hora : '';
+  return 'último ingreso: ' + (f === USO.hoy ? 'hoy' + h : MK.cuando(f) + h);
+}
+function usoSpark(a) { var m = Math.max.apply(null, a.concat([1])); return '<div class="spk">' + a.map(function (v) { return '<i class="' + (v ? 'a' : '') + '" style="height:' + (v ? 4 + Math.round(v / m * 16) : 3) + 'px"></i>'; }).join('') + '</div>'; }
+function vUso() {
+  var cab = MK.cabeza('Uso de usuarios', 'Quién entra, qué usa y dónde se atasca. Solo lo ve el administrador. Se anota el nombre de la pantalla o función, nunca lo que la persona escribe.',
+    '<button class="btn" onclick="usoAviso()">' + MK.ic('documento', 15) + 'Texto del aviso</button><button class="btn" onclick="usoOpciones()">' + MK.ic('ajustes', 15) + 'Opciones</button>');
+  if (!USO) { usoCargar(); return cab + '<div class="card"><div class="vacio">Consultando…</div></div>'; }
+  if (USO.error) return cab + '<div class="aviso am">' + MK.esc(USO.error) + '</div>';
+  var c = USO.cuentas, n = USO.periodo, hab = USO.habiles, O = USO.opciones || {};
+  var h = cab + '<div class="fila" style="margin-bottom:12px">' + MK.chips([['7', 'Últimos 7 días'], ['14', 'Últimos 14 días'], ['30', 'Últimos 30 días']], String(n), 'usoPer') + '</div>';
+  var k = [{ e: 'Activos', v: c.a, s: 'entraron en ' + Math.ceil(hab * 0.6) + ' o más de los últimos ' + hab + ' días hábiles', c: 'ok' }, { e: 'Poco', v: c.p, s: 'entraron menos de lo habitual', c: 'warn' }, { e: 'Sin entrar', v: c.s, s: 'ningún ingreso en ' + n + ' días', c: c.s ? 'bad' : '' }];
+  if (USO.opiniones) k.push({ e: '«¿Cómo te fue?»', v: USO.opiniones.bien + ' bien · ' + USO.opiniones.regular + ' regular' + (USO.opiniones.mal ? ' · ' + USO.opiniones.mal + ' mal' : ''), s: 'respuestas de los últimos 90 días' });
+  h += MK.kpis(k);
+  var P = USO.personas || [];
+  h += '<div class="g21"><div class="card"><h3>Personas<span class="sp"></span><span class="l" style="color:var(--muted)">toca una fila para ver su ficha</span></h3><div class="ulist uso">' +
+    (P.length ? P.map(function (u, i) {
+      var t = USO_EST[u.estado];
+      return '<div class="u" onclick="usoFicha(\'' + MK.esc(u.nombre).replace(/'/g, '\\\'') + '\')" style="cursor:pointer"><span class="av2" style="background:' + USO_COL[i % USO_COL.length] + '">' + MK.esc(MK.ini(u.nombre)) + '</span>' +
+        '<div class="nm"><b>' + MK.esc(u.nombre) + '</b><span>' + MK.esc(u.rol) + ' · ' + MK.esc(usoQuien(u)) + '</span></div><div class="sk">' + usoSpark(u.sp) + '</div>' +
+        '<div class="ul">' + MK.tag(t[0], t[1]) + '</div><div class="ac"><button class="btn sm">' + MK.ic('ojo', 15) + 'Ver ficha</button></div></div>'; }).join('') : MK.vacio('Todavía no hay usuarios para mostrar.')) + '</div>' +
+    (P.some(function (u) { return u.estado === 'x' || u.estado === 'n'; }) ? '<div class="nota">«Aviso pendiente»: esa persona todavía no ha visto el aviso, por eso no se le anota nada hasta que lo vea. «Recién empieza»: se mide desde que vio el aviso; con pocos días no se juzga.</div>' : '') + '</div>';
+  h += '<div class="pila"><div class="card"><h3>Lo que más se usa</h3>' + (USO.usados.length ? MK.hbar(USO.usados.map(function (x) { return { e: x.modulo, v: x.n }; })) : MK.vacio('Todavía no hay uso registrado en este periodo.')) +
+    (USO.nadie.length ? '<div class="nota">Nadie las abrió en este periodo: ' + MK.esc(USO.nadie.join(', ')) + '.</div>' : '') + '</div>';
+  if (O.senales) h += '<div class="card"><h3>Señales a vigilar</h3>' + (USO.senales.length ? USO.senales.map(function (s) {
+    return '<div class="usen"><span class="upt" style="background:' + USO_TONO[s.nivel] + '"></span><div><b>' + MK.esc(s.nombre) + ' · ' + MK.esc(s.tipo) + '</b><span>' + MK.esc(s.texto) + '</span></div></div>'; }).join('') : MK.vacio('Sin señales por ahora.')) + '</div>';
+  return h + '</div></div>';
+}
+function usoFicha(nombre) {
+  MK.lado('<div class="vacio">Consultando…</div>', { ancho: true });
+  MK.api('api_usoFicha', PIN, nombre, USO_PER).then(function (f) {
+    if (!f || !f.ok) { MK.lado('<div class="aviso am">' + MK.esc((f && f.error) || 'No se pudo consultar.') + '</div>', { ancho: true }); return; }
+    var t = USO_EST[f.estado], i = (USO.personas || []).map(function (p) { return p.nombre; }).indexOf(f.nombre);
+    var h = '<h2>' + MK.esc(f.nombre) + ' ' + MK.tag(t[0], t[1]) + '</h2><div class="sub">' + MK.esc(f.rol) + (f.equipos.length ? ' · ' + f.equipos.map(function (e) { return MK.esc(e.equipo); }).join(' / ') : '') + (f.horaHabitual != null ? ' · hora habitual: ' + f.horaHabitual + ' h' : '') + '</div>';
+    h += MK.kpis([{ e: 'Días con ingreso', v: f.dias + ' <small style="font-size:13px;font-weight:600">de ' + f.habiles + ' hábiles</small>' }, { e: 'Tiempo por día', v: f.minutosPorDia + ' <small style="font-size:13px;font-weight:600">min</small>' }, { e: 'Errores', v: f.errores, c: f.errores > 3 ? 'bad' : f.errores ? 'warn' : 'ok' }]);
+    h += '<div class="card" style="margin-bottom:12px"><h3>Minutos por día · últimos 14 días</h3>' + MK.barras(f.porDia.map(function (d) { return { e: d.fecha.slice(8), v: d.min, c: d.min ? 'var(--navy2)' : 'var(--line)' }; }), { alto: 110, fmt: function (v) { return v ? v : ''; } }) + '</div>';
+    h += '<div class="card" style="margin-bottom:12px"><h3>Pantallas que más usa</h3>' + (f.pantallas.length ? MK.hbar(f.pantallas.map(function (p) { return { e: p.modulo, v: p.min + p.n, d: (p.min ? p.min + ' min · ' : '') + p.n + ' acciones' + (p.top.length ? ' · ' + p.top.join(', ') : '') }; })) : MK.vacio('No entró en este periodo.')) +
+      '<div class="nota">' + (f.nunca.length ? 'Nunca abrió: ' + MK.esc(f.nunca.join(', ')) + '.' : 'Abrió todos los módulos de su rol.') + '</div></div>';
+    if (f.senalesActivas) h += '<div class="card" style="margin-bottom:12px"><h3>Señales de cómo le va</h3>' + f.senales.map(function (s) { return '<div class="usen"><span class="upt" style="background:' + USO_TONO[s.nivel] + '"></span><div><b>' + MK.esc(s.tipo) + '</b><span>' + MK.esc(s.texto) + '</span></div></div>'; }).join('') +
+      (f.comoActivo ? '<div class="usen"><span class="upt" style="background:var(--info)"></span><div><b>«¿Cómo te fue?»</b><span>' + (f.opinion ? MK.esc(f.opinion.valor) + ' (' + MK.esc(MK.cuando(f.opinion.fecha)) + ')' : 'Todavía no ha respondido.') + '</span></div></div>' : '') + '</div>';
+    if (f.hoy.length) h += '<div class="card"><h3>Hoy</h3><div class="uln">' + f.hoy.map(function (x) { return '<div><b>Entró</b><small>' + MK.esc(x) + '</small></div>'; }).join('') + '</div></div>';
+    h += '<div class="nota">Esta ficha muestra nombres de pantallas, conteos y tiempos. No guarda lo que la persona escribe, su PIN ni su ubicación.</div>';
+    MK.lado(h, { ancho: true });
+  }, function () { MK.lado('<div class="aviso am">Sin conexión</div>', { ancho: true }); });
+}
+function usoAviso() {
+  MK.api('api_usoOpciones', PIN).then(function (r) {
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo consultar.'); return; }
+    MK.lado('<h2>Aviso a los usuarios</h2><div class="sub">Lo que ve cada persona al entrar. Lo revisa Legal antes de publicarse.</div>' +
+      '<div class="card" style="margin-bottom:12px"><h3>Aviso al entrar</h3><p style="font-size:13.5px;line-height:1.55">' + MK.esc(r.aviso) + '</p></div>'
+      );
+  });
+}
+function usoOpciones() {
+  MK.api('api_usoOpciones', PIN).then(function (r) {
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo consultar.'); return; }
+    var o = r.opciones;
+    var f = function (k, t, d) { return '<div class="uopc"><div><b>' + t + '</b><span>' + d + '</span></div><button class="sw' + (o[k] ? ' si' : '') + '" id="uo-' + k + '" onclick="this.classList.toggle(\'si\')"></button></div>'; };
+    MK.lado('<h2>Opciones del monitor</h2><div class="sub">Lo que se mide y cuánto se guarda.</div>' +
+      f('activo', 'Monitor encendido', 'Si lo apagas, no se anota nada nuevo.') + f('senales', 'Mostrar «Señales a vigilar»', 'Atascos, caídas de uso y personas sin entrar.') + f('como', 'Preguntar «¿Cómo te fue?»', 'Un toque, como máximo una vez al mes por persona.') + f('aviso', 'Aviso al entrar', 'Cada usuario lo ve y toca «Entendido». Sin verlo, no se le anota nada.') +
+      '<div class="uopc"><div><b>Cuánto se guarda el detalle</b><span>Después queda solo un resumen por mes. Al dar de baja a alguien se borra lo que lo identifica.</span></div><select id="uo-ret" class="inp">' + [30, 90, 180].map(function (d) { return '<option value="' + d + '"' + (o.ret === d ? ' selected' : '') + '>' + d + ' días</option>'; }).join('') + '</select></div>' +
+      '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="uo-ok" onclick="usoGuardar()">Guardar</button></div>');
+  });
+}
+function usoGuardar() {
+  var g = function (k) { return document.getElementById('uo-' + k).classList.contains('si'); }, b = document.getElementById('uo-ok');
+  MK.ocupado(b, true);
+  MK.api('api_usoGuardarOpciones', PIN, { activo: g('activo'), senales: g('senales'), como: g('como'), aviso: g('aviso'), ret: Number(document.getElementById('uo-ret').value) }).then(function (r) {
+    MK.ocupado(b, false); if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo guardar.'); return; }
+    MK.cerrarLado(); MK.aviso('Opciones guardadas'); USO = null; MK.repintar();
+  }, function () { MK.ocupado(b, false); MK.aviso('Sin conexión'); });
+}
 </script>
 </body>
 </html>
