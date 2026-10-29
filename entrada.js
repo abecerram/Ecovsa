@@ -658,6 +658,53 @@
     inp.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') enviar(); if (e.key === 'Escape') p.parentNode.removeChild(p); });
   }
 
+  /* ═══ api 3.76 · aviso del monitor de uso y «¿Cómo te fue?» ═══
+     El sistema anota qué pantallas o funciones usa cada persona (nunca lo que escribe). Antes de anotar nada, cada usuario ve este aviso
+     una vez («Entendido»). Una vez al mes puede responder un toque: Bien / Regular / Mal. El administrador no lo ve. */
+  function usoAvisoPide() {
+    if (window.top !== window || V.usoPidio) return; V.usoPidio = true;
+    var pin = V.pin; if (!pin || !window.google || !google.script || !google.script.run) return;
+    var clave = pin.length + ':' + pin.slice(-1), hoy = new Date().toISOString().slice(0, 10);
+    try { if (sessionStorage.getItem('eco_uso') === hoy + clave) return; if ((Number(lsGet('eco_uso_no')) || 0) > Date.now()) return; } catch (e) {}
+    setTimeout(function () {
+      google.script.run.withSuccessHandler(function (r) {
+        if (!r || !r.ok) return;
+        if (r.pide) usoVer(r, 'aviso'); else if (r.pregunta) usoVer(r, 'pregunta'); else { try { sessionStorage.setItem('eco_uso', hoy + clave); } catch (e) {} }
+      }).withFailureHandler(function () {}).api_usoAviso(pin);
+    }, 2500);
+  }
+  function usoVer(r, tipo) {
+    if (document.getElementById('uso-av')) return;
+    var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var cara = function (c, d) { return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="' + c + '" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9 9.5h.01M15 9.5h.01"/><path d="' + d + '"/></svg>'; };
+    var b = document.createElement('div'); b.id = 'uso-av';
+    b.style.cssText = 'position:fixed;inset:0;z-index:2147482900;background:rgba(15,33,64,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Archivo,system-ui,sans-serif';
+    var base = 'background:#fff;border-radius:16px;padding:20px;max-width:420px;width:100%;color:#0f2140;box-shadow:0 12px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto';
+    var btn = 'font:700 14px Archivo,system-ui,sans-serif;border-radius:10px;padding:11px 14px;cursor:pointer;border:1px solid #e1e6ee;background:#fff;color:#14306b';
+    if (tipo === 'aviso') {
+      b.innerHTML = '<div style="' + base + '" role="dialog" aria-modal="true"><h2 style="margin:0 0 8px;font-size:18px">Cómo cuidamos el sistema</h2><p style="font-size:14px;line-height:1.55;margin:6px 0">' + esc(r.texto) + '</p>' +
+        '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button type="button" id="uso-ok" style="' + btn + ';background:#14306b;color:#fff;border-color:#14306b;flex:1">Entendido</button></div></div>';
+      document.body.appendChild(b);
+      document.getElementById('uso-ok').onclick = function () {
+        this.disabled = true;
+        google.script.run.withSuccessHandler(function (x) { if (b.parentNode) b.parentNode.removeChild(b); if (x && x.ok) { try { sessionStorage.removeItem('eco_uso'); } catch (e) {} } })
+          .withFailureHandler(function () { if (b.parentNode) b.parentNode.removeChild(b); }).api_usoAvisoVisto(V.pin);
+      };
+    } else {
+      b.innerHTML = '<div style="' + base + '" role="dialog" aria-modal="true"><h2 style="margin:0 0 8px;font-size:18px">¿Cómo te fue esta semana?</h2><p style="font-size:13.5px;color:#667489;margin:4px 0">Un toque. Nos ayuda a mejorar lo que no te funciona bien.</p>' +
+        '<div style="display:flex;gap:8px;margin:14px 0">' + [['Bien', '#2f9e44', 'M8 14s1.5 2 4 2 4-2 4-2'], ['Regular', '#d99a00', 'M8 15h8'], ['Mal', '#d64045', 'M8 16s1.5-2 4-2 4 2 4 2']].map(function (x) {
+          return '<button type="button" data-v="' + x[0] + '" style="' + btn + ';flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:#0f2140">' + cara(x[1], x[2]) + x[0] + '</button>'; }).join('') + '</div>' +
+        '<button type="button" id="uso-no" style="' + btn + ';width:100%">Ahora no</button></div>';
+      document.body.appendChild(b);
+      var cerrar = function () { if (b.parentNode) b.parentNode.removeChild(b); };
+      [].forEach.call(b.querySelectorAll('[data-v]'), function (x) { x.onclick = function () {
+        google.script.run.withSuccessHandler(cerrar).withFailureHandler(cerrar).api_usoComoMeFue(V.pin, x.getAttribute('data-v'));
+        try { sessionStorage.setItem('eco_uso', new Date().toISOString().slice(0, 10) + V.pin.length + ':' + V.pin.slice(-1)); } catch (e) {}
+      }; });
+      document.getElementById('uso-no').onclick = function () { lsSet('eco_uso_no', String(Date.now() + 7 * 86400000)); cerrar(); };
+    }
+  }
+
   /* ═══ El vigía: bloqueo por inactividad en cualquier página ═══ */
   var V = { activo: false, pin: '', nombre: '', aviso: null, tAv: 0, bloqueado: false };
   function marcarActividad() {
@@ -675,6 +722,7 @@
     if (!pin) { if (lsGet(K_BLOQ) === '1') bloquear(true); return; }
     V.pin = pin;
     var seguir = function (rol, nombre) {
+      usoAvisoPide();   /* api 3.76 */
       if (rol === 'operador') return;                      /* el conductor no se bloquea */
       if (V.iniciado) return; V.iniciado = true;
       V.activo = true; V.nombre = nombre || '';
