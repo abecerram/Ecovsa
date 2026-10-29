@@ -26598,6 +26598,244 @@ function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") retur
   setInterval(function(){ if(Date.now() - ULT >= 90000) pedir_(); }, 15000);
 })();
 </script>
+<style id="estilo-385">
+/* 3.85 · inventario real (etapa 1). Solo clases con prefijo iv385- ; usa las variables del tema. */
+.iv385-ct{display:flex;align-items:center;gap:8px;margin-top:8px}
+.iv385-ct .c2-in{flex:1;min-width:0;text-align:center;font-size:18px;font-weight:900;height:44px}
+.iv385-ct button{width:44px;height:44px;font-size:22px;line-height:1;padding:0}
+.iv385-fila{padding:12px 0;border-bottom:1px solid var(--tm-linea,#e1e6ee)}
+.iv385-fila:last-child{border-bottom:0}
+.iv385-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.iv385-dif{margin-top:6px;font-weight:800;font-size:12.5px}
+.iv385-dif.m{color:var(--tm-bad,#d64045)}.iv385-dif.p{color:var(--tm-ok,#2f9e44)}
+.iv385-lista{max-height:52vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.iv385-nota{font-size:12.5px;color:var(--tm-gris,#667489);margin-top:8px;line-height:1.5}
+.iv385-an{opacity:.55}.iv385-an td.iv385-q{text-decoration:line-through}
+.iv385-tag{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:2px 6px;background:#fdecea;color:#d64045;margin-left:4px}
+.iv385-tag.n{background:#e8effb;color:#3b6fd4}
+.iv385-ca{display:grid;grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,1fr));gap:6px;align-items:end;margin-bottom:8px}
+.iv385-ca .c2-in{padding:8px 8px;font-size:13px}.iv385-ca label{font-size:10.5px}
+@media (max-width:640px){.iv385-ca{grid-template-columns:1fr 1fr}.iv385-ca>div:first-child{grid-column:1/-1}}
+</style>
+<script id="js-385">
+/* 3.85 · inventario real (etapa 1). Todo con prefijo inv385 / iv385 ; envuelve las funciones de Inventario sin reemplazarlas. */
+(function(){
+  if(typeof ivPintar_ !== "function" || typeof abrirHojaIni_ !== "function") return;
+  var norm = function(x){ return String(x || "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ").trim(); };
+  var num = function(v){ var n = Number(String(v).replace(",", ".")); return isFinite(n) ? n : NaN; };
+  var fmt = function(n){ return nIni_(Math.round(n * 100) / 100); };
+  function insumo(id){ return IV && IV.insumos.find(function(i){ return i.insumoId === id; }); }
+  function pintarListo(){ ivPintar_(); }
+
+  /* ── 1 · lo que se agrega a la pantalla de Inventario después de pintarla ── */
+  var ivPintarOrig = ivPintar_;
+  ivPintar_ = function(){
+    ivPintarOrig.apply(this, arguments);
+    try { inv385Despues_(); } catch(e){ if(window.console) console.warn("inv385", e); }
+  };
+  function inv385Despues_(){
+    if(!IV) return;
+    var puedeC = !!IV.puedeCorregir, puedeI = !!IV.puedeInventario;
+    var M = IV.movimientos || [];
+    /* cifras del mes: sin ajustes de conteo, sin anulaciones y sin lo anulado */
+    var mes = String(IV.hoy).slice(0, 7), kp = document.querySelectorAll("#iv-cuerpo .mt-k4 > div");
+    if(kp.length > 3){
+      var cuenta = M.filter(function(m){ return m.tipo === "SALIDA" && m.fecha.slice(0, 7) === mes && !m.anulaA && !m.anuladoPor && m.destinoTipo !== "ajuste"; }).length;
+      var compra = M.filter(function(m){ return m.tipo === "ENTRADA" && m.fecha.slice(0, 7) === mes && m.solicitudId && !m.anuladoPor; })
+        .reduce(function(a, m){ return a + m.cantidad * m.costoUnitario; }, 0);
+      kp[2].querySelector("b").textContent = cuenta; kp[3].querySelector("b").textContent = bIni_(compra).replace(".00", "");
+    }
+    /* encabezado: contar / carga inicial */
+    var rf = document.querySelector('#pantalla-inv button[onclick="ivCargar_()"]');
+    if(rf && !document.getElementById("iv385-bt")){
+      var h = '<span id="iv385-bt">';
+      if(puedeC) h += '<button class="pl-btn" onclick="inv385Contar_()">Contar</button> ';
+      if(puedeI && IV.insumos.length < 3) h += '<button class="pl-btn" onclick="inv385Carga_()">Carga inicial</button> ';
+      rf.insertAdjacentHTML("beforebegin", h + '</span>');
+    }
+    /* pestaña Existencias */
+    if(IV_TAB === "ex"){
+      var tb = document.querySelector("#iv-cuerpo .mt-tb");
+      if(tb && puedeC) [].forEach.call(tb.rows, function(r, i){
+        if(!i) return; var b = r.querySelector("button.mt-b"); var nom = r.cells[0].querySelector("b"); if(!b || !nom) return;
+        var ins = IV.insumos.find(function(x){ return x.descripcion === nom.textContent.trim(); }); if(!ins) return;
+        b.insertAdjacentHTML("afterend", ' <button class="mt-b" onclick="inv385Contar_(\'' + esc(ins.insumoId) + '\')">Contar</button>');
+      });
+      if(!tb && puedeI && !IV.insumos.length){
+        var v = document.querySelector("#iv-cuerpo .mt-vacio"); if(v) v.insertAdjacentHTML("beforeend", '<div style="margin-top:10px"><button class="mt-b p" onclick="inv385Carga_()">Hacer la carga inicial</button></div>');
+      }
+      /* «Pedir por requisición»: hasta el punto de pedido del insumo, si lo tiene */
+      [].forEach.call(document.querySelectorAll("#iv-cuerpo .mt-at .mt-it"), function(it){
+        var nom = it.querySelector("b"), b = it.querySelector(".mt-acc button"); if(!nom || !b) return;
+        var ins = IV.insumos.find(function(x){ return x.descripcion === nom.textContent.trim(); });
+        if(!ins || !(ins.pedirHasta > 0)) return;
+        var pide = Math.max(Math.round((ins.pedirHasta - ins.stock) * 100) / 100, 1);
+        b.setAttribute("onclick", String(b.getAttribute("onclick")).replace(/cant:[0-9.]+/, "cant:" + pide));
+        var sm = it.querySelector("small"); if(sm && sm.textContent.indexOf("pide hasta") < 0) sm.insertAdjacentHTML("beforeend", " Se pide hasta " + fmt(ins.pedirHasta) + ".");
+      });
+    }
+    /* pestaña Entregas: anular con motivo, anuladas tachadas */
+    if(IV_TAB === "en"){
+      var te = document.querySelector("#iv-cuerpo .mt-tb"); if(!te) return;
+      var L = M.slice(0, 120);
+      [].forEach.call(te.rows, function(r, i){
+        if(!i){ if(puedeC) r.insertAdjacentHTML("beforeend", "<th></th>"); return; }
+        var m = L[i - 1]; if(!m) return;
+        if(m.anulaA){ r.cells[3].innerHTML = '<span class="iv-dest"><i class="ent" style="background:#fdecea;color:#d64045">anulación</i>de ' + esc(m.anulaA) + ' · ' + esc(m.motivo || "") + '</span>'; }
+        else if(m.destinoTipo === "ajuste"){ r.cells[3].innerHTML = '<span class="iv-dest"><i class="ent" style="background:#e8effb;color:#3b6fd4">conteo</i>' + esc(m.motivo || m.obs || "") + '</span>'; }
+        if(m.anuladoPor){ r.classList.add("iv385-an"); r.cells[2].classList.add("iv385-q"); r.cells[3].insertAdjacentHTML("beforeend", '<span class="iv385-tag">ANULADO · ' + esc(m.anuladoPor) + '</span>'); }
+        if(puedeC) r.insertAdjacentHTML("beforeend", '<td class="r">' + (m.anulaA || m.anuladoPor ? '' : '<button class="mt-b gh" onclick="inv385Anular_(\'' + esc(m.movId) + '\')">Anular</button>') + '</td>');
+      });
+    }
+  }
+
+  /* ── 2 · el insumo: hasta cuánto pedir y vida útil ── */
+  var ivInsumoOrig = ivInsumo_;
+  ivInsumo_ = function(id){
+    ivInsumoOrig.apply(this, arguments);
+    try {
+      var i = id && IV ? insumo(id) : null, mi = document.getElementById("ii-mi"), ok = document.getElementById("ii-ok");
+      if(!mi || !ok) return;
+      var fila = mi.closest(".rq-f2");
+      fila.insertAdjacentHTML("afterend", '<div class="rq-f2"><div><label class="c2-f">Pedir hasta</label><input class="c2-in" type="number" min="0" id="ii-ph" value="' + (i && i.pedirHasta ? i.pedirHasta : "") + '" placeholder="al pedir, se pide hasta aquí"></div>' +
+        '<div><label class="c2-f">Vida útil (días)</label><input class="c2-in" type="number" min="0" id="ii-vu" value="' + (i && i.vidaUtilDias ? i.vidaUtilDias : "") + '" placeholder="EPP: cada cuánto se repone"></div></div>' +
+        (i && i.cambiadoPor ? '<div class="iv385-nota">Último cambio: ' + esc(i.cambiadoPor) + (i.cambiadoEn ? " · " + esc(f353_(i.cambiadoEn)) : "") + '</div>' : ''));
+      ok.setAttribute("onclick", "inv385GuardarInsumo_('" + esc(id || "") + "')");
+    } catch(e){}
+  };
+  window.inv385GuardarInsumo_ = function(id){
+    var d = { insumoId: id || "", descripcion: $("ii-de").value, categoria: $("ii-ca").value, unidad: $("ii-un").value, minimo: $("ii-mi").value,
+              pedirHasta: $("ii-ph") ? $("ii-ph").value : undefined, vidaUtilDias: $("ii-vu") ? $("ii-vu").value : undefined };
+    if(id) d.activo = !$("ii-ac").checked; else d.stockInicial = $("ii-st").value;
+    var b = $("ii-ok"); b.disabled = true;
+    llamar353_("api_guardarInsumo", PIN, d).then(function(){ cerrarHojaIni_(); toast("Insumo guardado ✓"); ivCargar_(); }, function(){ b.disabled = false; });
+  };
+
+  /* ── 3 · entregar: lo que no alcanza pide el motivo escrito ── */
+  var ivEntregarOrig = ivEntregar_;
+  ivEntregar_ = function(){
+    ivEntregarOrig.apply(this, arguments);
+    var b = document.getElementById("ie-ok"); if(b) b.setAttribute("onclick", "inv385Entrega_(false)");
+  };
+  window.inv385Entrega_ = function(forzar){
+    var d = { insumoId: IV_EN.id, cantidad: $("ie-ca").value, fecha: $("ie-fe").value, destinoTipo: IV_EN.dest, destino: $("ie-dl").value, observaciones: $("ie-ob").value, negativoConfirmado: !!forzar };
+    var b = $("ie-ok");
+    if(forzar && String(d.observaciones).trim().length < 3){ toast("Escribe el motivo en Observaciones"); $("ie-ob").focus(); return; }
+    b.disabled = true;
+    google.script.run.withSuccessHandler(function(r){
+      b.disabled = false;
+      if(r && r.sinStock){ $("ie-qu").innerHTML = '<b style="color:var(--tm-bad)">No alcanza:</b> hay ' + nIni_(r.sinStock.hay) + ' ' + esc(r.sinStock.unidad) + ' y se entregan ' + nIni_(r.sinStock.piden) + '. Si de verdad se entregó, <b>escribe el motivo en Observaciones</b> (por ejemplo «llegó compra sin registrar») y anótalo igual.'; b.textContent = "Se entregó igual"; b.onclick = function(){ inv385Entrega_(true); }; $("ie-ob").focus(); return; }
+      if(!r || !r.ok){ toast((r && r.error) || "No se pudo"); return; }
+      cerrarHojaIni_(); toast("Entrega anotada ✓"); ivCargar_();
+    }).withFailureHandler(function(){ b.disabled = false; toast("Sin señal"); }).api_registrarEntrega(PIN, d);
+  };
+
+  /* ── 4 · anular un movimiento, con motivo ── */
+  window.inv385Anular_ = function(movId){
+    var m = (IV.movimientos || []).find(function(x){ return x.movId === movId; }); if(!m) return;
+    abrirHojaIni_('<div class="ini-pt">Anular el movimiento</div><div class="ini-ps">No se borra: queda el movimiento contrario con tu nombre, la fecha y el motivo. El saldo vuelve a lo que era.</div>' +
+      '<div class="mt-card" style="padding:10px 12px"><b>' + esc(m.insumo) + '</b> · ' + (m.tipo === "ENTRADA" ? "+" : "−") + nIni_(m.cantidad) + '<div class="mt-sub">' + esc(f353_(m.fecha)) + ' · ' + esc(m.tipo === "ENTRADA" ? (m.proveedor || m.obs || "entrada") : (m.destinoTipo + " " + m.destino)) + ' · ' + esc(m.movId) + '</div></div>' +
+      '<label class="c2-f">Motivo (obligatorio)</label><input class="c2-in" id="ia-mo" placeholder="Ej: se anotó el cliente equivocado" maxlength="200">' +
+      '<button class="ini-ok" id="ia-ok" style="margin-top:12px" onclick="inv385AnularYa_(\'' + esc(movId) + '\')">Anular el movimiento</button>');
+    setTimeout(function(){ var e = $("ia-mo"); if(e) e.focus(); }, 200);
+  };
+  window.inv385AnularYa_ = function(movId){
+    var mo = $("ia-mo").value.trim(); if(mo.length < 3){ toast("Escribe el motivo"); return; }
+    var b = $("ia-ok"); b.disabled = true;
+    llamar353_("api_invCorregir", PIN, "anular", { movId: movId, motivo: mo }).then(function(){ cerrarHojaIni_(); toast("Anulado ✓"); ivCargar_(); }, function(){ b.disabled = false; });
+  };
+
+  /* ── 5 · contar el inventario (pensado para el celular) ── */
+  var CT = null;
+  window.inv385Contar_ = function(solo){
+    if(!IV){ ivCargar_(); return; }
+    var L = IV.insumos.filter(function(i){ return i.activo; });
+    if(solo) L = L.filter(function(i){ return i.insumoId === solo; });
+    if(!L.length){ toast("No hay insumos que contar"); return; }
+    CT = { L: L, v: {} };
+    abrirHojaIni_('<div class="ini-pt">Contar el inventario</div><div class="ini-ps">Cuenta lo que hay en la bodega y escribe el número. Lo que no toques queda igual. Cada diferencia se anota como ajuste con tu nombre, la fecha y el motivo.</div>' +
+      '<div class="iv385-lista" id="ic-li">' + L.map(function(i, k){
+        return '<div class="iv385-fila"><div class="iv385-top"><b>' + esc(i.descripcion) + '</b><span class="mt-sub">en el sistema: ' + nIni_(i.stock) + ' ' + esc(i.unidad) + '</span></div>' +
+          '<div class="iv385-ct"><button class="mt-b" onclick="inv385Paso_(' + k + ',-1)">−</button><input class="c2-in" type="text" inputmode="decimal" id="ic-' + k + '" placeholder="' + nIni_(i.stock) + '" oninput="inv385Dif_(' + k + ')"><button class="mt-b" onclick="inv385Paso_(' + k + ',1)">+</button></div><div class="iv385-dif" id="ic-d' + k + '"></div></div>';
+      }).join("") + '</div>' +
+      '<label class="c2-f">Motivo de las diferencias</label><input class="c2-in" id="ic-mo" placeholder="Ej: conteo físico de fin de mes" maxlength="200" value="Conteo físico">' +
+      '<button class="ini-ok" id="ic-ok" style="margin-top:12px" onclick="inv385ContarYa_()">Guardar el conteo</button>');
+    inv385Resumen_();
+  };
+  window.inv385Paso_ = function(k, d){
+    var e = $("ic-" + k), i = CT.L[k], v = String(e.value).trim() === "" ? i.stock : num(e.value);
+    if(!isFinite(v)) v = i.stock; e.value = Math.max(0, Math.round((v + d) * 100) / 100); inv385Dif_(k);
+  };
+  window.inv385Dif_ = function(k){
+    var e = $("ic-" + k), i = CT.L[k], t = String(e.value).trim(), d = $("ic-d" + k);
+    if(t === ""){ d.textContent = ""; d.className = "iv385-dif"; delete CT.v[k]; inv385Resumen_(); return; }
+    var v = num(t); if(!isFinite(v) || v < 0){ d.className = "iv385-dif m"; d.textContent = "Escribe un número"; delete CT.v[k]; inv385Resumen_(); return; }
+    CT.v[k] = v; var df = Math.round((v - i.stock) * 100) / 100;
+    d.className = "iv385-dif " + (df < 0 ? "m" : (df > 0 ? "p" : "")); d.textContent = df === 0 ? "Igual que el sistema" : "Diferencia " + (df > 0 ? "+" : "") + nIni_(df) + " " + i.unidad;
+    inv385Resumen_();
+  };
+  function inv385Difs_(){ return Object.keys(CT.v).filter(function(k){ return Math.round((CT.v[k] - CT.L[k].stock) * 100) !== 0; }); }
+  function inv385Resumen_(){ var b = $("ic-ok"); if(!b) return; var n = inv385Difs_().length; b.textContent = n ? "Guardar el conteo · " + n + (n === 1 ? " diferencia" : " diferencias") : "Guardar el conteo"; }
+  window.inv385ContarYa_ = function(){
+    var dif = inv385Difs_(); if(!dif.length){ toast("No cambiaste ningún número"); return; }
+    var mo = $("ic-mo").value.trim(); if(mo.length < 3){ toast("Escribe el motivo de las diferencias"); $("ic-mo").focus(); return; }
+    var b = $("ic-ok"); b.disabled = true; b.textContent = "Guardando…";
+    llamar353_("api_invCorregir", PIN, "contar", { motivo: mo, lineas: Object.keys(CT.v).map(function(k){ return { insumoId: CT.L[k].insumoId, contado: CT.v[k] }; }) })
+      .then(function(r){ cerrarHojaIni_(); toast("Conteo guardado · " + r.ajustes + (r.ajustes === 1 ? " ajuste" : " ajustes") + " ✓"); ivCargar_(); }, function(){ b.disabled = false; inv385Resumen_(); });
+  };
+
+  /* ── 6 · carga inicial: el saldo de apertura de lo que hay hoy en la bodega ── */
+  var BASE = [["Guantes de nitrilo", "EPP"], ["Mascarilla", "EPP"], ["Bata desechable", "EPP"], ["Botas de seguridad", "EPP"], ["Lentes de seguridad", "EPP"]];
+  var CG = null;
+  window.inv385Carga_ = function(){
+    if(!IV){ ivCargar_(); return; }
+    var ya = {}; IV.insumos.forEach(function(i){ ya[norm(i.descripcion)] = true; });
+    CG = { filas: BASE.filter(function(b){ return !ya[norm(b[0])]; }).map(function(b){ return { d: b[0], c: b[1] }; }) };
+    if(!CG.filas.length) CG.filas.push({ d: "", c: "EPP" });
+    inv385CargaPintar_();
+  };
+  function inv385CargaLeer_(){ CG.filas.forEach(function(f, k){ var g = function(s){ var e = $("cg-" + s + k); return e ? e.value : ""; }; f.d = g("d"); f.c = g("c") || f.c; f.u = g("u"); f.h = g("h"); f.m = g("m"); f.p = g("p"); f.v = g("v"); }); }
+  function inv385CargaPintar_(){
+    var cats = (IV && IV.categorias) || ["EPP", "Limpieza", "Bioseguridad", "Repuestos", "Otro"];
+    abrirHojaIni_('<div class="ini-pt">Carga inicial del inventario</div><div class="ini-ps">Anota lo que hay hoy en la bodega. Entra como saldo de apertura (una entrada con tu nombre) y de ahí en adelante el inventario se lleva solo. Puedes cambiar los nombres, la lista y agregar más.</div>' +
+      '<div class="iv385-lista">' + CG.filas.map(function(f, k){
+        return '<div class="iv385-fila"><div class="iv385-ca"><div><label class="c2-f">Insumo</label><input class="c2-in" id="cg-d' + k + '" value="' + esc(f.d || "") + '" placeholder="Nombre del insumo"></div>' +
+          '<div><label class="c2-f">Categoría</label><select class="c2-in" id="cg-c' + k + '">' + cats.map(function(c){ return '<option' + (f.c === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("") + '</select></div>' +
+          '<div><label class="c2-f">Unidad</label><input class="c2-in" id="cg-u' + k + '" value="' + esc(f.u || "") + '" placeholder="caja, par…"></div>' +
+          '<div><label class="c2-f">Hay hoy</label><input class="c2-in" type="number" min="0" id="cg-h' + k + '" value="' + esc(f.h || "") + '"></div>' +
+          '<div><label class="c2-f">Mínimo</label><input class="c2-in" type="number" min="0" id="cg-m' + k + '" value="' + esc(f.m || "") + '"></div>' +
+          '<div><label class="c2-f">Pedir hasta</label><input class="c2-in" type="number" min="0" id="cg-p' + k + '" value="' + esc(f.p || "") + '"></div>' +
+          '<div><label class="c2-f">Vida útil (días)</label><input class="c2-in" type="number" min="0" id="cg-v' + k + '" value="' + esc(f.v || "") + '"></div></div></div>';
+      }).join("") + '</div><button class="ini-lnk" onclick="inv385CargaMas_()">＋ Otro insumo</button>' +
+      '<div class="iv385-nota">Solo se guardan los renglones con nombre y unidad. Lo que ya existe en el catálogo no se vuelve a crear.</div>' +
+      '<button class="ini-ok" id="cg-ok" style="margin-top:12px" onclick="inv385CargaYa_()">Guardar la carga inicial</button>');
+  }
+  window.inv385CargaMas_ = function(){ inv385CargaLeer_(); CG.filas.push({ d: "", c: "EPP" }); inv385CargaPintar_(); var l = document.querySelector(".iv385-lista"); if(l) l.scrollTop = l.scrollHeight; };
+  window.inv385CargaYa_ = function(){
+    inv385CargaLeer_();
+    var ya = {}; IV.insumos.forEach(function(i){ ya[norm(i.descripcion)] = true; });
+    var L = CG.filas.filter(function(f){ return String(f.d).trim() && !ya[norm(f.d)]; });
+    if(!L.length){ toast("Escribe al menos un insumo"); return; }
+    var sinU = L.filter(function(f){ return !String(f.u || "").trim(); });
+    if(sinU.length){ toast("Falta la unidad de «" + sinU[0].d + "»"); return; }
+    var b = $("cg-ok"); b.disabled = true; var hecho = 0;
+    (function sig(){
+      if(hecho >= L.length){ cerrarHojaIni_(); toast("Carga inicial guardada · " + hecho + " insumos ✓"); IV = null; ivCargar_(); return; }
+      var f = L[hecho]; b.textContent = "Guardando " + (hecho + 1) + " de " + L.length + "…";
+      llamar353_("api_guardarInsumo", PIN, { descripcion: f.d.trim(), categoria: f.c, unidad: f.u.trim(), minimo: f.m, pedirHasta: f.p, vidaUtilDias: f.v, stockInicial: f.h }).then(function(){ hecho++; sig(); },
+        function(){ b.disabled = false; b.textContent = "Guardar la carga inicial"; if(hecho){ toast("Se guardaron " + hecho + "; revisa el resto"); IV = null; ivCargar_(); } });
+    })();
+  };
+
+  /* ── 7 · Inicio: tocar «insumos bajo el mínimo» abre Inventario ── */
+  var tocarOrig = tocarAtencionIni_;
+  tocarAtencionIni_ = function(i){
+    var a = INI && INI.atencion && INI.atencion[i];
+    if(a && a.tipo === "inventario"){ mostrarTab("inv"); return; }
+    return tocarOrig.apply(this, arguments);
+  };
+})();
+</script>
 </body>
 
 </html>
