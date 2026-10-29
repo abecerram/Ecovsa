@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clientes · Mercadeo · ECOVSA</title>
+<!-- api 3.75 · Mercadeo suave: fundido corto y datos que entran suave (29 oct) -->
 <!-- api 3.74 · abre con la copia al instante (Mercadeo más rápido, 29 oct) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
@@ -275,7 +276,7 @@ mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 1px}
     ]).then(function (r) {
       if (r[0] && r[0].ok) MK.copia.guardar(kA, r[0]); if (r[1] && r[1].ok) MK.copia.guardar(kB, r[1]);
       if (j0 && JSON.stringify(r) === j0) return;
-      recibir(r);
+      if (j0 && MK.suave) MK.suave(function () { recibir(r); }); else recibir(r);   // api 3.75: lo que cambió se funde
     }, function (e) { if (j0) MK.aviso('Sin conexión: se ve lo último que se leyó'); else MK.error('p-cartera', 'Sin conexión: ' + e.message); });
   }
   function recibir(r) {
