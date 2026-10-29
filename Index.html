@@ -9643,7 +9643,7 @@ if(tab==="ruta" && esSupervisor()) tab = "plan";
 if(tab==="monitor" && esSupervisor()) tab = "cierre";
 if(tab==="jornada" && esSupervisor()) tab = "flota";
 if(tab==="disposicion") tab = esSupervisor() ? "dfin" : "entrega";
-if(tab==="avisos" && esSupervisor()) tab = "plan";
+if(tab==="avisos" && esSupervisor()){ if(typeof avzIrMenu_ === "function"){ avzIrMenu_(); return; } tab = "plan"; }   // api 3.71
 /* api 3.5.3: el mapa del conductor no es del supervisor (el Mapa del día llega con el paquete del mapa) */
 if(tab==="mapa" && esSupervisor()) tab = "mapadia";
 /* api 3.5.2: clientes nuevos e inspecciones viven dentro de Solicitudes */
@@ -26312,6 +26312,122 @@ window.VH_ = VH; window.vhLista_ = vhLista_; window.vhRepintar_ = vhRepintar_;
 })();
 </script>
 
+
+<style id="estilo-371">
+/* Logística 3.71 · avisos a clientes: accesos discretos (mismo trazo de línea que los demás íconos) y panel lateral */
+html body .p43-tira button.avz-acc{flex:none;margin-left:auto;position:sticky;right:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;align-self:stretch;padding:0 13px;border:1px solid #e1e6ee;background:#fff;border-radius:12px;color:#667489;font:800 12px Archivo,sans-serif;cursor:pointer;box-shadow:-12px 0 10px -4px #fff;transition:border-color .15s,color .15s,background .15s}
+html body .p43-tira button.avz-acc svg,#pl42 .p42-ru .q button.avz-sem svg,#menu-sup .ic svg.avz-m{flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html body .p43-tira button.avz-acc svg{width:17px;height:17px}
+html body .p43-tira button.avz-acc:hover,html body .p43-tira button.avz-acc:focus-visible{border-color:#14306b;color:#14306b;background:#f7f9fc;outline:0}
+html body .p43-tira button.avz-acc em{font-style:normal;min-width:18px;height:18px;padding:0 5px;border-radius:999px;display:inline-grid;place-items:center;font-size:10.5px;font-weight:900;background:var(--ini-ambar-l,#fff4d6);color:#8A6300}
+html body .p43-tira button.avz-acc em.ok{background:var(--ini-verde-l,#eaf6e4);color:var(--ini-verde,#2f9e44)}
+html body .p43-tira button.avz-acc.sin{opacity:.55}html body .p43-tira button.avz-acc.sin:hover{opacity:.85}
+#pl42 .p42-ru .q button.avz-sem{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:24px;height:24px;padding:0;border:0;border-radius:8px;background:transparent;color:#8a96a8;cursor:pointer;font:800 11px Archivo,sans-serif;transition:background .15s,color .15s}
+#pl42 .p42-ru .q button.avz-sem svg{width:15px;height:15px}
+#pl42 .p42-ru .q button.avz-sem:hover,#pl42 .p42-ru .q button.avz-sem:focus-visible{background:#eef3fb;color:#14306b;outline:0}
+#pl42 .p42-ru .q button.avz-sem .t{display:none}
+#pl42 .p42-g.cel .p42-ru .q button.avz-sem{padding:0 8px}#pl42 .p42-g.cel .p42-ru .q button.avz-sem .t{display:inline}
+#menu-sup .ic svg.avz-m{width:18px;height:18px;vertical-align:-3px}
+#avz-dr{position:fixed;inset:0;z-index:3600;display:flex;justify-content:flex-end}
+#avz-dr .avz-dr-v{position:absolute;inset:0;background:rgba(14,28,56,.38);animation:avzf .18s ease-out}
+#avz-dr .avz-dr-p{position:relative;width:min(580px,100%);height:100%;background:#fff;box-shadow:-14px 0 34px rgba(14,28,56,.2);display:flex;flex-direction:column;animation:avzd .22s ease-out}
+#avz-dr .avz-dr-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #e1e6ee}
+#avz-dr .avz-dr-h .ic{width:34px;height:34px;border-radius:10px;background:#eef3fb;color:#14306b;display:grid;place-items:center;flex:none}
+#avz-dr .avz-dr-h .ic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#avz-dr .avz-dr-h b{display:block;font-size:16px;color:#0f2140}#avz-dr .avz-dr-h small{display:block;color:#667489;font-size:12px;font-weight:700;margin-top:1px}
+#avz-dr .avz-dr-x{margin-left:auto;width:34px;height:34px;border:0;border-radius:10px;background:transparent;color:#667489;font-size:22px;line-height:1;cursor:pointer}#avz-dr .avz-dr-x:hover{background:#f1f4f8;color:#0f2140}
+#avz-dr .avz-dr-c{flex:1;overflow:auto;padding:0 0 22px}
+#avz-dr .avz-tabs,#avz-dr .pl-ch,#avz-dr .rc37{display:none}
+@keyframes avzf{from{opacity:0}to{opacity:1}}@keyframes avzd{from{transform:translateX(28px);opacity:.4}to{transform:none;opacity:1}}
+body.avz-abierto{overflow:hidden}
+@media (max-width:640px){html body .p43-tira button.avz-acc{padding:0 10px}html body .p43-tira button.avz-acc .t{display:none}#avz-dr .avz-dr-p{width:100%}}
+</style>
+<script id="js-371">
+/* ═══ Logística 3.71 · Avisos a clientes ═════════════════════════════════════════════════════════
+   El panel de avisos (mensaje de WhatsApp con la hora de cada cliente, quién confirmó, quién pidió otro día) se
+   colgaba del encabezado de la ruta del Planificador. Con el Día nuevo (3.43) ese encabezado ya no existe, y el
+   botón «Avisar a los clientes» del pie no abría nada. Ahora el panel se abre en un panel lateral (con el mismo
+   contenido y las mismas acciones de siempre) desde cuatro accesos discretos:
+   · el menú de Logística, debajo de «Planificar»;
+   · la barra de días del Día: ícono + «Avisos», con cuántos clientes faltan por avisar;
+   · la tarjeta de cada ruta de la vista Semana: un ícono gris;
+   · el botón «Avisar a los clientes» del pie del Día (ya existía).
+   No toca el servidor ni cómo se guardan los avisos. ═════════════════════════════════════════════ */
+(function(){
+var ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9.5L5 20v-4H4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg>';
+/* ── el panel lateral ── */
+function abrirPanel_(){
+  if(!PL || !ED || !ED.rutaId){ toast("Este día todavía no tiene ruta. Cuando la guardes o la publiques, aquí avisas a los clientes."); return; }
+  cerrarPanel_(true);
+  var d = document.createElement("div"); d.id = "avz-dr";
+  d.innerHTML = '<div class="avz-dr-v" onclick="avzCerrar_()"></div><aside class="avz-dr-p" role="dialog" aria-label="Avisos a clientes"><div class="avz-dr-h"><span class="ic">' + ICO + '</span><div><b>Avisos a clientes</b><small>' +
+    esc(fechaLargaIni_(PL.fecha)) + (ED.conductor ? ' · ' + esc(String(ED.conductor).split(" ")[0]) : '') + (ED.vehiculo ? ' · ' + esc(ED.vehiculo) : '') + '</small></div><button type="button" class="avz-dr-x" onclick="avzCerrar_()" aria-label="Cerrar">&times;</button></div><div id="pl-ruta" class="avz-dr-c"></div></aside>';
+  document.body.appendChild(d); document.body.classList.add("avz-abierto");
+  PL_TABR = "avisos"; plPintarRuta_();
+}
+function cerrarPanel_(silencio){
+  var d = document.getElementById("avz-dr"); if(!d) return;
+  d.remove(); document.body.classList.remove("avz-abierto"); PL_TABR = "paradas";
+  if(!silencio) try{ chip_(); }catch(e){}
+}
+window.avzCerrar_ = function(){ cerrarPanel_(); };
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && document.getElementById("avz-dr") && !document.querySelector(".ini-velo")) cerrarPanel_(); });
+/* ── ir a los avisos de un día (y de una ruta) desde donde sea ── */
+function ir_(f, rid){
+  f = f || (typeof PL_F !== "undefined" && PL_F) || hoyISO();
+  if(PL && ED && ED.rutaId && PL.fecha === f && P42.vista === "dia" && (!rid || ED.rutaId === rid) && document.getElementById("p43-dia")){ abrirPanel_(); return; }
+  window.AVZ_ABRIR_ = Date.now(); if(rid) PL_RSEL = rid;
+  var sc = document.getElementById("pantalla-plan"); if(!sc || !sc.classList.contains("activa")) mostrarTab("plan");
+  p42AbrirDia_(f);
+}
+window.avzIrMenu_ = function(){ ir_((typeof PL_F !== "undefined" && PL_F) || hoyISO(), ""); };
+window.avzSemanaIr_ = function(f, rid){ ir_(f, rid); };
+var aa0 = abrirAvisos;
+abrirAvisos = function(f){ if(!esSupervisor()) return aa0.apply(this, arguments); ir_(f, ""); };
+/* ── 1 · el menú, justo debajo de «Planificar rutas» ── */
+function menu_(){
+  if(typeof MENU_SUP === "undefined" || MENU_SUP.some(function(it){ return it[0] === "avisos"; })) return;
+  var k = MENU_SUP.findIndex(function(it){ return it[0] === "plan"; }); if(k < 0) return;
+  MENU_SUP.splice(k + 1, 0, ["avisos", ICO.replace("<svg ", '<svg class="avz-m" '), "Avisos a clientes"]);
+  try{ if(typeof pintarMenuSup_ === "function" && $("menu-sup")) pintarMenuSup_(); }catch(e){}
+}
+menu_();
+/* ── 2 · la barra de días del Día ── */
+function chip_(){
+  var tira = document.querySelector("#p43-d-top .p43-tira"); if(tira && PL && ED){
+    var hay = !!ED.rutaId; if(hay && typeof avzAsegurar_ === "function") try{ avzAsegurar_(); }catch(e){}
+    var n = hay && typeof avzPend_ === "function" ? avzPend_() : null;
+    var cnt = n ? '<em title="Clientes por avisar">' + n + '</em>' : (n === 0 ? '<em class="ok" title="Todos avisados">&#10003;</em>' : '');
+    var tit = hay ? 'Avisos a clientes · ' + fechaLargaIni_(PL.fecha) : 'Este día todavía no tiene ruta';
+    var h = '<button type="button" class="avz-acc' + (hay ? '' : ' sin') + '" title="' + String(tit).replace(/"/g, "&quot;") + '" aria-label="Avisos a clientes" onclick="avzAbrirDia_()">' + ICO + '<span class="t">Avisos</span>' + cnt + '</button>';
+    var b = tira.querySelector(".avz-acc"); if(b) b.outerHTML = h; else tira.insertAdjacentHTML("beforeend", h);
+  }
+  /* si veníamos de otro lado pidiendo abrir el panel, se abre cuando el Día ya está dibujado */
+  if(window.AVZ_ABRIR_ && PL && ED && P42.vista === "dia" && document.getElementById("p43-dia")){
+    var viejo = Date.now() - window.AVZ_ABRIR_ > 20000; window.AVZ_ABRIR_ = 0; if(!viejo) abrirPanel_();
+  }
+  /* y mientras el panel está abierto, que siga al día de la ruta */
+  if(document.getElementById("avz-dr") && !(PL && ED && ED.rutaId)) cerrarPanel_(true);
+}
+window.avzAbrirDia_ = function(){ abrirPanel_(); };
+/* ── 3 · la vista Semana: un ícono discreto en la tarjeta de cada ruta (días que no han pasado) ── */
+function semana_(){
+  var S = typeof P42 !== "undefined" && P42.d; if(!S || P42.vista !== "semana") return;
+  [].forEach.call(document.querySelectorAll("#pl42 .p42-dia"), function(col){
+    var dh = col.querySelector(".p42-dh"), m = dh && /p42AbrirDia_\('(\d{4}-\d{2}-\d{2})'\)/.exec(dh.getAttribute("onclick") || ""); if(!m) return;
+    var d = S.dias.filter(function(x){ return x.fecha === m[1]; })[0]; if(!d || d.pasado || d.feriado) return;
+    var tarjetas = col.querySelectorAll(".p42-ru");
+    d.rutas.forEach(function(r, k){
+      var t = tarjetas[k], q = t && t.querySelector(".q"); if(!q || q.querySelector(".avz-sem") || r.tipo === "planta" || !r.paradas.length) return;
+      q.insertAdjacentHTML("beforeend", '<button type="button" class="avz-sem" title="Avisar a los clientes de esta ruta" aria-label="Avisos a clientes" onclick="event.stopPropagation();avzSemanaIr_(\'' + d.fecha + '\',\'' + String(r.rutaId).replace(/[^\w-]/g, "") + '\')">' + ICO + '<span class="t">Avisos</span></button>');
+    });
+  });
+}
+function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") return;
+  window[nombre] = function(){ try{ return o.apply(this, arguments); } finally { try{ if(nombre === "p42Pintar_") semana_(); else chip_(); }catch(e){ if(window.console) console.warn(e); } } }; }
+["p42Pintar_", "p43Dia_", "plPintar_", "plPintarRuta_"].forEach(con_);
+})();
+</script>
 </body>
 
 </html>
