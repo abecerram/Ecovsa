@@ -426,7 +426,7 @@
       for (var k = 0; k < 26; k++) { var ang = k / 26 * 6.2832 + Math.random() * .3, dd = 90 + Math.random() * 95, c = k % 3 === 0 ? '#3b6fd4' : k % 3 === 1 ? '#2f9e44' : '#8fd46a', t = 3 + Math.random() * 5;
         h += '<span class="pt" style="--dx:' + Math.round(Math.cos(ang) * dd) + 'px;--dy:' + Math.round(Math.sin(ang) * dd) + 'px;width:' + t + 'px;height:' + t + 'px;background:' + c + '"></span>'; }
       h += '</div><img class="wm" src="' + BASE + (noche ? 'ecovsa-letras.png' : 'ecovsa-letras-azul.png') + '" alt="ECOVSA"><div class="lema">Ecología · Vida · Salud</div><button class="bt ei-bt" type="button">Entrar al sistema</button></div>';
-      z.innerHTML = h; document.body.appendChild(z); d.classList.add('con-piel'); if (noche) d.classList.add('noche');
+      z.innerHTML = h; z.insertBefore(cv, z.firstChild); document.body.appendChild(z); d.classList.add('con-piel'); if (noche) d.classList.add('noche');
       try { burbujas(cv, noche); } catch (e) {}
       var lg = z.querySelector('.eco-lg'); setTimeout(function () { if (lg && lg.isConnected) { lg.classList.remove('arma', 'gira'); lg.classList.add('lento', 'respira'); } }, 1750);
       E.intro = z;
