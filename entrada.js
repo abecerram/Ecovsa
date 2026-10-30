@@ -223,7 +223,7 @@
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
   function ponerCss() {
-    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO; document.head.appendChild(st); }
+    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ; document.head.appendChild(st); }
     if (!document.querySelector('link[href*="family=Archivo"]')) {
       var l = document.createElement('link'); l.rel = 'stylesheet';
       l.href = 'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&display=swap';
@@ -353,6 +353,7 @@
     document.addEventListener('visibilitychange', E.onVis);
     cuadro();
     if (op.abierto) setTimeout(abrir, 300);
+    bloqueoPiel();   /* api 3.83e */
     intro();   /* api 3.83d: la intro del lobby (solo si el lobby la pide con intro:true) */
   }
 
@@ -627,8 +628,9 @@
     E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
     E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
     setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
-    var conTrans = E.d.classList.contains('con-piel'); if (conTrans) { E.trans = true; trans(r); }   /* api 3.83d */
-    var pausa = conTrans ? Math.min(r.pausa || 1500, 800) : (r.pausa || 1500);
+    var conTrans = E.d.classList.contains('con-piel') && !E.bq; if (conTrans) { E.trans = true; trans(r); }
+    if (E.bq) { E.trans = true; cierraBloqueo(); }   /* api 3.83e */   /* api 3.83d */
+    var pausa = E.bq ? 1500 : conTrans ? Math.min(r.pausa || 1500, 800) : (r.pausa || 1500);
     setTimeout(portal, Math.max(450, pausa - 720));   /* api 3.38.1 */
     setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, pausa);
   }
@@ -854,7 +856,7 @@
   function revisar() {
     if (!V.activo || V.bloqueado) return;
     var quieto = (Date.now() - ultimaActividad()) / 60000;
-    if (quieto >= (AJ.minInactivo || MIN_INACTIVO) && !V.aviso) mostrarAviso();
+    if (quieto >= (AJ.minInactivo || MIN_INACTIVO)) { quitarAviso(); bloquear(false, 'inactividad'); return; }   /* api 3.83e: sin cuenta regresiva */
     if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear();
   }
   function mostrarAviso() {
@@ -874,13 +876,57 @@
   }
   function quitarAviso() { clearInterval(V.tAv); if (V.aviso && V.aviso.parentNode) V.aviso.parentNode.removeChild(V.aviso); V.aviso = null; }
 
-  function bloquear(desdeOtra) {
+  /* ═══ api 3.83e · MÁQUINA BLOQUEADA: sin cuenta regresiva; se bloquea con un mensaje y «Sigo aquí» lleva al PIN ═══
+     Solo lo visual del bloqueo de la web (vigía): el desbloqueo (PIN, esperas, «otra persona», sin señal) NO cambia.
+     Transiciones: al bloquear, la pantalla se abre desde el logo (iris) con tres aros que se cierran sobre él; al desbloquear, el iris se cierra sobre el logo
+     con tres aros que salen, y se descubre la pantalla de debajo tal como estaba. Noche oscura por omisión; colores de tema.css (--tm-*). */
+  var CSS_BQ = '' +
+  '#ent.bq .bq-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}#ent.bq.con-piel canvas.bq-cv{display:block!important}' +
+  '#ent.bq .e-pan,#ent.bq .e-pc,#ent.bq .e-tec{z-index:2}#ent.bq .e-pc-reloj,#ent.bq .e-bienv{z-index:2}#ent.bq .e-bienv{color:#fff;text-shadow:none}#ent.bq:not(.noche) .e-bienv{color:var(--tm-navy2,#14306b)}' +
+  '#ent.bq .e-pc-pin i{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}#ent.bq:not(.noche) .e-pc-pin i{background:#fff;border-color:var(--tm-linea,#e1e6ee)}' +
+  '#ent.bq .e-pc-emb{box-shadow:0 0 0 8px rgba(255,255,255,.06),0 0 0 1px rgba(255,255,255,.14)}' +
+  '#ent.bq .bq-msg{position:absolute;z-index:6;left:50%;transform:translateX(-50%);top:calc(50% + 122px);width:min(420px,88vw);text-align:center;color:var(--tm-noche-tx,#dbe8fb);animation:ebMsg .6s .5s both}' +
+  '#ent.bq:not(.noche) .bq-msg{color:var(--tm-navy2,#14306b)}#ent.bq .bq-msg b{display:block;font-size:20px;font-weight:800;margin-bottom:6px;color:#fff}#ent.bq:not(.noche) .bq-msg b{color:var(--tm-navy2,#14306b)}' +
+  '#ent.bq .bq-msg p{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--tm-noche-tx,#dbe8fb);opacity:.85}#ent.bq:not(.noche) .bq-msg p{color:var(--tm-gris,#667489);opacity:1}' +
+  '#ent.bq .bq-msg button{border:1px solid var(--tm-raya,#88BE47);background:var(--tm-navy2,#14306b);color:#fff;border-radius:999px;padding:13px 34px;font:800 15px Archivo,system-ui,sans-serif;cursor:pointer}' +
+  '#ent.bq.bq-oculta .e-pc-nom,#ent.bq.bq-oculta .e-pc-sub,#ent.bq.bq-oculta .e-pc-fila,#ent.bq.bq-oculta .e-pc-hint,#ent.bq.bq-oculta .e-pc-otro,#ent.bq.bq-oculta .e-pc-msg,#ent.bq.bq-oculta .e-pc-tit,#ent.bq.bq-oculta .e-toca,#ent.bq.bq-oculta .e-tec{visibility:hidden}' +
+  '#ent.bq.bq-entra{animation:ebAbre .95s cubic-bezier(.3,.7,.2,1) both}#ent.bq.bq-sale{animation:ebCierra .85s cubic-bezier(.6,0,.3,1) both;pointer-events:none}' +
+  '@keyframes ebMsg{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes ebAbre{from{clip-path:circle(0% at 50% 46%)}to{clip-path:circle(150% at 50% 46%)}}@keyframes ebCierra{from{clip-path:circle(150% at 50% 46%)}to{clip-path:circle(0% at 50% 46%)}}' +
+  '.eb-ar{position:fixed;z-index:2147483002;border-radius:50%;border:2px solid var(--tm-raya,#88BE47);opacity:0;pointer-events:none}.eb-ar.in{animation:ebAroIn 1s ease-in both}.eb-ar.out{animation:eiR 1s ease-out both}' +
+  '@keyframes ebAroIn{0%{opacity:0;transform:scale(3.2)}35%{opacity:.8}100%{opacity:0;transform:scale(1)}}' +
+  '@media (prefers-reduced-motion:reduce){#ent.bq.bq-entra,#ent.bq.bq-sale{animation:none}.eb-ar{display:none}#ent.bq .bq-msg{animation:none}}';
+
+  /* tres aros alrededor del logo: hacia adentro al bloquear (in), hacia afuera al desbloquear (out) */
+  function aros(sentido) {
+    if (!E) return; var em = E.q(E.d.classList.contains('ancho') ? '.e-pc-emb' : '.e-esc'); if (!em) return; var r = em.getBoundingClientRect(); if (!r.width) return;
+    for (var i = 0; i < 3; i++) { var a = document.createElement('span'); a.className = 'eb-ar ' + sentido; a.style.cssText = 'left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;animation-delay:' + (i * .22).toFixed(2) + 's';
+      document.body.appendChild(a); (function (x) { setTimeout(function () { if (x.parentNode) x.parentNode.removeChild(x); }, 2000); })(a); }
+  }
+  /* la pantalla bloqueada: Noche oscura, burbujas, iris; si se bloqueó por inactividad, un mensaje antes del PIN */
+  function bloqueoPiel() {
+    if (!E || !E.op.bloqueo || E.bq) return; E.bq = true; var d = E.d, noche = piel() === 'noche';
+    d.classList.add('con-piel', 'bq', 'bq-entra'); if (noche) d.classList.add('noche');
+    var cv = document.createElement('canvas'); cv.className = 'bq-cv'; d.insertBefore(cv, d.firstChild); try { burbujas(cv, noche); } catch (e) {}
+    setTimeout(function () { aros('in'); }, 30);
+    if (E.op.motivo === 'inactividad' || E.op.motivo === 'otra') {
+      var m = document.createElement('div'); m.className = 'bq-msg';
+      m.innerHTML = '<b>Pantalla bloqueada</b><p>Por seguridad la bloqueamos porque no se usó en un rato. Lo que tenía abierto se queda como está.</p><button type="button" class="bq-sigo">Sigo aquí</button>';
+      d.appendChild(m); d.classList.add('bq-oculta'); E.msg = m;
+      m.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); if (!E || E.msg !== m) return; E.msg = null; m.parentNode && m.parentNode.removeChild(m); d.classList.remove('bq-oculta'); if (!d.classList.contains('ancho')) abrir(); });
+    }
+  }
+  /* al acertar el PIN: el iris se cierra sobre el logo con los aros saliendo y se descubre lo que estaba debajo */
+  function cierraBloqueo() {
+    if (!E) return; var d = E.d; setTimeout(function () { if (!E || E.d !== d) return; aros('out'); d.classList.remove('bq-entra'); d.classList.add('bq-sale'); }, 450);
+  }
+
+  function bloquear(desdeOtra, motivo) {
     if (V.bloqueado) return;
     V.bloqueado = true;
     lsSet(K_BLOQ, '1'); lsDel(K_PIN);                   /* sin PIN guardado: nadie entra sin escribirlo */
     /* api 3.7: se recuerda de quién era, para que una recarga no lo olvide */
     if (V.nombre) lsSet(K_BNOM, V.nombre); else V.nombre = lsGet(K_BNOM) || '';
-    montar({ bloqueo: true, nombre: V.nombre,
+    montar({ bloqueo: true, motivo: motivo, nombre: V.nombre,
       validar: function (p, fin) {
         var sinRed = !window.google || !google.script || !google.script.run;
         /* sin señal, el mismo PIN abre (como antes); con señal se pregunta al
