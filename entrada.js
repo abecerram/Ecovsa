@@ -359,7 +359,7 @@
   /* ═══ api 3.83d · la INTRO de la entrada del lobby (la misma del portal de clientes) y la transición inmediata al lobby ═══
      Solo lo visual: la validación del PIN, los bloqueos, la huella y el vigía NO cambian. Se pide con montar({ intro: true }) (solo el lobby);
      la pantalla de «sesión bloqueada» y la entrada del conductor siguen como estaban.
-     Piel: Mañana clara por omisión; Noche oscura solo si está elegida (AJ.piel o eco_piel = 'noche').
+     Piel: Noche oscura por omisión (pedido de Álvaro, 30 oct); Mañana clara cuando se elija (AJ.piel o eco_piel = 'clara').
      Colores: variables de tema.css (--tm-*); lo que va después de la coma es el mismo valor, por si una página no carga el tema. */
   var CSS_INTRO = '' +
   '#ent.con-piel{background:radial-gradient(ellipse at 15% 0%,var(--tm-cielo,#e3f1ff) 0,rgba(227,241,255,0) 55%),radial-gradient(ellipse at 90% 100%,var(--tm-menta,#dcf3e2) 0,rgba(220,243,226,0) 55%),var(--tm-papel,#f7fafc);color:var(--tm-navy2,#14306b)}' +
@@ -391,7 +391,7 @@
   '.ei-cae .ban,.ei-cae .box,.ei-cae .m,.ei-cae .adm{animation:eiUp .7s both}.ei-cae .m:nth-child(2){animation-delay:.08s}.ei-cae .m:nth-child(3){animation-delay:.16s}.ei-cae .m:nth-child(4){animation-delay:.24s}.ei-cae .m:nth-child(5){animation-delay:.32s}.ei-cae .m:nth-child(6){animation-delay:.4s}.ei-cae .box:nth-child(2){animation-delay:.2s}' +
   '@media (prefers-reduced-motion:reduce){#ei .r,#ei .pt,#et .r{display:none}#ei .wm,#ei .lema,#ei .bt{animation:none;opacity:1;clip-path:none;letter-spacing:3px;transform:none}#et h1,#et p{animation:none}.ei-cae *{animation:none!important}}';
 
-  function piel() { var v = ''; try { v = String(AJ.piel || lsGet('eco_piel') || ''); } catch (e) {} return v === 'noche' ? 'noche' : 'clara'; }
+  function piel() { var v = ''; try { v = String(AJ.piel || lsGet('eco_piel') || ''); } catch (e) {} return v === 'clara' ? 'clara' : 'noche'; }   /* 30 oct, Álvaro: Noche oscura ACTIVA; Mañana clara solo cuando se lance (AJ.piel o eco_piel = 'clara') */
   function cargarLogo(fin) {
     if (window.ECOCARGA && window.ECOCARGA.logo) { fin(); return; }
     var s = document.createElement('script'); s.src = BASE + 'cargador.js'; s.setAttribute('data-solo', ''); s.setAttribute('data-manual', '');
