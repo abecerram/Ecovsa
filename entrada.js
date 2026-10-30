@@ -223,7 +223,7 @@
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
   function ponerCss() {
-    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS; document.head.appendChild(st); }
+    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO; document.head.appendChild(st); }
     if (!document.querySelector('link[href*="family=Archivo"]')) {
       var l = document.createElement('link'); l.rel = 'stylesheet';
       l.href = 'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&display=swap';
@@ -320,6 +320,7 @@
     q('.e-teclas').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-teclas').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     E.onKey = function (e) { if (!E || !$('ent')) return;
+      if (E.intro) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); var b0 = E.intro.querySelector('.ei-bt'); if (b0) b0.click(); } return; }   /* api 3.83d: durante la intro solo el botón */
       if (e.target && e.target.tagName === 'INPUT') return;   /* escribiendo el nombre en «¿Olvidaste tu PIN?» */
       if (/^[0-9]$/.test(e.key)) { abrir(); tecla(e.key); e.preventDefault(); }
       else if (e.key === 'Backspace') { tecla('⌫'); e.preventDefault(); }
@@ -352,10 +353,112 @@
     document.addEventListener('visibilitychange', E.onVis);
     cuadro();
     if (op.abierto) setTimeout(abrir, 300);
+    intro();   /* api 3.83d: la intro del lobby (solo si el lobby la pide con intro:true) */
+  }
+
+  /* ═══ api 3.83d · la INTRO de la entrada del lobby (la misma del portal de clientes) y la transición inmediata al lobby ═══
+     Solo lo visual: la validación del PIN, los bloqueos, la huella y el vigía NO cambian. Se pide con montar({ intro: true }) (solo el lobby);
+     la pantalla de «sesión bloqueada» y la entrada del conductor siguen como estaban.
+     Piel: Mañana clara por omisión; Noche oscura solo si está elegida (AJ.piel o eco_piel = 'noche').
+     Colores: variables de tema.css (--tm-*); lo que va después de la coma es el mismo valor, por si una página no carga el tema. */
+  var CSS_INTRO = '' +
+  '#ent.con-piel{background:radial-gradient(ellipse at 15% 0%,var(--tm-cielo,#e3f1ff) 0,rgba(227,241,255,0) 55%),radial-gradient(ellipse at 90% 100%,var(--tm-menta,#dcf3e2) 0,rgba(220,243,226,0) 55%),var(--tm-papel,#f7fafc);color:var(--tm-navy2,#14306b)}' +
+  '#ent.con-piel.noche{background:linear-gradient(180deg,var(--tm-noche-a,#0c2146) 0%,var(--tm-noche-b,#08172f) 100%);color:var(--tm-noche-tx,#dbe8fb)}' +
+  '#ent.con-piel .e-fondo,#ent.con-piel canvas,#ent.con-piel .e-au{display:none!important}#ent.con-piel .e-portal{display:none!important}' +
+  '#ent.con-piel .e-marca img,#ent.con-piel .e-pc-wm{content:url(ecovsa-letras-azul.png);filter:none!important}#ent.con-piel.noche .e-marca img,#ent.con-piel.noche .e-pc-wm{content:url(ecovsa-letras.png)}#ent.con-piel .e-brillo{display:none}' +
+  '#ent.con-piel .e-lema,#ent.con-piel .e-pc-so{color:var(--tm-verde,#2F6B0A)!important;text-shadow:none!important}#ent.con-piel.noche .e-lema,#ent.con-piel.noche .e-pc-so{color:var(--tm-verde-marca,#8fd46a)!important}' +
+  '#ent.con-piel .e-reloj,#ent.con-piel .e-fecha,#ent.con-piel .e-pc-reloj,#ent.con-piel .e-pc-hint,#ent.con-piel .e-pc-hint button,#ent.con-piel .e-toca,#ent.con-piel .e-tt,#ent.con-piel .e-pc-tit{color:inherit!important;text-shadow:none!important}' +
+  '#ent.con-piel .e-pc-pin i{background:#fff;border-color:var(--tm-linea,#e1e6ee)}#ent.con-piel.noche .e-pc-pin i{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}#ent.con-piel .e-pc-pin i.on::after{background:var(--tm-navy2,#14306b)}#ent.con-piel.noche .e-pc-pin i.on::after{background:#fff}' +
+  '#ei{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;transition:opacity .7s ease;' +
+    'background:radial-gradient(ellipse at 15% 0%,var(--tm-cielo,#e3f1ff) 0,rgba(227,241,255,0) 55%),radial-gradient(ellipse at 90% 100%,var(--tm-menta,#dcf3e2) 0,rgba(220,243,226,0) 55%),var(--tm-papel,#f7fafc)}' +
+  '#ei.noche{background:linear-gradient(180deg,var(--tm-noche-a,#0c2146) 0%,var(--tm-noche-b,#08172f) 100%)}#ei.fuera{opacity:0;pointer-events:none}#ei canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}' +
+  '#ei .im{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center}#ei .em{position:relative;width:116px;height:116px;transform:scale(1.28);margin-bottom:44px}' +
+  '#ei .em .eco-lg{box-shadow:0 0 0 8px #fff,0 0 0 9px var(--tm-linea,#e1e6ee),0 18px 40px rgba(15,42,87,.12)}#ei.noche .em .eco-lg{box-shadow:0 0 0 8px rgba(255,255,255,.06),0 0 0 9px rgba(255,255,255,.14)}' +
+  '#ei .r{position:absolute;inset:0;border-radius:50%;border:2px solid var(--tm-ok,#2f9e44);opacity:0;animation:eiR 1.2s ease-out both}#ei.noche .r{border-color:var(--tm-raya,#88BE47)}' +
+  '#ei .pt{position:absolute;left:50%;top:50%;margin:-3px 0 0 -3px;border-radius:50%;opacity:0;animation:eiP 1.1s 1.7s cubic-bezier(.1,.7,.3,1) both}' +
+  '#ei .wm{display:block;width:150px;clip-path:inset(0 100% 0 0);animation:eiW 1s 2.05s cubic-bezier(.2,.7,.2,1) forwards}' +
+  '#ei .lema{font-size:12px;letter-spacing:11px;text-transform:uppercase;font-weight:800;color:var(--tm-verde,#2F6B0A);opacity:0;margin-top:8px;animation:eiL 1.1s 2.7s ease forwards}#ei.noche .lema{color:var(--tm-verde-marca,#8fd46a)}' +
+  '#ei .bt{margin-top:26px;border:0;cursor:pointer;color:#fff;background:var(--tm-navy2,#14306b);border-radius:999px;padding:14px 32px;font:800 15px Archivo,system-ui,sans-serif;opacity:0;transform:translateY(16px);animation:eiB .9s 3.5s cubic-bezier(.2,.8,.2,1) forwards}#ei.noche .bt{border:1px solid var(--tm-raya,#88BE47)}' +
+  '@keyframes eiR{0%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(2.9)}}@keyframes eiP{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}' +
+  '@keyframes eiW{to{clip-path:inset(0 0 0 0)}}@keyframes eiL{to{opacity:1;letter-spacing:3px}}@keyframes eiB{to{opacity:1;transform:none}}@keyframes eiIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes eiUp{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}' +
+  /* la transición después de la clave: el saludo y el logo que viaja a su lugar en la barra */
+  '#et{position:fixed;inset:0;z-index:2147483001;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Archivo,system-ui,sans-serif;transition:opacity .6s ease;' +
+    'background:radial-gradient(ellipse at 15% 0%,var(--tm-cielo,#e3f1ff) 0,rgba(227,241,255,0) 55%),radial-gradient(ellipse at 90% 100%,var(--tm-menta,#dcf3e2) 0,rgba(220,243,226,0) 55%),var(--tm-papel,#f7fafc)}' +
+  '#et.noche{background:linear-gradient(180deg,var(--tm-noche-a,#0c2146) 0%,var(--tm-noche-b,#08172f) 100%)}#et.fuera{opacity:0;pointer-events:none}' +
+  '#et .em{position:relative;width:150px;height:150px;transition:transform .9s cubic-bezier(.3,.8,.3,1)}#et .em .d{position:absolute;inset:0;border-radius:50%;background:#fff;box-shadow:0 0 0 8px #fff,0 0 0 9px var(--tm-linea,#e1e6ee)}#et.noche .em .d{box-shadow:0 0 0 8px rgba(255,255,255,.06),0 0 0 9px rgba(255,255,255,.14)}' +
+  '#et .em img{position:absolute;inset:14%;width:72%;height:72%;object-fit:contain}#et .r{position:absolute;inset:0;border-radius:50%;border:2px solid var(--tm-ok,#2f9e44);opacity:0;animation:eiR 1.1s ease-out both}#et.noche .r{border-color:var(--tm-raya,#88BE47)}' +
+  '#et h1{margin:26px 0 4px;font-size:30px;font-weight:800;color:var(--tm-navy2,#14306b);animation:eiIn .5s .1s both;transition:opacity .3s}#et.noche h1{color:#fff}#et p{margin:0;font-size:12.5px;letter-spacing:3px;font-weight:800;color:var(--tm-verde,#2F6B0A);animation:eiIn .5s .3s both;transition:opacity .3s}#et.noche p{color:var(--tm-verde-marca,#8fd46a)}' +
+  '.ei-cae .ban,.ei-cae .box,.ei-cae .m,.ei-cae .adm{animation:eiUp .7s both}.ei-cae .m:nth-child(2){animation-delay:.08s}.ei-cae .m:nth-child(3){animation-delay:.16s}.ei-cae .m:nth-child(4){animation-delay:.24s}.ei-cae .m:nth-child(5){animation-delay:.32s}.ei-cae .m:nth-child(6){animation-delay:.4s}.ei-cae .box:nth-child(2){animation-delay:.2s}' +
+  '@media (prefers-reduced-motion:reduce){#ei .r,#ei .pt,#et .r{display:none}#ei .wm,#ei .lema,#ei .bt{animation:none;opacity:1;clip-path:none;letter-spacing:3px;transform:none}#et h1,#et p{animation:none}.ei-cae *{animation:none!important}}';
+
+  function piel() { var v = ''; try { v = String(AJ.piel || lsGet('eco_piel') || ''); } catch (e) {} return v === 'noche' ? 'noche' : 'clara'; }
+  function cargarLogo(fin) {
+    if (window.ECOCARGA && window.ECOCARGA.logo) { fin(); return; }
+    var s = document.createElement('script'); s.src = BASE + 'cargador.js'; s.setAttribute('data-solo', ''); s.setAttribute('data-manual', '');
+    s.onload = fin; document.head.appendChild(s);   /* si no carga, simplemente no hay intro: la entrada de siempre */
+  }
+  /* burbujas de la escena (las mismas del portal); en la noche, más claras para que se vean */
+  function burbujas(c, noche) {
+    var anim = 0, quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    var x = c.getContext('2d'), L = [], W, H, dpr = Math.min(2, window.devicePixelRatio || 1);
+    function talla() { W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    function nueva(y) { return { x: Math.random() * W, y: y == null ? H + 10 : y, r: (noche ? 2.5 : 2) + Math.random() * (noche ? 5.5 : 5), v: .22 + Math.random() * .35, o: .25 + Math.random() * .6, f: Math.random() * 6.28, s: .3 + Math.random() * .6, g: Math.random() < .4 }; }
+    talla(); addEventListener('resize', talla);
+    for (var i = 0; i < 34; i++) L.push(nueva(Math.random() * H));
+    (function paso() {
+      if (!c.isConnected) { removeEventListener('resize', talla); return; }
+      x.clearRect(0, 0, W, H);
+      L.forEach(function (p, i) { if (!quieto) { p.y -= p.v; p.f += .01 * p.s; } var px = p.x + Math.sin(p.f) * 14, o = p.o * Math.min(1, p.y / (H * .25));
+        x.fillStyle = noche ? (p.g ? 'rgba(143,212,106,' : 'rgba(150,190,255,') + Math.min(1, o * .75) + ')' : (p.g ? 'rgba(47,158,68,' : 'rgba(59,111,212,') + (o * .22) + ')';
+        x.beginPath(); x.arc(px, p.y, p.r, 0, 6.28); x.fill(); if (p.y < -20) L[i] = nueva(); });
+      if (!quieto) anim = requestAnimationFrame(paso);
+    })();
+  }
+  function intro() {
+    if (!E || !E.op.intro || E.op.bloqueo || E.introVisto) return;
+    E.introVisto = true; var d = E.d, noche = piel() === 'noche';
+    cargarLogo(function () {
+      if (!E || E.d !== d || !window.ECOCARGA || !ECOCARGA.logo) return;
+      var z = document.createElement('div'); z.id = 'ei'; z.className = noche ? 'noche' : ''; z.setAttribute('role', 'dialog'); z.setAttribute('aria-label', 'Bienvenida ECOVSA');
+      var cv = document.createElement('canvas'); z.appendChild(cv);
+      var h = '<div class="im"><div class="em">' + ECOCARGA.logo(116, { arma: true });
+      for (var a = 0; a < 3; a++) h += '<span class="r" style="animation-delay:' + (1.15 + a * .32).toFixed(2) + 's"></span>';
+      for (var k = 0; k < 26; k++) { var ang = k / 26 * 6.2832 + Math.random() * .3, dd = 90 + Math.random() * 95, c = k % 3 === 0 ? '#3b6fd4' : k % 3 === 1 ? '#2f9e44' : '#8fd46a', t = 3 + Math.random() * 5;
+        h += '<span class="pt" style="--dx:' + Math.round(Math.cos(ang) * dd) + 'px;--dy:' + Math.round(Math.sin(ang) * dd) + 'px;width:' + t + 'px;height:' + t + 'px;background:' + c + '"></span>'; }
+      h += '</div><img class="wm" src="' + BASE + (noche ? 'ecovsa-letras.png' : 'ecovsa-letras-azul.png') + '" alt="ECOVSA"><div class="lema">Ecología · Vida · Salud</div><button class="bt ei-bt" type="button">Entrar al sistema</button></div>';
+      z.innerHTML = h; document.body.appendChild(z); d.classList.add('con-piel'); if (noche) d.classList.add('noche');
+      try { burbujas(cv, noche); } catch (e) {}
+      var lg = z.querySelector('.eco-lg'); setTimeout(function () { if (lg && lg.isConnected) { lg.classList.remove('arma', 'gira'); lg.classList.add('lento', 'respira'); } }, 1750);
+      E.intro = z;
+      var seguir = function () { if (!E || E.intro !== z) return; E.intro = null; z.classList.add('fuera'); setTimeout(function () { if (z.parentNode) z.parentNode.removeChild(z); }, 750); if (!d.classList.contains('ancho')) abrir(); };
+      z.querySelector('.ei-bt').addEventListener('click', seguir);
+    });
+  }
+  /* después de la clave: sin esperas; el saludo y el logo viaja a la barra del lobby mientras el lobby se descubre */
+  function trans(r) {
+    var noche = piel() === 'noche', nom = String((r && r.nombre) || '').trim().split(' ')[0], hh = new Date().getHours(), sal = hh < 12 ? 'Buenos días' : hh < 19 ? 'Buenas tardes' : 'Buenas noches';
+    var z = document.createElement('div'); z.id = 'et'; z.className = noche ? 'noche' : '';
+    z.innerHTML = '<div class="em"><span class="r"></span><span class="r" style="animation-delay:.3s"></span><span class="r" style="animation-delay:.6s"></span><div class="d"></div>' +
+      '<img src="' + BASE + 'entrada-globo.png" alt=""><img src="' + BASE + 'entrada-bio.png" alt=""><img src="' + BASE + 'entrada-flecha-a.png" alt=""><img src="' + BASE + 'entrada-flecha-b.png" alt=""></div>' +
+      '<h1>' + esc(sal + (nom ? ', ' + nom : '')) + '</h1><p>ECOLOGÍA · VIDA · SALUD</p>';
+    document.body.appendChild(z);
+    var t0 = Date.now(), fin = function () { if (z.parentNode) z.parentNode.removeChild(z); document.querySelectorAll('.ei-cae').forEach(function (e) { e.classList.remove('ei-cae'); }); };
+    var vuela = function (l) {
+      var em = z.querySelector('.em');
+      if (l) { var a = l.getBoundingClientRect(), b = em.getBoundingClientRect(); em.style.transform = 'translate(' + (a.left + a.width / 2 - b.left - b.width / 2) + 'px,' + (a.top + a.height / 2 - b.top - b.height / 2) + 'px) scale(' + (a.width / b.width) + ')'; }
+      z.querySelector('h1').style.opacity = 0; z.querySelector('p').style.opacity = 0;
+      var t = document.getElementById('tablero'); if (t) t.classList.add('ei-cae');
+      setTimeout(function () { z.classList.add('fuera'); }, 350); setTimeout(fin, 1300);
+    };
+    var poll = setInterval(function () {
+      var l = document.querySelector('.lb .lg, .sysbar .lg'), listo = l && l.offsetWidth && Date.now() - t0 > 900;
+      if (listo) { clearInterval(poll); vuela(l); } else if (Date.now() - t0 > 4500) { clearInterval(poll); vuela(null); }
+    }, 60);
   }
 
   function desmontar() {
     if (!E) return;
+    if (E.intro && E.intro.parentNode) E.intro.parentNode.removeChild(E.intro);
     E.t.forEach(clearInterval); cancelAnimationFrame(E.raf); E.raf = 0;
     removeEventListener('resize', E.onRes); document.removeEventListener('keydown', E.onKey, true);
     document.removeEventListener('visibilitychange', E.onVis);
@@ -524,14 +627,15 @@
     E.q('.e-bienv b').textContent = (E.op.bloqueo && r.mismo ? 'Hola de nuevo' : 'Bienvenido') + (nom ? ', ' + nom : '');
     E.q('.e-bienv span').textContent = r.texto || (E.op.bloqueo ? 'Sigues donde quedaste' : 'Abriendo tus módulos…');
     setTimeout(function () { if (!E) return; E.d.classList.remove('abierto'); E.d.classList.add('entrando'); E.q('.e-bienv').classList.add('si'); }, 400);
-    var pausa = r.pausa || 1500;
+    var conTrans = E.d.classList.contains('con-piel'); if (conTrans) { E.trans = true; trans(r); }   /* api 3.83d */
+    var pausa = conTrans ? Math.min(r.pausa || 1500, 800) : (r.pausa || 1500);
     setTimeout(portal, Math.max(450, pausa - 720));   /* api 3.38.1 */
     setTimeout(function () { if (E && E.op.alEntrar) E.op.alEntrar(r); }, pausa);
   }
 
   /* ═══ api 3.38.1 · el círculo de luz y la huella ═══ */
   function portal() {
-    if (!E) return; var quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
+    if (!E || E.trans) return; var quieto = false; try { quieto = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
     if (quieto) return;
     var em = E.q(E.d.classList.contains('ancho') ? '.e-pc-emb' : '.e-esc') || E.d, rc = em.getBoundingClientRect(), p = document.createElement('i');
     p.className = 'e-portal'; p.style.left = (rc.left + rc.width / 2) + 'px'; p.style.top = (rc.top + rc.height / 2) + 'px'; E.d.appendChild(p);
