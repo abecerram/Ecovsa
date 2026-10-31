@@ -23485,8 +23485,9 @@ function numeroHablado(v){
   var AW = { t: 0 };
   function despierta_(si){
     try{
-      if(si){ if(window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(true); clearTimeout(AW.t); AW.t = setTimeout(function(){ despierta_(false); }, 15 * 60 * 1000); }
-      else { clearTimeout(AW.t); var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav && !jornadaViva_() && window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(false); }
+      /* 1.6.22: se avisa a la app como mucho cada 20 s (antes en cada tecla: cada aviso cruza al hilo de la pantalla) */
+      if(si){ var ya = Date.now(); if(ya - (AW.u || 0) > 20000){ AW.u = ya; if(window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(true); } clearTimeout(AW.t); AW.t = setTimeout(function(){ AW.u = 0; despierta_(false); }, 15 * 60 * 1000); }
+      else { clearTimeout(AW.t); AW.u = 0; var nav = window.NV37 && typeof NV37.abierta === "function" && NV37.abierta(); if(!nav && !jornadaViva_() && window.EcovsaApp && typeof EcovsaApp.pantalla === "function") EcovsaApp.pantalla(false); }
     }catch(e){}
   }
 
