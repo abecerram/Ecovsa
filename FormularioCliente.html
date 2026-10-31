@@ -501,7 +501,7 @@ function salir(){
       if (t.listo) t.listo(false);
       salir();
     })
-    .api_crmFormularioBorrador(TOKEN, t.d, t.paso);
+    .api_crmFormularioBorrador(TOKEN, t.d, t.paso, K);   /* 3.89: con la llave del enlace */
 }
 function marcaGuardado(t){
   var el = $('guardado'); if (!el) return;
@@ -892,7 +892,7 @@ function enviar(){
         if (/cola/i.test(m)) return enCola();
         falloEnvio('No pudimos enviar sus datos (revise la señal). Lo que lleva está guardado; intente de nuevo.');
       })
-      .api_guardarDatosFormularioCliente(TOKEN, datosEnvio());
+      .api_guardarDatosFormularioCliente(TOKEN, datosEnvio(), K);   /* 3.89 */
   });
 }
 function falloEnvio(t){
@@ -908,7 +908,7 @@ function enCola(){
   vigilando = setInterval(function () {
     google.script.run.withSuccessHandler(function (r) {
       if (r && !r.ok && r.cerrado) { clearInterval(vigilando); listo(); }
-    }).withFailureHandler(function () {}).api_crmFormulario(TOKEN);
+    }).withFailureHandler(function () {}).api_crmFormulario(TOKEN, K);   /* 3.89 */
   }, 15000);
 }
 

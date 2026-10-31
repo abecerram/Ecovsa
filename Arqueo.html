@@ -76,13 +76,14 @@ function pintar(a, e) {
     '<div class="pie"><span>' + esc(e.razonSocial || '') + ' · RUC ' + esc(e.ruc || '') + (e.dv ? ' DV ' + esc(e.dv) : '') + '</span><span>' + esc(e.formulario || 'F-ADM-02') + ' · Documento generado por el sistema de operaciones de ECOVSA</span></div></div>';
 }
 (function () {
-  var q = location.search || '', m = q.match(/[?&](?:caja|cod|id)=([^&]+)/);
+  var q = location.search || '', m = q.match(/[?&](?:caja|cod|id)=([^&]+)/), km = q.match(/[?&]k=([^&]+)/), pinG = '';   /* 3.89: la llave del enlace o el PIN de la sesión */
+  try { var pv = localStorage.getItem('ecovsa_pin'); if (pv) pinG = JSON.parse(pv) || ''; } catch (e) { pinG = ''; }
   var falla = function (t) { document.getElementById('app').innerHTML = '<div class="estado"><b>No se pudo abrir el arqueo</b>' + esc(t) + '</div>'; };
   if (!m) { falla('El enlace no trae el número de la caja.'); return; }
   google.script.run.withSuccessHandler(function (r) {
     if (!r || !r.ok) { falla((r && r.error) || 'No encontré ese arqueo.'); return; }
     pintar(r.arqueo, r.empresa || {});
-  }).withFailureHandler(function () { falla('Sin conexión. Intente de nuevo.'); }).api_arqueo(decodeURIComponent(m[1]));
+  }).withFailureHandler(function () { falla('Sin conexión. Intente de nuevo.'); }).api_arqueo(decodeURIComponent(m[1]), km ? decodeURIComponent(km[1]) : '', pinG);
 })();
 </script>
 </body>
