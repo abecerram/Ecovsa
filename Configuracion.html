@@ -37,6 +37,18 @@
 .pinbox small{display:block;font-size:12px;color:var(--muted)}
 .pinbox.nuevo{background:#fffaf0;border:2px solid var(--amber)}
 .pinbox.nuevo .d{font-size:34px;color:var(--navy)}
+/* estilo-391 · usuario y contraseña (colores con las variables del tema; la piel no cambia el contenido) */
+.usr391{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--line2);border-radius:5px;padding:1px 6px;color:var(--navy);display:inline!important}
+.usr391.g{font-size:20px;font-weight:800;padding:4px 12px;letter-spacing:.5px;user-select:all}.usr391.g.clave{font-size:26px;letter-spacing:2px;background:var(--tm-tarjeta,#fff)}
+.ac391{display:inline-block;font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px}
+.ac391.ok{background:var(--tm-ok-bg,var(--ok-bg));color:var(--tm-ok,#276b33)}.ac391.am{background:var(--tm-warn-bg,#fff4d6);color:var(--tm-warn-tx,#8a6300)}.ac391.mal{background:var(--tm-bad-bg,#fde8e8);color:var(--tm-bad,#a8262b)}
+.ulist .nm .d391{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ulist .nm .l391{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px}
+.tr391{margin-bottom:12px}.tr391 .tr-t > b{display:block;font-size:14px;margin-bottom:2px}.tr391 .tr-t span{font-size:13px;color:var(--muted)}
+.tr391 .tr-b{display:flex;align-items:center;gap:12px;margin-top:10px}.tr391 .bar{flex:1;height:8px;border-radius:8px;background:var(--line2);overflow:hidden}.tr391 .bar i{display:block;height:100%;background:var(--tm-ok,#2e9b47);border-radius:8px;transition:width .4s ease}
+.tr391 small{font-size:12px;color:var(--muted);white-space:nowrap}
+.aviso.rj{background:var(--tm-bad-bg,#fde8e8);color:var(--tm-bad,#8f1f23);border-color:color-mix(in srgb,var(--tm-bad,#a8262b) 30%,transparent)}
+.cp391{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+@media (prefers-reduced-motion:reduce){.tr391 .bar i{transition:none}}
 .pasa{display:flex;flex-direction:column;gap:8px;font-size:13px}
 .pasa div{display:flex;gap:8px;align-items:flex-start}
 .pasa svg.i{width:16px;height:16px;margin-top:2px;color:var(--ok)}
@@ -387,17 +399,20 @@ function vUsuarios() {
   var act = reales.filter(function (u) { return u.activo; });
   var admins = act.filter(function (u) { return u.rol === 'admin'; });
   var sinCo = act.filter(function (u) { return !u.correo; });
+  var sinCl = act.filter(function (u) { return !u.tieneClave || u.claveTemp; });
+  if (!ASIG391 && act.some(function (u) { return !u.usuario; })) { ASIG391 = true; MK.api('api_cfgAccesoUsuarios', PIN).then(function () { recargar(); }); }
   var largo = SEGU.largoPin || 4;
   var viejos = act.filter(function (u) { return (u.largoPin || 4) < largo; });
   var lista = U.filter(function (u) { return (MOSTRAR_PRUEBA || !u.prueba) && (FILTRO === 'todos' || (FILTRO === 'act' ? u.activo : !u.activo)); });
-  var h = MK.cabeza('Usuarios', 'Quién puede entrar al sistema y a qué. Nadie se borra: al darlo de baja, su PIN deja de servir y su nombre queda en lo que hizo.',
+  var h = MK.cabeza('Usuarios', 'Quién puede entrar al sistema y a qué. Nadie se borra: al darlo de baja, su acceso deja de servir y su nombre queda en lo que hizo.',
     '<button class="btn pri" onclick="altaUsuario()">' + MK.ic('alta', 16) + 'Dar de alta un usuario</button>');
   h += MK.kpis([
     { e: 'Activos', v: act.length, s: 'pueden entrar hoy' },
     { e: 'De baja', v: reales.length - act.length, s: reales.length - act.length ? 'su historia se conserva' : 'ninguno todavía' },
     { e: 'Administradores', v: admins.length, s: admins.length < 2 ? 'conviene tener uno de respaldo' : 'con respaldo', c: admins.length < 2 ? 'warn' : '' },
-    { e: 'Sin correo', v: sinCo.length, s: sinCo.length ? sinCo.map(function (u) { return u.nombre; }).join(' · ') : 'todos tienen', c: sinCo.length ? 'warn' : '' }
+    { e: 'Sin contraseña', v: sinCl.length, s: sinCl.length ? 'todavía entran con su PIN' : 'todos ya tienen', c: sinCl.length ? 'warn' : '' }
   ]);
+  h += tr391(act);
   if (viejos.length) h += '<div class="aviso am" style="margin-bottom:12px">' + viejos.length + ' usuario(s) siguen con PIN de 4 números. Les sirve hasta que les generes uno nuevo de ' + largo + '.</div>';
   h += '<div class="card"><div class="fila" style="justify-content:space-between;margin-bottom:6px">' +
     MK.chips([['act', 'Activos', act.length], ['baja', 'De baja', reales.length - act.length], ['todos', 'Todos']], FILTRO, 'filtroU') +
@@ -406,23 +421,127 @@ function vUsuarios() {
       var c = COLOR_ROL[u.rol] || '#5b6880';
       var soloAdmin = u.rol === 'admin' && u.activo && admins.length < 2 && !u.prueba;
       var acc = u.activo
-        ? '<button class="btn sm" onclick="editarUsuario(' + u.i + ')">' + MK.ic('lapiz', 15) + 'Editar</button><button class="btn sm" onclick="nuevoPin(' + u.i + ')">' + MK.ic('llave', 15) + 'PIN temporal</button>' +
+        ? '<button class="btn sm" onclick="editarUsuario(' + u.i + ')">' + MK.ic('lapiz', 15) + 'Editar</button><button class="btn sm" onclick="claveTemp(' + u.i + ')">' + MK.ic('llave', 15) + 'Contraseña temporal</button>' +
+          (u.bloqueadoMin > 0 ? '<button class="btn sm pri" onclick="desbloquear391(' + u.i + ')">' + MK.ic('candado', 15) + 'Desbloquear</button>' : '') +
           (u.yo || soloAdmin ? '' : '<button class="btn sm bad" onclick="bajaUsuario(' + u.i + ')">' + MK.ic('baja', 15) + 'Dar de baja</button>')
         : '<button class="btn sm" onclick="reactivar(' + u.i + ')">' + MK.ic('alta', 15) + 'Reactivar</button>';
       return '<div class="u ' + (u.activo ? '' : 'baja') + '"><span class="av2" style="background:' + c + '">' + MK.esc(MK.ini(u.nombre)) + '</span>' +
         '<div class="nm"><b>' + MK.esc(u.nombre) + (u.prueba ? ' <span class="tag t-gris">prueba</span>' : '') + (u.yo ? ' <span class="tag t-info">tú</span>' : '') + '</b><span>' +
-        (u.activo ? MK.esc(detRol(u.rol)) : 'De baja desde ' + MK.esc(MK.dmy(u.fechaBaja) || '—') + (u.motivoBaja ? ' · ' + MK.esc(u.motivoBaja) : '')) +
-        ((u.largoPin || 4) < largo && u.activo ? ' · <b style="color:#8a6300;display:inline">PIN de ' + (u.largoPin || 4) + '</b>' : '') +
-        (u.activo && u.pinTemporal ? ' · <b style="color:' + (u.pinVence && u.pinVence < ahoraTxt() ? '#a8262b' : '#8a6300') + ';display:inline">' + (u.pinVence && u.pinVence < ahoraTxt() ? 'PIN temporal vencido' : 'PIN temporal · vence ' + MK.esc(fechaHora(u.pinVence))) + '</b>'
-          : u.activo && u.pinCreadoEn ? ' · creó su PIN el ' + MK.esc(fechaHora(u.pinCreadoEn)) : '') + '</span></div>' +
+        (u.activo ? '<span class="d391">' + MK.esc(detRol(u.rol)) + '</span>' : 'De baja desde ' + MK.esc(MK.dmy(u.fechaBaja) || '—') + (u.motivoBaja ? ' · ' + MK.esc(u.motivoBaja) : '')) +
+        acc391(u, largo) + '</span></div>' +
         '<div class="rolc">' + tagRol(u.rol) + (u.activo && u.prefs && u.rol !== 'operador' ? '<span class="prin">principal: ' + MK.esc(nomPrin(u.prefs.principal)) + '</span>' : '') + (u.rol === 'operador' ? '<span class="prin">' + (u.rubro === 'solidos' ? 'de sólidos' : 'de peligrosos') + '</span>' : '') + '</div>' +
         '<div class="co ' + (u.correo ? '' : 'falta') + '">' + MK.esc(u.correo || 'Sin correo') + (u.telefono ? ' · ' + MK.esc(u.telefono) : '') + '</div>' +
         '<div class="ul"><span class="estu ' + (u.activo ? 'si' : 'no') + '">' + (u.activo ? 'Activo' : 'De baja') + '</span></div>' +
         '<div class="ac">' + acc + '</div></div>';
     }).join('') : MK.vacio('Nadie en esta lista.')) + '</div>' +
-    '<div class="nota">El único administrador no puede darse de baja ni cambiarse de rol: primero hay que dar de alta otro. Los PIN nunca se ven en esta lista; se guardan cifrados.</div></div>';
+    '<div class="nota">El único administrador no puede darse de baja ni cambiarse de rol: primero hay que dar de alta otro. Ni las contraseñas ni los PIN se ven nunca; se guardan cifrados.</div></div>';
   return h;
 }
+/* ═══ api 3.91 · USUARIO Y CONTRASEÑA (Configuración › Usuarios) ═══ */
+var ASIG391 = false;
+function sug391(nombre) {
+  var n = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '').slice(0, 30); };
+  var t = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+  var b = t.length >= 4 ? n(t[0].charAt(0) + t[2]) : t.length >= 2 ? n(t[0].charAt(0) + t[1]) : n(t[0] || '');
+  if (!b) return '';
+  if (b.length < 3) b = (b + 'usuario').slice(0, 12);
+  var usados = {}; (B().usuarios || []).forEach(function (u) { if (u.usuario) usados[u.usuario] = 1; });
+  var u = b, k = 2; while (usados[u]) u = b + (k++);
+  return u;
+}
+function nomUsr391() { var e = document.getElementById('a-usr'); if (e && !e.dataset.ed) e.value = sug391(MK.val('a-nom')); }
+function dmy391(f) { f = String(f || ''); return /^\d{4}-\d{2}-\d{2}/.test(f) ? f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4) : f; }
+/* cómo está su acceso: usuario + una etiqueta de color */
+function acc391(u, largo) {
+  var hoy = ahoraTxt(), x = '';
+  if (!u.activo) return '';
+  if (u.usuario) x += '<span class="usr391" title="Usuario con el que entra">' + MK.esc(u.usuario) + '</span>';
+  if (u.bloqueadoMin > 0) x += '<span class="ac391 mal" title="Muchas contraseñas equivocadas. Su equipo habitual sigue entrando; tú puedes desbloquearlo.">Bloqueado · espera ' + u.bloqueadoMin + ' min</span>';
+  else if (u.claveTemp) x += '<span class="ac391 ' + (u.claveVence && u.claveVence < hoy ? 'mal' : 'am') + '" title="Todavía no creó su contraseña propia.">' + (u.claveVence && u.claveVence < hoy ? 'Temporal vencida' : 'Temporal · vence ' + MK.esc(fechaHora(u.claveVence))) + '</span>';
+  else if (u.tieneClave) x += '<span class="ac391 ok"' + (u.claveCambiadaEn ? ' title="Creó su contraseña el ' + MK.esc(fechaHora(u.claveCambiadaEn)) + '"' : '') + '>Con contraseña</span>';
+  else if (u.pinTemporal) x += '<span class="ac391 am">' + (u.pinVence && u.pinVence < hoy ? 'PIN temporal vencido' : 'PIN temporal · vence ' + MK.esc(fechaHora(u.pinVence))) + '</span>';
+  else x += '<span class="ac391 am" title="Todavía entra con su PIN">Sin contraseña</span>';
+  return '<span class="l391">' + x + '</span>';
+}
+/* tarjeta de la transición: hasta cuándo sirve el PIN */
+function tr391(act) {
+  var B0 = B(), tope = B0.pinHasta || '', hoy = (B0.hoy || '');
+  var con = act.filter(function (u) { return u.tieneClave && !u.claveTemp; }).length, faltan = act.filter(function (u) { return !u.tieneClave || u.claveTemp; });
+  var pct = act.length ? Math.round(con * 100 / act.length) : 0;
+  var cerrado = tope && hoy > tope;
+  var h = '<div class="card tr391"><div class="tr-t"><b>Cómo entra el personal</b><span>' + (cerrado ? 'El PIN ya no sirve: se entra solo con usuario y contraseña.' : tope ? 'El PIN sirve hasta el <b>' + dmy391(tope) + '</b>. Pasada esa fecha, solo usuario y contraseña.' : 'Todos entran hoy con su PIN de siempre. Cada persona crea su usuario y contraseña la primera vez que entra; cuando casi todos la tengan, pon una fecha tope para el PIN.') + '</span></div>' +
+    '<div class="tr-b"><div class="bar"><i style="width:' + pct + '%"></i></div><small><b>' + con + ' de ' + act.length + '</b> ya crearon su contraseña</small></div>';
+  if (tope && faltan.length && !cerrado) h += '<div class="aviso am" style="margin-top:10px"><b>' + faltan.length + ' persona(s) todavía no la crean:</b> ' + faltan.slice(0, 6).map(function (u) { return MK.esc(u.nombre); }).join(' · ') + (faltan.length > 6 ? ' y ' + (faltan.length - 6) + ' más' : '') + '. Si llegan a la fecha sin ella, no entran hasta que les des una contraseña temporal. Tú conservas el PIN hasta crear la tuya.</div>';
+  if (cerrado && faltan.length) h += '<div class="aviso rj" style="margin-top:10px"><b>' + faltan.length + ' persona(s) no pueden entrar:</b> ' + faltan.slice(0, 6).map(function (u) { return MK.esc(u.nombre); }).join(' · ') + '. Dales una contraseña temporal.</div>';
+  h += '<div class="fila" style="gap:8px;margin-top:10px;flex-wrap:wrap">' +
+    (tope ? '<button class="btn sm" onclick="tope391(7)">Cambiar a 7 días</button><button class="btn sm" onclick="tope391(15)">15 días</button><button class="btn sm" onclick="tope391(30)">30 días</button><button class="btn sm bad" onclick="quitarTope391()">Quitar la fecha</button>'
+      : '<button class="btn pri sm" onclick="tope391(15)">' + MK.ic('candado', 15) + 'Poner fecha tope · 15 días</button><button class="btn sm" onclick="tope391(7)">7 días</button><button class="btn sm" onclick="tope391(30)">30 días</button>') + '</div></div>';
+  return h;
+}
+function f391(dias) { var d = new Date(); d.setDate(d.getDate() + dias); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function tope391(dias) {
+  var act = (B().usuarios || []).filter(function (u) { return u.activo && !u.prueba; });
+  var faltan = act.filter(function (u) { return !u.tieneClave || u.claveTemp; });
+  MK.lado('<h2>Fecha tope del PIN: ' + dmy391(f391(dias)) + '</h2><div class="sub">Hasta ese día todos pueden entrar con su PIN. Después, solo con usuario y contraseña.</div>' +
+    (faltan.length ? '<div class="aviso am"><b>' + faltan.length + ' de ' + act.length + ' todavía no crearon su contraseña:</b> ' + faltan.map(function (u) { return MK.esc(u.nombre); }).join(' · ') + '.</div>' : '<div class="aviso vd">Todos ya crearon su contraseña.</div>') +
+    '<div class="card" style="margin-top:14px;padding:12px 14px"><b style="font-size:13px">Qué pasa</b><div class="pasa" style="margin-top:8px">' +
+    '<div>' + MK.ic('check') + '<span>Quien entre con su PIN antes de la fecha verá «Crea tu usuario y contraseña» y, al guardarla, su PIN deja de servir.</span></div>' +
+    '<div>' + MK.ic('candado') + '<span>Tú, como administrador, conservas el PIN hasta crear tu contraseña: nunca te quedas fuera.</span></div>' +
+    '<div>' + MK.ic('alta') + '<span>Puedes quitar o mover la fecha cuando quieras; el PIN vuelve a servir al instante.</span></div></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarTope391(' + dias + ',this)">' + MK.ic('check', 16) + 'Poner la fecha</button></div>');
+}
+function guardarTope391(dias, btn) {
+  MK.ocupado(btn, true);
+  MK.api('api_cfgPinHasta', PIN, { dias: dias }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    MK.cerrarLado(); MK.aviso('Fecha tope: ' + dmy391(r.pinHasta)); recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function quitarTope391() {
+  MK.api('api_cfgPinHasta', PIN, { quitar: true }).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('El PIN vuelve a servir a todos'); recargar(); }, function (e) { MK.aviso(e.message); });
+}
+/* contraseña temporal */
+function claveTemp(i) {
+  var u = usu(i); if (!u) return;
+  MK.lado('<h2>Contraseña temporal para ' + MK.esc(u.nombre) + '</h2><div class="sub">Para cuando la olvidó o pide cambiarla. Con la temporal entra y crea la suya; tú no la vas a conocer.</div>' +
+    (u.yo ? '<div class="aviso am" style="margin-bottom:12px"><b>Es tu propia cuenta.</b> Anótala antes de cerrar el panel: se muestra una sola vez y tu sesión actual se cierra.</div>' : '') +
+    '<div class="pinbox"><span class="usr391 g">' + MK.esc(u.usuario || sug391(u.nombre)) + '</span><div><b style="font-size:13px">10 caracteres · vence en 48 horas · se muestra una sola vez</b><small>Entrégasela en persona o por mensaje directo, nunca en un grupo.</small></div></div>' +
+    '<div class="card" style="margin-top:14px;padding:12px 14px"><b style="font-size:13px">Qué pasa</b><div class="pasa" style="margin-top:8px">' +
+    '<div>' + MK.ic('candado') + '<span>Su contraseña de antes deja de servir y se le cierran las sesiones abiertas.</span></div>' +
+    '<div>' + MK.ic('check') + '<span>Su PIN sigue sirviendo hasta que cree la contraseña nueva; entonces deja de servir.</span></div>' +
+    '<div>' + MK.ic('alta') + '<span>Si falla 10 veces seguidas, ese usuario espera 10 minutos. El equipo donde ya trabaja sigue entrando, y tú lo desbloqueas desde aquí.</span></div></div></div>' +
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarClave(' + i + ',this)">' + MK.ic('llave', 16) + 'Generar contraseña temporal</button></div>');
+}
+function generarClave(i, btn) {
+  var u = usu(i); MK.ocupado(btn, true, 'Generando…');
+  MK.api('api_cfgClaveTemporal', PIN, { i: i, nombre: u.nombre }).then(function (r) {
+    MK.ocupado(btn, false);
+    if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
+    mostrarClave(r.nombre, r.usuario, r.clave, 'Su contraseña anterior ya no sirve.', r.vence); SEGAV = null; recargar();
+  }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
+}
+function mostrarClave(nombre, usuario, clave, texto, vence) {
+  MK.lado('<h2>Contraseña temporal de ' + MK.esc(nombre) + '</h2><div class="sub">' + MK.esc(texto || '') + '</div>' +
+    '<label class="lb">Usuario</label><div class="pinbox"><span class="usr391 g" id="cp-usr">' + MK.esc(usuario) + '</span><button class="btn sm" onclick="copiar391(\'cp-usr\')">Copiar</button></div>' +
+    '<label class="lb">Contraseña temporal</label><div class="pinbox nuevo"><span class="usr391 g clave" id="cp-clave">' + MK.esc(clave) + '</span><div><b style="font-size:13px">Se muestra una sola vez</b><small>Entrégasela en persona o por mensaje directo, nunca en un grupo.' + (vence ? ' Vence el ' + MK.esc(fechaHora(vence)) + '.' : '') + ' Con ella entra y crea la suya.</small><div class="cp391"><button class="btn sm pri" onclick="copiar391(\'cp-clave\')">Copiar contraseña</button></div></div></div>' +
+    '<div class="pie2"><button class="btn pri" onclick="MK.cerrarLado()">' + MK.ic('check', 16) + 'Ya la anoté</button></div>');
+}
+function copiar391(id) {
+  var e = document.getElementById(id); if (!e) return; var tx = e.textContent;
+  var listo = function () { MK.aviso('Copiado'); };
+  try { navigator.clipboard.writeText(tx).then(listo, function () { sel391(e); }); } catch (x) { sel391(e); }
+}
+function sel391(e) { try { var r = document.createRange(); r.selectNodeContents(e); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); MK.aviso('Copiado'); } catch (x) { MK.aviso('Selecciónalo y cópialo'); } }
+function desbloquear391(i) {
+  var u = usu(i); if (!u) return;
+  MK.api('api_cfgDesbloquearUsuario', PIN, { usuario: u.usuario }).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso(u.nombre + ' desbloqueado'); recargar(); }, function (e) { MK.aviso(e.message); });
+}
+function cerrarSes391(i) {
+  var u = usu(i); if (!u) return;
+  MK.api('api_cfgCerrarSesionDe', PIN, { i: i, nombre: u.nombre }).then(function (r) { if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; } MK.aviso('Sesiones de ' + u.nombre + ' cerradas'); recargar(); }, function (e) { MK.aviso(e.message); });
+}
+
 function filtroU(f) { FILTRO = f; MK.repintar(); }
 function ahoraTxt() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
 function fechaHora(t) { t = String(t || ''); return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.slice(8, 10) + '/' + t.slice(5, 7) + (t.length > 10 ? ' ' + t.slice(11, 16) : '') : t; }
@@ -465,15 +584,16 @@ function pintarRubro() {
 function altaUsuario() {
   var L = SEGU.largoPin || 4; RUBRO = 'peligrosos';
   MK.lado('<h2>Dar de alta un usuario</h2><div class="sub">Desde que se guarda puede entrar: el lobby le abre solo los módulos de su rol.</div>' +
-    '<label class="lb">Nombre completo</label><input class="in" id="a-nom" autofocus placeholder="Nombre y apellido"><div class="small muted" style="margin-top:4px">Así sale en recibos, rutas y solicitudes. Se guarda sin espacios de más y con mayúscula inicial.</div>' +
+    '<label class="lb">Nombre completo</label><input class="in" id="a-nom" autofocus placeholder="Nombre y apellido" oninput="nomUsr391()"><div class="small muted" style="margin-top:4px">Así sale en recibos, rutas y solicitudes. Se guarda sin espacios de más y con mayúscula inicial.</div>' +
     '<label class="lb">Qué va a hacer · rol</label>' + rolesHtml('') + '<div id="a-rub"></div>' +
     '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="a-cor" placeholder="para avisos y recibos"></div><div><label class="lb">Teléfono</label><input class="in" id="a-tel" placeholder="opcional"></div></div>' +
-    '<label class="lb">PIN de entrada</label><div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">El sistema genera un PIN TEMPORAL</b><small>Lo ves una sola vez al guardar, para entregárselo en persona. Vence en 48 horas y sirve solo para que, en su primer ingreso, cree su propio PIN de ' + L + ' números, que tú no vas a conocer.</small></div></div>' +
+    '<label class="lb">Usuario · con el que entrará</label><input class="in" id="a-usr" placeholder="se arma con el nombre" oninput="this.dataset.ed=1" autocomplete="off"><div class="small muted" style="margin-top:4px">Se arma solo con la inicial del nombre + el apellido, como su correo. Cámbialo si no te gusta (letras y números, sin espacios) y se puede editar después.</div>' +
+    '<label class="lb">Contraseña</label><div class="pinbox"><span class="d">••••••••••</span><div><b style="font-size:13px">El sistema genera una contraseña TEMPORAL</b><small>La ves una sola vez al guardar, para entregársela en persona. Vence en 48 horas y sirve solo para que, en su primer ingreso, cree la suya, que tú no vas a conocer.</small></div></div>' +
     '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>Queda en el historial quién lo dio de alta y cuándo.</span></div></div>' +
     '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="a-ok" onclick="guardarAlta(this)">' + MK.ic('check', 16) + 'Dar de alta</button></div>');
 }
 function guardarAlta(btn) {
-  var d = { nombre: MK.val('a-nom'), rol: rolElegido(), correo: MK.val('a-cor'), telefono: MK.val('a-tel') };
+  var d = { nombre: MK.val('a-nom'), rol: rolElegido(), correo: MK.val('a-cor'), telefono: MK.val('a-tel'), conClave: true, usuario: MK.val('a-usr') };
   if (d.rol === 'operador') d.rubro = RUBRO;
   if (!d.nombre) { MK.aviso('Escribe el nombre.'); return; }
   if (!d.rol) { MK.aviso('Elige el rol.'); return; }
@@ -481,7 +601,7 @@ function guardarAlta(btn) {
   MK.api('api_cfgAltaUsuario', PIN, d).then(function (r) {
     MK.ocupado(btn, false);
     if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
-    mostrarPin(r.nombre, r.pin, 'Quedó dado de alta como ' + nomRol(r.rol) + '.', r.vence);
+    mostrarClave(r.nombre, r.usuario, r.clave, 'Quedó dado de alta como ' + nomRol(r.rol) + '.', r.vence);
     recargar();
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
@@ -494,9 +614,11 @@ function editarUsuario(i) {
   var u = usu(i); if (!u) return;
   MK.lado('<h2>Editar a ' + MK.esc(u.nombre) + '</h2><div class="sub">' + MK.esc(nomRol(u.rol)) + '</div>' +
     '<label class="lb">Nombre completo</label><input class="in" id="e-nom" value="' + MK.esc(u.nombre) + '">' +
+    '<label class="lb">Usuario · con el que entra</label><input class="in" id="e-usr" value="' + MK.esc(u.usuario) + '"><div class="small muted" style="margin-top:4px">Letras y números, sin espacios ni tildes. Si lo cambias, se le cierran las sesiones abiertas.</div>' +
     '<label class="lb">Rol</label>' + rolesHtml(u.rol) + '<div id="e-prin"></div>' +
     '<div class="f2"><div><label class="lb">Correo</label><input class="in" id="e-cor" value="' + MK.esc(u.correo) + '"></div><div><label class="lb">Teléfono</label><input class="in" id="e-tel" value="' + MK.esc(u.telefono) + '"></div></div>' +
     '<div class="pasa" style="margin-top:12px"><div>' + MK.ic('check') + '<span>El cambio de rol le cambia los módulos en su siguiente entrada al lobby. Queda en el historial.</span></div></div>' +
+    '<div class="fila" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sm" onclick="cerrarSes391(' + i + ')">' + MK.ic('candado', 15) + 'Cerrar sus sesiones</button>' + (u.bloqueadoMin > 0 ? '<button class="btn sm pri" onclick="desbloquear391(' + i + ')">' + MK.ic('llave', 15) + 'Desbloquear</button>' : '') + '</div>' +
     '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="guardarEdicion(' + i + ',this)">' + MK.ic('check', 16) + 'Guardar cambios</button></div>');
   PRIN = { p: (u.prefs && u.prefs.principal) || '', s: ((u.prefs && u.prefs.sigue) || []).slice() };
   RUBRO = u.rubro === 'solidos' ? 'solidos' : 'peligrosos';
@@ -514,17 +636,21 @@ function guardarEdicion(i, btn) {
     if (s0 !== s1 || pf.sigueRaw) d.sigue = PRIN.s.slice();
   }
   MK.ocupado(btn, true);
-  MK.api('api_cfgEditarUsuario', PIN, d).then(function (r) {
+  var nuevoU = MK.val('e-usr').toLowerCase().trim();
+  var antes = (nuevoU && nuevoU !== u.usuario) ? MK.api('api_cfgGuardarUsuario', PIN, { i: i, nombre: u.nombre, usuario: nuevoU }) : Promise.resolve({ ok: true });
+  antes.then(function (g) { if (!g || !g.ok) { MK.ocupado(btn, false); MK.aviso((g && g.error) || 'No se pudo cambiar el usuario'); return null; } return MK.api('api_cfgEditarUsuario', PIN, d); }).then(function (r) {
+    if (r === null) return;
     MK.ocupado(btn, false);
     if (!r || !r.ok) { MK.aviso((r && r.error) || 'No se pudo'); return; }
     MK.cerrarLado(); MK.aviso(r.sinCambios ? 'No había cambios' : 'Guardado'); recargar();
   }, function (e) { MK.ocupado(btn, false); MK.aviso(e.message); });
 }
-function nuevoPin(i) {
+function nuevoPin(i) { claveTemp(i); }
+function nuevoPin0(i) {
   var u = usu(i); if (!u) return; var L = SEGU.largoPin || 4;
   MK.lado('<h2>PIN temporal para ' + MK.esc(u.nombre) + '</h2><div class="sub">Para cuando lo olvidó o pide cambiarlo. El PIN de antes deja de servir en cuanto se genera el temporal; con el temporal crea su propio PIN al entrar.</div>' +
     '<div class="pinbox"><span class="d">' + '•'.repeat(L) + '</span><div><b style="font-size:13px">' + L + ' números · vence en 48 horas · se muestra una sola vez</b><small>Entrégaselo en persona o por mensaje directo, nunca en un grupo.</small></div></div>' +
-    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarPin(' + i + ',this)">' + MK.ic('llave', 16) + 'Generar PIN temporal</button></div>');
+    '<div class="pie2"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" onclick="generarPin(' + i + ',this)">' + MK.ic('llave', 16) + 'Contraseña temporal</button></div>');
 }
 function generarPin(i, btn) {
   var u = usu(i); MK.ocupado(btn, true, 'Generando…');
@@ -717,7 +843,7 @@ function avisosSeg() {
     var usr = a.tipo === 'pidePin' ? (B().usuarios || []).filter(function (u) { return u.activo && u.nombre === a.nombre; })[0] : null;
     var acc = !abierto ? '<span class="small muted">' + MK.esc(a.atendidoPor ? 'atendido por ' + a.atendidoPor : 'atendido') + '</span>'
       : merc ? '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
-      : a.tipo === 'pidePin' ? (usr ? '<button class="btn sm pri" onclick="nuevoPin(' + usr.i + ')">' + MK.ic('llave', 14) + 'Generar PIN temporal</button>' : '') + '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
+      : a.tipo === 'pidePin' ? (usr ? '<button class="btn sm pri" onclick="nuevoPin(' + usr.i + ')">' + MK.ic('llave', 14) + 'Contraseña temporal</button>' : '') + '<button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Listo</button>'
       : '<button class="btn sm pri" onclick="desbloquear(\'' + a.id + '\',this)">' + MK.ic('llave', 14) + 'Desbloquear</button><button class="btn sm" onclick="atenderSeg(\'' + a.id + '\',this)">Dejarlo bloqueado</button>';
     return '<div class="rr"><div class="rt"><b>' + MK.ic(ic, 15) + ' ' + MK.esc(a.titulo) + '</b><span>' + MK.esc(fechaHora(a.fecha + ' ' + a.hora)) + ' · ' + MK.esc(a.detalle) +
       (merc ? '' : a.tipo !== 'pidePin' ? '<br>Equipo: ' + MK.esc(a.equipoTxt || 'sin identificar') + (a.conexion ? ' · conexión ' + MK.esc(a.conexion) : '') : a.equipoTxt ? '<br>Lo pidió desde: ' + MK.esc(a.equipoTxt) : '') + '</span></div><div class="fila">' + acc + '</div></div>';
@@ -1639,7 +1765,7 @@ var CC379_GRUPOS = [
   { g: 'ctl', n: 'Control y vigilancia', i: 'escudo' },
   { g: 'mant', n: 'Mantenimiento', i: 'ajustes' }];
 var CC379_HERR = [
-  { g: 'personas', id: 'usu', n: 'Usuarios', i: 'personas', d: 'Altas, bajas, roles y PIN temporal', p: 'pin persona alta baja clave rol' },
+  { g: 'personas', id: 'usu', n: 'Usuarios', i: 'personas', d: 'Altas, bajas, roles, usuario y contraseña', p: 'pin persona alta baja clave rol' },
   { g: 'personas', id: 'perm', n: 'Módulos por rol', i: 'tabla', d: 'Qué módulos ve cada rol', p: 'permisos acceso roles' },
   { g: 'personas', id: 'seg', n: 'Seguridad', i: 'candado', d: 'PIN, bloqueo por inactividad y equipos bloqueados', p: 'pin bloqueo intentos sesion inactividad equipo' },
   { g: 'personas', id: 'ent', n: 'Cómo se entra', i: 'puerta', d: 'Cómo llegas a Configuración', p: 'entrada acceso' },
