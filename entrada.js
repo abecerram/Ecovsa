@@ -223,7 +223,7 @@
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
   function ponerCss() {
-    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ; document.head.appendChild(st); }
+    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ + CSS_CL; document.head.appendChild(st); }
     if (!document.querySelector('link[href*="family=Archivo"]')) {
       var l = document.createElement('link'); l.rel = 'stylesheet';
       l.href = 'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&display=swap';
@@ -236,6 +236,7 @@
 
   function montar(op) {
     op = op || {};
+    envolverValidar(op);   /* api 3.92 */
     desmontar();
     ponerCss(); traerAjustes();
     /* api 3.38.1: el azul es fijo; solo se aquieta si el teléfono pide menos movimiento */
@@ -432,7 +433,7 @@
       var lg = z.querySelector('.eco-lg'); setTimeout(function () { if (lg && lg.isConnected) { lg.classList.remove('arma', 'gira'); lg.classList.add('lento', 'respira'); } }, 1750);
       E.intro = z;
       var seguir = function () { if (!E || E.intro !== z) return; E.intro = null; z.classList.add('fuera'); setTimeout(function () { if (z.parentNode) z.parentNode.removeChild(z); }, 750); if (!d.classList.contains('ancho')) abrir(); };
-      z.querySelector('.ei-bt').addEventListener('click', seguir);
+      entradaClave(z, seguir);   /* api 3.92: «Entrar al sistema» abre usuario y contraseña */
     });
   }
   /* después de la clave: sin esperas; el saludo y el logo viaja a la barra del lobby mientras el lobby se descubre */
@@ -460,6 +461,7 @@
   function desmontar() {
     if (!E) return;
     if (E.intro && E.intro.parentNode) E.intro.parentNode.removeChild(E.intro);
+    quitarCapa();   /* api 3.92 */
     E.t.forEach(clearInterval); cancelAnimationFrame(E.raf); E.raf = 0;
     removeEventListener('resize', E.onRes); document.removeEventListener('keydown', E.onKey, true);
     document.removeEventListener('visibilitychange', E.onVis);
@@ -827,6 +829,7 @@
     var pin = pinGuardado();
     if (!pin) { if (lsGet(K_BLOQ) === '1') bloquear(true); return; }
     V.pin = pin;
+    renovarLlave(function () { bloquear(false); });   /* api 3.92 */
     var seguir = function (rol, nombre) {
       usoAvisoPide();   /* api 3.76 */
       if (rol === 'operador') return;                      /* el conductor no se bloquea */
@@ -855,6 +858,7 @@
   }
   function revisar() {
     if (!V.activo || V.bloqueado) return;
+    renovarLlave(function () { bloquear(false); });   /* api 3.92 */
     var quieto = (Date.now() - ultimaActividad()) / 60000;
     if (quieto >= (AJ.minInactivo || MIN_INACTIVO)) { quitarAviso(); bloquear(false, 'inactividad'); return; }   /* api 3.83e: sin cuenta regresiva */
     if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear();
@@ -912,21 +916,216 @@
       var m = document.createElement('div'); m.className = 'bq-msg';
       m.innerHTML = '<b>Pantalla bloqueada</b><p>Por seguridad la bloqueamos porque no se usó en un rato. Lo que tenía abierto se queda como está.</p><button type="button" class="bq-sigo">Sigo aquí</button>';
       d.appendChild(m); d.classList.add('bq-oculta'); E.msg = m;
-      m.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); if (!E || E.msg !== m) return; E.msg = null; m.parentNode && m.parentNode.removeChild(m); d.classList.remove('bq-oculta'); if (!d.classList.contains('ancho')) abrir(); });
-    }
+      m.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); if (!E || E.msg !== m) return; E.msg = null; m.parentNode && m.parentNode.removeChild(m); d.classList.remove('bq-oculta'); abrirBloqueo(); });
+    } else if (E.op.clave) { setTimeout(abrirBloqueo, 700); }
   }
   /* al acertar el PIN: el iris se cierra sobre el logo con los aros saliendo y se descubre lo que estaba debajo */
+  function abrirBloqueo() { if (!E) return; if (E.op.clave) { bloqueoClave(E.op.nombre, E.op.clave, function (ll) { entrarConLlave(ll); }); } else if (!E.d.classList.contains('ancho')) abrir(); }
   function cierraBloqueo() {
     if (!E) return; var d = E.d; setTimeout(function () { if (!E || E.d !== d) return; aros('out'); d.classList.remove('bq-entra'); d.classList.add('bq-sale'); }, 450);
+  }
+
+  /* ═══ api 3.92 · ENTRADA CON USUARIO Y CONTRASEÑA (etapa 3) ═══
+     El servidor (api 3.90/3.91) ya entrega la «llave de sesión» s1.… que ocupa el lugar del PIN: viaja como primer argumento y el resto de la página no cambia.
+     Aquí: tarjeta «Iniciar sesión» tras «Entrar al sistema» (con «Entrar con mi PIN» mientras dure la transición), contraseña temporal, crear usuario y contraseña tras entrar
+     con el PIN, bloqueo que pide la contraseña, y renovación de la llave. El PIN, la huella y las esperas NO cambian. Colores: variables de tema.css (--tm-*). */
+  var CSS_CL = '' +
+  '.cl{box-sizing:border-box;width:min(352px,88vw);margin-top:14px;text-align:left;background:var(--tm-tarjeta,#fff);border:1px solid var(--tm-linea,#e1e6ee);border-radius:18px;padding:20px 20px 18px;box-shadow:0 8px 28px rgba(20,48,107,.10);color:var(--tm-tinta,#0f2140);animation:eiUp .5s both}' +
+  '.noche .cl,.cl.noche{background:var(--tm-noche-a,#0c2146);border-color:rgba(255,255,255,.14);box-shadow:none;color:var(--tm-noche-tx,#dbe8fb)}' +
+  '.cl h2{margin:0 0 6px;font-size:20px;font-weight:800;text-align:center;color:var(--tm-navy2,#14306b)}.noche .cl h2{color:#fff}' +
+  '.cl .sb{margin:0 0 10px;text-align:center;font-size:13.5px;color:var(--tm-gris,#667489)}.noche .cl .sb{color:#b8cbe6}' +
+  '.cl label{display:block;margin:10px 0 4px;font-size:12.5px;font-weight:700;color:var(--tm-gris,#667489)}.noche .cl label{color:#b8cbe6}' +
+  '.cl input{box-sizing:border-box;width:100%;border:1px solid var(--tm-linea,#e1e6ee);background:var(--tm-tarjeta,#fff);color:var(--tm-tinta,#0f2140);border-radius:12px;padding:12px 14px;font:500 15px Archivo,system-ui,sans-serif}' +
+  '.noche .cl input{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff}.cl input:focus{outline:2px solid var(--tm-info,#3b6fd4);outline-offset:1px}.noche .cl input:focus{outline-color:var(--tm-raya,#88BE47)}' +
+  '.cl input[readonly]{opacity:.75}.cl .pw{position:relative}.cl .pw input{padding-right:64px}.cl .ver{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:inherit;font:700 13px Archivo,sans-serif;padding:8px 10px;cursor:pointer}' +
+  '.cl .ay{margin:4px 0 0;font-size:12px;color:var(--tm-gris,#667489)}.noche .cl .ay{color:#b8cbe6}.cl .mj{min-height:18px;margin:10px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--tm-bad,#d64045)}.noche .cl .mj{color:#ff8a8f}.cl .mj.ok{color:var(--tm-ok,#2f9e44)}.noche .cl .mj.ok{color:#8fd46a}' +
+  '.cl .go{display:block;width:100%;margin-top:8px;border:0;cursor:pointer;color:#fff;background:var(--tm-navy2,#14306b);border-radius:999px;padding:13px;font:800 15px Archivo,system-ui,sans-serif}.noche .cl .go{border:1px solid var(--tm-raya,#88BE47)}.cl .go:disabled{opacity:.5;cursor:default}' +
+  '.cl .ol{display:block;margin-top:12px;text-align:center;font-size:13px;font-weight:700;color:var(--tm-info,#3b6fd4);background:none;border:0;cursor:pointer;width:100%;font-family:inherit}.noche .cl .ol{color:#8fb6ff}' +
+  '#ec{position:fixed;inset:0;z-index:2147483002;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box;font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;transition:opacity .4s;' +
+    'background:radial-gradient(ellipse at 15% 0%,var(--tm-cielo,#e3f1ff) 0,rgba(227,241,255,0) 55%),radial-gradient(ellipse at 90% 100%,var(--tm-menta,#dcf3e2) 0,rgba(220,243,226,0) 55%),var(--tm-papel,#f7fafc)}' +
+  '#ec.noche{background:linear-gradient(180deg,var(--tm-noche-a,#0c2146) 0%,var(--tm-noche-b,#08172f) 100%)}#ec .em{width:96px;height:96px;margin-bottom:6px}' +
+  '@media (prefers-reduced-motion:reduce){.cl{animation:none}}';
+
+  function esLlave(p) { return /^s1\./.test(String(p || '')); }
+  function llaveUsuario(p) { return esLlave(p) ? String(p).split('.')[1] || '' : ''; }
+  function llaveEmitida(p) { return esLlave(p) ? parseInt(String(p).split('.')[2], 36) || 0 : 0; }
+  function llamarSrv(fn, args, ok, mal) {
+    if (!window.google || !google.script || !google.script.run) { mal(); return; }
+    var g = google.script.run.withSuccessHandler(ok).withFailureHandler(mal);
+    try { g[fn].apply(g, args); } catch (e) { mal(); }
+  }
+  var SIN_RED = 'Sin conexión. Intenta con señal.';
+  /* tarjeta: cfg = { titulo, sub, campos:[{id,label,tipo,valor,ph,ac,ver,solo,ayuda}], boton, enviar(vals, tar), enlaces:[{t,fn}] } */
+  function tarjeta(cfg) {
+    var f = document.createElement('form'); f.className = 'cl' + (cfg.noche ? ' noche' : ''); f.setAttribute('novalidate', ''); f.setAttribute('autocomplete', 'on');
+    var h = '<h2>' + esc(cfg.titulo) + '</h2>' + (cfg.sub ? '<p class="sb">' + esc(cfg.sub) + '</p>' : '');
+    (cfg.campos || []).forEach(function (c) {
+      h += '<label for="cl-' + c.id + '">' + esc(c.label) + '</label>' + (c.ver ? '<div class="pw">' : '') +
+        '<input id="cl-' + c.id + '" type="' + (c.tipo || 'text') + '"' + (c.valor ? ' value="' + esc(c.valor) + '"' : '') + (c.solo ? ' readonly' : '') + ' placeholder="' + esc(c.ph || '') + '" autocomplete="' + (c.ac || 'off') + '" autocapitalize="off" spellcheck="false">' +
+        (c.ver ? '<button type="button" class="ver" aria-label="Mostrar u ocultar">Ver</button></div>' : '') + (c.ayuda ? '<p class="ay">' + esc(c.ayuda) + '</p>' : '');
+    });
+    h += '<p class="mj" role="alert" aria-live="polite"></p>' + (cfg.boton ? '<button class="go" type="submit">' + esc(cfg.boton) + '</button>' : '');
+    (cfg.enlaces || []).forEach(function (l, i) { h += '<button type="button" class="ol" data-i="' + i + '">' + esc(l.t) + '</button>'; });
+    f.innerHTML = h;
+    var t = { el: f, ocupado: false,
+      msg: function (m, ok) { var e = f.querySelector('.mj'); e.textContent = m || ''; e.className = 'mj' + (ok ? ' ok' : ''); },
+      val: function (id) { var e = f.querySelector('#cl-' + id); return e ? e.value : ''; },
+      foco: function (id) { var e = f.querySelector('#cl-' + id); if (e) try { e.focus(); } catch (x) {} },
+      lock: function (b) { t.ocupado = !!b; var g = f.querySelector('.go'); if (g) g.disabled = !!b; },
+      espera: function (min) { t.lock(true); var hasta = Date.now() + min * 60000, k = setInterval(function () { var r = Math.ceil((hasta - Date.now()) / 60000); if (r <= 0 || !f.isConnected) { clearInterval(k); if (f.isConnected) { t.lock(false); t.msg(''); } } else t.msg('Demasiados intentos. Espere ' + r + ' min.'); }, 1000); t.msg('Demasiados intentos. Espere ' + min + ' min.'); } };
+    Array.prototype.forEach.call(f.querySelectorAll('.ver'), function (b) { b.addEventListener('click', function () { var i = b.parentNode.querySelector('input'); i.type = i.type === 'password' ? 'text' : 'password'; b.textContent = i.type === 'password' ? 'Ver' : 'Ocultar'; }); });
+    Array.prototype.forEach.call(f.querySelectorAll('.ol'), function (b) { b.addEventListener('click', function () { cfg.enlaces[+b.getAttribute('data-i')].fn(t); }); });
+    f.addEventListener('submit', function (e) { e.preventDefault(); if (t.ocupado) return; t.msg(''); cfg.enviar(t); });
+    return t;
+  }
+  /* dónde se pone: dentro de la intro (debajo del logo) o en una capa propia con el logo */
+  function ponerTarjeta(t, anterior) {
+    var d = E && E.d, noche = piel() === 'noche';
+    if (anterior && anterior.el.parentNode) anterior.el.parentNode.removeChild(anterior.el);
+    var host = E && E.clHost;
+    if (host && host.isConnected) { host.appendChild(t.el); }
+    else {
+      var z = document.createElement('div'); z.id = 'ec'; if (noche) z.className = 'noche'; t.el.classList.toggle('noche', noche);
+      z.innerHTML = '<div class="em"></div>'; document.body.appendChild(z); z.appendChild(t.el); if (E) E.clHost = z;
+      cargarLogo(function () { var em = z.querySelector('.em'); if (em && window.ECOCARGA && ECOCARGA.logo) em.innerHTML = ECOCARGA.logo(96, {}); });
+    }
+    t.foco(t.el.querySelector('input:not([readonly])') ? t.el.querySelector('input:not([readonly])').id.replace('cl-', '') : '');
+  }
+  function quitarCapa() { var z = document.getElementById('ec'); if (z && z.parentNode) z.parentNode.removeChild(z); if (E) E.clHost = null; }
+  function errPorDefecto(r) { return (r && r.error) || 'No se pudo. Intenta otra vez.'; }
+
+  /* ── la tarjeta «Iniciar sesión» ── */
+  function tarjetaLogin(prev, usuario, opt) {
+    opt = opt || {};
+    var t = tarjeta({ titulo: 'Iniciar sesión', sub: opt.sub || '', noche: piel() === 'noche',
+      campos: [{ id: 'u', label: 'Usuario', valor: usuario || '', ph: 'Escriba su usuario', ac: 'username' }, { id: 'c', label: 'Contraseña', tipo: 'password', ph: 'Escriba su contraseña', ac: 'current-password', ver: true }],
+      boton: 'Entrar',
+      enlaces: [].concat(opt.sinPin ? [] : [{ t: 'Entrar con mi PIN', fn: function () { if (opt.alPin) opt.alPin(); } }], [{ t: '¿Olvidó su contraseña?', fn: function () { tarjetaOlvide(t, t.val('u'), opt); } }]),
+      enviar: function (t) {
+        var u = t.val('u').trim(), c = t.val('c'); if (!u || !c) { t.msg('Escriba su usuario y su contraseña.'); return; }
+        t.lock(true); t.msg('Verificando…', true);
+        llamarSrv('api_loginClave', [u, c], function (r) {
+          if (!E && !opt.sinE) return;
+          if (r && r.ok && r.llave) { t.msg(''); opt.alLlave(r.llave, r, t); return; }
+          t.lock(false);
+          if (r && r.crearClave) { tarjetaTemporal(t, r.usuario || u, r.nombre || '', opt); return; }
+          try { fallo(r); } catch (x) {}
+          if (r && r.bloqueo && r.bloqueo.tipo === 'espera' && r.bloqueo.min) { t.espera(r.bloqueo.min); return; }
+          t.msg(errPorDefecto(r)); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
+        }, function () { t.lock(false); t.msg(SIN_RED); });
+      } });
+    ponerTarjeta(t, prev); return t;
+  }
+  function tarjetaOlvide(prev, usuario, opt) {
+    var t = tarjeta({ titulo: '¿Olvidó su contraseña?', sub: 'Pídale al administrador una contraseña temporal' + (usuario ? '. Dígale su usuario: ' + usuario + '.' : '. Dígale su usuario.'), noche: piel() === 'noche', campos: [], boton: '',
+      enlaces: [{ t: 'Volver', fn: function () { tarjetaLogin(t, usuario, opt); } }], enviar: function () {} });
+    ponerTarjeta(t, prev);
+  }
+  /* contraseña temporal: la persona crea la suya */
+  function tarjetaTemporal(prev, usuario, nombre, opt) {
+    var t = tarjeta({ titulo: 'Contraseña temporal', sub: 'Escriba la contraseña temporal y cree la suya.', noche: piel() === 'noche',
+      campos: [{ id: 'u', label: 'Usuario', valor: usuario, solo: true, ac: 'username' }, { id: 't', label: 'Contraseña temporal', tipo: 'password', ph: 'La que le dio el administrador', ac: 'off', ver: true },
+        { id: 'n', label: 'Contraseña nueva', tipo: 'password', ph: 'Cree su contraseña', ac: 'new-password', ver: true, ayuda: 'Mínimo 6 caracteres. Evite su nombre o números seguidos como 123456.' }, { id: 'r', label: 'Repítala', tipo: 'password', ph: 'Repita su contraseña', ac: 'new-password', ver: true }],
+      boton: 'Guardar y entrar', enlaces: [{ t: 'Volver', fn: function () { tarjetaLogin(t, usuario, opt); } }],
+      enviar: function (t) {
+        var tmp = t.val('t'), n = t.val('n'), r2 = t.val('r');
+        if (!tmp) { t.msg('Escriba la contraseña temporal.'); return; } if (n.length < 6) { t.msg('La contraseña debe tener al menos 6 caracteres.'); return; } if (n !== r2) { t.msg('Las dos contraseñas no son iguales.'); return; }
+        t.lock(true); t.msg('Guardando…', true);
+        llamarSrv('api_crearMiClave', [usuario, tmp, n], function (r) {
+          if (r && r.ok && r.llave) { t.msg(''); opt.alLlave(r.llave, r, t); return; }
+          t.lock(false); if (r && r.bloqueo && r.bloqueo.tipo === 'espera' && r.bloqueo.min) { t.espera(r.bloqueo.min); return; }
+          t.msg(errPorDefecto(r)); if (r && r.claveVencida) return; t.foco(r && r.facil ? 'n' : 't');
+        }, function () { t.lock(false); t.msg(SIN_RED); });
+      } });
+    ponerTarjeta(t, prev); return t;
+  }
+  /* primera vez con el PIN viejo: crear usuario y contraseña (se puede dejar para después mientras el PIN siga sirviendo) */
+  function tarjetaCrear(m, pin, alLlave, despues) {
+    var pasada = m.pinHasta && /^\d{4}-\d{2}-\d{2}$/.test(m.pinHasta) && new Date().toISOString().slice(0, 10) > m.pinHasta, min = m.claveMin || 6;
+    var t = tarjeta({ titulo: 'Cree su usuario y contraseña', sub: 'Es su primer ingreso con el sistema nuevo.', noche: piel() === 'noche',
+      campos: [{ id: 'u', label: 'Usuario', valor: m.usuario || '', ph: 'Su usuario', ac: 'username', ayuda: 'Sugerido para usted. Puede cambiarlo.' },
+        { id: 'n', label: 'Contraseña nueva', tipo: 'password', ph: 'Cree su contraseña', ac: 'new-password', ver: true }, { id: 'r', label: 'Repítala', tipo: 'password', ph: 'Repita su contraseña', ac: 'new-password', ver: true, ayuda: 'Mínimo ' + min + ' caracteres. Evite su nombre o números seguidos como 123456.' }],
+      boton: 'Guardar y entrar', enlaces: pasada ? [] : [{ t: 'Más tarde', fn: function () { despues(); } }],
+      enviar: function (t) {
+        var u = t.val('u').trim().toLowerCase(), n = t.val('n'), r2 = t.val('r');
+        if (!/^[a-z0-9]{3,30}$/.test(u)) { t.msg('El usuario debe tener entre 3 y 30 letras o números, sin espacios ni tildes.'); return; }
+        if (n.length < min) { t.msg('La contraseña debe tener al menos ' + min + ' caracteres.'); return; } if (n !== r2) { t.msg('Las dos contraseñas no son iguales.'); return; }
+        t.lock(true); t.msg('Guardando…', true);
+        llamarSrv('api_crearMiClavePin', [pin, { usuario: u, clave: n }], function (r) {
+          if (r && r.ok && r.llave) { t.msg(''); alLlave(r.llave, r, t); return; }
+          t.lock(false); t.msg(errPorDefecto(r)); t.foco(r && r.facil ? 'n' : 'u');
+        }, function () { t.lock(false); t.msg(SIN_RED); });
+      } });
+    ponerTarjeta(t, null); return t;
+  }
+  /* lo que viene de tarjetaLogin cuando acierta: la llave pasa por el mismo camino que un PIN (validar → exito → alEntrar) */
+  function entrarConLlave(llave) {
+    if (!E) return; var d = E.d; E.ocupado = true;
+    var validar = E.op.validar || function (p, fin) { fin({ ok: false, error: 'Sin validación' }); };
+    validar(llave, function (r) {
+      if (!E) return; E.ocupado = false;
+      if (r && r.ok) { acierto(); quitarCapa(); exito(r); }
+      else { var c = document.querySelector('#ec .cl .mj,#ei .cl .mj'); if (c) c.textContent = errPorDefecto(r); try { fallo(r); } catch (x) {} }
+    });
+  }
+  /* la entrada del lobby: «Entrar al sistema» abre la tarjeta; «Entrar con mi PIN» abre el teclado de siempre */
+  function entradaClave(z, seguir) {
+    var im = z.querySelector('.im'), bt = z.querySelector('.ei-bt'); E.clHost = im;
+    bt.addEventListener('click', function () {
+      bt.style.animation = 'none'; bt.style.transition = 'opacity .25s'; bt.style.opacity = 0;
+      setTimeout(function () { bt.style.display = 'none'; var em = im.querySelector('.em'); if (em) em.style.marginBottom = '24px'; tarjetaLogin(null, '', { sinE: false, alPin: function () { E.clHost = null; var c = im.querySelector('.cl'); if (c) c.parentNode.removeChild(c); seguir(); }, alLlave: function (ll) { entrarConLlave(ll); } }); }, 260);
+    });
+  }
+  /* tras entrar con el PIN: ¿ya tiene usuario y contraseña? si no, se ofrece crearlos */
+  function envolverValidar(op) {
+    if (!op.intro || op.validarPin) return; op.validarPin = op.validar;
+    op.validar = function (p, fin, o) {
+      if (esLlave(p)) { op.validarPin(p, fin, o); return; }
+      op.validarPin(p, function (r) {
+        if (!r || !r.ok || !E) { fin(r); return; }
+        llamarSrv('api_miAcceso', [p], function (m) {
+          if (!m || !m.ok || m.tieneClave || !E) { fin(r); return; }
+          tarjetaCrear(m, p, function (llave) { quitarCapa(); op.validarPin(llave, function (r2) { fin(r2 && r2.ok ? r2 : r); }, o); }, function () { quitarCapa(); fin(r); });
+        }, function () { fin(r); });
+      }, o);
+    };
+  }
+  /* bloqueo con contraseña: pide solo la contraseña de quien estaba; «No soy …» abre el inicio de sesión completo */
+  function bloqueoClave(nombre, usuario, alLlave) {
+    var primero = (String(nombre || '').trim().split(' ')[0]) || usuario;
+    var t = tarjeta({ titulo: 'Hola de nuevo, ' + primero, sub: 'Escriba su contraseña para seguir.', noche: piel() === 'noche',
+      campos: [{ id: 'c', label: 'Contraseña', tipo: 'password', ph: 'Escriba su contraseña', ac: 'current-password', ver: true }], boton: 'Entrar',
+      enlaces: [{ t: 'No soy ' + primero, fn: function () { tarjetaLogin(t, '', { sinPin: true, alLlave: alLlave }); } }, { t: '¿Olvidó su contraseña?', fn: function () { tarjetaOlvide(t, usuario, { sinPin: true, alLlave: alLlave }); } }],
+      enviar: function (t) {
+        var c = t.val('c'); if (!c) { t.msg('Escriba su contraseña.'); return; } t.lock(true); t.msg('Verificando…', true);
+        llamarSrv('api_loginClave', [usuario, c], function (r) {
+          if (r && r.ok && r.llave) { t.msg(''); alLlave(r.llave, r, t); return; }
+          t.lock(false); if (r && r.crearClave) { tarjetaTemporal(t, r.usuario || usuario, r.nombre || '', { sinPin: true, alLlave: alLlave }); return; }
+          try { fallo(r); } catch (x) {} if (r && r.bloqueo && r.bloqueo.tipo === 'espera' && r.bloqueo.min) { t.espera(r.bloqueo.min); return; }
+          t.msg(errPorDefecto(r)); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
+        }, function () { t.lock(false); t.msg(SIN_RED); });
+      } });
+    ponerTarjeta(t, null); return t;
+  }
+  /* la llave dura 12 h: se renueva a las 6 h (hasta 7 días desde la contraseña); si ya no se puede, se pide la contraseña */
+  var RENOVANDO = false;
+  function renovarLlave(siFalla) {
+    if (RENOVANDO || !esLlave(V.pin) || Date.now() - llaveEmitida(V.pin) < 6 * 3600000) return; RENOVANDO = true;
+    llamarSrv('api_renovarLlave', [V.pin], function (r) {
+      RENOVANDO = false;
+      if (r && r.ok && r.llave) { V.pin = r.llave; lsSet(K_PIN, JSON.stringify(r.llave)); try { sessionStorage.removeItem(K_ROL); } catch (e) {} try { window.dispatchEvent(new CustomEvent('eco-llave', { detail: r.llave })); } catch (e) {} }
+      else if (r && r.requiereLogin && siFalla) siFalla();
+    }, function () { RENOVANDO = false; });
   }
 
   function bloquear(desdeOtra, motivo) {
     if (V.bloqueado) return;
     V.bloqueado = true;
+    if (esLlave(V.pin)) { V.usuarioClave = llaveUsuario(V.pin); lsSet('eco_bloq_usr', V.usuarioClave); } else V.usuarioClave = lsGet('eco_bloq_usr') || '';   /* api 3.92 */
     lsSet(K_BLOQ, '1'); lsDel(K_PIN);                   /* sin PIN guardado: nadie entra sin escribirlo */
     /* api 3.7: se recuerda de quién era, para que una recarga no lo olvide */
     if (V.nombre) lsSet(K_BNOM, V.nombre); else V.nombre = lsGet(K_BNOM) || '';
-    montar({ bloqueo: true, motivo: motivo, nombre: V.nombre,
+    montar({ bloqueo: true, motivo: motivo, nombre: V.nombre, clave: V.usuarioClave,
       validar: function (p, fin) {
         var sinRed = !window.google || !google.script || !google.script.run;
         /* sin señal, el mismo PIN abre (como antes); con señal se pregunta al
@@ -935,6 +1134,7 @@
         if (sinRed) { fin({ ok: false, error: 'Sin conexión. Intenta con señal.' }); return; }
         google.script.run.withSuccessHandler(function (r) {
           if (!r || !r.ok) { fin({ ok: false, error: (r && r.error) || 'PIN no válido', crearPin: r && r.crearPin, nombre: r && r.nombre, bloqueo: r && r.bloqueo }); return; }
+          if (esLlave(p) && V.nombre && String(r.usuario.nombre || '').trim() === String(V.nombre).trim()) { V.pin = p; fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }   /* api 3.92: la misma persona, con su contraseña */
           if (V.pin && p === V.pin) { fin({ ok: true, mismo: true, nombre: V.nombre, pausa: 1100 }); return; }
           /* api 3.7: tras una recarga no hay PIN en memoria; si es la misma persona, sigue en esta misma página */
           if (!V.pin && V.nombre && String(r.usuario.nombre || '').trim() === String(V.nombre).trim()) {
@@ -946,7 +1146,7 @@
         }).api_login(p);
       },
       alEntrar: function (r) {
-        lsDel(K_BNOM);
+        lsDel(K_BNOM); lsDel('eco_bloq_usr');
         if (r.recargar) { lsSet(K_PIN, JSON.stringify(r.otro)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now())); try { sessionStorage.removeItem(K_ROL); } catch (e) {} location.reload(); return; }
         if (r.mismo) { lsSet(K_PIN, JSON.stringify(V.pin)); lsDel(K_BLOQ); lsSet(K_ACT, String(Date.now())); desbloquearAqui(); return; }
         /* otra persona: guarda su PIN y va a su lobby */
