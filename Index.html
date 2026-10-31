@@ -26837,6 +26837,263 @@ function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") retur
   };
 })();
 </script>
+<!-- ═══ api 3.86a · CIERRE Y ANÁLISIS DE RUTAS (bloque ca386) ═══
+     Una página con una franja de 7 cifras en vez de pestañas: Resumen · Lo recogido · Por cliente · Tiempos ·
+     GPS de la ruta (Estudiar la ruta completa) · Comparar conductores · Carga de trabajo. Cierre, Estudiar y
+     Comparar se reutilizan adentro. Colores solo con variables de tema.css (reglas de Diseño 3.87). -->
+<style id="estilo-ca386">
+#ca-cuerpo{--ca-azul:var(--tm-navy2,#14306b);--ca-comp:var(--tm-verde-marca,#8fd46a);--ca-suave:var(--tm-cielo,#e3f1ff);--ca-barra:color-mix(in srgb,var(--tm-navy2,#14306b) 25%,var(--tm-tarjeta,#fff))}
+#pantalla-cierre.ca-on #cr-cond{display:none}
+.ca-fr{display:grid;grid-template-columns:120px repeat(6,minmax(0,1fr));background:var(--tm-tarjeta,#fff);border:1px solid var(--tm-linea,#e1e6ee);border-radius:var(--tm-radio,14px);box-shadow:0 1px 2px rgba(20,48,107,.06);margin:4px 0 14px;overflow:hidden}
+.ca-k{padding:14px 14px 12px;cursor:pointer;border-left:1px solid var(--tm-linea2,#eef1f5);position:relative;transition:background .15s;min-width:0}
+.ca-k:first-child{border-left:0;display:flex;flex-direction:column;justify-content:center}
+.ca-k:hover{background:var(--tm-hover,#f7f9fc)}
+.ca-k.on{box-shadow:inset 0 0 0 2px var(--tm-navy2,#14306b);border-radius:12px;background:var(--tm-tarjeta,#fff)}
+.ca-et{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--tm-gris,#667489)}
+.ca-et svg{flex:none}.ca-et .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:600;font-size:12px}
+.ca-n{font-size:26px;font-weight:800;color:var(--tm-tinta,#0f2140);margin-top:8px;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ca-n small{font-size:13px;font-weight:800;color:var(--tm-gris,#667489);margin-left:4px}
+.ca-s{font-size:11.5px;color:var(--tm-gris,#667489);margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ca-p{display:inline-flex;align-items:center;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px}
+.ca-p.v{background:var(--tm-ok-bg,#eaf6e4);color:var(--tm-ok,#2f9e44)}.ca-p.r{background:var(--tm-bad-bg,#fdecea);color:var(--tm-bad,#d64045)}
+.ca-p.a{background:var(--tm-warn-bg,#fff4d6);color:var(--tm-warn-tx,#8a6300)}.ca-p.i{background:var(--tm-info-bg,#e8effb);color:var(--tm-info,#3b6fd4)}
+.ca-g{display:grid;gap:14px;margin-bottom:14px}.ca-g2{grid-template-columns:2.2fr 1fr}.ca-g11{grid-template-columns:1fr 1fr}
+.ca-c{background:var(--tm-tarjeta,#fff);border:1px solid var(--tm-linea,#e1e6ee);border-radius:var(--tm-radio,14px);padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,107,.06);min-width:0}
+.ca-c.at{border-left:4px solid var(--tm-warn,#d99a00)}
+.ca-nota{font-size:12px;color:var(--tm-gris,#667489);margin-top:10px;line-height:1.6}.ca-nota b{color:var(--tm-tinta,#0f2140)}
+.ca-ai{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--tm-linea2,#eef1f5);cursor:pointer}.ca-ai:first-of-type{border-top:0}
+.ca-ai .n{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+.ca-ai b{display:block;font-size:13.5px;color:var(--tm-tinta,#0f2140)}.ca-ai small{font-size:12px;color:var(--tm-gris,#667489)}
+.ca-rg{display:inline-flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.ca-rg button{border:1px solid var(--tm-linea,#e1e6ee);background:var(--tm-tarjeta,#fff);color:var(--tm-gris,#667489);font:800 11.5px var(--tm-letra,Archivo,sans-serif);padding:5px 10px;border-radius:8px;cursor:pointer}
+.ca-rg button.on{border-color:var(--tm-navy2,#14306b);color:var(--tm-navy2,#14306b)}
+.ca-tb{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;margin-top:10px}
+.ca-tb th{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--tm-gris2,#8a96a8);text-align:left;padding:9px 10px;background:var(--tm-linea2,#eef1f5);font-weight:800}
+.ca-tb th.d,.ca-tb td.d{text-align:right}.ca-tb td{padding:10px;border-bottom:1px solid var(--tm-linea2,#eef1f5);color:var(--tm-tinta,#0f2140)}
+.ca-tb tr:hover td{background:var(--tm-hover,#f7f9fc)}.ca-tb small{display:block;color:var(--tm-gris2,#8a96a8);font-size:11.5px}
+.ca-tbw{overflow-x:auto}
+.ca-lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--tm-gris,#667489)}.ca-lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.ca-lg b{color:var(--tm-tinta,#0f2140)}
+.ca-hb{display:grid;grid-template-columns:minmax(90px,190px) minmax(60px,1fr) auto auto;gap:12px;align-items:center;font-size:13px;margin:8px 0}
+.ca-hb span{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tm-tinta,#0f2140)}
+.ca-hb .t{height:12px;background:var(--tm-linea2,#eef1f5);border-radius:6px;overflow:hidden}.ca-hb .t i{display:block;height:100%;border-radius:6px}
+.ca-hb b{text-align:right;color:var(--tm-tinta,#0f2140)}
+.ca-hm{display:grid;gap:3px;align-items:center;margin-bottom:3px}.ca-hm .hd{font-size:10px;color:var(--tm-gris2,#8a96a8);text-align:center;line-height:1.15}
+.ca-hm .hn b{display:block;font-size:12.5px;color:var(--tm-tinta,#0f2140)}.ca-hm .hn small{font-size:11px;color:var(--tm-gris2,#8a96a8)}
+.ca-hm i{display:block;height:28px;border-radius:5px}
+.ca-tip{position:fixed;pointer-events:none;background:var(--tm-tarjeta,#fff);color:var(--tm-tinta,#0f2140);border:1px solid var(--tm-linea,#e1e6ee);box-shadow:0 6px 18px rgba(20,48,107,.14);font-size:12px;font-weight:700;padding:6px 9px;border-radius:8px;opacity:0;transition:opacity .12s;z-index:9000;white-space:nowrap}
+.ca-slot{margin-top:4px}
+.ca-slot #cr-cuerpo .cr-kp{display:none}
+.ca-txt{fill:var(--tm-gris2,#8a96a8);font-size:11px;font-family:var(--tm-letra,Archivo,sans-serif)}
+.ca-val{fill:var(--tm-tinta,#0f2140);font-size:11.5px;font-weight:800;font-family:var(--tm-letra,Archivo,sans-serif)}
+/* movimiento */
+#ca-cuerpo .ca-c,#ca-cuerpo .ca-fr{opacity:0;transform:translateY(8px)}#ca-cuerpo.go .ca-c,#ca-cuerpo.go .ca-fr{transition:opacity .45s,transform .45s;opacity:1;transform:none}
+#ca-cuerpo .ln{stroke-dasharray:var(--L);stroke-dashoffset:var(--L)}#ca-cuerpo.go .ln{transition:stroke-dashoffset 1.3s cubic-bezier(.3,.7,.2,1) .25s;stroke-dashoffset:0}
+#ca-cuerpo .bx{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0)}#ca-cuerpo.go .bx{transition:transform .7s cubic-bezier(.2,.8,.2,1);transform:scaleY(1)}
+#ca-cuerpo .hz{transform-origin:left;transform:scaleX(0)}#ca-cuerpo.go .hz{transition:transform .9s cubic-bezier(.2,.8,.2,1) .3s;transform:scaleX(1)}
+#ca-cuerpo .fd{opacity:0}#ca-cuerpo.go .fd{transition:opacity .5s .9s;opacity:1}
+#ca-cuerpo .rgd{stroke-dashoffset:var(--C)}#ca-cuerpo.go .rgd{transition:stroke-dashoffset 1.2s cubic-bezier(.3,.7,.2,1) .3s;stroke-dashoffset:var(--F)}
+@media (prefers-reduced-motion:reduce){#ca-cuerpo *{transition:none!important}#ca-cuerpo .ca-c,#ca-cuerpo .ca-fr,#ca-cuerpo .fd{opacity:1!important;transform:none!important}#ca-cuerpo .bx,#ca-cuerpo .hz{transform:none!important}#ca-cuerpo .ln,#ca-cuerpo .rgd{stroke-dashoffset:0!important}}
+@media (max-width:900px){.ca-fr{grid-template-columns:110px repeat(6,minmax(150px,1fr));overflow-x:auto}.ca-g2,.ca-g11{grid-template-columns:1fr}.ca-n{font-size:22px}}
+</style>
+<script>
+/* ═══ api 3.86a · Cierre y análisis de rutas ═══ */
+var CA = { d: null, parte: "res", rango: 2, vuelo: false, cargadoDe: "" };
+var CA_IC = { bar: '<path d="M5 20V10M12 20V4M19 20v-7"/>', kg: '<path d="M6 8h12l-1.5 11h-9z"/><path d="M9 8a3 3 0 0 1 6 0"/>', ok: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',
+  reloj: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', ruta: '<path d="M5 19c4 0 3-6 7-6s3 6 7 6"/><circle cx="5" cy="19" r="1.5"/><circle cx="19" cy="19" r="1.5"/>',
+  vel: '<path d="M4 15a8 8 0 0 1 16 0"/><path d="M12 15l4-5"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', alerta: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>', dona: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8l6 5"/>', gente: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/>' };
+function caIc_(n){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + CA_IC[n] + '</svg>'; }
+function caF_(v, d){ return Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+function caH_(h){ if(h === null || h === undefined) return "—"; var m = Math.round(h * 60); return Math.floor(m / 60) + " h " + ("0" + (m % 60)).slice(-2); }
+function caDia_(f){ var d = new Date(f + "T12:00:00Z"); return ["dom","lun","mar","mié","jue","vie","sáb"][d.getUTCDay()] + " " + d.getUTCDate() + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getUTCMonth()]; }
+function caMes_(k, largo){ var n = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][Number(k.slice(5, 7)) - 1]; return largo ? n : n.slice(0, 3); }
+function caNice_(m){ if(!(m > 0)) return 10; var p = Math.pow(10, Math.floor(Math.log10(m))) / 2; return Math.ceil(m / (p * 4)) * p * 4; }
+function caNum_(v, d, u){ return '<span class="ca-cn" data-v="' + (v || 0) + '" data-d="' + (d || 0) + '">' + caF_(v, d) + '</span>' + (u ? '<small>' + u + '</small>' : ''); }
+
+/* ── gráficos (SVG con variables de color) ── */
+function caW_(w){ try{ return esEscritorio_() ? w : Math.min(w, 440); }catch(e){ return w; } }
+function caEjes_(w, h, pl, pr, pt, pb, mx, fmt){ var g = ""; for(var k = 0; k <= 4; k++){ var v = mx * k / 4, y = pt + (1 - k / 4) * (h - pt - pb); g += '<line x1="' + pl + '" x2="' + (w - pr) + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--tm-linea2,#eef1f5)"/><text class="ca-txt" x="' + (pl - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + (fmt ? fmt(v) : caF_(v)) + '</text>'; } return g; }
+function caCurvas_(w, h, A, B, nomA, nomB){ w = caW_(w);
+  var pl = 50, pr = 120, pt = 16, pb = 24, todos = A.concat(B), mx = caNice_(Math.max.apply(null, todos.map(function(p){ return p[1]; }).concat([1])) * 1.08);
+  var X = function(d){ return pl + (d - 1) / 30 * (w - pl - pr); }, Y = function(v){ return pt + (1 - v / mx) * (h - pt - pb); };
+  var path = function(P){ return P.map(function(p, i){ return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" "); };
+  var g = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" style="display:block;overflow:visible">' + caEjes_(w, h, pl, pr, pt, pb, mx);
+  [1, 8, 15, 22, 29].forEach(function(d){ g += '<text class="ca-txt" x="' + X(d) + '" y="' + (h - 6) + '" text-anchor="middle">día ' + d + '</text>'; });
+  if(B.length) g += '<path class="ln" style="--L:2000;stroke:var(--tm-verde-marca,#8fd46a);fill:none;stroke-width:2.2" d="' + path(B) + '"/>';
+  if(A.length){ var u = A[A.length - 1];
+    g += '<path class="fd" style="fill:var(--tm-navy2,#14306b);fill-opacity:.07" d="' + path(A) + ' L' + X(u[0]) + ' ' + Y(0) + ' L' + X(1) + ' ' + Y(0) + ' Z"/>';
+    g += '<path class="ln" style="--L:2000;stroke:var(--tm-navy2,#14306b);fill:none;stroke-width:3;stroke-linejoin:round" d="' + path(A) + '"/>';
+    g += '<line x1="' + X(u[0]) + '" x2="' + X(u[0]) + '" y1="' + pt + '" y2="' + (h - pb) + '" style="stroke:var(--tm-navy2,#14306b);stroke-dasharray:3 3;stroke-opacity:.35"/>';
+    A.forEach(function(p){ g += '<rect x="' + (X(p[0]) - 9) + '" y="' + pt + '" width="18" height="' + (h - pt - pb) + '" style="fill:transparent" data-tip="' + esc(nomA + " · día " + p[0] + " · " + caF_(p[1]) + " kg") + '"/>'; });
+    var lab = [[Y(u[1]), nomA + " · " + caF_(u[1]), "var(--tm-navy2,#14306b)"]];
+    if(B.length){ var bb = B[Math.min(B.length, u[0]) - 1] || B[B.length - 1]; lab.push([Y(B[B.length - 1][1]), nomB + " · " + caF_(B[B.length - 1][1]), "var(--tm-gris,#667489)"]); g += '<circle class="fd" cx="' + X(bb[0]) + '" cy="' + Y(bb[1]) + '" r="4" style="fill:var(--tm-verde-marca,#8fd46a);stroke:var(--tm-tarjeta,#fff);stroke-width:2" data-tip="' + esc(nomB + " al día " + bb[0] + " · " + caF_(bb[1]) + " kg") + '"/>'; }
+    g += '<circle class="fd" cx="' + X(u[0]) + '" cy="' + Y(u[1]) + '" r="5.5" style="fill:var(--tm-navy2,#14306b);stroke:var(--tm-tarjeta,#fff);stroke-width:2"/>';
+    lab.sort(function(a, b){ return a[0] - b[0]; }); var ult = -99; lab.forEach(function(l){ var y = Math.max(l[0], ult + 16); ult = y; g += '<text class="fd ca-val" x="' + (w - pr + 12) + '" y="' + (y + 4) + '" style="fill:' + l[2] + '">' + esc(l[1]) + '</text>'; });
+  }
+  return g + '</svg>';
+}
+function caBarras_(w, h, L, opt){ opt = opt || {}; w = caW_(w);
+  var pl = 50, pr = 10, pt = 22, pb = 24, mx = caNice_(Math.max.apply(null, L.map(function(x){ return Math.max(x.v, x.e || 0); }).concat([1])) * 1.1), bw = (w - pl - pr) / Math.max(1, L.length), Y = function(v){ return pt + (1 - v / mx) * (h - pt - pb); };
+  var g = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" style="display:block;overflow:visible"><defs><pattern id="ca-raya" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" style="fill:var(--tm-linea2,#eef1f5)"/><line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--ca-barra);stroke-width:2.5"/></pattern></defs>' + caEjes_(w, h, pl, pr, pt, pb, mx);
+  if(opt.ref){ g += '<line x1="' + pl + '" x2="' + (w - pr) + '" y1="' + Y(opt.ref) + '" y2="' + Y(opt.ref) + '" style="stroke:var(--tm-warn,#d99a00);stroke-width:1.3;stroke-dasharray:5 4"/>'; }
+  L.forEach(function(x, i){ var cx = pl + i * bw + bw * (L.length > 8 ? 0.18 : 0.26), ww = bw * (L.length > 8 ? 0.64 : 0.48), y = Y(x.v), dl = 'style="transition-delay:' + (0.25 + i * 0.04).toFixed(2) + 's;fill:';
+    if(x.e && x.e > x.v){ var ye = Y(x.e); g += '<rect class="bx" ' + dl + 'url(#ca-raya);stroke:var(--ca-barra);stroke-dasharray:3 3" x="' + cx + '" y="' + ye + '" width="' + ww + '" height="' + (y - ye) + '" rx="4" data-tip="' + esc(x.tipE || "") + '"/>'; }
+    g += '<rect class="bx" ' + dl + (x.on ? 'var(--tm-navy2,#14306b)' : x.pocos ? 'var(--tm-linea,#e1e6ee)' : 'var(--ca-barra)') + '" x="' + cx + '" y="' + y + '" width="' + ww + '" height="' + Math.max(0, h - pb - y) + '" rx="4" data-tip="' + esc(x.tip || "") + '"' + (x.ir ? ' data-ir="' + esc(x.ir) + '"' : '') + '/>';
+    if(x.lab !== undefined && x.lab !== "") g += '<text class="fd ca-val" x="' + (cx + ww / 2) + '" y="' + ((x.e && x.e > x.v ? Y(x.e) : y) - 6) + '" text-anchor="middle">' + esc(x.lab) + '</text>';
+    g += '<text class="ca-txt" x="' + (cx + ww / 2) + '" y="' + (h - 6) + '" text-anchor="middle"' + (x.on ? ' style="fill:var(--tm-tinta,#0f2140);font-weight:800"' : '') + '>' + esc(x.x) + '</text>'; });
+  return g + '</svg>';
+}
+function caLinea_(w, h, L, opt){ opt = opt || {}; w = caW_(w);
+  var pl = 50, pr = 16, pt = 18, pb = 26, mx = caNice_(Math.max.apply(null, L.map(function(x){ return x.v; }).concat([opt.ref || 0, 1])) * 1.12), X = function(i){ return L.length > 1 ? pl + i / (L.length - 1) * (w - pl - pr) : (pl + w - pr) / 2; }, Y = function(v){ return pt + (1 - v / mx) * (h - pt - pb); };
+  var g = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" style="display:block;overflow:visible">' + caEjes_(w, h, pl, pr, pt, pb, mx, function(v){ return caF_(v, v > 0 && v < 10 ? 1 : 0); });
+  if(opt.ref){ g += '<line x1="' + pl + '" x2="' + (w - pr) + '" y1="' + Y(opt.ref) + '" y2="' + Y(opt.ref) + '" style="stroke:var(--tm-warn,#d99a00);stroke-width:1.5;stroke-dasharray:5 4"/><text class="ca-txt" x="' + (w - pr) + '" y="' + (Y(opt.ref) - 6) + '" text-anchor="end" style="fill:var(--tm-warn-tx,#8a6300);font-weight:700">' + esc(opt.refTxt || "") + '</text>'; }
+  var p = L.map(function(x, i){ return (i ? "L" : "M") + X(i) + " " + Y(x.v); }).join(" ");
+  if(L.length > 1) g += '<path class="fd" style="fill:var(--tm-navy2,#14306b);fill-opacity:.06" d="' + p + ' L' + X(L.length - 1) + ' ' + Y(0) + ' L' + X(0) + ' ' + Y(0) + ' Z"/><path class="ln" style="--L:1800;stroke:var(--tm-navy2,#14306b);fill:none;stroke-width:2.5" d="' + p + '"/>';
+  L.forEach(function(x, i){ g += '<circle class="fd" cx="' + X(i) + '" cy="' + Y(x.v) + '" r="5" style="fill:var(--tm-tarjeta,#fff);stroke:var(--tm-navy2,#14306b);stroke-width:2.5" data-tip="' + esc(x.tip || "") + '"/><text class="fd ca-val" x="' + X(i) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + caF_(x.v, opt.dec || 0) + '</text><text class="ca-txt" x="' + X(i) + '" y="' + (h - 6) + '" text-anchor="middle">' + esc(x.x) + '</text>'; });
+  return g + '</svg>';
+}
+function caDona_(sz, T){ var tot = T.reduce(function(s, t){ return s + t[1]; }, 0) || 1, r = sz / 2 - 12, C = 2 * Math.PI * r, acc = 0, g = '<svg width="' + sz + '" height="' + sz + '" style="transform:rotate(-90deg);flex:none"><circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" style="fill:none;stroke:var(--tm-linea2,#eef1f5);stroke-width:16"/>';
+  T.forEach(function(t){ var l = t[1] / tot * C, gap = t[1] / tot > 0.02 ? 3 : 0; if(t[1] <= 0) return;
+    g += '<circle class="rgd" style="--C:' + C + ';--F:' + (C - Math.max(0, l - gap)) + ';fill:none;stroke:' + t[2] + ';stroke-width:16" cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" stroke-dasharray="' + C + '" transform="rotate(' + (acc / C * 360) + ' ' + sz / 2 + ' ' + sz / 2 + ')" data-tip="' + esc(t[0] + " · " + caF_(t[1], 1) + " kg") + '"/>'; acc += l; });
+  return g + '</svg>'; }
+function caHb_(L, u, mx, col){ mx = mx || Math.max.apply(null, L.map(function(x){ return x[1]; }).concat([1])); return L.map(function(x, i){ return '<div class="ca-hb"><span title="' + esc(x[0]) + '">' + esc(x[0]) + '</span><div class="t"><i class="hz" style="width:' + Math.min(100, x[1] / mx * 100) + '%;background:' + (col || "var(--tm-navy2,#14306b)") + ';transition-delay:' + (0.2 + i * 0.05).toFixed(2) + 's" data-tip="' + esc(x[0] + " · " + caF_(x[1], x[3] || 0) + " " + u) + '"></i></div><b>' + caF_(x[1], x[3] || 0) + ' ' + u + '</b><span style="font-weight:400">' + (x[2] || "") + '</span></div>'; }).join(""); }
+function caTabla_(cab, filas, der){ return '<div class="ca-tbw"><table class="ca-tb"><tr>' + cab.map(function(c, i){ return '<th' + (i && der !== false ? ' class="d"' : '') + '>' + c + '</th>'; }).join("") + '</tr>' + filas.map(function(f){ return '<tr' + (f.ir ? ' style="cursor:pointer" onclick="' + f.ir + '"' : '') + '>' + f.map(function(c, i){ return '<td' + (i && der !== false ? ' class="d"' : '') + '>' + c + '</td>'; }).join("") + '</tr>'; }).join("") + '</table></div>'; }
+function caPill_(t, c){ return '<span class="ca-p ' + c + '">' + t + '</span>'; }
+function caCambio_(v){ if(v === null || v === undefined || !isFinite(v)) return ""; return caPill_((v >= 0 ? "▲ " : "▼ ") + caF_(Math.abs(v), Math.abs(v) < 10 ? 1 : 0) + " %", v >= 0 ? "v" : "r"); }
+
+/* ── la franja: cada cifra es lo más importante de su parte; tocarla la abre ── */
+function caFranja_(){ var K = CA.d.kpi, P = CA.parte, mejor = K.com.mejor;
+  var it = [
+    ["rec", "kg", "Lo recogido", caNum_(K.rec.kg, 0, "kg"), CA.d.meses[10].pocos ? caMes_(CA.d.mesAnterior, true) + " tiene pocos datos" : caCambio_(K.rec.cambio) + "vs " + caMes_(CA.d.mesAnterior, true) + " al mismo día"],
+    ["cli", "ok", "Por cliente", caNum_(K.cli.atendidos, 0, "de " + K.cli.planeados), (K.cli.sinHacer ? caPill_(K.cli.sinHacer + " sin hacer", "r") : caPill_("todas hechas", "v")) + "clientes atendidos"],
+    ["tie", "reloj", "Tiempos", caNum_(K.tie.kgh || 0, 1, "kg/h"), caH_(K.tie.horasPorRuta) + " por ruta"],
+    ["gps", "ruta", "GPS de la ruta", caNum_(K.gps.km, 0, "km"), (K.gps.excesos ? caPill_(K.gps.excesos + " excesos", "a") : "") + "odómetro · GPS " + caF_(K.gps.kmGps) + " km"],
+    ["com", "vel", "Comparar conductores", caNum_(K.com.puntualidad || 0, 0, "%"), caPill_("puntualidad", "v") + (mejor ? esc(String(mejor.conductor).split(" ")[0]) + " rinde más" : "")],
+    ["car", "gente", "Carga de trabajo", caNum_(K.car.alto + K.car.medio, 0, K.car.alto + K.car.medio === 1 ? "equipo" : "equipos"), (K.car.alto ? caPill_("riesgo alto", "r") : K.car.medio ? caPill_("riesgo medio", "a") : caPill_("riesgo bajo", "v")) + K.car.bajo + " en riesgo bajo"]];
+  return '<div class="ca-fr"><div class="ca-k' + (P === "res" ? " on" : "") + '" onclick="caIr_(\'res\')"><div class="ca-et">' + caIc_("bar") + 'Resumen</div><div class="ca-s">todo de un vistazo</div></div>' +
+    it.map(function(k){ return '<div class="ca-k' + (P === k[0] ? " on" : "") + '" onclick="caIr_(\'' + k[0] + '\')" title="Abrir ' + esc(k[2]) + '"><div class="ca-et">' + caIc_(k[1]) + esc(k[2]) + '<span class="r">›</span></div><div class="ca-n">' + k[3] + '</div><div class="ca-s">' + k[4] + '</div></div>'; }).join("") + '</div>'; }
+function caAtencion_(){ var A = CA.d.atencion || [], col = { r: ["var(--tm-bad-bg,#fdecea)", "var(--tm-bad,#d64045)"], a: ["var(--tm-warn-bg,#fff4d6)", "var(--tm-warn-tx,#8a6300)"], i: ["var(--tm-info-bg,#e8effb)", "var(--tm-info,#3b6fd4)"] };
+  return '<div class="ca-c at"><div class="ca-et">' + caIc_("alerta") + 'Pide atención</div>' + (A.length ? A.map(function(x){ var c = col[x.t] || col.i; return '<div class="ca-ai" onclick="caIr_(\'' + x.ir + '\')"><div class="n" style="background:' + c[0] + ';color:' + c[1] + '">' + x.n + '</div><div><b>' + esc(x.titulo) + '</b><small>' + esc(x.texto || "") + '</small></div><span style="margin-left:auto;color:var(--tm-gris,#667489)">›</span></div>'; }).join("") : '<div class="ca-nota">Nada pendiente en el período.</div>') + '</div>'; }
+function caTipo_(sz){ var T = CA.d.tipo, L = [["Bioinfeccioso", T.bio, "var(--tm-rojo,#C0392B)"], ["Punzocortante", T.pun, "var(--tm-acento,#F5B301)"], ["Anatomopatológico", T.ana, "var(--tm-morado,#6C3A96)"]], tot = T.bio + T.pun + T.ana || 1;
+  return '<div style="display:flex;justify-content:center;margin:10px 0">' + caDona_(sz || 120, L) + '</div><div style="display:grid;gap:7px;font-size:13px">' + L.map(function(t){ return '<div style="display:flex;gap:8px;align-items:center"><i style="width:10px;height:10px;border-radius:3px;background:' + t[2] + '"></i><span style="flex:1;color:var(--tm-gris,#667489)">' + t[0] + '</span><b style="color:var(--tm-tinta,#0f2140)">' + caF_(t[1], 1) + ' kg</b><span style="color:var(--tm-gris2,#8a96a8);width:56px;text-align:right;white-space:nowrap">' + caF_(t[1] / tot * 100, 1) + ' %</span></div>'; }).join("") + '</div>'; }
+function caDiasBarras_(w, h){ var D = CA.d.dias.filter(function(x){ return x.kg > 0; }), prom = D.length ? D.reduce(function(s, x){ return s + x.kg; }, 0) / D.length : 0, mx = Math.max.apply(null, D.map(function(x){ return x.kg; }).concat([0]));
+  return caBarras_(w, h, D.map(function(x, i){ return { x: String(Number(x.fecha.slice(8))), v: x.kg, on: i === D.length - 1, lab: x.kg >= mx * 0.75 || i === D.length - 1 ? caF_(x.kg) : "", tip: caDia_(x.fecha) + " · " + caF_(x.kg, 1) + " kg · " + x.recibos + " recibos", ir: x.fecha }; }), { ref: prom }) +
+    '<div class="ca-nota">Línea ámbar: promedio de ' + caF_(prom, 1) + ' kg por día con recolección.</div>'; }
+
+/* ── comparación: este mes y el pasado (curvas) · 3, 6 o 12 meses (barras) ── */
+function caComparar_(){ var d = CA.d, M = d.meses, act = M[M.length - 1], ant = M[M.length - 2];
+  var rg = '<div class="ca-rg">' + [[2, "Este mes y el pasado"], [3, "3 meses"], [6, "6 meses"], [12, "12 meses"]].map(function(r){ return '<button class="' + (CA.rango === r[0] ? "on" : "") + '" onclick="CA.rango=' + r[0] + ';caPintar_(true)">' + r[1] + '</button>'; }).join("") + '</div>';
+  if(CA.rango === 2){ var al = d.acumA.length, b = d.acumB[Math.min(al, d.acumB.length) - 1] || [0, 0], cam = d.kpi.rec.cambio;
+    return rg + '<div style="margin-top:12px">' + caCurvas_(820, 300, d.acumA, d.acumB, caMes_(d.mesActual, true), caMes_(d.mesAnterior, true)) + '</div>' +
+      '<div class="ca-nota"><b>' + caMes_(d.mesActual, true) + '</b> ' + caF_(d.kpi.rec.kg) + ' kg al día ' + al + ' · <b>' + caMes_(d.mesAnterior, true) + '</b> ' + caF_(b[1]) + ' kg al mismo día (' + caF_(ant.kg) + ' en el mes) · ' + caMes_(d.mesActual, true) + ' ' + (cam === null || ant.pocos ? "" : (cam >= 0 ? '<span style="color:var(--tm-ok,#2f9e44);font-weight:800">▲ ' : '<span style="color:var(--tm-bad,#d64045);font-weight:800">▼ ') + caF_(Math.abs(cam), 1) + ' %</span>') + '</div>'; }
+  var L = M.slice(-CA.rango), prev = L.slice(0, -1).filter(function(m){ return !m.pocos; }), prom = prev.length ? prev.reduce(function(s, m){ return s + m.kg; }, 0) / prev.length : 0;
+  var est = d.estimado && d.estimado.kg ? Math.max(act.kg, act.kg / Math.max(1, d.acumA.length) * new Date(Date.UTC(+d.mesActual.slice(0, 4), +d.mesActual.slice(5, 7), 0)).getUTCDate()) : 0;
+  var pocos = L.filter(function(m){ return m.pocos; });
+  var mx = prev.length ? prev.reduce(function(a, b){ return b.kg > a.kg ? b : a; }) : null, mn = prev.length ? prev.reduce(function(a, b){ return b.kg < a.kg ? b : a; }) : null;
+  return rg + '<div style="margin-top:12px">' + caBarras_(820, 300, L.map(function(m, i){ var on = i === L.length - 1; return { x: caMes_(m.mes), v: m.kg, on: on, pocos: m.pocos, e: on ? est : 0, tipE: "al ritmo actual cerraría en ≈ " + caF_(est) + " kg (aproximado)", lab: m.pocos ? "" : (L.length > 6 ? (m.kg / 1000).toFixed(1) + "k" : caF_(m.kg)), tip: caMes_(m.mes, true) + " " + m.mes.slice(0, 4) + " · " + caF_(m.kg, 1) + " kg · " + m.recibos + " recibos" + (on ? " (en curso)" : "") }; }), { ref: prev.length ? prom : 0 }) + '</div>' +
+    '<div class="ca-nota">' + (prev.length ? 'Promedio de los meses anteriores <b>' + caF_(prom) + ' kg</b> (línea ámbar)' : 'Aún no hay meses anteriores completos para promediar') + (mx ? ' · mejor <b>' + caMes_(mx.mes) + ' ' + caF_(mx.kg) + '</b> · más bajo <b>' + caMes_(mn.mes) + ' ' + caF_(mn.kg) + '</b>' : '') + ' · ' + caMes_(d.mesActual, true) + ' va en <b>' + caF_(act.kg) + ' kg</b>' + (est > act.kg ? ' y al ritmo actual cerraría en <b>≈ ' + caF_(est) + '</b> (rayado, aproximado)' : '') +
+    (pocos.length ? '<br>Meses en gris claro: hay pocos registros (el sistema se empezó a usar de lleno en marzo de 2026); no entran en el promedio.' : '') + '</div>'; }
+
+/* ── las partes ── */
+var CA_PARTES = {
+ res: function(){ return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("kg") + 'Kilos recogidos · comparado</div>' + caComparar_() + '</div><div class="ca-g" style="margin:0"><div class="ca-c" style="cursor:pointer" onclick="caIr_(\'rec\')"><div class="ca-et">' + caIc_("dona") + 'Por tipo de desecho<span class="r">›</span></div>' + caTipo_(120) + '</div>' + caAtencion_() + '</div></div>' +
+   '<div class="ca-c"><div class="ca-et">' + caIc_("bar") + 'Kilos por día<span class="r">toque un día para verlo en Lo recogido</span></div><div style="margin-top:10px" onclick="var t=event.target.closest(\'[data-ir]\');if(t)caIr_(\'rec\')">' + caDiasBarras_(1100, 180) + '</div></div>'; },
+ rec: function(){ var D = CA.d.dias.slice().reverse(), top = CA.d.dias.slice().sort(function(a, b){ return b.kg - a.kg; }).slice(0, 4), mx = Math.max.apply(null, D.map(function(x){ return x.kg; }).concat([1]));
+   return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("bar") + 'Kilos por día</div><div style="margin-top:12px">' + caDiasBarras_(820, 300) + '</div></div><div class="ca-g" style="margin:0"><div class="ca-c"><div class="ca-et">' + caIc_("dona") + 'Por tipo de desecho</div>' + caTipo_(120) + '</div><div class="ca-c"><div class="ca-et">' + caIc_("cal") + 'Los días que más aportan</div><div style="margin-top:8px">' + caHb_(top.map(function(x){ return [caDia_(x.fecha), x.kg, "", 1]; }), "kg") + '</div></div></div></div>' +
+   '<div class="ca-c"><div class="ca-et">' + caIc_("cal") + 'Detalle por día<span class="r">kilos de los recibos · horas de la jornada</span></div>' + caTabla_(["Día", "Rutas", "Clientes", "Bioinfeccioso", "Punzocortante", "Anatomopat.", "Bolsas", "Total", "kg por hora"],
+     D.map(function(x){ return ['<b>' + caDia_(x.fecha) + '</b><small>' + esc(x.quien || "") + '</small>', x.rutas, x.clientes, caF_(x.bio, 1), caF_(x.pun, 1), caF_(x.ana, 1), caF_(x.bolsas), '<b>' + caF_(x.kg, 1) + '</b><span style="display:inline-block;width:56px;height:6px;background:var(--tm-linea2,#eef1f5);border-radius:3px;margin-left:8px;vertical-align:middle;overflow:hidden"><i class="hz" style="display:block;height:100%;width:' + (x.kg / mx * 100) + '%;background:var(--tm-navy2,#14306b)"></i></span>', x.kgh === null ? '—' : '<b>' + caF_(x.kgh, 1) + '</b>']; })) + '</div>'; },
+ cli: function(){ var C = CA.d.clientes, top = C.slice(0, 8), sin = C.filter(function(c){ return c.planeado && !c.atendido; });
+   var cmp = function(c){ if(!c.anterior) return ""; var v = (c.kg / c.anterior - 1) * 100; return caCambio_(v); };
+   return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("kg") + 'Clientes que más aportan<span class="r">kg del período · vs el período anterior</span></div><div style="margin-top:14px">' + caHb_(top.map(function(c){ return [c.cliente, c.kg, cmp(c), 1]; }), "kg") + '</div></div>' +
+     '<div class="ca-g" style="margin:0"><div class="ca-c"><div class="ca-et">' + caIc_("cal") + 'El mes siguiente · aproximado</div><div class="ca-n">≈ ' + caNum_(CA.d.estimado.kg, 0, "kg") + '</div><div class="ca-nota">' + esc(CA.d.estimado.metodo) + '.</div></div>' +
+     '<div class="ca-c at"><div class="ca-et">' + caIc_("alerta") + 'Sin atender</div>' + (sin.length ? sin.slice(0, 5).map(function(c){ return '<div class="ca-ai"><div class="n" style="background:var(--tm-bad-bg,#fdecea);color:var(--tm-bad,#d64045)">!</div><div><b>' + esc(c.cliente) + '</b><small>' + esc(c.frecuencia || "") + '</small></div></div>'; }).join("") : '<div class="ca-nota">Todos los clientes planeados fueron atendidos.</div>') + '</div></div></div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("ok") + 'Detalle por cliente<span class="r">entrada y salida del recibo firmado</span></div>' + caTabla_(["Cliente", "Visitas", "Kilos", "Por visita", "Período anterior", "Mes siguiente (aprox.)", "Última visita"],
+       C.map(function(c){ return ['<b>' + esc(c.cliente) + '</b><small>' + esc([c.frecuencia, c.horario].filter(Boolean).join(" · ")) + '</small>', c.planeado && !c.atendido ? caPill_("sin atender", "r") : c.visitas, '<b>' + caF_(c.kg, 1) + '</b>', caF_(c.porVisita, 1), caF_(c.anterior, 1) + ' ' + cmp(c), c.estimado === null ? '—' : '≈ ' + caF_(c.estimado) + '<small>' + c.estVisitas + ' visitas</small>', c.ultima ? caDia_(c.ultima.fecha) + '<small>' + (c.ultima.entro ? c.ultima.entro + ' a ' + c.ultima.salio : '') + (c.ultima.recibo ? ' · recibo ' + esc(c.ultima.recibo) : '') + '</small>' : '—']; })) + '</div>'; },
+ tie: function(){ var D = CA.d.dias.filter(function(x){ return x.horas; }), sem = {}, G = CA.d.gps;
+   D.forEach(function(x){ var d = new Date(x.fecha + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); var k = d.toISOString().slice(0, 10); var o = sem[k] = sem[k] || { kg: 0, h: 0 }; o.kg += x.kg; o.h += x.horas; });
+   var L = Object.keys(sem).sort().filter(function(k){ return sem[k].kg > 0 && sem[k].h > 0; }).map(function(k){ return { x: caDia_(k).replace(/^\w+ /, ""), v: sem[k].h ? Math.round(sem[k].kg / sem[k].h * 10) / 10 : 0, tip: "semana del " + caDia_(k) + " · " + caF_(sem[k].kg, 1) + " kg en " + caH_(sem[k].h) }; });
+   var tot = G.enRuta || 1, P = [["Manejando", G.manejando, "var(--tm-navy2,#14306b)"], ["En los clientes", G.enClientes, "var(--ca-barra)"], ["Detenido fuera de cliente", G.fueraMin, "var(--tm-warn,#d99a00)"], ["Base, planta y otros", Math.max(0, tot - G.manejando - G.enClientes - G.fueraMin), "var(--tm-linea,#e1e6ee)"]], Tm = CA.d.cierre.tiempos || {};
+   return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("vel") + 'Productividad · kg por hora de ruta, por semana</div><div style="margin-top:12px">' + (L.length ? caLinea_(820, 280, L, { dec: 1 }) : '<div class="ca-nota">Sin jornadas con hora de salida y cierre en el período.</div>') + '</div></div>' +
+     '<div class="ca-g" style="margin:0"><div class="ca-c"><div class="ca-et">' + caIc_("reloj") + 'En qué se va el tiempo<span class="r">GPS</span></div>' + (G.enRuta ? '<div style="display:flex;height:16px;border-radius:8px;overflow:hidden;gap:2px;margin-top:14px">' + P.map(function(p){ return '<i class="hz" style="display:block;width:' + (p[1] / tot * 100) + '%;background:' + p[2] + '" data-tip="' + esc(p[0] + " · " + caH_(p[1] / 60)) + '"></i>'; }).join("") + '</div><div style="display:grid;gap:7px;margin-top:12px;font-size:13px">' + P.map(function(p){ return '<div style="display:flex;gap:8px;align-items:center"><i style="width:10px;height:10px;border-radius:3px;background:' + p[2] + '"></i><span style="flex:1;color:var(--tm-gris,#667489)">' + p[0] + '</span><b style="color:var(--tm-tinta,#0f2140)">' + Math.round(p[1] / tot * 100) + ' %</b></div>'; }).join("") + '</div>' : '<div class="ca-nota">Sin GPS en el período.</div>') + '</div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("reloj") + 'Por ruta, en promedio</div><div class="ca-nota" style="font-size:13.5px"><b>' + caH_(CA.d.kpi.tie.horasPorRuta) + '</b> en ruta' + (Tm.sitio ? ' · <b>' + Tm.sitio.real + ' min</b> en cada cliente' : '') + (Tm.trayecto ? ' · <b>' + Tm.trayecto + ' min</b> entre clientes' : '') + (Tm.salida && Tm.salida.real ? ' · sale a las <b>' + Tm.salida.real + '</b>' : '') + '</div></div></div></div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("cal") + 'Línea de tiempo, análisis y lista<span class="r">recibos y jornada</span></div><div class="ca-slot" id="ca-slot-tie"></div></div>'; },
+ gps: function(){ var G = CA.d.gps, L = G.semanas.map(function(s, i){ return { x: caDia_(s.semana).replace(/^\w+ /, ""), v: s.km, on: i === G.semanas.length - 1, lab: caF_(s.km), tip: "semana del " + caDia_(s.semana) + " · odómetro " + caF_(s.km) + " km · GPS " + caF_(s.kmGps) + " km" }; });
+   var A = [["var(--tm-bad-bg,#fdecea)", "var(--tm-bad,#d64045)", G.excesos, "excesos de más de 80 km/h", "en " + G.conGps + " rutas con GPS"], ["var(--tm-warn-bg,#fff4d6)", "var(--tm-warn-tx,#8a6300)", G.fueraVeces, "rutas con paradas fuera de un cliente", caF_(G.fueraMin) + " min en total"], ["var(--tm-info-bg,#e8effb)", "var(--tm-info,#3b6fd4)", G.sinGps.length, "rutas sin GPS", G.sinGps.slice(0, 2).map(function(r){ return caDia_(r.fecha) + " · " + r.vehiculo; }).join(" · ")]];
+   return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("ruta") + 'Kilómetros por semana<span class="r">odómetro de la jornada</span></div><div style="margin-top:12px">' + caBarras_(820, 260, L) + '</div></div>' +
+     '<div class="ca-g" style="margin:0"><div class="ca-c at"><div class="ca-et">' + caIc_("alerta") + 'Lo que marcó el GPS</div>' + A.map(function(x){ return '<div class="ca-ai"><div class="n" style="background:' + x[0] + ';color:' + x[1] + '">' + x[2] + '</div><div><b>' + x[3] + '</b><small>' + esc(x[4] || "") + '</small></div></div>'; }).join("") + '</div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("ruta") + 'GPS y odómetro</div><div class="ca-nota" style="font-size:13.5px">GPS <b>' + caF_(G.kmGps) + ' km</b> en ' + G.conGps + ' rutas · odómetro <b>' + caF_(CA.d.kpi.gps.km) + ' km</b> en todas. El GPS solo mide las rutas que transmitieron.</div></div></div></div>' +
+     '<div class="ca-slot" id="ca-slot-gps"></div>'; },
+ com: function(){ var C = CA.d.conductores;
+   return '<div class="ca-g ca-g11"><div class="ca-c"><div class="ca-et">' + caIc_("vel") + 'Productividad por conductor · kg por hora</div><div style="margin-top:14px">' + caHb_(C.filter(function(c){ return c.kgh; }).map(function(c){ return [c.conductor, c.kgh, "", 1]; }), "kg/h") + '</div></div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("ok") + 'Puntualidad por conductor</div><div style="margin-top:14px">' + caHb_(C.filter(function(c){ return c.puntualidad !== null; }).map(function(c){ return [c.conductor, c.puntualidad]; }), "%", 100, "var(--tm-ok,#2f9e44)") + '</div><div class="ca-nota">' + esc(CA.d.puntualidad.regla) + '.</div></div></div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("vel") + 'Detalle por conductor</div>' + caTabla_(["Conductor", "Rutas", "Kilos", "kg por hora", "Puntualidad", "En cada cliente", "Detenido fuera", "Excesos", "Km odómetro", "Km GPS"],
+       C.map(function(c){ return ['<b>' + esc(c.conductor) + '</b><small>' + esc(c.vehiculos) + '</small>', c.rutas, '<b>' + caF_(c.kg, 1) + '</b>', c.kgh === null ? '—' : '<b>' + caF_(c.kgh, 1) + '</b>', c.puntualidad === null ? '—' : c.puntualidad + ' %', c.sitio === null ? '—' : c.sitio + ' min', c.fuera ? caPill_(c.fuera + ' min', 'a') : '0 min', c.excesos ? caPill_(c.excesos, 'r') : '0', caF_(c.km), caF_(c.kmGps)]; })) + '</div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("ruta") + 'Cada ruta según el GPS</div><div class="ca-slot" id="ca-slot-com"></div></div>'; },
+ car: function(){ var E = CA.d.equipos, CT = CA.d.controles, dias = {};
+   E.forEach(function(e){ e.dias.forEach(function(x){ dias[x.fecha] = 1; }); }); var F = Object.keys(dias).sort();
+   var col = function(h){ return !h ? "var(--tm-linea2,#eef1f5)" : h > CT.dia ? "var(--tm-bad,#d64045)" : h > CT.dia * 0.85 ? "var(--tm-warn,#d99a00)" : ["color-mix(in srgb,var(--tm-navy2,#14306b) 15%,var(--tm-tarjeta,#fff))", "color-mix(in srgb,var(--tm-navy2,#14306b) 30%,var(--tm-tarjeta,#fff))", "color-mix(in srgb,var(--tm-navy2,#14306b) 50%,var(--tm-tarjeta,#fff))", "color-mix(in srgb,var(--tm-navy2,#14306b) 70%,var(--tm-tarjeta,#fff))", "var(--tm-navy2,#14306b)"][Math.min(4, Math.floor(h / 2))]; };
+   var hm = '<div class="ca-hm" style="grid-template-columns:150px repeat(' + F.length + ',minmax(14px,1fr))"><div></div>' + F.map(function(f){ return '<span class="hd">' + caDia_(f).slice(0, 1) + '<br>' + Number(f.slice(8)) + '</span>'; }).join("") + '</div>' +
+     E.map(function(e){ var m = {}; e.dias.forEach(function(x){ m[x.fecha] = x; }); return '<div class="ca-hm" style="grid-template-columns:150px repeat(' + F.length + ',minmax(14px,1fr))"><div class="hn"><b>' + esc(String(e.conductor).split(" ")[0]) + ' + ayudante</b><small>' + esc(e.vehiculos) + '</small></div>' + F.map(function(f){ var x = m[f], h = x ? x.horas : 0; return '<i style="background:' + col(h) + (h > CT.dia ? ';box-shadow:0 0 0 2px var(--tm-tarjeta,#fff),0 0 0 3.5px var(--tm-bad,#d64045)' : '') + '" data-tip="' + esc(e.conductor + " · " + caDia_(f) + " · " + (h ? caH_(h) + (x.salida ? " (" + x.salida + " a " + x.llegada + ")" : "") : "sin jornada")) + '"></i>'; }).join("") + '</div>'; }).join("");
+   var nv = { alto: ["r", "Riesgo alto"], medio: ["a", "Riesgo medio"], bajo: ["v", "Riesgo bajo"] };
+   var tops = E.filter(function(e){ return e.kgPersonaDia; });
+   return '<div class="ca-g ca-g2"><div class="ca-c"><div class="ca-et">' + caIc_("cal") + 'Horas de cada equipo, día por día<span class="r">salida a cierre de la jornada</span></div><div style="margin-top:14px">' + (F.length ? hm : '<div class="ca-nota">Sin jornadas en el período.</div>') + '</div>' +
+       '<div class="ca-lg" style="margin-top:10px"><span><i style="background:color-mix(in srgb,var(--tm-navy2,#14306b) 30%,var(--tm-tarjeta,#fff))"></i>menos de 4 h</span><span><i style="background:color-mix(in srgb,var(--tm-navy2,#14306b) 70%,var(--tm-tarjeta,#fff))"></i>6 a 8 h</span><span><i style="background:var(--tm-warn,#d99a00)"></i>cerca del máximo</span><span><i style="background:var(--tm-bad,#d64045)"></i>pasa de ' + CT.dia + ' h</span></div></div>' +
+     '<div class="ca-g" style="margin:0">' + E.map(function(e){ var n = nv[e.nivel]; return '<div class="ca-c"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b style="font-size:14px;color:var(--tm-tinta,#0f2140)">' + esc(String(e.conductor).split(" ")[0]) + ' + ayudante</b><div class="ca-nota" style="margin-top:2px">' + esc(e.vehiculos) + '</div></div>' + caPill_(n[1], n[0]) + '</div><div class="ca-nota">' + (e.por.length ? esc(e.por.join(" · ")) : 'dentro de todos los controles') + '</div></div>'; }).join("") +
+       '<div class="ca-c"><div class="ca-et">' + caIc_("ok") + 'Controles de horas de trabajo</div><div class="ca-nota" style="font-size:13px"><b>' + CT.dia + ' h</b> por día · <b>' + CT.dias + '</b> días seguidos · <b>' + CT.sem + ' h</b> por semana · <b>' + CT.des + ' h</b> de descanso entre jornadas. ISO 45001: la carga y las horas de trabajo se evalúan como peligro.</div></div></div></div>' +
+     '<div class="ca-c"><div class="ca-et">' + caIc_("kg") + 'Carga física · kilos por persona al día<span class="r">cada equipo: conductor + 1 ayudante</span></div><div style="margin-top:14px">' + caHb_(tops.map(function(e){ return [String(e.conductor).split(" ")[0] + " + ayudante", e.kgPersonaDia, caF_(e.bolsasPersonaDia, 1) + " bolsas", 1]; }), "kg", 0, "var(--ca-barra)") + '</div></div>' +
+     '<div class="ca-c" style="margin-top:14px"><div class="ca-et">' + caIc_("gente") + 'Detalle por equipo</div>' + caTabla_(["Equipo", "Horas", "Promedio por semana", "Día más largo", "Días seguidos", "Semana más cargada", "Descanso más corto", "Kilos por persona", "Bolsas por persona", "Riesgo"],
+       E.map(function(e){ var n = nv[e.nivel]; return ['<b>' + esc(String(e.conductor).split(" ")[0]) + ' + ayudante</b><small>' + esc(e.vehiculos) + '</small>', caH_(e.horas), caH_(e.promSemana), e.diaMax > CT.dia ? caPill_(caH_(e.diaMax), "r") : caH_(e.diaMax), e.diasSeguidos > CT.dias ? caPill_(e.diasSeguidos, "a") : e.diasSeguidos, e.semMax > CT.sem ? caPill_(caH_(e.semMax), "a") : caH_(e.semMax), e.descansoMin === null ? '—' : e.descansoMin < CT.des ? caPill_(caH_(e.descansoMin), "a") : caH_(e.descansoMin), caF_(e.kgPersonaDia, 1) + ' kg/día', caF_(e.bolsasPersonaDia, 1) + '/día', caPill_(n[1].replace("Riesgo ", ""), n[0])]; })) + '</div>'; }
+};
+
+/* ── pintar, mover las pantallas existentes y animar ── */
+function caGuardar_(){ var g = $("ca-guarda"); if(!g) return; ["cr-cuerpo", "e41-cuerpo", "c41-cuerpo"].forEach(function(id){ var e = $(id); if(e && e.parentNode !== g && e.closest("#ca-cuerpo")) g.appendChild(e); }); }
+function caPintar_(soloComp){
+  var c = $("ca-cuerpo"); if(!c || !CA.d) return;
+  if(soloComp){ var p = c.querySelector(".ca-c"); if(p && CA.parte === "res"){ c.classList.remove("go"); p.innerHTML = '<div class="ca-et">' + caIc_("kg") + 'Kilos recogidos · comparado</div>' + caComparar_(); void c.offsetWidth; requestAnimationFrame(function(){ c.classList.add("go"); }); return; } }
+  caGuardar_(); c.classList.remove("go");
+  c.innerHTML = caFranja_() + CA_PARTES[CA.parte]();
+  c.querySelectorAll(".ca-c").forEach(function(x, i){ x.style.transitionDelay = (i * 0.05).toFixed(2) + "s"; });
+  if(CA.parte === "tie"){ var s = $("ca-slot-tie"), cr = $("cr-cuerpo"); if(s && cr){ s.appendChild(cr); cr.style.display = ""; CR = caCR_(); try{ crPintarCab_(); crPintar_(); }catch(e){ console.warn(e); } caSub_(); } }
+  if(CA.parte === "gps"){ var s2 = $("ca-slot-gps"), e = $("e41-cuerpo"); if(s2 && e){ s2.appendChild(e); try{ e41Cargar_(); }catch(x){ console.warn(x); } } }
+  if(CA.parte === "com"){ var s3 = $("ca-slot-com"), k = $("c41-cuerpo"); if(s3 && k){ s3.appendChild(k); try{ c41Cargar_(); }catch(x){ console.warn(x); } } }
+  void c.offsetWidth; requestAnimationFrame(function(){ c.classList.add("go"); caContar_(); });
+}
+function caContar_(){ var red = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; document.querySelectorAll("#ca-cuerpo .ca-cn").forEach(function(el){ var fin = +el.dataset.v, d = +el.dataset.d, t0 = null; if(red) return; (function p(ts){ if(!t0) t0 = ts; var k = Math.min(1, (ts - t0) / 1100), e = 1 - Math.pow(1 - k, 3); el.textContent = caF_(fin * e, d); if(k < 1) requestAnimationFrame(p); })(performance.now()); }); }
+function caCR_(){ var d = CA.d, k = d.cierre; return { ok: true, hoy: d.hoy, desde: d.desde, hasta: d.hasta, anterior: {}, conductor: "", numeros: k.numeros, rutas: k.rutas, tiempos: k.tiempos, clientes: k.clientesT, conductores: k.conductoresT, llama: k.llama, operadores: k.operadores, base: k.base, google: k.google }; }
+function caSub_(){ var s = $("cr-sub"); if(!s || !CA.d) return; var n = { res: "Resumen", rec: "Lo recogido", cli: "Por cliente", tie: "Tiempos", gps: "GPS de la ruta", com: "Comparar conductores", car: "Carga de trabajo" }[CA.parte];
+  s.textContent = n + " · " + (CA.d.desde === CA.d.hasta ? caDia_(CA.d.desde) : "del " + caDia_(CA.d.desde) + " al " + caDia_(CA.d.hasta)); }
+function caIr_(p){ CA.parte = p; if(CR_TAB === "rec" || CR_TAB === "cli" || CR_TAB === "res") CR_TAB = "tl"; caPintar_(); caSub_(); try{ var q = $("pantalla-cierre"); if(q) q.scrollIntoView({ block: "start", behavior: "smooth" }); }catch(e){} }
+
+e41Pintar_ = (function(o){ return function(){ var r = o.apply(this, arguments); try{ if($("e41-cuerpo") && $("e41-cuerpo").closest("#ca-cuerpo")) $("e41-cuerpo").querySelectorAll(".cr-tt button").forEach(function(b){ if(/Comparar rutas/.test(b.textContent)) b.style.display = "none"; }); }catch(e){} return r; }; })(e41Pintar_);
+/* ── carga: la misma barra de período de Cierre ── */
+crCargar_ = (function(o){ return function(){
+  if(!esSupervisor()) return;
+  var sec = $("pantalla-cierre"); if(sec) sec.classList.add("ca-on");
+  if(!$("ca-cuerpo")){ var cr = $("cr-cuerpo"); if(!cr) return o.apply(this, arguments); cr.insertAdjacentHTML("beforebegin", '<div id="ca-cuerpo"></div><div id="ca-guarda" style="display:none"></div>'); $("ca-guarda").appendChild(cr); }
+  if(CA.vuelo) return; var r = crRango_(); CA.vuelo = true;
+  if(!CA.d) $("ca-cuerpo").innerHTML = '<div class="pl-vacio">Juntando el cierre y el análisis…</div>';
+  google.script.run.withSuccessHandler(function(x){
+    CA.vuelo = false;
+    if(!x || !x.ok){ caGuardar_(); $("ca-cuerpo").innerHTML = '<div class="pl-vacio">' + esc((x && x.error) || "No se pudo consultar") + '</div>'; return; }
+    CA.d = x; CR = caCR_(); try{ crPintarCab_(); }catch(e){} caPintar_(); caSub_();
+  }).withFailureHandler(function(){ CA.vuelo = false; caGuardar_(); $("ca-cuerpo").innerHTML = '<div class="pl-vacio">Sin conexión. <button class="ini-lnk" onclick="crCargar_()">Reintentar</button></div>'; }).api_cierreAnalisis(PIN, r[0], r[1]);
+}; })(crCargar_);
+crPintarCab_ = (function(o){ return function(){ var r = o.apply(this, arguments); var h = document.querySelector("#pantalla-cierre .cr-tt h1"); if(h) h.textContent = "Cierre y análisis de rutas"; caSub_(); return r; }; })(crPintarCab_);
+CR_P = "mes";
+
+/* ── menú: una sola entrada; Estudiar y Comparar viven adentro ── */
+(function(){
+  for(var i = MENU_SUP.length - 1; i >= 0; i--){ var t = MENU_SUP[i][0]; if(t === "estudio" || t === "comparar") MENU_SUP.splice(i, 1); else if(t === "cierre") MENU_SUP[i][2] = "Cierre y análisis de rutas"; }
+})();
+mostrarTab = (function(o){ return function(tab){
+  if(esSupervisor() && (tab === "estudio" || tab === "comparar")){ CA.parte = tab === "estudio" ? "gps" : "com"; var r = o.call(this, "cierre"); return r; }
+  if(tab !== "cierre") caGuardar_();
+  return o.apply(this, arguments);
+}; })(mostrarTab);
+/* tooltip de los gráficos */
+(function(){ var t = document.createElement("div"); t.className = "ca-tip"; document.addEventListener("DOMContentLoaded", function(){ document.body.appendChild(t); });
+  document.addEventListener("mousemove", function(e){ var x = e.target && e.target.closest && e.target.closest("#ca-cuerpo [data-tip]"); if(x && x.getAttribute("data-tip")){ t.textContent = x.getAttribute("data-tip"); t.style.left = (e.clientX + 12) + "px"; t.style.top = (e.clientY - 34) + "px"; t.style.opacity = 1; } else t.style.opacity = 0; }); })();
+</script>
+
 </body>
 
 </html>
