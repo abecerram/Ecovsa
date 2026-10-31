@@ -26892,6 +26892,8 @@ function con_(nombre){ var o = window[nombre]; if(typeof o !== "function") retur
 #ca-cuerpo .hz{transform-origin:left;transform:scaleX(0)}#ca-cuerpo.go .hz{transition:transform .9s cubic-bezier(.2,.8,.2,1) .3s;transform:scaleX(1)}
 #ca-cuerpo .fd{opacity:0}#ca-cuerpo.go .fd{transition:opacity .5s .9s;opacity:1}
 #ca-cuerpo .rgd{stroke-dashoffset:var(--C)}#ca-cuerpo.go .rgd{transition:stroke-dashoffset 1.2s cubic-bezier(.3,.7,.2,1) .3s;stroke-dashoffset:var(--F)}
+#ca-cuerpo #cr-det .ca-tb td:nth-child(2),#ca-cuerpo #cr-det .ca-tb th:nth-child(2){min-width:220px;text-align:left}#ca-cuerpo #cr-det .cr-z{overflow:visible}
+.ca-pcs{display:grid;gap:8px}.ca-pc{background:var(--tm-tarjeta,#fff);border:1px solid var(--tm-linea,#e3e8ef);border-radius:12px;padding:10px 12px}.ca-pc1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.ca-pc1 small,.ca-pc2 small{display:block;color:var(--tm-gris,#6b7a90);font-size:12px}.ca-pc2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin-top:8px;font-size:14px}.ca-pc2 small.k{text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}.ca-pct{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:14px}
 #ca-cuerpo .cr-fila.ca-pulso{animation:caPulso 1.3s ease-in-out 2}@keyframes caPulso{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 3px var(--tm-warn,#d99a00)}}
 @media (prefers-reduced-motion:reduce){#ca-cuerpo *{transition:none!important}#ca-cuerpo .ca-c,#ca-cuerpo .ca-fr,#ca-cuerpo .fd{opacity:1!important;transform:none!important}#ca-cuerpo .bx,#ca-cuerpo .hz{transform:none!important}#ca-cuerpo .ln,#ca-cuerpo .rgd{stroke-dashoffset:0!important}}
 @media (max-width:900px){.ca-fr{grid-template-columns:110px repeat(6,minmax(150px,1fr));overflow-x:auto}.ca-g2,.ca-g11{grid-template-columns:1fr}.ca-n{font-size:22px}}
@@ -27073,6 +27075,29 @@ function caVerDia_(fecha, conductor){
   if(!r){ try{ toast("Ese día no tiene una ruta publicada en el período."); }catch(e){} return; }
   setTimeout(function(){ try{ crAbrir_(r.rutaId); var f = document.querySelector("#ca-slot-tie .cr-fila.sel"); if(f){ f.scrollIntoView({ behavior: "smooth", block: "center" }); f.classList.add("ca-pulso"); setTimeout(function(){ f.classList.remove("ca-pulso"); }, 2600); } }catch(e){ console.warn(e); } }, 450);
 }
+/* Detalle de la jornada: debajo de la línea, cada parada con nombre completo, llegada, salida, minutos, kilos, bolsas y recibo */
+crDetalle_ = (function(o){ return function(r){
+  var h = o.apply(this, arguments); if(!r || !$("ca-cuerpo")) return h;
+  try{
+    var P = r.paradas.slice().sort(function(a, b){ return (a.hi || "99").localeCompare(b.hi || "99"); }), tk = 0, tb = 0;
+    var filas = P.map(function(p){ tk += Number(p.kg) || 0; tb += Number(p.bolsas) || 0;
+      var est = !p.hecha ? caPill_("sin hacer", "r") : p.fuera ? caPill_("fuera de horario", "a") : p.larga ? caPill_("más largo de lo normal", "i") : caPill_("a tiempo", "v");
+      return ['<b>' + p.n + '</b>', '<b>' + esc(p.cliente) + '</b><small>' + esc([p.hTipo && p.hDesde ? p.hTipo + ' ' + p.hDesde + '–' + p.hHasta : '', p.horaPlan ? 'planeada ' + p.horaPlan : ''].filter(Boolean).join(' · ')) + '</small>',
+        p.hi || '—', p.hf || '—', p.min ? p.min + ' min' + (p.prom ? '<small>su promedio ' + p.prom + '</small>' : '') : '—',
+        p.hecha ? '<b>' + caF_(p.kg, 1) + '</b>' + (p.bio !== undefined ? '<small>' + [['bio', p.bio], ['punzo', p.pun], ['anato', p.ana]].filter(function(x){ return Number(x[1]) > 0; }).map(function(x){ return x[0] + ' ' + caF_(x[1], 1); }).join(' · ') + '</small>' : '') : '—',
+        p.bolsas ? p.bolsas + (p.recipientes ? '<small>+ ' + p.recipientes + ' recip.</small>' : '') : '—', p.recibo ? esc(p.recibo) : '—', est]; });
+    filas.push(['', '<b>Total</b>', r.salida ? '<small>salió</small>' + r.salida : '', r.llegada ? '<small>regresó</small>' + r.llegada : '', '', '<b>' + caF_(tk, 1) + ' kg</b>', tb ? '<b>' + tb + '</b>' : '', '', '']);
+    var cel = typeof esEscritorio_ === "function" && !esEscritorio_();
+    var cuerpo = cel ? '<div class="ca-pcs">' + P.map(function(p, i){ var f = filas[i];
+        return '<div class="ca-pc"><div class="ca-pc1"><span>' + f[0] + ' · ' + f[1] + '</span>' + f[8] + '</div><div class="ca-pc2">' +
+          [['Llegó', f[2]], ['Salió', f[3]], ['En el cliente', f[4]], ['Kilos', f[5]], ['Bolsas', f[6]], ['Recibo', f[7]]].map(function(x){ return '<div><small class="k">' + x[0] + '</small>' + x[1] + '</div>'; }).join("") + '</div></div>'; }).join("") +
+        '<div class="ca-pc ca-pct"><b>Total</b><span>' + (r.salida ? 'salió ' + r.salida : '') + (r.llegada ? ' · regresó ' + r.llegada : '') + '</span><b>' + caF_(tk, 1) + ' kg' + (tb ? ' · ' + tb + ' bolsas' : '') + '</b></div></div>'
+      : caTabla_(["#", "Cliente", "Llegó", "Salió", "En el cliente", "Kilos", "Bolsas", "Recibo", ""], filas);
+    var t = '<div style="margin-top:14px"><div class="ca-et">' + caIc_("ok") + 'Cada parada<span class="r">del recibo firmado</span></div>' + cuerpo + '</div>';
+    var k = h.indexOf('<div class="pl-pie"'); h = k > 0 ? h.slice(0, k) + t + h.slice(k) : h + t;
+  }catch(e){ console.warn(e); }
+  return h;
+}; })(crDetalle_);
 /* ── carga: la misma barra de período de Cierre ── */
 crCargar_ = (function(o){ return function(){
   if(!esSupervisor()) return;
