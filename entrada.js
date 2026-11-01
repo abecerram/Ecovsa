@@ -321,6 +321,7 @@
     q('.e-teclas').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-teclas').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     E.onKey = function (e) { if (!E || !$('ent')) return;
+      if (document.querySelector('.cl')) return;   /* api 3.92b: con la tarjeta de usuario y contraseña abierta el teclado es del formulario */
       if (E.intro) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); var b0 = E.intro.querySelector('.ei-bt'); if (b0) b0.click(); } return; }   /* api 3.83d: durante la intro solo el botón */
       if (e.target && e.target.tagName === 'INPUT') return;   /* escribiendo el nombre en «¿Olvidaste tu PIN?» */
       if (/^[0-9]$/.test(e.key)) { abrir(); tecla(e.key); e.preventDefault(); }
@@ -1072,6 +1073,7 @@
   function entradaClave(z, seguir) {
     var im = z.querySelector('.im'), bt = z.querySelector('.ei-bt'); E.clHost = im;
     bt.addEventListener('click', function () {
+      if (E.cl1) return; E.cl1 = true;   /* api 3.92b: una sola tarjeta */
       bt.style.animation = 'none'; bt.style.transition = 'opacity .25s'; bt.style.opacity = 0;
       setTimeout(function () { bt.style.display = 'none'; var em = im.querySelector('.em'); if (em) em.style.marginBottom = '24px'; tarjetaLogin(null, '', { sinE: false, alPin: function () { E.clHost = null; var c = im.querySelector('.cl'); if (c) c.parentNode.removeChild(c); seguir(); }, alLlave: function (ll) { entrarConLlave(ll); } }); }, 260);
     });
