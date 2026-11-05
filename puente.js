@@ -293,8 +293,9 @@
   }
 
   function ejecutar(fn, args, ok, fail, uo) {
-    var esEsc = CONFIG.escritura.test(fn);
-    var usaCopia = !esEsc && !CONFIG.sinCopia.test(fn);
+    var esMes = fn === 'api_planMes' && (args[2] === 'armar' || args[2] === 'aplicar');
+    var esEsc = CONFIG.escritura.test(fn) || (esMes && args[2] === 'aplicar');
+    var usaCopia = !esMes && !esEsc && !CONFIG.sinCopia.test(fn);
     var clave = usaCopia ? claveCopia(fn, args) : null;
     var copia = usaCopia ? leerCopia(clave) : null;
     var entregado = null;
@@ -319,7 +320,7 @@
       reloj.fin(false, err.message, copia ? copia.t : null);
       /* api 3.14: módulo en mantenimiento → se tapa la pantalla; un guardado queda en espera */
       if (err.mantenimiento) {
-        if (esEsc && !CONFIG.sinCola.test(fn)) {
+        if (esEsc && !esMes && !CONFIG.sinCola.test(fn)) {
           encolar(fn, args, id);
           mant.tapa(err.mantenimiento);
           entregarError(fail, new Error('El módulo está en mantenimiento: lo que guardaste quedó en espera y se enviará solo cuando vuelva.'), uo, fn);
@@ -327,7 +328,7 @@
         }
         mant.tapa(err.mantenimiento);
       }
-      if (esEsc && err.reintentable && !CONFIG.sinCola.test(fn)) {
+      if (esEsc && !esMes && err.reintentable && !CONFIG.sinCola.test(fn)) {
         encolar(fn, args, id);
         entregarError(fail, new Error('Sin conexión: el guardado quedó en cola y se enviará solo al volver la señal. No lo vuelvas a enviar.'), uo, fn);
         return;
