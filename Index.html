@@ -1868,6 +1868,7 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 .pc-rep-n{font-size:12px;color:#667489;margin-top:6px;line-height:1.45}
 </style>
 
+<style id="estilo-395">.p43-m-actions{display:flex;justify-content:flex-end;margin:12px 0}.p43-m-actions button{max-width:100%;white-space:normal}</style>
 </head>
 
 <body>
@@ -20403,7 +20404,7 @@ function p43Mes_(nuevo){
   var conR = enMes.filter(function(d){ return d.rutas.length; }).length, kg = enMes.reduce(function(s, d){ return s + d.rutas.reduce(function(a, r){ return a + r.kg; }, 0); }, 0), toca = M.semanas.reduce(function(s, w){ return s + w.toca; }, 0);
   $("pl-sub").textContent = nom + " · " + tot + " paradas"; var st = $("p42-semtx"); if(st) st.textContent = nom;
   if(!$("p43-mes")){ c.innerHTML = '<div id="p43-mes"><div id="p43-m-k"></div><div class="p43-mg' + (cel ? ' cel' : '') + '"><div class="mt-card p43-mcal" id="p43-m-cal"></div><div class="mt-card p43-mpd" id="p43-m-pd"></div></div><p class="p43-ay" id="p43-m-ay"></p></div>'; }
-  p43Poner_($("p43-m-k"), '<div class="p43-k m">' + [[tot, 'paradas en el mes'], [conR, 'días con ruta'], ['≈ ' + Math.round(kg), 'kg estimados'], [toca, 'le toca sin día', toca ? 'am' : '']].map(function(x){ return '<div class="' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div>', nuevo);
+  p43Poner_($("p43-m-k"), '<div class="p43-k m">' + [[tot, 'paradas en el mes'], [conR, 'días con ruta'], ['≈ ' + Math.round(kg), 'kg estimados'], [toca, 'le toca sin día', toca ? 'am' : '']].map(function(x){ return '<div class="' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div><div class="p43-m-actions"><button class="pl-btn a" onclick="p43ArmarMes_()">Repartir el mes equilibrado</button></div>', nuevo);
   var DS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"], h = '<div class="p43-gh">' + DS.map(function(x){ return '<div>' + x + '</div>'; }).join("") + (cel ? '' : '<div>Semana</div>') + '</div><div class="p43-gb">';
   M.dias.forEach(function(d, i){
     var di = d.dow - 1, col = P42_COL[di % P42_COL.length], kgD = d.rutas.reduce(function(a, r){ return a + r.kg; }, 0), puede = !d.pasado && !d.feriado;
@@ -20433,6 +20434,49 @@ function p43Mes_(nuevo){
   p43Poner_($("p43-m-pd"), pd, true);
   p43Poner_($("p43-m-ay"), cel ? 'Toque un día y, en su lista, «Mover» para pasarlo a otro día.' : 'Arrastre una ruta a otro día, o un cliente de la lista de la derecha a cualquier día. Doble clic en un día lo abre.', false);
 }
+function p43ArmarMes_(){
+  var M = P43.mes; if(!M || P43.mesArmando || P43.mesGuardando) return; P43.mesArmando = true;
+  f48Hoja_('<div class="f48-hc"><div><small>Planificador mensual</small><b>Repartiendo ' + esc(P43_MESES[Number(M.mes.slice(5)) - 1] + ' ' + M.mes.slice(0, 4)) + '…</b></div><button class="f48-x" data-cerrar>' + f48Ic_("x", 18) + '</button></div><div class="f48-cargando"><i></i><span>Revisa clientes recurrentes, días disponibles, rutas publicadas, horarios, carga de camiones y el horario límite configurado. No cambia nada hasta que confirmes.</span></div>', true);
+  google.script.run.withSuccessHandler(function(r){
+    P43.mesArmando = false; if(!P43.mes || P43.mes.mes !== M.mes) return;
+    if(!r || !r.ok){ f48Cerrar_(); p43Aviso_((r && r.error) || "No se pudo repartir el mes", false); return; }
+    if(!r.res){ f48Cerrar_(); p43Aviso_(r.googleError || "No se recibió una propuesta", false); return; }
+    P43.propMes = r; p43MesPlanVer_(r);
+  }).withFailureHandler(function(){ P43.mesArmando = false; f48Cerrar_(); p43Aviso_("Sin conexión", false); }).api_planMes(PIN, M.mes, "armar");
+}
+function p43MesPlanVer_(r){
+  var M = P43.mes, R = (r.res && r.res.rutas) || [], N = r.nombres || {}, porDia = {}, carga = {}, total = 0, km = 0, min = 0;
+  (r.cargaBase || []).forEach(function(x){ carga[x.conductor] = Number(x.min) || 0; });
+  R.forEach(function(x){ if(!porDia[x.fecha]) porDia[x.fecha] = []; porDia[x.fecha].push(x); total += (x.orden || []).filter(function(id){ return id > 0; }).length; km += Number(x.km) || 0; min += Number(x.min) || 0; carga[x.conductor] = (carga[x.conductor] || 0) + (Number(x.min) || 0); });
+  var cargaHtml = Object.keys(carga).sort().map(function(n){ return '<span>' + esc(n) + ': ' + esc(f48Dur_(carga[n])) + '</span>'; }).join(' · ');
+  var no = (r.res.noCaben || []), dias = Object.keys(porDia).sort(), html = dias.map(function(f){
+    var diaMes = M.dias.filter(function(d){ return d.fecha === f; })[0] || {}, col = P42_COL[((diaMes.dow || 1) - 1) % P42_COL.length];
+    var rutas = porDia[f].map(function(x){ return '<div class="f48-r nv"><div class="q"><i style="background:' + col + '"></i><b>' + esc(String(x.conductor || '').split(" ")[0]) + ' · ' + esc(x.placa) + '</b><span class="e nv">borrador</span></div><div class="m">' + esc(f48H_(x.salida)) + ' – ' + esc(f48H_(x.regreso)) + (x.km ? ' · ' + Math.round(x.km) + ' km' : '') + ' · ' + (x.orden || []).filter(function(id){ return id > 0; }).length + ' paradas</div><ol>' + (x.orden || []).filter(function(id){ return id > 0; }).map(function(id){ return '<li>' + esc(N[id] || ('Cliente ' + id)) + (x.llegadas && x.llegadas[id] ? ' <small>' + esc(f48H_(x.llegadas[id])) + '</small>' : '') + '</li>'; }).join('') + '</ol></div>'; }).join('');
+    return '<div class="f48-d"><div class="dh"><b>' + esc(p42Dia_(f)) + '</b><span>' + (porDia[f].length === 1 ? '1 ruta nueva' : porDia[f].length + ' rutas nuevas') + '</span></div>' + rutas + '</div>';
+  }).join('');
+  var pendientes = no.length ? '<div class="f48-nota am"><b>' + no.length + ' visitas no caben:</b> ' + no.map(function(x){ return esc(N[x.id] || ('Cliente ' + x.id)) + ' (' + esc(x.motivo || 'sin espacio') + ')'; }).join(' · ') + '.</div>' : '';
+  var sin = (r.sinUbicacion || []), sinHtml = sin.length ? '<div class="f48-nota am"><b>Sin ubicación:</b> ' + sin.map(function(x){ return esc(x.nombre || N[x.id] || x.id); }).join(' · ') + '.</div>' : '';
+  var omitidos = (r.omitidos || []), fijas = (r.fijas || []).length;
+  var h = '<div class="f48-hc"><div><small>Propuesta mensual · ' + (r.res.fuente === "google" ? 'Google Maps' : 'cálculo local') + '</small><b>' + esc(P43_MESES[Number(M.mes.slice(5)) - 1] + ' ' + M.mes.slice(0, 4)) + ' · nada se guarda hasta confirmar</b></div><button class="f48-x" data-cerrar>' + f48Ic_("x", 18) + '</button></div>' +
+    '<div class="f48-cmp"><div><small>Reparto nuevo</small><b>' + R.length + (R.length === 1 ? ' ruta' : ' rutas') + ' · ' + total + ' paradas</b><span>' + Math.round(km) + ' km · ' + f48Dur_(min) + '</span></div><div class="f48-fl">→</div><div class="ok"><small>Protecciones activas</small><b>' + fijas + ' rutas existentes conservadas</b><span>' + (r.tope ? 'Horario límite: ' + esc(r.tope) : 'Horario configurado') + ' · peajes según Configuración</span></div></div>' +
+    '<div class="f48-nota az"><b>Carga estimada por conductor:</b> ' + (cargaHtml || 'sin rutas registradas') + '</div><div class="f48-reglas"><span>' + f48Ic_("ok", 12) + ' Un solo reparto para todo el mes</span><span>' + f48Ic_("ok", 12) + ' Horarios y días libres</span><span>' + f48Ic_("ok", 12) + ' Carga mensual previa por conductor</span><span>' + f48Ic_("ok", 12) + ' Los planes existentes se conservan</span></div>' +
+    (r.res.aviso ? '<div class="f48-nota">' + esc(r.res.aviso) + '</div>' : '') + pendientes + sinHtml + (omitidos.length ? '<div class="f48-nota az">' + omitidos.length + ' visitas sin fecha disponible o ya programadas.</div>' : '') +
+    (html ? '<div class="f48-dias" style="--n:1">' + html + '</div>' : '<div class="f48-nota v">No hay rutas nuevas para proponer.</div>') +
+    '<div class="f48-pie"><span>Se guardará como borrador; revisa cada día y publica las rutas desde el planificador.</span><span class="sp"></span><button class="f48-btn" data-cerrar>Dejar como está</button>' + (R.length ? '<button class="f48-btn v" onclick="p43MesAplicar_()">Aplicar el mes como borrador</button>' : '') + '</div>';
+  f48Hoja_(h, true);
+}
+function p43MesAplicar_(){
+  var r = P43.propMes, M = P43.mes; if(!r || !r.res || !M || P43.mesGuardando || r.mes !== M.mes) return; P43.mesGuardando = true;
+  var rutas = (r.res.rutas || []).map(function(x){ return Object.assign({}, x, { orden: (x.orden || []).filter(function(id){ return id > 0; }) }); }).filter(function(x){ return x.orden.length; });
+  f48Cerrar_(); p43Aviso_("Guardando el mes en borrador…", "g");
+  google.script.run.withSuccessHandler(function(z){
+    P43.mesGuardando = false; if(!z || !z.ok){ p43Aviso_((z && z.error) || "No se pudo aplicar", false); return; }
+    var n = (z.rutas || []).length, err = z.errores || [];
+    p43Aviso_("Listo · " + n + (n === 1 ? " ruta quedó" : " rutas quedaron") + " en borrador para " + M.mes + (err.length ? " · " + err.length + " con problema: " + err[0] : ""), !err.length);
+    P43.propMes = null; p43MesCargar_(M.mes, true);
+  }).withFailureHandler(function(){ P43.mesGuardando = false; p43Aviso_("No se pudo confirmar el guardado. Actualiza el mes antes de intentarlo otra vez.", false); }).api_planMes(PIN, M.mes, "aplicar", { fuente: r.res.fuente, sello: r.sello, rutas: rutas });
+}
+
 function p43MTomarRuta_(e, rutaId, f){ e.stopPropagation(); P43.drag = { t: "ruta", rutaId: rutaId, f: f }; try{ e.dataTransfer.setData("text/plain", rutaId); }catch(x){} }
 function p43MTomar_(e, id, rutaId, f){ P43.drag = { t: "cli", id: id, rutaId: rutaId, f: f }; try{ e.dataTransfer.setData("text/plain", String(id)); }catch(x){} }
 function p43MSobre_(e, el){ if(!P43.drag) return; e.preventDefault(); el.classList.add("sob"); }
@@ -20444,6 +20488,14 @@ function p43MElegir_(id, rutaId, f){
     return '<button style="--c:' + P42_COL[(d.dow - 1) % P42_COL.length] + '" onclick="cerrarHojaIni_();p43MMover_(' + id + ',\'' + esc(rutaId) + '\',\'' + f + '\',\'' + d.fecha + '\')"><b>' + esc(p42Dia_(d.fecha)) + '</b><small>' + n + (n === 1 ? ' parada' : ' paradas') + '</small></button>'; }).join("") + '</div>');
 }
 function p43MMover_(id, rutaId, de, a){
+  var M = P43.mes, dD = M && M.dias.filter(function(x){ return x.fecha === de; })[0], dA = M && M.dias.filter(function(x){ return x.fecha === a; })[0]; if(!dD || !dA) return;
+  var r = dD.rutas.filter(function(x){ return x.rutaId === rutaId; })[0]; if(!r) return;
+  var nDe = dD.rutas.reduce(function(s, x){ return s + x.ids.length; }, 0), nA = dA.rutas.reduce(function(s, x){ return s + x.ids.length; }, 0), nombre = (M.clientes[id] || {}).nombre || ('Cliente ' + id);
+  var dest = dA.rutas.filter(function(x){ return x.estadoPlan === "borrador"; })[0] || dA.rutas[0], publicada = r.estadoPlan === "publicada" || (dest && dest.estadoPlan === "publicada");
+  var llega = dest ? "Se agregará a " + esc(String(dest.conductor).split(" ")[0]) + " · " + esc(dest.vehiculo) + (dest.estadoPlan === "publicada" ? " (ruta publicada)" : " (borrador)") + "." : "Se creará una ruta borrador con el mismo conductor y vehículo.";
+  preguntar({ titulo: publicada ? "Vista previa · ruta publicada" : "Vista previa del traslado", icono: "!", boton: "Confirmar traslado", texto: "<b>" + esc(nombre) + "</b> pasará del " + esc(p42Dia_(de)) + " al " + esc(p42Dia_(a)) + ".<br>" + esc(String(r.conductor).split(" ")[0]) + " · " + esc(r.vehiculo) + " · el día destino quedará con aproximadamente " + (nA + 1) + " paradas (ahora tiene " + nA + ").<br>" + llega + (publicada ? " El conductor recibirá el cambio en su app." : "") + " El día de origen bajará de " + nDe + " a " + Math.max(0, nDe - 1) + " paradas. No se guardará hasta confirmar.", alAceptar: function(){ p43MMoverGuardar_(id, rutaId, de, a); } });
+}
+function p43MMoverGuardar_(id, rutaId, de, a){
   var M = P43.mes, dD = M.dias.filter(function(x){ return x.fecha === de; })[0], dA = M.dias.filter(function(x){ return x.fecha === a; })[0]; if(!dD || !dA) return;
   var r = dD.rutas.filter(function(x){ return x.rutaId === rutaId; })[0]; if(!r) return;
   r.ids = r.ids.filter(function(x){ return x !== id; });
@@ -20468,8 +20520,8 @@ function p43MMoverRuta_(rutaId, de, a){
       p43Aviso_("Ruta → " + p42Dia_(a) + " · guardado" + (x.publicada ? " · avise a " + String(x.conductor).split(" ")[0] : "")); P42.d = null; p43MesCargar_(M.mes, true);
     }).withFailureHandler(function(){ p43Aviso_("Sin conexión: no se guardó", false); p43MesCargar_(M.mes, true); }).api_planMoverRuta(PIN, rutaId, a);
   };
-  if(r.estadoPlan === "publicada") preguntar({ titulo: "Mover una ruta publicada", icono: "!", boton: "Sí, moverla", texto: "La ruta del <b>" + esc(p42Dia_(de)) + "</b> ya la tiene <b>" + esc(r.conductor) + "</b>. Pasa completa al <b>" + esc(p42Dia_(a)) + "</b> y le cambia en su app.", alAceptar: hacer });
-  else hacer();
+  if(r.estadoPlan === "publicada") preguntar({ titulo: "Vista previa · mover ruta publicada", icono: "!", boton: "Sí, moverla", texto: "La ruta del <b>" + esc(p42Dia_(de)) + "</b> ya la tiene <b>" + esc(r.conductor) + "</b>. Pasará completa al <b>" + esc(p42Dia_(a)) + "</b> y le cambiará en su app.", alAceptar: hacer });
+  else preguntar({ titulo: "Vista previa del traslado", icono: "!", boton: "Confirmar traslado", texto: "La ruta completa de <b>" + esc(String(r.conductor).split(" ")[0]) + " · " + esc(r.vehiculo) + "</b> pasará del <b>" + esc(p42Dia_(de)) + "</b> al <b>" + esc(p42Dia_(a)) + "</b>. No se guardará hasta confirmar.", alAceptar: hacer });
 }
 
 /* ════════ la cabecera: Semana | Día | Mes ════════ */
@@ -27131,3 +27183,4 @@ mostrarTab = (function(o){ return function(tab){
 </body>
 
 </html>
+
