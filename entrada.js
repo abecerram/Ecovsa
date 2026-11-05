@@ -30,7 +30,7 @@
   var MIN_INACTIVO = 15, SEG_AVISO = 60;
   /* api 3.4: lo que decide Configuración › Seguridad (largo del PIN, bloqueo,
      intentos, «cerrar todas»). Se guarda una copia para arrancar al instante. */
-  var AJ = { largoPin: 4, minInactivo: 15, intentos: 5, esperaMin: 10, alUltimo: true, sesionDesde: 0 };
+  var AJ = { largoPin: 4, bloqueoAutomatico: true, minInactivo: 15, intentos: 5, esperaMin: 10, alUltimo: true, sesionDesde: 0 };
   (function () { try { var c = JSON.parse(localStorage.getItem('eco_ajustes') || 'null'); if (c && c.largoPin) for (var k in c) AJ[k] = c[k]; } catch (e) {} })();
   function largo() { return AJ.largoPin === 6 ? 6 : 4; }
   function traerAjustes(listo) {
@@ -842,8 +842,12 @@
         if (e.key === K_BLOQ && e.newValue === '1' && !V.bloqueado) bloquear(true);
         if (e.key === K_BLOQ && !e.newValue && V.bloqueado) desbloquearAqui();
         if (e.key === K_ACT && V.aviso) quitarAviso();
+        if (e.key === 'eco_ajustes') traerAjustes();
       });
       setInterval(revisar, 10000);
+      /* 3.96: recoger cambios del administrador también en pantallas abiertas. */
+      setInterval(function () { if (V.activo && !V.bloqueado) traerAjustes(); }, 60000);
+      addEventListener('focus', function () { if (V.activo && !V.bloqueado) traerAjustes(); });
       if (lsGet(K_BLOQ) === '1') bloquear(true);
       /* «Cerrar la sesión de todos» (Configuración): si esta sesión es de antes, pide el PIN */
       traerAjustes(function () { if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear(); });
@@ -861,7 +865,7 @@
     if (!V.activo || V.bloqueado) return;
     renovarLlave(function () { bloquear(false); });   /* api 3.92 */
     var quieto = (Date.now() - ultimaActividad()) / 60000;
-    if (quieto >= (AJ.minInactivo || MIN_INACTIVO)) { quitarAviso(); bloquear(false, 'inactividad'); return; }   /* api 3.83e: sin cuenta regresiva */
+    if (AJ.bloqueoAutomatico !== false && quieto >= (AJ.minInactivo || MIN_INACTIVO)) { quitarAviso(); bloquear(false, 'inactividad'); return; }   /* api 3.83e: sin cuenta regresiva */
     if (AJ.sesionDesde && AJ.sesionDesde > (Number(lsGet('eco_login_t')) || 0)) bloquear();
   }
   function mostrarAviso() {

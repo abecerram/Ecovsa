@@ -101,7 +101,7 @@
   function tabs(L) { return '<div class="fu-tabs">' + L.map(function (x) { return '<button class="' + (FU.vista === x[0] ? 'on' : '') + '" onclick="FU.ir(\'' + x[0] + '\')">' + x[1] + '</button>'; }).join('') + '</div>'; }
   function fe(d, cl) { return '<div class="fu-fe ' + (cl || '') + '"><b>' + Number(d.slice(8)) + '</b><span>' + MES[Number(d.slice(5, 7)) - 1] + '</span></div>'; }
   function estTag(p) { return p.estado === 'agendada' ? '<span class="fu-tag t-mo">Agendada</span>' : p.estado === 'toca' ? '<span class="fu-tag t-warn">Le toca</span>' : '<span class="fu-tag t-gris">Al día</span>'; }
-  function citaTx(x) { return fc(x.fecha) + ' · ' + h12(x.hora) + ' · ' + esc(x.personas.join(' y ')) + (x.nota ? ' · «' + esc(x.nota) + '»' : ''); }
+  function citaTx(x) { return fc(x.fecha) + ' · ' + h12(x.hora) + ' · ' + esc(x.personas.length ? x.personas.join(' y ') : 'Equipo por asignar') + (x.nota ? ' · «' + esc(x.nota) + '»' : ''); }
   function vPrograma() {
     var D = FU.d, toca = D.programa.filter(function (p) { return p.estado === 'toca'; }), sol = D.solicitudes || [], g = D.gestiona;
     var h = '';
@@ -113,13 +113,13 @@
         return '<div class="fu-fila">' + (p.tocaEl ? fe(p.tocaEl) : '<div class="fu-fe"><b>1.ª</b><span>vez</span></div>') + '<div class="tx"><b>' + esc(p.cliente) + '</b><small>' + esc(p.frec) + ' · ' + (p.ultima ? 'última ' + f(p.ultima) + ' · le toca ' + (p.tocaEl < D.hoy ? 'desde el ' : 'el ') + fc(p.tocaEl) : 'primera fumigación') + '</small></div>' +
           (g ? '<div class="acc"><button class="fu-btn p" onclick="FU.agendar(\'' + esc(p.clienteId) + '\')">Agendar</button></div>' : '') + '</div>'; }).join('') : '<div class="fu-vacio">Nadie pendiente: todos tienen su cita o están al día.</div>') + '</div>';
     h += '<div class="fu-card"><h3>Agendadas<span class="sp"></span><span class="fu-tag t-mo">' + D.citas.length + '</span></h3>' + (D.citas.length ? D.citas.map(filaCita).join('') : '<div class="fu-vacio">No hay citas agendadas.</div>') + '</div>';
-    if (!D.personas.length && g) h += '<div class="fu-av am">Todavía no hay nadie con el rol «Fumigación». Créelo en Configuración › Usuarios para poder agendar.</div>';
+    if (!D.personas.length && g) h += '<div class="fu-av am">Todavía no hay nadie con el rol «Fumigación». Puede agendar ahora y asignar el equipo después desde «Editar / asignar».</div>';
     return h;
   }
   function filaCita(x) {
     var D = FU.d, g = D.gestiona, mia = D.rol === 'fumigacion';
     return '<div class="fu-fila">' + fe(x.fecha, x.fecha <= D.hoy ? 'hoy' : 'mo') + '<div class="tx"><b>' + esc(x.cliente) + (x.fecha < D.hoy ? ' <span class="fu-tag t-warn">pendiente de registrar</span>' : '') + '</b><small>' + citaTx(x) + '</small></div><div class="acc">' +
-      (g ? '<button class="fu-btn" onclick="FU.mover(\'' + esc(x.fumId) + '\')">Mover</button><button class="fu-btn rj" onclick="FU.anular(\'' + esc(x.fumId) + '\')">Anular</button>' : '') +
+      (g ? '<button class="fu-btn" onclick="FU.mover(\'' + esc(x.fumId) + '\')">Editar / asignar</button><button class="fu-btn rj" onclick="FU.anular(\'' + esc(x.fumId) + '\')">Anular</button>' : '') +
       (g || mia ? '<button class="fu-btn p" onclick="FU.hecha(\'' + esc(x.fumId) + '\')">Registrar hecha</button>' : '') + '</div></div>';
   }
   function vMias() {
@@ -166,26 +166,26 @@
   function formAgendar(o) {
     var D = FU.d, P = D.programa, cli = o.clienteId ? P.filter(function (p) { return p.clienteId === o.clienteId; })[0] : null;
     var fecha = o.fecha || (cli && cli.tocaEl && cli.tocaEl > D.hoy ? cli.tocaEl : D.hoy), hora = o.hora || '08:00', per = o.personas || (D.personas.length === 1 ? D.personas : []);
-    var h = '<h2>' + (o.fumId ? 'Mover la cita' : 'Agendar una fumigación') + '</h2><p class="sub">' + (cli ? esc(cli.cliente) + ' · ' + esc(cli.frec) + (cli.ultima ? ' · última ' + f(cli.ultima) : ' · primera fumigación') : 'Elija el cliente') + (o.sol ? ' · la pidió desde su portal (' + esc(o.sol.folio) + ')' : '') + '</p>';
+    var h = '<h2>' + (o.fumId ? 'Editar cita / asignar equipo' : 'Agendar una fumigación') + '</h2><p class="sub">' + (cli ? esc(cli.cliente) + ' · ' + esc(cli.frec) + (cli.ultima ? ' · última ' + f(cli.ultima) : ' · primera fumigación') : 'Elija el cliente') + (o.sol ? ' · la pidió desde su portal (' + esc(o.sol.folio) + ')' : '') + '</p>';
     if (o.sol) h += '<div class="fu-av in"><b>Lo que pidió:</b> ' + (o.sol.fechaPref ? 'prefiere el ' + fc(o.sol.fechaPref) : 'sin fecha preferida') + (o.sol.horario ? ', ' + esc(o.sol.horario) : '') + (o.sol.nota ? ' — «' + esc(o.sol.nota) + '»' : '') + '</div>';
     if (!o.clienteId) h += '<div class="fu-campo"><label for="fa-c">Cliente</label><select id="fa-c">' + P.map(function (p) { return '<option value="' + esc(p.clienteId) + '">' + esc(p.cliente) + ' · ' + esc(p.frec) + '</option>'; }).join('') + '</select></div>';
     h += '<div class="fu-dos"><div class="fu-campo"><label for="fa-f">Fecha</label><input id="fa-f" type="date" min="' + D.hoy + '" value="' + esc(fecha) + '"></div><div class="fu-campo"><label for="fa-h">Hora</label><input id="fa-h" type="time" value="' + esc(hora) + '"></div></div>' +
-      '<div class="fu-campo"><label>Quién va</label>' + (D.personas.length ? chips('fa-p', D.personas, per) : '<div class="fu-av am" style="margin:0">Nadie tiene el rol «Fumigación» todavía (Configuración › Usuarios).</div>') + '</div>' +
+      '<div class="fu-campo"><label>Quién va (opcional al agendar)</label>' + (D.personas.length ? chips('fa-p', D.personas, per) : '<div class="fu-av am" style="margin:0">Puede agendar sin equipo. Después cree el personal en Configuración › Usuarios y asígnelo desde «Editar / asignar».</div>') + '<div class="fu-nota">Si no selecciona a nadie, la cita queda con equipo por asignar.</div></div>' +
       '<div class="fu-campo"><label for="fa-n">Nota para el equipo</label><textarea id="fa-n" rows="2" maxlength="300" placeholder="Ej. Entrar por la puerta de atrás">' + esc(o.nota || '') + '</textarea></div>' +
       (o.sol ? '<div class="fu-av mo">El cliente ve en su portal: «Su fumigación quedó para el <span id="fa-pv"></span>» y su solicitud queda atendida.</div>' : '') +
-      '<div class="fu-err" id="fa-e"></div><div class="fu-pie"><button class="fu-btn" onclick="FU.cerrar()">Cancelar</button><button class="fu-btn p" id="fa-ok">' + (o.fumId ? 'Mover' : 'Agendar') + '</button></div>';
+      '<div class="fu-err" id="fa-e"></div><div class="fu-pie"><button class="fu-btn" onclick="FU.cerrar()">Cancelar</button><button class="fu-btn p" id="fa-ok">' + (o.fumId ? 'Guardar cambios' : 'Agendar') + '</button></div>';
     modal(h);
     function pv() { var e = $('fa-pv'), fe2 = $('fa-f').value, ho = $('fa-h').value; if (e) e.textContent = (fe2 ? fl(fe2) : '…') + ', a las ' + (ho ? h12(ho) : '…') + '.'; }
     $('fa-f').oninput = pv; $('fa-h').oninput = pv; pv();
     $('fa-ok').onclick = function () {
+      if (this.disabled) return;
       var b = this, cid = o.clienteId || ($('fa-c') || {}).value, d = { fumId: o.fumId || '', clienteId: cid, fecha: $('fa-f').value, hora: $('fa-h').value, personas: chipsSel('fa-p'), nota: $('fa-n').value, pendienteId: o.sol ? o.sol.pendienteId : '', folioSol: o.sol ? o.sol.folio : '' };
       if (!d.fecha || !d.hora) { $('fa-e').textContent = 'Elija la fecha y la hora.'; return; }
-      if (!d.personas.length) { $('fa-e').textContent = 'Elija quién va.'; return; }
       ocupado(b, true);
       api('api_guardarFumigacion', FU.pin, d).then(function (r) {
         ocupado(b, false);
         if (!r || !r.ok) { $('fa-e').textContent = (r && r.error) || 'No se pudo guardar.'; return; }
-        cerrar(); aviso(r.movida ? 'Cita movida' : r.respondida ? 'Agendada · el cliente ya ve la fecha en su portal' : 'Fumigación agendada'); FU.cargar();
+        cerrar(); aviso((r.movida ? 'Cita actualizada' : r.respondida ? 'Agendada · el cliente ya ve la fecha en su portal' : 'Fumigación agendada') + (r.equipoPendiente ? ' · equipo por asignar' : '')); FU.cargar();
         if (o.alGuardar) o.alGuardar(r);
       }, function () { ocupado(b, false); $('fa-e').textContent = 'Sin conexión: no se guardó.'; });
     };
