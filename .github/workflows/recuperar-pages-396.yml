@@ -1,0 +1,37 @@
+name: Recuperar despliegue Pages 396
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Escribe LIBERAR para cancelar solo el despliegue 3.96 atascado'
+        required: true
+        type: string
+permissions:
+  contents: read
+  pages: write
+jobs:
+  liberar:
+    if: ${{ inputs.confirmar == 'LIBERAR' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Comprobar y cancelar el despliegue atascado
+        run: |
+          set -euo pipefail
+          destino='repos/abecerram/Ecovsa/pages/deployments/148e720aa8d2d604fe8d2ee26e72a99dedbc6b00'
+          echo 'Estado anterior:'
+          gh api "$destino" --jq '.status'
+          gh api --method POST "$destino/cancel"
+          for intento in 1 2 3 4 5 6; do
+            estado=$(gh api "$destino" --jq '.status')
+            echo "Estado tras cancelar: $estado"
+            if [ "$estado" = 'cancelled' ] || [ "$estado" = 'canceled' ] || [ "$estado" = 'failed' ]; then
+              echo "Despliegue 148e720 liberado: $estado" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo '::error::GitHub no liberó el despliegue tras aceptar la cancelación.'
+          exit 1
