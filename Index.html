@@ -1897,32 +1897,6 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 @media(max-width:700px){#pantalla-plan.p399-ampliada{padding:8px}#p43-dia.p399-trabajo>.p43-dg{grid-template-columns:1fr;height:auto}#p43-dia.p399-trabajo #p43-d-lista,#p43-dia.p399-trabajo #p43-d-toca{height:auto;max-height:65vh!important}#p43-dia.p399-mapa>.p43-dm{height:65vh}.p399-nav .pl-btn{font-size:12px;padding:7px}.p399-pendientes{font-size:11px}}
 
 </style>
-<style id="estilo-3100">
-/* 3.100 · Sin altura limitada ni scroll vertical en las listas del editor. */
-#pantalla-plan.p3100{padding-bottom:calc(var(--p3100-pie,76px) + 22px)}
-#pantalla-plan.p3100 #p43-dia.p399-trabajo>.p43-dg{height:auto!important;max-height:none!important;align-items:start}
-#pantalla-plan.p3100 #p43-dia #p43-d-lista,#pantalla-plan.p3100 #p43-dia #p43-d-toca,#pantalla-plan.p3100 #p43-dia .p43-lista,#pantalla-plan.p3100 #p43-dia #p43-d-resultados{height:auto!important;max-height:none!important;overflow:visible!important}
-#pantalla-plan.p3100 #p43-sem:not(.p399-mapa)>#p43-s-g,#pantalla-plan.p3100 #p43-sem .p42-toca,#pantalla-plan.p3100 #p43-s-resultados{height:auto!important;max-height:none!important;overflow:visible!important}
-/* El mapa puede superar el espacio restante: se llega a él con el scroll de página. */
-#pantalla-plan.p3100 #p43-dia.p399-mapa>.p43-dm{height:calc(100dvh - 100px)!important;min-height:480px;max-height:none}
-#pantalla-plan.p3100 #p43-dia.p399-mapa #p43-d-mapa{min-height:300px;flex:1;z-index:0}
-#pantalla-plan.p3100 #p43-sem.p399-mapa>#p43-s-mc{height:calc(100dvh - 100px)!important;min-height:480px}
-#pantalla-plan.p3100 .p399-nav{gap:8px;flex-wrap:wrap}
-#pantalla-plan.p3100 .p399-nav>div{margin-right:auto}
-#pantalla-plan.p3100 .p399-nav [hidden]{display:none!important}
-#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
-#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k>div{padding:6px 8px;min-width:0}
-#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k b{font-size:16px;overflow-wrap:anywhere}
-#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k span{font-size:10px}
-/* Ampliar también pliega los resúmenes; se pueden abrir de nuevo. */
-#pantalla-plan.p3100.p399-ampliada:not(.p3100-resumen) #p43-d-k,#pantalla-plan.p3100.p399-ampliada:not(.p3100-resumen) #p43-d-linea,#pantalla-plan.p3100.p399-ampliada:not(.p3100-resumen) #p43-d-top,#pantalla-plan.p3100.p399-ampliada:not(.p3100-resumen) #p43-s-top{display:none}
-#pantalla-plan.p3100.p399-ampliada #p43-dia.p399-mapa>.p43-dm,#pantalla-plan.p3100.p399-ampliada #p43-sem.p399-mapa>#p43-s-mc{height:calc(100dvh - 140px)!important;min-height:380px}
-/* Las acciones siempre están en el pie de la ventana; se reserva su altura. */
-#pantalla-plan.p3100 #p43-d-pie{position:fixed;left:var(--p3100-izq,0px);right:var(--p3100-der,0px);bottom:0;z-index:900;background:var(--tm-tarjeta);border-top:1px solid var(--tm-linea);padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0000000c}
-#pantalla-plan.p3100 .p43-pie{margin:0!important;padding:0 8px;flex-wrap:wrap;gap:6px}
-@media(max-width:700px){#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k b{font-size:12px}#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k>div{padding:5px}#pantalla-plan.p3100 #p43-dia.p399-mapa>.p43-dm{height:calc(100dvh - 100px)!important;min-height:450px}#pantalla-plan.p3100 .p43-pie .pl-btn{font-size:11px;padding:7px 9px}#pantalla-plan.p3100 .p399-nav{position:relative}.p399-nav [data-resumen3100]{font-size:11px}}
-
-</style>
 </head>
 
 <body>
@@ -27784,48 +27758,6 @@ p43ArmarMes_=p399Guardia_(p43ArmarMes_,function(){return{};});
 window.addEventListener('resize',p399Alto_);
 window.addEventListener('keydown',function(e){if(e.key==='Escape'&&P399.ampliada){P399.ampliada=false;p399Montar_();}});
 window.addEventListener('beforeunload',function(e){p399Capturar_();if(Object.keys(P399.pendientes).length){e.preventDefault();e.returnValue='';}});
-
-</script>
-<script id="js-3100">
-/* 3.100 · Las listas crecen con el documento; el mapa usa el alto de la ventana. */
-var P3100 = { resumen: false };
-function p3100Resumen_(){P3100.resumen=!P3100.resumen;p3100Montar_();}
-function p3100Montar_(){
-  var s=$('pantalla-plan');if(!s)return;
-  s.classList.add('p3100');s.classList.toggle('p3100-resumen',P3100.resumen);
-  var nav=s.querySelector('.p399-nav');
-  if(nav){
-    var boton=nav.querySelector('[data-resumen3100]');
-    if(!boton){boton=document.createElement('button');boton.type='button';boton.className='pl-btn';boton.setAttribute('data-resumen3100','');boton.onclick=p3100Resumen_;nav.insertBefore(boton,nav.lastChild);}
-    boton.hidden=!P399.ampliada;boton.textContent=P3100.resumen?'Plegar resumen':'Mostrar resumen';boton.setAttribute('aria-expanded',String(P3100.resumen));
-  }
-  requestAnimationFrame(p399Alto_);
-}
-/* Ya no se resta el encabezado al alto de las listas o del mapa. */
-p399Alto_=function(){
-  var s=$('pantalla-plan');if(!s||!s.classList.contains('activa'))return;
-  var rect=s.getBoundingClientRect(),css=getComputedStyle(s),izq=Math.max(0,rect.left)+(parseFloat(css.paddingLeft)||0),der=Math.max(0,innerWidth-rect.right)+(parseFloat(css.paddingRight)||0);
-  s.style.setProperty('--p3100-izq',izq+'px');s.style.setProperty('--p3100-der',der+'px');
-  var pie=$('p43-d-pie');if(pie)s.style.setProperty('--p3100-pie',Math.ceil(pie.getBoundingClientRect().height)+'px');
-  var mapa=P42.vista==='dia'?P43.dmap:P42.vista==='semana'?P42.map:null;
-  var caja=P42.vista==='dia'?s.querySelector('#p43-dia>.p43-dm'):$('p43-s-mc');
-  if(caja){
-    if(P399.ampliada)caja.style.setProperty('height',Math.max(240,innerHeight-caja.getBoundingClientRect().top-(pie?pie.getBoundingClientRect().height:0)-12)+'px','important');
-    else caja.style.removeProperty('height');
-  }
-  if(mapa&&mapa.getContainer().isConnected)mapa.invalidateSize({pan:false});
-};
-p399Montar_=(function(original){return function(){var r=original.apply(this,arguments);p3100Montar_();return r;};})(p399Montar_);
-p399Vista_=(function(original){return function(vista,modo){
-  var r=original.apply(this,arguments);
-  if(modo==='mapa')requestAnimationFrame(function(){var nav=document.querySelector('#pantalla-plan .p399-nav');if(nav)nav.scrollIntoView({block:'start',behavior:'instant'});});
-  return r;
-};})(p399Vista_);
-p399Ampliar_=(function(original){return function(){
-  if(!P399.ampliada)P3100.resumen=false;
-  var r=original.apply(this,arguments);var s=$('pantalla-plan');if(P399.ampliada&&s)s.scrollTop=0;return r;
-};})(p399Ampliar_);
-window.addEventListener('resize',p399Alto_);
 
 </script>
 </body>
