@@ -1,0 +1,35 @@
+name: Preparar vista del planificador autorizada
+on:
+  push:
+    branches: [codex/preparar-vistas-20261115]
+permissions:
+  contents: write
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Aplicar solamente el cambio aprobado a la base comprobada
+        run: |
+          set -euo pipefail
+          cp revision-planificador.patch "$RUNNER_TEMP/revision-planificador.patch"
+          git switch -c codex/vistas-buscador-listo e7f3353d111a08b03b71d9d9af546b5e5e792846
+          git apply --check "$RUNNER_TEMP/revision-planificador.patch"
+          git apply "$RUNNER_TEMP/revision-planificador.patch"
+          test "$(git hash-object Index.html)" = "96ab9392f25ab0e2e24585efa004d99898fd8528"
+          test "$(git hash-object tema.css)" = "9530de6aca78ce1320aac52dee22d43961179b42"
+          git diff --check
+          node - <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          const html=fs.readFileSync('Index.html','utf8');
+          for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
+          console.log('Sintaxis de todos los scripts comprobada');
+          NODE
+          git config user.name "ECOVSA revisión"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Index.html tema.css
+          git commit -m "Reorganizar planificadores y conservar el foco del buscador"
+          git push origin codex/vistas-buscador-listo
