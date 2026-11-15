@@ -19724,19 +19724,9 @@ function p42Pintar_(){
   var fi = $("pl-fecha"); if(fi) fi.value = S.lunes;
   var h = p42Asis_(S) + p42Faltan_(S);
   /* «Le toca» */
-  var q = P42.bus.trim().toLowerCase();
-  var T = S.toca.filter(function(t){ var cl = S.clientes[t.id]; return cl && (!q || cl.nombre.toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0); });
-  var grupos = Object.keys(P42_G).map(function(g){ var L = T.filter(function(t){ return t.g === g; }); if(!L.length) return "";
-    return '<div class="p42-tg"><h4 class="' + P42_G[g][1] + '">' + P42_G[g][0] + ' · ' + L.length + '</h4>' + L.map(function(t){ var cl = S.clientes[t.id];
-      var det = esc(cl.zona || "—") + (cl.frec ? ' · ' + esc(cl.frec.toLowerCase()) : '') + (t.dias ? ' · <em class="ro">' + t.dias + ' día' + (t.dias === 1 ? '' : 's') + ' tarde</em>' : '') +
-        (t.g === "vence" && t.proxima ? ' · le toca el ' + esc(p42Dia_(t.proxima)) : '') + (t.porque ? ' · ' + esc(t.porque) : '') + (t.folio ? ' · ' + esc(t.folio) : '') + (cl.hTipo ? ' · ' + esc(cl.hDesde) + '–' + esc(cl.hHasta) : '') + (cl.lat ? '' : ' · <em class="ro">sin ubicación</em>');
-      return '<div class="p42-tc" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + det + '</small></div>' +
-        (t.sug ? '<button class="p42-sg" onclick="event.stopPropagation();p42Poner_(' + t.id + ',\'' + t.sug + '\',\'\')" title="Lo que sugiere el asistente">✦ ' + esc(p42Dia_(t.sug)) + '</button>' : '') + '</div>'; }).join("") + '</div>'; }).join("");
-  var PG = (S.programados || []).filter(function(t){ var cl = S.clientes[t.id]; return cl && (!q || cl.nombre.toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0); });
-  if(PG.length) grupos += '<div class="p42-tg"><h4 class="pg">Ya programados · ' + PG.length + '</h4>' + PG.map(function(t){ var cl = S.clientes[t.id];
-    return '<div class="p42-tc pg" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + esc(cl.zona || "—") + ' · <em class="pg">' + esc(t.progTxt || "Programado") + '</em>' + (t.dias ? ' · le tocaba hace ' + t.dias + (t.dias === 1 ? ' día' : ' días') : '') + '</small></div></div>'; }).join("") + '</div>';
-  var toca = '<aside class="mt-card p42-toca"><div class="p42-tt"><b>Le toca</b><span>' + S.toca.length + '</span></div><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P42.bus) + '" oninput="P42.bus=this.value;clearTimeout(P42.bt);P42.bt=setTimeout(p42Pintar_,250)">' +
-    (grupos || '<p class="p42-v">' + (q ? 'Nada con «' + esc(P42.bus) + '».' : 'Todo lo de la semana ya está en una ruta ✓') + '</p>') + '<p class="p42-ay">' + (cel ? 'Toque un cliente y elija el día.' : 'Arrastre un cliente a un día, o tóquelo y elija el día. ✦ es el día que sugiere el asistente.') + '</p></aside>';
+  var q = P42.bus.trim().toLowerCase(), grupos = p43ClientesSemana_(S, q);
+  var toca = '<aside class="mt-card p42-toca"><div class="p42-tt"><b>Le toca</b><span>' + S.toca.length + '</span></div><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P42.bus) + '" oninput="P42.bus=this.value;clearTimeout(P42.bt);P42.bt=setTimeout(p43FiltrarSemana_,250)">' +
+    '<div id="p43-s-resultados">' + grupos + '</div><p class="p42-ay">' + (cel ? 'Toque un cliente y elija el día.' : 'Arrastre un cliente a un día, o tóquelo y elija el día. ✦ es el día que sugiere el asistente.') + '</p></aside>';
   /* el tablero */
   var tope = plMin_(S.config.tope) || 900;
   var cols = dias.map(function(d, di){
@@ -20113,6 +20103,38 @@ plCalc_ = function(paradas){
            regresoMin: t + vuelta, regresoMinDia: (t + vuelta) >= 1440, rango: p42Rango_(A, acum + vuelta), salidaMin: plMin_(ED.horaSalida || cfg.salida) || 470 };
 };
 
+/* Buscadores del planificador: la escritura solo actualiza resultados.
+   El campo permanece montado para conservar foco, selección y teclado móvil. */
+function p43ClientesSemana_(S, q){
+  var T = S.toca.filter(function(t){ var cl = S.clientes[t.id]; return cl && (!q || cl.nombre.toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0); });
+  var grupos = Object.keys(P42_G).map(function(g){ var L = T.filter(function(t){ return t.g === g; }); if(!L.length) return "";
+    return '<div class="p42-tg"><h4 class="' + P42_G[g][1] + '">' + P42_G[g][0] + ' · ' + L.length + '</h4>' + L.map(function(t){ var cl = S.clientes[t.id];
+      var det = esc(cl.zona || "—") + (cl.frec ? ' · ' + esc(cl.frec.toLowerCase()) : '') + (t.dias ? ' · <em class="ro">' + t.dias + ' día' + (t.dias === 1 ? '' : 's') + ' tarde</em>' : '') +
+        (t.g === "vence" && t.proxima ? ' · le toca el ' + esc(p42Dia_(t.proxima)) : '') + (t.porque ? ' · ' + esc(t.porque) : '') + (t.folio ? ' · ' + esc(t.folio) : '') + (cl.hTipo ? ' · ' + esc(cl.hDesde) + '–' + esc(cl.hHasta) : '') + (cl.lat ? '' : ' · <em class="ro">sin ubicación</em>');
+      return '<div class="p42-tc" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + det + '</small></div>' +
+        (t.sug ? '<button class="p42-sg" onclick="event.stopPropagation();p42Poner_(' + t.id + ',\'' + t.sug + '\',\'\')" title="Lo que sugiere el asistente">✦ ' + esc(p42Dia_(t.sug)) + '</button>' : '') + '</div>'; }).join("") + '</div>'; }).join("");
+  var PG = (S.programados || []).filter(function(t){ var cl = S.clientes[t.id]; return cl && (!q || cl.nombre.toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0); });
+  if(PG.length) grupos += '<div class="p42-tg"><h4 class="pg">Ya programados · ' + PG.length + '</h4>' + PG.map(function(t){ var cl = S.clientes[t.id];
+    return '<div class="p42-tc pg" draggable="true" ondragstart="p42Tomar_(event,\'\',' + t.id + ')" onclick="p42Elegir_(\'\',' + t.id + ')"><div><b>' + esc(cl.nombre) + '</b><small>' + esc(cl.zona || "—") + ' · <em class="pg">' + esc(t.progTxt || "Programado") + '</em>' + (t.dias ? ' · le tocaba hace ' + t.dias + (t.dias === 1 ? ' día' : ' días') : '') + '</small></div></div>'; }).join("") + '</div>';
+  return grupos || '<p class="p42-v">' + (q ? 'Nada con «' + esc(P42.bus) + '».' : 'Todo lo de la semana ya está en una ruta ✓') + '</p>';
+}
+function p43FiltrarSemana_(){
+  var resultados = $("p43-s-resultados");
+  if(!resultados || P42.vista !== "semana" || !P42.d) return;
+  resultados.innerHTML = p43ClientesSemana_(P42.d, P42.bus.trim().toLowerCase());
+}
+function p43ClientesDia_(cands, q){
+  var G = { extra: "Pedidas por el cliente", recurrentes: "Recurrentes", arrastre: "Vienen de otro día", tocan: "Le toca este día", atrasados: "Atrasados", pendientes: "Quitados", nuevos: "Nuevos", programados: "Ya programados" };
+  return (cands.filter(function(x){ var cl = plC_(x.id); return !q || String(cl.nombre).toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0; }).slice(0, 60).map(function(x){ var cl = plC_(x.id);
+      return '<div class="p43-tc" draggable="true" ondragstart="p43TomarCand_(event,' + x.id + ')"><div><b>' + esc(cl.nombre) + '</b><small><span class="pl-dot ' + x.g + '"></span>' + esc(G[x.g] || x.g) + ' · ' + esc(cl.zona || "—") + (x.x && x.x.motivo ? ' · ' + esc(x.x.motivo) : '') + (x.g === "programados" && x.x && x.x.enRuta ? ' · ' + esc(nombreDia_(x.x.enRuta.fecha)) + (x.x.borrador ? ' (borrador)' : '') : '') + '</small></div><button class="p43-add" title="Agregar a la ruta" onclick="p43Agregar_(' + x.id + ')">＋</button></div>'; }).join("") ||
+     '<div class="p42-v" style="padding:8px 2px">Nadie pendiente para este día.</div>');
+}
+function p43FiltrarDia_(){
+  var resultados = $("p43-d-resultados");
+  if(!resultados || P42.vista !== "dia" || !PL || !ED) return;
+  resultados.innerHTML = p43ClientesDia_(plCandidatos_().filter(function(x){ return !plEnED_(x.id); }), (P43.dq || "").toLowerCase());
+}
+
 /* ── el fundido: solo cambia lo que cambió ── */
 function p43Poner_(el, html, suave){
   if(!el) return false;
@@ -20308,11 +20330,8 @@ function p43Dia_(){
   p43Poner_($("p43-d-lista"), listaH, false);
   /* le toca este día */
   var cands = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }), q = (P43.dq || "").toLowerCase();
-  var G = { extra: "Pedidas por el cliente", recurrentes: "Recurrentes", arrastre: "Vienen de otro día", tocan: "Le toca este día", atrasados: "Atrasados", pendientes: "Quitados", nuevos: "Nuevos", programados: "Ya programados" };
-  var tocaH = '<h3>Le toca este día<span class="sp"></span><small>' + cands.length + '</small></h3><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P43.dq || "") + '" oninput="P43.dq=this.value;clearTimeout(P43.dqt);P43.dqt=setTimeout(p43Dia_,250)">' +
-    (cands.filter(function(x){ var cl = plC_(x.id); return !q || String(cl.nombre).toLowerCase().indexOf(q) >= 0 || String(cl.zona).toLowerCase().indexOf(q) >= 0; }).slice(0, 60).map(function(x){ var cl = plC_(x.id);
-      return '<div class="p43-tc" draggable="true" ondragstart="p43TomarCand_(event,' + x.id + ')"><div><b>' + esc(cl.nombre) + '</b><small><span class="pl-dot ' + x.g + '"></span>' + esc(G[x.g] || x.g) + ' · ' + esc(cl.zona || "—") + (x.x && x.x.motivo ? ' · ' + esc(x.x.motivo) : '') + (x.g === "programados" && x.x && x.x.enRuta ? ' · ' + esc(nombreDia_(x.x.enRuta.fecha)) + (x.x.borrador ? ' (borrador)' : '') : '') + '</small></div><button class="p43-add" title="Agregar a la ruta" onclick="p43Agregar_(' + x.id + ')">＋</button></div>'; }).join("") ||
-     '<div class="p42-v" style="padding:8px 2px">Nadie pendiente para este día.</div>');
+  var tocaH = '<h3>Le toca este día<span class="sp"></span><small>' + cands.length + '</small></h3><input class="p42-bus" placeholder="Buscar cliente o zona…" value="' + esc(P43.dq || "") + '" oninput="P43.dq=this.value;clearTimeout(P43.dqt);P43.dqt=setTimeout(p43FiltrarDia_,250)">' +
+    '<div id="p43-d-resultados">' + p43ClientesDia_(cands, q) + '</div>';
   p43Poner_($("p43-d-toca"), tocaH, false);
   /* el pie: guardar y publicar */
   var pub = ED.estadoPlan === "publicada" && ED.rutaId, nombreC = String(ED.conductor || "").split(" ")[0] || "el conductor", nOpt = ED.paradas.length;
@@ -27429,6 +27448,170 @@ f48Aplicar_ = (function(original) { return function(publicar) {
   if(F398.semanaAceptada === firma) return original.apply(self, args);
   p398Confirmar_(avisos, function() { F398.semanaAceptada = firma; f48Aplicar_.apply(self, args); });
 }; })(f48Aplicar_);
+
+/* Vista del planificador: mapa arriba y frecuencia dentro de las listas existentes. */
+var PV26 = { dia: 'todos', semana: 'todos', mes: 'todos', mesQ: '', mapaMes: null, capaMes: null };
+function pv26Coincide_(c, filtro){
+  if(filtro === 'todos') return true;
+  if(!c || c.recurrente || c.estado === 'recurrente') return false;
+  if(filtro === 'tarde' || filtro === 'adelanto') return (c.programaciones || []).some(function(p){ return p.alerta === filtro; });
+  return c.estado === filtro;
+}
+function pv26Datos_(vista){ return vista === 'dia' ? PL : vista === 'semana' ? P42.d : P43.mes; }
+function pv26PoolDia_(){
+  var lista = plCandidatos_().filter(function(x){ return !plEnED_(x.id); }), vistos = {};
+  lista.forEach(function(x){ vistos[x.id] = true; });
+  ((PL && PL.frecuencias398) || []).forEach(function(c){ var id = Number(c.clienteId);
+    if(!vistos[id] && !plEnED_(id) && PL.clientes.some(function(x){ return Number(x.id) === id; })){
+      lista.push({ id: id, g: 'nuevos', x: {} }); vistos[id] = true;
+    }
+  });
+  return lista;
+}
+function pv26SemanaDatos_(S){
+  var copia = Object.assign({}, S), vistos = {};
+  copia.toca = (S.toca || []).slice(); copia.programados = (S.programados || []).slice();
+  copia.toca.concat(copia.programados).forEach(function(x){ vistos[x.id] = true; });
+  (S.frecuencias398 || []).forEach(function(c){ var id = Number(c.clienteId);
+    if(!vistos[id] && S.clientes[id]){ copia.toca.push({ id: id, g: 'nuevo' }); vistos[id] = true; }
+  });
+  return copia;
+}
+function pv26Etiqueta_(c){
+  if(!c) return '';
+  return '<div class="pv26-estados"><strong class="p398-' + p398Color_(c) + '">' + esc(p398Estado_(c)) + '</strong>' +
+    (c.recurrente || c.estado === 'recurrente' ? '' : '<span>Vence: ' + esc(p398TextoFecha_(c.vence)) + '</span>') +
+    (p398Programaciones_(c) || '<span class="pv26-sin">Sin programación</span>') + '</div>';
+}
+function pv26Etiquetar_(html, datos){
+  var temporal = document.createElement('div'); temporal.innerHTML = html;
+  temporal.querySelectorAll('.p43-tc,.p42-tc').forEach(function(fila){
+    var match = /,(\d+)\)/.exec(fila.getAttribute('ondragstart') || ''), id = match && Number(match[1]);
+    if(!id) return;
+    fila.setAttribute('data-pv26-cliente', id);
+    var contenido = fila.querySelector('div'), c = p398Cliente_(id, datos);
+    if(contenido && c) contenido.insertAdjacentHTML('beforeend', pv26Etiqueta_(c));
+  });
+  return temporal.innerHTML;
+}
+function pv26Controles_(host, vista, datos, ids){
+  if(!host || !datos) return;
+  var box = host.querySelector('[data-pv26-filtros]'), bus = host.querySelector('input.p42-bus');
+  if(!box){ box = document.createElement('div'); box.className = 'pv26-filtros'; box.setAttribute('data-pv26-filtros', vista);
+    if(bus) bus.after(box); else host.prepend(box);
+  }
+  var frecuencias = (datos.frecuencias398 || []).filter(function(c){ return !ids || ids.indexOf(Number(c.clienteId)) >= 0; });
+  var n = p398Contar_(frecuencias), opciones = [['todos','Todos',ids ? ids.length : frecuencias.length],['vencido','Vencidos',n.vencido],['hoy','Vencen hoy',n.hoy],['proximo','Próximos a vencer',n.proximo],['tarde','Programados tarde',n.tarde],['adelanto','Adelantados',n.adelanto]];
+  var html = opciones.map(function(x){ return '<button type="button" aria-pressed="' + (PV26[vista] === x[0]) + '" onclick="pv26Filtrar_(\'' + vista + '\',\'' + x[0] + '\')">' + x[1] + ' <b>' + x[2] + '</b></button>'; }).join('');
+  if(box.innerHTML !== html) box.innerHTML = html;
+}
+function pv26Filtrar_(vista, filtro){
+  PV26[vista] = filtro;
+  if(vista === 'dia') p43FiltrarDia_(); else if(vista === 'semana') p43FiltrarSemana_(); else pv26MesResultados_();
+  pv26ActualizarFiltros_(vista);
+}
+function pv26ActualizarFiltros_(vista){
+  var datos = pv26Datos_(vista), host, ids;
+  if(vista === 'dia' && PL && ED){ host = $('p43-d-toca'); ids = pv26PoolDia_().map(function(x){ return x.id; }); }
+  else if(vista === 'semana' && P42.d){ host = document.querySelector('#p43-s-g .p42-toca'); var S = pv26SemanaDatos_(P42.d); ids = S.toca.concat(S.programados).map(function(x){ return Number(x.id); }).filter(function(x,i,a){ return a.indexOf(x) === i; }); }
+  else host = $('pv26-m-clientes');
+  pv26Controles_(host, vista, datos, ids);
+}
+/* Mantener el campo de búsqueda montado; también al cambiar filtros. */
+p43ClientesDia_ = (function(original){ return function(cands, q){
+  var lista = pv26PoolDia_().filter(function(x){ return pv26Coincide_(p398Cliente_(x.id, PL), PV26.dia); });
+  return pv26Etiquetar_(original(lista, q), PL);
+}; })(p43ClientesDia_);
+p43ClientesSemana_ = (function(original){ return function(S, q){
+  var copia = pv26SemanaDatos_(S);
+  copia.toca = copia.toca.filter(function(x){ return pv26Coincide_(p398Cliente_(x.id,S), PV26.semana); });
+  copia.programados = copia.programados.filter(function(x){ return pv26Coincide_(p398Cliente_(x.id,S), PV26.semana); });
+  return pv26Etiquetar_(original(copia, q), S);
+}; })(p43ClientesSemana_);
+/* El panel independiente sigue en Clientes; los planificadores usan su propia lista. */
+p398Pintar_ = (function(original){ return function(d, host, contexto){
+  if(['dia','semana','mes'].indexOf(contexto) >= 0){
+    F398.datos = d; F398.contexto = contexto;
+    var viejo = host && host.querySelector('[data-panel-frecuencia398]'); if(viejo) viejo.remove(); return;
+  }
+  return original.apply(this, arguments);
+}; })(p398Pintar_);
+function pv26Dimensionar_(mapa){
+  if(!mapa || typeof mapa.invalidateSize !== 'function') return;
+  setTimeout(function(){ if(mapa.getContainer().isConnected) mapa.invalidateSize({pan:false}); }, 0);
+}
+function pv26Dia_(){
+  var raiz = $('p43-dia'), mapa = raiz && raiz.querySelector('.p43-dm'), top = $('p43-d-top');
+  if(!raiz || !mapa) return;
+  raiz.classList.add('pv26-dia'); mapa.classList.add('pv26-mapa');
+  if(mapa.parentNode !== raiz) top.after(mapa);
+  var titulo = document.querySelector('#p43-d-toca h3'); if(titulo && titulo.firstChild) titulo.firstChild.textContent = 'Clientes';
+  pv26ActualizarFiltros_('dia'); pv26Dimensionar_(P43.dmap);
+}
+function pv26Semana_(){
+  var raiz = $('p43-sem'), mapa = $('p43-s-mc'), top = $('p43-s-top'); if(!raiz || !mapa) return;
+  raiz.classList.add('pv26-semana'); mapa.classList.add('pv26-mapa');
+  if(mapa.previousElementSibling !== top) top.after(mapa);
+  var titulo = document.querySelector('#p43-s-g .p42-tt b'); if(titulo) titulo.textContent = 'Clientes';
+  pv26ActualizarFiltros_('semana'); pv26Dimensionar_(P42.map);
+}
+function pv26MesResultados_(){
+  var M = P43.mes, box = $('pv26-m-resultados'); if(!M || !box || P42.vista !== 'mes') return;
+  var q = PV26.mesQ.toLowerCase(), dia = (M.dias || []).find(function(d){ return d.fecha === P43.mesSel; });
+  var lista = (M.frecuencias398 || []).filter(function(c){ var cl = M.clientes[c.clienteId] || {};
+    return pv26Coincide_(c, PV26.mes) && (!q || String(c.nombre || cl.nombre || '').toLowerCase().indexOf(q) >= 0 || String(cl.zona || '').toLowerCase().indexOf(q) >= 0);
+  });
+  box.innerHTML = lista.map(function(c){ var id = Number(c.clienteId), cl = M.clientes[id] || {}, enDia = dia && dia.rutas.some(function(r){ return r.ids.some(function(x){ return Number(x) === id; }); }), puede = dia && !dia.pasado && !dia.feriado && !enDia;
+    return '<div class="p43-tc" data-pv26-cliente="' + id + '"' + (puede ? ' draggable="true" ondragstart="pv26MesTomar_(event,' + id + ')"' : '') + '><div><b>' + esc(c.nombre || cl.nombre || 'Cliente ' + id) + '</b><small>' + esc(cl.zona || '') + '</small>' + pv26Etiqueta_(c) + '</div><button type="button" class="p43-add" title="' + (enDia ? 'Ya está en este día' : 'Añadir visita al día seleccionado') + '"' + (puede ? ' onclick="pv26MesAbrir_(' + id + ',\'' + dia.fecha + '\')"' : ' disabled') + '>' + (enDia ? '✓' : '＋') + '</button></div>';
+  }).join('') || '<p class="p42-v">No hay clientes que coincidan con estos filtros.</p>';
+}
+function pv26MesTomar_(event, id){ P43.drag = { t:'pv26-cliente', id:id }; try{ event.dataTransfer.setData('text/plain', String(id)); event.dataTransfer.effectAllowed = 'copy'; }catch(e){} }
+function pv26MesAbrir_(id, fecha){
+  var M = P43.mes, d = M && M.dias.find(function(x){ return x.fecha === fecha; });
+  if(!d || d.pasado || d.feriado) return;
+  if(d.rutas.some(function(r){ return r.ids.some(function(x){ return Number(x) === Number(id); }); })){ p43Aviso_('Este cliente ya está en una ruta de ese día.', false); return; }
+  p398Descartar_(function(){ var ruta = d.rutas.find(function(r){ return r.estadoPlan === 'borrador'; }) || d.rutas[0];
+    PL_ADD = [Number(id)]; PL_RSEL = ruta ? ruta.rutaId : ''; p42AbrirDia_(fecha);
+  });
+}
+p43MSoltar_ = (function(original){ return function(event, fecha){
+  var drag = P43.drag;
+  if(drag && drag.t === 'pv26-cliente'){ event.preventDefault(); p43Fin_(); pv26MesAbrir_(drag.id, fecha); return; }
+  return original.apply(this, arguments);
+}; })(p43MSoltar_);
+function pv26MesMapa_(){
+  var M = P43.mes, el = $('pv26-m-mapa'); if(!el || !M || typeof L === 'undefined') return;
+  if(PV26.mapaMes && PV26.mapaMes.getContainer() !== el){ PV26.mapaMes.remove(); PV26.mapaMes = null; }
+  if(!PV26.mapaMes){ PV26.mapaMes = m36Mapa_('pv26-m-mapa', {scrollWheelZoom:false}); PV26.capaMes = L.layerGroup().addTo(PV26.mapaMes); }
+  var mapa = PV26.mapaMes, capa = PV26.capaMes; capa.clearLayers();
+  var d = (M.dias || []).find(function(x){ return x.fecha === P43.mesSel; }), limites = [], numero = 0;
+  var color = getComputedStyle(document.documentElement).getPropertyValue('--tm-info').trim() || 'currentColor';
+  (d && d.rutas || []).forEach(function(r){ var puntos = [];
+    (r.ids || []).forEach(function(id){ var c = M.clientes[id]; if(!c || !c.lat || !c.lng) return;
+      var ll = [Number(c.lat),Number(c.lng)]; puntos.push(ll); limites.push(ll); numero++;
+      L.marker(ll, {icon:L.divIcon({className:'',iconSize:[24,24],iconAnchor:[12,12],html:'<div class="pv26-pin">' + numero + '</div>'})}).addTo(capa).bindTooltip(esc(c.nombre || 'Cliente ' + id));
+    });
+    if(puntos.length > 1) L.polyline(puntos, {color:color,weight:3,dashArray:'6 5',interactive:false}).addTo(capa);
+  });
+  var nota = $('pv26-m-nota'); if(nota) nota.textContent = 'Paradas del ' + p398TextoFecha_(P43.mesSel) + ' · líneas de referencia, sin cálculo vial' + (limites.length ? '' : ' · sin puntos para mostrar');
+  pv26Dimensionar_(mapa);
+  if(limites.length > 1) mapa.fitBounds(limites,{padding:[25,25],maxZoom:14}); else mapa.setView(limites[0] || [8.99,-79.52],12);
+}
+function pv26Mes_(){
+  var raiz = $('p43-mes'), lateral = $('p43-m-pd'); if(!raiz || !lateral) return;
+  raiz.classList.add('pv26-mes');
+  if(!$('pv26-m-mapa')){ var mapa = document.createElement('div'); mapa.className = 'mt-card pv26-mapa'; mapa.innerHTML = '<div id="pv26-m-nota" class="pv26-nota"></div><div id="pv26-m-mapa"></div>'; raiz.prepend(mapa); }
+  if(!$('pv26-m-clientes')){
+    var detalle = document.createElement('details'); detalle.className = 'pv26-detalle'; detalle.innerHTML = '<summary>Rutas del día seleccionado</summary>';
+    while(lateral.firstChild) detalle.appendChild(lateral.firstChild);
+    var clientes = document.createElement('section'); clientes.id = 'pv26-m-clientes'; clientes.innerHTML = '<h3>Clientes</h3><input class="p42-bus" aria-label="Buscar cliente o zona" placeholder="Buscar cliente o zona…" value="' + esc(PV26.mesQ) + '" oninput="PV26.mesQ=this.value;clearTimeout(PV26.mt);PV26.mt=setTimeout(pv26MesResultados_,250)"><div id="pv26-m-resultados"></div><p class="p43-ay">＋ o arrastrar al calendario abre el día para revisar y guardar la visita.</p>';
+    lateral.appendChild(clientes); lateral.appendChild(detalle);
+  }
+  pv26ActualizarFiltros_('mes'); pv26MesResultados_(); pv26MesMapa_();
+}
+p43Dia_ = (function(original){ return function(){ var r = original.apply(this, arguments); if(P42.vista === 'dia') pv26Dia_(); return r; }; })(p43Dia_);
+p42Pintar_ = (function(original){ return function(){ var r = original.apply(this, arguments); if(P42.vista === 'semana') pv26Semana_(); return r; }; })(p42Pintar_);
+p43Mes_ = (function(original){ return function(){ var r = original.apply(this, arguments); if(P42.vista === 'mes') pv26Mes_(); return r; }; })(p43Mes_);
 
 </script>
 </body>
