@@ -1,0 +1,32 @@
+name: Preparar retiro del bloque adicional de Clientes
+on:
+  push:
+    branches: [codex/preparar-clientes-20261115]
+permissions:
+  contents: write
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Preparar únicamente el cambio de Clientes
+        run: |
+          set -euo pipefail
+          cp revision-clientes.patch "$RUNNER_TEMP/revision-clientes.patch"
+          git switch -c codex/clientes-sin-bloque 8db7b74c4a0cb487ec48de416820241625d0b1d2
+          git apply --check "$RUNNER_TEMP/revision-clientes.patch"
+          git apply "$RUNNER_TEMP/revision-clientes.patch"
+          test "$(git hash-object Index.html)" = "561020817d3561a3e049c531ab2cc362a68b2d3c"
+          git diff --check
+          node - <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          for(const m of fs.readFileSync('Index.html','utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
+          NODE
+          git config user.name "ECOVSA revisión"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Index.html
+          git commit -m "Retirar únicamente el bloque adicional de frecuencia de Clientes"
+          git push origin codex/clientes-sin-bloque
