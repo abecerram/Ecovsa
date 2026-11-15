@@ -1,0 +1,24 @@
+name: Preparar pantalla 3.100
+on:
+  push:
+    branches: [codex/planificador-3100]
+    paths: [.github/planificador3100/**, .github/workflows/preparar-planificador-3100.yml]
+permissions:
+  contents: write
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set -euo pipefail
+          node .github/planificador3100/generar.cjs
+          echo '9149daccd40da52c07bf011238a8b02fbaca0a838c163efa0d1d9e953fecb639  Index.html' | sha256sum -c -
+          git rm .github/planificador3100/generar.cjs .github/planificador3100/pantalla_3100.js .github/planificador3100/estilos_3100.css .github/workflows/preparar-planificador-3100.yml
+          rm -rf .github/planificador3100/GitHub .github/planificador3100/SHA256.json
+          git add Index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Preparar Index 3.100 para publicación'
+          git push origin HEAD:refs/heads/codex/planificador-3100
