@@ -1,0 +1,31 @@
+name: Preparar pantalla 3.98 en rama (sin publicar)
+on:
+  push:
+    branches: [codex/planificador-398]
+    paths:
+      - .github/planificador398/**
+      - .github/workflows/preparar-planificador-398.yml
+permissions:
+  contents: write
+jobs:
+  preparar:
+    if: github.ref == 'refs/heads/codex/planificador-398'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir exactamente la pantalla probada
+        run: |
+          set -euo pipefail
+          node .github/planificador398/construir.cjs
+          test "$(git hash-object Index.html)" = 'ff61f8ad277ce5ff48f57fac40ae88b626036f3e'
+      - name: Guardar solo en la rama de revisión
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'codex/planificador-398'
+          git rm .github/planificador398/construir.cjs .github/planificador398/pantalla_398.js .github/planificador398/estilos_398.css .github/workflows/preparar-planificador-398.yml
+          git add Index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Prepara Index 3.98 idéntico al candidato probado; sin publicar main'
+          git push origin HEAD:refs/heads/codex/planificador-398
