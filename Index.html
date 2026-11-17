@@ -3355,6 +3355,7 @@ $("hub-cant-clientes").textContent = CLIENTES.length + " activos";
 }
 
 function pintarSync(){
+if(typeof pintarAvisoEnvioCierre_ === "function") pintarAvisoEnvioCierre_();
 var s=$("semaforo"), txt=$("txt-sync"); if(!s||!txt) return;
 var pend = COLA.length + ((typeof PUENTE_EST!=="undefined" && PUENTE_EST.cola) || 0);
 var mal = typeof PUENTE_EST!=="undefined" && (PUENTE_EST.estado==="error" || PUENTE_EST.estado==="reintento");
@@ -4767,6 +4768,51 @@ function guardarCargaComb_(){
 }
 
 /* ── CERRAR JORNADA ── */
+var ENVIO_CIERRE = { ocupado: false, error: "" };
+function estadoEnvioCierre_(){
+  var guardados = 0, error = "";
+  try{
+    var colaPuente = JSON.parse(localStorage.getItem("pnt:cola") || "[]");
+    if(!Array.isArray(colaPuente)) throw new Error("Cola inválida");
+    guardados = colaPuente.length;
+  }catch(e){ error = "No se pudo comprobar el envío. Conserva los datos del equipo y avisa a logística."; }
+  return { recolecciones: COLA.length, guardados: guardados, error: error,
+           pendiente: !!(COLA.length || guardados || error || ENVIO_CIERRE.ocupado) };
+}
+function pintarAvisoEnvioCierre_(){
+  var caja = $("jv-envios"); if(!caja) return;
+  var e = estadoEnvioCierre_();
+  if(!e.pendiente){
+    caja.innerHTML = '<div class="jv-aviso az" role="status">No quedan datos pendientes de envío en este equipo.</div>';
+    return;
+  }
+  var texto = e.error || ENVIO_CIERRE.error || "Conecta el equipo a internet y envía los datos antes de cerrar la jornada.";
+  caja.innerHTML = '<div class="jv-card" role="status" aria-live="polite"><div class="jv-tit">Datos pendientes de envío</div>' +
+    '<p>Recolecciones por confirmar: <b>' + e.recolecciones + '</b> · Envíos en espera: <b>' + e.guardados + '</b></p>' +
+    '<p>' + esc(texto) + '</p><button type="button" class="jv-btn azul" style="width:100%" onclick="enviarPendientesCierre_()"' +
+    (ENVIO_CIERRE.ocupado ? ' disabled' : '') + '>' + (ENVIO_CIERRE.ocupado ? "Enviando datos…" : "Enviar datos pendientes") +
+    '</button><p>' + (JORNADA && JORNADA.cerrada ? 'La jornada está cerrada, pero estos datos siguen pendientes de envío.' : 'La jornada sigue abierta hasta que se confirme el envío.') + '</p></div>';
+}
+function enviarPendientesCierre_(){
+  if(ENVIO_CIERRE.ocupado) return;
+  ENVIO_CIERRE.error = "";
+  if(navigator.onLine === false){
+    ENVIO_CIERRE.error = "Sin conexión. Conecta el equipo al wifi o a datos móviles y vuelve a tocar Enviar datos pendientes.";
+    pintarAvisoEnvioCierre_(); return;
+  }
+  sincronizar(true);
+  try{ if(window.PUENTE) PUENTE.procesarCola(); }catch(e){
+    ENVIO_CIERRE.error = "No se pudo iniciar el envío. Los datos siguen pendientes; vuelve a intentarlo.";
+  }
+  pintarAvisoEnvioCierre_();
+}
+function comprobarEnviosAntesDeCerrar_(){
+  if(!estadoEnvioCierre_().pendiente) return true;
+  pintarAvisoEnvioCierre_();
+  var caja = $("jv-envios"); if(caja && caja.scrollIntoView) caja.scrollIntoView({ block: "center", behavior: "smooth" });
+  toast("Hay datos pendientes: envíalos antes de cerrar la jornada.");
+  return false;
+}
 function irACierre_(){ JV.vista = "cierre"; JV.km = ""; JV.tanque = ""; JV.resp = {}; JV.fallas = {}; JV.revLocal = ""; JV.revisionId = ""; jvGuardar_(); pintarCierre_(); document.querySelector("main").scrollTop = 0; }
 function puntosCierre_(){ return FLOTA ? FLOTA.lista.filter(function(p){ return p.momento === "cierre"; }) : []; }
 function pintarCierre_(){
@@ -4786,6 +4832,7 @@ function pintarCierre_(){
             : hechos < P.length ? (P.length - hechos === 1 ? "Falta 1 punto para cerrar" : "Faltan " + (P.length - hechos) + " puntos para cerrar") : "";
   caja.innerHTML =
     '<button class="btn sec mini" style="margin-bottom:10px" onclick="JV.vista=\'tablero\';jvGuardar_();pintarTableroJornada_()">← Volver a la jornada</button>' +
+    '<div id="jv-envios"></div>' +
     '<div class="jv-card"><div class="jv-tit"><span class="n">1</span>Odómetro y tanque<span class="r">' + ahoraHM() + '</span></div>' +
       '<label class="jv-lab">Odómetro final</label><div class="jv-odo"><input id="jv-kmf" inputmode="numeric" placeholder="Kilometraje" value="' + esc(JV.km) + '" oninput="JV.km=this.value.replace(/[^0-9]/g,\'\');jvGuardar_()" onblur="pintarCierre_()"><span>km</span></div>' +
       '<div class="jv-ay ' + odo.c + '">' + esc(odo.t) + '</div>' +
@@ -4796,8 +4843,10 @@ function pintarCierre_(){
       '<div><b>' + hechas + '/' + R.length + '</b><span>paradas</span></div><div><b>' + (Math.round(kg * 10) / 10) + '</b><span>kg</span></div>' +
       '<div><b>' + cargasHoy + '</b><span>cargas comb.</span></div><div><b>' + nuevas + '</b><span>fallas nuevas</span></div></div></div>' +
     '<div class="jv-pie">' + (falta ? '<button class="jv-btn gris" disabled>' + falta + '</button>' : '<button class="jv-btn" onclick="cerrarJornadaConRevision_()">🏁 Cerrar jornada</button>') + '</div>';
+  pintarAvisoEnvioCierre_();
 }
 function cerrarJornadaConRevision_(){
+  if(!comprobarEnviosAntesDeCerrar_()) return;
   var kmF = num(JV.km);
   if(!(kmF >= num(JORNADA.kmInicio))){ toast("Revisa el odómetro final"); return; }
   if(!JV.revLocal){ JV.revLocal = "REV" + Date.now().toString(36).toUpperCase(); jvGuardar_(); }
@@ -4807,6 +4856,7 @@ function cerrarJornadaConRevision_(){
   var fallas = Object.keys(JV.fallas).map(function(k){ return JV.fallas[k]; });
   toast("Cerrando la jornada…");
   var cerrar = function(revId){
+    if(!comprobarEnviosAntesDeCerrar_()) return;
     google.script.run.withSuccessHandler(function(r){
       if(!r || !r.ok){ toast((r && r.error) || "No se pudo cerrar"); return; }
       JORNADA.cerrada = true; JORNADA.kmFinal = kmF; JORNADA.horaFinal = ahoraHM(); guardarLocal(K_JOR, JORNADA);
@@ -4828,11 +4878,12 @@ function cerrarJornadaConRevision_(){
 }
 function pintarJornadaCerrada_(){
   var caja = $("caja-jornada"), s = JV.resumen; if(!caja || !s) return;
-  caja.innerHTML = '<div class="jv-hero" style="background:linear-gradient(140deg,#1F4A06,var(--eco-verde))"><div class="et">Jornada cerrada · ' + esc(nombreDia_(s.fecha)) + '</div>' +
+  caja.innerHTML = '<div id="jv-envios"></div><div class="jv-hero" style="background:linear-gradient(140deg,#1F4A06,var(--eco-verde))"><div class="et">Jornada cerrada · ' + esc(nombreDia_(s.fecha)) + '</div>' +
       '<div class="t1">' + esc(s.vehiculo) + ' · ' + nMiles_(s.km) + ' km</div><div class="t2">Salió ' + esc(hora12_(s.salio)) + ' · llegó ' + esc(hora12_(s.llego)) + '</div>' +
       '<div class="jv-kp"><div><b>' + esc(s.paradas) + '</b><span>paradas</span></div><div><b>' + s.kg + '</b><span>kg</span></div><div><b>' + s.fallas + '</b><span>fallas nuevas</span></div></div></div>' +
     '<div class="jv-aviso az">Gracias. La revisión de cierre quedó guardada para mantenimiento.</div>' +
     '<button class="jv-btn sec" onclick="JV=jvNuevo_(\'' + esc(s.vehiculo) + '\');jvGuardar_();renderJornada()">Iniciar otra jornada</button>';
+  pintarAvisoEnvioCierre_();
 }
 
 /* ══════════════ FALLAS DE LA FLOTA (logística) ══════════════ */
@@ -8221,7 +8272,7 @@ pintarSync();
 
 renderParadas();
 
-toast("✓ Recolección enviada");
+toast("Recolección guardada en este equipo · pendiente de confirmar envío");
 
 sincronizar(false);
 
@@ -8475,13 +8526,17 @@ window.location.href = mailto;
 
 function sincronizar(manual){
 
-if(!COLA.length){ if(manual) toast("Todo sincronizado"); return; }
+if(ENVIO_CIERRE.ocupado) return;
+if(!COLA.length){ if(manual) toast(estadoEnvioCierre_().pendiente ? "Hay envíos pendientes de confirmar" : "No quedan recolecciones pendientes"); pintarAvisoEnvioCierre_(); return; }
+ENVIO_CIERRE.ocupado = true; ENVIO_CIERRE.error = ""; pintarAvisoEnvioCierre_();
 
 if(manual) toast("Enviando recolecciones...");
 
+try{
 google.script.run
 
 .withSuccessHandler(function(r){
+ENVIO_CIERRE.ocupado = false;
 
 if(r&&r.ok){
 
@@ -8489,14 +8544,27 @@ var ok=new Set([].concat(r.guardados||[], r.duplicados||[]));
 
 COLA=COLA.filter(function(x){return !ok.has(x.registroId);});
 
-guardarLocal(K_COLA,COLA); pintarSync(); toast("Sincronizado con ECOVSA ✓");
+guardarLocal(K_COLA,COLA); pintarSync(); toast(COLA.length ? "Quedan recolecciones pendientes de confirmar" : "Recolecciones confirmadas por ECOVSA ✓");
 if(r.rutas){ RUTA_REFRESCO_T = Date.now(); aplicarRutaServidor_(r.rutas, RUTA.fecha); }
 
+}else{
+ENVIO_CIERRE.error = (r && r.error) || "El servidor no confirmó el envío. Los datos siguen pendientes.";
+pintarAvisoEnvioCierre_(); toast(ENVIO_CIERRE.error);
 }
 
 })
+.withFailureHandler(function(){
+ENVIO_CIERRE.ocupado = false;
+ENVIO_CIERRE.error = "No se confirmó el envío. Revisa la conexión y vuelve a intentarlo; los datos siguen pendientes.";
+pintarSync(); toast(ENVIO_CIERRE.error);
+})
 
 .api_guardarLote(PIN,COLA,(!esSupervisor() && RUTA && RUTA.rutaId) ? RUTA.fecha : "");
+}catch(e){
+ENVIO_CIERRE.ocupado = false;
+ENVIO_CIERRE.error = "No se pudo iniciar el envío. Los datos siguen pendientes; vuelve a intentarlo.";
+pintarSync(); toast(ENVIO_CIERRE.error);
+}
 
 }
 
@@ -9235,6 +9303,7 @@ guardarLocal(K_JOR,JORNADA); guardarLocal(K_PAR,RUTA); renderJornada(); toast("I
 }
 
 function cerrarJornada(){
+if(!comprobarEnviosAntesDeCerrar_()) return;
 
 var km=($("km-final").value||"").trim();
 
@@ -27839,4 +27908,5 @@ window.addEventListener('resize',p399Alto_);
 </body>
 
 </html>
+
 
