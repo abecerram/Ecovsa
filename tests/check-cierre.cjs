@@ -45,7 +45,7 @@ test('pending collections show send action and block both closing paths',()=>{
 });
 test('offline leaves records and visible action intact',()=>{
   c.navigator.onLine=false;c.enviarPendientesCierre_();
-  assert.equal(sent,0);assert.equal(c.COLA.length,2);assert.match(banner.innerHTML,/Sin conexi�n/);
+  assert.equal(sent,0);assert.equal(c.COLA.length,2);assert.match(banner.innerHTML,/Sin conexión/);
   c.navigator.onLine=true;
 });
 test('manual send starts once and cannot close before acknowledgement',()=>{
@@ -61,11 +61,11 @@ test('partial acknowledgement preserves remaining and newly added records',()=>{
 test('network failure is visible and retains records for retry',()=>{
   c.enviarPendientesCierre_();failure(new Error('timeout'));
   assert.equal(c.COLA.length,2);assert.equal(c.ENVIO_CIERRE.ocupado,false);
-  assert.match(banner.innerHTML,/No se confirm� el env�o/);
+  assert.match(banner.innerHTML,/No se confirmó el envío/);
 });
 test('server rejection is visible and cannot empty the queue',()=>{
-  c.enviarPendientesCierre_();success({ok:false,error:'Sesi�n vencida'});
-  assert.equal(c.COLA.length,2);assert.match(banner.innerHTML,/Sesi�n vencida/);
+  c.enviarPendientesCierre_();success({ok:false,error:'Sesión vencida'});
+  assert.equal(c.COLA.length,2);assert.match(banner.innerHTML,/Sesión vencida/);
 });
 test('acknowledged duplicates count as saved, bridge queue still blocks close',()=>{
   disk.set('pnt:cola',JSON.stringify([{fn:'api_guardarLote'}]));
@@ -83,9 +83,8 @@ test('unreadable bridge storage blocks close without claiming success',()=>{
 });
 test('closed historical journey does not claim it is still open',()=>{
   disk.set('pnt:cola','[]');c.JORNADA.cerrada=true;c.COLA.push({registroId:'d'});
-  c.pintarAvisoEnvioCierre_();assert.match(banner.innerHTML,/jornada est� cerrada/);
+  c.pintarAvisoEnvioCierre_();assert.match(banner.innerHTML,/jornada está cerrada/);
 });
 assert.match(extract('pintarCierre_'),/id="jv-envios"/);
 assert.match(extract('pintarJornadaCerrada_'),/pintarAvisoEnvioCierre_\(\)/);
 console.log(`${checks} behavior checks; ${scripts} inline scripts parsed.`);
-
