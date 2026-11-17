@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert/strict');
-const html = fs.readFileSync(__dirname + '/Index.html', 'utf8');
+const html = fs.readFileSync(require('path').join(__dirname, '..', 'Index.html'), 'utf8');
 let scripts = 0;
 for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
   if (!m[2].trim() || /type=["'](?:application\/json|application\/ld\+json)/i.test(m[1])) continue;
