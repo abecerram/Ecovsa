@@ -16120,9 +16120,12 @@ function cal38Cierre_(f, rutaId){
 @media(max-width:860px){.as-grid{grid-template-columns:minmax(0,1fr)}.as-nav{position:static;display:flex;overflow-x:auto;gap:4px}.as-nav button{width:auto;white-space:nowrap}
   .as-f{grid-template-columns:minmax(0,1fr)}.as-f .c{justify-content:flex-start}.as-tb{display:block;overflow-x:auto}.as-dia{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.as-dia>b{grid-column:1/-1}.as-acc{margin-left:0}}
 /* el globito */
-.bnd-pastilla.ia{background:linear-gradient(140deg,#2FBF71,#1E9E58);padding:12px 18px;gap:8px}
-.bnd-pastilla.ia.off{background:#8A97AD}
-.bnd-pastilla.ia span{font-weight:800;font-size:13.5px}
+.bnd-pastilla.ia{min-height:32px;padding:0 10px;gap:6px;background:#177447;
+  font-size:12px;line-height:1;box-shadow:0 2px 8px rgba(15,25,45,.18)}
+.bnd-pastilla.ia i{box-sizing:border-box;width:7px;height:7px;border:1px solid currentColor;background:currentColor;opacity:1}
+.bnd-pastilla.ia.off{background:#59667B}
+.bnd-pastilla.ia.off i{background:transparent}
+@media (pointer:coarse){.bnd-pastilla.ia{min-height:36px}}
 #bnd-panel.ia{width:min(430px,calc(100vw - 36px));max-height:min(80vh,660px)}
 .as-g{padding:12px 16px;border-bottom:1px solid var(--borde,#E1E5EA)}
 .as-g h4{margin:0 0 8px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#6B7686;font-weight:800}
@@ -16287,8 +16290,8 @@ function asGlobito_(){
   var p = bndEl("bnd-pastilla"), l = bndEl("bnd-lista"), pan = bndEl("bnd-panel"); if(!p || !l) return;
   var on = !!AS_EST.on, n = BND.length;
   p.className = "bnd-pastilla ia" + (on ? "" : " off") + (BND_ABIERTO ? " abierto" : "");
-  p.innerHTML = '<i></i><span>' + (on ? 'Piloto automático' : 'Piloto apagado') + '</span>' + (n ? ' · <b>' + n + '</b>' : '');
-  p.title = (on ? "Asistente de rutas encendido" : "Asistente de rutas apagado") + (n ? " · " + n + " pendiente(s)" : "");
+  p.innerHTML = '<i aria-hidden="true"></i><span>Piloto</span>' + (n ? ' · <b>' + n + '</b>' : '');
+  p.title = (on ? "Piloto automático encendido" : "Piloto automático apagado") + (n ? " · " + n + (n === 1 ? " pendiente" : " pendientes") : "");
   if(pan) pan.classList.add("ia");
   var cab = pan && pan.querySelector(".bnd-cab"); if(cab && cab.firstChild && cab.firstChild.nodeType === 3) cab.firstChild.nodeValue = "Asistente de rutas";
   var txt = on ? 'Encendido. Cada mañana a las ' + esc(asH12_(AS_EST.hora)) + ', y cada vez que entra un cliente o una visita, armo y acomodo solo las rutas de los próximos ' + (AS_EST.dias || 7) + ' días con tus reglas. No mando nada a los clientes ni toco cobros.' : 'Apagado. No toco nada: planificas tú a mano.';
