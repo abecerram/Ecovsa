@@ -481,8 +481,8 @@ function fechaLarga(iso){
   return t;
 }
 /* El mismo mensaje en todos lados: dice qué es el archivo que llega. */
-function textoRecibo(d){
-  var url = enlaceRecibo(), tipos = [];
+function textoRecibo(d, incluirEnlace){
+  var url = incluirEnlace ? enlaceRecibo() : "", tipos = [];
   if(num(d.kgBio)) tipos.push("bioinfeccioso " + num(d.kgBio).toFixed(2));
   if(num(d.kgPunzo)) tipos.push("punzocortante " + num(d.kgPunzo).toFixed(2));
   if(num(d.kgAnatomo)) tipos.push("anatomopatológico " + num(d.kgAnatomo).toFixed(2));
@@ -505,9 +505,9 @@ function textoEnlaceRec(d){
     "\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com";
 }
 var HJ_EDITADO = false;
-function msgEnvio(pdf){ var m = ($("hj-msg")||{}).value; if(HJ_EDITADO && m) return m; return pdf ? textoRecibo(DATOS_RECIBO) : textoEnlaceRec(DATOS_RECIBO); }
+function msgEnvio(pdf){ var m = ($("hj-msg")||{}).value; if(HJ_EDITADO && m) return m; return pdf ? textoRecibo(DATOS_RECIBO, true) : textoEnlaceRec(DATOS_RECIBO); }
 function rotuloIr(){ var b = $("hj-go"), v = $("hj"); if(!b || !v || v.getAttribute("data-canal") !== "whatsapp") return;
-  var n = telNormal(($("hj-dest")||{}).value); b.firstChild.nodeValue = n ? "Enviar a " + telBonito(n) : "Escribe el número"; b.disabled = !n; }
+  var n = telNormal(($("hj-dest")||{}).value); b.firstChild.nodeValue = n ? "Enviar a " + telBonito(n) : "Escribe el número"; b.disabled = !n || !RP.pdf; }
 function asuntoRecibo(d){ return "Recibo N.º " + (d.recibo||"") + " · recolección del " + fechaLarga(d.fecha) + " · ECOVSA"; }
 
 /* La columna whatsapp de la hoja a veces guarda el enlace completo. */
@@ -693,14 +693,12 @@ function abrirEnvio(canal){
   if(sup && d.clienteId) h += '<label class="hj-ck"><input type="checkbox" id="hj-guardar"> Guardar ' + (wa ? 'este número' : 'este correo') + ' en la ficha del cliente</label>';
   HJ_EDITADO = false;
   h += '<label class="hj-l" for="hj-msg">MENSAJE' + (ES_CONDUCTOR ? '' : ' · se puede editar') + '</label>' +
-       '<textarea id="hj-msg" rows="8" oninput="HJ_EDITADO=true"' + (ES_CONDUCTOR ? ' readonly' : '') + '>' + esc(textoEnlaceRec(d)) + '</textarea>';
-  /* api 3.8: lo principal va directo al número o al correo que ya se eligió, con el enlace del recibo */
+       '<textarea id="hj-msg" rows="8" oninput="HJ_EDITADO=true"' + (ES_CONDUCTOR ? ' readonly' : '') + '>' + esc(wa ? textoRecibo(d) : textoEnlaceRec(d)) + '</textarea>';
   if(wa){
     var n0 = telefonoWhatsApp(d);
-    h += '<button type="button" class="hj-b wa" id="hj-go" onclick="abrirChat()"' + (n0 ? '' : ' disabled') + '>' + (n0 ? 'Enviar a ' + esc(telBonito(n0)) : 'Escribe el número') +
-           '<small style="display:block;font-size:11.5px;font-weight:700;opacity:.9;margin-top:2px">Se abre su chat con el mensaje listo · solo tocas enviar</small></button>' +
-         '<button type="button" class="hj-lk" id="hj-ir" onclick="enviarWa()" disabled>Mandar el PDF como archivo (eliges el chat)</button>' +
-         '<div class="hj-n">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.</div>';
+    h += '<button type="button" class="hj-b wa" id="hj-go" onclick="abrirChat()" disabled>' + (n0 ? 'Enviar a ' + esc(telBonito(n0)) : 'Escribe el número') +
+           '<small style="display:block;font-size:11.5px;font-weight:700;opacity:.9;margin-top:2px">Abre el chat y descarga el PDF. Adjúntalo en WhatsApp.</small></button>' +
+         '<button type="button" class="hj-lk" id="hj-wa-enviado" style="display:none">Ya envié el PDF</button>';
   } else {
     h += '<button type="button" class="hj-b az" id="hj-go" onclick="correoDirecto()">Enviar al correo' +
            '<small style="display:block;font-size:11.5px;font-weight:700;opacity:.9;margin-top:2px">Se abre tu correo con la dirección, el asunto y el mensaje puestos</small></button>' +
@@ -712,41 +710,46 @@ function abrirEnvio(canal){
   v.innerHTML = '<div class="hj-c" role="dialog" aria-modal="true">' + h + '</div>'; v.classList.add("si");
   v.setAttribute("data-canal", canal);
   prepararPdf(function(r, err){
-    var e = $("hj-pdf"); if(!e) return;
+    var e = $("hj-pdf"); if(!e || !v.classList.contains("si") || v.getAttribute("data-canal") !== canal) return;
     if(!r){ e.innerHTML = '⚠ ' + esc(err || "No se pudo armar el PDF."); return; }
     e.innerHTML = 'Recibo ' + esc(d.recibo) + ' · 📄 PDF listo (' + Math.max(1, Math.round(r.blob.size/1024)) + ' KB)';
-    var b = $("hj-ir"); if(b) b.disabled = false;
+    if(wa) rotuloIr();
+    else { var b = $("hj-ir"); if(b) b.disabled = false; }
   });
 }
 function cerrarEnvio(){ var v = $("hj"); if(v) v.classList.remove("si"); }
-function limpiarDest(){ var i = $("hj-dest"); if(i){ i.value = ""; i.focus(); } }
+function limpiarDest(){ var i = $("hj-dest"); if(i){ i.value = ""; i.focus(); rotuloIr(); } }
 function guardarEnFicha(campo, valor){
   var ck = $("hj-guardar"); if(!ck || !ck.checked || !DATOS_RECIBO.clienteId) return;
   var o = {}; o[campo] = valor;
   google.script.run.withSuccessHandler(function(r){ if(r && r.ok){ DATOS_RECIBO[campo] = valor; avisoRec("Guardado en la ficha del cliente"); } else avisoRec((r && r.error) || "No se pudo guardar en la ficha"); })
     .withFailureHandler(function(){ avisoRec("Sin señal: no se guardó en la ficha"); }).api_guardarOperativoCliente(PIN_ENV, DATOS_RECIBO.clienteId, o);
 }
-function enviarWa(){
-  var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
-  var msg = msgEnvio(true), r = RP.pdf; if(!r) return;
-  guardarEnFicha("whatsapp", n);
-  if(puedeCompartirArchivo(r.file)){
-    try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).catch(function(){}); }catch(e){}
-    navigator.share({ files:[r.file], text: msg, title: asuntoRecibo(DATOS_RECIBO) })
-      .then(function(){ marcarEnviado("PDF whatsapp → " + telBonito(n)); avisoRec("Listo · quedó anotado"); cerrarEnvio(); })
-      .catch(function(e){ if(e && e.name === "AbortError") return; descargar(r.blob, r.nombre); abrirChat(); });
-  } else {
-    /* sin menú Compartir: el PDF se descarga y se abre el chat para adjuntarlo */
-    descargar(r.blob, r.nombre); abrirChat();
-    avisoRec("El PDF quedó en Descargas: adjúntalo en el chat que se abrió");
-  }
-}
 function abrirChat(){
-  var n = telNormal(($("hj-dest")||{}).value); if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
-  var msg = msgEnvio(false);
+  var n = telNormal(($("hj-dest")||{}).value);
+  if(!n){ avisoRec("Escribe un número de WhatsApp válido"); return; }
+  var r = RP.pdf;
+  if(!r){ avisoRec("El PDF todavía no está listo"); return; }
+
+  var chat = window.open("about:blank", "_blank");
+  if(!chat){ avisoRec("Permite abrir una pestaña nueva para WhatsApp"); return; }
+  chat.opener = null;
+  if(!descargar(r.blob, r.nombre)){
+    chat.close();
+    avisoRec("No se pudo descargar el PDF");
+    return;
+  }
+  var msg = ($("hj-msg")||{}).value || textoRecibo(DATOS_RECIBO);
+  chat.location.href = "https://wa.me/" + n + "?text=" + encodeURIComponent(msg);
   guardarEnFicha("whatsapp", n);
-  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(msg), "_blank");
-  marcarEnviado("whatsapp → " + telBonito(n)); cerrarEnvio(); avisoRec("Listo · quedó anotado");
+
+  var confirmar = $("hj-wa-enviado");
+  confirmar.style.display = "";
+  confirmar.onclick = function(){
+    marcarEnviado("PDF whatsapp → " + telBonito(n));
+    cerrarEnvio();
+  };
+  avisoRec("Adjunta " + r.nombre + " en el chat de WhatsApp");
 }
 function correoDirecto(){
   var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
