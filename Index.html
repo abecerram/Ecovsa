@@ -6140,7 +6140,7 @@ function plQuitar_(i){ ED.paradas.splice(i, 1); cerrarHojaIni_(); plSucio_(); pl
 function plFicha_(id){ if(ED && ED.sucio) toast("Ojo: la ruta tiene cambios sin guardar"); mostrarTab("cli2"); setTimeout(function(){ abrirFichaC2_(id); }, 50); }
 function plMenuMover_(i){
   var p = ED.paradas[i], c = plC_(p.clienteId);
-  abrirHojaIni_('<div class="ini-pt">📅 Mover a otro día</div><div class="ini-ps">' + esc(c.nombre) + ' sale de esta ruta y entra en la del día que elijas.</div>' +
+  abrirHojaIni_('<div class="ini-pt">📅 Mover a otro día</div><div class="ini-ps">' + esc(c.nombre) + ' saldrá de esta ruta al confirmar el traslado a una fecha distinta.</div>' +
     plProximos_(4).map(function(d){ return '<button class="c2-rt" onclick="plMover_(' + i + ',\'' + d + '\')"><span style="font-size:20px">📅</span><div><b>' + esc(fechaLargaIni_(d)) + '</b><span>' + ((PL.semana.find(function(s){ return s.fecha === d; }) || {}).paradas || 0) + ' paradas ese día</span></div></button>'; }).join("") +
     '<label class="c2-f">Otra fecha</label><div style="display:flex;gap:6px"><input type="date" class="c2-in" id="pl-mv-f" min="' + hoyISO() + '" style="margin:0"><button class="pl-btn a" onclick="var f=$(\'pl-mv-f\').value;if(f)plMover_(' + i + ',f)">Mover</button></div>');
 }
@@ -20473,21 +20473,52 @@ function p43SoltarLista_(e){ e.preventDefault(); var g = P43.drag; p43Fin_(); if
 function p43Agregar_(id){ if(plAgregar_([id], true)){ P43.marca = id; plSucio_(); p43Aviso_(p42Corto_(plC_(id).nombre) + " agregado · guarde para que quede"); } }
 function p43SobreDia_(e, el){ if(!P43.drag || P43.drag.t !== "st") return; e.preventDefault(); el.classList.add("sob"); }
 function p43SoltarDia_(e, f){ e.preventDefault(); var g = P43.drag; p43Fin_(); if(!g || g.t !== "st" || f === PL.fecha) return; p43MoverADia_(g.i, f); }
-/* pasar una parada a otro día: al instante */
+/* La visita sale de la ruta visible cuando el servidor confirma el traslado. */
 function p43MoverADia_(i, f){
-  var p = ED.paradas[i]; if(!p || p.clienteId === "P") return;
-  if(f < (PL.hoy || hoyISO())){ p43Aviso_("Ese día ya pasó", false); return; }
-  var cl = plC_(p.clienteId), rid = ED.rutaId;
-  ED.paradas.splice(i, 1); var s = (PL.semana || []).find(function(x){ return x.fecha === f; }); if(s) s.paradas++;
-  var s0 = (PL.semana || []).find(function(x){ return x.fecha === PL.fecha; }); if(s0) s0.paradas = Math.max(0, s0.paradas - 1);
-  p43Dia_(); p43Aviso_("Guardando " + p42Corto_(cl.nombre) + " → " + p42Dia_(f) + "…", "g");
-  if(!rid){ p43Aviso_(p42Corto_(cl.nombre) + " → " + p42Dia_(f) + " · guarde esta ruta", true); }
-  google.script.run.withSuccessHandler(function(r){
-    if(!r || !r.ok){ ED.paradas.splice(i, 0, p); if(s) s.paradas--; if(s0) s0.paradas++; p43Dia_(); p43Aviso_((r && r.error) || "No se pudo mover", false); return; }
-    p43Aviso_(p42Corto_(cl.nombre) + " → " + p42Dia_(f) + (r.destino && r.destino.estadoPlan === "publicada" ? " · ruta publicada" : "") + " · guardado");
-    if(P42.d) P42.d = null;
-    if(!ED.sucio) plCargar_(PL.fecha, true);
-  }).withFailureHandler(function(){ ED.paradas.splice(i, 0, p); p43Dia_(); p43Aviso_("Sin conexión: no se movió", false); }).api_moverParada(PIN, rid || "", p.clienteId, f, "");
+  var editor = ED, p = editor && editor.paradas[i];
+  if(!p || p.clienteId === "P") return;
+  if(!editor.rutaId || editor.sucio){ p43Aviso_("Guarda los cambios de esta ruta antes de mover una parada.", false); return; }
+  if(!p398Fecha_(f) || f < (PL.hoy || hoyISO())){ p43Aviso_("Elige un día válido de hoy en adelante.", false); return; }
+  if(f === editor.fecha){ p43Aviso_("Elige una fecha distinta de la ruta actual.", false); return; }
+  if(P43.moviendoDia){ p43Aviso_("Espera a que se confirme el traslado en curso.", "g"); return; }
+  var rid = editor.rutaId, de = editor.fecha, id = p.clienteId, nombre = p42Corto_(plC_(id).nombre);
+  p398Confirmar_(p398Avisos_([id], f, rid, PL), function(){
+    if(P43.moviendoDia) return;
+    if(ED !== editor || editor.sucio || editor.paradas.indexOf(p) < 0){
+      p43Aviso_("La ruta cambió. Vuelve a elegir la parada.", false); return;
+    }
+    P43.moviendoDia = rid;
+    p43Aviso_("Moviendo " + nombre + " al " + p42Dia_(f) + "…", "g");
+    google.script.run.withSuccessHandler(function(r){
+      P43.moviendoDia = null;
+      if(!r || !r.ok){ p43Aviso_((r && r.error) || "No se pudo mover la parada.", false); return; }
+      if(r.sinCambio){ p43Aviso_("La parada sigue en su fecha original. Elige otro día.", false); return; }
+      var destino = r.destino;
+      if(!destino || destino.fecha !== f || !destino.rutaId || destino.rutaId === rid || r.agregada === false){
+        p43Aviso_("El servidor no confirmó el traslado. Revisa el calendario antes de volver a moverla.", false); return;
+      }
+      var origenVisible = ED && ED.rutaId === rid && ED.fecha === de;
+      var guardada = PL && PL.fecha === de && PL.rutas.find(function(ruta){ return ruta.rutaId === rid; });
+      [origenVisible ? ED : editor, guardada].forEach(function(ruta){
+        if(!ruta) return;
+        ruta.paradas = ruta.paradas.filter(function(parada){ return String(parada.clienteId) !== String(id); });
+        ruta.trazo = null;
+      });
+      P42.d = null;
+      P43.mes = null;
+      p43Aviso_(nombre + " pasó al " + p42Dia_(f) + (destino.nueva ? " · ruta nueva en borrador" : destino.estadoPlan === "publicada" ? " · ruta publicada" : ""));
+      if(P42.vista === "semana") p42Cargar_(P42.ref || PL_F, true);
+      else if(P42.vista === "mes") p43MesCargar_(P43.mesRef || f.slice(0, 7), true);
+      else if(origenVisible){
+        PL_KMG = null;
+        if(!ED.sucio) plCargar_(de, true);
+        plPintar_();
+      }
+    }).withFailureHandler(function(error){
+      P43.moviendoDia = null;
+      p43Aviso_((error && error.message) || "No se pudo confirmar el traslado. Revisa el calendario antes de volver a moverla.", false);
+    }).api_moverParada(PIN, rid, id, f, "");
+  });
 }
 function p43IrDia_(f){ if(f === PL.fecha) return; p43Cargando_(true); plCargar_(f); }
 /* el menú «Mover a otro día» de siempre, ahora al instante */
@@ -27485,6 +27516,7 @@ p42Vista_ = (function(original) { return function(v) {
 plGuardar_ = (function(original) { return function(estado, trazo, ya) {
   var self = this, acepta = ya || {};
   if(!ED || !PL) return original.apply(self, arguments);
+  if(P43.moviendoDia === ED.rutaId){ p43Aviso_("Espera a que se confirme el traslado antes de guardar la ruta.", "g"); return; }
   var avisos = p398Avisos_(ED.paradas.map(function(p) { return p.clienteId; }), PL.fecha, ED.rutaId, PL);
   var firma = JSON.stringify([PL.fecha, ED.rutaId, ED.paradas.map(function(p) { return p.clienteId; }), avisos]);
   if(acepta.frecuencia398 === firma) return original.apply(self, arguments);
@@ -27501,11 +27533,6 @@ p43MMoverRuta_ = (function(original) { return function(rutaId, de, a) {
   var ruta = d && (d.rutas || []).find(function(x) { return x.rutaId === rutaId; });
   p398Confirmar_(p398Avisos_(ruta && ruta.ids || [], a, rutaId, P43.mes), function() { original.apply(self, args); });
 }; })(p43MMoverRuta_);
-p43MoverADia_ = (function(original) { return function(i, fecha) {
-  if(!ED || !ED.rutaId || ED.sucio) { p43Aviso_('Guarda los cambios de esta ruta antes de mover una parada.', false); return; }
-  var self = this, args = arguments, p = ED.paradas[i];
-  p398Confirmar_(p398Avisos_(p ? [p.clienteId] : [], fecha, ED.rutaId, PL), function() { original.apply(self, args); });
-}; })(p43MoverADia_);
 p43MesAplicar_ = (function(original) { return function() {
   var r = P43.propMes, self = this, args = arguments;
   if(!r || !r.res || P43.mesGuardando) return original.apply(self, args);
