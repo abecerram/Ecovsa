@@ -7814,7 +7814,7 @@ cfConfirmar_ = function(i){
       if($("cf-ok")) p9Pintar_(i); });
   })();
 };
-function p9Editar_(i, canal){ P9.dest["_ed|" + canal] = 1; delete P9.dest["_ok|" + canal]; if(canal === "whatsapp") delete P9.dest["_ok|wa1"]; p9Pintar_(i); var e = $("p9-in-" + canal); if(e) e.focus(); }
+function p9Editar_(i, canal){ P9.dest["_ed|" + canal] = 1; delete P9.dest["_ok|" + canal]; if(canal === "whatsapp"){ delete P9.dest["_ok|wa1"]; delete P9.dest["_compartido|whatsapp"]; } p9Pintar_(i); var e = $("p9-in-" + canal); if(e) e.focus(); }
 function p9Usar_(i, canal){
   var v = String(($("p9-in-" + canal) || {}).value || "").trim(), p = RUTA.paradas[i], k = (p.registroId || p.recibo) + "|" + canal;
   if(!v){ p9Ficha_(i, canal); return; }
@@ -14820,8 +14820,9 @@ function p38EnCola_(p){ return (COLA || []).some(function(x){ return x.registroI
 p9Bloque_ = function(i){
   var p = RUTA.paradas[i], c = cli(p.clienteId) || {}, m = p9Modo_(c); if(!m) return "";
   var k = p.registroId || p.recibo, listo = !!P9.pdf[k];
+  var whatsappApp = window.APP38 && APP38.tiene("compartirArchivo");
   var h = '<div class="p9-box" id="p9-box">';
-  if(p38EnCola_(p)) h += '<div class="p38-sube">⏳ El recibo todavía no sube (sin señal). Puedes enviarlo: el enlace abre en cuanto suba.</div>';
+  if(p38EnCola_(p) && (!whatsappApp || m !== "whatsapp")) h += '<div class="p38-sube">⏳ El recibo todavía no sube (sin señal). Puedes enviarlo: el enlace abre en cuanto suba.</div>';
   ["whatsapp", "correo"].forEach(function(canal){
     if(m !== canal && m !== "ambos") return;
     var D = p9Destino_(i, canal), ed = P9.dest["_ed|" + canal], ok = canal === "correo" ? p9CorreoOk_(D.valor) : !!(D.otro ? p9TelNorm_(D.valor) : D.valor);
@@ -14834,7 +14835,14 @@ p9Bloque_ = function(i){
     h += '</div>';
     if(ed) return;
     var hecho = P9.dest["_ok|" + canal] || P9.dest["_ok|" + (canal === "whatsapp" ? "wa1" : "co1")];
-    if(canal === "whatsapp"){
+    if(canal === "whatsapp" && whatsappApp){
+      var preparado = P9.dest["_compartido|whatsapp"];
+      var ocupado = P9.dest["_abriendo|whatsapp"];
+      h += '<button class="cf-b wa p38-grande" ' + (ok && listo && !ocupado ? '' : 'disabled') + ' onclick="p38WaPdf_(' + i + ')">' +
+           (ocupado ? 'Abriendo el menú Compartir…' : hecho ? '✓ PDF enviado · compartir otra vez' : 'Compartir PDF por WhatsApp') + '</button>' +
+           '<div class="p9-nota">En el menú Compartir, elige WhatsApp y verifica que el chat corresponde al cliente.</div>';
+      if(preparado) h += '<button class="p9-lk" onclick="p38WaConfirmar_(' + i + ')">Ya envié el PDF</button>';
+    } else if(canal === "whatsapp"){
       h += '<button class="cf-b wa p38-grande" ' + (ok ? '' : 'disabled') + ' onclick="p38Wa_(' + i + ')">' + (hecho ? '✓ Enviado · enviar otra vez' : 'Enviar a ' + esc(vis || "…")) +
            '<small>Se abre su chat con el mensaje listo · solo tocas enviar</small></button>' +
            '<button class="p9-lk" ' + (ok && listo ? '' : 'disabled') + ' onclick="p9Compartir_(' + i + ',\'whatsapp\')">Mandar el PDF como archivo (eliges el chat)</button>';
@@ -14844,7 +14852,8 @@ p9Bloque_ = function(i){
            '<button class="p9-lk" ' + (ok && listo ? '' : 'disabled') + ' onclick="p9Compartir_(' + i + ',\'correo\')">Mandar el PDF como archivo</button>';
     }
   });
-  h += '<div class="p9-nota">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.' + (listo ? '' : ' <span id="p9-prep">Preparando el PDF…</span>') + '</div>';
+  if(!whatsappApp || m !== "whatsapp") h += '<div class="p9-nota">El mensaje lleva el enlace del recibo: el cliente lo abre y lo descarga en PDF.</div>';
+  if(!listo) h += '<div class="p9-nota" id="p9-prep">Preparando el PDF…</div>';
   return h + '</div>';
 };
 function p38Wa_(i){
@@ -14853,6 +14862,39 @@ function p38Wa_(i){
   window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(textoEnlace38_(p, c)), "_blank");
   p9Marcar_(i, "whatsapp", D.otro ? p9TelTxt_(n) : "");
   P9.dest["_ok|whatsapp"] = 1; setTimeout(function(){ p9Pintar_(i); }, 400);
+}
+function p38WaPdf_(i){
+  var p = RUTA.paradas[i], r = p9Archivo_(i), pantalla = $("cf-ok"), estado = P9.dest;
+  if(!p || !r || !pantalla || estado["_abriendo|whatsapp"] || !APP38.tiene("compartirArchivo")) return;
+  var D = p9Destino_(i, "whatsapp"), numero = p9TelNorm_(D.valor);
+  if(!numero){ toast("Falta el número de WhatsApp"); return; }
+  var texto = textoReciboCliente_(p, cli(p.clienteId) || {});
+  delete estado["_compartido|whatsapp"];
+  estado["_abriendo|whatsapp"] = true;
+  p9Pintar_(i);
+  APP38.b64(r.blob).then(function(datos){
+    if($("cf-ok") !== pantalla || P9.dest !== estado || RUTA.paradas[i] !== p) return;
+    var destinoActual = p9Destino_(i, "whatsapp");
+    if(estado["_ed|whatsapp"] || p9TelNorm_(destinoActual.valor) !== numero) return;
+    EcovsaApp.compartirArchivo(datos, r.nombre, "application/pdf", texto);
+    estado["_compartido|whatsapp"] = { parada: p, numero: numero };
+  }).catch(function(){
+    if($("cf-ok") === pantalla && P9.dest === estado) toast("No se pudo abrir Compartir. Intenta de nuevo.");
+  }).then(function(){
+    delete estado["_abriendo|whatsapp"];
+    if($("cf-ok") === pantalla && P9.dest === estado && RUTA.paradas[i] === p) p9Pintar_(i);
+  });
+}
+function p38WaConfirmar_(i){
+  var p = RUTA.paradas[i], preparado = P9.dest["_compartido|whatsapp"];
+  if(!p || !preparado || preparado.parada !== p) return;
+  var D = p9Destino_(i, "whatsapp"), numero = p9TelNorm_(D.valor);
+  if(numero !== preparado.numero) return;
+  delete P9.dest["_compartido|whatsapp"];
+  p9Marcar_(i, "whatsapp", D.otro ? p9TelTxt_(numero) : "");
+  P9.dest["_ok|whatsapp"] = 1;
+  p9Pintar_(i);
+  toast("Envío por WhatsApp registrado");
 }
 function p38Correo_(i){
   var p = RUTA.paradas[i], c = cli(p.clienteId) || {}, D = p9Destino_(i, "correo");
