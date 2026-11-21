@@ -471,8 +471,9 @@ try{ PIN_ENV = JSON.parse(localStorage.getItem("ecovsa_pin")||'""'); }catch(e){}
 })();
 
 function enlaceRecibo(){
-  if(!URL_APP_REC || !DATOS_RECIBO) return "";
-  return URL_APP_REC + "?p=recibo&solover=1&id=" + encodeURIComponent(DATOS_RECIBO.recibo) + (DATOS_RECIBO.clave ? "&k=" + encodeURIComponent(DATOS_RECIBO.clave) : "");
+  if(!DATOS_RECIBO || !String(DATOS_RECIBO.recibo||'').trim() || !String(DATOS_RECIBO.clave||'').trim()) return '';
+  var u=new URL('https://ecovsaapp.com/Recibo.html');
+  u.searchParams.set('solover','1');u.searchParams.set('id',String(DATOS_RECIBO.recibo));u.searchParams.set('k',String(DATOS_RECIBO.clave));return u.href;
 }
 function fechaLarga(iso){
   if(!iso) return "";
@@ -767,11 +768,12 @@ function abrirChat(){
   avisoRec("Adjunta " + r.nombre + " en el chat de WhatsApp");
 }
 function correoDirecto(){
+  if(!enlaceRecibo()){ avisoRec('No se puede compartir un enlace válido de este recibo. Use el PDF adjunto.'); return; }
   var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
   var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO);
   guardarEnFicha("correo", para[0]);
   location.href = "mailto:" + para.map(encodeURIComponent).join(",") + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(msgEnvio(false));
-  marcarEnviado("correo → " + para.join(", ")); setTimeout(cerrarEnvio, 400);
+  avisoRec('Correo preparado. Abrirlo no confirma que se haya enviado.'); setTimeout(cerrarEnvio, 400);
 }
 function b64Lineas(s){ return s.replace(/.{1,76}/g, "$&\r\n"); }
 function b64Texto(t){ return btoa(unescape(encodeURIComponent(t))); }
@@ -794,7 +796,7 @@ function enviarCorreo(){
   var para = correosValidos(($("hj-dest")||{}).value); if(!para){ avisoRec("Escribe un correo válido"); return; }
   var asunto = ($("hj-asunto")||{}).value || asuntoRecibo(DATOS_RECIBO), msg = msgEnvio(true), r = RP.pdf; if(!r) return;
   guardarEnFicha("correo", para[0]);
-  var hecho = function(){ marcarEnviado("PDF correo → " + para.join(", ")); cerrarEnvio(); };
+  var hecho = function(){ cerrarEnvio(); };
   if(esCelular() && puedeCompartirArchivo(r.file)){
     try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(para.join(", ")).catch(function(){}); }catch(e){}
     navigator.share({ files:[r.file], title: asunto, text: msg })
