@@ -222,8 +222,11 @@
   '#ent .e-portal{position:absolute;z-index:9;border-radius:50%;width:10px;height:10px;background:radial-gradient(circle,#fff 0%,#eef6e8 40%,#f3f5f8 70%);transform:translate(-50%,-50%) scale(0);pointer-events:none;transition:transform .75s cubic-bezier(.7,0,.2,1)}' +
   '@media (prefers-reduced-motion:reduce){#ent *{animation-duration:.01s!important;animation-delay:0s!important}}';
 
+  var CSS_AURORA_ACABADO = "\n#ei::before,#ent.bq::before {\n  content:\"\";position:absolute;inset:-20%;pointer-events:none;z-index:0;\n  background:radial-gradient(circle at 50% 45%,transparent 18%,rgba(20,48,107,.06) 18.2%,transparent 18.6% 32%,rgba(47,158,68,.06) 32.2%,transparent 32.6%);\n}\n#ei.noche::before,#ent.bq.noche::before {\n  background:radial-gradient(circle at 50% 45%,transparent 18%,rgba(143,212,106,.09) 18.2%,transparent 18.6% 32%,rgba(120,175,255,.08) 32.2%,transparent 32.6% 48%,rgba(120,175,255,.05) 48.2%,transparent 48.6%);\n}\n#ei .im { z-index:2; }\n#ei .em .aurora-orbita,#ent.bq .aurora-orbita { position:absolute;inset:-16px;border-radius:50%;border:1.5px dashed rgba(20,48,107,.22);pointer-events:none;animation:auroraOrbita 26s linear infinite; }\n#ei.noche .aurora-orbita,#ent.bq.noche .aurora-orbita { border-color:rgba(143,212,106,.38); }\n.aurora-orbita::after { content:\"\";position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--tm-info,#3b6fd4);box-shadow:0 0 12px currentColor; }\n.noche .aurora-orbita::after { background:var(--tm-verde-marca,#8fd46a);color:var(--tm-verde-marca,#8fd46a); }\n#ei .im .wm { width:158px; }\n#ei .ei-bt { padding:15px 40px; }\n#ent.bq .bq-msg b { font-size:22px; }\n#ent.bq .bq-msg button { background:linear-gradient(135deg,#14306b,#1f4b9c);box-shadow:0 12px 28px rgba(0,0,0,.3); }\n#ei .cl.aurora-error,#ent.bq .cl.aurora-error { border-color:rgba(214,64,69,.7);animation:auroraError .46s cubic-bezier(.36,.07,.19,.97); }\n#ei.aurora-error::after,#ent.bq.aurora-error::after,#et.aurora-exito::after { content:\"\";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(214,64,69,.28),transparent 65%);animation:auroraFlash .55s ease-out both; }\n#et.aurora-exito::after { background:radial-gradient(circle at 50% 42%,rgba(143,212,106,.26),transparent 65%); }\n@keyframes auroraOrbita { to { transform:rotate(360deg); } }\n@keyframes auroraError { 0%,100%{transform:none} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }\n@keyframes auroraFlash { from{opacity:1}to{opacity:0} }\n@media (prefers-reduced-motion:reduce) { .aurora-orbita,#ei .cl.aurora-error,#ent.bq .cl.aurora-error { animation:none!important; } #ei.aurora-error::after,#ent.bq.aurora-error::after,#et.aurora-exito::after { display:none; } }\n";
+  CSS_AURORA_ACABADO += "\n#ei .ei-bt { display:inline-flex; align-items:center; gap:10px; }\n#ent.bq.bq-espera .e-pc-zona { inset:calc(50% - 176px) 0 auto; }\n#ent.bq.bq-espera .e-pc-emb { width:136px;height:136px; }\n#ent.bq.bq-espera .e-pc-wm,#ent.bq.bq-espera .e-pc-clock,#ent.bq.bq-espera .e-pc-reloj,\n#ent.bq.bq-espera .e-pc-so,#ent.bq.bq-espera .e-marca,#ent.bq.bq-espera .e-lema,\n#ent.bq.bq-espera .e-fecha,#ent.bq.bq-espera .e-reloj { visibility:hidden; }\n#ent.bq.bq-espera:not(.ancho) .e-pan { justify-content:flex-start;padding-top:max(28px,calc(50dvh - 176px)); }\n#ent.bq.bq-espera:not(.ancho) .e-reloj,#ent.bq.bq-espera:not(.ancho) .e-fecha { display:none; }\n#ent.bq.bq-espera:not(.ancho) .e-esc { width:136px!important;margin:0!important; }\n#ent.bq.bq-espera .bq-msg { top:calc(50% - 4px); }\n#ent.bq.bq-espera .bq-msg p { margin-bottom:22px;line-height:1.5; }\n#ent.bq.bq-espera.noche { background:radial-gradient(900px 580px at 20% 15%,rgba(34,94,196,.38),transparent 62%),linear-gradient(165deg,#0c2146 0%,#08172f 100%); }\n#ent.bq.bq-espera::before,#ent.bq.bq-espera canvas.bq-cv { visibility:hidden; }\n.cl.aurora-pausa { border-color:var(--tm-acento,#f5b301)!important; }\n.aurora-cuenta { text-align:center;display:grid;justify-items:center;gap:5px;margin:6px 0 14px;padding:12px;border:1px solid rgba(217,154,0,.4);border-radius:13px;background:var(--tm-warn-bg,#fff4d6);color:#805700; }\n.aurora-cuenta span { font-size:12px; }\n.aurora-cuenta time { font-size:24px;font-weight:900;font-variant-numeric:tabular-nums; }\n.noche .aurora-cuenta { background:rgba(245,179,1,.11);color:#ffcf42; }\n@media (max-height:490px) {\n  #ent.bq.bq-espera .e-pc-zona { top:22px; }\n  #ent.bq.bq-espera:not(.ancho) .e-pan { padding-top:22px; }\n  #ent.bq.bq-espera .e-pc-emb { width:92px;height:92px; }\n  #ent.bq.bq-espera:not(.ancho) .e-esc { width:92px!important; }\n}\n";
+  CSS_AURORA_ACABADO += "#ei .eco-lg[role=button],#ent.bq .e-pc-emb[role=button]{cursor:pointer}#ei .eco-lg:focus-visible,#ent.bq .e-pc-emb:focus-visible{outline:3px solid var(--tm-raya,#88be47);outline-offset:7px}#ei .eco-lg.aurora-giro .fl{animation:auroraOrbita .9s cubic-bezier(.22,.82,.28,1) both}@media(prefers-reduced-motion:reduce){#ei .eco-lg.aurora-giro .fl{animation:none}}";
   function ponerCss() {
-    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ + CSS_CL; document.head.appendChild(st); }
+    if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ + CSS_CL + CSS_AURORA_ACABADO; document.head.appendChild(st); }
     if (!document.querySelector('link[href*="family=Archivo"]')) {
       var l = document.createElement('link'); l.rel = 'stylesheet';
       l.href = 'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&display=swap';
@@ -321,6 +324,7 @@
     q('.e-teclas').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); tecla(b.getAttribute('data-k')); });
     q('.e-teclas').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     E.onKey = function (e) { if (!E || !$('ent')) return;
+      if (e.target && e.target.closest && e.target.closest('[aria-label="Girar el emblema de ECOVSA"]')) return;
       if (document.querySelector('.cl') || (E.bq && (E.msg || E.op.clave))) return;   /* api 3.92b: con la tarjeta de usuario y contraseña abierta el teclado es del formulario */
       if (E.intro) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); var b0 = E.intro.querySelector('.ei-bt'); if (b0) b0.click(); } return; }   /* api 3.83d: durante la intro solo el botón */
       if (e.target && e.target.tagName === 'INPUT') return;   /* escribiendo el nombre en «¿Olvidaste tu PIN?» */
@@ -440,6 +444,23 @@
       if (!quieto) anim = requestAnimationFrame(paso);
     })();
   }
+  function activarEmblemaAurora(logo) {
+    if (!logo) return;
+    logo.removeAttribute('aria-hidden');
+    logo.tabIndex = 0;
+    logo.setAttribute('role', 'button');
+    logo.setAttribute('aria-label', 'Girar el emblema de ECOVSA');
+    logo.addEventListener('click', function () {
+      logo.classList.remove('aurora-giro');
+      void logo.offsetWidth;
+      logo.classList.add('aurora-giro');
+    });
+    logo.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      logo.click();
+    });
+  }
   function intro() {
     if (!E || !E.op.intro || E.op.bloqueo || E.introVisto) return;
     E.introVisto = true; var d = E.d, noche = piel() === 'noche';
@@ -447,14 +468,15 @@
       if (!E || E.d !== d || !window.ECOCARGA || !ECOCARGA.logo) return;
       var z = document.createElement('div'); z.id = 'ei'; z.className = noche ? 'noche' : ''; z.setAttribute('role', 'dialog'); z.setAttribute('aria-label', 'Bienvenida ECOVSA');
       var cv = document.createElement('canvas'); z.appendChild(cv);
-      var h = '<div class="im"><div class="em">' + ECOCARGA.logo(116, { arma: true });
+      var h = '<div class="im"><div class="em">' + ECOCARGA.logo(116, { arma: true }) + '<span class="aurora-orbita" aria-hidden="true"></span>';
       for (var a = 0; a < 3; a++) h += '<span class="r" style="animation-delay:' + (1.15 + a * .32).toFixed(2) + 's"></span>';
       for (var k = 0; k < 26; k++) { var ang = k / 26 * 6.2832 + Math.random() * .3, dd = 90 + Math.random() * 95, c = k % 3 === 0 ? '#3b6fd4' : k % 3 === 1 ? '#2f9e44' : '#8fd46a', t = 3 + Math.random() * 5;
         h += '<span class="pt" style="--dx:' + Math.round(Math.cos(ang) * dd) + 'px;--dy:' + Math.round(Math.sin(ang) * dd) + 'px;width:' + t + 'px;height:' + t + 'px;background:' + c + '"></span>'; }
-      h += '</div><img class="wm" src="' + BASE + (noche ? 'ecovsa-letras.png' : 'ecovsa-letras-azul.png') + '" alt="ECOVSA"><div class="lema">Ecología · Vida · Salud</div><button class="bt ei-bt" type="button">Entrar al sistema</button></div>';
+      h += '</div><img class="wm" src="' + BASE + (noche ? 'ecovsa-letras.png' : 'ecovsa-letras-azul.png') + '" alt="ECOVSA"><div class="lema">Ecología · Vida · Salud</div><button class="bt ei-bt" type="button">Entrar al sistema <span aria-hidden="true">→</span></button></div>';
       z.innerHTML = h; z.insertBefore(cv, z.firstChild); document.body.appendChild(z); d.classList.add('con-piel'); if (noche) d.classList.add('noche');
       try { burbujas(cv, noche); } catch (e) {}
       var lg = z.querySelector('.eco-lg'); setTimeout(function () { if (lg && lg.isConnected) { lg.classList.remove('arma', 'gira'); lg.classList.add('lento', 'respira'); } }, 1750);
+      activarEmblemaAurora(lg);
       E.intro = z;
       var seguir = function () { if (!E || E.intro !== z) return; E.intro = null; z.classList.add('fuera'); setTimeout(function () { if (z.parentNode) z.parentNode.removeChild(z); }, 750); if (!d.classList.contains('ancho')) abrir(); };
       entradaClave(z, seguir);   /* api 3.92: «Entrar al sistema» abre usuario y contraseña */
@@ -463,7 +485,7 @@
   /* después de la clave: sin esperas; el saludo y el logo viaja a la barra del lobby mientras el lobby se descubre */
   function trans(r) {
     var noche = piel() === 'noche', nom = String((r && r.nombre) || '').trim().split(' ')[0], hh = new Date().getHours(), sal = hh < 12 ? 'Buenos días' : hh < 19 ? 'Buenas tardes' : 'Buenas noches';
-    var z = document.createElement('div'); z.id = 'et'; z.className = noche ? 'noche' : '';
+    var z = document.createElement('div'); z.id = 'et'; z.className = noche ? 'noche aurora-exito' : 'aurora-exito';
     z.innerHTML = '<div class="em"><span class="r"></span><span class="r" style="animation-delay:.3s"></span><span class="r" style="animation-delay:.6s"></span><div class="d"></div>' +
       '<img src="' + BASE + 'entrada-globo.png" alt=""><img src="' + BASE + 'entrada-bio.png" alt=""><img src="' + BASE + 'entrada-flecha-a.png" alt=""><img src="' + BASE + 'entrada-flecha-b.png" alt=""></div>' +
       '<h1>' + esc(sal + (nom ? ', ' + nom : '')) + '</h1><p>ECOLOGÍA · VIDA · SALUD</p>';
@@ -955,13 +977,16 @@
     if (!E || !E.op.bloqueo || E.bq) return; E.bq = true; var d = E.d, noche = piel() === 'noche';
     d.classList.add('con-piel', 'bq', 'bq-entra'); if (noche) d.classList.add('noche');
     if (E.op.clave) d.classList.add('bq-con-clave', 'bq-oculta');
+    var emblema = E.q('.e-pc-emb'), orbita = document.createElement('span');
+    orbita.className = 'aurora-orbita'; orbita.setAttribute('aria-hidden', 'true');
+    if (emblema) { emblema.appendChild(orbita); activarEmblemaAurora(emblema); }
     var cv = document.createElement('canvas'); cv.className = 'bq-cv'; d.insertBefore(cv, d.firstChild); try { burbujas(cv, noche); } catch (e) {}
     setTimeout(function () { aros('in'); }, 30);
     if (E.op.motivo === 'inactividad' || E.op.motivo === 'otra') {
       var m = document.createElement('div'); m.className = 'bq-msg';
       m.innerHTML = '<b>Pantalla bloqueada</b><p>Por seguridad la bloqueamos porque no se usó en un rato. Lo que tenía abierto se queda como está.</p><button type="button" class="bq-sigo">Sigo aquí</button>';
-      d.appendChild(m); d.classList.add('bq-oculta'); E.msg = m;
-      m.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); if (!E || E.msg !== m) return; E.msg = null; m.parentNode && m.parentNode.removeChild(m); if (!E.op.clave) d.classList.remove('bq-oculta'); abrirBloqueo(); });
+      d.appendChild(m); d.classList.add('bq-oculta', 'bq-espera'); E.msg = m;
+      m.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); if (!E || E.msg !== m) return; E.msg = null; m.parentNode && m.parentNode.removeChild(m); d.classList.remove('bq-espera'); if (!E.op.clave) d.classList.remove('bq-oculta'); abrirBloqueo(); });
     } else if (E.op.clave) { var escena = E; setTimeout(function () { if (E === escena) abrirBloqueo(); }, 700); }
   }
   /* al acertar el PIN: el iris se cierra sobre el logo con los aros saliendo y se descubre lo que estaba debajo */
@@ -1034,7 +1059,34 @@
       val: function (id) { var e = f.querySelector('#cl-' + id); return e ? e.value : ''; },
       foco: function (id) { var e = f.querySelector('#cl-' + id); if (e) try { e.focus(); } catch (x) {} },
       lock: function (b) { t.ocupado = !!b; var g = f.querySelector('.go'); if (g) g.disabled = !!b; },
-      espera: function (min) { t.lock(true); var hasta = Date.now() + min * 60000, k = setInterval(function () { var r = Math.ceil((hasta - Date.now()) / 60000); if (r <= 0 || !f.isConnected) { clearInterval(k); if (f.isConnected) { t.lock(false); t.msg(''); } } else t.msg('Demasiados intentos. Espere ' + r + ' min.'); }, 1000); t.msg('Demasiados intentos. Espere ' + min + ' min.'); } };
+      espera: function (min) {
+        var duracion = Number(min) * 60000;
+        if (!Number.isFinite(duracion) || duracion <= 0) return;
+        t.lock(true); t.msg('');
+        var hasta = Date.now() + duracion, boton = f.querySelector('.go');
+        var etiqueta = boton.textContent;
+        boton.textContent = 'Bloqueado temporalmente';
+        f.classList.add('aurora-pausa');
+        var aviso = document.createElement('div');
+        aviso.className = 'aurora-cuenta';
+        aviso.innerHTML = '<b>Acceso en pausa temporal</b><span>Podrá volver a intentarlo en</span><time aria-label="Tiempo restante"></time>';
+        boton.before(aviso);
+        function refrescar() {
+          var quedan = Math.max(0, Math.ceil((hasta - Date.now()) / 1000));
+          if (!quedan || !f.isConnected) {
+            clearInterval(reloj);
+            if (!f.isConnected) return;
+            aviso.remove(); f.classList.remove('aurora-pausa');
+            boton.textContent = etiqueta; t.lock(false);
+            t.msg('Ya puede volver a intentarlo.', true);
+            return;
+          }
+          aviso.querySelector('time').textContent = String(Math.floor(quedan / 60)).padStart(2, '0') + ':' + String(quedan % 60).padStart(2, '0');
+        }
+        var reloj = setInterval(refrescar, 250);
+        refrescar();
+      } };
+
     Array.prototype.forEach.call(f.querySelectorAll('.ver'), function (b) { b.addEventListener('click', function () { var i = b.parentNode.querySelector('input'); i.type = i.type === 'password' ? 'text' : 'password'; b.textContent = i.type === 'password' ? 'Ver' : 'Ocultar'; }); });
     Array.prototype.forEach.call(f.querySelectorAll('.ol'), function (b) { b.addEventListener('click', function () { cfg.enlaces[+b.getAttribute('data-i')].fn(t); }); });
     f.addEventListener('submit', function (e) { e.preventDefault(); if (t.ocupado) return; t.msg(''); cfg.enviar(t); });
@@ -1054,6 +1106,13 @@
     t.foco(t.el.querySelector('input:not([readonly])') ? t.el.querySelector('input:not([readonly])').id.replace('cl-', '') : '');
   }
   function quitarCapa() { var z = document.getElementById('ec'); if (z && z.parentNode) z.parentNode.removeChild(z); if (E) E.clHost = null; }
+  function animarErrorAurora(t) {
+    var escena = t.el.closest('#ei, #ent.bq');
+    if (!escena) return;
+    escena.classList.remove('aurora-error'); t.el.classList.remove('aurora-error');
+    void t.el.offsetWidth;
+    escena.classList.add('aurora-error'); t.el.classList.add('aurora-error');
+  }
   function errPorDefecto(r) { return (r && r.error) || 'No se pudo. Intenta otra vez.'; }
 
   /* ── la tarjeta «Iniciar sesión» ── */
@@ -1073,7 +1132,7 @@
           if (r && r.crearClave) { tarjetaTemporal(t, r.usuario || u, r.nombre || '', opt); return; }
           try { fallo(r); } catch (x) {}
           if (r && r.bloqueo && r.bloqueo.tipo === 'espera' && r.bloqueo.min) { t.espera(r.bloqueo.min); return; }
-          t.msg(errPorDefecto(r)); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
+          t.msg(errPorDefecto(r)); animarErrorAurora(t); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
         }, function () { t.lock(false); t.msg(SIN_RED); });
       } });
     ponerTarjeta(t, prev); return t;
@@ -1166,8 +1225,8 @@
   /* bloqueo con contraseña: pide solo la contraseña de quien estaba; «No soy …» abre el inicio de sesión completo */
   function bloqueoClave(nombre, usuario, alLlave) {
     var primero = (String(nombre || '').trim().split(' ')[0]) || usuario;
-    var t = tarjeta({ titulo: 'Hola de nuevo, ' + primero, sub: 'Escriba su contraseña para seguir.', noche: piel() === 'noche',
-      campos: [{ id: 'c', label: 'Contraseña', tipo: 'password', ph: 'Escriba su contraseña', ac: 'current-password', ver: true }], boton: 'Entrar',
+    var t = tarjeta({ titulo: 'Hola de nuevo, ' + primero, sub: 'Escriba su contraseña para seguir donde quedó.', noche: piel() === 'noche',
+      campos: [{ id: 'c', label: 'Contraseña', tipo: 'password', ph: 'Escriba su contraseña', ac: 'current-password', ver: true }], boton: 'Desbloquear',
       enlaces: [{ t: 'No soy ' + primero, fn: function () { tarjetaLogin(t, '', { sinPin: true, alLlave: alLlave }); } }, { t: '¿Olvidó su contraseña?', fn: function () { tarjetaOlvide(t, usuario, { sinPin: true, alLlave: alLlave }); } }],
       enviar: function (t) {
         var c = t.val('c'); if (!c) { t.msg('Escriba su contraseña.'); return; } t.lock(true); t.msg('Verificando…', true);
@@ -1175,7 +1234,7 @@
           if (r && r.ok && r.llave) { t.msg(''); alLlave(r.llave, r, t); return; }
           t.lock(false); if (r && r.crearClave) { tarjetaTemporal(t, r.usuario || usuario, r.nombre || '', { sinPin: true, alLlave: alLlave }); return; }
           try { fallo(r); } catch (x) {} if (r && r.bloqueo && r.bloqueo.tipo === 'espera' && r.bloqueo.min) { t.espera(r.bloqueo.min); return; }
-          t.msg(errPorDefecto(r)); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
+          t.msg(errPorDefecto(r)); animarErrorAurora(t); var pc = t.el.querySelector('#cl-c'); if (pc) pc.value = ''; t.foco('c');
         }, function () { t.lock(false); t.msg(SIN_RED); });
       } });
     ponerTarjeta(t, null); return t;
