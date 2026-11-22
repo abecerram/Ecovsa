@@ -113,6 +113,7 @@ body{background:var(--l-bg)!important;color:var(--l-ink);font-family:'Archivo',s
 .aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--l-navy);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:600;max-width:90vw;z-index:20;display:none}
 @media(max-width:860px){.gr{grid-template-columns:minmax(0,1fr)}.mods{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.m{min-height:130px;padding:14px}.m .tx b{font-size:15px}.m .tx small{display:none}.kp{grid-template-columns:1fr 1fr}.lb .mk span,.lb .sep,.lb .us span,.lb .fe{display:none}.lw{padding:16px}.lb{padding:0 16px;padding-top:env(safe-area-inset-top,0px)}}
 </style>
+<link rel="stylesheet" href="lobby-aurora.css">
 </head>
 <body>
 
@@ -211,7 +212,34 @@ function fondoElegido(){ return "azul"; }
 function fondoElegidoAntes_(){ var f=""; try{ f=localStorage.getItem("eco_fondo")||""; }catch(e){}
   if(f!=="vivo"&&f!=="quieto"&&f!=="azul"){ try{ f=matchMedia("(prefers-reduced-motion: reduce)").matches?"quieto":"vivo"; }catch(e){ f="vivo"; } }
   return f; }
+function auroraMenuUsuario(ancla){
+  if(!window.TemaECOVSA) return;
+  TemaECOVSA.menuUsuario(ancla,window._US);
+  var menu=$("tm-menu-us");
+  if(!menu) return;
+  var temas=document.createElement("fieldset");
+  temas.className="aurora-temas";
+  var leyenda=document.createElement("legend");
+  leyenda.textContent="Tema de pantalla";
+  temas.appendChild(leyenda);
+  [["noche","Noche"],["clara","Mañana"]].forEach(function(opcion){
+    var boton=document.createElement("button");
+    boton.type="button";
+    boton.dataset.piel=opcion[0];
+    boton.textContent=opcion[1];
+    boton.setAttribute("aria-pressed",String(EntradaECOVSA.piel()===opcion[0]));
+    boton.onclick=function(){
+      EntradaECOVSA.elegirPiel(opcion[0]);
+      var piel=EntradaECOVSA.piel();
+      $("tablero").dataset.piel=piel;
+      temas.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.piel===piel));});
+    };
+    temas.appendChild(boton);
+  });
+  menu.insertBefore(temas,menu.querySelector("a[data-a='bloq']"));
+}
 function pintar(r){
+  $("tablero").dataset.piel=EntradaECOVSA.piel() === "clara" ? "clara" : "noche";
   var ahora=new Date(), h=ahora.getHours();
   var sal=h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches";
   var fecha=ahora.toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"}); fecha=fecha.charAt(0).toUpperCase()+fecha.slice(1);
@@ -255,8 +283,8 @@ function pintar(r){
   $("tablero").innerHTML=
    '<div class="lb"><div class="lg"></div><div class="mk"><b>ECOVSA</b><span>Sistema de operaciones</span></div><div class="sep"></div>'+
    '<span class="fe num">'+esc(fecha)+' · '+ahora.toLocaleTimeString("es-PA",{hour:"numeric",minute:"2-digit"})+'</span><div class="sp"></div>'+
-   '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="window.TemaECOVSA&&TemaECOVSA.menuUsuario(this,window._US)"><span>'+esc(nombre)+' · '+esc(r.usuario.rotulo)+'</span><div class="av">'+esc(ini)+'</div></div><button class="bt" onclick="salir()">Salir</button></div>'+
-   '<div class="lw"><div class="ban '+fondoElegido()+'"><div class="f"></div><h1>'+sal+', '+esc(primer)+'</h1><p>'+esc(fecha)+' · '+esc(subt)+'</p>'+
+   '<div class="us" role="button" tabindex="0" title="Tu usuario" onclick="auroraMenuUsuario(this)"><span>'+esc(nombre)+' · '+esc(r.usuario.rotulo)+'</span><div class="av">'+esc(ini)+'</div></div><button class="bt" onclick="salir()">Salir</button></div>'+
+   '<div class="lw"><div class="ban '+fondoElegido()+'"><div class="f"></div><div class="ban-info"><span class="ban-rol">'+esc(r.usuario.rotulo||"")+'</span><h1>'+sal+', '+esc(primer)+'</h1><p>'+esc(fecha)+' · '+esc(subt)+'</p></div>'+
      (r.kpis&&r.kpis.length?'<div class="kp">'+r.kpis.map(function(k){ return '<div><b class="num">'+esc(k.v)+'</b><span>'+esc(k.e)+(k.d?' <em class="'+(k.malo?'malo':'')+'">'+esc(k.d)+'</em>':'')+'</span></div>'; }).join("")+'</div>':'')+
    admH+'</div><div class="gr">'+
    '<div class="box"><h2>'+(mods.length>1?"MÓDULOS <span>"+mods.length+" disponibles</span>":"TU MÓDULO")+'</h2><div class="mods">'+
