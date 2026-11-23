@@ -233,6 +233,51 @@
     + "#ei .eco-lg.aurora-err,#ec .eco-lg.aurora-err,#ent.bq .e-pc-emb.aurora-err{box-shadow:0 0 0 8px rgba(214,64,69,.24),0 0 0 2px var(--tm-bad,#d64045),0 0 44px rgba(214,64,69,.5)!important}"
     + "#ei .eco-lg.aurora-aviso,#ec .eco-lg.aurora-aviso,#ent.bq .e-pc-emb.aurora-aviso{box-shadow:0 0 0 8px rgba(245,179,1,.22),0 0 0 2px var(--tm-acento,#f5b301),0 0 42px rgba(245,179,1,.4)!important}"
     + "@media(prefers-reduced-motion:reduce){#ei .eco-lg[class*=aurora-] .fl,#ec .eco-lg[class*=aurora-] .fl,#ent.bq .e-pc-emb[class*=aurora-] .e-pc-fl{animation:none!important}}";
+  /* ── api 3.111 · medidas tomadas del simulador Aurora Orbital (1280×800) ── */
+  CSS_AURORA_ACABADO += ""
+    + "#ei,#et,#ec{background:radial-gradient(920px 620px at 14% 8%,var(--tm-cielo,#e3f1ff) 0%,transparent 60%),radial-gradient(840px 580px at 88% 92%,var(--tm-menta,#dcf3e2) 0%,transparent 60%),var(--tm-papel,#f7fafc)}"
+    + "#ei.noche,#ec.noche{background:radial-gradient(980px 620px at 18% 14%,rgba(37,99,214,.44) 0%,transparent 60%),radial-gradient(820px 560px at 84% 86%,rgba(28,138,88,.30) 0%,transparent 62%),linear-gradient(165deg,var(--tm-navy,#0f2a57) 0%,var(--tm-noche-a,#0b1f42) 52%,var(--tm-noche-b,#07142b) 100%)}"
+    + "#ei::before{animation-duration:64s}"
+    + "#ei .im{padding:0}#ei .em{width:var(--e-em,136px);height:var(--e-em,136px);transform:none;margin-bottom:24px;transition:width .3s ease,height .3s ease,margin-bottom .3s ease}"
+    + "#ei .em .eco-lg{width:100%!important;height:100%!important}#ei .em::after{display:none}"
+    + "#ei.con-tarjeta{--e-em:98px}#ei.con-tarjeta .em{margin-bottom:16px}#ei .wm{transition:width .3s ease}#ei.con-tarjeta .im .wm{width:128px}"
+    + "#ei .im .wm{width:162px}#ei.con-tarjeta .im .wm{width:128px}"
+    + "#ei .lema{font-size:11.5px;letter-spacing:9px;margin-top:8px;line-height:normal}@keyframes eiL{to{opacity:1;letter-spacing:3px}}"
+    + "#ei .bt{margin-top:30px;padding:15px 40px;font:800 15.5px Archivo,system-ui,sans-serif;letter-spacing:0;box-shadow:0 14px 30px rgba(20,48,107,.24);opacity:1;transform:none;animation:none}"
+    + "#ei .bt:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,48,107,.24)}"
+    + "#ei.noche .bt{background:linear-gradient(135deg,#14306b 0%,#1f4b9c 100%);box-shadow:0 14px 36px rgba(0,0,0,.38),0 0 22px rgba(143,212,106,.18)}#ei.noche .bt:hover{box-shadow:0 14px 36px rgba(0,0,0,.38),0 0 22px rgba(143,212,106,.18)}"
+    + "@keyframes auroraTarjeta{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}"
+    + ".cl{width:min(380px,92vw);margin-top:20px;padding:24px 24px 20px;animation:auroraTarjeta .42s cubic-bezier(.2,.85,.25,1) both}"
+    + ".noche .cl,.cl.noche{border-color:rgba(143,212,106,.24);box-shadow:0 24px 60px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.08)}"
+    + ".cl h2{margin:0 0 5px;font-size:20px;line-height:normal}"
+    + ".cl .sb,.noche .cl .sb{margin:0 0 14px;font-size:13px;line-height:1.45;color:inherit;opacity:.82}"
+    + ".cl label,.noche .cl label{color:inherit;opacity:.85;line-height:normal}"
+    + ".cl input{height:46px;padding:0 14px}.cl .pw input{padding-right:68px}.noche .cl input{background:rgba(7,20,43,.58)}.cl input[readonly]{opacity:.7;cursor:not-allowed}"
+    + ".cl .ver{color:var(--tm-info,#3b6fd4);opacity:1}.noche .cl .ver{color:#9cc0ff}"
+    + ".cl .mj{min-height:20px;font-weight:700;line-height:normal}.noche .cl .mj{color:#ff7b80}.noche .cl .mj.ok{color:var(--tm-verde-marca,#8fd46a)}"
+    + ".cl .go{display:flex;align-items:center;justify-content:center;gap:9px;height:48px;padding:0;margin-top:14px;box-shadow:0 10px 24px rgba(20,48,107,.26)}"
+    + ".cl .go:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(20,48,107,.26)}.noche .cl .go:hover:not(:disabled){box-shadow:0 10px 26px rgba(0,0,0,.35)}"
+    + ".cl .go:disabled{opacity:.52;cursor:not-allowed;transform:none}"
+    + ".cl .spinner{width:17px;height:17px;border-radius:50%;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;animation:auroraOrbita .7s linear infinite}"
+    + ".cl .links{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #eef2f7}.noche .cl .links{border-top-color:rgba(255,255,255,.1)}.cl .links.uno{justify-content:center}"
+    + ".cl .ol{display:inline-block;width:auto;margin:0;padding:2px 0;font:700 12.5px Archivo,system-ui,sans-serif;text-align:left}.cl .ol:hover{text-decoration:underline}"
+    + ".cl.aurora-pausa{border-color:rgba(245,179,1,.75)!important}.cl.aurora-pausa label,.cl.aurora-pausa input,.cl.aurora-pausa .pw,.cl.aurora-pausa .ay{display:none}"
+    + ".lockout-box{margin:8px 0 4px;padding:14px 16px;border-radius:14px;text-align:center;background:#fdecea;border:1px solid rgba(214,64,69,.32)}.noche .lockout-box{background:rgba(214,64,69,.14);border-color:rgba(214,64,69,.42)}"
+    + ".lockout-lbl{font-size:12px;font-weight:700;opacity:.88}"
+    + ".lockout-timer{display:inline-block;margin-top:6px;padding:6px 16px;border-radius:999px;font-size:24px;font-weight:900;letter-spacing:1px;font-variant-numeric:tabular-nums;background:#fff4d6;color:#8a5a00;border:1px solid rgba(217,154,0,.4)}"
+    + ".noche .lockout-timer{background:rgba(245,179,1,.18);color:var(--tm-acento,#f5b301);border-color:rgba(245,179,1,.45)}"
+    + "@media(prefers-reduced-motion:reduce){.cl .spinner{animation-duration:2s}#ei .em,#ei .wm{transition:none}}";
+  CSS_AURORA_ACABADO += ""
+    + "#ei{justify-content:flex-start;overflow-x:hidden;overflow-y:auto;padding:28px 18px;box-sizing:border-box}#ei>.im{margin:auto 0}#ei::before,#ei canvas{position:fixed}"
+    + "#ec{justify-content:flex-start}#ec>:first-child{margin-top:auto}#ec>:last-child{margin-bottom:auto}"
+    + "#ec .em{width:var(--e-em,98px);height:var(--e-em,98px);margin-bottom:16px}#ec .em .eco-lg{width:100%!important;height:100%!important}"
+    + "#ec .wm{display:block;width:128px;height:auto}#ec .lema{font-size:11.5px;letter-spacing:3px;text-transform:uppercase;font-weight:800;margin-top:8px;line-height:normal;color:var(--tm-verde,#2F6B0A)}#ec.noche .lema{color:var(--tm-verde-marca,#8fd46a)}"
+    + "#ei.t-pausa,#ec.t-pausa{--e-em:102px}#ei.t-temporal,#ec.t-temporal{--e-em:94px}#ei.t-temporal .im .wm,#ec.t-temporal .wm{width:124px}"
+    + ".lockout-lbl,.lockout-timer{line-height:normal}";
+  CSS_AURORA_ACABADO += ""
+    + "#ei .em .eco-lg{box-shadow:0 0 0 8px #fff,0 0 0 9px rgba(20,48,107,.10),0 20px 44px rgba(15,42,87,.15)}"
+    + "#ei.noche .em .eco-lg{box-shadow:0 0 0 8px rgba(255,255,255,.07),0 0 0 1px rgba(143,212,106,.3),0 22px 54px rgba(0,0,0,.48),0 0 38px rgba(42,104,216,.35)}"
+    + "#ent.bq .bq-msg{width:min(380px,88vw)}#ent.bq .bq-msg b{margin-bottom:8px}#ent.bq .bq-msg p{margin:0 0 20px;line-height:1.52}#ent.bq .bq-msg button{padding:13px 36px}";
   function ponerCss() {
     if (!$('ent-css')) { var st = document.createElement('style'); st.id = 'ent-css'; st.textContent = CSS + CSS_INTRO + CSS_BQ + CSS_CL + CSS_AURORA_ACABADO; document.head.appendChild(st); }
     if (!document.querySelector('link[href*="family=Archivo"]')) {
@@ -477,7 +522,7 @@
       if (!E || E.d !== d || !window.ECOCARGA || !ECOCARGA.logo) return;
       var z = document.createElement('div'); z.id = 'ei'; z.className = noche ? 'noche' : ''; z.setAttribute('role', 'dialog'); z.setAttribute('aria-label', 'Bienvenida ECOVSA');
       var cv = document.createElement('canvas'); z.appendChild(cv);
-      var h = '<div class="im"><div class="em">' + ECOCARGA.logo(116, { arma: true }) + '<span class="aurora-orbita" aria-hidden="true"></span>';
+      var h = '<div class="im"><div class="em">' + ECOCARGA.logo(136, { arma: true }) + '<span class="aurora-orbita" aria-hidden="true"></span>';
       h += '<span class="r"></span><span class="r w2"></span>';
       for (var k = 0; k < 26; k++) { var ang = k / 26 * 6.2832 + Math.random() * .3, dd = 90 + Math.random() * 95, c = k % 3 === 0 ? '#3b6fd4' : k % 3 === 1 ? '#2f9e44' : '#8fd46a', t = 3 + Math.random() * 5;
         h += '<span class="pt" style="--dx:' + Math.round(Math.cos(ang) * dd) + 'px;--dy:' + Math.round(Math.sin(ang) * dd) + 'px;width:' + t + 'px;height:' + t + 'px;background:' + c + '"></span>'; }
@@ -1061,13 +1106,15 @@
         (c.ver ? '<button type="button" class="ver" aria-label="Mostrar u ocultar">Ver</button></div>' : '') + (c.ayuda ? '<p class="ay">' + esc(c.ayuda) + '</p>' : '');
     });
     h += '<p class="mj" role="alert" aria-live="polite"></p>' + (cfg.boton ? '<button class="go" type="submit">' + esc(cfg.boton) + '</button>' : '');
+    var nEnl = (cfg.enlaces || []).length; if (nEnl) h += '<div class="links' + (nEnl < 2 ? ' uno' : '') + '">';
     (cfg.enlaces || []).forEach(function (l, i) { h += '<button type="button" class="ol" data-i="' + i + '">' + esc(l.t) + '</button>'; });
+    if (nEnl) h += '</div>';
     f.innerHTML = h;
-    var t = { el: f, ocupado: false,
+    var t = { el: f, ocupado: false, esTemporal: !!cfg.temporal,
       msg: function (m, ok) { var e = f.querySelector('.mj'); e.textContent = m || ''; e.className = 'mj' + (ok ? ' ok' : ''); },
       val: function (id) { var e = f.querySelector('#cl-' + id); return e ? e.value : ''; },
       foco: function (id) { var e = f.querySelector('#cl-' + id); if (e) try { e.focus(); } catch (x) {} },
-      lock: function (b) { t.ocupado = !!b; var g = f.querySelector('.go'); if (g) g.disabled = !!b; },
+      lock: function (b) { t.ocupado = !!b; var g = f.querySelector('.go'); if (g) { g.disabled = !!b; if (!b && t._etq != null) { g.textContent = t._etq; t._etq = null; } } },
       espera: function (min) {
         var duracion = Number(min) * 60000;
         if (!Number.isFinite(duracion) || duracion <= 0) return;
@@ -1076,21 +1123,27 @@
         var etiqueta = boton.textContent;
         boton.textContent = 'Bloqueado temporalmente';
         f.classList.add('aurora-pausa'); estadoEmblema(t, 'aviso');
+        var escP = f.closest('#ei, #ec'); if (escP) escP.classList.add('t-pausa');
+        var h2 = f.querySelector('h2'), h2t = h2 ? h2.textContent : '', sb = f.querySelector('.sb'), sbt = sb ? sb.textContent : '', sbNueva = false;
+        if (h2) h2.textContent = 'Acceso en pausa temporal';
+        if (!sb && h2) { sb = document.createElement('p'); sb.className = 'sb'; h2.after(sb); sbNueva = true; }
+        if (sb) sb.textContent = 'Se detectaron demasiados intentos fallidos desde este equipo.';
         var aviso = document.createElement('div');
-        aviso.className = 'aurora-cuenta';
-        aviso.innerHTML = '<b>Acceso en pausa temporal</b><span>Podrá volver a intentarlo en</span><time aria-label="Tiempo restante"></time>';
+        aviso.className = 'lockout-box';
+        aviso.innerHTML = '<div class="lockout-lbl">Podrá volver a intentarlo en:</div><div class="lockout-timer num" role="timer" aria-label="Tiempo restante"></div>';
         boton.before(aviso);
         function refrescar() {
           var quedan = Math.max(0, Math.ceil((hasta - Date.now()) / 1000));
           if (!quedan || !f.isConnected) {
             clearInterval(reloj);
             if (!f.isConnected) return;
-            aviso.remove(); f.classList.remove('aurora-pausa'); estadoEmblema(t, null);
+            aviso.remove(); f.classList.remove('aurora-pausa'); estadoEmblema(t, null); if (escP) escP.classList.remove('t-pausa');
+            if (h2) h2.textContent = h2t; if (sbNueva) sb.remove(); else if (sb) sb.textContent = sbt;
             boton.textContent = etiqueta; t.lock(false);
             t.msg('Ya puede volver a intentarlo.', true);
             return;
           }
-          aviso.querySelector('time').textContent = String(Math.floor(quedan / 60)).padStart(2, '0') + ':' + String(quedan % 60).padStart(2, '0');
+          aviso.querySelector('.lockout-timer').textContent = String(Math.floor(quedan / 60)).padStart(2, '0') + ':' + String(quedan % 60).padStart(2, '0');
         }
         var reloj = setInterval(refrescar, 250);
         refrescar();
@@ -1109,9 +1162,10 @@
     if (host && host.isConnected) { host.appendChild(t.el); }
     else {
       var z = document.createElement('div'); z.id = 'ec'; if (noche) z.className = 'noche'; t.el.classList.toggle('noche', noche);
-      z.innerHTML = '<div class="em"></div>'; document.body.appendChild(z); z.appendChild(t.el); if (E) E.clHost = z;
+      z.innerHTML = '<div class="em"></div><img class="wm" src="' + BASE + (noche ? 'ecovsa-letras.png' : 'ecovsa-letras-azul.png') + '" alt="ECOVSA"><div class="lema">Ecología · Vida · Salud</div>'; document.body.appendChild(z); z.appendChild(t.el); if (E) E.clHost = z;
       cargarLogo(function () { var em = z.querySelector('.em'); if (em && window.ECOCARGA && ECOCARGA.logo) em.innerHTML = ECOCARGA.logo(96, {}); });
     }
+    var zz = t.el.closest('#ei, #ec'); if (zz) zz.classList.toggle('t-temporal', !!t.esTemporal);
     t.foco(t.el.querySelector('input:not([readonly])') ? t.el.querySelector('input:not([readonly])').id.replace('cl-', '') : '');
   }
   function quitarCapa() { var z = document.getElementById('ec'); if (z && z.parentNode) z.parentNode.removeChild(z); if (E) E.clHost = null; }
@@ -1120,6 +1174,7 @@
   function estadoEmblema(t, est, ms) {
     var lg = emblemaDe(t); if (!lg) return;
     ['verifica', 'ok', 'err', 'aviso', 'giro'].forEach(function (k) { lg.classList.remove('aurora-' + k); });
+    if (est === 'verifica') { var gb = t.el.querySelector('.go'); if (gb && t._etq == null) { t._etq = gb.textContent; gb.innerHTML = '<span class="spinner"></span> Verificando…'; } }
     if (est === 'verifica' || est === 'ok') { var z = lg.closest('#ei, #ent.bq, #ec'); if (z) z.classList.remove('aurora-error'); t.el.classList.remove('aurora-error'); }
     if (!est) return;
     void lg.offsetWidth; lg.classList.add('aurora-' + est);
@@ -1145,7 +1200,7 @@
       enlaces: [].concat(opt.sinPin ? [] : [{ t: 'Entrar con mi PIN', fn: function () { if (opt.alPin) opt.alPin(); } }], [{ t: '¿Olvidó su contraseña?', fn: function () { tarjetaOlvide(t, t.val('u'), opt); } }]),
       enviar: function (t) {
         var u = t.val('u').trim(), c = t.val('c'); if (!u || !c) { t.msg('Escriba su usuario y su contraseña.'); return; }
-        t.lock(true); t.msg('Verificando…', true); estadoEmblema(t, 'verifica');
+        t.lock(true); t.msg('Validando credenciales…', true); estadoEmblema(t, 'verifica');
         llamarSrv('api_loginClave', [u, c], function (r) {
           if (!E && !opt.sinE) return;
           if (r && r.ok && r.llave) { exitoAurora(t, function () { opt.alLlave(r.llave, r, t); }); return; }
@@ -1165,7 +1220,7 @@
   }
   /* contraseña temporal: la persona crea la suya */
   function tarjetaTemporal(prev, usuario, nombre, opt) {
-    var t = tarjeta({ titulo: 'Contraseña temporal', sub: 'Escriba la contraseña temporal y cree la suya.', noche: piel() === 'noche',
+    var t = tarjeta({ temporal: true, titulo: 'Contraseña temporal', sub: 'Escriba la contraseña temporal y cree la suya.', noche: piel() === 'noche',
       campos: [{ id: 'u', label: 'Usuario', valor: usuario, solo: true, ac: 'username' }, { id: 't', label: 'Contraseña temporal', tipo: 'password', ph: 'La que le dio el administrador', ac: 'off', ver: true },
         { id: 'n', label: 'Contraseña nueva', tipo: 'password', ph: 'Cree su contraseña', ac: 'new-password', ver: true, ayuda: 'Mínimo 6 caracteres. Evite su nombre o números seguidos como 123456.' }, { id: 'r', label: 'Repítala', tipo: 'password', ph: 'Repita su contraseña', ac: 'new-password', ver: true }],
       boton: 'Guardar y entrar', enlaces: [{ t: 'Volver', fn: function () { tarjetaLogin(t, usuario, opt); } }],
@@ -1226,7 +1281,7 @@
     bt.addEventListener('click', function () {
       if (E.cl1) return; E.cl1 = true;   /* api 3.92b: una sola tarjeta */
       bt.style.animation = 'none'; bt.style.transition = 'opacity .25s'; bt.style.opacity = 0;
-      setTimeout(function () { bt.style.display = 'none'; var em = im.querySelector('.em'); if (em) em.style.marginBottom = '24px'; tarjetaLogin(null, '', { sinE: false, alPin: function () { E.clHost = null; var c = im.querySelector('.cl'); if (c) c.parentNode.removeChild(c); seguir(); }, alLlave: entrarConLlave }); }, 260);
+      setTimeout(function () { bt.style.display = 'none'; z.classList.add('con-tarjeta'); tarjetaLogin(null, '', { sinE: false, alPin: function () { E.clHost = null; var c = im.querySelector('.cl'); if (c) c.parentNode.removeChild(c); seguir(); }, alLlave: entrarConLlave }); }, 260);
     });
   }
   /* tras entrar con el PIN: ¿ya tiene usuario y contraseña? si no, se ofrece crearlos */
@@ -1250,7 +1305,7 @@
       campos: [{ id: 'c', label: 'Contraseña', tipo: 'password', ph: 'Escriba su contraseña', ac: 'current-password', ver: true }], boton: 'Desbloquear',
       enlaces: [{ t: 'No soy ' + primero, fn: function () { tarjetaLogin(t, '', { sinPin: true, alLlave: alLlave }); } }, { t: '¿Olvidó su contraseña?', fn: function () { tarjetaOlvide(t, usuario, { sinPin: true, alLlave: alLlave }); } }],
       enviar: function (t) {
-        var c = t.val('c'); if (!c) { t.msg('Escriba su contraseña.'); return; } t.lock(true); t.msg('Verificando…', true); estadoEmblema(t, 'verifica');
+        var c = t.val('c'); if (!c) { t.msg('Escriba su contraseña.'); return; } t.lock(true); t.msg('Validando credenciales…', true); estadoEmblema(t, 'verifica');
         llamarSrv('api_loginClave', [usuario, c], function (r) {
           if (r && r.ok && r.llave) { estadoEmblema(t, 'ok'); alLlave(r.llave, r, t); return; }
           t.lock(false); estadoEmblema(t, null); if (r && r.crearClave) { tarjetaTemporal(t, r.usuario || usuario, r.nombre || '', { sinPin: true, alLlave: alLlave }); return; }
