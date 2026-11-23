@@ -16,13 +16,14 @@ function asunto(d){return typeof w.asuntoRecibo==='function'?w.asuntoRecibo(d):'
 function base64(blob){return new Promise(function(ok,mal){var f=new FileReader();f.onload=function(){ok(String(f.result).split(',')[1]);};f.onerror=function(){mal(Error('No se pudo leer el PDF.'));};f.readAsDataURL(blob);});}
 function cargar(src,prueba){if(prueba())return Promise.resolve();if(librerias[src])return librerias[src];librerias[src]=new Promise(function(ok,mal){var s=document.createElement('script');s.src=src;s.onload=function(){prueba()?ok():mal(Error('No se pudo preparar la biblioteca del recibo.'));};s.onerror=function(){mal(Error('No se pudo cargar el PDF. Reintenta con conexión.'));};document.head.appendChild(s);}).catch(function(e){delete librerias[src];throw e;});return librerias[src];}
 function pdfCanonico(d,e){return cargar('jspdf.umd.min.js',function(){return !!w.jspdf;}).then(function(){return cargar('recibos-pdf3107.js',function(){return !!w.RecibosPDF3107;});}).then(function(){return w.RecibosPDF3107.crear(d,e);});}
+C.pdfCanonico=pdfCanonico; C.base64=base64;
 function nuevo(pin,folio){return {pin:pin,folio:folio,cfg:{correo:'',reciboDigital:'',whatsapp:''},canal:'',inicial:'',extra:'',telefono:'',guardar:false,agregar:false,busy:false,payload:null,pdf:null,ready:false,error:'',incierto:false,correoOk:false,waOk:false,waPreparado:false,id:crypto.randomUUID()};}
 function elegido(s){return modo(s.canal)||modo(s.cfg.reciboDigital);}
 function guardarModo(s,canal){var m=elegido(s);return m&&m!==canal?'ambos':(m||canal);}
 function actualizarCliente(s){if(!s.parada)return;var c=w.cli(s.parada.clienteId);if(!c)return;c.reciboDigital=s.cfg.reciboDigital;c.correosRecibos=s.cfg.correosRecibos||'';try{w.guardarLocal(w.K_CLI,w.CLIENTES);}catch(_){}}
 function notificar(s){if(w.parent!==w)w.parent.postMessage({tipo:'ecovsa:recibo-envio3107',recibo:s.folio},location.origin);}
 function evidencia(s,r){s.sello=r.enviado||r.sello||'';s.correoOk=!!r.correoEnviado||/correo/i.test(s.sello);s.waOk=!!r.whatsappEnviado||/whatsapp/i.test(s.sello);if(s.parada){s.parada.correoEnviado=r.correoEnviado||'';s.parada.whatsappEnviado=r.whatsappEnviado||'';s.parada.marcaEnvio3107=s.sello;try{w.guardarLocal(w.K_PAR,w.RUTA);}catch(_){}}if(w.DATOS_RECIBO&&w.DATOS_RECIBO.recibo===s.folio){w.DATOS_RECIBO.enviado=s.sello;w.DATOS_RECIBO.marcaEnviado=s.sello;w.pintarBarra();}notificar(s);}
-function obtenerDestinos(s){if(s.cfg.errorDestinatarios)throw Error(s.cfg.errorDestinatarios);var a=C.union(s.cfg.correo,s.inicial,s.extra);if(!a.length)throw Error('Escribe el correo del cliente.');return a;}
+function obtenerDestinos(s){if(s.destinosAjustados!==undefined){var modificados=C.union(s.destinosAjustados,s.extra);if(!modificados.length)throw Error('Escribe el correo del cliente.');return modificados;}if(s.cfg.errorDestinatarios)throw Error(s.cfg.errorDestinatarios);var a=C.union(s.cfg.correo,s.inicial,s.extra);if(!a.length)throw Error('Escribe el correo del cliente.');return a;}
 async function guardar(s,canal){if(!s.guardar||s.preferenciaGuardada)return;var adicionales=C.union(s.inicial,s.extra).join(', ');s.cfg=await C.rpc('api_recContactoGuardar',[s.pin,s.folio,{canal:guardarModo(s,canal),correoAdicional:adicionales,whatsapp:tel(s.telefono)||''}]);s.preferenciaGuardada=true;actualizarCliente(s);}
 function cambioBloqueado(s){return s.busy||!!s.payload;}
 async function enviarCorreo(s){
@@ -38,7 +39,7 @@ async function enviarCorreo(s){
 }
 function descargar(r){var u=URL.createObjectURL(r.blob),a=document.createElement('a');a.href=u;a.download=r.nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},60000);}
 async function compartirWa(s){
- if(s.busy||!s.ready||!s.pdf)throw Error('Espera a que el recibo quede guardado y el PDF esté listo.');var n=tel(s.telefono||s.cfg.whatsapp);if(!n)throw Error('Escribe un número de WhatsApp válido.');
+ if(s.busy||!s.ready||!s.pdf)throw Error('Espera a que el recibo quede guardado y el PDF esté listo.');var n=tel(s.telefono);if(!n)throw Error('Escribe un número de WhatsApp válido.');
  var nativa=w.APP38&&typeof w.APP38.tiene==='function'&&w.APP38.tiene('compartirArchivo')&&w.EcovsaApp,chat=nativa?null:w.open('about:blank','_blank');if(!nativa&&!chat)throw Error('Permite abrir WhatsApp en una pestaña nueva.');if(chat)chat.opener=null;
  s.busy=true;dibujar(s);try{await guardar(s,'whatsapp');if(nativa){var datos=await base64(s.pdf.blob);w.EcovsaApp.compartirArchivo('data:application/pdf;base64,'+datos,s.pdf.nombre,'application/pdf',mensaje(s.d));}else{descargar(s.pdf);chat.location.href='https://wa.me/'+n+'?text='+encodeURIComponent(mensaje(s.d)+'\n\nAdjuntamos el PDF del recibo.');}
   s.waPreparado=n;s.error='Adjunta el PDF en WhatsApp. Confirma aquí cuando lo hayas enviado.';
@@ -48,24 +49,27 @@ function dibujar(s){if(s.tipo==='movil'){if(movil===s&&document.getElementById('
 function error(s,e){s.error=e.message||String(e);s.busy=false;dibujar(s);if(s.tipo==='desktop'&&w.avisoRec)w.avisoRec(s.error);}
 function campos(s,pc){
  var m=elegido(s),lock=cambioBloqueado(s)?' disabled':'',h='',id=pc?'hj-dest':'rc107-inicial';
+ var mostrarCorreo=pc||m==='correo'||m==='ambos', mostrarWA=!pc&&(m==='whatsapp'||m==='ambos');
  if(!modo(s.cfg.reciboDigital)&&!pc){h+='<div class="pc-tit">¿Cómo desea recibir el recibo?</div><div class="pc-seg">'+[['correo','Correo'],['whatsapp','WhatsApp'],['ambos','Ambos']].map(function(x){return '<button type="button" class="'+(m===x[0]?'on':'')+'" onclick="rc107Canal(\''+x[0]+'\')"'+lock+'>'+x[1]+'</button>';}).join('')+'</div>';}
  if(!m&&!pc)return h+'<p class="p9-nota">Elija un canal para continuar. Si lo guarda, se usará en próximas visitas.</p>';
- if(pc||m==='correo'||m==='ambos'){
-  if(s.cfg.correo){h+='<div class="'+(pc?'':'p9-dst')+'"><label class="'+(pc?'hj-l':'l')+'" for="'+id+'">'+(pc?'DESTINATARIOS GUARDADOS':s.cfg.correosRecibos?'Correos guardados para recibos':s.cfg.correoPrincipal?'Correo principal registrado':'Correos guardados para recibos')+'</label>';
-   if(pc)h+='<div class="hj-in"><input id="hj-dest" value="'+esc(s.cfg.correo)+'" readonly></div>';
-   else h+=s.cfg.correo.split(/[,;]/).map(function(x){return '<div class="v"><span style="word-break:normal;overflow-wrap:break-word">'+esc(x.trim())+'</span></div>';}).join('');h+='</div>';
+ if(mostrarCorreo){
+  if(!pc)h+='<details class="rc113-contacto" data-rc113-editor="correo"'+((s.editCorreo===true||(!s.cfg.correo&&s.editCorreo!==false))?' open':'')+'><summary><b>Editar destinatarios</b><span>'+((s.destinosAjustados!==undefined)?'Para este envío':(s.cfg.correo?'Correos guardados':'Falta un correo'))+'</span></summary>';
+  if(s.cfg.correo || s.destinosAjustados!==undefined){h+='<div class="'+(pc?'':'p9-dst')+'"><label class="'+(pc?'hj-l':'l')+'" for="'+id+'">'+(pc?'DESTINATARIOS GUARDADOS':s.cfg.correosRecibos?'Correos guardados para recibos':s.cfg.correoPrincipal?'Correo principal registrado':'Correos guardados para recibos')+'</label>';
+   h+='<div class="'+(pc?'hj-in':'p9-dst')+'"><input id="'+(pc?'hj-dest':'rc113-destinos')+'" class="p9-in" aria-label="Correos para este recibo" value="'+esc(s.destinosAjustados===undefined?s.cfg.correo:s.destinosAjustados)+'" oninput="rc107Campo(\'destinosAjustados\',this.value)"'+lock+'><p class="p9-nota">Edita o quita correos solo para este envío.</p></div></div>';
    if(!s.agregar)h+='<button type="button" class="'+(pc?'hj-lk':'p9-lk')+'" onclick="rc107Agregar()"'+lock+'>Agregar otro correo</button>';
   }else h+='<label class="'+(pc?'hj-l':'l')+'" for="'+id+'">Correo del cliente</label><input class="'+(pc?'hj-in2':'p9-in')+'" id="'+id+'" type="email" placeholder="correo@cliente.com" value="'+esc(s.inicial)+'" oninput="rc107Campo(\'inicial\',this.value)"'+lock+'>';
   if(s.agregar)h+='<div class="'+(pc?'':'p9-dst')+'"><label class="'+(pc?'hj-l':'l')+'" for="rc107-extra">Correo adicional</label><input class="'+(pc?'hj-in2':'p9-in')+'" id="rc107-extra" inputmode="email" placeholder="persona@cliente.com" value="'+esc(s.extra)+'" oninput="rc107Campo(\'extra\',this.value)"'+lock+'><div class="'+(pc?'hj-n':'p9-nota')+'">Se añade al correo principal; ambos recibirán el PDF.</div></div>';
+  if(!pc)h+='</details>';
  }
- if(!pc&&(m==='whatsapp'||m==='ambos'))h+='<div class="p9-dst"><label class="l" for="rc107-telefono">WhatsApp del cliente</label><input class="p9-in" id="rc107-telefono" inputmode="tel" value="'+esc(s.telefono)+'" oninput="rc107Campo(\'telefono\',this.value)"'+lock+'></div>';
+ if(mostrarWA)h+='<details class="rc113-contacto" data-rc113-editor="wa"'+((s.editWA===true||(!s.telefono&&s.editWA!==false))?' open':'')+'><summary><b>Editar número</b><span>'+(s.telefono?'Número de WhatsApp':'Falta un número')+'</span></summary><div class="p9-dst"><label class="l" for="rc107-telefono">WhatsApp del cliente</label><input class="p9-in" id="rc107-telefono" inputmode="tel" value="'+esc(s.telefono)+'" oninput="rc107Campo(\'telefono\',this.value)"'+lock+'></div></details>';
  if(s.agregar||!modo(s.cfg.reciboDigital)||!s.cfg.correo)h+='<label class="'+(pc?'hj-ck':'')+'" style="display:flex;gap:8px;align-items:center;justify-content:flex-start;text-align:left;font-weight:500;text-transform:none;letter-spacing:0;font-size:13px;line-height:1.4;margin:12px 0"><input id="rc107-guardar" type="checkbox" style="width:16px;min-width:16px;height:16px;flex:0 0 16px;margin:0" onchange="rc107Campo(\'guardar\',this.checked)" '+(s.guardar?'checked ':'')+lock+'><span>Guardar '+(pc?'este correo para próximos recibos':'para los próximos recibos')+'</span></label>';
  return h;
 }
 function actual(){return desktop||movil;}
+document.addEventListener('click',function(e){var s=movil,r=e.target.closest('summary');if(!s||!s.raiz||!r||!s.raiz.contains(r))return;var t=r.parentNode,k=t.dataset.rc113Editor;if(s.busy||s.payload){if(k)e.preventDefault();return;}if(k==='correo')s.editCorreo=!t.open;else if(k==='wa')s.editWA=!t.open;});
 w.rc107Canal=function(c){var s=actual();if(!s||cambioBloqueado(s))return;s.canal=c;dibujar(s);};
-w.rc107Agregar=function(){var s=actual();if(!s||cambioBloqueado(s))return;s.agregar=true;dibujar(s);var e=document.getElementById('rc107-extra');if(e)e.focus();};
-w.rc107Campo=function(k,v){var s=actual();if(!s||cambioBloqueado(s)||!['inicial','extra','telefono','guardar','asunto','texto'].includes(k))return;if(k==='telefono'&&s[k]!==v){s.waPreparado=false;var b=document.getElementById('rc107-confirmar-wa');if(b)b.style.display='none';}s[k]=v;};
+w.rc107Agregar=function(){var s=actual();if(!s||cambioBloqueado(s))return;s.agregar=true;s.editCorreo=true;dibujar(s);var e=document.getElementById('rc107-extra');if(e)e.focus();};
+w.rc107Campo=function(k,v){var s=actual();if(!s||cambioBloqueado(s)||!['inicial','extra','telefono','guardar','asunto','texto','destinosAjustados'].includes(k))return;if(k==='telefono'&&s[k]!==v){s.telEditado=true;s.waPreparado=false;var b=document.getElementById('rc107-confirmar-wa');if(b)b.style.display='none';}s[k]=v;};
 w.rc107Correo=function(){var s=actual();if(s)enviarCorreo(s).catch(function(e){error(s,e);});};
 w.rc107WhatsApp=function(){var s=movil;if(s)compartirWa(s).catch(function(e){error(s,e);});};
 w.rc107ConfirmarWa=async function(){var s=movil;if(!s||!s.waPreparado||s.busy)return;s.busy=true;dibujar(s);try{var r=await C.rpc('api_recWhatsAppConfirmar',[s.pin,s.folio,s.waPreparado]);s.waOk=true;s.waPreparado=false;evidencia(s,r);s.error='Envío por WhatsApp confirmado por el operador.';}catch(e){error(s,e);}finally{s.busy=false;dibujar(s);}};
@@ -82,7 +86,7 @@ function vigente(s){return movil===s&&document.getElementById('cf-ok')===s.raiz;
 async function iniciarMovil(s){
  if(!vigente(s)||s.cargando)return;if((w.COLA||[]).some(function(x){return x.registroId===s.parada.registroId;})){s.esperando=true;dibujar(s);clearTimeout(s.timer);s.timer=setTimeout(function(){iniciarMovil(s);},1800);return;}
  s.esperando=false;s.cargando=true;s.error='';dibujar(s);
- try{var cfg=await C.rpc('api_recCorreoEstado',[s.pin,s.folio]);if(!vigente(s))return;s.cfg=cfg;if(!s.telefono)s.telefono=cfg.whatsapp||'';actualizarCliente(s);evidencia(s,cfg);
+ try{var cfg=await C.rpc('api_recCorreoEstado',[s.pin,s.folio]);if(!vigente(s))return;s.cfg=cfg;if(!s.telefono&&!s.telEditado)s.telefono=cfg.whatsapp||'';actualizarCliente(s);evidencia(s,cfg);
   var detalle=await C.rpc('api_obtenerDetalleRecibo',[s.folio,'',s.pin]);if(!vigente(s))return;s.d=detalle.datos;s.asunto=asunto(s.d);s.texto=mensaje(s.d);s.pdf=await pdfCanonico(s.d,detalle.empresa);if(!vigente(s))return;s.ready=true;var sync=document.getElementById('cf-sync');if(sync&&typeof w.cfSync_==='function')sync.outerHTML=w.cfSync_(s.parada);
  }catch(e){if(vigente(s))s.error=e.message;}finally{s.cargando=false;if(vigente(s))dibujar(s);}
 }
@@ -125,7 +129,7 @@ if(typeof w.rx2Enviar_==='function'){
   document.querySelectorAll('.rx2-tag.ok[title],.c38-tag.ok[title]').forEach(function(t){var v=t.title,co=/correo/i.test(v),wa=/whatsapp/i.test(v),r=L.find(function(r){return String(r.enviado||'')===v;});if(!co&&!wa)return;var m=v.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);t.textContent=(co&&wa?'Correo y WhatsApp enviados':co?'Correo enviado':'WhatsApp enviado')+(m?' · '+w.c2Fecha_(m[1])+' '+m[2]:'');if(r&&r.pide==='ambos'&&!(co&&wa)){var aviso=document.createElement('span');aviso.className=t.classList.contains('c38-tag')?'c38-tag warn':'rx2-tag am';aviso.textContent=co?'WhatsApp pendiente':'Correo pendiente';t.after(aviso);}});
   document.querySelectorAll('#rx2-fil button').forEach(function(b){if(/^Por enviar/.test(b.textContent))b.textContent='Por enviar · '+pend.length;if(/^Enviados/.test(b.textContent))b.textContent='Enviados · '+ok.length;});
   var pie=document.getElementById('rx2-pie');if(pie&&!pie.querySelector('button')){var F=w.rx2Filtrar_(L),kg=F.reduce(function(a,r){return a+Number(r.totalKg||0);},0);pie.textContent='Selección: '+F.length+' recibo(s) · '+kg.toFixed(1)+' kg · '+F.filter(completo).length+' enviados · '+F.filter(function(r){return r.pide&&!completo(r);}).length+' por enviar';}
-  if(pie&&typeof w.c38Es_==='function'&&w.c38Es_()){pie.innerHTML=pend.length?'<button class="c38-btn pri" onclick="rx2Enviar_('+esc(JSON.stringify(pend[0].recibo))+')">'+(pend.length===1?'Enviar el recibo':'Enviar los '+pend.length+' recibos')+'</button>':'';var box=document.getElementById('rx2');if(box)box.classList.toggle('c38-conpie',!!pend.length);}
+  if(pie&&typeof w.c38Es_==='function'&&w.c38Es_()){pie.innerHTML=pend.length?'<button class="c38-btn pri" onclick="rx2Enviar_('+esc(JSON.stringify(pend[0].recibo))+')">'+(pend.length===1?'Enviar el recibo':'Enviar el siguiente recibo')+'</button>':'';var box=document.getElementById('rx2');if(box)box.classList.toggle('c38-conpie',!!pend.length);}
   return ret;};
  w.addEventListener('message',function(e){var f=document.getElementById('mvr-frame');if(e.origin!==location.origin||!f||e.source!==f.contentWindow||!e.data||e.data.tipo!=='ecovsa:recibo-envio3107'||typeof e.data.recibo!=='string')return;if(w.RX2){w.RX2.recargar=true;if(document.getElementById('rx2'))w.rx2Cargar_();}});
 }

@@ -1923,6 +1923,7 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 @media(max-width:700px){#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k b{font-size:12px}#pantalla-plan.p3100 #p43-dia.p399-mapa .p43-k>div{padding:5px}#pantalla-plan.p3100 #p43-dia.p399-mapa>.p43-dm{height:calc(100dvh - 100px)!important;min-height:450px}#pantalla-plan.p3100 .p43-pie .pl-btn{font-size:11px;padding:7px 9px}#pantalla-plan.p3100 .p399-nav{position:relative}.p399-nav [data-resumen3100]{font-size:11px}}
 
 </style>
+<link rel="stylesheet" href="recibos-ficha.css">
 </head>
 
 <body>
@@ -21269,11 +21270,11 @@ function c44HtmlSede_(){
   /* Documentos */
   var rec = (F.visitas || []).filter(function(v){ return v.recibo; }), cons = V2.filter(function(v){ return v.k === "fum" && /constancia/.test(v.d || ""); });
   var docs = '<section class="c44-sec" id="c44-docs"><h3>Documentos</h3><div class="c44-docs">' +
-    '<button onclick="verHistorialCliente(\'' + esc(c.nombre).replace(/'/g, "\\'") + '\')">' + c44Ic_("doc", 18) + '<b>Recibos</b><small>' + (rec.length ? rec.length + ' · el último N.º ' + esc(rec[0].recibo) + ' del ' + c44Corta_(rec[0].fecha) : 'sin recibos') + '</small></button>' +
+    '<button type="button" aria-controls="c44-recibos-panel" aria-expanded="false" data-c44-recibos-abre="' + esc(c.nombre) + '">' + c44Ic_("doc", 18) + '<b>Recibos</b><small>' + (rec.length ? rec.length + ' · el último N.º ' + esc(rec[0].recibo) + ' del ' + c44Corta_(rec[0].fecha) : 'sin recibos') + '</small></button>' +
     '<button onclick="c2Certificados_()">' + c44Ic_("doc", 18) + '<b>Certificados de disposición</b><small>los del año</small></button>' +
     (cons.length ? '<button onclick="mostrarTab(\'fum\')">' + c44Ic_("bicho", 18) + '<b>Constancias de fumigación</b><small>' + cons.length + ' · la última ' + c44Corta_(cons[0].f) + '</small></button>' : '') +
     (c.contrato ? '<button disabled>' + c44Ic_("con", 18) + '<b>Contrato ' + esc(c.contrato) + '</b><small>' + (c.vencimiento ? 'vence ' + c44Corta_(c.vencimiento) : 'sin vencimiento') + '</small></button>' : '') +
-    '<button onclick="exportarVisitasC2_()">' + c44Ic_("bajar", 18) + '<b>Exportar sus visitas</b><small>en Excel</small></button></div></section>';
+    '<button onclick="exportarVisitasC2_()">' + c44Ic_("bajar", 18) + '<b>Exportar sus visitas</b><small>en Excel</small></button></div><div id="c44-recibos-panel" hidden><div class="c44-recibos-estado" role="status"></div><div class="c44-recibos-contenido"></div></div></section>';
 
   var secs = [["resumen", "Resumen"], ["peso", "Peso y plan"], ["vida", "Línea de vida"], ["fotos", "Cómo es el local"], ["sede", "La sede"], ["serv", "Su servicio"], ["docs", "Documentos"]];
   var idx = '<div class="c44-idx">' + secs.map(function(t){ return '<a onclick="c44Ir_(\'' + t[0] + '\')">' + t[1] + '</a>'; }).join("") + '</div>';
@@ -27916,7 +27917,9 @@ p399Ampliar_=(function(original){return function(){
 window.addEventListener('resize',p399Alto_);
 
 </script>
-<script src="recibos-canales3107.js?v=3107"></script>
+<script src="recibos-canales3107.js?v=3113"></script>
+<script src="recibos-ficha.js"></script>
+<script src="recibos-lote.js"></script>
 </body>
 
 </html>
