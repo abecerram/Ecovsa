@@ -1,4 +1,4 @@
-/* Paquetes de recibos del mismo cliente y fecha en la bandeja de Logística. */
+/* Paquetes de recibos de una cuenta y una fecha en Logística. */
 (function () {
   'use strict';
 
@@ -17,7 +17,7 @@
   let enviando = false;
 
   const grupo = r => r && r.loteClienteId && /^\d{4}-\d{2}-\d{2}$/.test(r.fecha) ?
-    JSON.stringify([r.loteClienteId, r.fecha]) : '';
+    JSON.stringify([r.loteCuentaId || r.loteClienteId, r.fecha]) : '';
   const visibles = () => window.rx2Filtrar_(window.RX2.lista);
   const ocupado = () => preparando || enviando;
 
@@ -42,9 +42,111 @@
     if (dialogo && dialogo.nodo.open) dialogo.nodo.close();
   }
 
+  function textoCantidad(n, singular, plural) {
+    return n + ' ' + (n === 1 ? singular : plural);
+  }
+
+  function agruparPorSede(filas) {
+    const sedes = new Map();
+    for (const r of filas) {
+      if (!sedes.has(r.loteClienteId)) sedes.set(r.loteClienteId, { id: r.loteClienteId, nombre: r.loteSucursal || r.cliente, recibos: [] });
+      sedes.get(r.loteClienteId).recibos.push(r);
+    }
+    return Array.from(sedes.values()).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  }
+
+  function mostrarSedes(sedes, abrir) {
+    sedes.panel.hidden = !abrir;
+    sedes.boton.setAttribute('aria-expanded', String(abrir));
+    if (barra) barra.revisar.hidden = abrir;
+  }
+
+  function crearSedes() {
+    const selector = elemento('div', '', { class: 'ms-selector' });
+    const panel = elemento('div', '', { class: 'ms-sedes', id: 'ms-sedes', hidden: '' });
+    const lista = elemento('fieldset', '', { class: 'ms-lista', 'aria-label': 'Sedes con recibos' });
+    const contenido = elemento('div', '', { class: 'ms-lista-filas' });
+    lista.append(contenido);
+    const todas = elemento('input', '', { type: 'checkbox' });
+    const etiquetaTodas = elemento('label', '', { class: 'ms-opcion ms-todas' });
+    etiquetaTodas.append(todas, elemento('strong', 'Todas las sedes'));
+
+    const estado = elemento('span', '', { class: 'ms-ayuda', role: 'status' });
+    const aplicar = boton('Aplicar', () => {
+      elegidos.clear();
+      for (const { casilla, sede } of controles) {
+        if (casilla.checked) sede.recibos.forEach(r => elegidos.set(r.recibo, r));
+      }
+      mostrarSedes(sedes, false);
+      window.rx2Pintar_();
+      barra.revisar.focus();
+    }, 'rx2-bt rec-lote-principal');
+    const pie = elemento('div', '', { class: 'ms-pie' });
+    pie.append(estado, aplicar);
+    panel.append(etiquetaTodas, lista, pie);
+
+    const botonSedes = boton('Sedes', () => {
+      mostrarSedes(sedes, panel.hidden);
+      if (!panel.hidden) controles[0]?.casilla.focus();
+    }, 'rx2-bt ms-sedes-boton');
+    botonSedes.setAttribute('aria-controls', panel.id);
+    botonSedes.setAttribute('aria-expanded', 'false');
+    selector.append(botonSedes, panel);
+    selector.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || panel.hidden) return;
+      event.stopPropagation();
+      mostrarSedes(sedes, false);
+      botonSedes.focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!panel.hidden && !selector.contains(event.target)) mostrarSedes(sedes, false);
+    });
+
+    let controles = [];
+    function actualizar() {
+      const marcadas = controles.filter(({ casilla }) => casilla.checked);
+      const n = marcadas.reduce((total, { sede }) => total + sede.recibos.length, 0);
+      todas.checked = marcadas.length === controles.length;
+      todas.indeterminate = marcadas.length > 0 && !todas.checked;
+      aplicar.disabled = !n;
+      estado.textContent = textoCantidad(n, 'recibo', 'recibos') + ' · ' +
+        textoCantidad(marcadas.length, 'sede', 'sedes');
+    }
+
+    todas.addEventListener('change', () => {
+      controles.forEach(({ casilla }) => { casilla.checked = todas.checked; });
+      actualizar();
+    });
+
+    const sedes = { selector, boton: botonSedes, panel, cargar(disponibles, seleccion) {
+      const seleccionadas = new Set(seleccion.map(r => r.loteClienteId));
+      controles = disponibles.map(sede => {
+        const fila = elemento('label', '', { class: 'ms-opcion' });
+        const casilla = elemento('input', '', { type: 'checkbox' });
+        casilla.checked = seleccionadas.has(sede.id);
+        casilla.addEventListener('change', actualizar);
+        fila.append(casilla, elemento('span', sede.nombre), elemento('small', textoCantidad(sede.recibos.length, 'recibo', 'recibos')));
+        return { fila, casilla, sede };
+      });
+      contenido.replaceChildren(...controles.map(({ fila }) => fila));
+      actualizar();
+    } };
+    return sedes;
+  }
+
+  function pintarSedes(sedes, filas, primero, seleccion) {
+    const disponibles = agruparPorSede(filas.filter(r => grupo(r) === grupo(primero)));
+    const mostrar = disponibles.length > 1 && !pendiente;
+    sedes.selector.hidden = !mostrar;
+    sedes.boton.disabled = ocupado();
+    if (mostrar) sedes.cargar(disponibles, seleccion);
+    else mostrarSedes(sedes, false);
+    return mostrar;
+  }
+
   function crearBarra(box) {
-    const ayuda = elemento('p', 'Selecciona recibos del mismo cliente y fecha de recolección.', { class: 'rec-lote-ayuda' });
-    const acciones = elemento('div', '', { class: 'rec-lote-acciones' });
+    const ayuda = elemento('p', 'Selecciona un recibo para preparar el envío.', { class: 'rec-lote-ayuda' });
+    const acciones = elemento('div', '', { class: 'rec-lote-acciones ms-paquete' });
     const nombre = elemento('strong');
     const detalle = elemento('span');
     const alcance = elemento('div', '', { class: 'rec-lote-alcance', role: 'status' });
@@ -55,14 +157,16 @@
       window.rx2Pintar_();
       barra.revisar.focus();
     });
-    const quitar = boton('Quitar selección', () => {
+    const quitar = boton('Limpiar', () => {
       elegidos.clear();
       window.rx2Pintar_();
     });
+    quitar.setAttribute('aria-label', 'Limpiar selección');
     const revisar = boton('Revisar correo', abrir, 'rx2-bt rec-lote-principal');
-    acciones.append(alcance, todos, quitar, revisar);
+    const sedes = crearSedes();
+    acciones.append(alcance, todos, sedes.selector, quitar, revisar);
     box.before(ayuda, acciones);
-    return { ayuda, acciones, nombre, detalle, todos, quitar, revisar };
+    return { ayuda, acciones, nombre, detalle, todos, quitar, revisar, sedes };
   }
 
   function fechaLarga(iso) {
@@ -74,15 +178,21 @@
     if (!barra || !barra.acciones.isConnected) barra = crearBarra(box);
     barra.ayuda.hidden = !!primero || !filas.length || window.RX2.cargando;
     barra.acciones.hidden = !primero;
-    if (!primero) return;
+    if (!primero) {
+      mostrarSedes(barra.sedes, false);
+      return;
+    }
 
     const seleccion = pendiente ? pendiente.filas : Array.from(elegidos.values());
     const n = seleccion.length;
     const compatibles = filas.filter(r => grupo(r) === grupo(primero)).length;
-    barra.nombre.textContent = primero.cliente;
-    barra.detalle.textContent = fechaLarga(primero.fecha) + ' · ' + n + (n === 1 ? ' recibo seleccionado' : ' recibos seleccionados');
+    barra.nombre.textContent = primero.loteCuenta || primero.cliente;
+    barra.detalle.textContent = fechaLarga(primero.fecha) + ' · ' +
+      textoCantidad(n, 'recibo seleccionado', 'recibos seleccionados') + ' · ' +
+      textoCantidad(agruparPorSede(seleccion).length, 'sede', 'sedes');
     barra.todos.textContent = 'Seleccionar los ' + compatibles + ' de este día';
-    barra.todos.hidden = !!pendiente || !compatibles || compatibles <= n;
+    const tieneSedes = pintarSedes(barra.sedes, filas, primero, seleccion);
+    barra.todos.hidden = tieneSedes || !!pendiente || !compatibles || compatibles <= n;
     barra.todos.disabled = ocupado();
     barra.revisar.textContent = pendiente ? 'Consultar envío pendiente' : 'Revisar correo';
     barra.revisar.disabled = ocupado() || window.RX2.cargando;
@@ -98,7 +208,7 @@
     casilla.checked = elegidos.has(id);
     casilla.disabled = !keyRecibo || (!!key && keyRecibo !== key) || ocupado() || !!pendiente;
     if (!keyRecibo) celda.title = 'El recibo necesita una sede identificada y fecha de recolección.';
-    else if (key && key !== keyRecibo) celda.title = 'Este recibo es de otra sede o fecha.';
+    else if (key && key !== keyRecibo) celda.title = 'Este recibo es de otra cuenta o fecha.';
     celda.append(casilla);
     if (!esTabla) celda.append(' Seleccionar recibo');
     casilla.addEventListener('change', () => {
@@ -127,6 +237,7 @@
       for (const [id, r] of elegidos) {
         const actualizado = porFolio.get(id);
         if (!actualizado || grupo(actualizado) !== grupo(r)) elegidos.delete(id);
+        else elegidos.set(id, actualizado);
       }
     }
     const primero = pendiente ? pendiente.filas[0] : elegidos.values().next().value;
@@ -160,7 +271,7 @@
 
     const para = elemento('input', '', { id: 'rec-lote-destino', type: 'email', required: '', maxlength: '254', placeholder: 'nombre@ejemplo.com' });
     const asunto = elemento('input', '', { id: 'rec-lote-asunto', required: '', maxlength: '200' });
-    const texto = elemento('textarea', '', { id: 'rec-lote-texto', required: '', maxlength: '6000', rows: '8' });
+    const texto = elemento('textarea', '', { id: 'rec-lote-texto', required: '', maxlength: '6000', rows: '9' });
     const estado = elemento('p', '', { class: 'rec-lote-estado', role: 'status' });
     const acciones = elemento('div', '', { class: 'rec-lote-botones' });
     const enviar = elemento('button', 'Enviar correo con los PDF', { type: 'submit', class: 'rx2-bt rec-lote-principal' });
@@ -176,16 +287,17 @@
     return { nodo, cerrar, resumen, para, asunto, texto, adjuntos, rotulo, archivos, estado, enviar };
   }
 
-  function borrador(filas) {
+  function borrador(filas, sedes) {
     const r = filas[0];
     const fecha = fechaLarga(r.fecha);
     const n = filas.length;
     return {
       asunto: (n === 1 ? 'Recibo' : 'Recibos') + ' de recolección del ' + fecha + ' · ECOVSA',
-      texto: 'Estimado equipo de ' + r.cliente + ':\n\nAdjuntamos en PDF ' +
+      texto: 'Estimado equipo de ' + (r.loteCuenta || r.cliente) + ':\n\nAdjuntamos en PDF ' +
         (n === 1 ? 'el comprobante' : 'los ' + n + ' comprobantes') +
         ' de la recolección de desechos hospitalarios del ' + fecha +
-        '.\n\nGracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com'
+        '.\n\n' + (sedes.length > 1 ? 'Sedes incluidas: ' + sedes.map(s => s.nombre).join(', ') + '.\n\n' : '') +
+        'Gracias por confiar en ECOVSA.\nTel. 310-2268 · info@ecovsa.com'
     };
   }
 
@@ -196,11 +308,21 @@
     if (!filas.length) return;
     if (!dialogo) dialogo = crearDialogo();
     const { nodo, resumen, para, asunto, texto, adjuntos, rotulo, archivos } = dialogo;
-    const datos = pendiente ? pendiente.datos : borrador(filas);
-    resumen.replaceChildren(elemento('strong', filas[0].cliente), elemento('span', fechaLarga(filas[0].fecha)));
+    const sedes = agruparPorSede(filas);
+    const datos = pendiente ? pendiente.datos : borrador(filas, sedes);
+    resumen.replaceChildren(
+      elemento('strong', filas[0].loteCuenta || filas[0].cliente),
+      elemento('span', fechaLarga(filas[0].fecha) + ' · ' + textoCantidad(sedes.length, 'sede', 'sedes'))
+    );
     rotulo.textContent = filas.length + (filas.length === 1 ? ' PDF adjunto' : ' PDF adjuntos');
-    archivos.replaceChildren(...filas.map(r => elemento('li', 'Recibo ' + r.recibo + ' · PDF')));
-    adjuntos.open = false;
+    archivos.replaceChildren(...sedes.map(sede => {
+      const item = elemento('li', '', { class: 'ms-grupo-adjunto' });
+      const lista = elemento('ul');
+      lista.append(...sede.recibos.map(r => elemento('li', 'Recibo ' + r.recibo + ' · PDF')));
+      item.append(elemento('strong', sede.nombre), lista);
+      return item;
+    }));
+    adjuntos.open = sedes.length > 1;
     para.value = pendiente ? datos.para : '';
     asunto.value = datos.asunto;
     texto.value = datos.texto;
@@ -251,7 +373,10 @@
         preparando = true;
         pintarEnvio('Preparando los PDF…', true);
         const recibos = await prepararAdjuntos(filas, pin);
-        pendiente = { filas, datos: { id: crypto.randomUUID(), para: correos[0], asunto, texto, sede: primero.loteClienteId, fecha: primero.fecha, recibos } };
+        pendiente = { filas, datos: {
+          id: crypto.randomUUID(), para: correos[0], asunto, texto,
+          cuenta: primero.loteCuentaId, sede: primero.loteClienteId, fecha: primero.fecha, recibos
+        } };
       }
       preparando = false;
       enviando = true;
