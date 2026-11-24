@@ -128,7 +128,7 @@
       c.classList.add('fuera');
       setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); if (C === c) { C = null; cerrando = false; } }, rapida ? 220 : 480);
     };
-    if (yaMismo || pasado < 450 || QUIETO) { quitar(true); return; }
+    if (yaMismo || document.documentElement.hasAttribute("data-pg-iris") || pasado < 450 || QUIETO) { quitar(true); return; }
     /* si el emblema no terminó de armarse, se espera a que termine; luego una última vuelta y se levanta */
     var falta = Math.max(0, 1600 - pasado);
     setTimeout(function () {

@@ -1036,6 +1036,7 @@
     if (emblema) { emblema.appendChild(orbita); activarEmblemaAurora(emblema); }
     var cv = document.createElement('canvas'); cv.className = 'bq-cv'; d.insertBefore(cv, d.firstChild); try { burbujas(cv, noche); } catch (e) {}
     setTimeout(function () { aros('in'); }, 30);
+    if (E.op.clave && window.EcovsaAurora?.presentarBloqueo?.(d, E.op.nombre, abrirBloqueo, E.op.motivo)) return;
     if (E.op.motivo === 'inactividad' || E.op.motivo === 'otra') {
       var m = document.createElement('div'); m.className = 'bq-msg';
       m.innerHTML = '<b>Pantalla bloqueada</b><p>Por seguridad la bloqueamos porque no se usó en un rato. Lo que tenía abierto se queda como está.</p><button type="button" class="bq-sigo">Sigo aquí</button>';
@@ -1044,7 +1045,7 @@
     } else if (E.op.clave) { var escena = E; setTimeout(function () { if (E === escena) abrirBloqueo(); }, 700); }
   }
   /* al acertar el PIN: el iris se cierra sobre el logo con los aros saliendo y se descubre lo que estaba debajo */
-  function abrirBloqueo() {
+  function abrirBloqueo(cambiarUsuario) {
     if (!E || !E.op.bloqueo) return;
     if (!E.op.clave) { if (!E.d.classList.contains('ancho')) abrir(); return; }
     if (E.clHost) return;
@@ -1054,7 +1055,8 @@
     (escritorio ? E.q('.e-pc-zona') : E.q('.e-pan')).appendChild(host);
     E.d.classList.add('bq-acceso');
     E.clHost = host;
-    bloqueoClave(E.op.nombre, E.op.clave, entrarConLlave);
+    if (cambiarUsuario === true) tarjetaLogin(null, '', { sinPin: true, alLlave: entrarConLlave });
+    else bloqueoClave(E.op.nombre, E.op.clave, entrarConLlave);
   }
   function cierraBloqueo() {
     if (!E) return; var d = E.d; setTimeout(function () { if (!E || E.d !== d) return; aros('out'); d.classList.remove('bq-entra'); d.classList.add('bq-sale'); }, 450);

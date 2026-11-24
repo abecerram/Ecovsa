@@ -177,6 +177,7 @@
 
   /* ── piezas ── */
   MK.aviso = function (t, ms) {
+    if (window.EcovsaAurora?.avisar?.(t, ms)) return;
     var e = document.getElementById('toast'); if (!e) { e = document.createElement('div'); e.id = 'toast'; e.className = 'toast'; document.body.appendChild(e); }
     e.textContent = t; e.classList.add('si'); clearTimeout(MK.aviso._t); MK.aviso._t = setTimeout(function () { e.classList.remove('si'); }, ms || 3200);
   };
@@ -203,6 +204,7 @@
   MK.cerrarLado = function () { var l = document.getElementById('mk-lado'); if (l) l.classList.remove('si'); var v = document.getElementById('mk-velo'); if (v) v.classList.remove('si'); };
   MK.confirmar = function (texto, alAceptar, op) {
     op = op || {};
+    if (window.EcovsaAurora?.confirmar?.({titulo:op.titulo || '¿Seguro?', mensaje:texto, boton:op.boton || 'Sí, continuar', peligro:op.peligro}, function(ok) { if (ok) alAceptar(); })) return;
     MK.hoja('<h2>' + MK.esc(op.titulo || '¿Seguro?') + '</h2><p class="muted" style="margin-top:6px;white-space:pre-wrap">' + MK.esc(texto) + '</p>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ' + (op.peligro ? 'bad' : 'pri') + '" id="mk-si">' + MK.esc(op.boton || 'Sí, continuar') + '</button></div>');
     document.getElementById('mk-si').onclick = function () { MK.cerrarHoja(); alAceptar(); };
@@ -211,6 +213,7 @@
   MK.vacio = function (t) { return '<div class="vacio">' + MK.esc(t) + '</div>'; };
   MK.error = function (el, t) { if (typeof el === 'string') el = document.getElementById(el); if (el) el.innerHTML = '<div class="aviso rj">' + MK.esc(t || 'No se pudo cargar.') + ' <a href="#" onclick="location.reload();return false">Reintentar</a></div>'; };
   MK.ocupado = function (btn, si, texto) {
+    window.EcovsaAurora?.ocupado?.(btn, si, texto);
     if (!btn) return; if (si) { btn._t = btn.innerHTML; btn.disabled = true; btn.innerHTML = MK.esc(texto || 'Guardando…'); } else { btn.disabled = false; if (btn._t) btn.innerHTML = btn._t; }
   };
   MK.val = function (id) { var e = document.getElementById(id); return e ? String(e.value == null ? '' : e.value).trim() : ''; };

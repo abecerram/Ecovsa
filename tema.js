@@ -44,7 +44,7 @@
       return v;
     });
   }
-  function irLobby() { location.href = 'index.html'; }
+  function irLobby() { if (!window.EcovsaAurora?.navegar('index.html')) location.href = 'index.html'; }
   function tocar(el) {
     girar(el);
     if (esLobby(el)) return;
@@ -52,7 +52,8 @@
     if (aMedias()) { preguntar(); return; }
     setTimeout(irLobby, 420);
   }
-  function preguntar() {
+  function preguntar(continuar) {
+    if (window.EcovsaAurora?.confirmar?.({titulo:'¿Salir sin guardar?', mensaje:'Hay cambios sin guardar en esta pantalla.', cancelar:'Seguir aquí', boton:'Salir sin guardar', peligro:true}, function(ok) { if (ok) (continuar || irLobby)(); })) return;
     if (document.getElementById('tm-salir')) return;
     var d = document.createElement('div'); d.id = 'tm-salir';
     d.innerHTML = '<div class="c" role="dialog" aria-modal="true"><b>¿Salir sin guardar?</b><p>Tienes algo escrito que todavía no se ha guardado. Si vuelves a los módulos, se pierde.</p>' +
@@ -71,7 +72,7 @@
     d.addEventListener('click', function (e) {
       var a = e.target.getAttribute && e.target.getAttribute('data-a');
       if (e.target === d || a === 'no') { d.parentNode.removeChild(d); return; }
-      if (a === 'si') irLobby();
+      if (a === 'si') (continuar || irLobby)();
     });
   }
   function girar(el) {
@@ -129,6 +130,6 @@
     function fuera(e) { if (!m.contains(e.target) && !ancla.contains(e.target)) cerrar(); }
     setTimeout(function () { document.addEventListener('pointerdown', fuera, true); }, 0);
   }
-  window.TemaECOVSA = { marca: marca, girar: girar, revisar: revisar, menuUsuario: menuUsuario, roles: ROLES, irLobby: irLobby, aMedias: aMedias };
+  window.TemaECOVSA = { marca: marca, girar: girar, revisar: revisar, menuUsuario: menuUsuario, roles: ROLES, irLobby: irLobby, aMedias: aMedias, confirmarSalida: preguntar };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar); else arrancar();
 })();

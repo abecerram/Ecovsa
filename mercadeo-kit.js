@@ -256,6 +256,7 @@
 
   /* ── piezas de interfaz ── */
   MK.aviso = function (t) {
+    if (window.EcovsaAurora?.avisar?.(t)) return;
     var e = document.getElementById('toast'); if (!e) { e = document.createElement('div'); e.id = 'toast'; e.className = 'toast'; document.body.appendChild(e); }
     e.textContent = t; e.classList.add('si'); clearTimeout(MK.aviso._t); MK.aviso._t = setTimeout(function () { e.classList.remove('si'); }, 3200);
   };
@@ -273,6 +274,7 @@
   MK.cerrarLado = function () { var l = document.getElementById('mk-lado'); if (l) l.classList.remove('si'); };
   MK.confirmar = function (texto, alAceptar, op) {
     op = op || {};
+    if (window.EcovsaAurora?.confirmar?.({titulo:op.titulo || '¿Seguro?', mensaje:texto, boton:op.boton || 'Sí, continuar', peligro:op.peligro}, function(ok) { if (ok) alAceptar(); })) return;
     MK.hoja('<h2>' + MK.esc(op.titulo || '¿Seguro?') + '</h2><p class="muted" style="margin-top:6px;white-space:pre-wrap">' + MK.esc(texto) + '</p>' +
       '<div class="pie"><button class="btn" onclick="MK.cerrarHoja()">Cancelar</button><button class="btn ' + (op.peligro ? 'bad' : 'pri') + '" id="mk-si">' + MK.esc(op.boton || 'Sí, continuar') + '</button></div>');
     document.getElementById('mk-si').onclick = function () { MK.cerrarHoja(); alAceptar(); };
@@ -307,6 +309,7 @@
   MK.irOportunidad = function (cod) { location.href = 'MerOportunidad.html?id=' + encodeURIComponent(cod); };
   MK.irCliente = function (id) { location.href = 'MerCliente.html?id=' + encodeURIComponent(id); };
   MK.ocupado = function (btn, si, texto) {
+    window.EcovsaAurora?.ocupado?.(btn, si, texto);
     if (!btn) return; if (si) { btn._t = btn.innerHTML; btn.disabled = true; btn.innerHTML = MK.esc(texto || 'Guardando…'); } else { btn.disabled = false; if (btn._t) btn.innerHTML = btn._t; }
   };
 
