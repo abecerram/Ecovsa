@@ -870,17 +870,20 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     if (faltan.length) { msg.textContent = 'Falta el precio' + (CT.multi ? ' en ' + faltan.map(function (s) { return s.sede; }).join(', ') : '') + '.'; return; }
     if (r.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.correo)) { msg.textContent = 'El correo no se ve bien.'; return; }
     var regla = CT.multi ? Object.assign({}, r, { tipo: ccTipoDe(r) }) : { tipo: 'una', pago: r.pago, dias: r.dias, correo: '' };
-    var ret = CT.itbms === 'exento' ? 'EXENTO' : CT.ret, malas = [], paso = Promise.resolve();
+    var ret = CT.itbms === 'exento' ? 'EXENTO' : CT.ret, malas = [], desde = '', paso = Promise.resolve();
     MK.ocupado(b, true, 'Guardando…');
     CT.sedes.forEach(function (s) {
       var d = { 'regla cobro': regla, modalidad: s.modalidad, 'retiene itbms': ret };
       [['planCosto', 'plan costo'], ['planKg', 'plan kg'], ['kgAdic', 'tarifa kg adic'], ['visAdic', 'tarifa visita adic']].forEach(function (k) { if (ccNum(s[k[0]]) !== null) d[k[1]] = ccNum(s[k[0]]); });
-      paso = paso.then(function () { return MK.api('api_crmGuardarFichaCliente', MK.pin, s.id, d).then(function (x) { if (!x || !x.ok) malas.push(s.sede + ': ' + ((x && x.error) || 'no se guardó')); }, function () { malas.push(s.sede + ': sin conexión'); }); });
+      paso = paso.then(function () { return MK.api('api_crmGuardarFichaCliente', MK.pin, s.id, d).then(function (x) { if (!x || !x.ok) malas.push(s.sede + ': ' + ((x && x.error) || 'no se guardó')); else if (x.regla && x.regla.desde > desde) desde = x.regla.desde; }, function () { malas.push(s.sede + ': sin conexión'); }); });
     });
     paso.then(function () {
       MK.ocupado(b, false);
       if (malas.length) { msg.textContent = malas.join(' · '); return; }
-      MK.cerrarLado(); MK.aviso(CT.multi ? 'Regla guardada · el certificado y Cobros ya la usan' : 'Reglas de cobro confirmadas'); cargar(true);
+      var vigente = String((R.cobro56 || {}).hoy || MK.hoy).slice(0, 7);
+      MK.cerrarLado();
+      MK.aviso(desde && desde > vigente ? 'Regla guardada · cambio de facturación o documentos desde ' + MK.mesNombre(desde) : 'Reglas de cobro guardadas');
+      cargar(true);
     });
   }
 

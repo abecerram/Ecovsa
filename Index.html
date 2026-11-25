@@ -1929,6 +1929,16 @@ body.es-sup #pantalla-cierre,body.es-sup #pantalla-flota{max-width:1320px}
 </head>
 
 <body>
+<style>
+  body.logistica-acceso-pendiente > :is(header, #cuerpo),
+  body.logistica-consulta :is(#ini-aten, .ini-bloque:has(.ini-atc), .mi38-k4 button[onclick*="ini-atc"], .i40-vacio button[onclick*="plan"], #md-cuerpo button[onclick*="mostrarTab('plan')"], .md-sin button[onclick*="mdUbicar_"], .md-sin button[onclick*="mdVerPropuesta_"], .mp-pop button[onclick*="abrirFichaC2_"], .mp-pop button[onclick*="mdMeter_"], #cal38 button[onclick*="abrirEditorCon_"], button[onclick*="crTiempo_"], button[onclick*="editarRutaProgramada"], #cr-real-btn) { display:none !important; }
+  #logistica-acceso { margin:24px auto; width:min(530px, calc(100% - 32px)); padding:24px; }
+  #logistica-acceso p { margin:10px 0; }
+</style>
+<section id="logistica-acceso" class="tarjeta" hidden>
+  <h2>Logística</h2><p id="logistica-acceso-mensaje" role="status"></p>
+  <a href="index.html">Volver a los módulos</a>
+</section>
 
 <!-- api 3.5.2: el camión rojo se fue. La espera es la cortina con el emblema que se arma (cargador.js). -->
 <script src="cargador.js" data-modulo="Logística" data-manual></script>
@@ -3225,6 +3235,30 @@ return r === "supervisor" || r === "admin" || r === "gerente";
 
 }
 
+var PERMISO_CONSULTA_LOGISTICA = false;
+var SECCIONES_CONSULTA_LOGISTICA = new Set(["hub", "mapadia", "agenda", "cierre", "recibos"]);
+
+function esMercadeoLogistica_(usuario){
+  return String((usuario || USUARIO || {}).rol || "").toLowerCase().trim() === "mercadeo";
+}
+function esConsultaLogistica_(){ return esMercadeoLogistica_() && PERMISO_CONSULTA_LOGISTICA; }
+function vistaLogistica_(){ return esSupervisor() || esConsultaLogistica_(); }
+function estadoAccesoLogistica_(mensaje){
+  $("logistica-acceso").hidden = !mensaje;
+  $("logistica-acceso-mensaje").textContent = mensaje || "";
+  document.body.classList.toggle("logistica-acceso-pendiente", !!mensaje);
+}
+function iniciarConsultaLogistica_(d){
+  USUARIO = d.usuario;
+  PERMISO_CONSULTA_LOGISTICA = d.permisoCampo === "ve" || d.permisoCampo === "trabaja";
+  if(!PERMISO_CONSULTA_LOGISTICA){ estadoAccesoLogistica_("Tu rol no tiene acceso a Logística."); cargaLista_(true); return; }
+  CLIENTES = [];
+  document.body.classList.add("logistica-consulta");
+  estadoAccesoLogistica_("");
+  enLinea = true;
+  pintarCabecera(); pintarSync(); mostrarTab("hub");
+}
+
 function arrancar(){
 
 PIN=leerLocal(K_PIN,""); CLIENTES=leerLocal(K_CLI,[]); RUTA=leerLocal(K_PAR,RUTA);
@@ -3235,11 +3269,13 @@ if(!RUTA.fecha) RUTA.fecha=hoyISO();
 
 $("r-fecha").value=RUTA.fecha;
 
-pintarCabecera(); pintarSync();
-
 if(!PIN){ pedirPin(); return; }
 
-if(CLIENTES.length){ cargaLista_(); renderTodo(); }
+if(esMercadeoLogistica_()) estadoAccesoLogistica_("Consultando tu acceso…");
+else {
+  pintarCabecera(); pintarSync();
+  if(CLIENTES.length){ cargaLista_(); renderTodo(); }
+}
 
 google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api_bootstrap(PIN,hoyISO());
 
@@ -3259,7 +3295,9 @@ if(r&&r.ok){
 
 PIN=p; guardarLocal(K_PIN,PIN); USUARIO=r.usuario; guardarLocal(K_USR,USUARIO);
 
-$("login").style.display="none"; cargaCortina_(); pintarCabecera();
+$("login").style.display="none"; cargaCortina_();
+if(esMercadeoLogistica_()) estadoAccesoLogistica_("Consultando tu acceso…");
+else pintarCabecera();
 
 google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api_bootstrap(PIN,hoyISO());
 
@@ -3271,7 +3309,9 @@ google.script.run.withSuccessHandler(alCargar).withFailureHandler(errCargar).api
 
 function alCargar(d){
 
-if(!d||!d.ok) return errCargar();
+if(!d||!d.ok) return errCargar(d);
+if(esMercadeoLogistica_(d.usuario)) { iniciarConsultaLogistica_(d); return; }
+estadoAccesoLogistica_("");
 
 USUARIO=d.usuario; guardarLocal(K_USR,USUARIO); CLIENTES=d.clientes; guardarLocal(K_CLI,CLIENTES);
 
@@ -3314,16 +3354,25 @@ if(esSupervisor()) avisoFallasHub_(true);
 
 }
 
-function errCargar(){ cargaLista_(); enLinea=false; pintarSync(); renderTodo(); }
+function errCargar(d){
+  if(esMercadeoLogistica_() || (d && d.accesoCampoDenegado)){
+    PERMISO_CONSULTA_LOGISTICA = false;
+    document.body.classList.remove("logistica-consulta", "cond-nuevo", "es-conductor", "es-sup");
+    estadoAccesoLogistica_((d && d.error) || "No se pudo verificar tu acceso a Logística. Vuelve a intentarlo desde el Lobby.");
+    cargaLista_(true);
+    return;
+  }
+  cargaLista_(); enLinea=false; pintarSync(); renderTodo();
+}
 
 function pintarCabecera(){
 
-var sup = esSupervisor();
+var sup = vistaLogistica_();
 
-$("cab-usuario").textContent = sup ? (USUARIO.nombre||"Usuario") + " · Supervisor / Administrador" : (USUARIO.nombre||"Usuario");
+$("cab-usuario").textContent = (USUARIO.nombre||"Usuario") + (esConsultaLogistica_() ? " · Solo consulta" : sup ? " · Supervisor / Administrador" : "");
 
 var bi=$("btn-inicio");
-if(bi) bi.style.display = esSupervisor() ? "inline-flex" : "none";
+if(bi) bi.style.display = sup ? "inline-flex" : "none";
 
 document.querySelectorAll(".bloque-admin").forEach(function(b){
 
@@ -3331,7 +3380,7 @@ b.style.display = sup ? "flex" : "none";
 
 });
 
-var esAdm = esSupervisor();
+var esAdm = sup;
 var ta=$("tit-agenda"), sa=$("sub-agenda");
 if(ta) ta.textContent = esAdm ? "Calendario de rutas" : "Mis Rutas";
 if(sa) sa.textContent = esAdm ? "Ver, crear y editar rutas" : "Elegir y activar tu ruta";
@@ -3341,8 +3390,8 @@ if(ha){ ha.style.display = esAdm ? "block" : "none"; }
 prepararMenuSup_(); if(esAdm) cargarInicio_();
 /* Los avisos del menú se consultan al entrar, no al abrir cada pantalla: si
    hay que abrirla para enterarse, ya no es un aviso. */
-if(esAdm){ cargarPorRevisar(true); cargarInspecciones(true); }
-else cargarKgPlanta();
+if(esSupervisor()){ cargarPorRevisar(true); cargarInspecciones(true); }
+else if(!esAdm) cargarKgPlanta();
 
 pintarHubConductor_();
 if(!esAdm) pintarTablero();
@@ -4047,7 +4096,7 @@ function avisosHorarioEditor_(){
 /* ── MENÚ DEL CONDUCTOR: saludo con la fecha y accesos compactos ── */
 function pintarHubConductor_(){
   var hub = $("pantalla-hub"); if(!hub) return;
-  var sup = esSupervisor();
+  var sup = vistaLogistica_();
   hub.classList.toggle("hub-conductor", !sup);
   document.body.classList.toggle("es-conductor", !sup);
   /* los textos originales se guardan para devolverlos si entra alguien de logística */
@@ -4222,7 +4271,7 @@ function trabajarDiaCal_(fecha, rutaId){
    y otra, así que no cargan el servidor. */
 var RUTA_REFRESCO_T = 0;
 function refrescarRuta_(pausaMs){
-  if(esSupervisor() || !PIN || !enLinea) return;
+  if(esSupervisor() || esMercadeoLogistica_() || !PIN || !enLinea) return;
   var ahora = Date.now(); if(ahora - RUTA_REFRESCO_T < (pausaMs || 30000)) return;
   RUTA_REFRESCO_T = ahora;
   var f = (RUTA && RUTA.rutaId && RUTA.fecha) ? RUTA.fecha : hoyISO();
@@ -4936,14 +4985,15 @@ function esEscritorio_(){ return window.matchMedia && window.matchMedia("(min-wi
 
 function pintarMenuSup_(){
   var nav = $("menu-sup"); if(!nav) return;
-  if(!esSupervisor()){ nav.innerHTML = ""; return; }
+  if(!vistaLogistica_()){ nav.innerHTML = ""; return; }
   var m = (INI && INI.menu) || {};
   var pleg = document.body.classList.contains("msup-pleg");
   /* api 3.4.1: en el menú desplegable solo va el nombre; el logo está en la barra */
   var h = '<div class="dh">' +
           '<div><b>' + esc(USUARIO.nombre || "") + '</b><span>Logística y administración</span></div></div>' +
           '<button class="pleg" onclick="plegarMenuSup_()" title="' + (pleg ? "Abrir menú" : "Plegar menú") + '"><span>' + (pleg ? "»" : "«") + '</span>' + (pleg ? "" : "Plegar menú") + '</button>';
-  MENU_SUP.forEach(function(it){
+  var opciones = esConsultaLogistica_() ? MENU_SUP.filter(function(it){ return it[0] === "Operación" || SECCIONES_CONSULTA_LOGISTICA.has(it[0]); }) : MENU_SUP;
+  opciones.forEach(function(it){
     if(it.length === 1){ h += '<div class="g">' + esc(it[0]) + '</div>'; return; }
     var n = it[3] ? (m[it[3]] || 0) : 0, em = "";
     if(n) em = '<em class="' + (it[3] === "flota" && m.flotaBloqueo ? "" : "a") + '">' + n + '</em>';
@@ -4973,7 +5023,7 @@ function plegarMenuSup_(){
 function abrirMenuSup_(){ document.body.classList.add("msup-abierto"); }
 function cerrarMenuSup_(){ document.body.classList.remove("msup-abierto"); }
 function prepararMenuSup_(){
-  var sup = esSupervisor();
+  var sup = vistaLogistica_();
   document.body.classList.toggle("es-sup", sup);
   if(!sup){ cerrarMenuSup_(); return; }
   try{ document.body.classList.toggle("msup-pleg", localStorage.getItem("eco_msup_pleg") === "1"); }catch(e){}
@@ -4982,7 +5032,7 @@ function prepararMenuSup_(){
 
 /* ── carga ── */
 function cargarInicio_(){
-  if(!esSupervisor() || !PIN || INI_VUELO) return;
+  if(!vistaLogistica_() || !PIN || INI_VUELO) return;
   INI_VUELO = true;
   if(!INI){ var c = $("ini-sup"); if(c) c.innerHTML = '<div class="ini-hola">' + saludoIni_() + '<span>Consultando la operación…</span></div>'; }
   google.script.run
@@ -5006,13 +5056,13 @@ function programarIni_(){
   clearTimeout(INI_T);
   INI_T = setTimeout(function(){
     var ae = document.activeElement, escribiendo = ae && /^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName) && ae.closest && ae.closest("#ini-sup");
-    if(esSupervisor() && INI_TAB === "hub" && !document.hidden && !document.querySelector(".ini-velo") && !escribiendo) cargarInicio_();
-    else if(esSupervisor()) programarIni_();
+    if(vistaLogistica_() && INI_TAB === "hub" && !document.hidden && !document.querySelector(".ini-velo") && !escribiendo) cargarInicio_();
+    else if(vistaLogistica_()) programarIni_();
   }, 60000);
 }
-document.addEventListener("visibilitychange", function(){ if(!document.hidden && esSupervisor() && INI_TAB === "hub") cargarInicio_(); });
+document.addEventListener("visibilitychange", function(){ if(!document.hidden && vistaLogistica_() && INI_TAB === "hub") cargarInicio_(); });
 if(window.matchMedia){ var _mq = window.matchMedia("(min-width:1000px)");
-  var _mqf = function(){ if(esSupervisor() && INI){ cerrarHojaIni_(); pintarInicio_(); } cerrarMenuSup_(); };
+  var _mqf = function(){ if(vistaLogistica_() && INI){ cerrarHojaIni_(); pintarInicio_(); } cerrarMenuSup_(); };
   if(_mq.addEventListener) _mq.addEventListener("change", _mqf); else if(_mq.addListener) _mq.addListener(_mqf); }
 
 function cambiarPeriodoIni_(p){
@@ -5047,7 +5097,7 @@ function pintarInicio_(){
   h += '<div class="ini-hola">' + saludoIni_() + '<span>' + sub + '</span></div>';
   h += '<div class="ini-bloque"><div class="ini-bt"><h3>' + (r.fase === "cierre" ? "Cierre del día · " + esc(r.hora) : (esc_ ? "Operación de hoy · en vivo" : "Hoy · en vivo")) + '</h3>' +
        '<button class="x" onclick="mostrarTab(\'monitor\')">' + (r.fase === "cierre" ? "Ver cierre de rutas →" : (esc_ ? "Toca un conductor para ver su ruta" : "Cierre de rutas →")) + '</button></div>' + htmlVivoIni_() + '</div>';
-  if(!esc_) h += '<div class="ini-bloque"><div class="ini-bt"><h3>Requiere tu atención · ' + r.atencion.length + '</h3>' +
+  if(!esc_ && !esConsultaLogistica_()) h += '<div class="ini-bloque"><div class="ini-bt"><h3>Requiere tu atención · ' + r.atencion.length + '</h3>' +
        (r.atencion.length > 3 ? '<button class="x" onclick="verTodasIni_()">Ver todas →</button>' : '') + '</div>' +
        '<div class="ini-atc">' + htmlAtencionIni_(r.atencion.slice(0, 3)) + '</div></div>';
   h += '<div class="ini-bloque"><div class="ini-bt"><h3>Indicadores</h3><div class="ini-seg">' +
@@ -6425,7 +6475,7 @@ function crRango_(){
   var l = new Date(d); l.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return [plIso_(l), h];
 }
 function crCargar_(){
-  if(!esSupervisor() || CR_VUELO) return;
+  if(!vistaLogistica_() || CR_VUELO) return;
   var r = crRango_(); CR_VUELO = true;
   if(!CR) $("cr-cuerpo").innerHTML = '<div class="pl-vacio">Consultando el cierre…</div>';
   google.script.run.withSuccessHandler(function(x){
@@ -7976,7 +8026,7 @@ function rx2Pintar_(){
       if(r.corregido) firma += ' <span class="rx2-tag gr" title="Corregido el ' + esc(r.corregido) + '">✎ corregido</span>';
       var canal = r.pide === "correo" ? "correo" : "whatsapp";
       var btn = '<button class="rx2-b" onclick="verReciboEnPantalla(\'' + f + '\')" title="Ver el recibo">👁</button>' +
-                '<button class="rx2-b ' + (e ? "" : "pri") + '" onclick="rx2Enviar_(\'' + f + '\',\'' + canal + '\')">' + (e ? "Reenviar" : "Enviar") + '</button>';
+                (esConsultaLogistica_() ? '' : '<button class="rx2-b ' + (e ? "" : "pri") + '" onclick="rx2Enviar_(\'' + f + '\',\'' + canal + '\')">' + (e ? "Reenviar" : "Enviar") + '</button>');
       return { i: i, r: r, envio: envio, firma: firma, btn: btn };
     });
     c.innerHTML =
@@ -7997,6 +8047,7 @@ function rx2Pintar_(){
 
 /* «Enviar»: abre el recibo con la hoja de envío ya abierta */
 function rx2Enviar_(folio, canal){
+  if(esMercadeoLogistica_()) return;
   RECIBO_VISTA = folio;
   var m = $("modal-ver-recibo"); if(!m) return;
   $("mvr-titulo").textContent = "Recibo " + folio;
@@ -8481,6 +8532,7 @@ window.location.href = mailto;
 
 function sincronizar(manual){
 
+if(esMercadeoLogistica_()) return;
 if(!COLA.length){ if(manual) toast("Todo sincronizado"); return; }
 
 if(manual) toast("Enviando recolecciones...");
@@ -9725,7 +9777,7 @@ if(esSupervisor()){ cerrarMenuSup_(); pintarMenuSup_(); if(tab==="hub") cargarIn
 
 if(tab==="paradas") renderParadas();
 
-if(tab==="hub" && !esSupervisor()) pintarTablero();
+if(tab==="hub" && !vistaLogistica_()) pintarTablero();
 if(tab==="hub" || tab==="agenda" || tab==="paradas") refrescarRuta_(30000);
 if(tab==="hub" && esSupervisor()) avisoFallasHub_();
 if(tab==="clientes"){
@@ -9762,7 +9814,7 @@ if(tab==="solicitudes" && esSupervisor()) cargarSolicitudes(false);
 if(tab==="inv" && esSupervisor()) ivCargar_();
 if(tab==="req" && esSupervisor()) rqCargar_();
 /* api 3.6: Mapa del día */
-if(tab==="mapadia" && esSupervisor()) mdCargar_();
+if(tab==="mapadia" && vistaLogistica_()) mdCargar_();
 
 if(tab==="inspecciones" && esSupervisor()) cargarInspecciones(false);
 
@@ -9888,6 +9940,7 @@ function abrirReciboPublico(folio){
 
 /* Lo visualiza aquí mismo: es la misma página Recibo, dentro de la app.
    Si mañana cambia el recibo, cambia también aquí — no hay dos diseños. */
+function modoVistaReciboLogistica_(){ return esConsultaLogistica_() ? "&solover=1" : esSupervisor() ? "" : "&conductor=1"; }
 function verReciboEnPantalla(folio){
   RECIBO_VISTA = folio;
   var m = $("modal-ver-recibo"); if(!m) return;
@@ -9895,7 +9948,7 @@ function verReciboEnPantalla(folio){
   $("mvr-frame").src = "about:blank";
   m.style.setProperty("display", "flex", "important");
   conUrlApp(function(u){
-    $("mvr-frame").src = u + "?p=recibo&id=" + encodeURIComponent(folio) + (esSupervisor() ? "" : "&conductor=1");
+    $("mvr-frame").src = u + "?p=recibo&id=" + encodeURIComponent(folio) + modoVistaReciboLogistica_();
   });
 }
 
@@ -9909,7 +9962,7 @@ function abrirReciboEnPestana(){
   if(!RECIBO_VISTA) return;
   /* api 3.5.3: desde la vista del recibo, la pestaña aparte es de verdad (no otra vista rápida) */
   var f = RECIBO_VISTA;
-  conUrlApp(function(u){ var url = u + "?p=recibo&id=" + encodeURIComponent(f) + (esSupervisor() ? "" : "&conductor=1");
+  conUrlApp(function(u){ var url = u + "?p=recibo&id=" + encodeURIComponent(f) + modoVistaReciboLogistica_();
     if(window.VR && VR.pestana) VR.pestana(url); else window.open(url, "_blank"); });
 }
 
@@ -14794,7 +14847,7 @@ mkIconos_ = function(raiz){
 var I38_COLOR = { "Mis Rutas": "", "Avance de mis rutas": "i38-ve", "Clientes": "i38-mo", "Mapa GPS": "i38-te", "Mapa de la ruta": "i38-te",
                   "Mis Recibos": "i38-am", "Jornada y Flota": "i38-na", "Jornada y flota": "i38-na", "Planta / Actas": "i38-mo", "Entrega a planta": "i38-mo" };
 function c38Conductor_(){
-  if(typeof esSupervisor !== "function" || esSupervisor() || !PIN){ document.body.classList.remove("cond-nuevo"); return; }
+  if(typeof esSupervisor !== "function" || esSupervisor() || esMercadeoLogistica_() || !PIN){ document.body.classList.remove("cond-nuevo"); return; }
   document.body.classList.add("cond-nuevo");
   document.querySelectorAll("#pantalla-hub .mosaico-item").forEach(function(m){
     var t = ((m.querySelector(".mosaico-tit") || {}).textContent || "").trim(), ic = m.querySelector(".mosaico-icono");
@@ -15926,7 +15979,7 @@ var CAL38 = { vista: "mes", ref: null, sel: "", r: null, capas: { r: 1, m: 1, i:
 try{ CAL38.vista = localStorage.getItem("eco_cal38_v") || "mes"; var cp = JSON.parse(localStorage.getItem("eco_cal38_c") || "null"); if(cp) CAL38.capas = cp; }catch(e){}
 cargarDatosCalendario = (function(orig){
   return function(){
-    if(!esSupervisor()){ var c = $("cal38"); if(c) c.style.display = "none"; document.querySelectorAll("#pantalla-agenda .cal-contenedor,#mr-nuevas").forEach(function(e){ e.style.display = ""; }); return orig.apply(this, arguments); }
+    if(!vistaLogistica_()){ var c = $("cal38"); if(c) c.style.display = "none"; document.querySelectorAll("#pantalla-agenda .cal-contenedor,#mr-nuevas").forEach(function(e){ e.style.display = ""; }); return orig.apply(this, arguments); }
     cal38Cargar_();
   };
 })(cargarDatosCalendario);
@@ -16060,7 +16113,7 @@ function cal38Cierre_(f, rutaId){
 }
 </script>
 <!-- api 3.17 · desechos sólidos dentro de Logística (pestaña Peligrosos | Sólidos y la ruta del conductor) -->
-<script src="LogSolidos.js"></script>
+<script src="LogSolidos.js?v=3116"></script>
 <script src="fumigacion.js"></script>
 <!-- ═══════════════════════════════════════════════════════════════════
      api 3.31 · ASISTENTE DE RUTAS (Logística)
@@ -17622,7 +17675,7 @@ mostrarTab = (function(o){ return function(tab){
 
 /* ── Mi día ── */
 var MI38 = { md: null, vuelo: false, map: null, t: 0 };
-function mi38Cel_(){ return esSupervisor() && !esEscritorio_(); }
+function mi38Cel_(){ return vistaLogistica_() && !esEscritorio_(); }
 function mi38Hace_(s){ return s == null ? "sin posición" : s < 60 ? "hace " + s + " s" : s < 3600 ? "hace " + Math.round(s / 60) + " min" : "hace " + Math.floor(s / 3600) + " h"; }
 /* el camión de una ruta de hoy, si mandó posición */
 function mi38Cam_(rutaId){ var m = MI38.md; return m && m.camiones ? m.camiones.find(function(x){ return x.rutaId === rutaId; }) || null : null; }
@@ -19242,7 +19295,7 @@ try{ AV38_TIPOS.sup = [["inicio", "Ruta iniciada", "Cuando el camión sale"], ["
 var I40 = { md: null, mes: null, tMes: 0, vuelo: false, sel: 0, todo: false, map: null };
 I40.ic = function(k, s){ var P = { ruta: '<path d="M2 6h11v10H2z"/><path d="M13 9h5l3 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>', ok: '<path d="M5 12l5 5 9-10"/>', alerta: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>', est: '<path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', punto: '<circle cx="12" cy="12" r="4"/>' };
   return '<svg class="i40-ic" width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (P[k] || P.punto) + '</svg>'; };
-I40.activo = function(){ return esSupervisor() && esEscritorio_(); };
+I40.activo = function(){ return vistaLogistica_() && esEscritorio_(); };
 I40.cargar = function(){
   if(!I40.activo() || I40.vuelo || !PIN) return;
   I40.vuelo = true;
@@ -27312,7 +27365,7 @@ crDetalle_ = (function(o){ return function(r){
 }; })(crDetalle_);
 /* ── carga: la misma barra de período de Cierre ── */
 crCargar_ = (function(o){ return function(){
-  if(!esSupervisor()) return;
+  if(!vistaLogistica_()) return;
   var sec = $("pantalla-cierre"); if(sec) sec.classList.add("ca-on");
   if(!$("ca-cuerpo")){ var cr = $("cr-cuerpo"); if(!cr) return o.apply(this, arguments); cr.insertAdjacentHTML("beforebegin", '<div id="ca-cuerpo"></div><div id="ca-guarda" style="display:none"></div>'); $("ca-guarda").appendChild(cr); }
   if(CA.vuelo) return; var r = crRango_(); CA.vuelo = true;
@@ -27922,6 +27975,25 @@ window.addEventListener('resize',p399Alto_);
 <script src="recibos-canales3107.js?v=3113"></script>
 <script src="recibos-ficha.js"></script>
 <script src="recibos-lote.js?v=3115"></script>
+<script>
+(function(mostrarOriginal){
+  mostrarTab = function(tab){
+    if(!esMercadeoLogistica_()) return mostrarOriginal.apply(this, arguments);
+    if(!esConsultaLogistica_()) return;
+    if(tab === "estudio" || tab === "comparar") {
+      CA.parte = tab === "estudio" ? "gps" : "com";
+      tab = "cierre";
+    }
+    if(tab === "monitor") tab = "cierre";
+    if(!SECCIONES_CONSULTA_LOGISTICA.has(tab)) return;
+    var resultado = mostrarOriginal.call(this, tab);
+    cerrarMenuSup_(); pintarMenuSup_();
+    if(tab === "hub") cargarInicio_();
+    if(tab === "cierre") crCargar_();
+    return resultado;
+  };
+})(mostrarTab);
+</script>
 </body>
 
 </html>

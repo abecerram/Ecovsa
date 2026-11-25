@@ -1663,7 +1663,7 @@
 
   /* ═════════════════ CONDUCTOR (celular) ═════════════════ */
   var C = D.con;
-  function esCond() { return !sup() && window.USUARIO && USUARIO.nombre && PIN; }
+  function esCond() { return !sup() && window.USUARIO && USUARIO.rol !== "mercadeo" && USUARIO.nombre && PIN; }
   function pasos(n) { var P = ['Revisión', 'Salida', 'Ruta', 'Descarga', 'Regreso']; return '<div class="sc-pasos">' + P.map(function (p, i) { return '<span class="' + (i < n ? 'ok' : i === n ? 'on' : '') + '">' + p + '</span>'; }).join('') + '</div>'; }
   function pasoDe(h) {
     if (!h) return 0;

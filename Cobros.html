@@ -1548,15 +1548,37 @@ function guardarConc(btn) {
 
 /* ═══════════ PARA FACTURAR ═══════════ */
 var PF = null;
+var PF_MANUAL = false;
+function recargarPF(manual) {
+  if (MK.seccion !== 'pfac' || !MK.base || (PF && PF.mes === PF_MES && !PF.r)) return;
+  PF_MANUAL = !!manual;
+  PF = null;
+  MK.repintar();
+}
+window.addEventListener('focus', function () { if (PF && PF.r) recargarPF(false); });
 function vParaFacturar() {
   if (!PF_MES) PF_MES = MK.masMeses(MK.hoy.slice(0, 8) + '01', -1).slice(0, 7);
   var meses = [0, -1, -2].map(function (n) { return MK.masMeses(MK.hoy.slice(0, 8) + '01', n).slice(0, 7); }).reverse();
+  var consultando = !PF || PF.mes !== PF_MES || !PF.r;
+  var listo = !consultando && PF.r.ok;
+  var acciones = '<button class="btn" id="pf-actualizar" onclick="recargarPF(true)"' + (consultando ? ' disabled' : '') + '><span aria-hidden="true">⟳</span> ' + (consultando ? 'Actualizando…' : 'Actualizar reporte') + '</button>';
+  acciones += '<button class="btn" onclick="imprimirPF()"' + (!listo ? ' disabled' : '') + '>' + MK.ic('imprimir', 16) + 'Imprimir</button>' +
+    '<button class="btn" onclick="csvPF()"' + (!listo || !PF.solListo ? ' disabled' : '') + '>' + MK.ic('bajar', 16) + 'Descargar para contabilidad</button>';
   var h = MK.cabeza('Para facturar', 'Lo que hay que facturar del mes, desde las recolecciones y el plan de cada cliente. Es el reporte que va a contabilidad.',
-    MK.chips(meses.map(function (m) { return [m, MK.mesNombre(m).replace(/^./, function (x) { return x.toUpperCase(); }) + (m === MK.hoy.slice(0, 7) ? ' (en curso)' : '')]; }), PF_MES, 'mesPF') + (PF && PF.mes === PF_MES && PF.r ? '<button class="btn" onclick="imprimirPF()">' + MK.ic('imprimir', 16) + 'Imprimir</button><button class="btn" onclick="csvPF()">' + MK.ic('bajar', 16) + 'Descargar para contabilidad</button>' : ''));
+    MK.chips(meses.map(function (m) { return [m, MK.mesNombre(m).replace(/^./, function (x) { return x.toUpperCase(); }) + (m === MK.hoy.slice(0, 7) ? ' (en curso)' : '')]; }), PF_MES, 'mesPF') + acciones);
   if (!PF || PF.mes !== PF_MES) {
-    PF = { mes: PF_MES, r: null };
-    var d1 = PF_MES + '-01', d2 = MK.masDias(MK.masMeses(d1, 1), -1);
-    MK.api('api_paraFacturar', MK.pin, d1, d2).then(function (r) { if (PF.mes === PF_MES) { PF.r = r; if (MK.seccion === 'pfac') MK.repintar(); } });
+    var pedido = PF = { mes: PF_MES, r: null, manual: PF_MANUAL };
+    PF_MANUAL = false;
+    var d1 = pedido.mes + '-01', d2 = MK.masDias(MK.masMeses(d1, 1), -1);
+    var recibir = function (r) {
+      if (PF !== pedido || PF_MES !== pedido.mes) return;
+      pedido.r = r || { ok:false, error:'No se pudo consultar el reporte.' };
+      if (MK.seccion === 'pfac') {
+        MK.repintar();
+        if (pedido.manual && pedido.r.ok) MK.aviso('Reporte actualizado');
+      }
+    };
+    MK.api('api_paraFacturar', MK.pin, d1, d2).then(recibir, function () { recibir({ ok:false, error:'No se pudo consultar el reporte.' }); });
     return h + '<div class="cargando">Calculando lo del mes…</div>';
   }
   var r = PF.r;
@@ -1573,12 +1595,19 @@ function vParaFacturar() {
 /* api 3.17 · Desechos sólidos: su propio plan (cuota por sucursal + visita + tonelada + mínimo), aparte de peligrosos */
 function solidosPF() {
   if (!PF.solPedido) {
-    PF.solPedido = true; var m = PF.mes;
-    MK.api('api_dsoParaFacturar', MK.pin, m).then(function (r) { if (PF.mes === m) { PF.sol = r; if (MK.seccion === 'pfac') MK.repintar(); } }, function () {});
+    var pedido = PF; pedido.solPedido = true;
+    var recibir = function (r) {
+      if (PF !== pedido || PF_MES !== pedido.mes) return;
+      pedido.sol = r || { ok:false };
+      pedido.solListo = true;
+      if (MK.seccion === 'pfac') MK.repintar();
+    };
+    MK.api('api_dsoParaFacturar', MK.pin, pedido.mes).then(recibir, function () { recibir({ ok:false }); });
     return '';
   }
   var r = PF.sol;
-  if (!r || r.ok === false || !r.filas || !r.filas.length) return '';
+  if (r && r.ok === false) return '<p class="small muted">La descarga incluye solo desechos peligrosos. Pulsa «Actualizar reporte» para volver a consultar Desechos sólidos.</p>';
+  if (!r || !r.filas || !r.filas.length) return '';
   var raiz = location.href.replace(/[^/]*([?#].*)?$/, '');
   /* los clientes en prueba se ven, pero no suman ni van a contabilidad */
   var tot = r.filas.filter(function (f) { return f.factura !== false; }).reduce(function (a, f) { a.v += f.visitas; a.kg += f.kg; a.s += f.subtotal; a.i += f.itbms; a.t += f.total; return a; }, { v: 0, kg: 0, s: 0, i: 0, t: 0 });
@@ -1591,8 +1620,13 @@ function solidosPF() {
 /* api 3.56 · la regla de cobro de la empresa (la pone Mercadeo en «Cobro y certificados»; Cobros la ve) */
 function reglaPF(l) {
   if (l.sinRegla) return '<br><span class="chipx warn" title="Mercadeo la pone en la hoja del cliente, «Cobro y certificados»">Sin regla de cobro</span>';
-  var g = l.regla; if (!g) return '';
-  return '<small>' + MK.esc(g.texto) + (g.correo ? ' · se manda a ' + MK.esc(g.correo) : '') + (g.pago ? ' · ' + MK.esc(g.pago) + (g.dias ? ' ' + g.dias + ' días' : '') : '') + '</small>';
+  var texto = textoReglaPF(l);
+  return texto ? '<small>' + MK.esc(texto) + '</small>' : '';
+}
+function textoReglaPF(l) {
+  var g = l.regla;
+  if (!g) return l.sinRegla ? 'Sin regla de cobro' : '';
+  return [g.texto, g.correo ? 'Se manda a ' + g.correo : '', g.pago ? g.pago + (g.dias ? ' · ' + g.dias + ' días' : '') : ''].filter(Boolean).join(' · ');
 }
 function mesPF(m) { PF_MES = m; MK.repintar(); }
 /* El reporte «Para facturar» en una hoja para imprimir o guardar en PDF (mismos datos que la descarga) */
@@ -1605,7 +1639,7 @@ function imprimirPF() {
   var filas = r.lineas.map(function (l, i) {
     return '<tr><td class="n">' + (i + 1) + '</td><td><b>' + es(l.titular) + '</b>' + (l.razon && l.razon !== l.titular ? '<br><small>' + es(l.razon) + '</small>' : '') +
       (l.ruc ? '<br><small>RUC ' + es(l.ruc) + (l.dv ? ' DV ' + es(l.dv) : '') + '</small>' : '<br><small class="falta">sin RUC</small>') +
-      (l.regla ? '<br><small>' + es(l.regla.texto) + (l.regla.correo ? ' · ' + es(l.regla.correo) : '') + '</small>' : l.sinRegla ? '<br><span class="av">sin regla de cobro</span>' : '') + '</td>' +   // api 3.56
+      (l.regla ? '<br><small>' + es(textoReglaPF(l)) + '</small>' : l.sinRegla ? '<br><span class="av">sin regla de cobro</span>' : '') + '</td>' +   // api 3.56
       '<td><small>' + es(l.puntos.map(function (p) { return p.nombre; }).join(' · ')) + '</small></td>' +
       '<td class="n">' + l.visitas + '</td><td class="n">' + MK.num(l.kg, 1) + '</td><td><small>' + es(l.detalleCobro) + '</small></td>' +
       '<td class="n">' + d(l.subtotal) + '</td><td class="n">' + d(l.itbms) + '</td><td class="n"><b>' + d(l.total) + '</b></td>' +
@@ -1641,9 +1675,10 @@ function imprimirPF() {
   w.document.close();
 }
 function csvPF() {
+  if (!PF || !PF.r || !PF.r.ok || !PF.solListo) return;
   var r = PF.r, q = function (v) { v = String(v == null ? '' : v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   var filas = [['Titular', 'Razón social', 'RUC', 'DV', 'Puntos', 'Visitas', 'Kg', 'Detalle', 'Subtotal', 'ITBMS', 'Total', 'Retiene', 'A cobrar', 'Recibos', 'Aviso']].concat(r.lineas.map(function (l) {
-    return [l.titular, l.razon, l.ruc, l.dv, l.puntos.map(function (p) { return p.nombre; }).join(' / '), l.visitas, l.kg, l.detalleCobro, l.subtotal, l.itbms, l.total, l.retiene, l.aCobrar, l.recibos.join(' '), l.aviso];
+    return [l.titular, l.razon, l.ruc, l.dv, l.puntos.map(function (p) { return p.nombre; }).join(' / '), l.visitas, l.kg, [l.detalleCobro, textoReglaPF(l)].filter(Boolean).join(' · '), l.subtotal, l.itbms, l.total, l.retiene, l.aCobrar, l.recibos.join(' '), l.aviso];
   }));
   /* api 3.17 · los clientes de desechos sólidos, aparte, en el mismo archivo */
   if (PF.sol && PF.sol.filas && PF.sol.filas.filter(function (f) { return f.factura !== false; }).length) filas = filas.concat([[], ['DESECHOS SÓLIDOS']], PF.sol.filas.filter(function (f) { return f.factura !== false; }).map(function (f) {
@@ -1890,6 +1925,7 @@ MK.iniciar({
     cargarIA();     // api 3.20
   },
   pintar: function (id) {
+    if (id !== 'pfac') PF = null;
     var V = { pagadores: vPagadores, midia: vMiDia, pv: vPorVencer, seg: vSeguimientos, planes: vPlanes, esc: vEscalera, cartera: vCartera, deudores: vDeudores, facturas: vFacturas, pagos: vPagos, lote: vLote, conc: vConciliar, pfac: vParaFacturar, inco: vIncobrables };
     V.buzon = vBuzon;   // api 3.19
     V.asis = vAsis;     // api 3.20
