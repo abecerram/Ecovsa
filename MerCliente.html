@@ -748,7 +748,12 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
   }
   function ccCobroTx(s) { var m = s.modalidad || 'plan'; return m === 'plan' ? (ccNum(s.planCosto) !== null ? D(s.planCosto) : 'Plan') + (ccNum(s.planKg) !== null ? ' · ' + N(s.planKg) + ' kg' : '') : m === 'peso' ? 'Por kilo' + (ccNum(s.kgAdic) !== null ? ' · ' + D(s.kgAdic) : '') : 'Servicio' + (ccNum(s.planCosto) !== null ? ' · ' + D(s.planCosto) : ''); }
   function ccBloque(t, b, L, pie) { return '<div class="cc-b"><span>' + t + '</span><b>' + b + '</b><ul>' + L.map(function (x) { return '<li><em>' + x[0] + '</em><span>' + x[1] + '</span></li>'; }).join('') + '</ul>' + (pie || '') + '</div>'; }
-  function ccDesdeTx(r) { var K = R.cobro56 || {}; return r && r.desde && r.desde > String(K.hoy || MK.hoy).slice(0, 7) ? '<span class="tag t-warn">El cambio vale desde ' + E(MK.mesNombre(r.desde)) + '</span>' : ''; }
+  function ccDesdeTx(r, vigencias) {
+    var mes = String((R.cobro56 || {}).hoy || MK.hoy).slice(0, 7);
+    if (!vigencias) return r && r.desde && r.desde > mes ? '<span class="tag t-warn">El cambio vale desde ' + E(MK.mesNombre(r.desde)) + '</span>' : '';
+    return [['Facturación', vigencias.facturacion], ['Documentos', vigencias.documentos]].filter(function (p) { return p[1] > mes; })
+      .map(function (p) { return '<span class="tag t-warn">' + p[0] + ' desde ' + E(MK.mesNombre(p[1])) + '</span>'; }).join('');
+  }
 
   function pCobro(emp) {
     var K = R.cobro56; if (!K) return '';
@@ -767,7 +772,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     }
     /* varias sedes, vista de una sede: lo corto y el enlace a la empresa */
     if (!emp) {
-      return head(r ? 'Editar la regla' : 'Poner la regla') + '<div class="cc-tipo"><span class="tt">' + (r ? E(ccTipoTx(r)) : 'La empresa no tiene regla de cobro') + '</span>' + (r ? '<span class="tag t-ok">Regla de la empresa</span>' : '<span class="tag t-warn">Sin regla</span>') + ccDesdeTx(r) + '</div>' +
+      return head(r ? 'Editar la regla' : 'Poner la regla') + '<div class="cc-tipo"><span class="tt">' + (r ? E(ccTipoTx(r)) : 'La empresa no tiene regla de cobro') + '</span>' + (r ? '<span class="tag t-ok">Regla de la empresa</span>' : '<span class="tag t-warn">Sin regla</span>') + ccDesdeTx(r, yo.vigencias) + '</div>' +
         '<div class="kv"><span>Facturación</span><b>' + (r ? (r.fact === 'una' ? 'Agrupada' : 'Por sede') : '—') + '</b><span>Certificado</span><b>' + (r ? CC_DOC[r.cert] : '—') + '</b><span>Cobro de esta sede</span><b>' + E(ccCobroTx(yo)) + '</b><span>ITBMS</span><b>' + E(ccItbms(yo)) + '</b></div>' +
         '<div class="row w" style="margin-top:10px"><a href="#" class="btn sm" data-empcobro>' + IC('edificio', 14) + 'Ver en «Toda la empresa»</a></div></div>';
     }
@@ -777,7 +782,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     var mods = {}; S.forEach(function (s) { mods[s.modalidad || 'plan'] = 1; });
     var cobroB = Object.keys(mods).length === 1 ? ccModTx(S[0].modalidad || 'plan') : 'Según la sede';
     return head('Editar la regla') +
-      '<div class="cc-tipo"><span class="tt">' + E(ccTipoTx(r)) + '</span><span class="tag t-ok">Regla puesta</span>' + ccDesdeTx(r) + '</div>' +
+      '<div class="cc-tipo"><span class="tt">' + E(ccTipoTx(r)) + '</span><span class="tag t-ok">Regla puesta</span>' + ccDesdeTx(r, yo.vigencias) + '</div>' +
       (falta.length ? '<div class="aviso am" style="margin-bottom:12px">' + E(falta.map(function (s) { return s.sede; }).join(', ')) + (falta.length === 1 ? ' todavía no tiene' : ' todavía no tienen') + ' la regla. «Editar la regla» la pone.</div>' : '') +
       '<div class="cc-3">' +
       ccBloque('LA FACTURACIÓN', r.fact === 'una' ? 'Agrupada' : 'Por sede', [['A nombre de', E(R.cliente.razon || nomEmpresa())], ['RUC', E((R.cliente.ruc || '—') + dvTx())], ['Paga', CC_PAGA[r.paga] || '—'], ['Se manda a', r.fact === 'una' ? E(r.correo || 'el correo de la ficha') : 'el correo de cada sede']]) +
@@ -823,7 +828,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     return D(p) + ' al mes' + (k !== null ? ' con ' + N(k) + ' kg incluidos' : '') + (a !== null && k !== null ? '; si recoge ' + N(k + 10) + ' kg: ' + D(p) + ' + 10 kg × ' + D(a) + ' = ' + D(p + 10 * a) : '');
   }
   function pintarCobroEd() {
-    var r = CT.r, multi = CT.multi, dOps = [['sede', 'Por sede'], ['emp', 'Agrupado']], tipo = ccTipoDe(r), K = R.cobro56 || {};
+    var r = CT.r, multi = CT.multi, dOps = [['sede', 'Por sede'], ['emp', 'Agrupado']], tipo = ccTipoDe(r);
     var docs = !multi ? '' : '<span class="cc-paso">1 · ¿CÓMO ES ESTA EMPRESA?</span><div class="mk-tipos cc-tipos">' +
       Object.keys(CC_TIPOS).map(function (k) { return '<button type="button" data-tipo="' + k + '"' + (tipo === k ? ' class="on"' : '') + '><b>' + CC_TIPOS[k][0] + '</b><small>' + CC_TIPOS[k][1] + '</small></button>'; }).join('') + '</div>' +
       '<p class="small muted" style="margin-top:6px">Elegir uno llena los pasos 2 y 3. Si la empresa es distinta, se ajusta abajo y queda «A la medida».</p>' +
@@ -852,7 +857,7 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
       '<div><label class="lb" for="cc-pago">FORMA DE PAGO</label><select class="in" id="cc-pago">' + CC_PAGOS.map(function (p) { return '<option' + (r.pago === p ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></div>' +
       '<div><label class="lb" for="cc-dias">DÍAS DE CRÉDITO</label><input class="in" id="cc-dias" type="number" min="0" max="120" step="1" value="' + E(r.dias) + '"></div></div>';
     var l = MK.lado('<h2>' + (multi ? 'Cobro y certificados · ' + E(nomEmpresa()) : 'Reglas de cobro · ' + E(corto(R.cliente.nombre))) + '</h2>' +
-      '<p class="sub">' + (!multi ? 'Cliente de una sede: la factura y los documentos son de esa sede. Aquí se revisa y se confirma cómo se cobra.' : CT.nueva ? '<b>Propuesta del sistema</b> con lo que dicen sus fichas. Revise y confirme.' : 'Si cambia la facturación o los documentos, el cambio vale desde ' + E(MK.mesNombre(K.mesSig || '')) + ': lo ya facturado y los certificados emitidos no se tocan.') + '</p>' +
+      '<p class="sub">' + (!multi ? 'Cliente de una sede: la factura y los documentos son de esa sede. Aquí se revisa y se confirma cómo se cobra.' : CT.nueva ? '<b>Propuesta del sistema</b> con lo que dicen sus fichas. Revise y confirme.' : 'La facturación se actualiza en el mes en curso si sigue pendiente. Si ya hay una factura registrada para ese mes, el cambio empieza el mes siguiente. Los cambios de documentos empiezan el mes siguiente.') + '</p>' +
       docs + cobro + '<div id="cc-msg" class="small" style="margin-top:10px;color:var(--bad)"></div>' +
       '<div class="pie" style="margin-top:14px"><button class="btn" onclick="MK.cerrarLado()">Cancelar</button><button class="btn pri" id="cc-guardar">' + (CT.nueva ? 'Confirmar la regla' : 'Guardar cambios') + '</button></div>');
     l.classList.add('cc-lado');
@@ -870,21 +875,27 @@ body.solo-ver #q-act,body.solo-ver #q-tar,body.solo-ver #al-tarea,body.solo-ver 
     if (faltan.length) { msg.textContent = 'Falta el precio' + (CT.multi ? ' en ' + faltan.map(function (s) { return s.sede; }).join(', ') : '') + '.'; return; }
     if (r.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.correo)) { msg.textContent = 'El correo no se ve bien.'; return; }
     var regla = CT.multi ? Object.assign({}, r, { tipo: ccTipoDe(r) }) : { tipo: 'una', pago: r.pago, dias: r.dias, correo: '' };
-    var ret = CT.itbms === 'exento' ? 'EXENTO' : CT.ret, malas = [], desde = '', paso = Promise.resolve();
-    MK.ocupado(b, true, 'Guardando…');
-    CT.sedes.forEach(function (s) {
-      var d = { 'regla cobro': regla, modalidad: s.modalidad, 'retiene itbms': ret };
+    var ret = CT.itbms === 'exento' ? 'EXENTO' : CT.ret;
+    var sedes = CT.sedes.map(function (s) {
+      var d = { id: s.id, modalidad: s.modalidad, 'retiene itbms': ret };
       [['planCosto', 'plan costo'], ['planKg', 'plan kg'], ['kgAdic', 'tarifa kg adic'], ['visAdic', 'tarifa visita adic']].forEach(function (k) { if (ccNum(s[k[0]]) !== null) d[k[1]] = ccNum(s[k[0]]); });
-      paso = paso.then(function () { return MK.api('api_crmGuardarFichaCliente', MK.pin, s.id, d).then(function (x) { if (!x || !x.ok) malas.push(s.sede + ': ' + ((x && x.error) || 'no se guardó')); else if (x.regla && x.regla.desde > desde) desde = x.regla.desde; }, function () { malas.push(s.sede + ': sin conexión'); }); });
+      return d;
     });
-    paso.then(function () {
+    MK.ocupado(b, true, 'Guardando…');
+    var solicitud = CT.multi ? { 'regla cobro': regla, sedesCobro: sedes } : Object.assign({ 'regla cobro': regla }, sedes[0]);
+    if (!CT.multi) delete solicitud.id;
+    var id = CT.multi ? R.cliente.id : sedes[0].id;
+    function error(texto) { MK.ocupado(b, false); msg.textContent = texto || 'No se guardaron las reglas.'; }
+    MK.api('api_crmGuardarFichaCliente', MK.pin, id, solicitud).then(function (x) {
+      if (!x || !x.ok) { error(x && x.error); return; }
       MK.ocupado(b, false);
-      if (malas.length) { msg.textContent = malas.join(' · '); return; }
-      var vigente = String((R.cobro56 || {}).hoy || MK.hoy).slice(0, 7);
+      var mes = String((R.cobro56 || {}).hoy || MK.hoy).slice(0, 7), v = x.vigencias || {};
+      var aviso = v.facturacion ? 'Facturación desde ' + MK.mesNombre(v.facturacion) : '';
+      if (v.documentos > mes) aviso += (aviso ? ' · ' : '') + 'Documentos desde ' + MK.mesNombre(v.documentos);
       MK.cerrarLado();
-      MK.aviso(desde && desde > vigente ? 'Regla guardada · cambio de facturación o documentos desde ' + MK.mesNombre(desde) : 'Reglas de cobro guardadas');
+      MK.aviso(aviso ? 'Reglas guardadas · ' + aviso : 'Reglas de cobro guardadas');
       cargar(true);
-    });
+    }, function () { error('Sin conexión. Vuelve a intentar.'); });
   }
 
   /* ── «Toda la empresa»: sus sedes, sus cifras y la empresa. Sin fotos ── */
