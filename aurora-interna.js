@@ -355,7 +355,7 @@
     if (!control.isConnected || document.querySelector('#ent.bq')) return;
     const escribir = !evento?.detail || matchMedia('(min-width: 768px)').matches;
     if (recursos.abrirSelectorBarra?.(control, abrirModulo, escribir)) return;
-    const permitidos = rutas.filter(x => recursos.permitidos.includes(x.id) && x.id !== recursos.pagina);
+    const permitidos = rutas.filter(x => recursos.permitidos.includes(x.id) && x.id !== recursos.pagina && !['certificados', 'fumigacion'].includes(x.id));
     opciones('Módulos', permitidos.map(x => ({ nombre: x.nombre, accion: e => abrirModulo(x.archivo, e) })), true);
   }
 
@@ -697,7 +697,9 @@
       grupo.append(cab, sub);
       return { item: grupo, nombre: normalizar(r.nombre + ' ' + hijos.map(h => h.nombre).join(' ')), grupo: { cab, sub, abrir: actualEnGrupo } };
     };
-    const permitidas = lab.rutas.filter(r => lab.permitidos.includes(r.id));
+    /* Certificados y Fumigación son de las pantallas viejas: ya no van en la lista de módulos. */
+    const ocultos = new Set(['certificados', 'fumigacion']);
+    const permitidas = lab.rutas.filter(r => lab.permitidos.includes(r.id) && !ocultos.has(r.id));
     const filas = [];
     for (const r of permitidas) {
       if (esHijo.has(r.id)) continue;
