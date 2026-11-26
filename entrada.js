@@ -413,7 +413,17 @@
     cuadro();
     if (op.abierto) setTimeout(abrir, 300);
     bloqueoPiel();   /* api 3.83e */
-    intro();   /* api 3.83d: la intro del lobby (solo si el lobby la pide con intro:true) */
+    if (op.claveTablet) {
+      ['.e-pan', '.e-tec', '.e-pc-hint'].forEach(function (selector) {
+        var enlace = document.createElement('button');
+        enlace.type = 'button';
+        enlace.className = 'e-olv';
+        enlace.textContent = 'Volver a iniciar sesión';
+        enlace.addEventListener('click', function (ev) { ev.stopPropagation(); volverClaveTablet(); });
+        q(selector).appendChild(enlace);
+      });
+      mostrarClaveTablet();
+    } else intro();   /* api 3.83d: la intro del lobby (solo si el lobby la pide con intro:true) */
   }
 
   /* ═══ api 3.83d · la INTRO de la entrada del lobby (la misma del portal de clientes) y la transición inmediata al lobby ═══
@@ -1204,7 +1214,7 @@
         var u = t.val('u').trim(), c = t.val('c'); if (!u || !c) { t.msg('Escriba su usuario y su contraseña.'); return; }
         t.lock(true); t.msg('Validando credenciales…', true); estadoEmblema(t, 'verifica');
         llamarSrv('api_loginClave', [u, c], function (r) {
-          if (!E && !opt.sinE) return;
+          if ((!E && !opt.sinE) || (opt.claveTablet && !t.el.isConnected)) return;
           if (r && r.ok && r.llave) { exitoAurora(t, function () { opt.alLlave(r.llave, r, t); }); return; }
           t.lock(false);
           if (r && r.crearClave) { estadoEmblema(t, null); tarjetaTemporal(t, r.usuario || u, r.nombre || '', opt); return; }
@@ -1277,6 +1287,21 @@
       }
     });
   }
+  function mostrarClaveTablet() {
+    cerrarTec();
+    tarjetaLogin(null, '', {
+      claveTablet: true,
+      alPin: function () { quitarCapa(); abrir(); },
+      alLlave: function (llave, r, t) { if (t.el.isConnected) entrarConLlave(llave, r, t); }
+    });
+  }
+  function volverClaveTablet() {
+    if (!E || !E.op.claveTablet || E.ocupado || E.clHost) return false;
+    if (E.q('.e-olvp')) return false;
+    mostrarClaveTablet();
+    return true;
+  }
+
   /* la entrada del lobby: «Entrar al sistema» abre la tarjeta; «Entrar con mi PIN» abre el teclado de siempre */
   function entradaClave(z, seguir) {
     var im = z.querySelector('.im'), bt = z.querySelector('.ei-bt'); E.clHost = im;
@@ -1394,7 +1419,7 @@
     /* la pantalla de abajo puede repintarse (p. ej. el lobby toma el fondo que se eligió al bloquear) */
     try { window.dispatchEvent(new Event('eco-desbloqueo')); } catch (e) {} }
 
-  window.EntradaECOVSA = { montar: montar, quitar: desmontar, conHuella: conHuellaPin, huellaMal: huellaMal, abrirPin: function () { abrir(); }, vigiar: vigiar, detener: function () { V.activo = false; quitarAviso(); },
+  window.EntradaECOVSA = { montar: montar, volverClaveTablet: volverClaveTablet, quitar: desmontar, conHuella: conHuellaPin, huellaMal: huellaMal, abrirPin: function () { abrir(); }, vigiar: vigiar, detener: function () { V.activo = false; quitarAviso(); },
                            reanudar: function () { V.pin = pinGuardado(); if (V.iniciado) { V.activo = true; V.ultLocal = Date.now(); } else vigiar(); }, bloquear: function () { quitarAviso(); bloquear(); },
                            aviso: mostrarAviso, piel: piel, elegirPiel: function (valor) { if (valor === 'clara' || valor === 'noche') lsSet('eco_aurora_piel', valor); }, base: BASE };
   /* puente.js la carga con data-vigia: arranca el vigía sola */

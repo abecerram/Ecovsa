@@ -3355,6 +3355,12 @@ if(esSupervisor()) avisoFallasHub_(true);
 }
 
 function errCargar(d){
+  if(window.EcovsaApp && d && d.requiereLogin){
+    PIN = '';
+    guardarLocal(K_PIN, PIN);
+    pedirPin();
+    return;
+  }
   if(esMercadeoLogistica_() || (d && d.accesoCampoDenegado)){
     PERMISO_CONSULTA_LOGISTICA = false;
     document.body.classList.remove("logistica-consulta", "cond-nuevo", "es-conductor", "es-sup");
@@ -17862,6 +17868,7 @@ C38.anima = function(){
 /* el botón «atrás» de Android (app 1.1) */
 window.ecoAtras = function(){
   try{
+    if(window.EntradaECOVSA && EntradaECOVSA.volverClaveTablet && EntradaECOVSA.volverClaveTablet()) return true;
     if(document.querySelector(".c38-menu")){ C38.cerrarMenu(); return true; }
     if(c38Es_()) return C38.atras();
     if(esSupervisor() && INI_TAB && INI_TAB !== "hub"){ mostrarTab("hub"); return true; }
@@ -19032,8 +19039,8 @@ APP38.opcionesMenu = (function(o){ return function(){
    ═══════════════════════════════════════════════════════════════════ */
 var ENT38 = { r: null, pin: "" };
 ENT38.cargar = function(cb){
-  if(window.EntradaECOVSA) return cb();
-  var s = document.createElement("script"); s.src = "entrada.js"; s.id = "ent-js";
+  if(window.EntradaECOVSA && (!window.EcovsaApp || EntradaECOVSA.volverClaveTablet)) return cb();
+  var s = document.createElement("script"); s.src = window.EcovsaApp ? "entrada.js?v=3.118" : "entrada.js"; s.id = "ent-js";
   s.onload = cb; s.onerror = function(){ cb(); };
   document.head.appendChild(s);
 };
@@ -19042,7 +19049,7 @@ pedirPin = (function(o){ return function(){
   ENT38.cargar(function(){
     if(!window.EntradaECOVSA){ o(); return; }
     $("login").style.display = "none";
-    EntradaECOVSA.montar({ validar: ENT38.validar, alEntrar: ENT38.entrar });
+    EntradaECOVSA.montar({ claveTablet: !!window.EcovsaApp, validar: ENT38.validar, alEntrar: ENT38.entrar });
   });
 }; })(pedirPin);
 ENT38.validar = function(p, fin){
@@ -21633,7 +21640,7 @@ window.ecoOcupado = function(){
   }catch(x){}
   return false;
 };
-setTimeout(function(){ try{ if(PIN && APP38.es() && APP38.tiene("bloqueoPin")) EcovsaApp.bloqueoPin(String(PIN)); }catch(e){} }, 6000);
+setTimeout(function(){ try{ if(/^\d+$/.test(PIN) && APP38.es() && APP38.tiene("bloqueoPin")) EcovsaApp.bloqueoPin(String(PIN)); }catch(e){} }, 6000);
 </script>
 <style id="estilo-tfr">
 /* ═══ tablet · frente del conductor (api 3.47): el mapa es el inicio · Maqueta aprobada el 24 oct ═══
