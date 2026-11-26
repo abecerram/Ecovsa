@@ -643,9 +643,20 @@
     lente.setAttribute('aria-hidden', 'true');
     cabecera.append(lente, buscar);
     const opciones = nodo('div', 'pb-opciones');
-    const filas = lab.rutas.filter(r => lab.permitidos.includes(r.id)).map(r => {
-      const actual = r.id === lab.pagina;
-      const item = nodo(actual ? 'div' : 'button', 'pb-opcion');
+    /* Módulos que viven dentro de otro: se despliegan bajo él en vez de salir sueltos.
+       Finanzas y Solicitud de pago ya son páginas de Dirección; los archivos viejos solo redirigen. */
+    const hijosDe = { inicio: [
+      { id: 'finanzas', nombre: 'Finanzas', archivo: 'Inicio.html#ftab' },
+      { id: 'solicitud', nombre: 'Solicitud de pago', archivo: 'Inicio.html#fsol' }
+    ] };
+    /* Gestión no tiene página propia: solo reúne Calidad, Seguridad y Ambiente (Ambiente aún sin pantalla). */
+    const gestion = { id: 'gestion', nombre: 'Gestión', icono: 'calidad', hijos: [
+      { id: 'calidad', nombre: 'Calidad', archivo: 'Calidad.html' },
+      { id: 'seguridad', nombre: 'Seguridad', archivo: 'Seguridad.html' }
+    ] };
+    const esHijo = new Set([...Object.values(hijosDe).flat(), ...gestion.hijos].map(h => h.id));
+    const crearFila = (r, actual, clase) => {
+      const item = nodo(actual ? 'div' : 'button', 'pb-opcion' + (clase ? ' ' + clase : ''));
       const icono = nodo('span', 'pb-icono');
       icono.setAttribute('aria-hidden', 'true');
       if (lab.iconos?.[iconos[r.id]]) icono.innerHTML = '<svg viewBox="0 0 24 24">' + lab.iconos[iconos[r.id]] + '</svg>';
@@ -657,15 +668,62 @@
         item.type = 'button';
         item.addEventListener('click', e => { lab.cerrarSelectorBarra(); elegir(r.archivo, e); });
       }
-      return { item, nombre: normalizar(r.nombre) };
-    });
+      return item;
+    };
+    /* Padre: al tocarlo se despliega; adentro, él mismo (si tiene página) y luego sus módulos. */
+    const crearGrupo = (r, hijos, conPropio) => {
+      const actualEnGrupo = r.id === lab.pagina || hijos.some(h => h.id === lab.pagina);
+      const grupo = nodo('div', 'pb-grupo');
+      const cab = nodo('button', 'pb-opcion pb-padre');
+      cab.type = 'button';
+      cab.setAttribute('aria-expanded', String(actualEnGrupo));
+      const ic = nodo('span', 'pb-icono');
+      ic.setAttribute('aria-hidden', 'true');
+      const clave = iconos[r.icono || r.id];
+      if (lab.iconos?.[clave]) ic.innerHTML = '<svg viewBox="0 0 24 24">' + lab.iconos[clave] + '</svg>';
+      const fl = nodo('span', 'pb-indicador pb-flecha', '›');
+      fl.setAttribute('aria-hidden', 'true');
+      cab.append(ic, nodo('span', '', r.nombre), fl);
+      if (actualEnGrupo) cab.setAttribute('aria-current', 'page');
+      const sub = nodo('div', 'pb-sub');
+      if (conPropio) sub.append(crearFila({ ...r, nombre: 'Resumen de ' + r.nombre }, r.id === lab.pagina, 'pb-hijo'));
+      for (const h of hijos) sub.append(crearFila(h, h.id === lab.pagina, 'pb-hijo'));
+      sub.hidden = !actualEnGrupo;
+      cab.addEventListener('click', () => {
+        const abierto = cab.getAttribute('aria-expanded') === 'true';
+        cab.setAttribute('aria-expanded', String(!abierto));
+        sub.hidden = abierto;
+      });
+      grupo.append(cab, sub);
+      return { item: grupo, nombre: normalizar(r.nombre + ' ' + hijos.map(h => h.nombre).join(' ')), grupo: { cab, sub, abrir: actualEnGrupo } };
+    };
+    const permitidas = lab.rutas.filter(r => lab.permitidos.includes(r.id));
+    const filas = [];
+    for (const r of permitidas) {
+      if (esHijo.has(r.id)) continue;
+      const hijos = (hijosDe[r.id] || []).filter(h => lab.permitidos.includes(h.id));
+      if (!hijos.length) {
+        filas.push({ item: crearFila(r, r.id === lab.pagina), nombre: normalizar(r.nombre) });
+        continue;
+      }
+      filas.push(crearGrupo(r, hijos, true));
+    }
+    const hg = gestion.hijos.filter(h => lab.permitidos.includes(h.id));
+    if (hg.length) filas.push(crearGrupo(gestion, hg, false));
     const vacio = nodo('p', 'pb-vacio', 'Sin coincidencias');
     vacio.hidden = true;
     opciones.append(...filas.map(f => f.item), vacio);
     menu.append(cabecera, opciones);
     buscar.addEventListener('input', () => {
       const filtro = normalizar(buscar.value.trim());
-      for (const f of filas) f.item.hidden = !f.nombre.includes(filtro);
+      for (const f of filas) {
+        f.item.hidden = !f.nombre.includes(filtro);
+        if (f.grupo) {
+          const ab = filtro ? !f.item.hidden : f.grupo.abrir;
+          f.grupo.cab.setAttribute('aria-expanded', String(ab));
+          f.grupo.sub.hidden = !ab;
+        }
+      }
       vacio.hidden = filas.some(f => !f.item.hidden);
     });
     buscar.addEventListener('keydown', e => {

@@ -49,9 +49,9 @@ html[data-pg-vista="piel"] :is(.pg-barra, #tablero .lb.pg-barra) {
 .pg-barra .cap .tx { color: #3d2a00; }
 body.es-sup .pg-barra .mk-us[data-pg-perfil] { cursor: pointer; }
 html[data-pg-piel="clara"] .pg-barra .mk b { background-image: url(ecovsa-letras-azul.png) !important; }
-/* Separación entre «ECOVSA» y «Sistema de operaciones» cuando quedan en la misma línea */
-.pg-barra .mk b { margin-right: 8px; }
-.pg-barra .mk-marca .mk b + span { margin-left: 0; }
+/* «ECOVSA» arriba y «Sistema de operaciones» debajo: no deben quedar mezcladas en la misma línea */
+.pg-barra .mk { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+.pg-barra .mk b, .pg-barra .mk span { display: block; white-space: nowrap; }
 .pg-barra .pg-modulo {
   border: 1px solid #88be4780;
   border-radius: 999px;
@@ -502,6 +502,12 @@ html[data-pg-piel="noche"] .pb-modulos { color-scheme: dark; }
   text-align: left;
 }
 button.pb-opcion { cursor: pointer; }
+.pb-grupo { display: grid; }
+.pb-padre .pb-flecha { transition: transform .2s; }
+.pb-padre[aria-expanded="true"] .pb-flecha { transform: rotate(90deg); }
+.pb-sub { display: grid; margin: 1px 0 4px 14px; padding-left: 8px; border-left: 2px solid var(--pb-borde); }
+.pb-sub[hidden] { display: none; }
+.pb-hijo { min-height: 34px; font-weight: 500; }
 button.pb-opcion:is(:hover,:focus-visible) { background: var(--pb-hover); outline: none; border-color: var(--pb-borde); }
 .pb-opcion[aria-current="page"] { color: var(--pb-acento); background: var(--pb-activo); }
 .pb-opcion[aria-current="page"]::before { content: ''; position: absolute; inset: 6px auto 6px 0; width: 2px; border-radius: 2px; background: var(--pb-linea); }
