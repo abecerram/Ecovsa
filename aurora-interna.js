@@ -11,7 +11,7 @@
   transicionNativa.textContent = '@view-transition { navigation: none; }';
   script.after(transicionNativa);
   const rutas = [
-    ['lobby', 'Mi día', 'index.html'], ['inicio', 'Dirección', 'Inicio.html'],
+    ['lobby', 'Mi día', 'index.html'], ['agenda', 'Agenda del equipo', 'Agenda.html'], ['inicio', 'Dirección', 'Inicio.html'],
     ['campo', 'Logística', 'Index.html'], ['planta', 'Planta', 'Planta.html'],
     ['alta', 'Mercadeo', 'Mercadeo.html'], ['cobros', 'Cobros', 'Cobros.html'],
     ['finanzas', 'Finanzas', 'Finanzas.html'], ['administracion', 'Administración', 'Administracion.html'],
@@ -29,6 +29,7 @@
     activo() { return pagina !== 'campo' || document.body?.classList.contains('es-sup'); }
   };
   html.dataset.ecovsaAurora = '';
+  ui.iconos.agenda='<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h3M8 18h6"/>';
   let ultimaSesion;
   let ultimaConsulta = 0;
   let pendiente;
@@ -53,7 +54,7 @@
         if (pendiente === permiso) pendiente = null;
         if (r?.ok && r.permisos && sesion() === llave) {
           ui.usuario = r.usuario;
-          ui.permitidos = rutas.filter(m => m.id === 'lobby' || ['ve', 'trabaja'].includes(r.permisos[m.id])).map(m => m.id);
+          ui.permitidos = rutas.filter(m => m.id === 'lobby' || (m.id === 'agenda' && ['admin','gerente','supervisor','mercadeo','planta','cobros','operador','logistica','solidos'].includes(String(r.usuario?.rol || '').toLowerCase())) || ['ve', 'trabaja'].includes(r.permisos[m.id])).map(m => m.id);
           ultimaSesion = llave;
           ultimaConsulta = Date.now();
           resolve(true);
@@ -570,7 +571,7 @@
 
   if (!window.EcovsaAurora) return;
   const lab = window.EcovsaAurora;
-  const iconos = { lobby: 'casa', inicio: 'brujula', campo: 'camion', planta: 'planta', alta: 'personas',
+  const iconos = { agenda:'agenda', lobby: 'casa', inicio: 'brujula', campo: 'camion', planta: 'planta', alta: 'personas',
     cobros: 'moneda', config: 'ajustes', calidad: 'sello', seguridad: 'escudo', finanzas: 'billete', administracion: 'maletin', fumigacion: 'matraz', solicitud: 'recibo', certificados: 'sello' };
   const normalizar = texto => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es');
   let menu;
@@ -903,3 +904,4 @@
     }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
   });
 })();
+
