@@ -471,7 +471,7 @@ function pintarSup() {
 /* ═══ DETALLE (cajón lateral del sistema) ═══ */
 function abrir(id) {
   var x = act().filter(function (z) { return z.id === +id; })[0];
-  if (x && innerWidth > 900 && (x.para === YO() || x.de === YO())) { BJ.sel = x.id; BJ.q = ''; var s = x.para === YO() ? 'me' : 'yo'; if (MK.seccion === s) pintarBandeja(s); else MK.ir(s); return; }
+  if (x && innerWidth > 900 && (x.para === YO() || x.de === YO())) { BJ.sel = x.id; BJ.q = ''; var s = x.para === YO() ? 'me' : 'yo'; BJ.seg = s; BJ.ver = x.e === 'hecha' ? 'hechas' : 'abiertas'; if (MK.seccion === s) pintarBandeja(s); else MK.ir(s); return; }
   abrirLado(id);
 }
 function abrirLado(id) {
@@ -640,7 +640,7 @@ MK.iniciar({
   accion: { t: 'Nueva actividad', i: 'mas', fn: function () { nuevo(); } },
   buscar: { ph: 'Buscar actividad, cliente o persona…', fn: function (q) { q = q.toLowerCase(); return act().filter(function (a) { return (a.t + ' ' + a.ref + ' ' + PE(a.de).n + ' ' + PE(a.para).n).toLowerCase().indexOf(q) >= 0; }).map(function (a) { return { t: a.t, d: PE(a.de).n + ' → ' + PE(a.para).n + ' · ' + EST[a.e], i: (TIPOS[a.tipo] || TIPOS.tarea)[1], ir: function () { abrir(a.id); } }; }); } },
   alCargar: function (b) {
-    var yo = b.usuario.id, l = b.actividades, atr = l.filter(function (a) { return a.para === yo && a.e !== 'hecha' && a.f && a.f < b.hoy; }).length;
+    var yo = b.usuario.id, l = b.actividades; try { var ag119Leidas = JSON.parse(localStorage.getItem('eco_ag119b_leidas_' + yo) || '{}'); l.forEach(function(a){ if(ag119Leidas[a.id + ':' + a.v])a.aviso=false; }); } catch(e) {} var atr = l.filter(function (a) { return a.para === yo && a.e !== 'hecha' && a.f && a.f < b.hoy; }).length;
     MK.contador('me', l.filter(function (a) { return a.para === yo && a.e !== 'hecha'; }).length, atr ? 'rj' : '');
     MK.contador('yo', l.filter(function (a) { return a.de === yo && a.e === 'devuelta'; }).length, 'rj');
     MK.contador('cal', l.filter(function (a) { return a.para === yo && a.e !== 'hecha' && a.f === b.hoy; }).length, 'am');
@@ -661,3 +661,4 @@ MK.iniciar({
 })();</script>
 </body>
 </html>
+
