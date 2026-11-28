@@ -162,7 +162,7 @@ function cargar(pin, fin){
   google.script.run
     .withSuccessHandler(function(r){ window.__LISTO__=true; fin(r); })
     .withFailureHandler(function(){ window.__LISTO__=true; fin({ok:false,error:"Sin conexión. Intenta con señal."}); })
-    .api_tablero(pin);
+    .api_tablero(pin,{agendaEquipo:true});
 }
 
 window.addEventListener("eco-llave",function(e){ if(PIN_ACTUAL) PIN_ACTUAL=e.detail; });   /* api 3.92: la llave renovada */
@@ -275,7 +275,7 @@ function pintar(r){
     AD.sort(function(x,y){ return (x.nivel==="r"?0:1)-(y.nivel==="r"?0:1); });
     admH=(rol==="admin"&&AD.length)?'<div class="adm"><h3><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ADMIN</h3><div class="ch">'+
       AD.map(function(a){ return '<button class="'+(a.nivel==="r"?"r":"a")+'" onclick="irTipo(\''+a.tipo+'\',\''+esc(a.ref||'')+'\')"><i style="background:'+(a.nivel==="r"?"#ff7b72":"#f5b301")+'"></i><span><b>'+esc(a.n)+'</b> '+esc(a.chip)+'</span><span class="ar">›</span></button>'; }).join("")+'</div></div>':"";
-    var gT=(G.tuyo||[]).slice(0,rol==="admin"?7:4), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
+    var gT=(G.tuyo||[]), gM=(G.modulo||[]).slice(0,G.tuyo&&G.tuyo.length?5:6), gS=(G.sigue||[]).slice(0,4);
     ESPERA=gT.concat(gM,gS); P=ESPERA;
     var mios=(G.tuyo||[]).concat(G.modulo||[]);
     nP=mios.length; nU=mios.filter(function(p){ return p.nivel==="r"; }).length;
@@ -375,7 +375,8 @@ function abrirNormas(){
   v.classList.add("si");
 }
 function modulo(id){ if(id==="gestion"&&window._GES) return window._GES; return (TAB&&TAB.modulos||[]).filter(function(m){ return m.id===id; })[0]; }
-function irPend(i){ var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
+function irPend(i){
+  if(ESPERA[i]&&ESPERA[i].tipo==="agendaEquipo"){ navegar("Agenda.html#me-"+encodeURIComponent(ESPERA[i].agId));return;} var p=ESPERA[i]; if(!p) return; var m=modulo(p.ir);
   /* api 3.7: la ruta en borrador o la ficha del cliente se abren directo */
   if(p.tipo==="espacio"){ navegar(String(URL_APP||"").replace(/[^\/]*$/,"")+"Configuracion.html#esp"); return; }
   if(p.tipo==="seguridad"||/^ptl/.test(p.tipo||"")||p.tipo==="recCorr"){ irTipo(p.tipo,p.ref); return; }
@@ -416,3 +417,4 @@ function irA(url){
 </script>
 </body>
 </html>
+
