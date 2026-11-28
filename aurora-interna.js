@@ -905,3 +905,10 @@
   });
 })();
 
+
+/* 3.119b · cargador de la barra común; sin APK, conductor ni documentos. */
+(function(){
+  if(!window.EcovsaAurora || document.getElementById('ag119b-script'))return;
+  var s=document.createElement('script');s.id='ag119b-script';s.src='agenda-barra3119b.js?v=3119b';s.defer=true;document.head.appendChild(s);
+})();
+
