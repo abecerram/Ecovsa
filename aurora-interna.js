@@ -160,7 +160,7 @@
   cambiarTema(temaInicial === 'clara' ? 'clara' : 'noche', !!temaInicial);
   window.addEventListener('storage', e => { if (e.key === clavePiel) cambiarTema(e.newValue, false); });
 
-  const paginas = new Set(["index.html","Index.html","Inicio.html","Planta.html","Mercadeo.html","Cobros.html","Configuracion.html","Calidad.html","Seguridad.html","Fumigacion.html","MerAgenda.html","MerAjustes.html","MerCliente.html","MerClientes.html","MerCompras.html","MerCuenta.html","MerDocumentos.html","MerEncuestas.html","MerEntregables.html","MerMinsa.html","MerOportunidad.html","MerOportunidades.html","MerReportes.html","MerTarifario.html","Administracion.html","Alta.html","SolicitudPago.html","Certificado.html","Panel.html","RCartera.html","RZona.html"]);
+  const paginas = new Set(["index.html","Index.html","Agenda.html","Inicio.html","Planta.html","Mercadeo.html","Cobros.html","Configuracion.html","Calidad.html","Seguridad.html","Fumigacion.html","MerAgenda.html","MerAjustes.html","MerCliente.html","MerClientes.html","MerCompras.html","MerCuenta.html","MerDocumentos.html","MerEncuestas.html","MerEntregables.html","MerMinsa.html","MerOportunidad.html","MerOportunidades.html","MerReportes.html","MerTarifario.html","Administracion.html","Alta.html","SolicitudPago.html","Certificado.html","Panel.html","RCartera.html","RZona.html"]);
   function resolver(href) {
     try {
       const url = new URL(href, location.href);
